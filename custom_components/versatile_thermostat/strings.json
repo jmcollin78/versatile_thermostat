@@ -13,6 +13,9 @@
           "window_sensor_entity_id": "[%key:config::data::window_sensor_entity_id%]",
           "motion_sensor_entity_id": "[%key:config::data::motion_sensor_entity_id%]",
           "device_power": "[%key:config::data::device_power%]",
+          "cycle_min": "[%key:config::data::cycle_min%]",
+          "proportional_function": "[%key:config::data::proportional_function%]",
+          "proportional_bias": "[%key:config::data::proportional_bias%]"
         }
       }
     },

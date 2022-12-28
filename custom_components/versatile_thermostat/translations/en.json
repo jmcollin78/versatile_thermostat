@@ -18,7 +18,10 @@
                     "max_power_sensor_entity_id": "Max power sensor entity id",
                     "window_sensor_entity_id": "Window sensor entity id",
                     "motion_sensor_entity_id": "Motion sensor entity id",
-                    "device_power": "Device power (kW)"
+                    "device_power": "Device power (kW)",
+                    "cycle_min": "Cycle duration (min)",
+                    "proportional_function": "Function to use (atan is more aggressive)",
+                    "proportional_bias": "A bias to use in proportional algorithm"
                 }
             }
         }

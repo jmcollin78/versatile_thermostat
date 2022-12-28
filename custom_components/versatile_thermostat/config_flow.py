@@ -28,8 +28,14 @@ from .const import (
     CONF_WINDOW_SENSOR,
     CONF_MOTION_SENSOR,
     CONF_DEVICE_POWER,
+    CONF_CYCLE_MIN,
     ALL_CONF,
     CONF_PRESETS,
+    CONF_FUNCTIONS,
+    CONF_PROP_FUNCTION,
+    CONF_PROP_BIAS,
+    PROPORTIONAL_FUNCTION_ATAN,
+    PROPORTIONAL_FUNCTION_LINEAR,
 )
 
 # from .climate import VersatileThermostat
@@ -40,6 +46,11 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_HEATER): cv.string,
+        vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
+        vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_LINEAR): vol.In(
+            [PROPORTIONAL_FUNCTION_LINEAR, PROPORTIONAL_FUNCTION_ATAN]
+        ),
+        vol.Required(CONF_PROP_BIAS, default=0.25): vol.Coerce(float),
         vol.Required(CONF_TEMP_SENSOR): cv.string,
         vol.Optional(CONF_POWER_SENSOR): cv.string,
         vol.Optional(CONF_MAX_POWER_SENSOR): cv.string,

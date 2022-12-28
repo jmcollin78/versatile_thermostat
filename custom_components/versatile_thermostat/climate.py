@@ -1,4 +1,5 @@
 import math
+from datetime import timedelta
 
 from homeassistant.core import HomeAssistant, callback, CoreState
 from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
@@ -62,8 +63,13 @@ from .const import (
     CONF_WINDOW_SENSOR,
     CONF_DEVICE_POWER,
     CONF_PRESETS,
+    CONF_CYCLE_MIN,
+    CONF_PROP_FUNCTION,
+    CONF_PROP_BIAS,
     SUPPORT_FLAGS,
 )
+
+from .prop_algorithm import PropAlgorithm
 
 
 async def async_setup_entry(
@@ -79,6 +85,9 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     heater_entity_id = entry.data.get(CONF_HEATER)
+    cycle_min = entry.data.get(CONF_CYCLE_MIN)
+    proportional_function = entry.data.get(CONF_PROP_FUNCTION)
+    proportional_bias = entry.data.get(CONF_PROP_BIAS)
     temp_sensor_entity_id = entry.data.get(CONF_TEMP_SENSOR)
     power_sensor_entity_id = entry.data.get(CONF_POWER_SENSOR)
     max_power_sensor_entity_id = entry.data.get(CONF_MAX_POWER_SENSOR)
@@ -100,6 +109,9 @@ async def async_setup_entry(
                 unique_id,
                 name,
                 heater_entity_id,
+                cycle_min,
+                proportional_function,
+                proportional_bias,
                 temp_sensor_entity_id,
                 power_sensor_entity_id,
                 max_power_sensor_entity_id,
@@ -118,12 +130,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     _name: str
     _heater_entity_id: str
+    _prop_algorithm: PropAlgorithm
 
     def __init__(
         self,
         unique_id,
         name,
         heater_entity_id,
+        cycle_min,
+        proportional_function,
+        proportional_bias,
         temp_sensor_entity_id,
         power_sensor_entity_id,
         max_power_sensor_entity_id,
@@ -139,6 +155,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._unique_id = unique_id
         self._name = name
         self._heater_entity_id = heater_entity_id
+        self._cycle_min = cycle_min
+        self._proportional_function = proportional_function
+        self._proportional_bias = proportional_bias
         self._temp_sensor_entity_id = temp_sensor_entity_id
         self._power_sensor_entity_id = power_sensor_entity_id
         self._max_power_sensor_entity_id = max_power_sensor_entity_id
@@ -188,6 +207,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._fan_mode = None
         self._swing_mode = None
         self._cur_temp = None
+
+        # Initiate the ProportionalAlgorithm
+        self._prop_algorithm = PropAlgorithm(
+            self._proportional_function, self._proportional_bias, self._cycle_min
+        )
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s heater_entity_id=%s",
@@ -268,10 +292,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
         if hvac_mode == HVAC_MODE_HEAT:
             self._hvac_mode = HVAC_MODE_HEAT
-            # TODO await self._async_control_heating(force=True)
+            await self._async_control_heating()
         elif hvac_mode == HVAC_MODE_COOL:
             self._hvac_mode = HVAC_MODE_COOL
-            # TODO await self._async_control_heating(force=True)
+            await self._async_control_heating()
         elif hvac_mode == HVAC_MODE_OFF:
             self._hvac_mode = HVAC_MODE_OFF
             # TODO self.prop_current_phase = PROP_PHASE_NONE
@@ -296,19 +320,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == PRESET_NONE:
             self._attr_preset_mode = PRESET_NONE
             self._target_temp = self._saved_target_temp
-            # TODO await self._async_control_heating(force=True)
+            await self._async_control_heating()
         elif preset_mode == PRESET_ACTIVITY:
             self._attr_preset_mode = PRESET_ACTIVITY
             # TODO self._target_temp = self._presets[self.no_motion_mode]
-            # await self._async_control_heating(force=True)
+            await self._async_control_heating()
         else:
             if self._attr_preset_mode == PRESET_NONE:
                 self._saved_target_temp = self._target_temp
             self._attr_preset_mode = preset_mode
             self._target_temp = self._presets[preset_mode]
-            # TODO await self._async_control_heating(force=True)
+            await self._async_control_heating()
 
         self.async_write_ha_state()
+        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -341,7 +366,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
         self._target_temp = temperature
         self._attr_preset_mode = PRESET_NONE
-        # TODO await self._async_control_heating(force=True)
+        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
         self.async_write_ha_state()
 
     @callback
@@ -387,12 +412,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self._async_motion_changed,
                 )
             )
-        # if self._keep_alive:
-        #    self.async_on_remove(
-        #        async_track_time_interval(
-        #            self.hass, self._async_control_heating, self._keep_alive
-        #        )
-        #    )
+
+        if self._cycle_min:
+            self.async_on_remove(
+                async_track_time_interval(
+                    self.hass,
+                    self._async_control_heating,
+                    interval=timedelta(minutes=self._cycle_min),
+                )
+            )
+
         if self._power_sensor_entity_id:
             self.async_on_remove(
                 async_track_state_change_event(
@@ -431,7 +460,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self,
                     float(temperature_state.state),
                 )
-                # TODO self._async_update_temp(temperature_state)
+                self._async_update_temp(temperature_state)
                 need_write_state = True
 
             switch_state = self.hass.states.get(self._heater_entity_id)
@@ -474,7 +503,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             if need_write_state:
                 self.async_write_ha_state()
-            # TODO self.hass.create_task(self._async_control_heating())
+                self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+            self.hass.create_task(self._async_control_heating())
 
         if self.hass.state == CoreState.running:
             _async_startup_internal()
@@ -551,7 +581,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         self._async_update_temp(new_state)
-        # TODO await self._async_control_heating()
+        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+        # TODO Not sure we need this - await self._async_control_heating()
         self.async_write_ha_state()
 
     @callback
@@ -689,3 +720,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
+
+    async def _async_control_heating(self, time=None):
+        """The main function used to run the calculation at each cycle"""
+        on_time_sec = self._prop_algorithm.on_time_sec
+        off_time_sec = self._prop_algorithm.off_time_sec
+        _LOGGER.info(
+            "%s - Running new cycle at %s. on_time_sec=%f, off_time_sec=%f",
+            self,
+            time,
+            on_time_sec,
+            off_time_sec,
+        )
