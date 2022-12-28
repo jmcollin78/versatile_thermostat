@@ -1,0 +1,26 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "name": "Name",
+                    "heater_entity_id": "Heater entity id",
+                    "temperature_sensor_entity_id": "Temperature sensor entity id",
+                    "power_sensor_entity_id": "Power sensor entity id",
+                    "max_power_sensor_entity_id": "Max power sensor entity id",
+                    "window_sensor_entity_id": "Window sensor entity id",
+                    "motion_sensor_entity_id": "Motion sensor entity id",
+                    "device_power": "Device power (kW)"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+  "title": "Versatile Thermostat configuration",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add new Versatile Thermostat",
+        "data": {
+          "name": "[%key:config::data::name%]",
+          "heater_entity_id": "[%key:config::data::heater_entity_id%]",
+          "temperature_sensor_entity_id": "[%key:config::data::temperature_sensor_entity_id%]",
+          "power_sensor_entity_id": "[%key:config::data::power_sensor_entity_id%]",
+          "max_power_sensor_entity_id": "[%key:config::data::max_power_sensor_entity_id%]",
+          "window_sensor_entity_id": "[%key:config::data::window_sensor_entity_id%]",
+          "motion_sensor_entity_id": "[%key:config::data::motion_sensor_entity_id%]",
+          "device_power": "[%key:config::data::device_power%]",
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}

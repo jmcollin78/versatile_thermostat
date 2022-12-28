@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "domain": "versatile_thermostat",
+  "name": "Versatile Thermostat",
+  "config_flow": true,
+  "documentation": "https://github.com/jmcollin78/versatile_thermostat",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@jmcollin78"
+  ],
+  "iot_class": "local_polling",
+  "integration_type": "device"
+}

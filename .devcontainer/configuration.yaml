@@ -1,0 +1,44 @@
+default_config:
+
+logger:
+  default: info
+  logs:
+    custom_components.versatile_thermostat: debug
+
+# If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
+debugpy:
+
+input_number:
+  fake_temperature_sensor1:
+    name: Temperature
+    min: 0
+    max: 35
+    step: 1
+    icon: mdi:thermometer
+  fake_current_power:
+    name: Current power
+    min: 0
+    max: 1000
+    step: 10
+    icon: mdi:flash
+  fake_current_power_max:
+    name: Current power max threshold
+    min: 0
+    max: 1000
+    step: 10
+    icon: mdi:flash
+
+
+input_boolean:
+  # input_boolean to simulate the windows entity. Only for development environment.
+  fake_window_sensor1:
+    name: Window 1
+    icon: mdi:window-closed-variant
+  # input_boolean to simulate the heater entity switch. Only for development environment.
+  fake_heater_switch1:
+    name: Heater 1
+    icon: mdi:radiator
+  # input_boolean to simulate the motion sensor entity. Only for development environment.
+  fake_motion_sensor1:
+    name: Motion Sensor 1
+    icon: mdi:run
