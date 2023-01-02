@@ -10,7 +10,7 @@
         {
             "label": "Run Home Assistant configuration against /config",
             "type": "shell",
-            "command": "container check",
+            "command": "container check-config",
             "problemMatcher": []
         },
         {

@@ -1,0 +1,127 @@
+{
+  "title": "Versatile Thermostat configuration",
+  "config": {
+    "flow_title": "Versatile Thermostat configuration",
+    "step": {
+      "user": {
+        "title": "Ajout d'un nouveau thermostat",
+        "description": "Principaux attributs obligatoires",
+        "data": {
+          "name": "Nom",
+          "heater_entity_id": "Radiateur entity id",
+          "temperature_sensor_entity_id": "Température sensor entity id",
+          "cycle_min": "Durée du cycle (minutes)",
+          "proportional_function": "Fonction de l'algorithm proportionnel à utiliser (atan est plus aggressive)",
+          "proportional_bias": "Un biais à utiliser dans l'algorithm proportionnel"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "Pour chaque preset, donnez la température cible",
+        "data": {
+          "eco_temp": "Température en preset Eco",
+          "away_temp": "Température en preset Away",
+          "comfort_temp": "Température en preset Comfort",
+          "boost_temp": "Température en preset Boost",
+          "power_temp": "Température en preset Power (overpowering)"
+        }
+      },
+      "window": {
+        "title": "Gestion d'une ouverture",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
+        "data": {
+          "window_sensor_entity_id": "Ouverture sensor entity id",
+          "window_delay": "Délai avant extinction (seconds)"
+        }
+      },
+      "motion": {
+        "title": "Gestion de la détection de mouvement",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
+        "data": {
+          "motion_sensor_entity_id": "Détecteur de mouvement entity id",
+          "motion_delay": "Délai avant changement (seconds)",
+          "motion_preset": "Preset à utiliser si mouvement détecté",
+          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
+        }
+      },
+      "power": {
+        "title": "Gestion de l'énergie",
+        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
+        "data": {
+          "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
+          "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
+          "device_power": "Puissance de l'équipement"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Erreur inattendue",
+      "unknown_entity": "entity id inconnu"
+    },
+    "abort": {
+      "already_configured": "Le device est déjà configuré"
+    }
+  },
+  "options": {
+    "flow_title": "Versatile Thermostat configuration",
+    "step": {
+      "user": {
+        "title": "Configuration d'un thermostat",
+        "description": "Principaux attributs obligatoires",
+        "data": {
+          "name": "Nom",
+          "heater_entity_id": "Radiateur entity id",
+          "temperature_sensor_entity_id": "Température sensor entity id",
+          "cycle_min": "Durée du cycle (minutes)",
+          "proportional_function": "Fonction de l'algorithm proportionnel à utiliser (atan est plus aggressive)",
+          "proportional_bias": "Un biais à utiliser dans l'algorithm proportionnel"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "Pour chaque preset, donnez la température cible",
+        "data": {
+          "eco_temp": "Température en preset Eco",
+          "away_temp": "Température en preset Away",
+          "comfort_temp": "Température en preset Comfort",
+          "boost_temp": "Température en preset Boost",
+          "power_temp": "Température en preset Power (overpowering)"
+        }
+      },
+      "window": {
+        "title": "Gestion d'une ouverture",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
+        "data": {
+          "window_sensor_entity_id": "Ouverture sensor entity id",
+          "window_delay": "Délai avant extinction (seconds)"
+        }
+      },
+      "motion": {
+        "title": "Gestion de la détection de mouvement",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
+        "data": {
+          "motion_sensor_entity_id": "Détecteur de mouvement entity id",
+          "motion_delay": "Délai avant changement (seconds)",
+          "motion_preset": "Preset à utiliser si mouvement détecté",
+          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
+        }
+      },
+      "power": {
+        "title": "Gestion de l'énergie",
+        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
+        "data": {
+          "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
+          "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
+          "device_power": "Puissance de l'équipement"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Erreur inattendue",
+      "unknown_entity": "entity id inconnu"
+    },
+    "abort": {
+      "already_configured": "Le device est déjà configuré"
+    }
+  }
+}

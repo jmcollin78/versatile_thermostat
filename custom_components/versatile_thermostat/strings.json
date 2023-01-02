@@ -1,31 +1,127 @@
 {
   "title": "Versatile Thermostat configuration",
   "config": {
+    "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
-        "title": "Add new Versatile Thermostat",
+        "title": "Add new Versatile Thermostat2",
+        "description": "Main mandatory attributes",
         "data": {
-          "name": "[%key:config::data::name%]",
-          "heater_entity_id": "[%key:config::data::heater_entity_id%]",
-          "temperature_sensor_entity_id": "[%key:config::data::temperature_sensor_entity_id%]",
-          "power_sensor_entity_id": "[%key:config::data::power_sensor_entity_id%]",
-          "max_power_sensor_entity_id": "[%key:config::data::max_power_sensor_entity_id%]",
-          "window_sensor_entity_id": "[%key:config::data::window_sensor_entity_id%]",
-          "motion_sensor_entity_id": "[%key:config::data::motion_sensor_entity_id%]",
-          "device_power": "[%key:config::data::device_power%]",
-          "cycle_min": "[%key:config::data::cycle_min%]",
-          "proportional_function": "[%key:config::data::proportional_function%]",
-          "proportional_bias": "[%key:config::data::proportional_bias%]"
+          "name": "Name",
+          "heater_entity_id": "Heater entity id",
+          "temperature_sensor_entity_id": "Temperature sensor entity id",
+          "cycle_min": "Cycle duration (minutes)",
+          "proportional_function": "Function to use (atan is more aggressive)",
+          "proportional_bias": "A bias to use in proportional algorithm"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "For each presets, give the target temperature",
+        "data": {
+          "eco_temp": "Temperature in Eco preset",
+          "away_temp": "Temperature in Away preset",
+          "comfort_temp": "Temperature in Comfort preset",
+          "boost_temp": "Temperature in Boost preset",
+          "power_temp": "Temperature in Power (overpowering) preset"
+        }
+      },
+      "window": {
+        "title": "Window management",
+        "description": "Open window management.\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "window_sensor_entity_id": "Window sensor entity id",
+          "window_delay": "Window delay (seconds)"
+        }
+      },
+      "motion": {
+        "title": "Motion sensor management",
+        "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "data": {
+          "motion_sensor_entity_id": "Motion sensor entity id",
+          "motion_delay": "Motion delay (seconds)",
+          "motion_preset": "Preset to use when motion is detected",
+          "no_motion_preset": "Preset to use when no motion is detected"
+        }
+      },
+      "power": {
+        "title": "Power management",
+        "description": "Power management attributes.\nGives the power and max power sensor pf your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "power_sensor_entity_id": "Power sensor entity id",
+          "max_power_sensor_entity_id": "Max power sensor entity id",
+          "device_power": "Device power (kW)"
         }
       }
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "Unexpected error",
+      "unknown_entity": "Unknown entity id"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "flow_title": "Versatile Thermostat configuration",
+    "step": {
+      "user": {
+        "title": "Change a Versatile Thermostat",
+        "description": "Main mandatory attributes",
+        "data": {
+          "name": "Name",
+          "heater_entity_id": "Heater entity id",
+          "temperature_sensor_entity_id": "Temperature sensor entity id",
+          "cycle_min": "Cycle duration (minutes)",
+          "proportional_function": "Function to use in proportional algorithm (atan is more aggressive)",
+          "proportional_bias": "A bias to use in proportional algorithm"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "For each presets, give the target temperature",
+        "data": {
+          "eco_temp": "Temperature in Eco preset",
+          "away_temp": "Temperature in Away preset",
+          "comfort_temp": "Temperature in Comfort preset",
+          "boost_temp": "Temperature in Boost preset",
+          "power_temp": "Temperature in Power (overpowering) preset"
+        }
+      },
+      "window": {
+        "title": "Window management",
+        "description": "Open window management.\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "window_sensor_entity_id": "Window sensor entity id",
+          "window_delay": "Window delay (seconds)"
+        }
+      },
+      "motion": {
+        "title": "Motion sensor management",
+        "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "data": {
+          "motion_sensor_entity_id": "Motion sensor entity id",
+          "motion_delay": "Motion delay (seconds)",
+          "motion_preset": "Preset to use when motion is detected",
+          "no_motion_preset": "Preset to use when no motion is detected"
+        }
+      },
+      "power": {
+        "title": "Power management",
+        "description": "Power management attributes.\nGives the power and max power sensor pf your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "power_sensor_entity_id": "Power sensor entity id",
+          "max_power_sensor_entity_id": "Max power sensor entity id",
+          "device_power": "Device power (kW)"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Unexpected error",
+      "unknown_entity": "Unknown entity id"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
     }
   }
 }

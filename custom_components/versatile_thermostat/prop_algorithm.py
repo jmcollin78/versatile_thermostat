@@ -52,6 +52,8 @@ class PropAlgorithm:
         # calculated on_time duration in seconds
         if on_percent > 1:
             on_percent = 1
+        if on_percent < 0:
+            on_percent = 0
         self._on_time_sec = on_percent * self._cycle_min * 60
 
         # Do not heat for less than xx sec
@@ -66,18 +68,20 @@ class PropAlgorithm:
         self._off_time_sec = (1.0 - on_percent) * self._cycle_min * 60
 
         _LOGGER.debug(
-            "heating percent calculated is %f, on_time is %f (sec), off_time is %s (sec)",
+            "heating percent calculated for current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",
+            current_temp if current_temp else -1.0,
+            target_temp if target_temp else -1.0,
             on_percent,
-            self._on_time_sec,
-            self._off_time_sec,
+            self.on_time_sec,
+            self.off_time_sec,
         )
 
     @property
-    def on_time_sec(self):
+    def on_time_sec(self) -> int:
         """Returns the calculated time in sec the heater must be ON"""
-        return self._on_time_sec
+        return int(self._on_time_sec)
 
     @property
-    def off_time_sec(self):
+    def off_time_sec(self) -> int:
         """Returns the calculated time in sec the heater must be OFF"""
-        return self._off_time_sec
+        return int(self._off_time_sec)
