@@ -1,7 +1,7 @@
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
-[![hacs][hacsbadge]][hacs]
+[![hacs][hacs_badge]][hacs]
 
 
 _Component developed by using the amazing development template [blueprint][blueprint]._
