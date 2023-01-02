@@ -789,7 +789,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug(event)
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
-        if new_state is None or new_state.state == old_state.state:
+        if new_state is None or (
+            old_state is not None and new_state.state == old_state.state
+        ):
             return
 
         try:
@@ -896,7 +898,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._async_cancel_cycle = None
             await self._async_heater_turn_off()
 
-        if self._hvac_mode == HVAC_MODE_HEAT:
+        if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
             _LOGGER.info(
                 "%s - start heating for %d min %d sec ",
                 self,
