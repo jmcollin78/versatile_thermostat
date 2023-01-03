@@ -842,6 +842,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Check the overpowering condition
         Turn the preset_mode of the heater to 'power' if power conditions are exceeded
         """
+
+        if not self._pmax_on:
+            return
+
         _LOGGER.debug(
             "%s - overpowering check: power=%.3f, max_power=%.3f heater power=%.3f",
             self,

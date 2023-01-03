@@ -6,7 +6,14 @@
 
 _Component developed by using the amazing development template [blueprint][blueprint]._
 
-This custom component for Home Assistant is an upgrade and complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
+This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
+
+## When to use / not use
+This thermostat aims to command a heater which works only in on/off mode. This thermostat is not suitable for heaters with a pilot wire. The minimal needed configuration to use this thermostat is:
+1. an equipement like a heater (a switch),
+2. a temperature sensor (or an input_number)
+
+Because this integration aims to command the heater considering the preset configured and the room temperature, those informations are mandatory.
 
 ## Why another thermostat implementation ?
 For my personnal usage, I needed to add a couple of features and also to update the behavior that I implemented in my previous component "Awesome thermostat".
@@ -129,6 +136,12 @@ Depending of your area and heater, the convergente temperature can be under the 
 
 A function parameter is available. Set it to "Linear" to have a linéar growth of temperature or set it to "Atan" to have a more aggressive curve to target temperature depending of your need.
 
+Some results:
+Convergence of temperature to target configured by preset:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/dev/images/results-1.png?raw=true)
+
+Cycle of on/off calculated by the integration:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/dev/images/results-2.png?raw=true)
 
 Enjoy !
 
@@ -157,6 +170,35 @@ In this example I set ECO mode during the night and the day when nobody's at hom
 
 
 I hope this example helps you, don't hesitate to give me your feedbacks !
+
+## Even / even better with custom:simple-thermostat front integration
+The custom:simple-thermostat (see https://home.clouderial.fr/hacs/repository/158654878) is a great integration which allow some customisation which fits well with this thermostat.
+You can have something like that very easily ![image](https://github.com/jmcollin78/versatile_thermostat/blob/dev/images/simple-thermostat.png?raw=true)
+Example configuration:
+
+```
+      type: custom:simple-thermostat
+      entity: climate.thermostat_sam2
+      layout:
+        step: row
+      label:
+        temperature: T°
+        state: Etat
+      hide:
+        state: false
+      control:
+        hvac:
+          _name: Mode
+        preset:
+          _name: Preset
+      sensors:
+        - entity: sensor.total_puissance_radiateur_sam2
+          icon: mdi:lightning-bolt-outline
+      header:
+        toggle:
+          entity: input_boolean.etat_ouverture_porte_sam
+          name: Porte sam
+```
 
 ## Contributions are welcome!
 
