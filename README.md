@@ -136,7 +136,8 @@ Depending of your area and heater, the convergente temperature can be under the 
 
 A function parameter is available. Set it to "Linear" to have a linéar growth of temperature or set it to "Atan" to have a more aggressive curve to target temperature depending of your need.
 
-Some results:
+### Some results
+
 Convergence of temperature to target configured by preset:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/dev/images/results-1.png?raw=true)
 
