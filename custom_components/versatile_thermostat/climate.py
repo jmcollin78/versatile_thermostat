@@ -248,16 +248,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Power management
         self._device_power = device_power
+        self._pmax_on = False
+        self._current_power = None
+        self._current_power_max = None
         if (
             self._max_power_sensor_entity_id
             and self._power_sensor_entity_id
             and self._device_power
         ):
             self._pmax_on = True
-            self._current_power = -1
-            self._current_power_max = -1
-        else:
-            self._pmax_on = False
+            self._current_power = 0
+            self._current_power_max = 0
 
         # will be restored if possible
         self._target_temp = None
