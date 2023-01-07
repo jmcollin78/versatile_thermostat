@@ -665,6 +665,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             if old_state.attributes.get(ATTR_PRESET_MODE) in self._attr_preset_modes:
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
+                self._saved_preset_mode = self._attr_preset_mode
 
             if not self._hvac_mode and old_state.state:
                 self._hvac_mode = old_state.state
@@ -996,6 +997,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self,
                 self._attr_preset_mode,
             )
+            await self._async_heater_turn_off()
             return
 
         on_time_sec: int = self._prop_algorithm.on_time_sec
@@ -1013,7 +1015,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.debug("Cancelling the previous cycle that was running")
             self._async_cancel_cycle()
             self._async_cancel_cycle = None
-            # await self._async_heater_turn_off()
+            # Don't turn off if we will turn on just after
+            if on_time_sec <= 0:
+                await self._async_heater_turn_off()
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
             _LOGGER.info(
