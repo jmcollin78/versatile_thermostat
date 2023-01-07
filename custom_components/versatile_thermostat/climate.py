@@ -4,13 +4,13 @@ import logging
 from datetime import timedelta
 
 from homeassistant.core import (
-    HomeAssistant,
+    # HomeAssistant,
     callback,
     CoreState,
     DOMAIN as HA_DOMAIN,
     CALLBACK_TYPE,
 )
-from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -26,7 +26,7 @@ from homeassistant.helpers import condition
 
 from homeassistant.components.climate.const import (
     ATTR_PRESET_MODE,
-    ATTR_FAN_MODE,
+    # ATTR_FAN_MODE,
     CURRENT_HVAC_COOL,
     CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
@@ -35,24 +35,24 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_ACTIVITY,
-    PRESET_AWAY,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    PRESET_HOME,
+    # PRESET_AWAY,
+    # PRESET_BOOST,
+    # PRESET_COMFORT,
+    # PRESET_ECO,
+    # PRESET_HOME,
     PRESET_NONE,
-    PRESET_SLEEP,
+    # PRESET_SLEEP,
     SUPPORT_PRESET_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
+    # SUPPORT_TARGET_TEMPERATURE,
 )
 
 from homeassistant.const import (
-    UnitOfTemperature,
+    # UnitOfTemperature,
     ATTR_TEMPERATURE,
     TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    # TEMP_FAHRENHEIT,
     CONF_NAME,
-    CONF_UNIQUE_ID,
+    # CONF_UNIQUE_ID,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
     STATE_OFF,
@@ -64,10 +64,11 @@ from homeassistant.const import (
 )
 
 from .const import (
-    DOMAIN,
+    # DOMAIN,
     CONF_HEATER,
     CONF_POWER_SENSOR,
     CONF_TEMP_SENSOR,
+    CONF_EXTERNAL_TEMP_SENSOR,
     CONF_MAX_POWER_SENSOR,
     CONF_WINDOW_SENSOR,
     CONF_WINDOW_DELAY,
@@ -80,8 +81,11 @@ from .const import (
     CONF_CYCLE_MIN,
     CONF_PROP_FUNCTION,
     CONF_PROP_BIAS,
+    CONF_TPI_COEF_C,
+    CONF_TPI_COEF_T,
     SUPPORT_FLAGS,
     PRESET_POWER,
+    PROPORTIONAL_FUNCTION_TPI,
 )
 
 from .prop_algorithm import PropAlgorithm
@@ -90,7 +94,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _,  # hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -106,6 +110,7 @@ async def async_setup_entry(
     proportional_function = entry.data.get(CONF_PROP_FUNCTION)
     proportional_bias = entry.data.get(CONF_PROP_BIAS)
     temp_sensor_entity_id = entry.data.get(CONF_TEMP_SENSOR)
+    ext_temp_sensor_entity_id = entry.data.get(CONF_EXTERNAL_TEMP_SENSOR)
     power_sensor_entity_id = entry.data.get(CONF_POWER_SENSOR)
     max_power_sensor_entity_id = entry.data.get(CONF_MAX_POWER_SENSOR)
     window_sensor_entity_id = entry.data.get(CONF_WINDOW_SENSOR)
@@ -115,6 +120,8 @@ async def async_setup_entry(
     motion_preset = entry.data.get(CONF_MOTION_PRESET)
     no_motion_preset = entry.data.get(CONF_NO_MOTION_PRESET)
     device_power = entry.data.get(CONF_DEVICE_POWER)
+    tpi_coefc = entry.data.get(CONF_TPI_COEF_C)
+    tpi_coeft = entry.data.get(CONF_TPI_COEF_T)
 
     presets = {}
     for (key, value) in CONF_PRESETS.items():
@@ -134,6 +141,7 @@ async def async_setup_entry(
                 proportional_function,
                 proportional_bias,
                 temp_sensor_entity_id,
+                ext_temp_sensor_entity_id,
                 power_sensor_entity_id,
                 max_power_sensor_entity_id,
                 window_sensor_entity_id,
@@ -144,6 +152,8 @@ async def async_setup_entry(
                 no_motion_preset,
                 presets,
                 device_power,
+                tpi_coefc,
+                tpi_coeft,
             )
         ],
         True,
@@ -167,6 +177,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         proportional_function,
         proportional_bias,
         temp_sensor_entity_id,
+        ext_temp_sensor_entity_id,
         power_sensor_entity_id,
         max_power_sensor_entity_id,
         window_sensor_entity_id,
@@ -177,6 +188,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         no_motion_preset,
         presets,
         device_power,
+        tpi_coefc,
+        tpi_coeft,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -189,6 +202,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._proportional_function = proportional_function
         self._proportional_bias = proportional_bias
         self._temp_sensor_entity_id = temp_sensor_entity_id
+        self._ext_temp_sensor_entity_id = ext_temp_sensor_entity_id
         self._power_sensor_entity_id = power_sensor_entity_id
         self._max_power_sensor_entity_id = max_power_sensor_entity_id
         self._window_sensor_entity_id = window_sensor_entity_id
@@ -198,6 +212,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._motion_delay_sec = motion_delay_sec
         self._motion_preset = motion_preset
         self._no_motion_preset = no_motion_preset
+        self._tpi_coefc = tpi_coefc
+        self._tpi_coeft = tpi_coeft
 
         # TODO if self.ac_mode:
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
@@ -245,10 +261,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._fan_mode = None
         self._swing_mode = None
         self._cur_temp = None
+        self._cur_ext_temp = None
+
+        # Fix parameters for TPI
+        if (
+            self._proportional_function == PROPORTIONAL_FUNCTION_TPI
+            and self._ext_temp_sensor_entity_id is None
+        ):
+            _LOGGER.warning(
+                "Using TPI function but not external temperature sensor is set. Removing the delta temp ext factor. Thermostat will not be fully operationnal"  # pylint: disable=line-too-long
+            )
+            self._tpi_coeft = 0
 
         # Initiate the ProportionalAlgorithm
         self._prop_algorithm = PropAlgorithm(
-            self._proportional_function, self._proportional_bias, self._cycle_min
+            self._proportional_function,
+            self._proportional_bias,
+            self._tpi_coefc,
+            self._tpi_coeft,
+            self._cycle_min,
         )
 
         self._async_cancel_cycle = None
@@ -340,9 +371,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             await self._async_control_heating()
         elif hvac_mode == HVAC_MODE_OFF:
             self._hvac_mode = HVAC_MODE_OFF
-            # TODO self.prop_current_phase = PROP_PHASE_NONE
-            # if self._is_device_active:
-            #    await self._async_heater_turn_off()
+            if self._is_device_active:
+                await self._async_heater_turn_off()
         else:
             _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
             return
@@ -359,7 +389,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.info("%s - Set preset_mode: %s", self, preset_mode)
         if preset_mode not in (self._attr_preset_modes or []):
             raise ValueError(
-                f"Got unsupported preset_mode {preset_mode}. Must be one of {self._attr_preset_modes}"
+                f"Got unsupported preset_mode {preset_mode}. Must be one of {self._attr_preset_modes}"  # pylint: disable=line-too-long
             )
 
         if preset_mode == self._attr_preset_mode:
@@ -382,7 +412,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._saved_preset_mode = self._attr_preset_mode
 
         self.async_write_ha_state()
-        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+        self._prop_algorithm.calculate(
+            self._target_temp, self._cur_temp, self._cur_ext_temp
+        )
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -415,12 +447,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
         self._target_temp = temperature
         self._attr_preset_mode = PRESET_NONE
-        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+        self._prop_algorithm.calculate(
+            self._target_temp, self._cur_temp, self._cur_ext_temp
+        )
         self.async_write_ha_state()
 
     @callback
     async def entry_update_listener(
-        self, hass: HomeAssistant, config_entry: ConfigEntry
+        self, _, config_entry: ConfigEntry  # hass: HomeAssistant,
     ) -> None:
         """Called when the entry have changed in ConfigFlow"""
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
@@ -445,6 +479,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._async_temperature_changed,
             )
         )
+
+        if self._ext_temp_sensor_entity_id:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass,
+                    [self._ext_temp_sensor_entity_id],
+                    self._async_ext_temperature_changed,
+                )
+            )
+
         if self._window_sensor_entity_id:
             self.async_on_remove(
                 async_track_state_change_event(
@@ -512,6 +556,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._async_update_temp(temperature_state)
                 need_write_state = True
 
+            if self._ext_temp_sensor_entity_id:
+                ext_temperature_state = self.hass.states.get(
+                    self._ext_temp_sensor_entity_id
+                )
+                if ext_temperature_state and ext_temperature_state.state not in (
+                    STATE_UNAVAILABLE,
+                    STATE_UNKNOWN,
+                ):
+                    _LOGGER.debug(
+                        "%s - external temperature sensor have been retrieved: %.1f",
+                        self,
+                        float(ext_temperature_state.state),
+                    )
+                    self._async_update_ext_temp(ext_temperature_state)
+
             switch_state = self.hass.states.get(self._heater_entity_id)
             if switch_state and switch_state.state not in (
                 STATE_UNAVAILABLE,
@@ -552,7 +611,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             if need_write_state:
                 self.async_write_ha_state()
-                self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+                self._prop_algorithm.calculate(
+                    self._target_temp, self._cur_temp, self._cur_ext_temp
+                )
             self.hass.create_task(self._async_control_heating())
 
         if self.hass.state == CoreState.running:
@@ -632,7 +693,26 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         self._async_update_temp(new_state)
-        self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+        self._prop_algorithm.calculate(
+            self._target_temp, self._cur_temp, self._cur_ext_temp
+        )
+        self.async_write_ha_state()
+
+    async def _async_ext_temperature_changed(self, event):
+        """Handle external temperature changes."""
+        new_state = event.data.get("new_state")
+        _LOGGER.info(
+            "%s - external Temperature changed. Event.new_state is %s",
+            self,
+            new_state,
+        )
+        if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            return
+
+        self._async_update_ext_temp(new_state)
+        self._prop_algorithm.calculate(
+            self._target_temp, self._cur_temp, self._cur_ext_temp
+        )
         self.async_write_ha_state()
 
     @callback
@@ -739,7 +819,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 new_preset,
             )
             self._target_temp = self._presets[new_preset]
-            self._prop_algorithm.calculate(self._target_temp, self._cur_temp)
+            self._prop_algorithm.calculate(
+                self._target_temp, self._cur_temp, self._cur_ext_temp
+            )
             self.async_write_ha_state()
 
         if self._motion_call_cancel:
@@ -781,6 +863,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._cur_temp = cur_temp
         except ValueError as ex:
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)
+
+    @callback
+    def _async_update_ext_temp(self, state):
+        """Update thermostat with latest state from sensor."""
+        try:
+            cur_ext_temp = float(state.state)
+            if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
+                raise ValueError(f"Sensor has illegal state {state.state}")
+            self._cur_ext_temp = cur_ext_temp
+        except ValueError as ex:
+            _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
     @callback
     async def _async_power_changed(self, event):
@@ -881,7 +974,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         overpowering: bool = await self.check_overpowering()
         if overpowering:
             _LOGGER.debug(
-                "%s - The max power is exceeded. Heater will not be started. preset_mode is now '%s'",
+                "%s - The max power is exceeded. Heater will not be started. preset_mode is now '%s'",  # pylint: disable=line-too-long
                 self,
                 self._attr_preset_mode,
             )
@@ -902,7 +995,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.debug("Cancelling the previous cycle that was running")
             self._async_cancel_cycle()
             self._async_cancel_cycle = None
-            await self._async_heater_turn_off()
+            # await self._async_heater_turn_off()
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
             _LOGGER.info(
@@ -922,6 +1015,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     off_time_sec % 60,
                 )
                 await self._async_heater_turn_off()
+                self._async_cancel_cycle()
                 self._async_cancel_cycle = None
 
             # Program turn off

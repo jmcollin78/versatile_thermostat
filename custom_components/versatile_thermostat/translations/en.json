@@ -4,15 +4,30 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
-        "title": "Add new Versatile Thermostat2",
+        "title": "Add new Versatile Thermostat",
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
           "heater_entity_id": "Heater entity id",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Function to use (atan is more aggressive)",
+          "proportional_function": "Function to use (linear is less aggressive)"
+        }
+      },
+      "p": {
+        "title": "Proportional",
+        "description": "Proportional attributes",
+        "data": {
           "proportional_bias": "A bias to use in proportional algorithm"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Time Proportional Integral attributes",
+        "data": {
+          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
+          "tpi_coefc": "Coefficient to use for internal temperature delta",
+          "tpi_coeft": "Coefficient to use for external temperature delta"
         }
       },
       "presets": {
@@ -66,15 +81,30 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
-        "title": "Change a Versatile Thermostat",
+        "title": "Add new Versatile Thermostat",
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
           "heater_entity_id": "Heater entity id",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Function to use in proportional algorithm (atan is more aggressive)",
+          "proportional_function": "Function to use (linear is less aggressive)"
+        }
+      },
+      "p": {
+        "title": "Proportional",
+        "description": "Proportional attributes",
+        "data": {
           "proportional_bias": "A bias to use in proportional algorithm"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Time Proportional Integral attributes",
+        "data": {
+          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
+          "tpi_coefc": "Coefficient to use for internal temperature delta",
+          "tpi_coeft": "Coefficient to use for external temperature delta"
         }
       },
       "presets": {

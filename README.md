@@ -9,9 +9,10 @@ _Component developed by using the amazing development template [blueprint][bluep
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 ## When to use / not use
-This thermostat aims to command a heater which works only in on/off mode. This thermostat is not suitable for heaters with a pilot wire. The minimal needed configuration to use this thermostat is:
+This thermostat aims to command a heater which works only in on/off mode. The minimal needed configuration to use this thermostat is:
 1. an equipement like a heater (a switch),
-2. a temperature sensor (or an input_number)
+2. a temperature sensor for the room (or an input_number),
+3. an external temperature sensor (think of the meteo integration if you don't have one)
 
 Because this integration aims to command the heater considering the preset configured and the room temperature, those informations are mandatory.
 

@@ -5,6 +5,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PROPORTIONAL_FUNCTION_ATAN = "atan"
 PROPORTIONAL_FUNCTION_LINEAR = "linear"
+PROPORTIONAL_FUNCTION_TPI = "tpi"
 
 PROPORTIONAL_MIN_DURATION_SEC = 10
 
@@ -14,7 +15,9 @@ FUNCTION_TYPE = [PROPORTIONAL_FUNCTION_ATAN, PROPORTIONAL_FUNCTION_LINEAR]
 class PropAlgorithm:
     """This class aims to do all calculation of the Proportional alogorithm"""
 
-    def __init__(self, function_type: str, bias: float, cycle_min: int):
+    def __init__(
+        self, function_type: str, bias: float, tpi_coefc, tpi_coeft, cycle_min: int
+    ):
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
             "Creation new PropAlgorithm function_type: %s, bias: %f, cycle_min:%d",
@@ -25,23 +28,35 @@ class PropAlgorithm:
         # TODO test function_type, bias, cycle_min
         self._function = function_type
         self._bias = bias
+        self._tpi_coefc = tpi_coefc
+        self._tpi_coeft = tpi_coeft
         self._cycle_min = cycle_min
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
 
-    def calculate(self, target_temp: float, current_temp: float):
+    def calculate(
+        self, target_temp: float, current_temp: float, ext_current_temp: float
+    ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
             _LOGGER.warning(
-                "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating will be disabled"
+                "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating will be disabled"  # pylint: disable=line-too-long
             )
             on_percent = 0
         else:
             delta_temp = target_temp - current_temp
+            delta_ext_temp = (
+                target_temp - ext_current_temp if ext_current_temp is not None else 0
+            )
+
             if self._function == PROPORTIONAL_FUNCTION_LINEAR:
                 on_percent = 0.25 * delta_temp + self._bias
             elif self._function == PROPORTIONAL_FUNCTION_ATAN:
                 on_percent = math.atan(delta_temp + self._bias) / 1.4
+            elif self._function == PROPORTIONAL_FUNCTION_TPI:
+                on_percent = (
+                    self._tpi_coefc * delta_temp + self._tpi_coeft * delta_ext_temp
+                )
             else:
                 _LOGGER.warning(
                     "Proportional algorithm: unknown %s function. Heating will be disabled",
@@ -68,9 +83,10 @@ class PropAlgorithm:
         self._off_time_sec = (1.0 - on_percent) * self._cycle_min * 60
 
         _LOGGER.debug(
-            "heating percent calculated for current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",
-            current_temp if current_temp else -1.0,
-            target_temp if target_temp else -1.0,
+            "heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
+            current_temp if current_temp else -9999.0,
+            ext_current_temp if ext_current_temp else -9999.0,
+            target_temp if target_temp else -9999.0,
             on_percent,
             self.on_time_sec,
             self.off_time_sec,
