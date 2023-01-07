@@ -31,6 +31,7 @@ class PropAlgorithm:
         self._tpi_coefc = tpi_coefc
         self._tpi_coeft = tpi_coeft
         self._cycle_min = cycle_min
+        self._on_percent = 0
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
 
@@ -42,7 +43,7 @@ class PropAlgorithm:
             _LOGGER.warning(
                 "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating will be disabled"  # pylint: disable=line-too-long
             )
-            on_percent = 0
+            self._on_percent = 0
         else:
             delta_temp = target_temp - current_temp
             delta_ext_temp = (
@@ -50,11 +51,11 @@ class PropAlgorithm:
             )
 
             if self._function == PROPORTIONAL_FUNCTION_LINEAR:
-                on_percent = 0.25 * delta_temp + self._bias
+                self._on_percent = 0.25 * delta_temp + self._bias
             elif self._function == PROPORTIONAL_FUNCTION_ATAN:
-                on_percent = math.atan(delta_temp + self._bias) / 1.4
+                self._on_percent = math.atan(delta_temp + self._bias) / 1.4
             elif self._function == PROPORTIONAL_FUNCTION_TPI:
-                on_percent = (
+                self._on_percent = (
                     self._tpi_coefc * delta_temp + self._tpi_coeft * delta_ext_temp
                 )
             else:
@@ -62,14 +63,14 @@ class PropAlgorithm:
                     "Proportional algorithm: unknown %s function. Heating will be disabled",
                     self._function,
                 )
-                on_percent = 0
+                self._on_percent = 0
 
         # calculated on_time duration in seconds
-        if on_percent > 1:
-            on_percent = 1
-        if on_percent < 0:
-            on_percent = 0
-        self._on_time_sec = on_percent * self._cycle_min * 60
+        if self._on_percent > 1:
+            self._on_percent = 1
+        if self._on_percent < 0:
+            self._on_percent = 0
+        self._on_time_sec = self._on_percent * self._cycle_min * 60
 
         # Do not heat for less than xx sec
         if self._on_time_sec < PROPORTIONAL_MIN_DURATION_SEC:
@@ -80,17 +81,22 @@ class PropAlgorithm:
             )
             self._on_time_sec = 0
 
-        self._off_time_sec = (1.0 - on_percent) * self._cycle_min * 60
+        self._off_time_sec = self._cycle_min * 60 - self._on_time_sec
 
         _LOGGER.debug(
             "heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
             current_temp if current_temp else -9999.0,
             ext_current_temp if ext_current_temp else -9999.0,
             target_temp if target_temp else -9999.0,
-            on_percent,
+            self._on_percent,
             self.on_time_sec,
             self.off_time_sec,
         )
+
+    @property
+    def on_percent(self) -> float:
+        """Returns the percentage the heater must be ON (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
+        return round(self._on_percent, 2)
 
     @property
     def on_time_sec(self) -> int:

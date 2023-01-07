@@ -2,9 +2,10 @@ import math
 import logging
 
 from datetime import timedelta
+from typing import Any, Mapping
 
 from homeassistant.core import (
-    # HomeAssistant,
+    HomeAssistant,
     callback,
     CoreState,
     DOMAIN as HA_DOMAIN,
@@ -35,10 +36,10 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_ACTIVITY,
-    # PRESET_AWAY,
-    # PRESET_BOOST,
-    # PRESET_COMFORT,
-    # PRESET_ECO,
+    PRESET_AWAY,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
     # PRESET_HOME,
     PRESET_NONE,
     # PRESET_SLEEP,
@@ -94,7 +95,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    _,  # hass: HomeAssistant,
+    hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -134,6 +135,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             VersatileThermostat(
+                hass,
                 unique_id,
                 name,
                 heater_entity_id,
@@ -170,6 +172,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     def __init__(
         self,
+        hass,
         unique_id,
         name,
         heater_entity_id,
@@ -194,6 +197,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Initialize the thermostat."""
 
         super().__init__()
+
+        self._hass = hass
+        self._attr_extra_state_attributes = {}
 
         self._unique_id = unique_id
         self._name = name
@@ -359,6 +365,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def current_temperature(self):
         """Return the sensor temperature."""
         return self._cur_temp
+
+    # @property
+    # def extra_state_attributes(self) -> Mapping[str, Any] | None:
+    #     _LOGGER.debug(
+    #         "Calling extra_state_attributes: %s", self._hass.custom_attributes
+    #     )
+    #     return self._hass.custom_attributes
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -654,6 +667,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             if not self._hvac_mode and old_state.state:
                 self._hvac_mode = old_state.state
+
+            self._prop_algorithm.calculate(
+                self._target_temp, self._cur_temp, self._cur_ext_temp
+            )
 
         else:
             # No previous state, try and restore defaults
@@ -1007,6 +1024,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             await self._async_heater_turn_on()
 
+            self.update_custom_attributes()
+
             async def _turn_off(_):
                 _LOGGER.info(
                     "%s - stop heating for %d min %d sec",
@@ -1017,6 +1036,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 await self._async_heater_turn_off()
                 self._async_cancel_cycle()
                 self._async_cancel_cycle = None
+                self.update_custom_attributes()
 
             # Program turn off
             self._async_cancel_cycle = async_call_later(
@@ -1024,6 +1044,32 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 on_time_sec,
                 _turn_off,
             )
+
+    def update_custom_attributes(self):
+        """Update the custom extra attributes for the entity"""
+
+        self._attr_extra_state_attributes = {
+            "away_temp": self._presets[PRESET_AWAY],
+            "eco_temp": self._presets[PRESET_ECO],
+            "boost_temp": self._presets[PRESET_BOOST],
+            "comfort_temp": self._presets[PRESET_BOOST],
+            "power_temp": self._presets[PRESET_POWER],
+            "on_percent": self._prop_algorithm.on_percent,
+            "on_time_sec": self._prop_algorithm.on_time_sec,
+            "off_time_sec": self._prop_algorithm.off_time_sec,
+            "ext_current_temperature": self._cur_ext_temp,
+            "current_power": self._current_power,
+            "current_power_max": self._current_power_max,
+            "cycle_min": self._cycle_min,
+            "bias": self._proportional_bias,
+            "function": self._proportional_function,
+            "tpi_coefc": self._tpi_coefc,
+            "tpi_coeft": self._tpi_coeft,
+            "is_device_active": self._is_device_active,
+        }
+        _LOGGER.debug(
+            "Calling update_custom_attributes: %s", self._attr_extra_state_attributes
+        )
 
     @callback
     def async_registry_entry_updated(self):
