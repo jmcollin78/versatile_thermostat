@@ -989,8 +989,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug(event)
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
-        if new_state is None or (
-            old_state is not None and new_state.state == old_state.state
+        if (
+            new_state is None
+            or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN)
+            or (old_state is not None and new_state.state == old_state.state)
         ):
             return
 
@@ -1010,8 +1012,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug(event)
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
-        if new_state is None or (
-            old_state is not None and new_state.state == old_state.state
+        if (
+            new_state is None
+            or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN)
+            or (old_state is not None and new_state.state == old_state.state)
         ):
             return
 
