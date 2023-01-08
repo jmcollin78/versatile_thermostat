@@ -67,6 +67,15 @@
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
           "device_power": "Puissance de l'équipement"
         }
+      },
+      "presence": {
+        "title": "Gestion de la présence",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
+        "data": {
+          "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
+          "no_presence_preset": "Preset à utiliser si personne n'est présent",
+          "no_presence_offset": "Offset de température à utiliser si personne n'est présent"
+        }
       }
     },
     "error": {
@@ -143,6 +152,15 @@
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
           "device_power": "Puissance de l'équipement"
+        }
+      },
+      "presence": {
+        "title": "Gestion de la présence",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
+        "data": {
+          "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
+          "no_presence_preset": "Preset à utiliser si personne n'est présent",
+          "no_presence_offset": "Offset de température à utiliser si personne n'est présent"
         }
       }
     },

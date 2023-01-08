@@ -37,6 +37,9 @@ CONF_MOTION_PRESET = "motion_preset"
 CONF_NO_MOTION_PRESET = "no_motion_preset"
 CONF_TPI_COEF_C = "tpi_coefc"
 CONF_TPI_COEF_T = "tpi_coeft"
+CONF_PRESENCE_SENSOR = "presence_sensor_entity_id"
+CONF_NO_PRESENCE_PRESET = "no_presence_preset"
+CONF_NO_PRESENCE_TEMP_OFFSET = "no_presence_temp_offset"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -73,6 +76,9 @@ ALL_CONF = (
         CONF_PROP_BIAS,
         CONF_TPI_COEF_C,
         CONF_TPI_COEF_T,
+        CONF_PRESENCE_SENSOR,
+        CONF_NO_PRESENCE_PRESET,
+        CONF_NO_PRESENCE_TEMP_OFFSET,
     ]
     + CONF_PRESETS_VALUES,
 )

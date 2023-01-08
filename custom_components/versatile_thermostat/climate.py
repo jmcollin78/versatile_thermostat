@@ -1,7 +1,7 @@
 import math
 import logging
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any, Mapping
 
 from homeassistant.core import (
@@ -84,6 +84,9 @@ from .const import (
     CONF_PROP_BIAS,
     CONF_TPI_COEF_C,
     CONF_TPI_COEF_T,
+    CONF_PRESENCE_SENSOR,
+    CONF_NO_PRESENCE_PRESET,
+    CONF_NO_PRESENCE_TEMP_OFFSET,
     SUPPORT_FLAGS,
     PRESET_POWER,
     PROPORTIONAL_FUNCTION_TPI,
@@ -123,6 +126,9 @@ async def async_setup_entry(
     device_power = entry.data.get(CONF_DEVICE_POWER)
     tpi_coefc = entry.data.get(CONF_TPI_COEF_C)
     tpi_coeft = entry.data.get(CONF_TPI_COEF_T)
+    presence_sensor_entity_id = entry.data.get(CONF_PRESENCE_SENSOR)
+    no_presence_preset = entry.data.get(CONF_NO_PRESENCE_PRESET)
+    no_presence_offset = entry.data.get(CONF_NO_PRESENCE_TEMP_OFFSET)
 
     presets = {}
     for (key, value) in CONF_PRESETS.items():
@@ -156,6 +162,9 @@ async def async_setup_entry(
                 device_power,
                 tpi_coefc,
                 tpi_coeft,
+                presence_sensor_entity_id,
+                no_presence_preset,
+                no_presence_offset,
             )
         ],
         True,
@@ -193,6 +202,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         device_power,
         tpi_coefc,
         tpi_coeft,
+        presence_sensor_entity_id,
+        no_presence_preset,
+        no_presence_offset,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -220,6 +232,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._no_motion_preset = no_motion_preset
         self._tpi_coefc = tpi_coefc
         self._tpi_coeft = tpi_coeft
+        self._presence_sensor_entity_id = presence_sensor_entity_id
+        self._no_presence_preset = no_presence_preset
+        self._no_presence_offset = no_presence_offset
+
+        self._presence_on = self._presence_sensor_entity_id and (
+            self._no_presence_preset is not None or self._no_presence_offset is not None
+        )
+        if self._presence_on:
+            if self._no_presence_preset is not None:
+                self._no_presence_offset = 0
+        else:
+            self._no_presence_preset = None
+            self._no_presence_offset = 0
+            _LOGGER.info("%s - Presence management is not fully configured.", self)
 
         # TODO if self.ac_mode:
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
@@ -259,6 +285,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._pmax_on = True
             self._current_power = 0
             self._current_power_max = 0
+        else:
+            _LOGGER.info("%s - Power management is not fully configured.", self)
 
         # will be restored if possible
         self._target_temp = None
@@ -292,6 +320,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._async_cancel_cycle = None
         self._window_call_cancel = None
         self._motion_call_cancel = None
+
+        self._should_relaunch_control_heating = False
+
+        # Memory synthesis state
+        self._motion_state = None
+        self._window_state = None
+        self._overpowering_state = None
+        self._presence_state = None
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s heater_entity_id=%s",
@@ -367,13 +403,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Return the sensor temperature."""
         return self._cur_temp
 
-    # @property
-    # def extra_state_attributes(self) -> Mapping[str, Any] | None:
-    #     _LOGGER.debug(
-    #         "Calling extra_state_attributes: %s", self._hass.custom_attributes
-    #     )
-    #     return self._hass.custom_attributes
-
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
@@ -415,20 +444,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._target_temp = self._saved_target_temp
         elif preset_mode == PRESET_ACTIVITY:
             self._attr_preset_mode = PRESET_ACTIVITY
-            self._target_temp = self._presets[self._no_motion_preset]
+            self._update_motion_temp()
         else:
             if self._attr_preset_mode == PRESET_NONE:
                 self._saved_target_temp = self._target_temp
             self._attr_preset_mode = preset_mode
             self._target_temp = self._presets[preset_mode]
 
-        if preset_mode != PRESET_POWER:
+        # Don't saved preset_mode if we are in POWER mode or in Away mode and presence detection is on
+        if preset_mode != PRESET_POWER and (
+            not self._presence_on or preset_mode != self._no_presence_preset
+        ):
             self._saved_preset_mode = self._attr_preset_mode
 
-        self.async_write_ha_state()
-        self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
-        )
+        self.recalculate()
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -461,10 +490,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
         self._target_temp = temperature
         self._attr_preset_mode = PRESET_NONE
-        self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
-        )
-        self.async_write_ha_state()
+        self.recalculate()
 
     @callback
     async def entry_update_listener(
@@ -520,15 +546,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             )
 
-        if self._cycle_min:
-            self.async_on_remove(
-                async_track_time_interval(
-                    self.hass,
-                    self._async_control_heating,
-                    interval=timedelta(minutes=self._cycle_min),
-                )
-            )
-
         if self._power_sensor_entity_id:
             self.async_on_remove(
                 async_track_state_change_event(
@@ -547,7 +564,26 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             )
 
+        if self._presence_on:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass,
+                    [self._presence_sensor_entity_id],
+                    self._async_presence_changed,
+                )
+            )
+
         await self.async_startup()
+
+        # starts the cycle
+        if self._cycle_min:
+            self.async_on_remove(
+                async_track_time_interval(
+                    self.hass,
+                    self._async_control_heating,
+                    interval=timedelta(minutes=self._cycle_min),
+                )
+            )
 
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
@@ -584,6 +620,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         float(ext_temperature_state.state),
                     )
                     self._async_update_ext_temp(ext_temperature_state)
+                else:
+                    _LOGGER.debug(
+                        "%s - external temperature sensor have NOT been retrieved cause unknown or unavailable",
+                        self,
+                    )
+            else:
+                _LOGGER.debug(
+                    "%s - external temperature sensor have NOT been retrieved cause no external sensor",
+                    self,
+                )
 
             switch_state = self.hass.states.get(self._heater_entity_id)
             if switch_state and switch_state.state not in (
@@ -623,6 +669,53 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     )
                     need_write_state = True
 
+                # try to acquire window entity state
+                if self._window_sensor_entity_id:
+                    window_state = self.hass.states.get(self._window_sensor_entity_id)
+                    if window_state and window_state.state not in (
+                        STATE_UNAVAILABLE,
+                        STATE_UNKNOWN,
+                    ):
+                        self._window_state = window_state.state
+                        _LOGGER.debug(
+                            "%s - Window state have been retrieved: %s",
+                            self,
+                            self._window_state,
+                        )
+                        need_write_state = True
+
+                # try to acquire motion entity state
+                if self._motion_sensor_entity_id:
+                    motion_state = self.hass.states.get(self._motion_sensor_entity_id)
+                    if motion_state and motion_state.state not in (
+                        STATE_UNAVAILABLE,
+                        STATE_UNKNOWN,
+                    ):
+                        self._motion_state = motion_state.state
+                        _LOGGER.debug(
+                            "%s - Motion state have been retrieved: %s",
+                            self,
+                            self._motion_state,
+                        )
+                        # recalculate the right target_temp in activity mode
+                        self._update_motion_temp()
+                        need_write_state = True
+
+            if self._presence_on:
+                # try to acquire presence entity state
+                presence_state = self.hass.states.get(self._presence_sensor_entity_id)
+                if presence_state and presence_state.state not in (
+                    STATE_UNAVAILABLE,
+                    STATE_UNKNOWN,
+                ):
+                    self._update_presence(presence_state.state)
+                    _LOGGER.debug(
+                        "%s - Presence have been retrieved: %s",
+                        self,
+                        presence_state.state,
+                    )
+                    need_write_state = True
+
             if need_write_state:
                 self.async_write_ha_state()
                 self._prop_algorithm.calculate(
@@ -630,14 +723,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             self.hass.create_task(self._async_control_heating())
 
+        await self.get_my_previous_state()
+
         if self.hass.state == CoreState.running:
             _async_startup_internal()
         else:
             self.hass.bus.async_listen_once(
                 EVENT_HOMEASSISTANT_START, _async_startup_internal
             )
-
-        await self.get_my_previous_state()
 
     async def get_my_previous_state(self):
         """Try to get my previou state"""
@@ -670,9 +763,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if not self._hvac_mode and old_state.state:
                 self._hvac_mode = old_state.state
 
-            self._prop_algorithm.calculate(
-                self._target_temp, self._cur_temp, self._cur_ext_temp
-            )
+            # is done in startup above
+            # self._prop_algorithm.calculate(
+            #    self._target_temp, self._cur_temp, self._cur_ext_temp
+            # )
 
         else:
             # No previous state, try and restore defaults
@@ -712,10 +806,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         self._async_update_temp(new_state)
-        self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
-        )
-        self.async_write_ha_state()
+        self.recalculate()
 
     async def _async_ext_temperature_changed(self, event):
         """Handle external temperature changes."""
@@ -729,10 +820,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         self._async_update_ext_temp(new_state)
-        self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
-        )
-        self.async_write_ha_state()
+        self.recalculate()
 
     @callback
     async def _async_windows_changed(self, event):
@@ -771,14 +859,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if not self._saved_hvac_mode:
                 self._saved_hvac_mode = self._hvac_mode
 
-            if new_state.state == STATE_OFF:
+            self._window_state = new_state.state
+            if self._window_state == STATE_OFF:
                 _LOGGER.info(
                     "%s - Window is closed. Restoring hvac_mode '%s'",
                     self,
                     self._saved_hvac_mode,
                 )
                 await self.async_set_hvac_mode(self._saved_hvac_mode)
-            elif new_state.state == STATE_ON:
+            elif self._window_state == STATE_ON:
                 _LOGGER.info(
                     "%s - Window is open. Set hvac_mode to '%s'", self, HVAC_MODE_OFF
                 )
@@ -803,8 +892,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_mode,
             PRESET_ACTIVITY,
         )
-        if self._attr_preset_mode != PRESET_ACTIVITY:
-            return
+
         if new_state is None or new_state.state not in (STATE_OFF, STATE_ON):
             return
 
@@ -827,21 +915,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 return
 
             _LOGGER.debug("%s - Motion delay condition is satisfied", self)
-            new_preset = (
-                self._motion_preset
-                if new_state.state == STATE_ON
-                else self._no_motion_preset
-            )
-            _LOGGER.info(
-                "%s - Motion condition have changes. New preset temp will be %s",
-                self,
-                new_preset,
-            )
-            self._target_temp = self._presets[new_preset]
-            self._prop_algorithm.calculate(
-                self._target_temp, self._cur_temp, self._cur_ext_temp
-            )
-            self.async_write_ha_state()
+            self._motion_state = new_state.state
+            if self._attr_preset_mode == PRESET_ACTIVITY:
+                new_preset = (
+                    self._motion_preset
+                    if self._motion_state == STATE_ON
+                    else self._no_motion_preset
+                )
+                _LOGGER.info(
+                    "%s - Motion condition have changes. New preset temp will be %s",
+                    self,
+                    new_preset,
+                )
+                # We do not change the preset which is kept to ACTIVITY but only the target_temperature
+                self._target_temp = self._presets[new_preset]
+            self.recalculate()
 
         if self._motion_call_cancel:
             self._motion_call_cancel()
@@ -936,6 +1024,111 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
 
+    @callback
+    async def _async_presence_changed(self, event):
+        """Handle presence changes."""
+        new_state = event.data.get("new_state")
+        _LOGGER.info(
+            "%s - Presence changed. Event.new_state is %s, _attr_preset_mode=%s, activity=%s",
+            self,
+            new_state,
+            self._attr_preset_mode,
+            PRESET_ACTIVITY,
+        )
+        if new_state is None:
+            return
+
+        self._update_presence(new_state.state)
+
+    def _update_presence(self, new_state):
+        _LOGGER.debug("%s - Updating presence. New state is %s", self, new_state)
+        self._presence_state = new_state
+        if self._attr_preset_mode == PRESET_POWER or self._presence_on is False:
+            return
+        if new_state is None or new_state not in (STATE_OFF, STATE_ON):
+            return
+
+        # Change temperature or preset
+        if self._no_presence_preset:
+            _LOGGER.debug("%s - presence change in preset mode", self)
+            new_preset = None
+            no_presence_preset = self._no_presence_preset
+            if new_state == STATE_OFF:
+                new_preset = no_presence_preset
+                self._saved_preset_mode = self._attr_preset_mode
+                _LOGGER.info(
+                    "%s - No one is at home. Set to preset %s (saved_preset is %s)",
+                    self,
+                    new_preset,
+                    self._saved_preset_mode,
+                )
+            elif self._attr_preset_mode == no_presence_preset:
+                new_preset = self._saved_preset_mode
+                _LOGGER.info(
+                    "%s - Someone is back home. Restoring preset to %s",
+                    self,
+                    new_preset,
+                )
+            else:
+                _LOGGER.debug(
+                    "%s - presence change ignored (not in %s preset or not ON)",
+                    self,
+                    no_presence_preset,
+                )
+            if new_preset:
+                self.hass.create_task(self.async_set_preset_mode(new_preset))
+        else:
+            new_temp = None
+            if new_state == STATE_OFF:
+                self._saved_target_temp = self._target_temp
+                _LOGGER.info(
+                    "%s - No one is at home. Apply offset to temperature %.2f (saved_target_temp is %.2f)",
+                    self,
+                    self._no_presence_offset,
+                    self._saved_target_temp,
+                )
+                new_temp = self._target_temp + self._no_presence_offset
+            else:
+                new_temp = self._saved_target_temp
+                _LOGGER.info(
+                    "%s - Someone is back home. Restoring temperature to %.2f",
+                    self,
+                    self._saved_target_temp,
+                )
+            if new_temp is not None:
+                _LOGGER.debug(
+                    "%s - presence change in temperature mode new_temp will be: %.2f",
+                    self,
+                    new_temp,
+                )
+                self._target_temp = new_temp
+                self.recalculate()
+
+    def _update_motion_temp(self):
+        """Update the temperature considering the ACTIVITY preset and current motion state"""
+        _LOGGER.debug(
+            "%s - Calling _update_motion_temp preset_mode=%s, motion_state=%s",
+            self,
+            self._attr_preset_mode,
+            self._motion_state,
+        )
+        if (
+            self._motion_sensor_entity_id is None
+            or self._attr_preset_mode != PRESET_ACTIVITY
+        ):
+            return
+
+        self._target_temp = self._presets[
+            self._motion_preset
+            if self._motion_state == STATE_ON
+            else self._no_motion_preset
+        ]
+        _LOGGER.debug(
+            "%s - regarding motion, target_temp have been set to %.2f",
+            self,
+            self._target_temp,
+        )
+
     async def _async_heater_turn_on(self):
         """Turn heater toggleable device on."""
         data = {ATTR_ENTITY_ID: self._heater_entity_id}
@@ -965,19 +1158,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._current_power_max,
             self._device_power,
         )
-        overpowering: bool = (
+        self._overpowering_state = (
             self._current_power + self._device_power >= self._current_power_max
         )
-        if overpowering:
+        if self._overpowering_state:
             _LOGGER.warning(
                 "%s - overpowering is detected. Heater preset will be set to 'power'",
                 self,
             )
             await self._async_set_preset_mode_internal(PRESET_POWER)
-            return overpowering
+            return self._overpowering_state
 
         # Check if we need to remove the POWER preset
-        if self._attr_preset_mode == PRESET_POWER and not overpowering:
+        if self._attr_preset_mode == PRESET_POWER and not self._overpowering_state:
             _LOGGER.warning(
                 "%s - end of overpowering is detected. Heater preset will be restored to '%s'",
                 self,
@@ -1012,12 +1205,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
-            _LOGGER.debug("Cancelling the previous cycle that was running")
-            self._async_cancel_cycle()
-            self._async_cancel_cycle = None
+            _LOGGER.debug(
+                "%s - A previous cycle is alredy running -> waits for its end", self
+            )
+            self._should_relaunch_control_heating = True
+            return
+            # await self._async_cancel_cycle()
+            # self._async_cancel_cycle = None
             # Don't turn off if we will turn on just after
-            if on_time_sec <= 0:
-                await self._async_heater_turn_off()
+            # if on_time_sec <= 0:
+            #    await self._async_heater_turn_off()
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
             _LOGGER.info(
@@ -1029,19 +1226,23 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             await self._async_heater_turn_on()
 
-            self.update_custom_attributes()
-
             async def _turn_off(_):
-                _LOGGER.info(
-                    "%s - stop heating for %d min %d sec",
-                    self,
-                    off_time_sec // 60,
-                    off_time_sec % 60,
-                )
-                await self._async_heater_turn_off()
                 self._async_cancel_cycle()
                 self._async_cancel_cycle = None
-                self.update_custom_attributes()
+                if self._should_relaunch_control_heating:
+                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
+                    self._should_relaunch_control_heating = False
+                    await self._async_control_heating()
+                    return
+                else:
+                    _LOGGER.info(
+                        "%s - stop heating for %d min %d sec",
+                        self,
+                        off_time_sec // 60,
+                        off_time_sec % 60,
+                    )
+                    await self._async_heater_turn_off()
+                    self.update_custom_attributes()
 
             # Program turn off
             self._async_cancel_cycle = async_call_later(
@@ -1050,6 +1251,31 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _turn_off,
             )
 
+        elif self._is_device_active:
+            _LOGGER.info(
+                "%s - stop heating (2) for %d min %d sec",
+                self,
+                off_time_sec // 60,
+                off_time_sec % 60,
+            )
+            await self._async_heater_turn_off()
+
+        else:
+            _LOGGER.debug("%s - nothing to do", self)
+
+        self.update_custom_attributes()
+
+    def recalculate(self):
+        """A utility function to force the calculation of a the algo and
+        update the custom attributes and write the state
+        """
+        _LOGGER.debug("%s - recalculate all", self)
+        self._prop_algorithm.calculate(
+            self._target_temp, self._cur_temp, self._cur_ext_temp
+        )
+        self.update_custom_attributes()
+        self.async_write_ha_state()
+
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
 
@@ -1057,7 +1283,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "away_temp": self._presets[PRESET_AWAY],
             "eco_temp": self._presets[PRESET_ECO],
             "boost_temp": self._presets[PRESET_BOOST],
-            "comfort_temp": self._presets[PRESET_BOOST],
+            "comfort_temp": self._presets[PRESET_COMFORT],
             "power_temp": self._presets[PRESET_POWER],
             "on_percent": self._prop_algorithm.on_percent,
             "on_time_sec": self._prop_algorithm.on_time_sec,
@@ -1070,10 +1296,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "function": self._proportional_function,
             "tpi_coefc": self._tpi_coefc,
             "tpi_coeft": self._tpi_coeft,
-            "is_device_active": self._is_device_active,
+            "saved_preset_mode": self._saved_preset_mode,
+            "saved_target_temp": self._saved_target_temp,
+            "no_presence_preset": self._no_presence_preset
+            if self._presence_on
+            else None,
+            "no_presence_offset": self._no_presence_offset
+            if self._presence_on
+            else None,
+            "window_state": self._window_state,
+            "motion_state": self._motion_state,
+            "overpowering_state": self._overpowering_state,
+            "presence_state": self._presence_state,
+            "last_update_datetime": datetime.now().isoformat(),
         }
+        self.async_write_ha_state()
         _LOGGER.debug(
-            "Calling update_custom_attributes: %s", self._attr_extra_state_attributes
+            "%s - Calling update_custom_attributes: %s",
+            self,
+            self._attr_extra_state_attributes,
         )
 
     @callback

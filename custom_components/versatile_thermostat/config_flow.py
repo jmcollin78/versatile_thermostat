@@ -39,6 +39,9 @@ from .const import (
     CONF_PROP_BIAS,
     CONF_TPI_COEF_T,
     CONF_TPI_COEF_C,
+    CONF_PRESENCE_SENSOR,
+    CONF_NO_PRESENCE_PRESET,
+    CONF_NO_PRESENCE_TEMP_OFFSET,
     PROPORTIONAL_FUNCTION_ATAN,
     PROPORTIONAL_FUNCTION_LINEAR,
     PROPORTIONAL_FUNCTION_TPI,
@@ -63,23 +66,23 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         ),
     }
 )
-USER_DATA_CONF = [
-    CONF_NAME,
-    CONF_HEATER,
-    CONF_TEMP_SENSOR,
-    CONF_EXTERNAL_TEMP_SENSOR,
-    CONF_CYCLE_MIN,
-    CONF_PROP_FUNCTION,
-]
+# USER_DATA_CONF = [
+#     CONF_NAME,
+#     CONF_HEATER,
+#     CONF_TEMP_SENSOR,
+#     CONF_EXTERNAL_TEMP_SENSOR,
+#     CONF_CYCLE_MIN,
+#     CONF_PROP_FUNCTION,
+# ]
 
 STEP_P_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PROP_BIAS, default=0.25): vol.Coerce(float),
     }
 )
-P_DATA_CONF = [
-    CONF_PROP_BIAS,
-]
+# P_DATA_CONF = [
+#     CONF_PROP_BIAS,
+# ]
 
 STEP_TPI_DATA_SCHEMA = vol.Schema(
     {
@@ -88,16 +91,16 @@ STEP_TPI_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_TPI_COEF_T, default=0.01): vol.Coerce(float),
     }
 )
-TPI_DATA_CONF = [
-    CONF_EXTERNAL_TEMP_SENSOR,
-    CONF_TPI_COEF_C,
-    CONF_TPI_COEF_T,
-]
+# TPI_DATA_CONF = [
+#     CONF_EXTERNAL_TEMP_SENSOR,
+#     CONF_TPI_COEF_C,
+#     CONF_TPI_COEF_T,
+# ]
 
 STEP_PRESETS_DATA_SCHEMA = vol.Schema(
     {vol.Optional(v, default=17): vol.Coerce(float) for (k, v) in CONF_PRESETS.items()}
 )
-PRESETS_DATA_CONF = [v for (_, v) in CONF_PRESETS.items()]
+# PRESETS_DATA_CONF = [v for (_, v) in CONF_PRESETS.items()]
 
 STEP_WINDOW_DATA_SCHEMA = vol.Schema(
     {
@@ -105,7 +108,7 @@ STEP_WINDOW_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
     }
 )
-WINDOW_DATA_CONF = [CONF_WINDOW_SENSOR, CONF_WINDOW_DELAY]
+# WINDOW_DATA_CONF = [CONF_WINDOW_SENSOR, CONF_WINDOW_DELAY]
 
 STEP_MOTION_DATA_SCHEMA = vol.Schema(
     {
@@ -119,12 +122,12 @@ STEP_MOTION_DATA_SCHEMA = vol.Schema(
         ),
     }
 )
-MOTION_DATA_CONF = [
-    CONF_MOTION_SENSOR,
-    CONF_MOTION_DELAY,
-    CONF_MOTION_PRESET,
-    CONF_NO_MOTION_PRESET,
-]
+# MOTION_DATA_CONF = [
+#    CONF_MOTION_SENSOR,
+#    CONF_MOTION_DELAY,
+#    CONF_MOTION_PRESET,
+#    CONF_NO_MOTION_PRESET,
+# ]
 
 STEP_POWER_DATA_SCHEMA = vol.Schema(
     {
@@ -133,7 +136,16 @@ STEP_POWER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEVICE_POWER): vol.Coerce(float),
     }
 )
-POWER_DATA_CONF = [CONF_POWER_SENSOR, CONF_MAX_POWER_SENSOR, CONF_DEVICE_POWER]
+# POWER_DATA_CONF = [CONF_POWER_SENSOR, CONF_MAX_POWER_SENSOR, CONF_DEVICE_POWER]
+
+STEP_PRESENCE_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Optional(CONF_PRESENCE_SENSOR): cv.string,
+        vol.Optional(CONF_NO_PRESENCE_PRESET): vol.In(CONF_PRESETS_SELECTIONABLE),
+        vol.Optional(CONF_NO_PRESENCE_TEMP_OFFSET): vol.Coerce(float),
+    }
+)
+# PRESENCE_DATA_CONF = [CONF_PRESENCE_SENSOR, CONF_NO_PRESENCE_PRESET, CONF_NO_PRESENCE_TEMP_OFFSET]
 
 
 def schema_defaults(schema, **defaults):
@@ -182,6 +194,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_MOTION_SENSOR,
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
+            CONF_PRESENCE_SENSOR,
         ]:
             d = data.get(conf, None)  # pylint: disable=invalid-name
             if d is not None and self.hass.states.get(d) is None:
@@ -281,6 +294,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         return await self.generic_step(
             "power",
             STEP_POWER_DATA_SCHEMA,
+            user_input,
+            self.async_step_presence,
+        )
+
+    async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the presence management flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
+
+        return await self.generic_step(
+            "presence",
+            STEP_PRESENCE_DATA_SCHEMA,
             user_input,
             self.async_finalize,  # pylint: disable=no-member
         )
@@ -411,6 +435,19 @@ class VersatileThermostatOptionsFlowHandler(
         return await self.generic_step(
             "power",
             STEP_POWER_DATA_SCHEMA,
+            user_input,
+            self.async_step_presence,  # pylint: disable=no-member
+        )
+
+    async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the presence management flow steps"""
+        _LOGGER.debug(
+            "Into OptionsFlowHandler.async_step_presence user_input=%s", user_input
+        )
+
+        return await self.generic_step(
+            "presence",
+            STEP_PRESENCE_DATA_SCHEMA,
             user_input,
             self.async_finalize,  # pylint: disable=no-member
         )

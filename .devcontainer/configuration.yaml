@@ -13,13 +13,13 @@ input_number:
     name: Temperature
     min: 0
     max: 35
-    step: .5
+    step: .1
     icon: mdi:thermometer
   fake_external_temperature_sensor1:
     name: Ext Temperature
     min: -10
     max: 35
-    step: .5
+    step: .1
     icon: mdi:home-thermometer
   fake_current_power:
     name: Current power
@@ -45,9 +45,16 @@ input_boolean:
     name: Heater 1 (Linear)
     icon: mdi:radiator
   fake_heater_switch2:
-    name: Heater (TPI)
+    name: Heater (TPI with presence preset)
+    icon: mdi:radiator
+  fake_heater_switch3:
+    name: Heater (TPI with offset)
     icon: mdi:radiator
   # input_boolean to simulate the motion sensor entity. Only for development environment.
   fake_motion_sensor1:
     name: Motion Sensor 1
     icon: mdi:run
+  # input_boolean to simulate the presence sensor entity. Only for development environment.
+  fake_presence_sensor1:
+    name: Presence Sensor 1
+    icon: mdi:home

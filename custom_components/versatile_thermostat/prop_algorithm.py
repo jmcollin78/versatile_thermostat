@@ -20,9 +20,11 @@ class PropAlgorithm:
     ):
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "Creation new PropAlgorithm function_type: %s, bias: %f, cycle_min:%d",
+            "Creation new PropAlgorithm function_type: %s, bias: %s, tpi_coefc: %s, tpi_coeft: %s, cycle_min:%d",
             function_type,
             bias,
+            tpi_coefc,
+            tpi_coeft,
             cycle_min,
         )
         # TODO test function_type, bias, cycle_min

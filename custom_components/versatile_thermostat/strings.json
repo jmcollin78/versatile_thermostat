@@ -50,7 +50,7 @@
         }
       },
       "motion": {
-        "title": "Motion sensor management",
+        "title": "Motion management",
         "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
@@ -61,11 +61,20 @@
       },
       "power": {
         "title": "Power management",
-        "description": "Power management attributes.\nGives the power and max power sensor pf your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
         "data": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
           "device_power": "Device power (kW)"
+        }
+      },
+      "presence": {
+        "title": "Presence management",
+        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
+          "no_presence_preset": "Preset to use when no one is present",
+          "no_presence_offset": "Temperature offset to apply to current temperature is no one is present"
         }
       }
     },
@@ -127,7 +136,7 @@
         }
       },
       "motion": {
-        "title": "Motion sensor management",
+        "title": "Motion management",
         "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
@@ -138,11 +147,20 @@
       },
       "power": {
         "title": "Power management",
-        "description": "Power management attributes.\nGives the power and max power sensor pf your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
         "data": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
           "device_power": "Device power (kW)"
+        }
+      },
+      "presence": {
+        "title": "Presence management",
+        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
+        "data": {
+          "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
+          "no_presence_preset": "Preset to use when no one is present",
+          "no_presence_offset": "Temperature offset to apply to current temperature is no one is present"
         }
       }
     },
