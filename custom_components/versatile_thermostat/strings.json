@@ -10,24 +10,17 @@
           "name": "Name",
           "heater_entity_id": "Heater entity id",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
+          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Function to use (linear is less aggressive)"
-        }
-      },
-      "p": {
-        "title": "Proportional",
-        "description": "Proportional attributes",
-        "data": {
-          "proportional_bias": "A bias to use in proportional algorithm"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
         }
       },
       "tpi": {
         "title": "TPI",
         "description": "Time Proportional Integral attributes",
         "data": {
-          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
-          "tpi_coefc": "Coefficient to use for internal temperature delta",
-          "tpi_coeft": "Coefficient to use for external temperature delta"
+          "tpi_coef_int": "Coefficient to use for internal temperature delta",
+          "tpi_coef_ext": "Coefficient to use for external temperature delta"
         }
       },
       "presets": {
@@ -35,10 +28,8 @@
         "description": "For each presets, give the target temperature",
         "data": {
           "eco_temp": "Temperature in Eco preset",
-          "away_temp": "Temperature in Away preset",
           "comfort_temp": "Temperature in Comfort preset",
-          "boost_temp": "Temperature in Boost preset",
-          "power_temp": "Temperature in Power (overpowering) preset"
+          "boost_temp": "Temperature in Boost preset"
         }
       },
       "window": {
@@ -65,7 +56,8 @@
         "data": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
-          "device_power": "Device power (kW)"
+          "device_power": "Device power (kW)",
+          "power_temp": "Temperature for Power shedding"
         }
       },
       "presence": {
@@ -73,8 +65,9 @@
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
-          "no_presence_preset": "Preset to use when no one is present",
-          "no_presence_offset": "Temperature offset to apply to current temperature is no one is present"
+          "eco_away_temp": "Temperature in Eco preset when no presence",
+          "comfort_away_temp": "Temperature in Comfort preset when no presence",
+          "boost_away_temp": "Temperature in Boost preset when no presence"
         }
       }
     },
@@ -96,24 +89,17 @@
           "name": "Name",
           "heater_entity_id": "Heater entity id",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
+          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Function to use (linear is less aggressive)"
-        }
-      },
-      "p": {
-        "title": "Proportional",
-        "description": "Proportional attributes",
-        "data": {
-          "proportional_bias": "A bias to use in proportional algorithm"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
         }
       },
       "tpi": {
         "title": "TPI",
         "description": "Time Proportional Integral attributes",
         "data": {
-          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
-          "tpi_coefc": "Coefficient to use for internal temperature delta",
-          "tpi_coeft": "Coefficient to use for external temperature delta"
+          "tpi_coef_int": "Coefficient to use for internal temperature delta",
+          "tpi_coef_ext": "Coefficient to use for external temperature delta"
         }
       },
       "presets": {
@@ -121,10 +107,8 @@
         "description": "For each presets, give the target temperature",
         "data": {
           "eco_temp": "Temperature in Eco preset",
-          "away_temp": "Temperature in Away preset",
           "comfort_temp": "Temperature in Comfort preset",
-          "boost_temp": "Temperature in Boost preset",
-          "power_temp": "Temperature in Power (overpowering) preset"
+          "boost_temp": "Temperature in Boost preset"
         }
       },
       "window": {
@@ -151,7 +135,8 @@
         "data": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
-          "device_power": "Device power (kW)"
+          "device_power": "Device power (kW)",
+          "power_temp": "Temperature for Power shedding"
         }
       },
       "presence": {
@@ -159,8 +144,9 @@
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
-          "no_presence_preset": "Preset to use when no one is present",
-          "no_presence_offset": "Temperature offset to apply to current temperature is no one is present"
+          "eco_away_temp": "Temperature in Eco preset when no presence",
+          "comfort_away_temp": "Temperature in Comfort preset when no presence",
+          "boost_away_temp": "Temperature in Boost preset when no presence"
         }
       }
     },

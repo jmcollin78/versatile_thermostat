@@ -10,24 +10,17 @@
           "name": "Nom",
           "heater_entity_id": "Radiateur entity id",
           "temperature_sensor_entity_id": "Température sensor entity id",
+          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
-          "proportional_function": "Fonction de l'algorithm proportionnel à utiliser (linear est moins aggressive)"
-        }
-      },
-      "p": {
-        "title": "Proportional",
-        "description": "Attributs des algos Proportionnel",
-        "data": {
-          "proportional_bias": "Un biais à utiliser dans l'algorithm proportionnel"
+          "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)"
         }
       },
       "tpi": {
         "title": "TPI",
         "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
-          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
-          "tpi_coefc": "coeff_c : Coefficient à utiliser pour le delta de température interne",
-          "tpi_coeft": "coeff_t : Coefficient à utiliser pour le delta de température externe"
+          "tpi_coef_int": "coeff_int : Coefficient à utiliser pour le delta de température interne",
+          "tpi_coef_ext": "coeff_ext : Coefficient à utiliser pour le delta de température externe"
         }
       },
       "presets": {
@@ -35,10 +28,8 @@
         "description": "Pour chaque preset, donnez la température cible",
         "data": {
           "eco_temp": "Température en preset Eco",
-          "away_temp": "Température en preset Away",
           "comfort_temp": "Température en preset Comfort",
-          "boost_temp": "Température en preset Boost",
-          "power_temp": "Température en preset Power (overpowering)"
+          "boost_temp": "Température en preset Boost"
         }
       },
       "window": {
@@ -65,7 +56,8 @@
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "device_power": "Puissance de l'équipement"
+          "device_power": "Puissance de l'équipement",
+          "power_temp": "Température si délestaqe"
         }
       },
       "presence": {
@@ -73,8 +65,9 @@
         "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
-          "no_presence_preset": "Preset à utiliser si personne n'est présent",
-          "no_presence_offset": "Offset de température à utiliser si personne n'est présent"
+          "eco_away_temp": "Température en preset Eco en cas d'absence",
+          "comfort_away_temp": "Température en preset Comfort en cas d'absence",
+          "boost_away_temp": "Température en preset Boost en cas d'absence"
         }
       }
     },
@@ -96,24 +89,17 @@
           "name": "Nom",
           "heater_entity_id": "Radiateur entity id",
           "temperature_sensor_entity_id": "Température sensor entity id",
+          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
-          "proportional_function": "Fonction de l'algorithm proportionnel à utiliser (linear est moins aggressive)"
-        }
-      },
-      "p": {
-        "title": "Proportional",
-        "description": "Attributs des algos Proportionnel",
-        "data": {
-          "proportional_bias": "Un biais à utiliser dans l'algorithm proportionnel"
+          "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)"
         }
       },
       "tpi": {
         "title": "TPI",
         "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
-          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
-          "tpi_coefc": "coeff_c : Coefficient à utiliser pour le delta de température interne",
-          "tpi_coeft": "coeff_t : Coefficient à utiliser pour le delta de température externe"
+          "tpi_coef_int": "coeff_int : Coefficient à utiliser pour le delta de température interne",
+          "tpi_coef_ext": "coeff_ext : Coefficient à utiliser pour le delta de température externe"
         }
       },
       "presets": {
@@ -121,10 +107,8 @@
         "description": "Pour chaque preset, donnez la température cible",
         "data": {
           "eco_temp": "Température en preset Eco",
-          "away_temp": "Température en preset Away",
           "comfort_temp": "Température en preset Comfort",
-          "boost_temp": "Température en preset Boost",
-          "power_temp": "Température en preset Power (overpowering)"
+          "boost_temp": "Température en preset Boost"
         }
       },
       "window": {
@@ -151,7 +135,8 @@
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "device_power": "Puissance de l'équipement"
+          "device_power": "Puissance de l'équipement",
+          "power_temp": "Température si délestaqe"
         }
       },
       "presence": {
@@ -159,8 +144,9 @@
         "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
-          "no_presence_preset": "Preset à utiliser si personne n'est présent",
-          "no_presence_offset": "Offset de température à utiliser si personne n'est présent"
+          "eco_away_temp": "Température en preset Eco en cas d'absence",
+          "comfort_away_temp": "Température en preset Comfort en cas d'absence",
+          "boost_away_temp": "Température en preset Boost en cas d'absence"
         }
       }
     },

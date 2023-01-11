@@ -3,7 +3,6 @@
 from homeassistant.const import CONF_NAME
 from homeassistant.components.climate.const import (
     # PRESET_ACTIVITY,
-    PRESET_AWAY,
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
@@ -11,8 +10,6 @@ from homeassistant.components.climate.const import (
 )
 
 from .prop_algorithm import (
-    PROPORTIONAL_FUNCTION_ATAN,
-    PROPORTIONAL_FUNCTION_LINEAR,
     PROPORTIONAL_FUNCTION_TPI,
 )
 
@@ -30,31 +27,37 @@ CONF_MOTION_SENSOR = "motion_sensor_entity_id"
 CONF_DEVICE_POWER = "device_power"
 CONF_CYCLE_MIN = "cycle_min"
 CONF_PROP_FUNCTION = "proportional_function"
-CONF_PROP_BIAS = "proportional_bias"
 CONF_WINDOW_DELAY = "window_delay"
 CONF_MOTION_DELAY = "motion_delay"
 CONF_MOTION_PRESET = "motion_preset"
 CONF_NO_MOTION_PRESET = "no_motion_preset"
-CONF_TPI_COEF_C = "tpi_coefc"
-CONF_TPI_COEF_T = "tpi_coeft"
+CONF_TPI_COEF_INT = "tpi_coef_int"
+CONF_TPI_COEF_EXT = "tpi_coef_ext"
 CONF_PRESENCE_SENSOR = "presence_sensor_entity_id"
-CONF_NO_PRESENCE_PRESET = "no_presence_preset"
-CONF_NO_PRESENCE_TEMP_OFFSET = "no_presence_temp_offset"
+CONF_PRESET_POWER = "power_temp"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
     for p in (
         PRESET_ECO,
-        PRESET_AWAY,
-        PRESET_BOOST,
         PRESET_COMFORT,
-        PRESET_POWER,
+        PRESET_BOOST,
     )
 }
 
-CONF_PRESETS_SELECTIONABLE = [PRESET_ECO, PRESET_COMFORT, PRESET_AWAY, PRESET_BOOST]
+CONF_PRESETS_AWAY = {
+    p: f"{p}_temp"
+    for p in (
+        PRESET_ECO + "_away",
+        PRESET_BOOST + "_away",
+        PRESET_COMFORT + "_away",
+    )
+}
+
+CONF_PRESETS_SELECTIONABLE = [PRESET_ECO, PRESET_COMFORT, PRESET_BOOST]
 
 CONF_PRESETS_VALUES = list(CONF_PRESETS.values())
+CONF_PRESETS_AWAY_VALUES = list(CONF_PRESETS_AWAY.values())
 
 ALL_CONF = (
     [
@@ -73,20 +76,18 @@ ALL_CONF = (
         CONF_DEVICE_POWER,
         CONF_CYCLE_MIN,
         CONF_PROP_FUNCTION,
-        CONF_PROP_BIAS,
-        CONF_TPI_COEF_C,
-        CONF_TPI_COEF_T,
+        CONF_TPI_COEF_INT,
+        CONF_TPI_COEF_EXT,
         CONF_PRESENCE_SENSOR,
-        CONF_NO_PRESENCE_PRESET,
-        CONF_NO_PRESENCE_TEMP_OFFSET,
     ]
-    + CONF_PRESETS_VALUES,
+    + CONF_PRESETS_VALUES
+    + CONF_PRESETS_AWAY_VALUES,
 )
 
 CONF_FUNCTIONS = [
-    PROPORTIONAL_FUNCTION_LINEAR,
-    PROPORTIONAL_FUNCTION_ATAN,
     PROPORTIONAL_FUNCTION_TPI,
 ]
 
 SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE
+
+SERVICE_SET_PRESENCE = "set_presence"

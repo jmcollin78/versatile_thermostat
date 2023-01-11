@@ -16,22 +16,24 @@ class PropAlgorithm:
     """This class aims to do all calculation of the Proportional alogorithm"""
 
     def __init__(
-        self, function_type: str, bias: float, tpi_coefc, tpi_coeft, cycle_min: int
+        self,
+        function_type: str,
+        tpi_coef_int,
+        tpi_coef_ext,
+        cycle_min: int,
     ):
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "Creation new PropAlgorithm function_type: %s, bias: %s, tpi_coefc: %s, tpi_coeft: %s, cycle_min:%d",
+            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d",
             function_type,
-            bias,
-            tpi_coefc,
-            tpi_coeft,
+            tpi_coef_int,
+            tpi_coef_ext,
             cycle_min,
         )
         # TODO test function_type, bias, cycle_min
         self._function = function_type
-        self._bias = bias
-        self._tpi_coefc = tpi_coefc
-        self._tpi_coeft = tpi_coeft
+        self._tpi_coef_int = tpi_coef_int
+        self._tpi_coef_ext = tpi_coef_ext
         self._cycle_min = cycle_min
         self._on_percent = 0
         self._on_time_sec = 0
@@ -52,13 +54,10 @@ class PropAlgorithm:
                 target_temp - ext_current_temp if ext_current_temp is not None else 0
             )
 
-            if self._function == PROPORTIONAL_FUNCTION_LINEAR:
-                self._on_percent = 0.25 * delta_temp + self._bias
-            elif self._function == PROPORTIONAL_FUNCTION_ATAN:
-                self._on_percent = math.atan(delta_temp + self._bias) / 1.4
-            elif self._function == PROPORTIONAL_FUNCTION_TPI:
+            if self._function == PROPORTIONAL_FUNCTION_TPI:
                 self._on_percent = (
-                    self._tpi_coefc * delta_temp + self._tpi_coeft * delta_ext_temp
+                    self._tpi_coef_int * delta_temp
+                    + self._tpi_coef_ext * delta_ext_temp
                 )
             else:
                 _LOGGER.warning(
