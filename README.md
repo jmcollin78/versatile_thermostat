@@ -3,7 +3,7 @@
 [![License][license-shield]](LICENSE)
 [![hacs][hacs_badge]][hacs]
 
-!!! IMPORTANT This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?) you don't have to build over complicated scripts and automations to manage your climates ;-).
+> ![Tip](images/tips.png) This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?), you don't have to build over complicated scripts and automations to manage your climates ;-).
 
 _Component developed by using the amazing development template [[blueprint](https://github.com/custom-components/integration_blueprint)]._
 
@@ -57,14 +57,14 @@ This component named __Versatile thermostat__ manage the following use cases :
 Note: no configuration in configuration.yaml is needed because all configuration is done through the standard GUI when adding the integration.
 
 Click on Add integration button in the integration page
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/add-an-integration.png?raw=true)
+![image](images/add-an-integration.png?raw=true)
 
 The configuration can be change through the same interface. Simply select the thermostat to change, hit "Configure" and you will be able to change some parameters or configuration. Don't forget to reload (dot menu / reload) to take the new configuration into account.
 
 Then follow the configurations steps as follow:
 
 ### Minimal configuration update
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-main.png?raw=true)
+![image](images/config-main.png?raw=true)
 
 Give the main mandatory attributes:
 1. a name (will be the integration name and also the climate entity name)
@@ -74,19 +74,19 @@ Give the main mandatory attributes:
 5. a cycle duration in minutes. At each cycle, the heater will be turned on then off for a calculated period in order to reach the targeted temperature (see [preset](#configure-the-preset-temperature) below),
 6. Algorithm to use. Today only the TPI algorithm is available. See [algorithm](#algorithm)
 
-!!!IMPORTANT Notes
-1. Calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
-2. if the cycle is too short, the heater could never reach the target temperature indeed for heater with accumulation features and it will be unnecessary solicited
+> ![Tip](images/tips.png) _*Notes*_
+      1. Calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
+      2. if the cycle is too short, the heater could never reach the target temperature indeed for heater with accumulation features and it will be unnecessary solicited
 
 ### Configure the TPI algorithm coefficients
 Click on 'Validate' on the previous page and you will get there:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-tpi.png?raw=true)
+![image](images/config-tpi.png?raw=true)
 
 For more informations on the TPI algorithm and tuned please refer to [algorithm](#algorithm).
 
 ### Configure the preset temperature
 Click on 'Validate' on the previous page and you will get there:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presets.png?raw=true)
+![image](images/config-presets.png?raw=true)
 
 The preset mode allows you to pre-configurate targeted temperature. Used in conjonction with Scheduler (see [scheduler](#even-better-with-scheduler-component) you will have a powerfull and simple way to optimize the temperature vs electrical consumption of your hous. Preset handled are the following :
  - **Eco** : device is running an energy-saving mode
@@ -95,15 +95,15 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
 
 **None** is always added in the list of modes, as it is a way to not use the presets modes but a **manual temperature** instead.
 
-!!! IMPORTANT Notes
-1. Changing manually the target temperature, set the preset to None (no preset). This way you can always set a target temperature even if no preset are available.
-2. standard **Away** preset is a hidden preset which is not directly selectable. Versatile Thermostat uses the presence management or movement management to set automatically and dynamically the target temperature depending on a presence in the home or an activity in the room. See [presence management](#configure-the-presence-management).
-3. if you uses the power shedding management, you will see a hidden preset named **power**. The heater preset is set to **power** when overpowering conditions are encountered and shedding is active for this heater. See [power management](#configure-the-power-management).
-4. If you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
+> ![Tip](images/tips.png) _*Notes*_
+    1. Changing manually the target temperature, set the preset to None (no preset). This way you can always set a target temperature even if no preset are available.
+    2. standard **Away** preset is a hidden preset which is not directly selectable. Versatile Thermostat uses the presence management or movement management to set automatically and dynamically the target temperature depending on a presence in the home or an activity in the room. See [presence management](#configure-the-presence-management).
+    3. if you uses the power shedding management, you will see a hidden preset named **power**. The heater preset is set to **power** when overpowering conditions are encountered and shedding is active for this heater. See [power management](#configure-the-power-management).
+    4. If you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
 
 ### Configure the doors/windows turning on/off the thermostats
 Click on 'Validate' on the previous page and you will get there:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
+![image](images/config-window.png?raw=true)
 
 Give the following attributes:
 1. an entity id of a **window/door sensor**. This should be a binary_sensor or a input_boolean. The state of the entity should be 'on' when the window is open or 'off' when closed
@@ -111,13 +111,13 @@ Give the following attributes:
 
 And that's it ! your thermostat will turn off when the windows is open and be turned back on when it's closed afer the delay.
 
-!!! IMPORTANT Notes
-1. If you want to use **several door/windows sensors** to automatize your thermostat, just create a group with the regular behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
-2. If you don't have any window/door sensor in your room, just leave the sensor entity id empty
+> ![Tip](images/tips.png)  _*Notes*_
+    1. If you want to use **several door/windows sensors** to automatize your thermostat, just create a group with the regular behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
+    2. If you don't have any window/door sensor in your room, just leave the sensor entity id empty
 
 ### Configure the activity mode or motion detection
 Click on 'Validate' on the previous page and you will get there:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
+![image](images/config-motion.png?raw=true)
 
 We will now see how to configure the new Activity mode.
 What we need:
@@ -134,24 +134,24 @@ So imagine we want to have the following behavior :
 
 For this to work, the climate thermostat should be in ``Activity`` preset mode.
 
-!!! IMPORTANT Notes
-1. Be aware that as for the others preset modes, ``Activity`` will only be proposed if it's correctly configure. In other words, the 4 configuration keys have to be set if you want to see Activity in home assistant Interface
+> ![Tip](images/tips.png)  _*Notes*_
+    1. Be aware that as for the others preset modes, ``Activity`` will only be proposed if it's correctly configure. In other words, the 4 configuration keys have to be set if you want to see Activity in home assistant Interface
 
 ### Configure the power management
 Click on 'Validate' on the previous page and you will get there:
 
 This feature allows you to regulate the power consumption of your radiators. Known as shedding, this feature allows you to limit the electrical power consumption of your heater if overpowering conditions are detected. Give a **sensor to the current power consumption of your house**, a **sensor to the max power** that should not be exceeded, the **power consumption of your heater** and the algorithm will not start a radiator if the max power will be exceeded after radiator starts.
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
+![image](images/config-power.png?raw=true)
 
 Note that all power values should have the same units (kW or W for example).
 This allows you to change the max power along time using a Scheduler or whatever you like.
 
-!!! IMPORTANT Notes
-1. When shedding is encountered, the heater is set to the preset named ``power``. This is a hidden preset, you cannot select it manually.
-2. I use this to avoid exceeded the limit of my electrical power contract when an electrical vehicle is charging. This makes a kind of auto-regulation.
-3. Always keep a margin, because max power can be briefly exceeded while waiting for the next cycle calculation typically or by not regulated equipement.
-4. If you don't want to use this feature, just leave the entities id empty
+> ![Tip](images/tips.png)  _*Notes*_
+    1. When shedding is encountered, the heater is set to the preset named ``power``. This is a hidden preset, you cannot select it manually.
+    2. I use this to avoid exceeded the limit of my electrical power contract when an electrical vehicle is charging. This makes a kind of auto-regulation.
+    3. Always keep a margin, because max power can be briefly exceeded while waiting for the next cycle calculation typically or by not regulated equipement.
+    4. If you don't want to use this feature, just leave the entities id empty
 
 ### Configure the presence or occupancy
 This feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
@@ -162,9 +162,9 @@ For this you need to configure:
 3. The **temperature used in Comfort** preset when absent,
 4. The **temperature used in Boost** preset when absent
 
-!!!IMPORTANT Notes
-1. the switch of temperature is immediate and is reflected on the front component. The calculation will take the new target temperature into account at the next cycle calculation,
-2. you can use direct person.xxxx sensor or group of sensors of Home Assistant. The presence sensor handles ``on`` or ``home`` states as present and ``off`` or ``not_home`` state as absent.
+> ![Tip](images/tips.png)  _*Notes*_
+      1. the switch of temperature is immediate and is reflected on the front component. The calculation will take the new target temperature into account at the next cycle calculation,
+      2. you can use direct person.xxxx sensor or group of sensors of Home Assistant. The presence sensor handles ``on`` or ``home`` states as present and ``off`` or ``not_home`` state as absent.
 
 ## Algorithm
 This integration uses a proportional algorithm. A Proportional algorithm is useful to avoid the oscillation around the target temperature. This algorithm is based on a cycle which alternate heating and stop heating. The proportion of heating vs not heating is determined by the difference between the temperature and the target temperature. Bigger the difference is and bigger is the proportion of heating inside the cycle.
@@ -192,7 +192,7 @@ See some situations at [examples](#some-results).
 ### Custom attributes
 
 To tune the algorithm you have access to all context seen and calculted by the thermostat through dedicated attributes. You can see (and use) those attributes in the "Development tools / states" HMI of HA. Enter your thermostat and you will see something like this:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/dev-tools-climate.png?raw=true)
+![image](images/dev-tools-climate.png?raw=true)
 
 Custom attributes are the following:
 
@@ -229,16 +229,16 @@ Custom attributes are the following:
 ### Some results
 
 Convergence of temperature to target configured by preset:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-1.png?raw=true)
+![image](images/results-1.png?raw=true)
 
 Cycle of on/off calculated by the integration:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-2.png?raw=true)
+![image](images/results-2.png?raw=true)
 
 Coef_int too high (oscillations around the target)
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-3.png?raw=true)
+![image](images/results-3.png?raw=true)
 
 Algorithm calculation evolution
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-4.png?raw=true)
+![image](images/results-4.png?raw=true)
 
 
 Enjoy !
@@ -270,8 +270,8 @@ In this example I set ECO mode during the night and the day when nobody's at hom
 I hope this example helps you, don't hesitate to give me your feedbacks !
 
 ## Even-even better with custom:simple-thermostat front integration
-The custom:simple-thermostat (see https://home.clouderial.fr/hacs/repository/158654878) is a great integration which allow some customisation which fits well with this thermostat.
-You can have something like that very easily ![image](https://github.com/jmcollin78/versatile_thermostat/blob/dev/images/simple-thermostat.png?raw=true)
+The ``custom:simple-thermostat`` [here](https://github.com/nervetattoo/simple-thermostat) is a great integration which allow some customisation which fits well with this thermostat.
+You can have something like that very easily ![image](images/simple-thermostat.png?raw=true)
 Example configuration:
 
 ```
