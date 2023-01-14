@@ -5,11 +5,37 @@
 
 > ![Tip](images/tips.png) This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?), you don't have to build over complicated scripts and automations to manage your climates ;-).
 
+- [When to use / not use](#when-to-use--not-use)
+- [Why another thermostat implementation ?](#why-another-thermostat-implementation-)
+- [How to install this incredible Versatile Thermostat ?](#how-to-install-this-incredible-versatile-thermostat-)
+  - [HACS installation (recommended)](#hacs-installation-recommended)
+  - [Manual installation](#manual-installation)
+- [Configuration](#configuration)
+  - [Minimal configuration update](#minimal-configuration-update)
+  - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
+  - [Configure the preset temperature](#configure-the-preset-temperature)
+  - [Configure the doors/windows turning on/off the thermostats](#configure-the-doorswindows-turning-onoff-the-thermostats)
+  - [Configure the activity mode or motion detection](#configure-the-activity-mode-or-motion-detection)
+  - [Configure the power management](#configure-the-power-management)
+  - [Configure the presence or occupancy](#configure-the-presence-or-occupancy)
+- [Algorithm](#algorithm)
+  - [TPI algorithm](#tpi-algorithm)
+- [Services](#services)
+  - [Force the presence / occupancy](#force-the-presence--occupancy)
+  - [Change the temperature of presets](#change-the-temperature-of-presets)
+- [Custom attributes](#custom-attributes)
+- [Some results](#some-results)
+- [Even better](#even-better)
+  - [Even Better with Scheduler Component !](#even-better-with-scheduler-component-)
+  - [Even-even better with custom:simple-thermostat front integration](#even-even-better-with-customsimple-thermostat-front-integration)
+  - [Even better with Apex-chart to tune your Thermostat](#even-better-with-apex-chart-to-tune-your-thermostat)
+- [Contributions are welcome!](#contributions-are-welcome)
+
 _Component developed by using the amazing development template [[blueprint](https://github.com/custom-components/integration_blueprint)]._
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
-## When to use / not use
+# When to use / not use
 This thermostat aims to command a heater which works only in on/off mode. The minimal needed configuration to use this thermostat is:
 1. an equipement like a heater (a switch),
 2. a temperature sensor for the room (or an input_number),
@@ -17,7 +43,7 @@ This thermostat aims to command a heater which works only in on/off mode. The mi
 
 Because this integration aims to command the heater considering the preset configured and the room temperature, those informations are mandatory.
 
-## Why another thermostat implementation ?
+# Why another thermostat implementation ?
 
 For my personnal usage, I needed to add a couple of features and also to update the behavior that implemented in the previous component "Awesome thermostat".
 This component named __Versatile thermostat__ manage the following use cases :
@@ -31,9 +57,9 @@ This component named __Versatile thermostat__ manage the following use cases :
 - Add **home presence management**. This feature allows you to dynamically change the temperature of preset considering a occupancy sensor of your home.
 - Add **services to interact with the thermostat** from others integration: you can force the presence / un-presence using a service, and you can dynamically change the temperature of the presets.
 
-## How to install this incredible Versatile Thermostat ?
+# How to install this incredible Versatile Thermostat ?
 
-### HACS installation (recommended)
+## HACS installation (recommended)
 
 1. Install [HACS](https://hacs.xyz/). That way you get updates automatically.
 2. Add this Github repository as custom repository in HACS settings.
@@ -41,7 +67,7 @@ This component named __Versatile thermostat__ manage the following use cases :
 4. Restart Home Assistant,
 5. Then you can add an Versatile Thermostat integration in the integration page. You add as many Versatile Thermostat that you need (typically one per heater that should be managed)
 
-### Manual installation
+## Manual installation
 
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 2. If you do not have a `custom_components` directory (folder) there, you need to create it.
@@ -52,7 +78,7 @@ This component named __Versatile thermostat__ manage the following use cases :
 7. Configure new Versatile Thermostat integration
 
 
-## Configuration
+# Configuration
 
 Note: no configuration in configuration.yaml is needed because all configuration is done through the standard GUI when adding the integration.
 
@@ -63,7 +89,7 @@ The configuration can be change through the same interface. Simply select the th
 
 Then follow the configurations steps as follow:
 
-### Minimal configuration update
+## Minimal configuration update
 ![image](images/config-main.png?raw=true)
 
 Give the main mandatory attributes:
@@ -78,13 +104,13 @@ Give the main mandatory attributes:
       1. Calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
       2. if the cycle is too short, the heater could never reach the target temperature indeed for heater with accumulation features and it will be unnecessary solicited
 
-### Configure the TPI algorithm coefficients
+## Configure the TPI algorithm coefficients
 Click on 'Validate' on the previous page and you will get there:
 ![image](images/config-tpi.png?raw=true)
 
 For more informations on the TPI algorithm and tuned please refer to [algorithm](#algorithm).
 
-### Configure the preset temperature
+## Configure the preset temperature
 Click on 'Validate' on the previous page and you will get there:
 ![image](images/config-presets.png?raw=true)
 
@@ -101,7 +127,7 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
     3. if you uses the power shedding management, you will see a hidden preset named **power**. The heater preset is set to **power** when overpowering conditions are encountered and shedding is active for this heater. See [power management](#configure-the-power-management).
     4. If you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
 
-### Configure the doors/windows turning on/off the thermostats
+## Configure the doors/windows turning on/off the thermostats
 Click on 'Validate' on the previous page and you will get there:
 ![image](images/config-window.png?raw=true)
 
@@ -115,7 +141,7 @@ And that's it ! your thermostat will turn off when the windows is open and be tu
     1. If you want to use **several door/windows sensors** to automatize your thermostat, just create a group with the regular behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
     2. If you don't have any window/door sensor in your room, just leave the sensor entity id empty
 
-### Configure the activity mode or motion detection
+## Configure the activity mode or motion detection
 Click on 'Validate' on the previous page and you will get there:
 ![image](images/config-motion.png?raw=true)
 
@@ -137,7 +163,7 @@ For this to work, the climate thermostat should be in ``Activity`` preset mode.
 > ![Tip](images/tips.png)  _*Notes*_
     1. Be aware that as for the others preset modes, ``Activity`` will only be proposed if it's correctly configure. In other words, the 4 configuration keys have to be set if you want to see Activity in home assistant Interface
 
-### Configure the power management
+## Configure the power management
 Click on 'Validate' on the previous page and you will get there:
 
 This feature allows you to regulate the power consumption of your radiators. Known as shedding, this feature allows you to limit the electrical power consumption of your heater if overpowering conditions are detected. Give a **sensor to the current power consumption of your house**, a **sensor to the max power** that should not be exceeded, the **power consumption of your heater** and the algorithm will not start a radiator if the max power will be exceeded after radiator starts.
@@ -153,7 +179,7 @@ This allows you to change the max power along time using a Scheduler or whatever
     3. Always keep a margin, because max power can be briefly exceeded while waiting for the next cycle calculation typically or by not regulated equipement.
     4. If you don't want to use this feature, just leave the entities id empty
 
-### Configure the presence or occupancy
+## Configure the presence or occupancy
 This feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
 
 For this you need to configure:
@@ -166,7 +192,7 @@ For this you need to configure:
       1. the switch of temperature is immediate and is reflected on the front component. The calculation will take the new target temperature into account at the next cycle calculation,
       2. you can use direct person.xxxx sensor or group of sensors of Home Assistant. The presence sensor handles ``on`` or ``home`` states as present and ``off`` or ``not_home`` state as absent.
 
-## Algorithm
+# Algorithm
 This integration uses a proportional algorithm. A Proportional algorithm is useful to avoid the oscillation around the target temperature. This algorithm is based on a cycle which alternate heating and stop heating. The proportion of heating vs not heating is determined by the difference between the temperature and the target temperature. Bigger the difference is and bigger is the proportion of heating inside the cycle.
 
 This algorithm make the temperature converge and stop oscillating.
@@ -189,7 +215,43 @@ To tune those coefficients keep in mind that:
 
 See some situations at [examples](#some-results).
 
-### Custom attributes
+# Services
+
+This custom implementation offers some specific services to facilitate integration with others Home Assisstant components.
+
+## Force the presence / occupancy
+This service allows you to force the presence status independantly of the presence sensor. This can be useful if you want to manage the presence through a service and not through a sensor. For example, you could use your alarm to force the absence when it is switched on.
+
+The code to call this service is the following:
+```
+service: versatile_thermostat.set_presence
+data:
+    presence: "off"
+target:
+    entity_id: climate.my_thermostat
+```
+
+## Change the temperature of presets
+This services is useful if you want to dynamically change the preset temperature. Instead of changing preset, some use-case need to change the temperature of the preset. So you can keep the Scheduler unchanged to manage the preset and adjust the temperature of the preset.
+If the changed preset is currently selectionned, the modification of the target temperature is immediate and will be taken into account at the next calculation cycle.
+
+You can change the one or the both temperature (when present or when absent) of each preset.
+
+Use the following code the set the temperature of the preset:
+```
+service: versatile_thermostat.set_preset_temperature
+data:
+    preset: boost
+    temperature: 17.8
+    temperature_away: 15
+target:
+    entity_id: climate.my_thermostat
+```
+
+> ![Tip](images/tips.png)  _*Notes*_
+    - after a restart the preset are resetted to the configured temperature. If you want your change to be permanent you should modify the temperature preset into the confguration of the integration.
+
+# Custom attributes
 
 To tune the algorithm you have access to all context seen and calculted by the thermostat through dedicated attributes. You can see (and use) those attributes in the "Development tools / states" HMI of HA. Enter your thermostat and you will see something like this:
 ![image](images/dev-tools-climate.png?raw=true)
@@ -226,7 +288,7 @@ Custom attributes are the following:
 | ``friendly_name`` | The name of the thermostat |
 | ``supported_features`` | A combination of all features supported by this thermostat. See official climate integration documentation for more informations |
 
-### Some results
+# Some results
 
 Convergence of temperature to target configured by preset:
 ![image](images/results-1.png?raw=true)
@@ -242,6 +304,8 @@ Algorithm calculation evolution
 
 
 Enjoy !
+
+# Even better
 
 ## Even Better with Scheduler Component !
 
@@ -298,7 +362,7 @@ Example configuration:
           name: Porte sam
 ```
 
-## Even-Even-Even better with Apex-chart to tune your Thermostat
+## Even better with Apex-chart to tune your Thermostat
 You can get curve like presented in [some results](#some-results) with kind of Apex-chart configuration only using the custom attributes of the thermostat described [here](#custom-attributes):
 
 ```
@@ -337,7 +401,7 @@ series:
     yaxis_id: right
 ```
 
-## Contributions are welcome!
+# Contributions are welcome!
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
 
