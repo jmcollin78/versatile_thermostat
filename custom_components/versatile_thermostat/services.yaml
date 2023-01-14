@@ -1,0 +1,71 @@
+set_presence:
+    name: Set presence
+    description: Force the presence mode in thermostat
+    target:
+        entity:
+            multiple: true
+            integration: versatile_thermostat
+    fields:
+        presence:
+            name: Presence
+            description: Presence setting
+            required: true
+            advanced: false
+            example: "on"
+            default: "on"
+            selector:
+                select:
+                    options:
+                        - "on"
+                        - "off"
+                        - "home"
+                        - "not_home"
+
+set_preset_temperature:
+    name: Set temperature preset
+    description: Change the target temperature of a preset
+    target:
+        entity:
+            multiple: true
+            integration: versatile_thermostat
+    fields:
+        preset:
+            name: Preset
+            description: Preset name
+            required: true
+            advanced: false
+            example: "comfort"
+            selector:
+                select:
+                    options:
+                        - "eco"
+                        - "comfort"
+                        - "boost"
+        temperature:
+            name: Temperature when present
+            description: Target temperature for the preset when present
+            required: false
+            advanced: false
+            example: "19.5"
+            default: "17"
+            selector:
+                number:
+                    min: 7
+                    max: 35
+                    step: 0.1
+                    unit_of_measurement: °
+                    mode: slider
+        temperature_away:
+            name: Temperature when not present
+            description: Target temperature for the preset when not present
+            required: false
+            advanced: false
+            example: "17"
+            default: "15"
+            selector:
+                number:
+                    min: 7
+                    max: 35
+                    step: 0.1
+                    unit_of_measurement: °
+                    mode: slider

@@ -45,12 +45,14 @@ CONF_PRESETS = {
     )
 }
 
+PRESET_AWAY_SUFFIX = "_away"
+
 CONF_PRESETS_AWAY = {
     p: f"{p}_temp"
     for p in (
-        PRESET_ECO + "_away",
-        PRESET_BOOST + "_away",
-        PRESET_COMFORT + "_away",
+        PRESET_ECO + PRESET_AWAY_SUFFIX,
+        PRESET_BOOST + PRESET_AWAY_SUFFIX,
+        PRESET_COMFORT + PRESET_AWAY_SUFFIX,
     )
 }
 
@@ -91,3 +93,4 @@ CONF_FUNCTIONS = [
 SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE
 
 SERVICE_SET_PRESENCE = "set_presence"
+SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"

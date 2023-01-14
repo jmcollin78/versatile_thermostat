@@ -25,7 +25,7 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "For each presets, give the target temperature",
+        "description": "For each presets, give the target temperature (0 to ignore preset)",
         "data": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",
@@ -104,7 +104,7 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "For each presets, give the target temperature",
+        "description": "For each presets, give the target temperature (0 to ignore preset)",
         "data": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",

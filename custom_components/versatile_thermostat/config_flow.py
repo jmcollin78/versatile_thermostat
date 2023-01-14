@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import logging
-
+import copy
 import voluptuous as vol
+
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.core import callback
 from homeassistant.config_entries import (
@@ -48,91 +51,46 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_NAME): cv.string,
-        vol.Required(CONF_HEATER): cv.string,
-        vol.Required(CONF_TEMP_SENSOR): cv.string,
-        vol.Required(CONF_EXTERNAL_TEMP_SENSOR): cv.string,
-        vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
-        vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
-            [
-                PROPORTIONAL_FUNCTION_TPI,
-            ]
-        ),
-    }
-)
 
-STEP_TPI_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_TPI_COEF_INT, default=0.6): vol.Coerce(float),
-        vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float),
-    }
-)
-
-STEP_PRESETS_DATA_SCHEMA = vol.Schema(
-    {vol.Optional(v, default=17): vol.Coerce(float) for (k, v) in CONF_PRESETS.items()}
-)
-
-STEP_WINDOW_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_WINDOW_SENSOR): cv.string,
-        vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
-    }
-)
-
-STEP_MOTION_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_MOTION_SENSOR): cv.string,
-        vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
-        vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
-            CONF_PRESETS_SELECTIONABLE
-        ),
-        vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): vol.In(
-            CONF_PRESETS_SELECTIONABLE
-        ),
-    }
-)
-
-STEP_POWER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_POWER_SENSOR): cv.string,
-        vol.Optional(CONF_MAX_POWER_SENSOR): cv.string,
-        vol.Optional(CONF_DEVICE_POWER): vol.Coerce(float),
-        vol.Optional(CONF_PRESET_POWER): vol.Coerce(float),
-    }
-)
-
-STEP_PRESENCE_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_PRESENCE_SENSOR): cv.string,
-    }
-).extend(
-    {
-        vol.Optional(v, default=17): vol.Coerce(float)
-        for (k, v) in CONF_PRESETS_AWAY.items()
-    }
-)
+# Not used but can be useful in other context
+# def schema_defaults(schema, **defaults):
+#    """Create a new schema with default values filled in."""
+#    copy = schema.extend({})
+#    for field, field_type in copy.schema.items():
+#        if isinstance(field_type, vol.In):
+#            value = None
+#
+#            if value in field_type.container:
+#                # field.default = vol.default_factory(value)
+#                field.description = {"suggested_value": value}
+#                continue
+#
+#        if field.schema in defaults:
+#            # field.default = vol.default_factory(defaults[field])
+#            field.description = {"suggested_value": defaults[field]}
+#    return copy
+#
 
 
-def schema_defaults(schema, **defaults):
-    """Create a new schema with default values filled in."""
-    copy = schema.extend({})
-    for field, field_type in copy.schema.items():
-        if isinstance(field_type, vol.In):
-            value = None
-            # for dps in dps_list or []:
-            #    if dps.startswith(f"{defaults.get(field)} "):
-            #        value = dps
-            #        break
+def add_suggested_values_to_schema(
+    data_schema: vol.Schema, suggested_values: Mapping[str, Any]
+) -> vol.Schema:
+    """Make a copy of the schema, populated with suggested values.
 
-            if value in field_type.container:
-                field.default = vol.default_factory(value)
-                continue
-
-        if field.schema in defaults:
-            field.default = vol.default_factory(defaults[field])
-    return copy
+    For each schema marker matching items in `suggested_values`,
+    the `suggested_value` will be set. The existing `suggested_value` will
+    be left untouched if there is no matching item.
+    """
+    schema = {}
+    for key, val in data_schema.schema.items():
+        new_key = key
+        if key in suggested_values and isinstance(key, vol.Marker):
+            # Copy the marker to not modify the flow schema
+            new_key = copy.copy(key)
+            new_key.description = {"suggested_value": suggested_values[key]}
+        schema[new_key] = val
+    _LOGGER.debug("add_suggested_values_to_schema: schema=%s", schema)
+    return vol.Schema(schema)
 
 
 class VersatileThermostatBaseConfigFlow(FlowHandler):
@@ -145,6 +103,76 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos = infos
+        self.STEP_USER_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Required(CONF_NAME): cv.string,
+                vol.Required(CONF_HEATER): cv.string,
+                vol.Required(CONF_TEMP_SENSOR): cv.string,
+                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): cv.string,
+                vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
+                vol.Required(
+                    CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
+                ): vol.In(
+                    [
+                        PROPORTIONAL_FUNCTION_TPI,
+                    ]
+                ),
+            }
+        )
+
+        self.STEP_TPI_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Required(CONF_TPI_COEF_INT, default=0.6): vol.Coerce(float),
+                vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float),
+            }
+        )
+
+        self.STEP_PRESETS_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Optional(v, default=0.0): vol.Coerce(float)
+                for (k, v) in CONF_PRESETS.items()
+            }
+        )
+
+        self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Optional(CONF_WINDOW_SENSOR): cv.string,
+                vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
+            }
+        )
+
+        self.STEP_MOTION_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Optional(CONF_MOTION_SENSOR): cv.string,
+                vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
+                vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
+                    CONF_PRESETS_SELECTIONABLE
+                ),
+                vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): vol.In(
+                    CONF_PRESETS_SELECTIONABLE
+                ),
+            }
+        )
+
+        self.STEP_POWER_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Optional(CONF_POWER_SENSOR): cv.string,
+                vol.Optional(CONF_MAX_POWER_SENSOR): cv.string,
+                vol.Optional(CONF_DEVICE_POWER): vol.Coerce(float),
+                vol.Optional(CONF_PRESET_POWER): vol.Coerce(float),
+            }
+        )
+
+        self.STEP_PRESENCE_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Optional(CONF_PRESENCE_SENSOR): cv.string,
+            }
+        ).extend(
+            {
+                vol.Optional(v, default=17): vol.Coerce(float)
+                for (k, v) in CONF_PRESETS_AWAY.items()
+            }
+        )
 
     async def validate_input(self, data: dict) -> dict[str]:
         """Validate the user input allows us to connect.
@@ -171,6 +199,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 )
                 raise UnknownEntity(conf)
 
+    def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
+        """For each schema entry not in user_input, set or remove values in infos"""
+        self._infos.update(user_input)
+        for key, _ in data_schema.schema.items():
+            if key not in user_input and isinstance(key, vol.Marker):
+                _LOGGER.debug(
+                    "add_empty_values_to_user_input: %s is not in user_input", key
+                )
+                if key in self._infos:
+                    self._infos.pop(key)
+            # else:  This don't work but I don't know why. _infos seems broken after this (Not serializable exactly)
+            #     self._infos[key] = user_input[key]
+
+        _LOGGER.debug("merge_user_input: infos is now %s", self._infos)
+
     async def generic_step(self, step_id, data_schema, user_input, next_step_function):
         """A generic method step"""
         _LOGGER.debug(
@@ -190,11 +233,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                self._infos.update(user_input)
+                self.merge_user_input(data_schema, user_input)
                 _LOGGER.debug("_info is now: %s", self._infos)
                 return await next_step_function()
 
-        ds = schema_defaults(data_schema, **defaults)  # pylint: disable=invalid-name
+        # ds = schema_defaults(data_schema, **defaults)  # pylint: disable=invalid-name
+        ds = add_suggested_values_to_schema(
+            data_schema=data_schema, suggested_values=defaults
+        )  # pylint: disable=invalid-name
 
         return self.async_show_form(step_id=step_id, data_schema=ds, errors=errors)
 
@@ -203,7 +249,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_user user_input=%s", user_input)
 
         return await self.generic_step(
-            "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_tpi
+            "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_tpi
         )
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
@@ -211,7 +257,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_tpi user_input=%s", user_input)
 
         return await self.generic_step(
-            "tpi", STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
+            "tpi", self.STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
         )
 
     async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
@@ -219,7 +265,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_presets user_input=%s", user_input)
 
         return await self.generic_step(
-            "presets", STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
+            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
         )
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
@@ -227,7 +273,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_window user_input=%s", user_input)
 
         return await self.generic_step(
-            "window", STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
+            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
         )
 
     async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
@@ -235,7 +281,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_motion user_input=%s", user_input)
 
         return await self.generic_step(
-            "motion", STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
+            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
         )
 
     async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
@@ -244,7 +290,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step(
             "power",
-            STEP_POWER_DATA_SCHEMA,
+            self.STEP_POWER_DATA_SCHEMA,
             user_input,
             self.async_step_presence,
         )
@@ -255,7 +301,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step(
             "presence",
-            STEP_PRESENCE_DATA_SCHEMA,
+            self.STEP_PRESENCE_DATA_SCHEMA,
             user_input,
             self.async_finalize,  # pylint: disable=no-member
         )
@@ -279,7 +325,7 @@ class VersatileThermostatConfigFlow(
 
     async def async_finalize(self):
         """Finalization of the ConfigEntry creation"""
-        _LOGGER.debug("CTOR ConfigFlow.async_finalize")
+        _LOGGER.debug("ConfigFlow.async_finalize")
         return self.async_create_entry(title=self._infos[CONF_NAME], data=self._infos)
 
 
@@ -318,7 +364,7 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         return await self.generic_step(
-            "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_tpi
+            "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_tpi
         )
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
@@ -328,7 +374,7 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         return await self.generic_step(
-            "tpi", STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
+            "tpi", self.STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
         )
 
     async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
@@ -338,7 +384,7 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         return await self.generic_step(
-            "presets", STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
+            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
         )
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
@@ -348,7 +394,7 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         return await self.generic_step(
-            "window", STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
+            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
         )
 
     async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
@@ -358,7 +404,7 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         return await self.generic_step(
-            "motion", STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
+            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
         )
 
     async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
@@ -369,7 +415,7 @@ class VersatileThermostatOptionsFlowHandler(
 
         return await self.generic_step(
             "power",
-            STEP_POWER_DATA_SCHEMA,
+            self.STEP_POWER_DATA_SCHEMA,
             user_input,
             self.async_step_presence,  # pylint: disable=no-member
         )
@@ -382,7 +428,7 @@ class VersatileThermostatOptionsFlowHandler(
 
         return await self.generic_step(
             "presence",
-            STEP_PRESENCE_DATA_SCHEMA,
+            self.STEP_PRESENCE_DATA_SCHEMA,
             user_input,
             self.async_finalize,  # pylint: disable=no-member
         )
