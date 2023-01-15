@@ -455,14 +455,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
         if hvac_mode == HVAC_MODE_HEAT:
             self._hvac_mode = HVAC_MODE_HEAT
-            await self._async_control_heating()
+            await self._async_control_heating(force=True)
         elif hvac_mode == HVAC_MODE_COOL:
             self._hvac_mode = HVAC_MODE_COOL
-            await self._async_control_heating()
+            await self._async_control_heating(force=True)
         elif hvac_mode == HVAC_MODE_OFF:
             self._hvac_mode = HVAC_MODE_OFF
             if self._is_device_active:
                 await self._async_heater_turn_off()
+            await self._async_control_heating(force=True)
         else:
             _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
             return
@@ -472,7 +473,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def async_set_preset_mode(self, preset_mode):
         """Set new preset mode."""
         await self._async_set_preset_mode_internal(preset_mode)
-        await self._async_control_heating()
+        await self._async_control_heating(force=True)
 
     async def _async_set_preset_mode_internal(self, preset_mode, force=False):
         """Set new preset mode."""
@@ -553,6 +554,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._target_temp = temperature
         self._attr_preset_mode = PRESET_NONE
         self.recalculate()
+        await self._async_control_heating(force=True)
 
     @callback
     async def entry_update_listener(
@@ -638,14 +640,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         await self.async_startup()
 
         # starts the cycle
-        if self._cycle_min:
-            self.async_on_remove(
-                async_track_time_interval(
-                    self.hass,
-                    self._async_control_heating,
-                    interval=timedelta(minutes=self._cycle_min),
-                )
-            )
+        # if self._cycle_min:
+        #     self.async_on_remove(
+        #         async_track_time_interval(
+        #             self.hass,
+        #             self._async_control_heating,
+        #             interval=timedelta(minutes=self._cycle_min),
+        #         )
+        #     )
 
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
@@ -869,6 +871,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._async_update_temp(new_state)
         self.recalculate()
+        await self._async_control_heating(force=False)
 
     async def _async_ext_temperature_changed(self, event):
         """Handle external temperature changes."""
@@ -883,6 +886,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._async_update_ext_temp(new_state)
         self.recalculate()
+        await self._async_control_heating(force=False)
 
     @callback
     async def _async_windows_changed(self, event):
@@ -992,6 +996,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 # We do not change the preset which is kept to ACTIVITY but only the target_temperature
                 self._target_temp = self._presets[new_preset]
             self.recalculate()
+            await self._async_control_heating(force=True)
 
         if self._motion_call_cancel:
             self._motion_call_cancel()
@@ -1105,6 +1110,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         self._update_presence(new_state.state)
+        await self._async_control_heating(force=True)
 
     def _update_presence(self, new_state):
         _LOGGER.debug("%s - Updating presence. New state is %s", self, new_state)
@@ -1229,7 +1235,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._saved_preset_mode if self._saved_preset_mode else PRESET_NONE
             )
 
-    async def _async_control_heating(self, time=None):
+    async def _async_control_heating(self, force=False, time=None):
         """The main function used to run the calculation at each cycle"""
 
         overpowering: bool = await self.check_overpowering()
@@ -1254,11 +1260,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
-            _LOGGER.debug(
-                "%s - A previous cycle is alredy running -> waits for its end", self
-            )
-            self._should_relaunch_control_heating = True
-            return
+            if force:
+                _LOGGER.debug("%s - we force a new cycle")
+                self._async_cancel_cycle()
+                self._async_cancel_cycle = None
+            else:
+                _LOGGER.debug(
+                    "%s - A previous cycle is alredy running and no force -> waits for its end",
+                    self,
+                )
+                self._should_relaunch_control_heating = True
+                return
             # await self._async_cancel_cycle()
             # self._async_cancel_cycle = None
             # Don't turn off if we will turn on just after
@@ -1266,39 +1278,121 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             #    await self._async_heater_turn_off()
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
-            _LOGGER.info(
-                "%s - start heating for %d min %d sec ",
-                self,
-                on_time_sec // 60,
-                on_time_sec % 60,
-            )
+            #            _LOGGER.info(
+            #                "%s - start heating for %d min %d sec ",
+            #                self,
+            #                on_time_sec // 60,
+            #                on_time_sec % 60,
+            #            )
+            #
+            #            await self._async_heater_turn_on()
 
-            await self._async_heater_turn_on()
+            async def _turn_on_off_later(
+                on: bool, time, heater_action, next_cycle_action
+            ):
+                if self._async_cancel_cycle:
+                    self._async_cancel_cycle()
+                    self._async_cancel_cycle = None
 
-            async def _turn_off(_):
-                self._async_cancel_cycle()
-                self._async_cancel_cycle = None
+                action_label = "start" if on else "stop"
                 if self._should_relaunch_control_heating:
-                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
+                    _LOGGER.debug(
+                        "Don't %s cause a cycle have to be relaunch", action_label
+                    )
                     self._should_relaunch_control_heating = False
                     await self._async_control_heating()
                     return
                 else:
                     _LOGGER.info(
-                        "%s - stop heating for %d min %d sec",
+                        "%s - %s heating for %d min %d sec",
                         self,
-                        off_time_sec // 60,
-                        off_time_sec % 60,
+                        action_label,
+                        time // 60,
+                        time % 60,
                     )
-                    await self._async_heater_turn_off()
+                    if time > 0:
+                        await heater_action()
+                    else:
+                        _LOGGER.debug(
+                            "%s - No action on heater cause duration is 0", self
+                        )
                     self.update_custom_attributes()
+                    self._async_cancel_cycle = async_call_later(
+                        self.hass,
+                        time,
+                        next_cycle_action,
+                    )
 
-            # Program turn off
-            self._async_cancel_cycle = async_call_later(
-                self.hass,
-                on_time_sec,
-                _turn_off,
-            )
+            async def _turn_on_later(_):
+                await _turn_on_off_later(
+                    on=True,
+                    time=self._prop_algorithm.on_time_sec,
+                    heater_action=self._async_heater_turn_on,
+                    next_cycle_action=_turn_off_later,
+                )
+
+            #                if self._async_cancel_cycle:
+            #                    self._async_cancel_cycle()
+            #                    self._async_cancel_cycle = None
+            #
+            #                if self._should_relaunch_control_heating:
+            #                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
+            #                    self._should_relaunch_control_heating = False
+            #                    await self._async_control_heating()
+            #                    return
+            #                else:
+            #                    _LOGGER.info(
+            #                        "%s - stop heating for %d min %d sec",
+            #                        self,
+            #                        off_time_sec // 60,
+            #                        off_time_sec % 60,
+            #                    )
+            #                    await self._async_heater_turn_off()
+            #                    self.update_custom_attributes()
+            #                    self._async_cancel_cycle = async_call_later(
+            #                        self.hass,
+            #                        off_time_sec,
+            #                        _turn_off_later,
+            #                    )
+
+            async def _turn_off_later(_):
+                await _turn_on_off_later(
+                    on=False,
+                    time=self._prop_algorithm.off_time_sec,
+                    heater_action=self._async_heater_turn_off,
+                    next_cycle_action=_turn_on_later,
+                )
+
+            #                if self._async_cancel_cycle:
+            #                    self._async_cancel_cycle()
+            #                    self._async_cancel_cycle = None
+            #
+            #                if self._should_relaunch_control_heating:
+            #                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
+            #                    self._should_relaunch_control_heating = False
+            #                    await self._async_control_heating()
+            #                    return
+            #                else:
+            #                    _LOGGER.info(
+            #                        "%s - stop heating for %d min %d sec",
+            #                        self,
+            #                        off_time_sec // 60,
+            #                        off_time_sec % 60,
+            #                    )
+            #                    await self._async_heater_turn_off()
+            #                    self.update_custom_attributes()
+            #                    self._async_cancel_cycle = async_call_later(
+            #                        self.hass,
+            #                        on_time_sec,
+            #                        _turn_on_later,
+            #                    )
+            await _turn_on_later(None)
+        #            # Program turn off
+        #            self._async_cancel_cycle = async_call_later(
+        #                self.hass,
+        #                on_time_sec,
+        #                _turn_off_later,
+        #            )
 
         elif self._is_device_active:
             _LOGGER.info(
@@ -1382,6 +1476,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """
         _LOGGER.info("%s - Calling service_set_presence, presence: %s", self, presence)
         self._update_presence(presence)
+        await self._async_control_heating(force=True)
 
     async def service_set_preset_temperature(
         self, preset, temperature=None, temperature_away=None
@@ -1417,3 +1512,4 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # If the changed preset is active, change the current temperature
         if self._attr_preset_mode == preset:
             await self._async_set_preset_mode_internal(preset, force=True)
+            await self._async_control_heating(force=True)
