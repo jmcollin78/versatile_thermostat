@@ -3,7 +3,6 @@ set_presence:
     description: Force the presence mode in thermostat
     target:
         entity:
-            multiple: true
             integration: versatile_thermostat
     fields:
         presence:
@@ -26,7 +25,6 @@ set_preset_temperature:
     description: Change the target temperature of a preset
     target:
         entity:
-            multiple: true
             integration: versatile_thermostat
     fields:
         preset:
