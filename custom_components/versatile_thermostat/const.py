@@ -35,6 +35,10 @@ CONF_TPI_COEF_INT = "tpi_coef_int"
 CONF_TPI_COEF_EXT = "tpi_coef_ext"
 CONF_PRESENCE_SENSOR = "presence_sensor_entity_id"
 CONF_PRESET_POWER = "power_temp"
+CONF_MINIMAL_ACTIVATION_DELAY = "minimal_activation_delay"
+CONF_TEMP_MIN = "temp_min"
+CONF_TEMP_MAX = "temp_max"
+CONF_SECURITY_DELAY_MIN = "security_delay_min"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -81,6 +85,10 @@ ALL_CONF = (
         CONF_TPI_COEF_INT,
         CONF_TPI_COEF_EXT,
         CONF_PRESENCE_SENSOR,
+        CONF_MINIMAL_ACTIVATION_DELAY,
+        CONF_TEMP_MIN,
+        CONF_TEMP_MAX,
+        CONF_SECURITY_DELAY_MIN,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES,

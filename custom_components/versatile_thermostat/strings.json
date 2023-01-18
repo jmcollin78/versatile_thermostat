@@ -12,7 +12,9 @@
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "external_temperature_sensor_entity_id": "External temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)",
+          "temp_min": "Minimal temperature allowed",
+          "temp_max": "Maximal temperature allowed"
         }
       },
       "tpi": {
@@ -68,6 +70,14 @@
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence"
+        }
+      },
+      "advanced": {
+        "title": "Advanced parameters",
+        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
+        "data": {
+          "minimal_activation_delay": "Delay in secondes under which the equipment will not be activated",
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a sceurity off state"
         }
       }
     },
@@ -91,7 +101,9 @@
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "external_temperature_sensor_entity_id": "External temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)",
+          "temp_min": "Minimal temperature allowed",
+          "temp_max": "Maximal temperature allowed"
         }
       },
       "tpi": {
@@ -147,6 +159,14 @@
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence"
+        }
+      },
+      "advanced": {
+        "title": "Advanced parameters",
+        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
+        "data": {
+          "minimal_activation_delay": "Delay in secondes under which the equipment will not be activated",
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a sceurity off state"
         }
       }
     },

@@ -1,5 +1,4 @@
 import logging
-import math
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,20 +20,22 @@ class PropAlgorithm:
         tpi_coef_int,
         tpi_coef_ext,
         cycle_min: int,
+        minimal_activation_delay: int,
     ):
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d",
+            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",
             function_type,
             tpi_coef_int,
             tpi_coef_ext,
             cycle_min,
+            minimal_activation_delay,
         )
-        # TODO test function_type, bias, cycle_min
         self._function = function_type
         self._tpi_coef_int = tpi_coef_int
         self._tpi_coef_ext = tpi_coef_ext
         self._cycle_min = cycle_min
+        self._minimal_activation_delay = minimal_activation_delay
         self._on_percent = 0
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
@@ -74,12 +75,19 @@ class PropAlgorithm:
         self._on_time_sec = self._on_percent * self._cycle_min * 60
 
         # Do not heat for less than xx sec
-        if self._on_time_sec < PROPORTIONAL_MIN_DURATION_SEC:
-            _LOGGER.debug(
-                "No heating period due to heating period too small (%f < %f)",
-                self._on_time_sec,
-                PROPORTIONAL_MIN_DURATION_SEC,
-            )
+        if self._on_time_sec < self._minimal_activation_delay:
+            if self._on_time_sec > 0:
+                _LOGGER.info(
+                    "No heating period due to heating period too small (%f < %f)",
+                    self._on_time_sec,
+                    self._minimal_activation_delay,
+                )
+            else:
+                _LOGGER.debug(
+                    "No heating period due to heating period too small (%f < %f)",
+                    self._on_time_sec,
+                    self._minimal_activation_delay,
+                )
             self._on_time_sec = 0
 
         self._off_time_sec = self._cycle_min * 60 - self._on_time_sec

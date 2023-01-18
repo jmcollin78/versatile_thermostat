@@ -96,6 +96,10 @@ from .const import (
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
     PRESET_AWAY_SUFFIX,
+    CONF_SECURITY_DELAY_MIN,
+    CONF_MINIMAL_ACTIVATION_DELAY,
+    CONF_TEMP_MAX,
+    CONF_TEMP_MIN,
 )
 
 from .prop_algorithm import PropAlgorithm
@@ -133,6 +137,10 @@ async def async_setup_entry(
     tpi_coef_ext = entry.data.get(CONF_TPI_COEF_EXT)
     presence_sensor_entity_id = entry.data.get(CONF_PRESENCE_SENSOR)
     power_temp = entry.data.get(CONF_PRESET_POWER)
+    temp_min = entry.data.get(CONF_TEMP_MIN)
+    temp_max = entry.data.get(CONF_TEMP_MAX)
+    security_delay_min = entry.data.get(CONF_SECURITY_DELAY_MIN)
+    minimal_activation_delay = entry.data.get(CONF_MINIMAL_ACTIVATION_DELAY)
 
     presets = {}
     for (key, value) in CONF_PRESETS.items():
@@ -161,6 +169,8 @@ async def async_setup_entry(
                 proportional_function,
                 temp_sensor_entity_id,
                 ext_temp_sensor_entity_id,
+                temp_min,
+                temp_max,
                 power_sensor_entity_id,
                 max_power_sensor_entity_id,
                 window_sensor_entity_id,
@@ -176,6 +186,8 @@ async def async_setup_entry(
                 tpi_coef_ext,
                 presence_sensor_entity_id,
                 power_temp,
+                security_delay_min,
+                minimal_activation_delay,
             )
         ],
         True,
@@ -223,6 +235,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         proportional_function,
         temp_sensor_entity_id,
         ext_temp_sensor_entity_id,
+        temp_min,
+        temp_max,
         power_sensor_entity_id,
         max_power_sensor_entity_id,
         window_sensor_entity_id,
@@ -238,6 +252,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         tpi_coef_ext,
         presence_sensor_entity_id,
         power_temp,
+        security_delay_min,
+        minimal_activation_delay,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -253,6 +269,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._proportional_function = proportional_function
         self._temp_sensor_entity_id = temp_sensor_entity_id
         self._ext_temp_sensor_entity_id = ext_temp_sensor_entity_id
+        self._attr_max_temp = temp_max
+        self._attr_min_temp = temp_min
         self._power_sensor_entity_id = power_sensor_entity_id
         self._max_power_sensor_entity_id = max_power_sensor_entity_id
         self._window_sensor_entity_id = window_sensor_entity_id
@@ -273,7 +291,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._presence_sensor_entity_id = presence_sensor_entity_id
         self._power_temp = power_temp
 
-        self._presence_on = self._presence_sensor_entity_id != None
+        self._presence_on = self._presence_sensor_entity_id is not None
 
         # TODO if self.ac_mode:
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
@@ -335,14 +353,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
             self._tpi_coef_ext = 0
 
+        self._security_delay_min = security_delay_min
+        self._minimal_activation_delay = minimal_activation_delay
+        self._last_temperature_mesure = datetime.now()
+        self._last_ext_temperature_mesure = datetime.now()
+        self._security_state = False
+        self._saved_hvac_mode = None
+
         # Initiate the ProportionalAlgorithm
         self._prop_algorithm = PropAlgorithm(
             self._proportional_function,
             self._tpi_coef_int,
             self._tpi_coef_ext,
             self._cycle_min,
+            self._minimal_activation_delay,
         )
-
         self._async_cancel_cycle = None
         self._window_call_cancel = None
         self._motion_call_cancel = None
@@ -654,7 +679,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug("%s - Calling async_startup", self)
 
         @callback
-        def _async_startup_internal(*_):
+        async def _async_startup_internal(*_):
             _LOGGER.debug("%s - Calling async_startup_internal", self)
             need_write_state = False
             temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
@@ -667,7 +692,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self,
                     float(temperature_state.state),
                 )
-                self._async_update_temp(temperature_state)
+                await self._async_update_temp(temperature_state)
                 need_write_state = True
 
             if self._ext_temp_sensor_entity_id:
@@ -683,7 +708,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         self,
                         float(ext_temperature_state.state),
                     )
-                    self._async_update_ext_temp(ext_temperature_state)
+                    await self._async_update_ext_temp(ext_temperature_state)
                 else:
                     _LOGGER.debug(
                         "%s - external temperature sensor have NOT been retrieved cause unknown or unavailable",
@@ -790,7 +815,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         await self.get_my_previous_state()
 
         if self.hass.state == CoreState.running:
-            _async_startup_internal()
+            await _async_startup_internal()
         else:
             self.hass.bus.async_listen_once(
                 EVENT_HOMEASSISTANT_START, _async_startup_internal
@@ -869,7 +894,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        self._async_update_temp(new_state)
+        await self._async_update_temp(new_state)
         self.recalculate()
         await self._async_control_heating(force=False)
 
@@ -884,7 +909,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        self._async_update_ext_temp(new_state)
+        await self._async_update_ext_temp(new_state)
         self.recalculate()
         await self._async_control_heating(force=False)
 
@@ -1028,24 +1053,32 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self.async_write_ha_state()
 
     @callback
-    def _async_update_temp(self, state):
+    async def _async_update_temp(self, state):
         """Update thermostat with latest state from sensor."""
         try:
             cur_temp = float(state.state)
             if math.isnan(cur_temp) or math.isinf(cur_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_temp = cur_temp
+            self._last_temperature_mesure = datetime.now()
+            # try to restart if we were in security mode
+            if self._security_state:
+                await self.async_set_hvac_mode(self._saved_hvac_mode)
         except ValueError as ex:
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)
 
     @callback
-    def _async_update_ext_temp(self, state):
+    async def _async_update_ext_temp(self, state):
         """Update thermostat with latest state from sensor."""
         try:
             cur_ext_temp = float(state.state)
             if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_ext_temp = cur_ext_temp
+            self._last_ext_temperature_mesure = datetime.now()
+            # try to restart if we were in security mode
+            if self._security_state:
+                await self.async_set_hvac_mode(self._saved_hvac_mode)
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
@@ -1235,6 +1268,28 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._saved_preset_mode if self._saved_preset_mode else PRESET_NONE
             )
 
+    def check_date_temperature(self) -> bool:
+        """Check if last temperature date is too long"""
+        now = datetime.now()
+        delta_temp = (now - self._last_temperature_mesure).total_seconds() / 60.0
+        delta_ext_temp = (
+            now - self._last_ext_temperature_mesure
+        ).total_seconds() / 60.0
+        if (
+            delta_temp > self._security_delay_min
+            or delta_ext_temp > self._security_delay_min
+        ):
+            _LOGGER.warning(
+                "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f)",
+                self,
+                self._security_delay_min,
+                delta_temp,
+                delta_ext_temp,
+            )
+            return False
+
+        return True
+
     async def _async_control_heating(self, force=False, time=None):
         """The main function used to run the calculation at each cycle"""
 
@@ -1251,17 +1306,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         on_time_sec: int = self._prop_algorithm.on_time_sec
         off_time_sec: int = self._prop_algorithm.off_time_sec
         _LOGGER.info(
-            "%s - Running new cycle at %s. on_time_sec=%.0f, off_time_sec=%.0f",
+            "%s - Running new cycle at %s. on_time_sec=%.0f, off_time_sec=%.0f, security_state=%s",
             self,
             time,
             on_time_sec,
             off_time_sec,
+            self._security_state,
         )
 
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
             if force:
-                _LOGGER.debug("%s - we force a new cycle")
+                _LOGGER.debug("%s - we force a new cycle", self)
                 self._async_cancel_cycle()
                 self._async_cancel_cycle = None
             else:
@@ -1271,21 +1327,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
                 self._should_relaunch_control_heating = True
                 return
-            # await self._async_cancel_cycle()
-            # self._async_cancel_cycle = None
-            # Don't turn off if we will turn on just after
-            # if on_time_sec <= 0:
-            #    await self._async_heater_turn_off()
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
-            #            _LOGGER.info(
-            #                "%s - start heating for %d min %d sec ",
-            #                self,
-            #                on_time_sec // 60,
-            #                on_time_sec % 60,
-            #            )
-            #
-            #            await self._async_heater_turn_on()
 
             async def _turn_on_off_later(
                 on: bool, time, heater_action, next_cycle_action
@@ -1293,6 +1336,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 if self._async_cancel_cycle:
                     self._async_cancel_cycle()
                     self._async_cancel_cycle = None
+
+                if time > 0 and on is True and self.check_date_temperature() is False:
+                    _LOGGER.warning("%s -  Set the thermostat into security mode")
+                    self._security_state = True
+                    self._saved_hvac_mode = self.hvac_mode
+                    await self.async_set_hvac_mode(HVAC_MODE_OFF)
+                    return
 
                 action_label = "start" if on else "stop"
                 if self._should_relaunch_control_heating:
@@ -1331,30 +1381,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     next_cycle_action=_turn_off_later,
                 )
 
-            #                if self._async_cancel_cycle:
-            #                    self._async_cancel_cycle()
-            #                    self._async_cancel_cycle = None
-            #
-            #                if self._should_relaunch_control_heating:
-            #                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
-            #                    self._should_relaunch_control_heating = False
-            #                    await self._async_control_heating()
-            #                    return
-            #                else:
-            #                    _LOGGER.info(
-            #                        "%s - stop heating for %d min %d sec",
-            #                        self,
-            #                        off_time_sec // 60,
-            #                        off_time_sec % 60,
-            #                    )
-            #                    await self._async_heater_turn_off()
-            #                    self.update_custom_attributes()
-            #                    self._async_cancel_cycle = async_call_later(
-            #                        self.hass,
-            #                        off_time_sec,
-            #                        _turn_off_later,
-            #                    )
-
             async def _turn_off_later(_):
                 await _turn_on_off_later(
                     on=False,
@@ -1363,36 +1389,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     next_cycle_action=_turn_on_later,
                 )
 
-            #                if self._async_cancel_cycle:
-            #                    self._async_cancel_cycle()
-            #                    self._async_cancel_cycle = None
-            #
-            #                if self._should_relaunch_control_heating:
-            #                    _LOGGER.debug("Don't stop cause a cycle have to be relaunch")
-            #                    self._should_relaunch_control_heating = False
-            #                    await self._async_control_heating()
-            #                    return
-            #                else:
-            #                    _LOGGER.info(
-            #                        "%s - stop heating for %d min %d sec",
-            #                        self,
-            #                        off_time_sec // 60,
-            #                        off_time_sec % 60,
-            #                    )
-            #                    await self._async_heater_turn_off()
-            #                    self.update_custom_attributes()
-            #                    self._async_cancel_cycle = async_call_later(
-            #                        self.hass,
-            #                        on_time_sec,
-            #                        _turn_on_later,
-            #                    )
             await _turn_on_later(None)
-        #            # Program turn off
-        #            self._async_cancel_cycle = async_call_later(
-        #                self.hass,
-        #                on_time_sec,
-        #                _turn_off_later,
-        #            )
 
         elif self._is_device_active:
             _LOGGER.info(
@@ -1446,10 +1443,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "tpi_coef_ext": self._tpi_coef_ext,
             "saved_preset_mode": self._saved_preset_mode,
             "saved_target_temp": self._saved_target_temp,
+            "saved_hvac_mode": self._saved_hvac_mode,
             "window_state": self._window_state,
             "motion_state": self._motion_state,
             "overpowering_state": self._overpowering_state,
             "presence_state": self._presence_state,
+            "security_delay_min": self._security_delay_min,
+            "last_temperature_datetime": self._last_temperature_mesure.isoformat(),
+            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
+            "security_state": self._security_state,
+            "minimal_activation_delay_sec": self._minimal_activation_delay,
             "last_update_datetime": datetime.now().isoformat(),
         }
         self.async_write_ha_state()

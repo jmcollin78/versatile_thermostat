@@ -45,6 +45,10 @@ from .const import (
     CONF_TPI_COEF_INT,
     CONF_PRESENCE_SENSOR,
     PROPORTIONAL_FUNCTION_TPI,
+    CONF_SECURITY_DELAY_MIN,
+    CONF_MINIMAL_ACTIVATION_DELAY,
+    CONF_TEMP_MAX,
+    CONF_TEMP_MIN,
 )
 
 # from .climate import VersatileThermostat
@@ -117,6 +121,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         PROPORTIONAL_FUNCTION_TPI,
                     ]
                 ),
+                vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
+                vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
             }
         )
 
@@ -171,6 +177,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             {
                 vol.Optional(v, default=17): vol.Coerce(float)
                 for (k, v) in CONF_PRESETS_AWAY.items()
+            }
+        )
+
+        self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(
+            {
+                vol.Required(
+                    CONF_MINIMAL_ACTIVATION_DELAY, default=10
+                ): cv.positive_int,
+                vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
             }
         )
 
@@ -303,6 +318,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "presence",
             self.STEP_PRESENCE_DATA_SCHEMA,
             user_input,
+            self.async_step_advanced,
+        )
+
+    async def async_step_advanced(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the advanced parameter flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_advanced user_input=%s", user_input)
+
+        return await self.generic_step(
+            "advanced",
+            self.STEP_ADVANCED_DATA_SCHEMA,
+            user_input,
             self.async_finalize,  # pylint: disable=no-member
         )
 
@@ -417,7 +443,7 @@ class VersatileThermostatOptionsFlowHandler(
             "power",
             self.STEP_POWER_DATA_SCHEMA,
             user_input,
-            self.async_step_presence,  # pylint: disable=no-member
+            self.async_step_presence,
         )
 
     async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
@@ -430,7 +456,20 @@ class VersatileThermostatOptionsFlowHandler(
             "presence",
             self.STEP_PRESENCE_DATA_SCHEMA,
             user_input,
-            self.async_finalize,  # pylint: disable=no-member
+            self.async_step_advanced,
+        )
+
+    async def async_step_advanced(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the advanced flow steps"""
+        _LOGGER.debug(
+            "Into OptionsFlowHandler.async_step_advanced user_input=%s", user_input
+        )
+
+        return await self.generic_step(
+            "advanced",
+            self.STEP_ADVANCED_DATA_SCHEMA,
+            user_input,
+            self.async_finalize,
         )
 
     async def async_finalize(self):
