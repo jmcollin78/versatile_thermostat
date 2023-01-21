@@ -1077,7 +1077,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(current_power) or math.isinf(current_power):
                 raise ValueError(f"Sensor has illegal state {new_state.state}")
             self._current_power = current_power
-            await self._async_control_heating()
+
+            if self._attr_preset_mode == PRESET_POWER:
+                await self._async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1101,7 +1103,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(current_power_max) or math.isinf(current_power_max):
                 raise ValueError(f"Sensor has illegal state {new_state.state}")
             self._current_power_max = current_power_max
-            await self._async_control_heating()
+            if self._attr_preset_mode == PRESET_POWER:
+                await self._async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1297,17 +1300,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._attr_preset_mode,
             )
             await self._async_heater_turn_off()
+            _LOGGER.debug("%s - End of cycle (0)", self)
             return
 
         on_time_sec: int = self._prop_algorithm.on_time_sec
         off_time_sec: int = self._prop_algorithm.off_time_sec
         _LOGGER.info(
-            "%s - Running new cycle at %s. on_time_sec=%.0f, off_time_sec=%.0f, security_state=%s",
+            "%s - Checking new cycle. on_time_sec=%.0f, off_time_sec=%.0f, security_state=%s, preset_mode=%s",
             self,
-            time,
             on_time_sec,
             off_time_sec,
             self._security_state,
+            self._attr_preset_mode,
         )
 
         # Cancel eventual previous cycle if any
@@ -1322,6 +1326,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self,
                 )
                 self._should_relaunch_control_heating = True
+                _LOGGER.debug("%s - End of cycle (1)", self)
                 return
 
         if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
@@ -1332,6 +1337,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 if self._async_cancel_cycle:
                     self._async_cancel_cycle()
                     self._async_cancel_cycle = None
+                    _LOGGER.debug("%s - Stopping cycle during calculation", self)
 
                 check_dates = self.check_date_temperature()
                 if time > 0 and on is True and check_dates is False:
@@ -1341,6 +1347,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self.save_preset_mode()
                     await self._async_set_preset_mode_internal(PRESET_SECURITY)
                     await self.async_set_hvac_mode(HVAC_MODE_OFF)
+                    # The cycle is not restarted in security mode. It will be restarted by a condition changes
+                    _LOGGER.debug("%s - End of cycle (2)", self)
                     return
                 if check_dates:
                     self._security_state = False
@@ -1351,28 +1359,28 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         "Don't %s cause a cycle have to be relaunch", action_label
                     )
                     self._should_relaunch_control_heating = False
-                    await self._async_control_heating()
+                    self.hass.create_task(self._async_control_heating())
+                    # await self._async_control_heating()
+                    _LOGGER.debug("%s - End of cycle (3)", self)
                     return
-                else:
+
+                if time > 0:
                     _LOGGER.info(
-                        "%s - %s heating for %d min %d sec",
+                        "%s - !!! %s heating for %d min %d sec",
                         self,
                         action_label,
                         time // 60,
                         time % 60,
                     )
-                    if time > 0:
-                        await heater_action()
-                    else:
-                        _LOGGER.debug(
-                            "%s - No action on heater cause duration is 0", self
-                        )
-                    self.update_custom_attributes()
-                    self._async_cancel_cycle = async_call_later(
-                        self.hass,
-                        time,
-                        next_cycle_action,
-                    )
+                    await heater_action()
+                else:
+                    _LOGGER.debug("%s - No action on heater cause duration is 0", self)
+                self.update_custom_attributes()
+                self._async_cancel_cycle = async_call_later(
+                    self.hass,
+                    time,
+                    next_cycle_action,
+                )
 
             async def _turn_on_later(_):
                 await _turn_on_off_later(
