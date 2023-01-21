@@ -93,6 +93,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 Note: aucune configuration dans configuration.yaml n'est nécessaire car toute la configuration est effectuée via l'interface graphique standard lors de l'ajout de l'intégration.
 
 Cliquez sur le bouton Ajouter une intégration dans la page d'intégration
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/add-an-integration.png?raw=true)
 
 La configuration peut être modifiée via la même interface. Sélectionnez simplement le thermostat à modifier, appuyez sur "Configurer" et vous pourrez modifier certains paramètres ou la configuration.
@@ -100,6 +101,7 @@ La configuration peut être modifiée via la même interface. Sélectionnez simp
 Suivez ensuite les étapes de configuration comme suit :
 
 ## Configuration minimale
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-main.png?raw=true)
 
 Donnez les principaux attributs obligatoires :
@@ -117,12 +119,14 @@ Donnez les principaux attributs obligatoires :
 ## Configurez les coefficients de l'algorithme TPI
 
 Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-tpi.png?raw=true)
 
 Pour plus d'informations sur l'algorithme TPI et son réglage, veuillez vous référer à [algorithm](#algorithm).
 
 ## Configurer la température préréglée
 Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presets.png?raw=true)
 
 Le mode préréglé (preset) vous permet de préconfigurer la température ciblée. Utilisé en conjonction avec Scheduler (voir [scheduler](#even-better-with-scheduler-component) vous aurez un moyen puissant et simple d'optimiser la température par rapport à la consommation électrique de votre maison. Les préréglages gérés sont les suivants :
@@ -141,6 +145,7 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
 
 ## Configurer les portes/fenêtres en allumant/éteignant les thermostats
 Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
 
 Donnez les attributs suivants :
@@ -155,6 +160,7 @@ Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvert
 
 ## Configurer le mode d'activité ou la détection de mouvement
 Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
 
 Nous allons maintenant voir comment configurer le nouveau mode Activité.
@@ -178,6 +184,7 @@ Pour que cela fonctionne, le thermostat climatique doit être en mode prérégl�
 ## Configurer la gestion de l'alimentation
 
 Cliquez sur 'Valider' sur la page précédente et vous arriverez ici :
+
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
 Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique de votre chauffage** et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
