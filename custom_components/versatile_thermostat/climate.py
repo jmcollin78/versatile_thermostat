@@ -1,8 +1,10 @@
+""" Implements the VersatileThermostat climate component """
 import math
 import logging
 
 from datetime import timedelta, datetime
-from typing import Any, Mapping
+
+# from typing import Any
 
 import voluptuous as vol
 
@@ -11,7 +13,6 @@ from homeassistant.core import (
     callback,
     CoreState,
     DOMAIN as HA_DOMAIN,
-    CALLBACK_TYPE,
 )
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -20,12 +21,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
-    async_track_time_interval,
     async_call_later,
 )
 
 from homeassistant.exceptions import ConditionError
-from homeassistant.helpers import condition, entity_platform, config_validation as cv
+from homeassistant.helpers import (
+    condition,
+    entity_platform,
+)  # , config_validation as cv
 
 from homeassistant.components.climate.const import (
     ATTR_PRESET_MODE,
@@ -38,7 +41,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     PRESET_ACTIVITY,
-    PRESET_AWAY,
+    # PRESET_AWAY,
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
@@ -92,6 +95,7 @@ from .const import (
     CONF_PRESET_POWER,
     SUPPORT_FLAGS,
     PRESET_POWER,
+    PRESET_SECURITY,
     PROPORTIONAL_FUNCTION_TPI,
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
@@ -100,6 +104,7 @@ from .const import (
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
+    HIDDEN_PRESETS,
 )
 
 from .prop_algorithm import PropAlgorithm
@@ -119,79 +124,11 @@ async def async_setup_entry(
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
-    heater_entity_id = entry.data.get(CONF_HEATER)
-    cycle_min = entry.data.get(CONF_CYCLE_MIN)
-    proportional_function = entry.data.get(CONF_PROP_FUNCTION)
-    temp_sensor_entity_id = entry.data.get(CONF_TEMP_SENSOR)
-    ext_temp_sensor_entity_id = entry.data.get(CONF_EXTERNAL_TEMP_SENSOR)
-    power_sensor_entity_id = entry.data.get(CONF_POWER_SENSOR)
-    max_power_sensor_entity_id = entry.data.get(CONF_MAX_POWER_SENSOR)
-    window_sensor_entity_id = entry.data.get(CONF_WINDOW_SENSOR)
-    window_delay_sec = entry.data.get(CONF_WINDOW_DELAY)
-    motion_sensor_entity_id = entry.data.get(CONF_MOTION_SENSOR)
-    motion_delay_sec = entry.data.get(CONF_MOTION_DELAY)
-    motion_preset = entry.data.get(CONF_MOTION_PRESET)
-    no_motion_preset = entry.data.get(CONF_NO_MOTION_PRESET)
-    device_power = entry.data.get(CONF_DEVICE_POWER)
-    tpi_coef_int = entry.data.get(CONF_TPI_COEF_INT)
-    tpi_coef_ext = entry.data.get(CONF_TPI_COEF_EXT)
-    presence_sensor_entity_id = entry.data.get(CONF_PRESENCE_SENSOR)
-    power_temp = entry.data.get(CONF_PRESET_POWER)
-    temp_min = entry.data.get(CONF_TEMP_MIN)
-    temp_max = entry.data.get(CONF_TEMP_MAX)
-    security_delay_min = entry.data.get(CONF_SECURITY_DELAY_MIN)
-    minimal_activation_delay = entry.data.get(CONF_MINIMAL_ACTIVATION_DELAY)
 
-    presets = {}
-    for (key, value) in CONF_PRESETS.items():
-        _LOGGER.debug("looking for key=%s, value=%s", key, value)
-        if value in entry.data:
-            presets[key] = entry.data.get(value)
-        else:
-            _LOGGER.debug("value %s not found in Entry", value)
+    entity = VersatileThermostat(hass, unique_id, name, entry.data)
 
-    presets_away = {}
-    for (key, value) in CONF_PRESETS_AWAY.items():
-        _LOGGER.debug("looking for key=%s, value=%s", key, value)
-        if value in entry.data:
-            presets_away[key] = entry.data.get(value)
-        else:
-            _LOGGER.debug("value %s not found in Entry", value)
-
-    async_add_entities(
-        [
-            VersatileThermostat(
-                hass,
-                unique_id,
-                name,
-                heater_entity_id,
-                cycle_min,
-                proportional_function,
-                temp_sensor_entity_id,
-                ext_temp_sensor_entity_id,
-                temp_min,
-                temp_max,
-                power_sensor_entity_id,
-                max_power_sensor_entity_id,
-                window_sensor_entity_id,
-                window_delay_sec,
-                motion_sensor_entity_id,
-                motion_delay_sec,
-                motion_preset,
-                no_motion_preset,
-                presets,
-                presets_away,
-                device_power,
-                tpi_coef_int,
-                tpi_coef_ext,
-                presence_sensor_entity_id,
-                power_temp,
-                security_delay_min,
-                minimal_activation_delay,
-            )
-        ],
-        True,
-    )
+    async_add_entities([entity], True)
+    VersatileThermostat.add_entity(entry.entry_id, entity)
 
     # Add services
     platform = entity_platform.async_get_current_platform()
@@ -219,42 +156,10 @@ async def async_setup_entry(
 class VersatileThermostat(ClimateEntity, RestoreEntity):
     """Representation of a Versatile Thermostat device."""
 
-    _name: str
-    _heater_entity_id: str
-    _prop_algorithm: PropAlgorithm
-    _async_cancel_cycle: CALLBACK_TYPE
-    _attr_preset_modes: list[str] | None
+    # The list of VersatileThermostat entities
+    _registry: dict[str, object] = {}
 
-    def __init__(
-        self,
-        hass,
-        unique_id,
-        name,
-        heater_entity_id,
-        cycle_min,
-        proportional_function,
-        temp_sensor_entity_id,
-        ext_temp_sensor_entity_id,
-        temp_min,
-        temp_max,
-        power_sensor_entity_id,
-        max_power_sensor_entity_id,
-        window_sensor_entity_id,
-        window_delay_sec,
-        motion_sensor_entity_id,
-        motion_delay_sec,
-        motion_preset,
-        no_motion_preset,
-        presets,
-        presets_away,
-        device_power,
-        tpi_coef_int,
-        tpi_coef_ext,
-        presence_sensor_entity_id,
-        power_temp,
-        security_delay_min,
-        minimal_activation_delay,
-    ) -> None:
+    def __init__(self, hass, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
 
         super().__init__()
@@ -264,32 +169,98 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._unique_id = unique_id
         self._name = name
-        self._heater_entity_id = heater_entity_id
-        self._cycle_min = cycle_min
-        self._proportional_function = proportional_function
-        self._temp_sensor_entity_id = temp_sensor_entity_id
-        self._ext_temp_sensor_entity_id = ext_temp_sensor_entity_id
-        self._attr_max_temp = temp_max
-        self._attr_min_temp = temp_min
-        self._power_sensor_entity_id = power_sensor_entity_id
-        self._max_power_sensor_entity_id = max_power_sensor_entity_id
-        self._window_sensor_entity_id = window_sensor_entity_id
-        self._window_delay_sec = window_delay_sec
-        self._window_delay_sec = window_delay_sec
-        self._motion_sensor_entity_id = motion_sensor_entity_id
-        self._motion_delay_sec = motion_delay_sec
-        self._motion_preset = motion_preset
-        self._no_motion_preset = no_motion_preset
+        self._prop_algorithm = None
+        self._async_cancel_cycle = None
+        self._hvac_mode = None
+        self._target_temp = None
+        self._saved_target_temp = None
+        self._saved_preset_mode = None
+        self._fan_mode = None
+        self._humidity = None
+        self._swing_mode = None
+        self._current_power = None
+        self._current_power_max = None
+        self._window_state = None
+        self._motion_state = None
+        self._saved_hvac_mode = None
+        self._window_call_cancel = None
+        self._motion_call_cancel = None
+        self._cur_ext_temp = None
+        self._cur_temp = None
+        self._ac_mode = None
+        self._last_ext_temperature_mesure = None
+        self._last_temperature_mesure = None
+        self._cur_ext_temp = None
+        self._presence_state = None
+        self._overpowering_state = None
+        self._should_relaunch_control_heating = None
+        self._security_delay_min = None
+        self._security_state = None
+
+        self.post_init(entry_infos)
+
+    def post_init(self, entry_infos):
+        """Finish the initialization of the thermostast"""
+
+        _LOGGER.info(
+            "%s - Updating VersatileThermostat with infos %s",
+            self,
+            entry_infos,
+        )
+        # convert entry_infos into usable attributes
+        presets = {}
+        for (key, value) in CONF_PRESETS.items():
+            _LOGGER.debug("looking for key=%s, value=%s", key, value)
+            if value in entry_infos:
+                presets[key] = entry_infos.get(value)
+            else:
+                _LOGGER.debug("value %s not found in Entry", value)
+
+        presets_away = {}
+        for (key, value) in CONF_PRESETS_AWAY.items():
+            _LOGGER.debug("looking for key=%s, value=%s", key, value)
+            if value in entry_infos:
+                presets_away[key] = entry_infos.get(value)
+            else:
+                _LOGGER.debug("value %s not found in Entry", value)
+
+        # Stop eventual cycle running
+        if self._async_cancel_cycle is not None:
+            self._async_cancel_cycle()
+            self._async_cancel_cycle = None
+        if self._window_call_cancel is not None:
+            self._window_call_cancel()
+            self._window_call_cancel = None
+        if self._motion_call_cancel is not None:
+            self._motion_call_cancel()
+            self._motion_call_cancel = None
+
+        # Exploit usable attributs
+        self._heater_entity_id = entry_infos.get(CONF_HEATER)
+        self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
+        self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
+        self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
+        self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
+        self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
+        self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
+        self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
+        self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
+        self._window_sensor_entity_id = entry_infos.get(CONF_WINDOW_SENSOR)
+        self._window_delay_sec = entry_infos.get(CONF_WINDOW_DELAY)
+        self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR)
+        self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY)
+        self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
+        self._no_motion_preset = entry_infos.get(CONF_NO_MOTION_PRESET)
         self._motion_on = (
             self._motion_sensor_entity_id is not None
             and self._motion_preset is not None
             and self._no_motion_preset is not None
         )
 
-        self._tpi_coef_int = tpi_coef_int
-        self._tpi_coef_ext = tpi_coef_ext
-        self._presence_sensor_entity_id = presence_sensor_entity_id
-        self._power_temp = power_temp
+        self._tpi_coef_int = entry_infos.get(CONF_TPI_COEF_INT)
+        self._tpi_coef_ext = entry_infos.get(CONF_TPI_COEF_EXT)
+        self._presence_sensor_entity_id = entry_infos.get(CONF_PRESENCE_SENSOR)
+        self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
         self._presence_on = self._presence_sensor_entity_id is not None
 
@@ -318,7 +289,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._saved_preset_mode = None
 
         # Power management
-        self._device_power = device_power
+        self._device_power = entry_infos.get(CONF_DEVICE_POWER)
         self._pmax_on = False
         self._current_power = None
         self._current_power_max = None
@@ -353,14 +324,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
             self._tpi_coef_ext = 0
 
-        self._security_delay_min = security_delay_min
-        self._minimal_activation_delay = minimal_activation_delay
+        self._security_delay_min = entry_infos.get(CONF_SECURITY_DELAY_MIN)
+        self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
         self._last_temperature_mesure = datetime.now()
         self._last_ext_temperature_mesure = datetime.now()
         self._security_state = False
         self._saved_hvac_mode = None
 
         # Initiate the ProportionalAlgorithm
+        if self._prop_algorithm is not None:
+            del self._prop_algorithm
         self._prop_algorithm = PropAlgorithm(
             self._proportional_function,
             self._tpi_coef_int,
@@ -368,10 +341,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._cycle_min,
             self._minimal_activation_delay,
         )
-        self._async_cancel_cycle = None
-        self._window_call_cancel = None
-        self._motion_call_cancel = None
-
         self._should_relaunch_control_heating = False
 
         # Memory synthesis state
@@ -385,9 +354,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if len(presets):
             self._support_flags = SUPPORT_FLAGS | SUPPORT_PRESET_MODE
 
-            for k, v in presets.items():
-                if v != 0.0:
-                    self._attr_preset_modes.append(k)
+            for key, val in presets.items():
+                if val != 0.0:
+                    self._attr_preset_modes.append(key)
 
             # self._attr_preset_modes = (
             #    [PRESET_NONE] + list(presets.keys()) + [PRESET_ACTIVITY]
@@ -405,7 +374,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s heater_entity_id=%s",
             self,
             self.unique_id,
-            heater_entity_id,
+            self._heater_entity_id,
         )
 
     def __str__(self):
@@ -505,7 +474,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.info("%s - Set preset_mode: %s force=%s", self, preset_mode, force)
         if (
             preset_mode not in (self._attr_preset_modes or [])
-            and preset_mode != PRESET_POWER
+            and preset_mode not in HIDDEN_PRESETS
         ):
             raise ValueError(
                 f"Got unsupported preset_mode {preset_mode}. Must be one of {self._attr_preset_modes}"  # pylint: disable=line-too-long
@@ -525,20 +494,24 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if self._attr_preset_mode == PRESET_NONE:
                 self._saved_target_temp = self._target_temp
             self._attr_preset_mode = preset_mode
-            preset_temp = self.find_preset_temp(preset_mode)
-            self._target_temp = (
-                preset_temp if preset_mode != PRESET_POWER else self._power_temp
-            )
+            self._target_temp = self.find_preset_temp(preset_mode)
 
-        # Don't saved preset_mode if we are in POWER mode or in Away mode and presence detection is on
-        if preset_mode != PRESET_POWER:
-            self._saved_preset_mode = self._attr_preset_mode
+        self.save_preset_mode()
 
         self.recalculate()
 
     def find_preset_temp(self, preset_mode):
         """Find the right temperature of a preset considering the presence if configured"""
-        if self._presence_on is False or self._presence_state in [STATE_ON, STATE_HOME]:
+        if preset_mode == PRESET_SECURITY:
+            return (
+                self._target_temp
+            )  # in security just keep the current target temperature, the thermostat should be off
+        if preset_mode == PRESET_POWER:
+            return self._power_temp
+        elif self._presence_on is False or self._presence_state in [
+            STATE_ON,
+            STATE_HOME,
+        ]:
             return self._presets[preset_mode]
         else:
             return self._presets_away[self.get_preset_away_name(preset_mode)]
@@ -847,7 +820,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             if old_state.attributes.get(ATTR_PRESET_MODE) in self._attr_preset_modes:
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
-                self._saved_preset_mode = self._attr_preset_mode
+                self.save_preset_mode()
 
             if not self._hvac_mode and old_state.state:
                 self._hvac_mode = old_state.state
@@ -1064,6 +1037,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # try to restart if we were in security mode
             if self._security_state:
                 await self.async_set_hvac_mode(self._saved_hvac_mode)
+                await self.restore_preset_mode()
+
         except ValueError as ex:
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)
 
@@ -1079,6 +1054,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # try to restart if we were in security mode
             if self._security_state:
                 await self.async_set_hvac_mode(self._saved_hvac_mode)
+                await self.restore_preset_mode()
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
@@ -1101,6 +1077,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(current_power) or math.isinf(current_power):
                 raise ValueError(f"Sensor has illegal state {new_state.state}")
             self._current_power = current_power
+            await self._async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1124,6 +1101,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(current_power_max) or math.isinf(current_power_max):
                 raise ValueError(f"Sensor has illegal state {new_state.state}")
             self._current_power_max = current_power_max
+            await self._async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1148,9 +1126,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def _update_presence(self, new_state):
         _LOGGER.debug("%s - Updating presence. New state is %s", self, new_state)
         self._presence_state = new_state
-        if self._attr_preset_mode == PRESET_POWER or self._presence_on is False:
+        if self._attr_preset_mode in HIDDEN_PRESETS or self._presence_on is False:
             _LOGGER.info(
-                "%s - Ignoring presence change cause in Power preset or presence not configured",
+                "%s - Ignoring presence change cause in Power or Security preset or presence not configured",
                 self,
             )
             return
@@ -1231,6 +1209,26 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
         )
 
+    def save_preset_mode(self):
+        """Save the current preset mode to be restored later
+        We never save a hidden preset mode
+        """
+        if (
+            self._attr_preset_mode not in HIDDEN_PRESETS
+            and self._attr_preset_mode is not None
+        ):
+            self._saved_preset_mode = self._attr_preset_mode
+
+    async def restore_preset_mode(self):
+        """Restore a previous preset mode
+        We never restore a hidden preset mode. Normally that is not possible
+        """
+        if (
+            self._saved_preset_mode not in HIDDEN_PRESETS
+            and self._saved_preset_mode is not None
+        ):
+            await self._async_set_preset_mode_internal(self._saved_preset_mode)
+
     async def check_overpowering(self) -> bool:
         """Check the overpowering condition
         Turn the preset_mode of the heater to 'power' if power conditions are exceeded
@@ -1264,9 +1262,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self,
                 self._saved_preset_mode,
             )
-            await self.async_set_preset_mode(
-                self._saved_preset_mode if self._saved_preset_mode else PRESET_NONE
-            )
+            await self.restore_preset_mode()
 
     def check_date_temperature(self) -> bool:
         """Check if last temperature date is too long"""
@@ -1337,12 +1333,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self._async_cancel_cycle()
                     self._async_cancel_cycle = None
 
-                if time > 0 and on is True and self.check_date_temperature() is False:
-                    _LOGGER.warning("%s -  Set the thermostat into security mode")
+                check_dates = self.check_date_temperature()
+                if time > 0 and on is True and check_dates is False:
+                    _LOGGER.warning("%s -  Set the thermostat into security mode", self)
                     self._security_state = True
                     self._saved_hvac_mode = self.hvac_mode
+                    self.save_preset_mode()
+                    await self._async_set_preset_mode_internal(PRESET_SECURITY)
                     await self.async_set_hvac_mode(HVAC_MODE_OFF)
                     return
+                if check_dates:
+                    self._security_state = False
 
                 action_label = "start" if on else "stop"
                 if self._should_relaunch_control_heating:
@@ -1516,3 +1517,26 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode == preset:
             await self._async_set_preset_mode_internal(preset, force=True)
             await self._async_control_heating(force=True)
+
+    @classmethod
+    def add_entity(cls, entry_id, entity):
+        """Adds an entity into the VersatileRegistry entities"""
+        _LOGGER.debug("Adding entity %s", entry_id)
+        cls._registry[entry_id] = entity
+        _LOGGER.debug("Entity registry is now %s", cls._registry)
+
+    @classmethod
+    async def update_entity(cls, entry_id, infos):
+        """Updates an existing entity referenced by entry_id with the infos in arguments"""
+        entity: VersatileThermostat = cls._registry.get(entry_id)
+        if entity is None:
+            _LOGGER.warning(
+                "Tries to update VersatileThermostat entity %s but was not found in thermostat registry",
+                entry_id,
+            )
+            return
+
+        _LOGGER.debug("We have found the entity to update")
+        entity.post_init(infos)
+
+        await entity.async_added_to_hass()

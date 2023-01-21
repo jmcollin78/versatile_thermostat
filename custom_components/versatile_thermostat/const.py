@@ -14,6 +14,9 @@ from .prop_algorithm import (
 )
 
 PRESET_POWER = "power"
+PRESET_SECURITY = "security"
+
+HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 
 DOMAIN = "versatile_thermostat"
 

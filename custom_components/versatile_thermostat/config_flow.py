@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import logging
 import copy
+from collections.abc import Mapping
 import voluptuous as vol
 
-from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.core import callback
@@ -14,6 +14,8 @@ from homeassistant.config_entries import (
     ConfigFlow as HAConfigFlow,
     OptionsFlow,
 )
+
+# import homeassistant.helpers.entity_registry as entity_registry
 from homeassistant.data_entry_flow import FlowHandler
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -50,6 +52,8 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
 )
+
+from .climate import VersatileThermostat
 
 # from .climate import VersatileThermostat
 
@@ -469,13 +473,39 @@ class VersatileThermostatOptionsFlowHandler(
             "advanced",
             self.STEP_ADVANCED_DATA_SCHEMA,
             user_input,
-            self.async_finalize,
+            self.async_end,
         )
 
-    async def async_finalize(self):
+    async def async_end(self):
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug(
             "CTOR ConfigFlow.async_finalize - updating entry with: %s", self._infos
         )
+        # Find eventual existing entity to update it
+        # removing entities from registry (they will be recreated)
+        # ent_reg = entity_registry.async_get(self.hass)
+
+        # reg_entities = {
+        #    ent.unique_id: ent.entity_id
+        #    for ent in entity_registry.async_entries_for_config_entry(
+        #        ent_reg, self.config_entry.entry_id
+        #    )
+        # }
+        #
+        # for entry in entity_registry.async_entries_for_config_entry(
+        #    ent_reg, self.config_entry.entry_id
+        # ):
+        # entity: VersatileThermostat = ent_reg.async_get(entry.entity_id)
+        # entity.async_registry_entry_updated(self._infos)
+
+        _LOGGER.debug(
+            "We have found entities to update: %s", self.config_entry.entry_id
+        )
+        await VersatileThermostat.update_entity(self.config_entry.entry_id, self._infos)
+
+        # for entity_id in reg_entities.values():
+        #    _LOGGER.info("Recreating entity %s due to configuration change", entity_id)
+        #    ent_reg.async_remove(entity_id)
+        #
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)
