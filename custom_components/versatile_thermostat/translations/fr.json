@@ -8,14 +8,24 @@
         "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
-          "heater_entity_id": "Radiateur entity id",
+          "thermostat_over_switch": "Thermostat sur un switch",
+          "thermostat_over_climate": "Thermostat sur un autre thermostat",
           "temperature_sensor_entity_id": "Température sensor entity id",
           "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
-          "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)",
           "temp_min": "Température minimale permise",
-          "temp_max": "Température maximale permise"
+          "temp_max": "Température maximale permise",
+          "use_window_feature": "Avec détection des ouvertures",
+          "use_motion_feature": "Avec détection de mouvement",
+          "use_power_feature": "Avec gestion de la puissance",
+          "use_presence_feature": "Avec détection de présence"
         }
+      },
+      "type": {
+        "heater_entity_id": "Radiateur entity id",
+        "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)",
+        "cycle_min": "Durée du cycle (minutes)",
+        "climate_entity_id": "Thermostat sous-jacent entity id"
       },
       "tpi": {
         "title": "TPI",
@@ -97,14 +107,24 @@
         "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
-          "heater_entity_id": "Radiateur entity id",
+          "thermostat_over_switch": "Thermostat sur un switch",
+          "thermostat_over_climate": "Thermostat sur un autre thermostat",
           "temperature_sensor_entity_id": "Température sensor entity id",
           "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
-          "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)",
           "temp_min": "Température minimale permise",
-          "temp_max": "Température maximale permise"
+          "temp_max": "Température maximale permise",
+          "use_window_feature": "Avec détection des ouvertures",
+          "use_motion_feature": "Avec détection de mouvement",
+          "use_power_feature": "Avec gestion de la puissance",
+          "use_presence_feature": "Avec détection de présence"
         }
+      },
+      "type": {
+        "heater_entity_id": "Radiateur entity id",
+        "proportional_function": "Algorithm à utiliser (Seul TPI est disponible pour l'instant)",
+        "cycle_min": "Durée du cycle (minutes)",
+        "climate_entity_id": "Thermostat sous-jacent entity id"
       },
       "tpi": {
         "title": "TPI",

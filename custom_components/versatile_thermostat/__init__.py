@@ -29,18 +29,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # hass.data.setdefault(DOMAIN, {})
 
-    # TODO 1. Create API instance
     api: VersatileThermostatAPI = hass.data.get(DOMAIN)
     if api is None:
         api = VersatileThermostatAPI(hass)
 
-    # TODO 2. Validate the API connection (and authentication)
-    # TODO 3. Store an API object for your platforms to access
     api.add_entry(entry)
+
+    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update listener."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

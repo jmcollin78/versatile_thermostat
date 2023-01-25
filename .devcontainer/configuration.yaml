@@ -58,3 +58,41 @@ input_boolean:
   fake_presence_sensor1:
     name: Presence Sensor 1
     icon: mdi:home
+
+climate:
+  - platform: generic_thermostat
+    name: Underlying thermostat1
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat2
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat3
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat4
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat5
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat6
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat7
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat8
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1
+  - platform: generic_thermostat
+    name: Underlying thermostat9
+    heater: input_boolean.fake_heater_switch3
+    target_sensor: input_number.fake_temperature_sensor1

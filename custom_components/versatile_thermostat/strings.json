@@ -8,14 +8,24 @@
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
-          "heater_entity_id": "Heater entity id",
+          "thermostat_type": "Thermostat type",
+          "thermostat_over_switch": "Thermostat over a switch",
+          "thermostat_over_climate": "Thermostat over another thermostat",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "external_temperature_sensor_entity_id": "External temperature sensor entity id",
-          "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "temp_min": "Minimal temperature allowed",
-          "temp_max": "Maximal temperature allowed"
+          "temp_max": "Maximal temperature allowed",
+          "use_window_feature": "Use window detection",
+          "use_motion_feature": "Use motion detection",
+          "use_power_feature": "Use power management",
+          "use_presence_feature": "Use presence detection"
         }
+      },
+      "type": {
+        "heater_entity_id": "Heater entity id",
+        "proportional_function": "Algorithm to use (TPI is the only one for now)",
+        "cycle_min": "Cycle duration (minutes)",
+        "climate_entity_id": "Underlying thermostat entity id"
       },
       "tpi": {
         "title": "TPI",
@@ -97,14 +107,24 @@
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
-          "heater_entity_id": "Heater entity id",
+          "thermostat_type": "Thermostat type",
+          "thermostat_over_switch": "Thermostat over a switch",
+          "thermostat_over_climate": "Thermostat over another thermostat",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
           "external_temperature_sensor_entity_id": "External temperature sensor entity id",
-          "cycle_min": "Cycle duration (minutes)",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "temp_min": "Minimal temperature allowed",
-          "temp_max": "Maximal temperature allowed"
+          "temp_max": "Maximal temperature allowed",
+          "use_window_feature": "Use window detection",
+          "use_motion_feature": "Use motion detection",
+          "use_power_feature": "Use power management",
+          "use_presence_feature": "Use presence detection"
         }
+      },
+      "type": {
+        "heater_entity_id": "Heater entity id",
+        "proportional_function": "Algorithm to use (TPI is the only one for now)",
+        "cycle_min": "Cycle duration (minutes)",
+        "climate_entity_id": "Underlying thermostat entity id"
       },
       "tpi": {
         "title": "TPI",

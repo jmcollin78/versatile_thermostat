@@ -1,26 +1,43 @@
 """Config flow for Versatile Thermostat integration."""
 from __future__ import annotations
 
+from typing import Any
 import logging
 import copy
 from collections.abc import Mapping
 import voluptuous as vol
 
-from typing import Any
 
-from homeassistant.core import callback
+from homeassistant.core import callback, async_get_hass
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow as HAConfigFlow,
     OptionsFlow,
 )
 
-# import homeassistant.helpers.entity_registry as entity_registry
 from homeassistant.data_entry_flow import FlowHandler
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.entity_registry import EntityRegistry, async_get
+from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch.const import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.input_boolean import (
+    InputBoolean,
+    DOMAIN as INPUT_BOOLEAN_DOMAIN,
+)
+
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor.const import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.input_number import (
+    InputNumber,
+    DOMAIN as INPUT_NUMBER_DOMAIN,
+)
+
 
 from .const import (
     DOMAIN,
@@ -51,11 +68,15 @@ from .const import (
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
+    CONF_THERMOSTAT_TYPE,
+    CONF_THERMOSTAT_SWITCH,
+    CONF_CLIMATE,
+    CONF_USE_WINDOW_FEATURE,
+    CONF_USE_MOTION_FEATURE,
+    CONF_USE_PRESENCE_FEATURE,
+    CONF_USE_POWER_FEATURE,
+    CONF_THERMOSTAT_TYPES,
 )
-
-from .climate import VersatileThermostat
-
-# from .climate import VersatileThermostat
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,13 +132,46 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos = infos
+        self.hass = async_get_hass()
+        ent_reg = async_get(hass=self.hass)
+
+        climates = []  # self.find_all_climates()
+        switches = []  # self.find_all_heaters()
+        temp_sensors = []  # self.find_all_temperature_sensors()
+
+        k: str
+        for k in ent_reg.entities:
+            v = ent_reg.entities[k]
+            if k.startswith(CLIMATE_DOMAIN):
+                climates.append(k)
+            elif k.startswith(SWITCH_DOMAIN) or k.startswith(INPUT_BOOLEAN_DOMAIN):
+                switches.append(k)
+            elif k.startswith(INPUT_NUMBER_DOMAIN):
+                temp_sensors.append(k)
+            elif k.startswith(SENSOR_DOMAIN):
+                _LOGGER.debug("We have found sensor: %s", v)
+                temp_sensors.append(k)
+
         self.STEP_USER_DATA_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
-                vol.Required(CONF_HEATER): cv.string,
-                vol.Required(CONF_TEMP_SENSOR): cv.string,
-                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): cv.string,
-                vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
+                vol.Required(
+                    CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
+                ): vol.In(CONF_THERMOSTAT_TYPES),
+                vol.Required(CONF_TEMP_SENSOR): vol.In(temp_sensors),
+                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): vol.In(temp_sensors),
+                vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
+                vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+                vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
+                vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
+                vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
+                vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+            }
+        )
+
+        self.STEP_THERMOSTAT_SWITCH = vol.Schema(
+            {
+                vol.Required(CONF_HEATER): vol.In(switches),
                 vol.Required(
                     CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
                 ): vol.In(
@@ -125,8 +179,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         PROPORTIONAL_FUNCTION_TPI,
                     ]
                 ),
-                vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
-                vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+                vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
+            }
+        )
+
+        self.STEP_THERMOSTAT_CLIMATE = vol.Schema(
+            {
+                vol.Required(CONF_CLIMATE): vol.In(climates),
             }
         )
 
@@ -209,6 +268,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
             CONF_PRESENCE_SENSOR,
+            CONF_CLIMATE,
         ]:
             d = data.get(conf, None)  # pylint: disable=invalid-name
             if d is not None and self.hass.states.get(d) is None:
@@ -268,8 +328,24 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_user user_input=%s", user_input)
 
         return await self.generic_step(
-            "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_tpi
+            "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_type
         )
+
+    async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_type user_input=%s", user_input)
+
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
+            return await self.generic_step(
+                "type", self.STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
+            )
+        else:
+            return await self.generic_step(
+                "type",
+                self.STEP_THERMOSTAT_CLIMATE,
+                user_input,
+                self.async_step_presets,
+            )
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the flow steps"""
@@ -283,35 +359,63 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presets flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presets user_input=%s", user_input)
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_WINDOW_FEATURE]:
+            next_step = self.async_step_window
+        elif self._infos[CONF_USE_MOTION_FEATURE]:
+            next_step = self.async_step_motion
+        elif self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
-            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
+            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window  sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_window user_input=%s", user_input)
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_MOTION_FEATURE]:
+            next_step = self.async_step_motion
+        elif self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
-            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
+            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window and motion sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_motion user_input=%s", user_input)
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
-            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
+            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
         """Handle the power management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_power user_input=%s", user_input)
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
             "power",
             self.STEP_POWER_DATA_SCHEMA,
             user_input,
-            self.async_step_presence,
+            next_step,
         )
 
     async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
@@ -335,6 +439,45 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             user_input,
             self.async_finalize,  # pylint: disable=no-member
         )
+
+    async def async_finalize(self):
+        """Should be implemented by Leaf classes"""
+        raise HomeAssistantError(
+            "async_finalize not implemented on VersatileThermostat sub-class"
+        )
+
+    def find_all_climates(self) -> list(str):
+        """Find all climate known by HA"""
+        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+        ret: list(str) = list()
+        for entity in component.entities:
+            ret.append(entity.entity_id)
+        _LOGGER.debug("Found all climate entities: %s", ret)
+        return ret
+
+    def find_all_heaters(self) -> list(str):
+        """Find all heater known by HA"""
+        component: EntityComponent[SwitchEntity] = self.hass.data[SWITCH_DOMAIN]
+        ret: list(str) = list()
+        for entity in component.entities:
+            ret.append(entity.entity_id)
+        # component = self.hass.data[INPUT_BOOLEAN_DOMAIN]
+        # for entity in component.entities:
+        #     ret.append(entity.entity_id)
+        _LOGGER.debug("Found all switch entities: %s", ret)
+        return ret
+
+    def find_all_temperature_sensors(self) -> list(str):
+        """Find all heater known by HA"""
+        component: EntityComponent[SensorEntity] = self.hass.data[SENSOR_DOMAIN]
+        ret: list(str) = list()
+        for entity in component.entities:
+            ret.append(entity.entity_id)
+        # component = self.hass.data[INPUT_NUMBER_DOMAIN]
+        # for entity in component.entities:
+        #    ret.append(entity.entity_id)
+        _LOGGER.debug("Found all temperature sensore entities: %s", ret)
+        return ret
 
 
 class VersatileThermostatConfigFlow(
@@ -479,33 +622,33 @@ class VersatileThermostatOptionsFlowHandler(
     async def async_end(self):
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug(
-            "CTOR ConfigFlow.async_finalize - updating entry with: %s", self._infos
+            "ConfigFlow.async_finalize - updating entry with: %s", self._infos
         )
         # Find eventual existing entity to update it
         # removing entities from registry (they will be recreated)
+
+        # No need to do that. Only the update_listener on __init__.py is necessary
         # ent_reg = entity_registry.async_get(self.hass)
 
-        # reg_entities = {
-        #    ent.unique_id: ent.entity_id
-        #    for ent in entity_registry.async_entries_for_config_entry(
-        #        ent_reg, self.config_entry.entry_id
-        #    )
-        # }
-        #
         # for entry in entity_registry.async_entries_for_config_entry(
         #    ent_reg, self.config_entry.entry_id
         # ):
-        # entity: VersatileThermostat = ent_reg.async_get(entry.entity_id)
-        # entity.async_registry_entry_updated(self._infos)
+        #    _LOGGER.info(
+        #        "Removing entity %s due to configuration change", entry.entity_id
+        #    )
+        # ent_reg.async_remove(entry.entity_id)
 
-        _LOGGER.debug(
-            "We have found entities to update: %s", self.config_entry.entry_id
-        )
-        await VersatileThermostat.update_entity(self.config_entry.entry_id, self._infos)
+        # _LOGGER.debug(
+        #    "We have found entities to update: %s", self.config_entry.entry_id
+        # )
+        # await VersatileThermostat.update_entity(self.config_entry.entry_id, self._infos)
 
         # for entity_id in reg_entities.values():
-        #    _LOGGER.info("Recreating entity %s due to configuration change", entity_id)
         #    ent_reg.async_remove(entity_id)
         #
+        _LOGGER.info(
+            "Recreating entry %s due to configuration change",
+            self.config_entry.entry_id,
+        )
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)
