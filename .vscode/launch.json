@@ -11,9 +11,13 @@
       "host": "localhost",
       "justMyCode": false,
       "pathMappings": [
+        // {
+        //  "localRoot": "${workspaceFolder}",
+        //  "remoteRoot": "."
+        //},
         {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "."
+          "localRoot": "${workspaceFolder}/../core",
+          "remoteRoot": "/home/vscode/core"
         }
       ]
     },

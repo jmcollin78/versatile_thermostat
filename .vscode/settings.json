@@ -4,5 +4,9 @@
     "python.pythonPath": "/usr/local/bin/python",
     "files.associations": {
         "*.yaml": "home-assistant"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "/home/vscode/core",
+        "/workspaces/versatile_thermostat"
+    ]
 }

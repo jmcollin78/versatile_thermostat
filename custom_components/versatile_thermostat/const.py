@@ -9,6 +9,8 @@ from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE,
 )
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
@@ -123,3 +125,7 @@ SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
+
+
+class UnknownEntity(HomeAssistantError):
+    """Error to indicate there is an unknown entity_id given."""

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# set -x
+
+. .bashrc
+
+cd $HA
+
+echo "arguments are: "$*
+# Post installation of container
+command=$1
+if [ "$command" == "install" ]; then
+    echo "Running container post installation"
+    script/setup
+fi
+
+if [ "$command" == "start" ]; then
+    echo "Running container start"
+    hass -c ./config --debug
+fi
+
+if [ "$command" == "translations" ]; then
+    echo "Running container start"
+    python3 -m script.translations develop
+fi
+
+if [ "$command" == "hassfest" ]; then
+    echo "Running container start"
+    python3 -m script.hassfest
+fi
+
+if [ "$command" == "restart" ]; then
+    echo "Killing existing container"
+    pkill hass
+    echo "Killing existing container"
+    hass -c ./config
+fi

@@ -7,6 +7,9 @@ logger:
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
+  start: true
+  wait: false
+  port: 5678
 
 input_number:
   fake_temperature_sensor1:
@@ -15,25 +18,28 @@ input_number:
     max: 35
     step: .1
     icon: mdi:thermometer
+    unit_of_measurement: °C
   fake_external_temperature_sensor1:
     name: Ext Temperature
     min: -10
     max: 35
     step: .1
     icon: mdi:home-thermometer
+    unit_of_measurement: °C
   fake_current_power:
     name: Current power
     min: 0
     max: 1000
     step: 10
     icon: mdi:flash
+    unit_of_measurement: kW
   fake_current_power_max:
     name: Current power max threshold
     min: 0
     max: 1000
     step: 10
     icon: mdi:flash
-
+    unit_of_measurement: kW
 
 input_boolean:
   # input_boolean to simulate the windows entity. Only for development environment.
@@ -96,3 +102,12 @@ climate:
     name: Underlying thermostat9
     heater: input_boolean.fake_heater_switch3
     target_sensor: input_number.fake_temperature_sensor1
+
+recorder:
+  include:
+    domains:
+      - input_boolean
+      - input_number
+      - switch
+      - climate
+      - sensor
