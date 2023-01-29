@@ -27,14 +27,13 @@ from homeassistant.helpers.entity_registry import (
     RegistryEntry,
     async_get,
 )
-from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
-from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.switch.const import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.input_boolean import (
     DOMAIN as INPUT_BOOLEAN_DOMAIN,
 )
 
-from homeassistant.components.sensor.const import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.input_number import (
     DOMAIN as INPUT_NUMBER_DOMAIN,
 )

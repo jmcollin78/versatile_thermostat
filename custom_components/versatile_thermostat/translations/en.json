@@ -202,7 +202,7 @@
       "already_configured": "Device is already configured"
     }
   },
-  "selectors": {
+  "selector": {
     "thermostat_type": {
       "options": {
         "thermostat_over_switch": "Thermostat over a switch",
