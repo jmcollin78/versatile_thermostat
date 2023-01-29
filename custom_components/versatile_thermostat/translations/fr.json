@@ -92,14 +92,6 @@
         }
       }
     },
-    "selectors": {
-      "thermostat_type": {
-        "options": {
-          "thermostat_over_switch": "Thermostat sur un switch",
-          "thermostat_over_climate": "Thermostat sur un autre thermostat"
-        }
-      }
-    },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu"
@@ -202,20 +194,20 @@
         }
       }
     },
-    "selectors": {
-      "thermostat_type": {
-        "options": {
-          "thermostat_over_switch": "Thermostat sur un switch",
-          "thermostat_over_climate": "Thermostat sur un autre thermostat"
-        }
-      }
-    },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
+    }
+  },
+  "selectors": {
+    "thermostat_type": {
+      "options": {
+        "thermostat_over_switch": "Thermostat sur un switch",
+        "thermostat_over_climate": "Thermostat sur un autre thermostat"
+      }
     }
   }
 }
