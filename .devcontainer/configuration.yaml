@@ -111,3 +111,10 @@ recorder:
       - switch
       - climate
       - sensor
+
+template:
+  - binary_sensor:
+      - name: maison_occupee
+        unique_id: maison_occupee
+        state: "{{is_state('person.jmc', 'home') }}"
+        device_class: occupancy

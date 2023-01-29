@@ -39,6 +39,7 @@ from homeassistant.components.input_number import (
 )
 
 from homeassistant.components.person import DOMAIN as PERSON_DOMAIN
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 
 
 from .const import (
@@ -166,6 +167,22 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos = infos
+        is_empty: bool = not bool(infos)
+        # Fix features selection depending to infos
+        self._infos[CONF_USE_WINDOW_FEATURE] = (
+            is_empty or self._infos.get(CONF_WINDOW_SENSOR) is not None
+        )
+        self._infos[CONF_USE_MOTION_FEATURE] = (
+            is_empty or self._infos.get(CONF_MOTION_SENSOR) is not None
+        )
+        self._infos[CONF_USE_POWER_FEATURE] = is_empty or (
+            self._infos.get(CONF_POWER_SENSOR) is not None
+            and self._infos.get(CONF_MAX_POWER_SENSOR) is not None
+        )
+        self._infos[CONF_USE_PRESENCE_FEATURE] = (
+            is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
+        )
+
         self.hass = async_get_hass()
         ent_reg = async_get(hass=self.hass)
 
@@ -194,7 +211,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             elif is_power_sensor(v):
                 _LOGGER.debug("Power sensor !")
                 power_sensors.append(k)
-            elif k.startswith(PERSON_DOMAIN):
+            elif k.startswith(PERSON_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
                 _LOGGER.debug("Presence sensor !")
                 presence_sensors.append(k)
 
@@ -601,8 +618,18 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_presets user_input=%s", user_input
         )
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_WINDOW_FEATURE]:
+            next_step = self.async_step_window
+        elif self._infos[CONF_USE_MOTION_FEATURE]:
+            next_step = self.async_step_motion
+        elif self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
-            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, self.async_step_window
+            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
@@ -611,8 +638,15 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_window user_input=%s", user_input
         )
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_MOTION_FEATURE]:
+            next_step = self.async_step_motion
+        elif self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
         return await self.generic_step(
-            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, self.async_step_motion
+            "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
@@ -621,8 +655,14 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_motion user_input=%s", user_input
         )
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_POWER_FEATURE]:
+            next_step = self.async_step_power
+        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
-            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, self.async_step_power
+            "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, next_step
         )
 
     async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
@@ -631,11 +671,15 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_power user_input=%s", user_input
         )
 
+        next_step = self.async_step_advanced
+        if self._infos[CONF_USE_PRESENCE_FEATURE]:
+            next_step = self.async_step_presence
+
         return await self.generic_step(
             "power",
             self.STEP_POWER_DATA_SCHEMA,
             user_input,
-            self.async_step_presence,
+            next_step,
         )
 
     async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
@@ -666,34 +710,20 @@ class VersatileThermostatOptionsFlowHandler(
 
     async def async_end(self):
         """Finalization of the ConfigEntry creation"""
-        _LOGGER.debug(
-            "ConfigFlow.async_finalize - updating entry with: %s", self._infos
-        )
-        # Find eventual existing entity to update it
-        # removing entities from registry (they will be recreated)
+        if not self._infos[CONF_USE_WINDOW_FEATURE]:
+            self._infos[CONF_WINDOW_SENSOR] = None
+        if not self._infos[CONF_USE_MOTION_FEATURE]:
+            self._infos[CONF_MOTION_SENSOR] = None
+        if not self._infos[CONF_USE_POWER_FEATURE]:
+            self._infos[CONF_POWER_SENSOR] = None
+            self._infos[CONF_MAX_POWER_SENSOR] = None
+        if not self._infos[CONF_USE_PRESENCE_FEATURE]:
+            self._infos[CONF_PRESENCE_SENSOR] = None
 
-        # No need to do that. Only the update_listener on __init__.py is necessary
-        # ent_reg = entity_registry.async_get(self.hass)
-
-        # for entry in entity_registry.async_entries_for_config_entry(
-        #    ent_reg, self.config_entry.entry_id
-        # ):
-        #    _LOGGER.info(
-        #        "Removing entity %s due to configuration change", entry.entity_id
-        #    )
-        # ent_reg.async_remove(entry.entity_id)
-
-        # _LOGGER.debug(
-        #    "We have found entities to update: %s", self.config_entry.entry_id
-        # )
-        # await VersatileThermostat.update_entity(self.config_entry.entry_id, self._infos)
-
-        # for entity_id in reg_entities.values():
-        #    ent_reg.async_remove(entity_id)
-        #
         _LOGGER.info(
-            "Recreating entry %s due to configuration change",
+            "Recreating entry %s due to configuration change. New config is now: %s",
             self.config_entry.entry_id,
+            self._infos,
         )
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)
