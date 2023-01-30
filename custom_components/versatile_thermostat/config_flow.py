@@ -216,7 +216,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 presence_sensors.append(k)
 
             # window sensor
-            if k.startswith(INPUT_BOOLEAN_DOMAIN):
+            if k.startswith(INPUT_BOOLEAN_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
                 _LOGGER.debug("Window or presence sensor !")
                 window_sensors.append(k)
                 presence_sensors.append(k)
