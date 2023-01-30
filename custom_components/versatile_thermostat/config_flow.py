@@ -211,11 +211,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             elif is_power_sensor(v):
                 _LOGGER.debug("Power sensor !")
                 power_sensors.append(k)
-            elif k.startswith(PERSON_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
+            elif k.startswith(PERSON_DOMAIN):
                 _LOGGER.debug("Presence sensor !")
                 presence_sensors.append(k)
 
-            # window sensor
+            # window sensor and presence 
             if k.startswith(INPUT_BOOLEAN_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
                 _LOGGER.debug("Window or presence sensor !")
                 window_sensors.append(k)

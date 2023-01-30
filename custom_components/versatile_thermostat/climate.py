@@ -820,10 +820,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def _is_device_active(self):
         """If the toggleable device is currently active."""
-        if self._is_over_climate or not self.hass.states.get(self._heater_entity_id):
-            return None
-
-        return self.hass.states.is_state(self._heater_entity_id, STATE_ON)
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.hvac_action not in [
+                CURRENT_HVAC_IDLE,
+                CURRENT_HVAC_OFF,
+            ]
+        else:
+            return self.hass.states.is_state(self._heater_entity_id, STATE_ON)
 
     @property
     def current_temperature(self):
@@ -1377,11 +1380,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_underlying_entity_turn_off(self):
         """Turn heater toggleable device off."""
         if not self._is_over_climate:
+            _LOGGER.debug(
+                "%s - Stopping underlying switch %s", self, self._heater_entity_id
+            )
             data = {ATTR_ENTITY_ID: self._heater_entity_id}
             await self.hass.services.async_call(
                 HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
             )
         else:
+            _LOGGER.debug(
+                "%s - Stopping underlying switch %s", self, self._climate_entity_id
+            )
             data = {ATTR_ENTITY_ID: self._climate_entity_id}
             await self.hass.services.async_call(
                 HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
@@ -1567,16 +1576,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Check overpowering condition
         overpowering: bool = await self.check_overpowering()
         if overpowering:
-            _LOGGER.debug("%s - End of cycle (0)", self)
+            _LOGGER.debug("%s - End of cycle (overpowering)", self)
             return
 
         security: bool = await self.check_security()
         if security:
-            _LOGGER.debug("%s - End of cycle (1)", self)
+            _LOGGER.debug("%s - End of cycle (security)", self)
             return
 
         # Stop here if we are off
         if self._hvac_mode == HVAC_MODE_OFF:
+            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
+            if self._is_device_active:
+                await self._async_underlying_entity_turn_off()
             return
 
         if not self._is_over_climate:
@@ -1615,6 +1627,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         self._async_cancel_cycle()
                         self._async_cancel_cycle = None
                         _LOGGER.debug("%s - Stopping cycle during calculation", self)
+
+                    if self._hvac_mode == HVAC_MODE_OFF:
+                        _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
+                        if self._is_device_active:
+                            await self._async_underlying_entity_turn_off()
+                        return
 
                     if on:
                         security = (
