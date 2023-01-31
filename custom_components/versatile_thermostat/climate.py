@@ -220,6 +220,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._is_over_climate = False
         self._underlying_climate = None
 
+        self._attr_translation_key = "versatile_thermostat"
+
         self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
@@ -864,11 +866,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def _is_device_active(self):
         """If the toggleable device is currently active."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.hvac_action not in [
-                CURRENT_HVAC_IDLE,
-                CURRENT_HVAC_OFF,
-            ]
+        if self._is_over_climate:
+            if self._underlying_climate:
+                return self._underlying_climate.hvac_action not in [
+                    CURRENT_HVAC_IDLE,
+                    CURRENT_HVAC_OFF,
+                ]
+            else:
+                return None
         else:
             return self.hass.states.is_state(self._heater_entity_id, STATE_ON)
 
@@ -880,6 +885,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
+
+        if hvac_mode is None:
+            return
 
         if self._is_over_climate and self._underlying_climate:
             data = {ATTR_ENTITY_ID: self._climate_entity_id, "hvac_mode": hvac_mode}

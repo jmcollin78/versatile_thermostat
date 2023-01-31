@@ -209,5 +209,17 @@
         "thermostat_over_climate": "Thermostat over another thermostat"
       }
     }
+  },
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "states_attributes": {
+          "preset_mode": {
+            "power": "Shedding",
+            "security": "Security"
+          }
+        }
+      }
+    }
   }
 }
