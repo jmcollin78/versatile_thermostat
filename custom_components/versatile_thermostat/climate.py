@@ -775,6 +775,50 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._hvac_list
 
     @property
+    def fan_mode(self) -> str | None:
+        """Return the fan setting.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.fan_mode
+
+        return None
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        """Return the list of available fan modes.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.fan_modes
+
+        return []
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the swing setting.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.swing_mode
+
+        return None
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        """Return the list of available swing modes.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.swing_modes
+
+        return None
+
+    @property
     def temperature_unit(self):
         """Return the unit of measurement."""
         return self._unit
