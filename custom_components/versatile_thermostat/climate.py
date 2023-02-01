@@ -34,17 +34,15 @@ from homeassistant.helpers import (
     entity_platform,
 )  # , config_validation as cv
 
-from homeassistant.components.climate.const import (
+from homeassistant.components.climate import (
     DOMAIN as CLIMATE_DOMAIN,
     ATTR_PRESET_MODE,
     # ATTR_FAN_MODE,
-    CURRENT_HVAC_COOL,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    CURRENT_HVAC_OFF,
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    HVACMode,
+    HVACAction,
+    # HVAC_MODE_COOL,
+    # HVAC_MODE_HEAT,
+    # HVAC_MODE_OFF,
     PRESET_ACTIVITY,
     # PRESET_AWAY,
     PRESET_BOOST,
@@ -53,7 +51,8 @@ from homeassistant.components.climate.const import (
     # PRESET_HOME,
     PRESET_NONE,
     # PRESET_SLEEP,
-    SUPPORT_PRESET_MODE,
+    ClimateEntityFeature,
+    # ClimateEntityFeature.PRESET_MODE,
     # SUPPORT_TARGET_TEMPERATURE,
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HUMIDITY,
@@ -62,6 +61,13 @@ from homeassistant.components.climate.const import (
     SERVICE_SET_SWING_MODE,
     SERVICE_SET_TEMPERATURE,
 )
+
+# from homeassistant.components.climate import (
+# CURRENT_HVAC_HEAT,
+# HVACAction.IDLE,
+# HVACAction.OFF,
+# HVACAction.COOLING,
+# )
 
 from homeassistant.const import (
     # UnitOfTemperature,
@@ -299,7 +305,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # TODO if self.ac_mode:
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
         # else:
-        self._hvac_list = [HVAC_MODE_HEAT, HVAC_MODE_OFF]
+        self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
         self._unit = UnitOfTemperature.CELSIUS
         # Will be restored if possible
         self._hvac_mode = None  # HVAC_MODE_OFF
@@ -385,7 +391,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Calculate all possible presets
         self._attr_preset_modes = [PRESET_NONE]
         if len(presets):
-            self._support_flags = SUPPORT_FLAGS | SUPPORT_PRESET_MODE
+            self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
 
             for key, val in presets.items():
                 if val != 0.0:
@@ -743,7 +749,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Set default state to off
         if not self._hvac_mode:
-            self._hvac_mode = HVAC_MODE_OFF
+            self._hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
             "%s - restored state is target_temp=%.1f, preset_mode=%s, hvac_mode=%s",
@@ -842,13 +848,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._is_over_climate and self._underlying_climate:
             return self._underlying_climate.hvac_action
 
-        if self._hvac_mode == HVAC_MODE_OFF:
-            return CURRENT_HVAC_OFF
+        if self._hvac_mode == HVACMode.OFF:
+            return HVACAction.OFF
         if not self._is_device_active:
-            return CURRENT_HVAC_IDLE
+            return HVACAction.IDLE
         if self._ac_mode:
-            return CURRENT_HVAC_COOL
-        return CURRENT_HVAC_HEAT
+            return HVACAction.COOLING
+        return HVACAction.HEATING
 
     @property
     def target_temperature(self):
@@ -869,8 +875,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._is_over_climate:
             if self._underlying_climate:
                 return self._underlying_climate.hvac_action not in [
-                    CURRENT_HVAC_IDLE,
-                    CURRENT_HVAC_OFF,
+                    HVACAction.IDLE,
+                    HVACAction.OFF,
                 ]
             else:
                 return None
@@ -881,6 +887,91 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def current_temperature(self):
         """Return the sensor temperature."""
         return self._cur_temp
+
+    @property
+    def target_temperature_step(self) -> float | None:
+        """Return the supported step of target temperature."""
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.target_temperature_step
+
+        return None
+
+    @property
+    def target_temperature_high(self) -> float | None:
+        """Return the highbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.target_temperature_high
+
+        return None
+
+    @property
+    def target_temperature_low(self) -> float | None:
+        """Return the lowbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.target_temperature_low
+
+        return None
+
+    @property
+    def is_aux_heat(self) -> bool | None:
+        """Return true if aux heater.
+
+        Requires ClimateEntityFeature.AUX_HEAT.
+        """
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.is_aux_heat
+
+        return None
+
+    def turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.turn_aux_heat_on()
+
+        raise NotImplementedError()
+
+    async def async_turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        if self._is_over_climate and self._underlying_climate:
+            await self._underlying_climate.async_turn_aux_heat_on()
+
+        raise NotImplementedError()
+
+    def turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.turn_aux_heat_off()
+
+        raise NotImplementedError()
+
+    async def async_turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        if self._is_over_climate and self._underlying_climate:
+            await self._underlying_climate.async_turn_aux_heat_off()
+
+        raise NotImplementedError()
+
+    @property
+    def preset_mode(self) -> str | None:
+        """Return the current preset mode, e.g., home, away, temp.
+
+        Requires ClimateEntityFeature.PRESET_MODE.
+        """
+        return self._attr_preset_mode
+
+    @property
+    def preset_modes(self) -> list[str] | None:
+        """Return a list of available preset modes.
+
+        Requires ClimateEntityFeature.PRESET_MODE.
+        """
+        return self._attr_preset_modes
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -897,14 +988,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # await self._underlying_climate.async_set_hvac_mode(hvac_mode)
             self._hvac_mode = hvac_mode  # self._underlying_climate.hvac_mode
         else:
-            if hvac_mode == HVAC_MODE_HEAT:
-                self._hvac_mode = HVAC_MODE_HEAT
+            if hvac_mode == HVACMode.HEAT:
+                self._hvac_mode = HVACMode.HEAT
                 await self._async_control_heating(force=True)
-            elif hvac_mode == HVAC_MODE_COOL:
-                self._hvac_mode = HVAC_MODE_COOL
+            elif hvac_mode == HVACMode.COOL:
+                self._hvac_mode = HVACMode.COOL
                 await self._async_control_heating(force=True)
-            elif hvac_mode == HVAC_MODE_OFF:
-                self._hvac_mode = HVAC_MODE_OFF
+            elif hvac_mode == HVACMode.OFF:
+                self._hvac_mode = HVACMode.OFF
                 if self._is_device_active:
                     await self._async_underlying_entity_turn_off()
                 await self._async_control_heating(force=True)
@@ -1135,10 +1226,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 await self.restore_hvac_mode()
             elif self._window_state == STATE_ON:
                 _LOGGER.info(
-                    "%s - Window is open. Set hvac_mode to '%s'", self, HVAC_MODE_OFF
+                    "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
                 )
                 self.save_hvac_mode()
-                await self.async_set_hvac_mode(HVAC_MODE_OFF)
+                await self.async_set_hvac_mode(HVACMode.OFF)
             self.update_custom_attributes()
 
         if self._window_call_cancel:
@@ -1210,7 +1301,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _check_switch_initial_state(self):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_switch_initial_state", self)
-        if self._hvac_mode == HVAC_MODE_OFF and self._is_device_active:
+        if self._hvac_mode == HVACMode.OFF and self._is_device_active:
             _LOGGER.warning(
                 "The climate mode is OFF, but the switch device is ON. Turning off device %s",
                 self._heater_entity_id,
@@ -1240,9 +1331,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
         # old_state = event.data.get("old_state")
         if new_state is None or new_state.state not in [
-            HVAC_MODE_COOL,
-            HVAC_MODE_HEAT,
-            HVAC_MODE_OFF,
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACMode.COOL,
         ]:
             return
         self._hvac_mode = new_state.state
@@ -1504,11 +1595,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._device_power,
         )
         ret = self._current_power + self._device_power >= self._current_power_max
-        if (
-            not self._overpowering_state
-            and ret
-            and not self._hvac_mode == HVAC_MODE_OFF
-        ):
+        if not self._overpowering_state and ret and not self._hvac_mode == HVACMode.OFF:
             _LOGGER.warning(
                 "%s - overpowering is detected. Heater preset will be set to 'power'",
                 self,
@@ -1556,8 +1643,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             or delta_ext_temp > self._security_delay_min
         )
         climate_cond: bool = self._is_over_climate and self.hvac_action not in [
-            CURRENT_HVAC_COOL,
-            CURRENT_HVAC_IDLE,
+            HVACAction.COOLING,
+            HVACAction.IDLE,
         ]
         switch_cond: bool = (
             not self._is_over_climate
@@ -1595,7 +1682,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self.save_hvac_mode()
             self.save_preset_mode()
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
-            await self.async_set_hvac_mode(HVAC_MODE_OFF)
+            await self.async_set_hvac_mode(HVACMode.OFF)
 
         if (
             self._security_state
@@ -1637,7 +1724,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         # Stop here if we are off
-        if self._hvac_mode == HVAC_MODE_OFF:
+        if self._hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
             if self._is_device_active:
                 await self._async_underlying_entity_turn_off()
@@ -1670,7 +1757,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     _LOGGER.debug("%s - End of cycle (2)", self)
                     return
 
-            if self._hvac_mode == HVAC_MODE_HEAT and on_time_sec > 0:
+            if self._hvac_mode == HVACMode.HEAT and on_time_sec > 0:
 
                 async def _turn_on_off_later(
                     on: bool, time, heater_action, next_cycle_action
@@ -1680,7 +1767,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         self._async_cancel_cycle = None
                         _LOGGER.debug("%s - Stopping cycle during calculation", self)
 
-                    if self._hvac_mode == HVAC_MODE_OFF:
+                    if self._hvac_mode == HVACMode.OFF:
                         _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
                         if self._is_device_active:
                             await self._async_underlying_entity_turn_off()
