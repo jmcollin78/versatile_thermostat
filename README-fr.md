@@ -13,12 +13,13 @@
   - [HACS installation (recommendé)](#hacs-installation-recommendé)
   - [Installation manuelle](#installation-manuelle)
 - [Configuration](#configuration)
-  - [Configuration minimale](#configuration-minimale)
+  - [Choix des attributs de base](#choix-des-attributs-de-base)
+  - [Sélectionnez l'entité pilotée](#sélectionnez-lentité-pilotée)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
   - [Configurer les portes/fenêtres en allumant/éteignant les thermostats](#configurer-les-portesfenêtres-en-allumantéteignant-les-thermostats)
   - [Configurer le mode d'activité ou la détection de mouvement](#configurer-le-mode-dactivité-ou-la-détection-de-mouvement)
-  - [Configurer la gestion de l'alimentation](#configurer-la-gestion-de-lalimentation)
+  - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
   - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
   - [Configuration avancée](#configuration-avancée)
 - [Exemples de réglage](#exemples-de-réglage)
@@ -40,16 +41,22 @@
   - [Toujours mieux avec Apex-chart pour régler votre thermostat](#toujours-mieux-avec-apex-chart-pour-régler-votre-thermostat)
 - [Les contributions sont les bienvenues !](#les-contributions-sont-les-bienvenues)
 
-
 _Composant développé à l'aide de l'incroyable modèle de développement [[blueprint](https://github.com/custom-components/integration_blueprint)]._
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 # Quand l'utiliser et ne pas l'utiliser
-Ce thermostat a pour but de commander un radiateur qui ne fonctionne qu'en mode marche/arrêt. La configuration minimale nécessaire pour utiliser ce thermostat est :
-1. un équipement comme un radiateur (un interrupteur),
-2. une sonde de température pour la pièce (ou un input_number),
-3. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+Ce thermostat peut piloter 2 types d'équipement:
+1. un radiateur qui ne fonctionne qu'en mode marche/arrêt (nommé ```thermostat_over_switch```). La configuration minimale nécessaire pour utiliser ce type thermostat est :
+   a. un équipement comme un radiateur (un ```switch``` ou équivalent),
+   b. une sonde de température pour la pièce (ou un input_number),
+   c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
+   a. un équipement comme une climatisation qui est pilotée par sa propre entity de type ```climate```,
+   b. une sonde de température pour la pièce (ou un input_number),
+   c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+
+Le type ```thermostat_over_climate``` permet d'ajouter à votre équipement existant toutes les fonctionnalités fournies par VersatileThermostat. L'entité climate VersatileThermostat pilotera votre entité climate, en la coupant si les fenêtres sont ouvertes, la passant en mode Eco si personne n'est présent, etc. Cf. [ici](#pourquoi-une-nouvelle-implémentation-du-thermostat). Pour ce type de thermostat, les cycles éventuels de chauffe sont pilotés par l'entité climate sous-jacente et pas par le Versatile Thermostat lui-même.
 
 Parce que cette intégration vise à commander le radiateur en tenant compte du préréglage configuré (preset) et de la température ambiante, ces informations sont obligatoires.
 
@@ -100,27 +107,43 @@ La configuration peut être modifiée via la même interface. Sélectionnez simp
 
 Suivez ensuite les étapes de configuration comme suit :
 
-## Configuration minimale
+## Choix des attributs de base
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-main.png?raw=true)
 
 Donnez les principaux attributs obligatoires :
 1. un nom (sera le nom de l'intégration et aussi le nom de l'entité climate)
-2. un identifiant d'entité d'équipement qui représente l'élément chauffant. Cet équipement doit pouvoir s'allumer ou s'éteindre,
-3. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle le radiateur est installé,
-4. une entité capteur de température donnant la température extérieure. Si vous n'avez pas de capteur externe, vous pouvez utiliser l'intégration météo locale
-5. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous),
-6. Algorithme à utiliser. Aujourd'hui, seul l'algorithme TPI est disponible. Voir [algorithme](#algorithme)
+2. le type de thermostat ```thermostat_over_switch``` pour piloter un radiateur commandé par un switch ou ```thermostat_over_climate``` pour piloter un autre thermostat. Cf. [ci-dessus](#pourquoi-une-nouvelle-implémentation-du-thermostat)
+4. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle le radiateur est installé,
+5. une entité capteur de température donnant la température extérieure. Si vous n'avez pas de capteur externe, vous pouvez utiliser l'intégration météo locale
+6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous),
+7. les températures minimales et maximales du thermostat,
+8. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
-      1. Les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
+      1. avec le type ```thermostat_over_swutch```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
       2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible en effet pour le radiateur à accumulation et il sera sollicité inutilement
+
+## Sélectionnez l'entité pilotée
+En fonction de votre choix sur le type de thermostat, vous devrez choisir une entité de type switch ou une entité de type climate. Seules les entités compatibles sont présentées.
+
+Pour un thermostat de type ```thermostat_over_switch```:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
+L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme)
+
+Pour un thermostat de type ```thermostat_over_climate```:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 ## Configurez les coefficients de l'algorithme TPI
 
-Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+Si vous avez choisi un thermostat de type ```thermostat_over_switch``` vous arriverez sur cette page :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-tpi.png?raw=true)
+
+Vous devez donner :
+1. le coefficient coef_int de l'algorithme TPI,
+2. le coefficient coef_ext de l'algorithme TPI
+
 
 Pour plus d'informations sur l'algorithme TPI et son réglage, veuillez vous référer à [algorithm](#algorithm).
 
@@ -144,7 +167,7 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
     5. Si vous ne souhaitez pas utiliser le préréglage, indiquez 0 comme température. Le préréglage sera alors ignoré et ne s'affichera pas dans le composant front
 
 ## Configurer les portes/fenêtres en allumant/éteignant les thermostats
-Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+Si vous avez choisi la fonctionnalité ```Avec détection des ouvertures```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
 
@@ -159,7 +182,7 @@ Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvert
     2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide
 
 ## Configurer le mode d'activité ou la détection de mouvement
-Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+Si vous avez choisi la fonctionnalité ```Avec détection de mouvement```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
 
@@ -181,9 +204,9 @@ Pour que cela fonctionne, le thermostat climatique doit être en mode prérégl�
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
     1. Sachez que comme pour les autres modes prédéfinis, ``Activity`` ne sera proposé que s'il est correctement configuré. En d'autres termes, les 4 clés de configuration doivent être définies si vous souhaitez voir l'activité dans l'interface de l'assistant domestique
 
-## Configurer la gestion de l'alimentation
+## Configurer la gestion de la puissance
 
-Cliquez sur 'Valider' sur la page précédente et vous arriverez ici :
+Si vous avez choisi la fonctionnalité ```Avec détection de la puissance```, cliquez sur 'Valider' sur la page précédente et vous arriverez ici :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
@@ -193,13 +216,13 @@ Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW o
 Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou de ce que vous voulez.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
-    1. En cas de délestage, le radiateur est réglé sur le préréglage nommé ``power``. Il s'agit d'un préréglage caché, vous ne pouvez pas le sélectionner manuellement.
+    1. En cas de délestage, le radiateur est réglé sur le préréglage nommé ```power```. Il s'agit d'un préréglage caché, vous ne pouvez pas le sélectionner manuellement.
     2. Je l'utilise pour éviter de dépasser la limite de mon contrat d'électricité lorsqu'un véhicule électrique est en charge. Cela crée une sorte d'autorégulation.
     3. Gardez toujours une marge, car la puissance max peut être brièvement dépassée en attendant le calcul du prochain cycle typiquement ou par des équipements non régulés.
     4. Si vous ne souhaitez pas utiliser cette fonctionnalité, laissez simplement l'identifiant des entités vide
 
 ## Configurer la présence ou l'occupation
-Cette fonction vous permet de modifier dynamiquement la température de tous les préréglages du thermostat configurés lorsque personne n'est à la maison ou lorsque quelqu'un rentre à la maison. Pour cela, vous devez configurer la température qui sera utilisée pour chaque préréglage lorsque la présence est désactivée. Lorsque le capteur de présence s'éteint, ces températures seront utilisées. Lorsqu'il se rallume, la température "normale" configurée pour le préréglage est utilisée. Voir [gestion des préréglages](#configure-the-preset-temperature).
+Si sélectionnée en première page, cette fonction vous permet de modifier dynamiquement la température de tous les préréglages du thermostat configurés lorsque personne n'est à la maison ou lorsque quelqu'un rentre à la maison. Pour cela, vous devez configurer la température qui sera utilisée pour chaque préréglage lorsque la présence est désactivée. Lorsque le capteur de présence s'éteint, ces températures seront utilisées. Lorsqu'il se rallume, la température "normale" configurée pour le préréglage est utilisée. Voir [gestion des préréglages](#configure-the-preset-temperature).
 Pour configurer la présence remplissez ce formulaire :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presence.png?raw=true)

@@ -14,6 +14,7 @@
   - [Manual installation](#manual-installation)
 - [Configuration](#configuration)
   - [Minimal configuration update](#minimal-configuration-update)
+  - [Select the driven entity](#select-the-driven-entity)
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
   - [Configure the preset temperature](#configure-the-preset-temperature)
   - [Configure the doors/windows turning on/off the thermostats](#configure-the-doorswindows-turning-onoff-the-thermostats)
@@ -40,18 +41,22 @@
   - [Even better with Apex-chart to tune your Thermostat](#even-better-with-apex-chart-to-tune-your-thermostat)
 - [Contributions are welcome!](#contributions-are-welcome)
 
-
 _Component developed by using the amazing development template [[blueprint](https://github.com/custom-components/integration_blueprint)]._
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 # When to use / not use
-This thermostat aims to command a heater which works only in on/off mode. The minimal needed configuration to use this thermostat is:
-1. an equipement like a heater (a switch),
-2. a temperature sensor for the room (or an input_number),
-3. an external temperature sensor (think of the meteo integration if you don't have one)
+This thermostat can control 2 types of equipment:
+1. a heater that only works in on/off mode (named ```thermostat_over_switch```). The minimum configuration required to use this type of thermostat is:
+   has. equipment such as a radiator (a ```switch``` or equivalent),
+   b. a temperature probe for the room (or an input_number),
+   vs. an external temperature sensor (think about weather integration if you don't have one)
+2. another thermostat that has its own operating modes (named ```thermostat_over_climate```). For this type of thermostat, the minimum configuration requires:
+   has. equipment such as air conditioning which is controlled by its own ```climate``` type entity,
+   b. a temperature probe for the room (or an input_number),
+   vs. an external temperature sensor (think about weather integration if you don't have one)
 
-Because this integration aims to command the heater considering the preset configured and the room temperature, those informations are mandatory.
+The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 
 # Why another thermostat implementation ?
 
@@ -103,16 +108,27 @@ Then follow the configurations steps as follow:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-main.png?raw=true)
 
 Give the main mandatory attributes:
-1. a name (will be the integration name and also the climate entity name)
-2. an equipment entity id which represent the heater. This equipment should be able to switch on or off,
-3. a temporature sensor entity id which gives the temperature of the room in which the heater is installed,
-4. a temperature sensor entity giving the external temperature. If don't have any external sensor, you can use the local meteo integration
-5. a cycle duration in minutes. At each cycle, the heater will be turned on then off for a calculated period in order to reach the targeted temperature (see [preset](#configure-the-preset-temperature) below),
-6. Algorithm to use. Today only the TPI algorithm is available. See [algorithm](#algorithm)
+1. a name (will be the name of the integration and also the name of the climate entity)
+2. the type of thermostat ```thermostat_over_switch``` to control a radiator controlled by a switch or ```thermostat_over_climate``` to control another thermostat. Cf. [above](#why-a-new-thermostat-implementation)
+4. a temperature sensor entity identifier which gives the temperature of the room in which the radiator is installed,
+5. a temperature sensor entity giving the outside temperature. If you don't have an external sensor, you can use local weather integration
+6. a cycle duration in minutes. On each cycle, the heater will cycle on and then off for a calculated time to reach the target temperature (see [preset](#configure-the-preset-temperature) below),
+7. minimum and maximum thermostat temperatures,
+8. the list of features that will be used for this thermostat. Depending on your choices, the following configuration screens will appear or not.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
-      1. Calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
+      1. With the ```thermostat_over_switch``` type, calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
       2. if the cycle is too short, the heater could never reach the target temperature indeed for heater with accumulation features and it will be unnecessary solicited
+
+## Select the driven entity
+Depending on your choice on the type of thermostat, you will have to choose a switch type entity or a climate type entity. Only compatible entities are shown.
+
+For a ```thermostat_over_switch``` thermostat:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
+The algorithm to be used today is limited to TPI is available. See [algorithm](#algorithm)
+
+For a ```thermostat_over_climate``` thermostat:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 ## Configure the TPI algorithm coefficients
 Click on 'Validate' on the previous page and you will get there:
@@ -139,7 +155,7 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
     5. ff you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
 
 ## Configure the doors/windows turning on/off the thermostats
-Click on 'Validate' on the previous page and you will get there:
+If you choose the ```Window management``` feature, click on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
 
 Give the following attributes:
@@ -153,7 +169,7 @@ And that's it ! your thermostat will turn off when the windows is open and be tu
     2. If you don't have any window/door sensor in your room, just leave the sensor entity id empty
 
 ## Configure the activity mode or motion detection
-Click on 'Validate' on the previous page and you will get there:
+If you choose the ```Motion management``` feature, lick on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
 
 We will now see how to configure the new Activity mode.
@@ -176,7 +192,7 @@ For this to work, the climate thermostat should be in ``Activity`` preset mode.
 
 ## Configure the power management
 
-Click on 'Validate' on the previous page and you will get there:
+If you choose the ```Power management``` feature, click on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
 This feature allows you to regulate the power consumption of your radiators. Known as shedding, this feature allows you to limit the electrical power consumption of your heater if overpowering conditions are detected. Give a **sensor to the current power consumption of your house**, a **sensor to the max power** that should not be exceeded, the **power consumption of your heater** and the algorithm will not start a radiator if the max power will be exceeded after radiator starts.
@@ -192,7 +208,7 @@ This allows you to change the max power along time using a Scheduler or whatever
     4. If you don't want to use this feature, just leave the entities id empty
 
 ## Configure the presence or occupancy
-This feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
+If you choose the ```Presence management``` feature, this feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
 To configure presence fills this form:
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presence.png?raw=true)
