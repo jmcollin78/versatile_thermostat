@@ -8,25 +8,20 @@ from collections.abc import Mapping
 import voluptuous as vol
 
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.const import TEMPERATURE, UnitOfPower
-from homeassistant.util.unit_system import TEMPERATURE_UNITS
 
-from homeassistant.core import callback, async_get_hass
+from homeassistant.core import callback
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow as HAConfigFlow,
     OptionsFlow,
 )
 
-from homeassistant.data_entry_flow import FlowHandler
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import FlowHandler, FlowResult
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.helpers.entity_registry import (
-    RegistryEntry,
-    async_get,
-)
+
+from homeassistant.helpers import selector
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.input_boolean import (
@@ -126,35 +121,33 @@ def add_suggested_values_to_schema(
     return vol.Schema(schema)
 
 
-def is_temperature_sensor(sensor: RegistryEntry):
-    """Check if a registryEntry is a temperature sensor or assimilable to a temperature sensor"""
-    if not sensor.entity_id.startswith(
-        INPUT_NUMBER_DOMAIN
-    ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
-        return False
-    return (
-        sensor.device_class == TEMPERATURE
-        or sensor.original_device_class == TEMPERATURE
-        or sensor.unit_of_measurement in TEMPERATURE_UNITS
-    )
-
-
-def is_power_sensor(sensor: RegistryEntry):
-    """Check if a registryEntry is a power sensor or assimilable to a temperature sensor"""
-    if not sensor.entity_id.startswith(
-        INPUT_NUMBER_DOMAIN
-    ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
-        return False
-    return (
-        #    sensor.device_class == TEMPERATURE
-        #    or sensor.original_device_class == TEMPERATURE
-        sensor.unit_of_measurement
-        in [
-            UnitOfPower.KILO_WATT,
-            UnitOfPower.WATT,
-            UnitOfPower.BTU_PER_HOUR,
-        ]
-    )
+# def is_temperature_sensor(sensor: RegistryEntry):
+#     """Check if a registryEntry is a temperature sensor or assimilable to a temperature sensor"""
+#     if not sensor.entity_id.startswith(
+#         INPUT_NUMBER_DOMAIN
+#     ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
+#         return False
+#     return (
+#         sensor.device_class == TEMPERATURE
+#         or sensor.original_device_class == TEMPERATURE
+#         or sensor.unit_of_measurement in TEMPERATURE_UNITS
+#     )
+#
+#
+# def is_power_sensor(sensor: RegistryEntry):
+#     """Check if a registryEntry is a power sensor or assimilable to a temperature sensor"""
+#     if not sensor.entity_id.startswith(
+#         INPUT_NUMBER_DOMAIN
+#     ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
+#         return False
+#     return (
+#         sensor.unit_of_measurement
+#         in [
+#             UnitOfPower.KILO_WATT,
+#             UnitOfPower.WATT,
+#             UnitOfPower.BTU_PER_HOUR,
+#         ]
+#     )
 
 
 class VersatileThermostatBaseConfigFlow(FlowHandler):
@@ -183,46 +176,46 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
         )
 
-        self.hass = async_get_hass()
-        ent_reg = async_get(hass=self.hass)
+        # self.hass = async_get_hass()
+        # ent_reg = async_get(hass=self.hass)
 
-        climates = []
-        switches = []
-        temp_sensors = []
-        power_sensors = []
-        window_sensors = []
-        presence_sensors = []
-
-        k: str
-        for k in ent_reg.entities:
-            v: RegistryEntry = ent_reg.entities[k]
-            _LOGGER.debug("Looking entity: %s", k)
-            # if k.startswith(CLIMATE_DOMAIN) and (
-            #    infos is None or k != infos.get("entity_id")
-            # ):
-            #    _LOGGER.debug("Climate !")
-            #    climates.append(k)
-            if k.startswith(SWITCH_DOMAIN) or k.startswith(INPUT_BOOLEAN_DOMAIN):
-                _LOGGER.debug("Switch !")
-                switches.append(k)
-            elif is_temperature_sensor(v):
-                _LOGGER.debug("Temperature sensor !")
-                temp_sensors.append(k)
-            elif is_power_sensor(v):
-                _LOGGER.debug("Power sensor !")
-                power_sensors.append(k)
-            elif k.startswith(PERSON_DOMAIN):
-                _LOGGER.debug("Presence sensor !")
-                presence_sensors.append(k)
-
-            # window sensor and presence 
-            if k.startswith(INPUT_BOOLEAN_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
-                _LOGGER.debug("Window or presence sensor !")
-                window_sensors.append(k)
-                presence_sensors.append(k)
-
-        # Special case for climates which are not in EntityRegistry
-        climates = self.find_all_climates()
+        # climates = []
+        # switches = []
+        # temp_sensors = []
+        # power_sensors = []
+        # window_sensors = []
+        # presence_sensors = []
+        #
+        # k: str
+        # for k in ent_reg.entities:
+        #     v: RegistryEntry = ent_reg.entities[k]
+        #     _LOGGER.debug("Looking entity: %s", k)
+        #     # if k.startswith(CLIMATE_DOMAIN) and (
+        #     #    infos is None or k != infos.get("entity_id")
+        #     # ):
+        #     #    _LOGGER.debug("Climate !")
+        #     #    climates.append(k)
+        #     if k.startswith(SWITCH_DOMAIN) or k.startswith(INPUT_BOOLEAN_DOMAIN):
+        #         _LOGGER.debug("Switch !")
+        #         switches.append(k)
+        #     elif is_temperature_sensor(v):
+        #         _LOGGER.debug("Temperature sensor !")
+        #         temp_sensors.append(k)
+        #     elif is_power_sensor(v):
+        #         _LOGGER.debug("Power sensor !")
+        #         power_sensors.append(k)
+        #     elif k.startswith(PERSON_DOMAIN):
+        #         _LOGGER.debug("Presence sensor !")
+        #         presence_sensors.append(k)
+        #
+        #     # window sensor and presence
+        #     if k.startswith(INPUT_BOOLEAN_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
+        #         _LOGGER.debug("Window or presence sensor !")
+        #         window_sensors.append(k)
+        #         presence_sensors.append(k)
+        #
+        # # Special case for climates which are not in EntityRegistry
+        # climates = self.find_all_climates()
 
         self.STEP_USER_DATA_SCHEMA = vol.Schema(
             {
@@ -230,8 +223,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(
                     CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
                 ): vol.In(CONF_THERMOSTAT_TYPES),
-                vol.Required(CONF_TEMP_SENSOR): vol.In(temp_sensors),
-                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): vol.In(temp_sensors),
+                vol.Required(CONF_TEMP_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),
+                #  vol.In(temp_sensors),
+                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),  # vol.In(temp_sensors),
                 vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
                 vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
                 vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
@@ -244,7 +246,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_THERMOSTAT_SWITCH = vol.Schema(
             {
-                vol.Required(CONF_HEATER): vol.In(switches),
+                vol.Required(CONF_HEATER): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),  # vol.In(switches),
                 vol.Required(
                     CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
                 ): vol.In(
@@ -257,7 +263,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_THERMOSTAT_CLIMATE = vol.Schema(
             {
-                vol.Required(CONF_CLIMATE): vol.In(climates),
+                vol.Required(CONF_CLIMATE): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),  # vol.In(climates),
             }
         )
 
@@ -277,14 +285,22 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(
             {
-                vol.Optional(CONF_WINDOW_SENSOR): vol.In(window_sensors),
+                vol.Optional(CONF_WINDOW_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),  # vol.In(window_sensors),
                 vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
             }
         )
 
         self.STEP_MOTION_DATA_SCHEMA = vol.Schema(
             {
-                vol.Optional(CONF_MOTION_SENSOR): vol.In(window_sensors),
+                vol.Optional(CONF_MOTION_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),  # vol.In(window_sensors),
                 vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
                 vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
                     CONF_PRESETS_SELECTIONABLE
@@ -297,8 +313,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_POWER_DATA_SCHEMA = vol.Schema(
             {
-                vol.Optional(CONF_POWER_SENSOR): vol.In(power_sensors),
-                vol.Optional(CONF_MAX_POWER_SENSOR): vol.In(power_sensors),
+                vol.Optional(CONF_POWER_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),  # vol.In(power_sensors),
+                vol.Optional(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),  # vol.In(power_sensors),
                 vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
                 vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
             }
@@ -306,7 +330,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_PRESENCE_DATA_SCHEMA = vol.Schema(
             {
-                vol.Optional(CONF_PRESENCE_SENSOR): vol.In(presence_sensors),
+                vol.Optional(CONF_PRESENCE_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[
+                            PERSON_DOMAIN,
+                            BINARY_SENSOR_DOMAIN,
+                            INPUT_BOOLEAN_DOMAIN,
+                        ]
+                    ),
+                ),  # vol.In(presence_sensors),
             }
         ).extend(
             {

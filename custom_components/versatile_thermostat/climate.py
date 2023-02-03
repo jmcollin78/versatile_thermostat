@@ -1334,6 +1334,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.OFF,
             HVACMode.HEAT,
             HVACMode.COOL,
+            HVACMode.HEAT_COOL,
+            HVACMode.DRY,
+            HVACMode.AUTO,
+            HVACMode.FAN_ONLY,
         ]:
             return
         self._hvac_mode = new_state.state
@@ -1979,29 +1983,3 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode == preset:
             await self._async_set_preset_mode_internal(preset, force=True)
             await self._async_control_heating(force=True)
-
-    # No more needed
-
-
-#    @classmethod
-#    def add_entity(cls, entry_id, entity):
-#        """Adds an entity into the VersatileRegistry entities"""
-#        _LOGGER.debug("Adding entity %s", entry_id)
-#        cls._registry[entry_id] = entity
-#        _LOGGER.debug("Entity registry is now %s", cls._registry)
-#
-#    @classmethod
-#    async def update_entity(cls, entry_id, infos):
-#        """Updates an existing entity referenced by entry_id with the infos in arguments"""
-#        entity: VersatileThermostat = cls._registry.get(entry_id)
-#        if entity is None:
-#            _LOGGER.warning(
-#                "Tries to update VersatileThermostat entity %s but was not found in thermostat registry",
-#                entry_id,
-#            )
-#            return
-#
-#        _LOGGER.debug("We have found the entity to update")
-#        entity.post_init(infos)
-#
-#        await entity.async_added_to_hass()
