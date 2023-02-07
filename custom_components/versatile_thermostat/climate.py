@@ -1003,6 +1003,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
                 return
         # Ensure we update the current operation after changing the mode
+        self._last_temperature_mesure = (
+            self._last_ext_temperature_mesure
+        ) = datetime.now()
+
         self.update_custom_attributes()
         self.async_write_ha_state()
 
@@ -1040,8 +1044,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.find_preset_temp(preset_mode)
             )
 
+        self._last_temperature_mesure = (
+            self._last_ext_temperature_mesure
+        ) = datetime.now()
         self.save_preset_mode()
-
         self.recalculate()
 
     def find_preset_temp(self, preset_mode):
