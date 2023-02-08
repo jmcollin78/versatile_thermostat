@@ -306,7 +306,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
         # else:
         self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
-        self._unit = UnitOfTemperature.CELSIUS
+
+        self._unit = self._hass.config.units.temperature_unit
         # Will be restored if possible
         self._hvac_mode = None  # HVAC_MODE_OFF
         self._saved_hvac_mode = self._hvac_mode
@@ -829,6 +830,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
+        if self._is_over_climate and self._underlying_climate:
+            return self._underlying_climate.temperature_unit
+
         return self._unit
 
     @property
