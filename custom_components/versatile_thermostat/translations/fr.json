@@ -87,8 +87,9 @@
         "title": "Parameters avancés",
         "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
         "data": {
-          "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
-          "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position éteinte de sécurité"
+          "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
+          "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position éteinte de sécurité",
+          "security_min_on_percent": "Seuil de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé."
         }
       }
     },
