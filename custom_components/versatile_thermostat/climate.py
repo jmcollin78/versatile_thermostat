@@ -1686,12 +1686,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if temp_cond and switch_cond:
             if not self._security_state:
                 _LOGGER.warning(
-                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent is high (%.2f). Set it into security mode",
+                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into security mode",
                     self,
                     self._security_delay_min,
                     delta_temp,
                     delta_ext_temp,
                     self._prop_algorithm.on_percent,
+                    self._security_min_on_percent,
                 )
             ret = True
 
@@ -1908,6 +1909,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "overpowering_state": self._overpowering_state,
             "presence_state": self._presence_state,
             "security_delay_min": self._security_delay_min,
+            "security_min_on_percent": self._security_min_on_percent,
             "last_temperature_datetime": self._last_temperature_mesure.isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
             "security_state": self._security_state,
