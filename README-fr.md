@@ -248,7 +248,7 @@ Le premier délai (minimal_activation_delay_sec) en sec dans le délai minimum a
 Le deuxième délai (security_delay_min) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security`` et d'éteindre le thermostat. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur s'éteindront après ce délai et le préréglage du thermostat sera réglé sur ``security``. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
 
 Le troisième paramétre (security_min_on_percent) est la valeur minimal de on_percent en dessous de laquelle le préréglage sécurité ne sera pas activé.
-Mettre ce paramètre à ``0`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``100`` ne déclenchera jamais le préréglage sécurité.
+Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité.
 
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 

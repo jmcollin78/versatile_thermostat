@@ -233,7 +233,7 @@ The first delay (minimal_activation_delay_sec) in sec in the minimum delay accep
 
 The second delay (security_delay_min) is the maximal delay between two temperature measure before setting the preset to ``security`` and turning off the thermostat. If the temperature sensor is no more giving temperature measures, the thermostat and heater will turns off after this delay and the preset of the thermostat will be set to ``security``. This is useful to avoid overheating is the battery of your temperature sensor is too low.
 
-The third parameter (security_min_on_percent) is the minimal on_percent value below which the security preset won't be trigger. If you set it to ``0`` security preset will be trigger regardeless of the heating on_percent when there is a temperature loss, at the opposite ``100`` will never trigger the security preset.
+The third parameter (security_min_on_percent) is the minimal on_percent value below which the security preset won't be trigger. If you set it to ``0.00`` security preset will be trigger regardeless of the heating on_percent when there is a temperature loss, at the opposite ``1.00`` will never trigger the security preset.
 
 See [exemple tuning](#examples-tuning) to have some commons tuning examples
 
