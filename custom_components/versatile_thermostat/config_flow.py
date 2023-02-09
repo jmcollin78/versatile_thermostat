@@ -353,7 +353,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
                 vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
                 vol.Required(CONF_SECURITY_MIN_ON_PERCENT, default=0.75): vol.Coerce(float),
-
             }
         )
 
