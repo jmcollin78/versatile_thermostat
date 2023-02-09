@@ -191,7 +191,8 @@
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
         "data": {
           "minimal_activation_delay": "Delay in secondes under which the equipment will not be activated",
-          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a sceurity off state"
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a sceurity off state",
+          "security_min_on_percent": "Minimal On-Percent value for security preset activation. Below this amount of on_percent the thermostat won't go into security preset"
         }
       }
     },
