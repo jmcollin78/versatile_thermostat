@@ -247,6 +247,9 @@ Le premier délai (minimal_activation_delay_sec) en sec dans le délai minimum a
 
 Le deuxième délai (security_delay_min) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security`` et d'éteindre le thermostat. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur s'éteindront après ce délai et le préréglage du thermostat sera réglé sur ``security``. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
 
+Le troisième paramétre (security_min_on_percent) est la valeur minimal de on_percent en dessous de laquelle le préréglage sécurité ne sera pas activé.
+Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité.
+
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
@@ -375,7 +378,8 @@ Les attributs personnalisés sont les suivants :
 | ``motion_state`` | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré |
 | ``overpowering_state`` | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
 | ``presence_state`` | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
-| ``delay_security_min`` | Le délai avant de régler le mode de sécurité lorsque le capteur de température est éteint |
+| ``security_delay_min`` | Le délai avant de régler le mode de sécurité lorsque le capteur de température est éteint |
+| ``security_min_on_percent`` | Seuil en dessous duquel le thermostat ne passera pas en sécurité |
 | ``last_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température interne |
 | ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
 | ``**état_sécurité**`` | L'état de sécurité. vrai ou faux |

@@ -44,6 +44,7 @@ CONF_MINIMAL_ACTIVATION_DELAY = "minimal_activation_delay"
 CONF_TEMP_MIN = "temp_min"
 CONF_TEMP_MAX = "temp_max"
 CONF_SECURITY_DELAY_MIN = "security_delay_min"
+CONF_SECURITY_MIN_ON_PERCENT = "security_min_on_percent"
 CONF_THERMOSTAT_TYPE = "thermostat_type"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
 CONF_THERMOSTAT_CLIMATE = "thermostat_over_climate"
@@ -102,6 +103,7 @@ ALL_CONF = (
         CONF_TEMP_MIN,
         CONF_TEMP_MAX,
         CONF_SECURITY_DELAY_MIN,
+        CONF_SECURITY_MIN_ON_PERCENT,
         CONF_THERMOSTAT_TYPE,
         CONF_THERMOSTAT_SWITCH,
         CONF_THERMOSTAT_CLIMATE,

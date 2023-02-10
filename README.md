@@ -233,13 +233,15 @@ The first delay (minimal_activation_delay_sec) in sec in the minimum delay accep
 
 The second delay (security_delay_min) is the maximal delay between two temperature measure before setting the preset to ``security`` and turning off the thermostat. If the temperature sensor is no more giving temperature measures, the thermostat and heater will turns off after this delay and the preset of the thermostat will be set to ``security``. This is useful to avoid overheating is the battery of your temperature sensor is too low.
 
+The third parameter (security_min_on_percent) is the minimal on_percent value below which the security preset won't be trigger. If you set it to ``0.00`` security preset will be trigger regardeless of the heating on_percent when there is a temperature loss, at the opposite ``1.00`` will never trigger the security preset.
+
 See [exemple tuning](#examples-tuning) to have some commons tuning examples
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
     1. The ``security`` preset is a hidden preset. You cannot select it manually or by the preset service,
     2. When the temperature sensor will comes to live and re-send temperatures, the preset will be restored to its previous value,
     3. Beware that two temperatures are needed: internal temp and external temp and each should give temperature else the thermostat will be in ``security`` preset.
-    
+
 # Examples tuning
 
 ## Electrical heater
@@ -253,7 +255,7 @@ See [exemple tuning](#examples-tuning) to have some commons tuning examples
 ## Temperature sensor will battery
 - security_delay_min: 60 min (because those sensors are leazy)
 
-## Reponsive temperature sensor 
+## Reponsive temperature sensor
 - security_delay_min: 15 min
 
 ## My preset configuration
@@ -362,6 +364,7 @@ Custom attributes are the following:
 | ``overpowering_state`` | The last known state of the overpowering sensor. None if power management is not configured |
 | ``presence_state`` | The last known state of the presence sensor. None if presence management is not configured |
 | ``security_delay_min`` | The delay before setting the security mode when temperature sensor are off |
+| ``security_min_on_percent`` | The minimal on_percent below which security preset won't be trigger |
 | ``last_temperature_datetime`` | The date and time in ISO8866 format of the last internal temperature reception |
 | ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception |
 | ``security_state`` | The security state. true or false |

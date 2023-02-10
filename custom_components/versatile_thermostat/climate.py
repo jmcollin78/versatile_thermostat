@@ -117,6 +117,7 @@ from .const import (
     SERVICE_SET_PRESET_TEMPERATURE,
     PRESET_AWAY_SUFFIX,
     CONF_SECURITY_DELAY_MIN,
+    CONF_SECURITY_MIN_ON_PERCENT,
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
@@ -218,6 +219,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._overpowering_state = None
         self._should_relaunch_control_heating = None
         self._security_delay_min = None
+        self._security_min_on_percent= None
+
         self._security_state = None
 
         self._thermostat_type = None
@@ -364,6 +367,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._tpi_coef_ext = 0
 
         self._security_delay_min = entry_infos.get(CONF_SECURITY_DELAY_MIN)
+        self._security_min_on_percent = entry_infos.get(CONF_SECURITY_MIN_ON_PERCENT)
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
         self._last_temperature_mesure = datetime.now()
         self._last_ext_temperature_mesure = datetime.now()
@@ -1663,7 +1667,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         switch_cond: bool = (
             not self._is_over_climate
             and self._prop_algorithm is not None
-            and self._prop_algorithm.on_percent > 0.75
+            and self._prop_algorithm.on_percent > self._security_min_on_percent
         )
 
         ret = False
@@ -1682,12 +1686,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if temp_cond and switch_cond:
             if not self._security_state:
                 _LOGGER.warning(
-                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent is high (%.2f). Set it into security mode",
+                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into security mode",
                     self,
                     self._security_delay_min,
                     delta_temp,
                     delta_ext_temp,
                     self._prop_algorithm.on_percent,
+                    self._security_min_on_percent,
                 )
             ret = True
 
@@ -1904,6 +1909,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "overpowering_state": self._overpowering_state,
             "presence_state": self._presence_state,
             "security_delay_min": self._security_delay_min,
+            "security_min_on_percent": self._security_min_on_percent,
             "last_temperature_datetime": self._last_temperature_mesure.isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
             "security_state": self._security_state,

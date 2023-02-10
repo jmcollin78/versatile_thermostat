@@ -63,6 +63,7 @@ from .const import (
     CONF_PRESENCE_SENSOR,
     PROPORTIONAL_FUNCTION_TPI,
     CONF_SECURITY_DELAY_MIN,
+    CONF_SECURITY_MIN_ON_PERCENT,
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
@@ -349,10 +350,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(
             {
-                vol.Required(
-                    CONF_MINIMAL_ACTIVATION_DELAY, default=10
-                ): cv.positive_int,
+                vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
                 vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
+                vol.Required(CONF_SECURITY_MIN_ON_PERCENT, default=0.75): vol.Coerce(float),
             }
         )
 
