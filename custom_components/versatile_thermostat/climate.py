@@ -20,6 +20,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_component import EntityComponent
+import homeassistant.helpers.config_validation as cv
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -114,6 +115,7 @@ from .const import (
     PROPORTIONAL_FUNCTION_TPI,
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
+    SERVICE_SET_SECURITY,
     PRESET_AWAY_SUFFIX,
     CONF_SECURITY_DELAY_MIN,
     CONF_SECURITY_MIN_ON_PERCENT,
@@ -176,6 +178,16 @@ async def async_setup_entry(
             vol.Optional("temperature_away"): vol.Coerce(float),
         },
         "service_set_preset_temperature",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_SECURITY,
+        {
+            vol.Optional("delay_min"): cv.positive_int,
+            vol.Optional("min_on_percent"): vol.Coerce(float),
+            vol.Optional("default_on_percent"): vol.Coerce(float),
+        },
+        "service_set_security",
     )
 
 
@@ -751,9 +763,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             ):
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
                 self.save_preset_mode()
+            else:
+                self._attr_preset_mode = PRESET_NONE
 
             if not self._hvac_mode and old_state.state:
                 self._hvac_mode = old_state.state
+            else:
+                self._hvac_mode = HVACMode.OFF
 
         else:
             # No previous state, try and restore defaults
@@ -1697,7 +1713,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             now - self._last_ext_temperature_mesure
         ).total_seconds() / 60.0
 
-        mode_cond = self._hvac_mode != HVACMode.OFF
+        mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
 
         temp_cond: bool = (
             delta_temp > self._security_delay_min
@@ -1711,7 +1727,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             not self._is_over_climate
             and self._prop_algorithm is not None
             and self._prop_algorithm.calculated_on_percent
-            > self._security_min_on_percent
+            >= self._security_min_on_percent
         )
 
         ret = False
@@ -2098,6 +2114,36 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode == preset:
             await self._async_set_preset_mode_internal(preset, force=True)
             await self._async_control_heating(force=True)
+
+    async def service_set_security(self, delay_min, min_on_percent, default_on_percent):
+        """Called by a service call:
+        service: versatile_thermostat.set_security
+        data:
+            delay_min: 15
+            min_on_percent: 0.5
+            default_on_percent: 0.2
+        target:
+            entity_id: climate.thermostat_2
+        """
+        _LOGGER.info(
+            "%s - Calling service_set_security, delay_min: %s, min_on_percent: %s, default_on_percent: %s",
+            self,
+            delay_min,
+            min_on_percent,
+            default_on_percent,
+        )
+        if delay_min:
+            self._security_delay_min = delay_min
+        if min_on_percent:
+            self._security_min_on_percent = min_on_percent
+        if default_on_percent:
+            self._security_default_on_percent = default_on_percent
+
+        if self._prop_algorithm and self._security_state:
+            self._prop_algorithm.set_security(self._security_default_on_percent)
+
+        await self._async_control_heating()
+        self.update_custom_attributes()
 
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""

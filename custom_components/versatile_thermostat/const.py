@@ -130,12 +130,15 @@ SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
+SERVICE_SET_SECURITY = "set_security"
 
 DEFAULT_SECURITY_MIN_ON_PERCENT = 0.5
 DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 
 
 class EventType(Enum):
+    """The event type that can be sent"""
+
     SECURITY_EVENT: str = "versatile_thermostat_security_event"
     POWER_EVENT: str = "versatile_thermostat_power_event"
     TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
