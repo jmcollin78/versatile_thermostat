@@ -64,6 +64,9 @@ from .const import (
     PROPORTIONAL_FUNCTION_TPI,
     CONF_SECURITY_DELAY_MIN,
     CONF_SECURITY_MIN_ON_PERCENT,
+    CONF_SECURITY_DEFAULT_ON_PERCENT,
+    DEFAULT_SECURITY_MIN_ON_PERCENT,
+    DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
@@ -177,53 +180,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
         )
 
-        # self.hass = async_get_hass()
-        # ent_reg = async_get(hass=self.hass)
-
-        # climates = []
-        # switches = []
-        # temp_sensors = []
-        # power_sensors = []
-        # window_sensors = []
-        # presence_sensors = []
-        #
-        # k: str
-        # for k in ent_reg.entities:
-        #     v: RegistryEntry = ent_reg.entities[k]
-        #     _LOGGER.debug("Looking entity: %s", k)
-        #     # if k.startswith(CLIMATE_DOMAIN) and (
-        #     #    infos is None or k != infos.get("entity_id")
-        #     # ):
-        #     #    _LOGGER.debug("Climate !")
-        #     #    climates.append(k)
-        #     if k.startswith(SWITCH_DOMAIN) or k.startswith(INPUT_BOOLEAN_DOMAIN):
-        #         _LOGGER.debug("Switch !")
-        #         switches.append(k)
-        #     elif is_temperature_sensor(v):
-        #         _LOGGER.debug("Temperature sensor !")
-        #         temp_sensors.append(k)
-        #     elif is_power_sensor(v):
-        #         _LOGGER.debug("Power sensor !")
-        #         power_sensors.append(k)
-        #     elif k.startswith(PERSON_DOMAIN):
-        #         _LOGGER.debug("Presence sensor !")
-        #         presence_sensors.append(k)
-        #
-        #     # window sensor and presence
-        #     if k.startswith(INPUT_BOOLEAN_DOMAIN) or k.startswith(BINARY_SENSOR_DOMAIN):
-        #         _LOGGER.debug("Window or presence sensor !")
-        #         window_sensors.append(k)
-        #         presence_sensors.append(k)
-        #
-        # # Special case for climates which are not in EntityRegistry
-        # climates = self.find_all_climates()
-
         self.STEP_USER_DATA_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_NAME): cv.string,
                 vol.Required(
                     CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
-                ): vol.In(CONF_THERMOSTAT_TYPES),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=CONF_THERMOSTAT_TYPES, translation_key="thermostat_type"
+                    )
+                ),
                 vol.Required(CONF_TEMP_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
@@ -350,9 +316,18 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(
             {
-                vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
+                vol.Required(
+                    CONF_MINIMAL_ACTIVATION_DELAY, default=10
+                ): cv.positive_int,
                 vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
-                vol.Required(CONF_SECURITY_MIN_ON_PERCENT, default=0.75): vol.Coerce(float),
+                vol.Required(
+                    CONF_SECURITY_MIN_ON_PERCENT,
+                    default=DEFAULT_SECURITY_MIN_ON_PERCENT,
+                ): vol.Coerce(float),
+                vol.Required(
+                    CONF_SECURITY_DEFAULT_ON_PERCENT,
+                    default=DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
+                ): vol.Coerce(float),
             }
         )
 

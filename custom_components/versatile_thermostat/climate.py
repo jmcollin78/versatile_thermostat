@@ -20,7 +20,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.util.unit_system import UnitOfTemperature
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -118,6 +117,9 @@ from .const import (
     PRESET_AWAY_SUFFIX,
     CONF_SECURITY_DELAY_MIN,
     CONF_SECURITY_MIN_ON_PERCENT,
+    CONF_SECURITY_DEFAULT_ON_PERCENT,
+    DEFAULT_SECURITY_MIN_ON_PERCENT,
+    DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
@@ -127,6 +129,7 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_CLIMATE,
     UnknownEntity,
+    EventType,
 )
 
 from .prop_algorithm import PropAlgorithm
@@ -183,7 +186,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     # No more needed
     # _registry: dict[str, object] = {}
 
-    def __init__(self, hass, unique_id, name, entry_infos) -> None:
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
 
         super().__init__()
@@ -218,9 +221,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._presence_state = None
         self._overpowering_state = None
         self._should_relaunch_control_heating = None
-        self._security_delay_min = None
-        self._security_min_on_percent= None
 
+        self._security_delay_min = None
+        self._security_min_on_percent = None
+        self._security_default_on_percent = None
         self._security_state = None
 
         self._thermostat_type = None
@@ -243,7 +247,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
         # convert entry_infos into usable attributes
         presets = {}
-        for (key, value) in CONF_PRESETS.items():
+        for key, value in CONF_PRESETS.items():
             _LOGGER.debug("looking for key=%s, value=%s", key, value)
             if value in entry_infos:
                 presets[key] = entry_infos.get(value)
@@ -251,7 +255,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.debug("value %s not found in Entry", value)
 
         presets_away = {}
-        for (key, value) in CONF_PRESETS_AWAY.items():
+        for key, value in CONF_PRESETS_AWAY.items():
             _LOGGER.debug("looking for key=%s, value=%s", key, value)
             if value in entry_infos:
                 presets_away[key] = entry_infos.get(value)
@@ -367,7 +371,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._tpi_coef_ext = 0
 
         self._security_delay_min = entry_infos.get(CONF_SECURITY_DELAY_MIN)
-        self._security_min_on_percent = entry_infos.get(CONF_SECURITY_MIN_ON_PERCENT)
+        self._security_min_on_percent = (
+            entry_infos.get(CONF_SECURITY_MIN_ON_PERCENT)
+            or DEFAULT_SECURITY_MIN_ON_PERCENT
+        )
+        self._security_default_on_percent = (
+            entry_infos.get(CONF_SECURITY_DEFAULT_ON_PERCENT)
+            or DEFAULT_SECURITY_DEFAULT_ON_PERCENT
+        )
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
         self._last_temperature_mesure = datetime.now()
         self._last_ext_temperature_mesure = datetime.now()
@@ -732,7 +743,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         float(old_state.attributes[ATTR_TEMPERATURE])
                     )
 
-            if old_state.attributes.get(ATTR_PRESET_MODE) in self._attr_preset_modes:
+            old_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
+            # Never restore a Power or Security preset
+            if (
+                old_preset_mode in self._attr_preset_modes
+                and old_preset_mode not in HIDDEN_PRESETS
+            ):
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
                 self.save_preset_mode()
 
@@ -755,6 +771,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Set default state to off
         if not self._hvac_mode:
             self._hvac_mode = HVACMode.OFF
+
+        self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
+        self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
 
         _LOGGER.info(
             "%s - restored state is target_temp=%.1f, preset_mode=%s, hvac_mode=%s",
@@ -1011,12 +1030,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
                 return
         # Ensure we update the current operation after changing the mode
-        self._last_temperature_mesure = (
-            self._last_ext_temperature_mesure
-        ) = datetime.now()
+        self.reset_last_temperature_time()
 
         self.update_custom_attributes()
         self.async_write_ha_state()
+        self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new preset mode."""
@@ -1052,11 +1070,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.find_preset_temp(preset_mode)
             )
 
-        self._last_temperature_mesure = (
-            self._last_ext_temperature_mesure
-        ) = datetime.now()
+        self.reset_last_temperature_time()
+
         self.save_preset_mode()
         self.recalculate()
+        self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
+
+    def reset_last_temperature_time(self):
+        """Reset to now the last temperature time if conditions are satisfied"""
+        if self._attr_preset_mode not in HIDDEN_PRESETS:
+            self._last_temperature_mesure = (
+                self._last_ext_temperature_mesure
+            ) = datetime.now()
 
     def find_preset_temp(self, preset_mode):
         """Find the right temperature of a preset considering the presence if configured"""
@@ -1623,6 +1648,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self.save_preset_mode()
             await self._async_underlying_entity_turn_off()
             await self._async_set_preset_mode_internal(PRESET_POWER)
+            self.send_event(
+                EventType.POWER_EVENT,
+                {
+                    "type": "start",
+                    "current_power": self._current_power,
+                    "device_power": self._device_power,
+                    "current_power_max": self._current_power_max,
+                },
+            )
 
         # Check if we need to remove the POWER preset
         if (
@@ -1638,6 +1672,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if self._is_over_climate:
                 await self.restore_hvac_mode()
             await self.restore_preset_mode()
+            self.send_event(
+                EventType.POWER_EVENT,
+                {
+                    "type": "end",
+                    "current_power": self._current_power,
+                    "device_power": self._device_power,
+                    "current_power_max": self._current_power_max,
+                },
+            )
 
         self._overpowering_state = ret
         return self._overpowering_state
@@ -1649,12 +1692,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         delta_ext_temp = (
             now - self._last_ext_temperature_mesure
         ).total_seconds() / 60.0
-        _LOGGER.debug(
-            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f",
-            self,
-            delta_temp,
-            delta_ext_temp,
-        )
 
         temp_cond: bool = (
             delta_temp > self._security_delay_min
@@ -1667,7 +1704,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         switch_cond: bool = (
             not self._is_over_climate
             and self._prop_algorithm is not None
-            and self._prop_algorithm.on_percent > self._security_min_on_percent
+            and self._prop_algorithm.calculated_on_percent
+            > self._security_min_on_percent
         )
 
         ret = False
@@ -1683,6 +1721,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             ret = True
 
+        _LOGGER.debug(
+            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f temp_cond=%s climate_cond=%s switch_cond=%s",
+            self,
+            delta_temp,
+            delta_ext_temp,
+            temp_cond,
+            climate_cond,
+            switch_cond,
+        )
+
         if temp_cond and switch_cond:
             if not self._security_state:
                 _LOGGER.warning(
@@ -1696,12 +1744,40 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             ret = True
 
+        if not self._security_state and temp_cond:
+            self.send_event(
+                EventType.TEMPERATURE_EVENT,
+                {
+                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "current_temp": self._cur_temp,
+                    "current_ext_temp": self._cur_ext_temp,
+                    "target_temp": self.target_temperature,
+                },
+            )
+
         if not self._security_state and ret:
             self._security_state = ret
             self.save_hvac_mode()
             self.save_preset_mode()
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
-            await self.async_set_hvac_mode(HVACMode.OFF)
+            # Turn off the underlying climate or heater if security default on_percent is 0
+            if self._is_over_climate or self._security_default_on_percent <= 0.0:
+                await self.async_set_hvac_mode(HVACMode.OFF)
+            if self._prop_algorithm:
+                self._prop_algorithm.set_security(self._security_default_on_percent)
+
+            self.send_event(
+                EventType.SECURITY_EVENT,
+                {
+                    "type": "start",
+                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "current_temp": self._cur_temp,
+                    "current_ext_temp": self._cur_ext_temp,
+                    "target_temp": self.target_temperature,
+                },
+            )
 
         if (
             self._security_state
@@ -1715,15 +1791,30 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._saved_preset_mode,
             )
             self._security_state = ret
-            await self.restore_hvac_mode()
+            # Restore hvac_mode if previously saved
+            if self._is_over_climate or self._security_default_on_percent <= 0.0:
+                await self.restore_hvac_mode()
             await self.restore_preset_mode()
+            if self._prop_algorithm:
+                self._prop_algorithm.unset_security()
+            self.send_event(
+                EventType.SECURITY_EVENT,
+                {
+                    "type": "end",
+                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "current_temp": self._cur_temp,
+                    "current_ext_temp": self._cur_ext_temp,
+                    "target_temp": self.target_temperature,
+                },
+            )
 
         return ret
 
     async def _async_control_heating(self, force=False, _=None):
         """The main function used to run the calculation at each cycle"""
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s - Checking new cycle. hvac_mode=%s, security_state=%s, preset_mode=%s",
             self,
             self._hvac_mode,
@@ -1738,8 +1829,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         security: bool = await self.check_security()
-        if security:
-            _LOGGER.debug("%s - End of cycle (security)", self)
+        if security and self._is_over_climate:
+            _LOGGER.debug("%s - End of cycle (security and over climate)", self)
             return
 
         # Stop here if we are off
@@ -1752,7 +1843,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if not self._is_over_climate:
             on_time_sec: int = self._prop_algorithm.on_time_sec
             off_time_sec: int = self._prop_algorithm.off_time_sec
-            _LOGGER.info(
+
+            _LOGGER.debug(
                 "%s - Checking new cycle. on_time_sec=%.0f, off_time_sec=%.0f, security_state=%s, preset_mode=%s",
                 self,
                 on_time_sec,
@@ -1793,13 +1885,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         return
 
                     if on:
-                        security = (
-                            await self.check_security()
-                            or await self.check_overpowering()
-                        )
-                        if security:
+                        if await self.check_overpowering():
                             _LOGGER.debug("%s - End of cycle (3)", self)
                             return
+                        # Security mode could have change the on_time percent
+                        await self.check_security()
+                        time = self._prop_algorithm.on_time_sec
 
                     action_label = "start" if on else "stop"
                     if self._should_relaunch_control_heating:
@@ -1814,7 +1905,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
                     if time > 0:
                         _LOGGER.info(
-                            "%s - !!! %s heating for %d min %d sec",
+                            "%s - %s heating for %d min %d sec",
                             self,
                             action_label,
                             time // 60,
@@ -1910,6 +2001,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "presence_state": self._presence_state,
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
+            "security_default_on_percent": self._security_default_on_percent,
             "last_temperature_datetime": self._last_temperature_mesure.isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
             "security_state": self._security_state,
@@ -1999,3 +2091,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode == preset:
             await self._async_set_preset_mode_internal(preset, force=True)
             await self._async_control_heating(force=True)
+
+    def send_event(self, event_type: EventType, data: dict):
+        """Send an event"""
+        _LOGGER.info("%s - Sending event %s with data: %s", self, event_type, data)
+        data["entity_id"] = self.entity_id
+        data["name"] = self.name
+        data["state_attributes"] = self.state_attributes
+        self._hass.bus.fire(event_type.value, data)

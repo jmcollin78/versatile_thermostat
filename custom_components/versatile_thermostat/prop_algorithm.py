@@ -37,8 +37,11 @@ class PropAlgorithm:
         self._cycle_min = cycle_min
         self._minimal_activation_delay = minimal_activation_delay
         self._on_percent = 0
+        self._calculated_on_percent = 0
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
+        self._security = False
+        self._default_on_percent = 0
 
     def calculate(
         self, target_temp: float, current_temp: float, ext_current_temp: float
@@ -48,7 +51,7 @@ class PropAlgorithm:
             _LOGGER.warning(
                 "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating will be disabled"  # pylint: disable=line-too-long
             )
-            self._on_percent = 0
+            self._calculated_on_percent = 0
         else:
             delta_temp = target_temp - current_temp
             delta_ext_temp = (
@@ -56,7 +59,7 @@ class PropAlgorithm:
             )
 
             if self._function == PROPORTIONAL_FUNCTION_TPI:
-                self._on_percent = (
+                self._calculated_on_percent = (
                     self._tpi_coef_int * delta_temp
                     + self._tpi_coef_ext * delta_ext_temp
                 )
@@ -65,7 +68,35 @@ class PropAlgorithm:
                     "Proportional algorithm: unknown %s function. Heating will be disabled",
                     self._function,
                 )
-                self._on_percent = 0
+                self._calculated_on_percent = 0
+
+        self._calculate_internal()
+
+        _LOGGER.debug(
+            "heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
+            current_temp if current_temp else -9999.0,
+            ext_current_temp if ext_current_temp else -9999.0,
+            target_temp if target_temp else -9999.0,
+            self._calculated_on_percent,
+            self.on_time_sec,
+            self.off_time_sec,
+        )
+
+    def _calculate_internal(self):
+        """Finish the calculation to get the on_percent in seconds"""
+
+        if self._security:
+            _LOGGER.debug(
+                "Security is On using the default_on_percent %f",
+                self._default_on_percent,
+            )
+            self._on_percent = self._default_on_percent
+        else:
+            _LOGGER.debug(
+                "Security is Off using the calculated_on_percent %f",
+                self._calculated_on_percent,
+            )
+            self._on_percent = self._calculated_on_percent
 
         # calculated on_time duration in seconds
         if self._on_percent > 1:
@@ -92,20 +123,30 @@ class PropAlgorithm:
 
         self._off_time_sec = self._cycle_min * 60 - self._on_time_sec
 
-        _LOGGER.debug(
-            "heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
-            current_temp if current_temp else -9999.0,
-            ext_current_temp if ext_current_temp else -9999.0,
-            target_temp if target_temp else -9999.0,
-            self._on_percent,
-            self.on_time_sec,
-            self.off_time_sec,
-        )
+    def set_security(self, default_on_percent: float):
+        """Set a default value for on_percent (used for security mode)"""
+        self._security = True
+        self._default_on_percent = default_on_percent
+        self._calculate_internal()
+
+    def unset_security(self):
+        """Unset the security mode"""
+        self._security = False
+        self._calculate_internal()
 
     @property
     def on_percent(self) -> float:
-        """Returns the percentage the heater must be ON (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
+        """Returns the percentage the heater must be ON
+        In security mode this value is overriden with the _default_on_percent
+        (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
         return round(self._on_percent, 2)
+
+    @property
+    def calculated_on_percent(self) -> float:
+        """Returns the calculated percentage the heater must be ON
+        Calculated means NOT overriden even in security mode
+        (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
+        return round(self._calculated_on_percent, 2)
 
     @property
     def on_time_sec(self) -> int:
