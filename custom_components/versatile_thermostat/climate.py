@@ -1697,6 +1697,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             now - self._last_ext_temperature_mesure
         ).total_seconds() / 60.0
 
+        mode_cond = self._hvac_mode != HVACMode.OFF
+
         temp_cond: bool = (
             delta_temp > self._security_delay_min
             or delta_ext_temp > self._security_delay_min
@@ -1713,7 +1715,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         ret = False
-        if temp_cond and climate_cond:
+        if mode_cond and temp_cond and climate_cond:
             if not self._security_state:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and underlying climate is %s. Set it into security mode",
@@ -1726,16 +1728,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             ret = True
 
         _LOGGER.debug(
-            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f temp_cond=%s climate_cond=%s switch_cond=%s",
+            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f mod_cond=%s temp_cond=%s climate_cond=%s switch_cond=%s",
             self,
             delta_temp,
             delta_ext_temp,
+            mode_cond,
             temp_cond,
             climate_cond,
             switch_cond,
         )
 
-        if temp_cond and switch_cond:
+        if mode_cond and temp_cond and switch_cond:
             if not self._security_state:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into security mode",
@@ -1748,7 +1751,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             ret = True
 
-        if not self._security_state and temp_cond:
+        if mode_cond and temp_cond and not self._security_state:
             self.send_event(
                 EventType.TEMPERATURE_EVENT,
                 {
