@@ -228,5 +228,16 @@
         }
       }
     }
+  },
+  "state_attributes": {
+    "_": {
+      "preset_mode": {
+        "state": {
+          "power": "Délestage",
+          "security": "Sécurité",
+          "none": "Manuel"
+        }
+      }
+    }
   }
 }

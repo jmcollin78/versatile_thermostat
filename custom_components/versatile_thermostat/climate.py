@@ -1055,6 +1055,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == self._attr_preset_mode and not force:
             # I don't think we need to call async_write_ha_state if we didn't change the state
             return
+        old_preset_mode = self._attr_preset_mode
         if preset_mode == PRESET_NONE:
             self._attr_preset_mode = PRESET_NONE
             if self._saved_target_temp:
@@ -1070,15 +1071,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.find_preset_temp(preset_mode)
             )
 
-        self.reset_last_temperature_time()
+        self.reset_last_temperature_time(old_preset_mode)
 
         self.save_preset_mode()
         self.recalculate()
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
-    def reset_last_temperature_time(self):
+    def reset_last_temperature_time(self, old_preset_mode=None):
         """Reset to now the last temperature time if conditions are satisfied"""
-        if self._attr_preset_mode not in HIDDEN_PRESETS:
+        if (
+            self._attr_preset_mode not in HIDDEN_PRESETS
+            and old_preset_mode not in HIDDEN_PRESETS
+        ):
             self._last_temperature_mesure = (
                 self._last_ext_temperature_mesure
             ) = datetime.now()
@@ -1191,7 +1195,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_temperature_changed(self, event):
         """Handle temperature changes."""
         new_state = event.data.get("new_state")
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s - Temperature changed. Event.new_state is %s",
             self,
             new_state,
@@ -1206,7 +1210,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_ext_temperature_changed(self, event):
         """Handle external temperature changes."""
         new_state = event.data.get("new_state")
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s - external Temperature changed. Event.new_state is %s",
             self,
             new_state,
