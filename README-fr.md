@@ -25,20 +25,23 @@
 - [Exemples de réglage](#exemples-de-réglage)
   - [Chauffage électrique](#chauffage-électrique)
   - [Chauffage central (chauffage gaz ou fuel)](#chauffage-central-chauffage-gaz-ou-fuel)
-  - [Le capteur de température sera alimenté par batterie](#le-capteur-de-température-sera-alimenté-par-batterie)
-  - [Capteur de température réactif](#capteur-de-température-réactif)
-  - [Ma configuration prédéfinie](#ma-configuration-prédéfinie)
+  - [Le capteur de température alimenté par batterie](#le-capteur-de-température-alimenté-par-batterie)
+  - [Capteur de température réactif (sur secteur)](#capteur-de-température-réactif-sur-secteur)
+  - [Mes presets](#mes-presets)
 - [Algorithme](#algorithme)
   - [Algorithme TPI](#algorithme-tpi)
 - [Services](#services)
   - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
+  - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
+- [Notifications](#notifications)
 - [Attributs personnalisés](#attributs-personnalisés)
 - [Quelques résultats](#quelques-résultats)
 - [Encore mieux](#encore-mieux)
   - [Encore mieux avec le composant Scheduler !](#encore-mieux-avec-le-composant-scheduler-)
   - [Encore bien mieux avec la custom:simple-thermostat front integration](#encore-bien-mieux-avec-la-customsimple-thermostat-front-integration)
   - [Toujours mieux avec Apex-chart pour régler votre thermostat](#toujours-mieux-avec-apex-chart-pour-régler-votre-thermostat)
+  - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
 - [Les contributions sont les bienvenues !](#les-contributions-sont-les-bienvenues)
 
 _Composant développé à l'aide de l'incroyable modèle de développement [[blueprint](https://github.com/custom-components/integration_blueprint)]._
@@ -72,7 +75,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Utiliser un algorithme **TPI (Time Proportional Interval)** grâce à l'algorithme [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] ,
 - Ajoutez une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
 - Ajouter la **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
-- Ajoutez des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages.
+- Ajoutez des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
 
 # Comment installer cet incroyable Thermostat Versatile ?
 
@@ -243,19 +246,23 @@ Le formulaire de configuration avancée est le suivant :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-advanced.png?raw=true)
 
-Le premier délai (minimal_activation_delay_sec) en sec dans le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint.
+Le premier délai (minimal_activation_delay_sec) en secondes est le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint.
 
-Le deuxième délai (security_delay_min) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security`` et d'éteindre le thermostat. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur s'éteindront après ce délai et le préréglage du thermostat sera réglé sur ``security``. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
+Le deuxième délai (``security_delay_min``) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security``. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur passeront en mode ``security`` après ce délai. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
 
-Le troisième paramétre (security_min_on_percent) est la valeur minimal de on_percent en dessous de laquelle le préréglage sécurité ne sera pas activé.
-Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité.
+Le troisième paramétre (``security_min_on_percent``) est la valeur minimal de ``on_percent`` en dessous de laquelle le préréglage sécurité ne sera pas activé. Ce paramètre permet de ne pas mettre en sécurité un thermostat, si le radiateur piloté ne chauffe pas suffisament.
+Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité ( ce qui revient à désactiver la fonction).
+
+Le quatrième param§tre (``security_default_on_percent``) est la valeur de ``on_percent`` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez ``0`` alors le thermostat sera coupé lorsqu'il passe en mode ``security``, mettre 0,2% par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
 
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
-    1. Le préréglage ``security`` est un préréglage caché. Vous ne pouvez pas le sélectionner manuellement ou par le service prédéfini,
-    2. Lorsque le capteur de température viendra à vivre et renverra les températures, le préréglage sera restauré à sa valeur précédente,
-    3. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security".
+    1. Lorsque le capteur de température viendra à la vie et renverra les températures, le préréglage sera restauré à sa valeur précédente,
+    3. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
+    4. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
+    5. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
+    6. Lorsqu'un thermostat de type ``thermostat_over_climate`` passe en mode ``security`` il est éteint. Les paramètres ``security_min_on_percent`` et ``security_default_on_percent`` ne sont alors pas utilisés.
 
 # Exemples de réglage
 
@@ -267,22 +274,36 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 - cycle : entre 30 et 60 min,
 - minimal_activation_delay_sec : 300 secondes (à cause du temps de réponse)
 
-## Le capteur de température sera alimenté par batterie
+## Le capteur de température alimenté par batterie
 - security_delay_min : 60 min (parce que ces capteurs sont paresseux)
+- security_min_on_percent : 0,5 (50% - on passe en preset ``security`` si le radiateur chauffait plus de 50% du temps)
+- security_default_on_percent : 0,1 (10% - en preset ``security``, on garde un fond de chauffe de 20% du temps)
 
-## Capteur de température réactif
+Il faut comprendre ces réglages comme suit :
+
+> Si le thermomètre n'envoie plus la température pendant 1 heure et que le pourcentage de chauffe (``on_percent``) était supérieur à 50 %, alors on ramène ce pourcentage de chauffe à 10 %.
+
+A vous d'adapter ces réglages à votre cas !
+
+Ce qui est important c'est de ne pas prendre trop de risque avec ces paramètres : supposez que vous êtes absent pour une longue période, que les piles de votre thermomètre arrivent en fin de vie, votre radiateur va chauffer 10% du temps pendant toute la durée de la panne.
+
+Versatile Thermostat vous permet d'être notifié lorsqu'un évènement de ce type survient. Mettez en place, les alertes qui vont bien dès l'utilisation de ce thermostat. Cf. (#notifications)
+
+## Capteur de température réactif (sur secteur)
 - security_delay_min : 15 min
+- security_min_on_percent : 0,7 (70% - on passe en preset ``security`` si le radiateur chauffait plus de 70% du temps)
+- security_default_on_percent : 0,25 (25% - en preset ``security``, on garde un fond de chauffe de 25% du temps)
 
-## Ma configuration prédéfinie
+## Mes presets
 Ceci est juste un exemple de la façon dont j'utilise le préréglage. A vous de vous adapter à votre configuration mais cela peut être utile pour comprendre son fonctionnement.
-``Éco`` : 17
-``Confort`` : 19
-``Boost`` : 20
+``Éco`` : 17 °C
+``Confort`` : 19 °C
+``Boost`` : 20 °C
 
 Lorsque la présence est désactivée :
-``Éco`` : 16,5
-``Confort`` : 17
-``Boost`` : 18
+``Éco`` : 16,5 °C
+``Confort`` : 17 °C
+``Boost`` : 18 °C
 
 Le détecteur de mouvement de mon bureau est configuré pour utiliser ``Boost`` lorsqu'un mouvement est détecté et ``Eco`` sinon.
 
@@ -335,7 +356,7 @@ Utilisez le code suivant pour régler la température du préréglage :
 ```
 service : thermostat_polyvalent.set_preset_temperature
 date:
-    prest : boost
+    preset : boost
     temperature : 17,8
     temperature_away : 15
 target:
@@ -344,6 +365,40 @@ target:
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
     - après un redémarrage, les préréglages sont réinitialisés à la température configurée. Si vous souhaitez que votre changement soit permanent, vous devez modifier le préréglage de la température dans la configuration de l'intégration.
+
+## Modifier les paramètres de sécurité
+Ce service permet de modifier dynamiquement les paramètres de sécurité décrits ici [Configuration avancée](#configuration-avancée).
+Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqués immédiatement.
+
+Pour changer les paramètres de sécurité utilisez le code suivant :
+```
+service : thermostat_polyvalent.set_security
+date:
+    min_on_percent: "0.5"
+    default_on_percent: "0.1"
+    delay_min: 60
+target:
+    entity_id : climate.my_thermostat
+```
+
+# Notifications
+Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
+Les évènements notifiés sont les suivants: 
+
+- ``versatile_thermostat_security_event`` : un thermostat entre ou sort du preset ``security``
+- ``versatile_thermostat_power_event`` : un thermostat entre ou sort du preset ``power``
+- ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `security_delay_min`` minutes
+- ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat
+- ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
+
+Si vous avez bien suivi, lorsqu'un thermostat passe en mode sécurité, 3 évènements sont déclenchés :
+1. ``versatile_thermostat_temperature_event`` pour indiquer qu'un thermomètre ne répond plus,
+2. ``versatile_thermostat_preset_event`` pour indiquer le passage en preset ```security```,
+3. ``versatile_thermostat_hvac_mode_event`` pour indiquer l'extinction éventuelle du thermostat
+
+Chaque évènement porte les valeurs clés de l'évènement (températures, preset courant, puissance courante, ...) ainsi que les états du thermostat.
+
+Vous pouvez très facilement capter ses évènements dans une automatisation par exemple pour notifier les utilisateurs.
 
 # Attributs personnalisés
 
@@ -379,10 +434,11 @@ Les attributs personnalisés sont les suivants :
 | ``overpowering_state`` | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
 | ``presence_state`` | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
 | ``security_delay_min`` | Le délai avant de régler le mode de sécurité lorsque le capteur de température est éteint |
-| ``security_min_on_percent`` | Seuil en dessous duquel le thermostat ne passera pas en sécurité |
+| ``security_min_on_percent`` | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité |
+| ``security_default_on_percent`` | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité |
 | ``last_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température interne |
 | ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
-| ``**état_sécurité**`` | L'état de sécurité. vrai ou faux |
+| ``security_state`` | L'état de sécurité. vrai ou faux |
 | ``minimal_activation_delay_sec`` | Le délai d'activation minimal en secondes |
 | ``last_update_datetime`` | La date et l'heure au format ISO8866 de cet état |
 | ``friendly_name`` | Le nom du thermostat |
@@ -506,6 +562,94 @@ series:
     curve: stepline
     yaxis_id: right
 ```
+
+## Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements
+Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.
+
+C'est un excellent exemple de l'utilisation des notifications décrites ici [notification](#notifications).
+
+```
+alias: Surveillance Mode Sécurité chauffage
+description: Envoi une notification si un thermostat passe en mode sécurité ou power
+trigger:
+  - platform: event
+    event_type: versatile_thermostat_security_event
+    id: versatile_thermostat_security_event
+  - platform: event
+    event_type: versatile_thermostat_power_event
+    id: versatile_thermostat_power_event
+  - platform: event
+    event_type: versatile_thermostat_temperature_event
+    id: versatile_thermostat_temperature_event
+condition: []
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: versatile_thermostat_security_event
+        sequence:
+          - event: NOTIFIER
+            event_data:
+              action: send_to_jmc
+              title: >-
+                Radiateur {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Sécurité
+              message: >-
+                Le radiateur {{ trigger.event.data.name }} est passé en {{
+                trigger.event.data.type }} sécurité car le thermomètre ne répond
+                plus.\n{{ trigger.event.data }}
+              callback:
+                - title: Stopper chauffage
+                  event: stopper_chauffage
+              image_url: /media/local/alerte-securite.jpg
+              click_url: /lovelace-chauffage/4
+              icon: mdi:radiator-off
+              tag: radiateur_security_alerte
+              persistent: true
+      - conditions:
+          - condition: trigger
+            id: versatile_thermostat_power_event
+        sequence:
+          - event: NOTIFIER
+            event_data:
+              action: send_to_jmc
+              title: >-
+                Radiateur {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Délestage
+              message: >-
+                Le radiateur {{ trigger.event.data.name }} est passé en {{
+                trigger.event.data.type }} délestage car la puissance max est
+                dépassée.\n{{ trigger.event.data }}
+              callback:
+                - title: Stopper chauffage
+                  event: stopper_chauffage
+              image_url: /media/local/alerte-delestage.jpg
+              click_url: /lovelace-chauffage/4
+              icon: mdi:radiator-off
+              tag: radiateur_power_alerte
+              persistent: true
+      - conditions:
+          - condition: trigger
+            id: versatile_thermostat_temperature_event
+        sequence:
+          - event: NOTIFIER
+            event_data:
+              action: send_to_jmc
+              title: >-
+                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
+                répond plus
+              message: >-
+                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
+                répond plus depuis longtemps.\n{{ trigger.event.data }}
+              image_url: /media/local/thermometre-alerte.jpg
+              click_url: /lovelace-chauffage/4
+              icon: mdi:radiator-disabled
+              tag: radiateur_thermometre_alerte
+              persistent: true
+mode: queued
+max: 30
+```
+
 
 # Les contributions sont les bienvenues !
 
