@@ -546,6 +546,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._async_cancel_cycle()
             self._async_cancel_cycle = None
 
+    def find_underlying_climate(self, climate_entity_id) -> ClimateEntity:
+        """Find the underlying climate entity"""
+        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+        for entity in component.entities:
+            if climate_entity_id == entity.entity_id:
+                return entity
+        return None
+
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
         _LOGGER.debug("%s - Calling async_startup", self)
@@ -557,19 +565,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             # Get the underlying thermostat
             if self._is_over_climate:
-                component: EntityComponent[ClimateEntity] = self.hass.data[
-                    CLIMATE_DOMAIN
-                ]
-                for entity in component.entities:
-                    if self._climate_entity_id == entity.entity_id:
-                        _LOGGER.info(
-                            "%s - The underlying climate entity: %s have been succesfully found",
-                            self,
-                            entity,
-                        )
-                        self._underlying_climate = entity
-                        break
-                if self._underlying_climate is None:
+                self._underlying_climate = self.find_underlying_climate(
+                    self._climate_entity_id
+                )
+                if self._underlying_climate:
+                    _LOGGER.info(
+                        "%s - The underlying climate entity: %s have been succesfully found",
+                        self,
+                        self._underlying_climate,
+                    )
+                else:
                     _LOGGER.error(
                         "%s - Cannot find the underlying climate entity: %s. Thermostat will not be operational",
                         self,
@@ -924,7 +929,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else:
                 return None
         else:
-            return self.hass.states.is_state(self._heater_entity_id, STATE_ON)
+            return self._hass.states.is_state(self._heater_entity_id, STATE_ON)
 
     @property
     def current_temperature(self):

@@ -26,6 +26,19 @@ from custom_components.versatile_thermostat.const import (
     CONF_USE_MOTION_FEATURE,
     CONF_USE_POWER_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
+    CONF_WINDOW_SENSOR,
+    CONF_WINDOW_DELAY,
+    CONF_MOTION_SENSOR,
+    CONF_MOTION_DELAY,
+    CONF_MOTION_PRESET,
+    CONF_NO_MOTION_PRESET,
+    CONF_POWER_SENSOR,
+    CONF_MAX_POWER_SENSOR,
+    CONF_DEVICE_POWER,
+    CONF_PRESET_POWER,
+    CONF_PRESENCE_SENSOR,
+    PRESET_AWAY_SUFFIX,
+    CONF_CLIMATE,
 )
 
 MOCK_TH_OVER_SWITCH_USER_CONFIG = {
@@ -36,7 +49,21 @@ MOCK_TH_OVER_SWITCH_USER_CONFIG = {
     CONF_CYCLE_MIN: 5,
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
-    # Keep all additional optional features to false
+    CONF_USE_WINDOW_FEATURE: True,
+    CONF_USE_MOTION_FEATURE: True,
+    CONF_USE_POWER_FEATURE: True,
+    CONF_USE_PRESENCE_FEATURE: True,
+}
+
+MOCK_TH_OVER_CLIMATE_USER_CONFIG = {
+    CONF_NAME: "TheOverClimateMockName",
+    CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+    CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+    CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    CONF_CYCLE_MIN: 5,
+    CONF_TEMP_MIN: 15,
+    CONF_TEMP_MAX: 30,
+    # Keep default values which are False
 }
 
 MOCK_TH_OVER_SWITCH_TYPE_CONFIG = {
@@ -49,11 +76,40 @@ MOCK_TH_OVER_SWITCH_TPI_CONFIG = {
     CONF_TPI_COEF_EXT: 0.1,
 }
 
+MOCK_TH_OVER_CLIMATE_TYPE_CONFIG = {
+    CONF_CLIMATE: "climate.mock_climate",
+}
 
 MOCK_PRESETS_CONFIG = {
     PRESET_ECO + "_temp": 16,
     PRESET_COMFORT + "_temp": 17,
     PRESET_BOOST + "_temp": 18,
+}
+
+MOCK_WINDOW_CONFIG = {
+    CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+    CONF_WINDOW_DELAY: 10,
+}
+
+MOCK_MOTION_CONFIG = {
+    CONF_MOTION_SENSOR: "input_boolean.motion_sensor",
+    CONF_MOTION_DELAY: 10,
+    CONF_MOTION_PRESET: PRESET_COMFORT,
+    CONF_NO_MOTION_PRESET: PRESET_ECO,
+}
+
+MOCK_POWER_CONFIG = {
+    CONF_POWER_SENSOR: "sensor.power_sensor",
+    CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
+    CONF_DEVICE_POWER: 1,
+    CONF_PRESET_POWER: 10,
+}
+
+MOCK_PRESENCE_CONFIG = {
+    CONF_PRESENCE_SENSOR: "person.presence_sensor",
+    PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 16,
+    PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17,
+    PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 18,
 }
 
 MOCK_ADVANCED_CONFIG = {

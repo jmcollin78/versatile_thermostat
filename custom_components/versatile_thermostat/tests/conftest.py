@@ -18,8 +18,14 @@ from unittest.mock import patch
 
 import pytest
 
+from homeassistant.core import HomeAssistant, StateMachine
+
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
+)
+
+from custom_components.versatile_thermostat.climate import (
+    VersatileThermostat,
 )
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -45,8 +51,30 @@ def skip_notifications_fixture():
 
 
 # This fixture is used to bypass the validate_input function in config_flow
+# NOT USED Now (keeped for memory)
 @pytest.fixture(name="skip_validate_input")
 def skip_validate_input_fixture():
     """Skip the validate_input in config flow"""
     with patch.object(VersatileThermostatBaseConfigFlow, "validate_input"):
+        yield
+
+
+@pytest.fixture(name="skip_hass_states_get")
+def skip_hass_states_get_fixture():
+    """Skip the get state in HomeAssistant"""
+    with patch.object(StateMachine, "get"):
+        yield
+
+
+@pytest.fixture(name="skip_hass_states_is_state")
+def skip_hass_states_is_state_fixture():
+    """Skip the is_state in HomeAssistant"""
+    with patch.object(StateMachine, "is_state", return_value=False):
+        yield
+
+
+@pytest.fixture(name="skip_send_event")
+def skip_send_event_fixture():
+    """Skip the send_event in VersatileThermostat"""
+    with patch.object(VersatileThermostat, "send_event"):
         yield
