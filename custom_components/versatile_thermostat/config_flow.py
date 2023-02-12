@@ -331,7 +331,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-    async def validate_input(self, data: dict) -> dict[str]:
+    async def validate_input(self, data: dict) -> None:
         """Validate the user input allows us to connect.
 
         Data has the keys from STEP_*_DATA_SCHEMA with values provided by the user.
