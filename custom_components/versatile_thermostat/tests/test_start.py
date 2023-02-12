@@ -15,41 +15,7 @@ from ..climate import VersatileThermostat
 
 from ..const import DOMAIN, EventType
 
-from .const import (
-    MOCK_TH_OVER_SWITCH_USER_CONFIG,
-    MOCK_TH_OVER_CLIMATE_USER_CONFIG,
-    MOCK_TH_OVER_SWITCH_TYPE_CONFIG,
-    MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
-    MOCK_TH_OVER_SWITCH_TPI_CONFIG,
-    MOCK_PRESETS_CONFIG,
-    MOCK_WINDOW_CONFIG,
-    MOCK_MOTION_CONFIG,
-    MOCK_POWER_CONFIG,
-    MOCK_PRESENCE_CONFIG,
-    MOCK_ADVANCED_CONFIG,
-    # MOCK_DEFAULT_FEATURE_CONFIG,
-)
-
-from .commons import MockClimate
-
-FULL_SWITCH_CONFIG = (
-    MOCK_TH_OVER_SWITCH_USER_CONFIG
-    | MOCK_TH_OVER_SWITCH_TYPE_CONFIG
-    | MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    | MOCK_PRESETS_CONFIG
-    | MOCK_WINDOW_CONFIG
-    | MOCK_MOTION_CONFIG
-    | MOCK_POWER_CONFIG
-    | MOCK_PRESENCE_CONFIG
-    | MOCK_ADVANCED_CONFIG
-)
-
-PARTIAL_CLIMATE_CONFIG = (
-    MOCK_TH_OVER_CLIMATE_USER_CONFIG
-    | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG
-    | MOCK_PRESETS_CONFIG
-    | MOCK_ADVANCED_CONFIG
-)
+from .commons import MockClimate, FULL_SWITCH_CONFIG, PARTIAL_CLIMATE_CONFIG
 
 
 async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
@@ -76,7 +42,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
                 if entity.entity_id == entity_id:
                     return entity
 
-        entity = find_my_entity("climate.theoverswitchmockname")
+        entity: VersatileThermostat = find_my_entity("climate.theoverswitchmockname")
 
         assert entity
 
@@ -90,6 +56,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity._window_state is None
         assert entity._motion_state is None
         assert entity._presence_state is None
+        assert entity._prop_algorithm is not None
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2

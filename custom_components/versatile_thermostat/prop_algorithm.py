@@ -85,6 +85,12 @@ class PropAlgorithm:
     def _calculate_internal(self):
         """Finish the calculation to get the on_percent in seconds"""
 
+        # calculated on_time duration in seconds
+        if self._calculated_on_percent > 1:
+            self._calculated_on_percent = 1
+        if self._calculated_on_percent < 0:
+            self._calculated_on_percent = 0
+
         if self._security:
             _LOGGER.debug(
                 "Security is On using the default_on_percent %f",
@@ -98,11 +104,6 @@ class PropAlgorithm:
             )
             self._on_percent = self._calculated_on_percent
 
-        # calculated on_time duration in seconds
-        if self._on_percent > 1:
-            self._on_percent = 1
-        if self._on_percent < 0:
-            self._on_percent = 0
         self._on_time_sec = self._on_percent * self._cycle_min * 60
 
         # Do not heat for less than xx sec
