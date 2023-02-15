@@ -2,6 +2,8 @@ from homeassistant.components.climate.const import (
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
+    PRESET_NONE,
+    PRESET_ACTIVITY,
 )
 from custom_components.versatile_thermostat.const import (
     CONF_NAME,

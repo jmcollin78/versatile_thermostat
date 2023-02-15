@@ -13,6 +13,8 @@ from homeassistant.core import (
     callback,
     CoreState,
     DOMAIN as HA_DOMAIN,
+    Event,
+    State,
 )
 
 from homeassistant.components.climate import ClimateEntity
@@ -197,6 +199,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     # The list of VersatileThermostat entities
     # No more needed
     # _registry: dict[str, object] = {}
+    _last_temperature_mesure: datetime
+    _last_ext_temperature_mesure: datetime
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
@@ -343,8 +347,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._presets_away,
         )
         # Will be restored if possible
-        self._attr_preset_mode = None
-        self._saved_preset_mode = None
+        self._attr_preset_mode = PRESET_NONE
+        self._saved_preset_mode = PRESET_NONE
 
         # Power management
         self._device_power = entry_infos.get(CONF_DEVICE_POWER)
@@ -1076,6 +1080,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == self._attr_preset_mode and not force:
             # I don't think we need to call async_write_ha_state if we didn't change the state
             return
+
+        # In security mode don't change preset but memorise the new expected preset when security will be off
+        if preset_mode != PRESET_SECURITY and self._security_state:
+            _LOGGER.debug(
+                "%s - is in security mode. Just memorise the new expected ", self
+            )
+            if preset_mode not in HIDDEN_PRESETS:
+                self._saved_preset_mode = preset_mode
+            return
+
         old_preset_mode = self._attr_preset_mode
         if preset_mode == PRESET_NONE:
             self._attr_preset_mode = PRESET_NONE
@@ -1213,9 +1227,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
 
     @callback
-    async def _async_temperature_changed(self, event):
-        """Handle temperature changes."""
-        new_state = event.data.get("new_state")
+    async def _async_temperature_changed(self, event: Event):
+        """Handle temperature of the temperature sensor changes."""
+        new_state: State = event.data.get("new_state")
         _LOGGER.debug(
             "%s - Temperature changed. Event.new_state is %s",
             self,
@@ -1228,9 +1242,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self.recalculate()
         await self._async_control_heating(force=False)
 
-    async def _async_ext_temperature_changed(self, event):
-        """Handle external temperature changes."""
-        new_state = event.data.get("new_state")
+    async def _async_ext_temperature_changed(self, event: Event):
+        """Handle external temperature opf the sensor changes."""
+        new_state: State = event.data.get("new_state")
         _LOGGER.debug(
             "%s - external Temperature changed. Event.new_state is %s",
             self,
@@ -1409,14 +1423,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         await self._async_control_heating(True)
 
     @callback
-    async def _async_update_temp(self, state):
+    async def _async_update_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
             cur_temp = float(state.state)
             if math.isnan(cur_temp) or math.isinf(cur_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_temp = cur_temp
-            self._last_temperature_mesure = datetime.now()
+            self._last_temperature_mesure = (
+                state.last_changed if state.last_changed is not None else datetime.now()
+            )
             # try to restart if we were in security mode
             if self._security_state:
                 await self.check_security()
@@ -1425,14 +1441,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)
 
     @callback
-    async def _async_update_ext_temp(self, state):
+    async def _async_update_ext_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
             cur_ext_temp = float(state.state)
             if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_ext_temp = cur_ext_temp
-            self._last_ext_temperature_mesure = datetime.now()
+            self._last_ext_temperature_mesure = (
+                state.last_changed if state.last_changed is not None else datetime.now()
+            )
             # try to restart if we were in security mode
             if self._security_state:
                 await self.check_security()
@@ -1713,9 +1731,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def check_security(self) -> bool:
         """Check if last temperature date is too long"""
         now = datetime.now()
-        delta_temp = (now - self._last_temperature_mesure).total_seconds() / 60.0
+        delta_temp = (
+            now - self._last_temperature_mesure.replace(tzinfo=None)
+        ).total_seconds() / 60.0
         delta_ext_temp = (
-            now - self._last_ext_temperature_mesure
+            now - self._last_ext_temperature_mesure.replace(tzinfo=None)
         ).total_seconds() / 60.0
 
         mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
@@ -1735,6 +1755,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             >= self._security_min_on_percent
         )
 
+        _LOGGER.debug(
+            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f mod_cond=%s temp_cond=%s climate_cond=%s switch_cond=%s",
+            self,
+            delta_temp,
+            delta_ext_temp,
+            mode_cond,
+            temp_cond,
+            climate_cond,
+            switch_cond,
+        )
+
         ret = False
         if mode_cond and temp_cond and climate_cond:
             if not self._security_state:
@@ -1747,17 +1778,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self.hvac_action,
                 )
             ret = True
-
-        _LOGGER.debug(
-            "%s - checking security delta_temp=%.1f delta_ext_temp=%.1f mod_cond=%s temp_cond=%s climate_cond=%s switch_cond=%s",
-            self,
-            delta_temp,
-            delta_ext_temp,
-            mode_cond,
-            temp_cond,
-            climate_cond,
-            switch_cond,
-        )
 
         if mode_cond and temp_cond and switch_cond:
             if not self._security_state:

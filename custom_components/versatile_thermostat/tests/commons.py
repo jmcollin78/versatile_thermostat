@@ -1,7 +1,7 @@
 """ Some common resources """
 from unittest.mock import patch
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
 from homeassistant.const import UnitOfTemperature
 
 from homeassistant.config_entries import ConfigEntryState
@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers.entity_component import EntityComponent
 
 from ..climate import VersatileThermostat
-from ..const import DOMAIN
+from ..const import DOMAIN, PRESET_SECURITY, PRESET_POWER, EventType
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -32,6 +32,11 @@ from .const import (
     MOCK_PRESENCE_CONFIG,
     MOCK_ADVANCED_CONFIG,
     # MOCK_DEFAULT_FEATURE_CONFIG,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_NONE,
+    PRESET_ECO,
+    PRESET_ACTIVITY,
 )
 
 FULL_SWITCH_CONFIG = (
@@ -93,3 +98,19 @@ async def create_thermostat(
         entity = find_my_entity(entity_id)
 
         return entity
+
+
+async def send_temperature_change_event(entity: VersatileThermostat, new_temp, date):
+    """Sending a new temperature event simulating a change on temperature sensor"""
+    temp_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=new_temp,
+                last_changed=date,
+                last_updated=date,
+            )
+        },
+    )
+    await entity._async_temperature_changed(temp_event)
