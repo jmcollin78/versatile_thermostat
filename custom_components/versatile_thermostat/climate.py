@@ -134,6 +134,8 @@ from .const import (
     CONF_CLIMATE,
     UnknownEntity,
     EventType,
+    ATTR_MEAN_POWER_CYCLE,
+    ATTR_TOTAL_ENERGY,
 )
 
 from .prop_algorithm import PropAlgorithm
@@ -201,6 +203,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     # _registry: dict[str, object] = {}
     _last_temperature_mesure: datetime
     _last_ext_temperature_mesure: datetime
+    _total_energy: float
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
@@ -250,6 +253,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._underlying_climate = None
 
         self._attr_translation_key = "versatile_thermostat"
+
+        self._total_energy = None
 
         self.post_init(entry_infos)
 
@@ -440,6 +445,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         if self._motion_on:
             self._attr_preset_modes.append(PRESET_ACTIVITY)
+
+        self._total_energy = 0
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s heater_entity_id=%s",
@@ -780,6 +787,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else:
                 self._hvac_mode = HVACMode.OFF
 
+            old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
+            if old_total_energy:
+                self._total_energy = old_total_energy
         else:
             # No previous state, try and restore defaults
             if self._target_temp is None:
@@ -980,6 +990,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return self._underlying_climate.is_aux_heat
 
         return None
+
+    @property
+    def mean_cycle_power(self) -> float | None:
+        """Returns tne mean power consumption during the cycle"""
+        if self._is_over_climate:
+            return None
+        elif self._device_power:
+            return self._device_power * self._prop_algorithm.on_percent
+        else:
+            return None
+
+    @property
+    def total_energy(self) -> float | None:
+        """Returns the total energy calculated for this thermostast"""
+        return self._total_energy
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -1964,7 +1989,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         _LOGGER.debug(
                             "%s - No action on heater cause duration is 0", self
                         )
-                    self.update_custom_attributes()
                     self._async_cancel_cycle = async_call_later(
                         self.hass,
                         time,
@@ -1978,6 +2002,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         heater_action=self._async_heater_turn_on,
                         next_cycle_action=_turn_off_later,
                     )
+                    self.update_custom_attributes()
 
                 async def _turn_off_later(_):
                     await _turn_on_off_later(
@@ -1986,6 +2011,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         heater_action=self._async_underlying_entity_turn_off,
                         next_cycle_action=_turn_on_later,
                     )
+                    # increment energy at the end of the cycle
+                    self.incremente_energy()
+                    self.update_custom_attributes()
 
                 await _turn_on_later(None)
 
@@ -2017,6 +2045,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
         self.update_custom_attributes()
         self.async_write_ha_state()
+
+    def incremente_energy(self):
+        """increment the energy counter if device is active"""
+        if self.hvac_mode != HVACMode.OFF:
+            self._total_energy += self.mean_cycle_power * float(self._cycle_min) / 60.0
 
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
@@ -2054,6 +2087,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
             "security_state": self._security_state,
             "minimal_activation_delay_sec": self._minimal_activation_delay,
+            "device_power": self._device_power,
+            ATTR_MEAN_POWER_CYCLE: self.mean_cycle_power,
+            ATTR_TOTAL_ENERGY: self.total_energy,
             "last_update_datetime": datetime.now().isoformat(),
         }
         if self._is_over_climate:

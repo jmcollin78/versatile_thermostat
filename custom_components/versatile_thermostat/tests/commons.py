@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers.entity_component import EntityComponent
 
 from ..climate import VersatileThermostat
-from ..const import DOMAIN, PRESET_SECURITY, PRESET_POWER, EventType
+from ..const import *
 
 from homeassistant.components.climate import (
     ClimateEntity,

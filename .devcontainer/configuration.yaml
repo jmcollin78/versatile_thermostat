@@ -118,6 +118,17 @@ template:
         unique_id: maison_occupee
         state: "{{is_state('person.jmc', 'home') }}"
         device_class: occupancy
+  - sensor:
+      - name: "Total énergie switch1"
+        unique_id: total_energie_switch1
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {% set energy = state_attr('climate.thermostat_switch_1', 'total_energy') %}
+          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
+            {{ ((energy | float) / 1.0) | round(2, default=0) }}
+          {% endif %}
 
 switch:
   - platform: template

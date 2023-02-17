@@ -11,24 +11,25 @@ async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state):
         title="TheOverSwitchMockName",
         unique_id="uniqueId",
         data={
-            "name": "TheOverSwitchMockName",
-            "thermostat_type": "thermostat_over_switch",
-            "temperature_sensor_entity_id": "sensor.mock_temp_sensor",
-            "external_temperature_sensor_entity_id": "sensor.mock_ext_temp_sensor",
-            "cycle_min": 5,
-            "temp_min": 15,
-            "temp_max": 30,
-            "use_window_feature": False,
-            "use_motion_feature": False,
-            "use_power_feature": False,
-            "use_presence_feature": False,
-            "heater_entity_id": "switch.mock_switch",
-            "proportional_function": "tpi",
-            "tpi_coef_int": 0.3,
-            "tpi_coef_ext": 0.01,
-            "minimal_activation_delay": 30,
-            "security_delay_min": 5,
-            "security_default_on_percent": 0.3,
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_HEATER: "switch.mock_switch",
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            # CONF_DEVICE_POWER: 100,
         },
     )
 
@@ -45,6 +46,7 @@ async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state):
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
+    assert entity.mean_cycle_power is None
 
     tpi_algo.calculate(15, 14, 5)
     assert tpi_algo.on_percent == 0.4

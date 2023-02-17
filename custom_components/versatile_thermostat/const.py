@@ -135,6 +135,9 @@ SERVICE_SET_SECURITY = "set_security"
 DEFAULT_SECURITY_MIN_ON_PERCENT = 0.5
 DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 
+ATTR_TOTAL_ENERGY = "total_energy"
+ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
+
 
 class EventType(Enum):
     """The event type that can be sent"""
