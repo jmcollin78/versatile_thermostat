@@ -204,6 +204,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     _last_temperature_mesure: datetime
     _last_ext_temperature_mesure: datetime
     _total_energy: float
+    _overpowering_state: bool
+    _window_state: bool
+    _motion_state: bool
+    _presence_state: bool
+    _security_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
@@ -366,8 +371,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             and self._device_power
         ):
             self._pmax_on = True
-            self._current_power = 0
-            self._current_power_max = 0
         else:
             _LOGGER.info("%s - Power management is not fully configured", self)
 
@@ -997,7 +1000,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._is_over_climate:
             return None
         elif self._device_power:
-            return self._device_power * self._prop_algorithm.on_percent
+            return float(self._device_power * self._prop_algorithm.on_percent)
         else:
             return None
 
@@ -1005,6 +1008,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def total_energy(self) -> float | None:
         """Returns the total energy calculated for this thermostast"""
         return self._total_energy
+
+    @property
+    def overpowering_state(self) -> bool | None:
+        """Get the overpowering_state"""
+        return self._overpowering_state
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -1696,7 +1704,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """
 
         if not self._pmax_on:
-            return
+            _LOGGER.debug("%s - power not configured. check_overpowering not available")
+            return False
+
+        if (
+            self._current_power is None
+            or self._device_power is None
+            or self._current_power_max is None
+        ):
+            _LOGGER.warning("%s - power not valued. check_overpowering not available")
+            return False
 
         _LOGGER.debug(
             "%s - overpowering check: power=%.3f, max_power=%.3f heater power=%.3f",
@@ -1705,6 +1722,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._current_power_max,
             self._device_power,
         )
+
         ret = self._current_power + self._device_power >= self._current_power_max
         if not self._overpowering_state and ret and not self._hvac_mode == HVACMode.OFF:
             _LOGGER.warning(

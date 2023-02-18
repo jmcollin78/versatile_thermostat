@@ -46,7 +46,7 @@ async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state):
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
-    assert entity.mean_cycle_power is None
+    assert entity.mean_cycle_power is None  # no device power configured
 
     tpi_algo.calculate(15, 14, 5)
     assert tpi_algo.on_percent == 0.4

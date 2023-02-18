@@ -114,3 +114,35 @@ async def send_temperature_change_event(entity: VersatileThermostat, new_temp, d
         },
     )
     await entity._async_temperature_changed(temp_event)
+
+
+async def send_power_change_event(entity: VersatileThermostat, new_power, date):
+    """Sending a new power event simulating a change on power sensor"""
+    power_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=new_power,
+                last_changed=date,
+                last_updated=date,
+            )
+        },
+    )
+    await entity._async_power_changed(power_event)
+
+
+async def send_max_power_change_event(entity: VersatileThermostat, new_power_max, date):
+    """Sending a new power event simulating a change on power max sensor"""
+    power_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=new_power_max,
+                last_changed=date,
+                last_updated=date,
+            )
+        },
+    )
+    await entity._async_max_power_changed(power_event)
