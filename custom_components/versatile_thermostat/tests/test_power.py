@@ -268,6 +268,8 @@ async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
+    assert entity.total_energy == 0
+
     # set temperature to 15 so that on_percent will be set
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
@@ -292,6 +294,12 @@ async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_
         assert mock_heater_on.call_count == 1
         assert mock_heater_off.call_count == 0
 
+    entity.incremente_energy()
+    assert entity.total_energy == 100 * 5 / 60.0
+    entity.incremente_energy()
+    assert entity.total_energy == 2 * 100 * 5 / 60.0
+
+    # change temperature to a higher value
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
@@ -299,7 +307,6 @@ async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
     ) as mock_heater_off:
-        # change temperature to a higher value
         await send_temperature_change_event(entity, 18, datetime.now())
         assert tpi_algo.on_percent == 0.3
         assert entity.mean_cycle_power == 30.0
@@ -307,3 +314,33 @@ async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
+
+    entity.incremente_energy()
+    assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0, 2)
+
+    entity.incremente_energy()
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+
+    # change temperature to a much higher value so that heater will be shut down
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+    ) as mock_heater_off:
+        await send_temperature_change_event(entity, 20, datetime.now())
+        assert tpi_algo.on_percent == 0.0
+        assert entity.mean_cycle_power == 0.0
+
+        assert mock_send_event.call_count == 0
+        assert mock_heater_on.call_count == 0
+        assert mock_heater_off.call_count == 0
+
+    entity.incremente_energy()
+    # No change on energy
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+
+    # Still no change
+    entity.incremente_energy()
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
