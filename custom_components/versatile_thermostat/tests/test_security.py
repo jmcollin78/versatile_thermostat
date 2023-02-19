@@ -19,6 +19,8 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     6. check that security is off and preset is changed to boost
     """
 
+    tz = get_tz(hass)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
@@ -102,8 +104,12 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_mesure": event_timestamp.replace(
+                            tzinfo=tz
+                        ).isoformat(),
+                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.replace(
+                            tzinfo=tz
+                        ).isoformat(),
                         "current_temp": 15,
                         "current_ext_temp": None,
                         "target_temp": 18,
@@ -113,8 +119,12 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                     EventType.SECURITY_EVENT,
                     {
                         "type": "start",
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_mesure": event_timestamp.replace(
+                            tzinfo=tz
+                        ).isoformat(),
+                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.replace(
+                            tzinfo=tz
+                        ).isoformat(),
                         "current_temp": 15,
                         "current_ext_temp": None,
                         "target_temp": 18,
@@ -166,8 +176,12 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                     EventType.SECURITY_EVENT,
                     {
                         "type": "end",
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_mesure": event_timestamp.replace(
+                            tzinfo=tz
+                        ).isoformat(),
+                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.replace(
+                            tzinfo=tz
+                        ).isoformat(),
                         "current_temp": 15.2,
                         "current_ext_temp": None,
                         "target_temp": 19,

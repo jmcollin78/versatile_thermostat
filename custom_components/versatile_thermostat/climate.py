@@ -8,6 +8,7 @@ from datetime import timedelta, datetime
 
 import voluptuous as vol
 
+from homeassistant.util import dt as dt_util
 from homeassistant.core import (
     HomeAssistant,
     callback,
@@ -260,6 +261,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
+
+        self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
         self.post_init(entry_infos)
 
@@ -1014,6 +1017,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Get the overpowering_state"""
         return self._overpowering_state
 
+    @property
+    def window_state(self) -> bool | None:
+        """Get the window_state"""
+        return self._window_state
+
+    @property
+    def motion_state(self) -> bool | None:
+        """Get the motion_state"""
+        return self._motion_state
+
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
         if self._is_over_climate and self._underlying_climate:
@@ -1321,6 +1334,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.debug(
                     "Window delay condition is not satisfied. Ignore window event"
                 )
+                self._window_state = old_state.state
                 return
 
             _LOGGER.debug("%s - Window delay condition is satisfied", self)
@@ -1349,6 +1363,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._window_call_cancel = async_call_later(
             self.hass, timedelta(seconds=self._window_delay_sec), try_window_condition
         )
+        # For testing purpose we need to access the inner function
+        return try_window_condition
 
     @callback
     async def _async_motion_changed(self, event):
@@ -1704,7 +1720,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """
 
         if not self._pmax_on:
-            _LOGGER.debug("%s - power not configured. check_overpowering not available")
+            _LOGGER.debug(
+                "%s - power not configured. check_overpowering not available", self
+            )
             return False
 
         if (
@@ -1712,7 +1730,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             or self._device_power is None
             or self._current_power_max is None
         ):
-            _LOGGER.warning("%s - power not valued. check_overpowering not available")
+            _LOGGER.warning(
+                "%s - power not valued. check_overpowering not available", self
+            )
             return False
 
         _LOGGER.debug(
@@ -1773,12 +1793,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     async def check_security(self) -> bool:
         """Check if last temperature date is too long"""
-        now = datetime.now()
+        now = datetime.now(self._current_tz)
         delta_temp = (
-            now - self._last_temperature_mesure.replace(tzinfo=None)
+            now - self._last_temperature_mesure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
         delta_ext_temp = (
-            now - self._last_ext_temperature_mesure.replace(tzinfo=None)
+            now - self._last_ext_temperature_mesure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
 
         mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
@@ -1839,8 +1859,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self.send_event(
                 EventType.TEMPERATURE_EVENT,
                 {
-                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
                     "current_temp": self._cur_temp,
                     "current_ext_temp": self._cur_ext_temp,
                     "target_temp": self.target_temperature,
@@ -1862,8 +1886,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 EventType.SECURITY_EVENT,
                 {
                     "type": "start",
-                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
                     "current_temp": self._cur_temp,
                     "current_ext_temp": self._cur_ext_temp,
                     "target_temp": self.target_temperature,
@@ -1892,8 +1920,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 EventType.SECURITY_EVENT,
                 {
                     "type": "end",
-                    "last_temperature_mesure": self._last_temperature_mesure.isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.isoformat(),
+                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
+                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                        tzinfo=self._current_tz
+                    ).isoformat(),
                     "current_temp": self._cur_temp,
                     "current_ext_temp": self._cur_ext_temp,
                     "target_temp": self.target_temperature,
@@ -2101,14 +2133,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
-            "last_temperature_datetime": self._last_temperature_mesure.isoformat(),
-            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.isoformat(),
+            "last_temperature_datetime": self._last_temperature_mesure.replace(
+                tzinfo=self._current_tz
+            ).isoformat(),
+            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.replace(
+                tzinfo=self._current_tz
+            ).isoformat(),
             "security_state": self._security_state,
             "minimal_activation_delay_sec": self._minimal_activation_delay,
             "device_power": self._device_power,
             ATTR_MEAN_POWER_CYCLE: self.mean_cycle_power,
             ATTR_TOTAL_ENERGY: self.total_energy,
-            "last_update_datetime": datetime.now().isoformat(),
+            "last_update_datetime": datetime.now()
+            .replace(tzinfo=self._current_tz)
+            .isoformat(),
+            "timezone": str(self._current_tz),
         }
         if self._is_over_climate:
             self._attr_extra_state_attributes[

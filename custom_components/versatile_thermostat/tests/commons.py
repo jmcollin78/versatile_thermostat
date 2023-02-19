@@ -2,11 +2,12 @@
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF
 
 from homeassistant.config_entries import ConfigEntryState
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity_component import EntityComponent
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from ..climate import VersatileThermostat
 from ..const import *
@@ -113,7 +114,7 @@ async def send_temperature_change_event(entity: VersatileThermostat, new_temp, d
             )
         },
     )
-    await entity._async_temperature_changed(temp_event)
+    return await entity._async_temperature_changed(temp_event)
 
 
 async def send_power_change_event(entity: VersatileThermostat, new_power, date):
@@ -129,11 +130,11 @@ async def send_power_change_event(entity: VersatileThermostat, new_power, date):
             )
         },
     )
-    await entity._async_power_changed(power_event)
+    return await entity._async_power_changed(power_event)
 
 
 async def send_max_power_change_event(entity: VersatileThermostat, new_power_max, date):
-    """Sending a new power event simulating a change on power max sensor"""
+    """Sending a new power max event simulating a change on power max sensor"""
     power_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -145,4 +146,33 @@ async def send_max_power_change_event(entity: VersatileThermostat, new_power_max
             )
         },
     )
-    await entity._async_max_power_changed(power_event)
+    return await entity._async_max_power_changed(power_event)
+
+
+async def send_window_change_event(entity: VersatileThermostat, new_state: bool, date):
+    """Sending a new window event simulating a change on the window state"""
+    window_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=STATE_ON if new_state else STATE_OFF,
+                last_changed=date,
+                last_updated=date,
+            ),
+            "old_state": State(
+                entity_id=entity.entity_id,
+                state=STATE_ON if not new_state else STATE_OFF,
+                last_changed=date,
+                last_updated=date,
+            ),
+        },
+    )
+    ret = await entity._async_windows_changed(window_event)
+    return ret
+
+
+def get_tz(hass):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)

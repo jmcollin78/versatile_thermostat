@@ -1,3 +1,4 @@
+""" The TPI calculation module """
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class PropAlgorithm:
         tpi_coef_ext,
         cycle_min: int,
         minimal_activation_delay: int,
-    ):
+    ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
             "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",
