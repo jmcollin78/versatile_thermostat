@@ -74,7 +74,7 @@ async def test_window_management_time_not_enough(
     ) as mock_condition:
         await send_temperature_change_event(entity, 15, datetime.now())
         try_window_condition = await send_window_change_event(
-            entity, True, datetime.now()
+            entity, True, False, datetime.now()
         )
         # simulate the call to try_window_condition
         await try_window_condition(None)
@@ -88,7 +88,7 @@ async def test_window_management_time_not_enough(
 
         # Close the window
         try_window_condition = await send_window_change_event(
-            entity, False, datetime.now()
+            entity, False, False, datetime.now()
         )
         # simulate the call to try_window_condition
         await try_window_condition(None)
@@ -163,7 +163,7 @@ async def test_window_management_time_enough(
     ):
         await send_temperature_change_event(entity, 15, datetime.now())
         try_window_condition = await send_window_change_event(
-            entity, True, datetime.now()
+            entity, True, False, datetime.now()
         )
         # simulate the call to try_window_condition
         await try_window_condition(None)
@@ -181,7 +181,7 @@ async def test_window_management_time_enough(
 
         # Close the window
         try_window_condition = await send_window_change_event(
-            entity, False, datetime.now()
+            entity, False, True, datetime.now()
         )
         # simulate the call to try_window_condition
         await try_window_condition(None)

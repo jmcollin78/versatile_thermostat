@@ -149,7 +149,9 @@ async def send_max_power_change_event(entity: VersatileThermostat, new_power_max
     return await entity._async_max_power_changed(power_event)
 
 
-async def send_window_change_event(entity: VersatileThermostat, new_state: bool, date):
+async def send_window_change_event(
+    entity: VersatileThermostat, new_state: bool, old_state: bool, date
+):
     """Sending a new window event simulating a change on the window state"""
     window_event = Event(
         EVENT_STATE_CHANGED,
@@ -162,7 +164,7 @@ async def send_window_change_event(entity: VersatileThermostat, new_state: bool,
             ),
             "old_state": State(
                 entity_id=entity.entity_id,
-                state=STATE_ON if not new_state else STATE_OFF,
+                state=STATE_ON if old_state else STATE_OFF,
                 last_changed=date,
                 last_updated=date,
             ),

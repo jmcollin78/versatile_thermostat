@@ -407,8 +407,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             or DEFAULT_SECURITY_DEFAULT_ON_PERCENT
         )
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
-        self._last_temperature_mesure = datetime.now()
-        self._last_ext_temperature_mesure = datetime.now()
+        self._last_temperature_mesure = datetime.now(tz=self._current_tz)
+        self._last_ext_temperature_mesure = datetime.now(tz=self._current_tz)
         self._security_state = False
         self._saved_hvac_mode = None
 
@@ -1166,7 +1166,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         ):
             self._last_temperature_mesure = (
                 self._last_ext_temperature_mesure
-            ) = datetime.now()
+            ) = datetime.now(tz=self._current_tz)
 
     def find_preset_temp(self, preset_mode):
         """Find the right temperature of a preset considering the presence if configured"""
@@ -1315,8 +1315,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._hvac_mode,
             self._saved_hvac_mode,
         )
-        if new_state is None or old_state is None or new_state.state == old_state.state:
-            return
 
         # Check delay condition
         async def try_window_condition(_):
@@ -1356,6 +1354,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.save_hvac_mode()
                 await self.async_set_hvac_mode(HVACMode.OFF)
             self.update_custom_attributes()
+
+        if new_state is None or old_state is None or new_state.state == old_state.state:
+            return try_window_condition
 
         if self._window_call_cancel:
             self._window_call_cancel()
@@ -1479,9 +1480,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(cur_temp) or math.isinf(cur_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_temp = cur_temp
+
             self._last_temperature_mesure = (
-                state.last_changed if state.last_changed is not None else datetime.now()
+                state.last_changed.astimezone(self._current_tz)
+                if state.last_changed is not None
+                else datetime.now(tz=self._current_tz)
             )
+
+            _LOGGER.debug(
+                "%s - After setting _last_temperature_mesure %s , state.last_changed.replace=%s",
+                self,
+                self._last_temperature_mesure,
+                state.last_changed.astimezone(self._current_tz),
+            )
+
             # try to restart if we were in security mode
             if self._security_state:
                 await self.check_security()
@@ -1498,8 +1510,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_ext_temp = cur_ext_temp
             self._last_ext_temperature_mesure = (
-                state.last_changed if state.last_changed is not None else datetime.now()
+                state.last_changed.astimezone(self._current_tz)
+                if state.last_changed is not None
+                else datetime.now(tz=self._current_tz)
             )
+
+            _LOGGER.debug(
+                "%s - After setting _last_ext_temperature_mesure %s , state.last_changed.replace=%s",
+                self,
+                self._last_ext_temperature_mesure,
+                state.last_changed.astimezone(self._current_tz),
+            )
+
             # try to restart if we were in security mode
             if self._security_state:
                 await self.check_security()
@@ -2105,7 +2127,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Update the custom extra attributes for the entity"""
 
         self._attr_extra_state_attributes: dict(str, str) = {
-            "hvac_mode": self._hvac_mode,
+            "hvac_mode": self.hvac_mode,
+            "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
             "eco_temp": self._presets[PRESET_ECO],
             "boost_temp": self._presets[PRESET_BOOST],
@@ -2133,11 +2156,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
-            "last_temperature_datetime": self._last_temperature_mesure.replace(
-                tzinfo=self._current_tz
+            "last_temperature_datetime": self._last_temperature_mesure.astimezone(
+                self._current_tz
             ).isoformat(),
-            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.replace(
-                tzinfo=self._current_tz
+            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.astimezone(
+                self._current_tz
             ).isoformat(),
             "security_state": self._security_state,
             "minimal_activation_delay_sec": self._minimal_activation_delay,
@@ -2145,7 +2168,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             ATTR_MEAN_POWER_CYCLE: self.mean_cycle_power,
             ATTR_TOTAL_ENERGY: self.total_energy,
             "last_update_datetime": datetime.now()
-            .replace(tzinfo=self._current_tz)
+            .astimezone(self._current_tz)
             .isoformat(),
             "timezone": str(self._current_tz),
         }
