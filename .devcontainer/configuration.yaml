@@ -129,6 +129,26 @@ template:
           {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
             {{ ((energy | float) / 1.0) | round(2, default=0) }}
           {% endif %}
+      - name: "Total énergie climate 2"
+        unique_id: total_energie_climate2
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {% set energy = state_attr('climate.thermostat_climate_2', 'total_energy') %}
+          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
+            {{ ((energy | float) / 1.0) | round(2, default=0) }}
+          {% endif %}
+      - name: "Total énergie chambre"
+        unique_id: total_energie_chambre
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >
+          {% set energy = state_attr('climate.thermostat_chambre', 'total_energy') %}
+          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
+            {{ ((energy | float) / 1.0) | round(2, default=0) }}
+          {% endif %}
 
 switch:
   - platform: template

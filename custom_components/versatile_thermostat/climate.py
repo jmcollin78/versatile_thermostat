@@ -261,6 +261,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
+        self._underlying_climate_start_hvac_action_date = None
+        self._underlying_climate_delta_t = 0
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
@@ -1000,12 +1002,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def mean_cycle_power(self) -> float | None:
         """Returns tne mean power consumption during the cycle"""
-        if self._is_over_climate:
+        if not self._device_power or self._is_over_climate:
             return None
-        elif self._device_power:
-            return float(self._device_power * self._prop_algorithm.on_percent)
-        else:
-            return None
+
+        return float(self._device_power * self._prop_algorithm.on_percent)
 
     @property
     def total_energy(self) -> float | None:
@@ -1265,6 +1265,22 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE, data, context=self._context
             )
 
+    def get_state_date_or_now(self, state: State):
+        """Extract the last_changed state from State or return now if not available"""
+        return (
+            state.last_changed.astimezone(self._current_tz)
+            if state.last_changed is not None
+            else datetime.now(tz=self._current_tz)
+        )
+
+    def get_last_updated_date_or_now(self, state: State):
+        """Extract the last_changed state from State or return now if not available"""
+        return (
+            state.last_updated.astimezone(self._current_tz)
+            if state.last_updated is not None
+            else datetime.now(tz=self._current_tz)
+        )
+
     @callback
     async def entry_update_listener(
         self, _, config_entry: ConfigEntry  # hass: HomeAssistant,
@@ -1451,14 +1467,29 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_climate_changed(self, event):
         """Handle unerdlying climate state changes."""
         new_state = event.data.get("new_state")
+        _LOGGER.warning("%s - _async_climate_changed new_state is %s", self, new_state)
+        old_state = event.data.get("old_state")
+        old_hvac_action = (
+            old_state.attributes.get("hvac_action")
+            if old_state and old_state.attributes
+            else None
+        )
+        new_hvac_action = (
+            new_state.attributes.get("hvac_action")
+            if new_state and new_state.attributes
+            else None
+        )
+
         _LOGGER.info(
-            "%s - Underlying climate changed. Event.new_state is %s, hvac_mode=%s",
+            "%s - Underlying climate changed. Event.new_state is %s, hvac_mode=%s, hvac_action=%s, old_hvac_action=%s",
             self,
             new_state,
             self._hvac_mode,
+            new_hvac_action,
+            old_hvac_action,
         )
-        # old_state = event.data.get("old_state")
-        if new_state is None or new_state.state not in [
+
+        if new_state.state in [
             HVACMode.OFF,
             HVACMode.HEAT,
             HVACMode.COOL,
@@ -1467,8 +1498,45 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.AUTO,
             HVACMode.FAN_ONLY,
         ]:
-            return
-        self._hvac_mode = new_state.state
+            self._hvac_mode = new_state.state
+
+        # Interpretation of hvac
+        HVAC_ACTION_ON = [
+            HVACAction.COOLING,
+            HVACAction.DRYING,
+            HVACAction.FAN,
+            HVACAction.HEATING,
+        ]
+        if old_hvac_action not in HVAC_ACTION_ON and new_hvac_action in HVAC_ACTION_ON:
+            self._underlying_climate_start_hvac_action_date = (
+                self.get_last_updated_date_or_now(new_state)
+            )
+            _LOGGER.info(
+                "%s - underlying just switch ON. Set power and energy start date %s",
+                self,
+                self._underlying_climate_start_hvac_action_date.isoformat(),
+            )
+
+        if old_hvac_action in HVAC_ACTION_ON and new_hvac_action not in HVAC_ACTION_ON:
+            stop_power_date = self.get_last_updated_date_or_now(new_state)
+            if self._underlying_climate_start_hvac_action_date:
+                delta = (
+                    stop_power_date - self._underlying_climate_start_hvac_action_date
+                )
+                self._underlying_climate_delta_t = delta.total_seconds() / 3600.0
+
+                # increment energy at the end of the cycle
+                self.incremente_energy()
+
+                self._underlying_climate_start_hvac_action_date = None
+
+            _LOGGER.info(
+                "%s - underlying just switch OFF at %s. delta_h=%.3f h",
+                self,
+                stop_power_date.isoformat(),
+                self._underlying_climate_delta_t,
+            )
+
         self.update_custom_attributes()
         await self._async_control_heating(True)
 
@@ -1481,11 +1549,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_temp = cur_temp
 
-            self._last_temperature_mesure = (
-                state.last_changed.astimezone(self._current_tz)
-                if state.last_changed is not None
-                else datetime.now(tz=self._current_tz)
-            )
+            self._last_temperature_mesure = self.get_state_date_or_now(state)
 
             _LOGGER.debug(
                 "%s - After setting _last_temperature_mesure %s , state.last_changed.replace=%s",
@@ -1509,11 +1573,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_ext_temp = cur_ext_temp
-            self._last_ext_temperature_mesure = (
-                state.last_changed.astimezone(self._current_tz)
-                if state.last_changed is not None
-                else datetime.now(tz=self._current_tz)
-            )
+            self._last_ext_temperature_mesure = self.get_state_date_or_now(state)
 
             _LOGGER.debug(
                 "%s - After setting _last_ext_temperature_mesure %s , state.last_changed.replace=%s",
@@ -2120,8 +2180,23 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     def incremente_energy(self):
         """increment the energy counter if device is active"""
-        if self.hvac_mode != HVACMode.OFF:
-            self._total_energy += self.mean_cycle_power * float(self._cycle_min) / 60.0
+        if self.hvac_mode == HVACMode.OFF:
+            return
+
+        added_energy = 0
+        if self._is_over_climate and self._underlying_climate_delta_t is not None:
+            added_energy = self._device_power * self._underlying_climate_delta_t
+
+        if not self._is_over_climate and self.mean_cycle_power is not None:
+            added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
+
+        self._total_energy += added_energy
+        _LOGGER.debug(
+            "%s - added energy is %.3f . Total energy is now: %.3f",
+            self,
+            added_energy,
+            self._total_energy,
+        )
 
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
@@ -2176,6 +2251,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._attr_extra_state_attributes[
                 "underlying_climate"
             ] = self._climate_entity_id
+            self._attr_extra_state_attributes[
+                "start_hvac_action_date"
+            ] = self._underlying_climate_start_hvac_action_date
         else:
             self._attr_extra_state_attributes[
                 "underlying_switch"

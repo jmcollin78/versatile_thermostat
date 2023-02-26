@@ -1,5 +1,6 @@
 """ Some common resources """
-from unittest.mock import patch
+from typing import Mapping
+from unittest.mock import patch, MagicMock
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
 from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF
@@ -18,6 +19,7 @@ from homeassistant.components.climate import (
     ATTR_PRESET_MODE,
     HVACMode,
     HVACAction,
+    ClimateEntityFeature,
 )
 
 from .const import (
@@ -76,6 +78,64 @@ class MockClimate(ClimateEntity):
         self._attr_hvac_mode = HVACMode.OFF
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+
+
+class MagicMockClimate(MagicMock):
+    @property
+    def temperature_unit(self):
+        return UnitOfTemperature.CELSIUS
+
+    @property
+    def hvac_mode(self):
+        return HVACMode.HEAT
+
+    @property
+    def hvac_action(self):
+        return HVACAction.IDLE
+
+    @property
+    def target_temperature(self):
+        return 15
+
+    @property
+    def current_temperature(self):
+        return 14
+
+    @property
+    def target_temperature_step(self) -> float | None:
+        return 0.5
+
+    @property
+    def target_temperature_high(self) -> float | None:
+        return 35
+
+    @property
+    def target_temperature_low(self) -> float | None:
+        return 7
+
+    @property
+    def hvac_modes(self) -> list[str] | None:
+        return [HVACMode.HEAT, HVACMode.OFF, HVACMode.COOL]
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        return None
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        return None
+
+    @property
+    def fan_mode(self) -> str | None:
+        return None
+
+    @property
+    def swing_mode(self) -> str | None:
+        return None
+
+    @property
+    def supported_features(self):
+        return ClimateEntityFeature.TARGET_TEMPERATURE
 
 
 async def create_thermostat(
@@ -178,3 +238,34 @@ def get_tz(hass):
     """Get the current timezone"""
 
     return dt_util.get_time_zone(hass.config.time_zone)
+
+
+async def send_climate_change_event(
+    entity: VersatileThermostat,
+    new_hvac_mode: HVACMode,
+    old_hvac_mode: HVACMode,
+    new_hvac_action: HVACAction,
+    old_hvac_action: HVACAction,
+    date,
+):
+    """Sending a new climate event simulating a change on the underlying climate state"""
+    climate_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=new_hvac_mode,
+                attributes={"hvac_action": new_hvac_action},
+                last_changed=date,
+                last_updated=date,
+            ),
+            "old_state": State(
+                entity_id=entity.entity_id,
+                state=old_hvac_mode,
+                attributes={"hvac_action": old_hvac_action},
+                last_changed=date,
+                last_updated=date,
+            ),
+        },
+    )
+    ret = await entity._async_climate_changed(climate_event)

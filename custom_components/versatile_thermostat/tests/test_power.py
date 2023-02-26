@@ -1,7 +1,9 @@
 """ Test the Power management """
-from unittest.mock import patch, call
+from unittest.mock import patch, call, MagicMock
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from homeassistant.const import UnitOfTemperature
 
 import logging
 
@@ -224,7 +226,9 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_off.call_count == 0
 
 
-async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_power_management_energy_over_switch(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
     """Test the Power management energy mesurement"""
 
     entry = MockConfigEntry(
@@ -344,3 +348,100 @@ async def test_power_management_energy(hass: HomeAssistant, skip_hass_states_is_
     # Still no change
     entity.incremente_energy()
     assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+
+
+async def test_power_management_energy_over_climate(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test the Power management for a over_climate thermostat"""
+
+    the_mock_underlying = MagicMockClimate()
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat.find_underlying_climate",
+        return_value=the_mock_underlying,
+    ):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            title="TheOverClimateMockName",
+            unique_id="uniqueId",
+            data={
+                CONF_NAME: "TheOverClimateMockName",
+                CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+                CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+                CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+                CONF_CYCLE_MIN: 5,
+                CONF_TEMP_MIN: 15,
+                CONF_TEMP_MAX: 30,
+                "eco_temp": 17,
+                "comfort_temp": 18,
+                "boost_temp": 19,
+                CONF_USE_WINDOW_FEATURE: False,
+                CONF_USE_MOTION_FEATURE: False,
+                CONF_USE_POWER_FEATURE: True,
+                CONF_USE_PRESENCE_FEATURE: False,
+                CONF_CLIMATE: "climate.mock_climate",
+                CONF_MINIMAL_ACTIVATION_DELAY: 30,
+                CONF_SECURITY_DELAY_MIN: 5,
+                CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+                CONF_POWER_SENSOR: "sensor.mock_power_sensor",
+                CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
+                CONF_DEVICE_POWER: 100,
+                CONF_PRESET_POWER: 12,
+            },
+        )
+
+        entity: VersatileThermostat = await create_thermostat(
+            hass, entry, "climate.theoverclimatemockname"
+        )
+        assert entity
+        assert entity._is_over_climate
+
+    now = datetime.now(tz=get_tz(hass))
+    await send_temperature_change_event(entity, 15, now)
+    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(PRESET_BOOST)
+
+    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_action is HVACAction.IDLE
+    assert entity.preset_mode is PRESET_BOOST
+    assert entity.target_temperature == 19
+    assert entity.current_temperature == 15
+
+    # Not initialised yet
+    assert entity.mean_cycle_power is None
+    assert entity._underlying_climate_start_hvac_action_date is None
+
+    # Send a climate_change event with HVACAction=HEATING
+    event_timestamp = now - timedelta(minutes=3)
+    await send_climate_change_event(
+        entity,
+        new_hvac_mode=HVACMode.HEAT,
+        old_hvac_mode=HVACMode.HEAT,
+        new_hvac_action=HVACAction.HEATING,
+        old_hvac_action=HVACAction.OFF,
+        date=event_timestamp,
+    )
+    # We have the start event and not the end event
+    assert (entity._underlying_climate_start_hvac_action_date - now).total_seconds() < 1
+
+    entity.incremente_energy()
+    assert entity.total_energy == 0
+
+    # Send a climate_change event with HVACAction=IDLE (end of heating)
+    await send_climate_change_event(
+        entity,
+        new_hvac_mode=HVACMode.HEAT,
+        old_hvac_mode=HVACMode.HEAT,
+        new_hvac_action=HVACAction.IDLE,
+        old_hvac_action=HVACAction.HEATING,
+        date=now,
+    )
+    # We have the end event -> we should have some power and on_percent
+    assert entity._underlying_climate_start_hvac_action_date is None
+
+    # 3 minutes at 100 W
+    assert entity.total_energy == 100 * 3.0 / 60
+
+    # Test the re-increment
+    entity.incremente_energy()
+    assert entity.total_energy == 2 * 100 * 3.0 / 60
