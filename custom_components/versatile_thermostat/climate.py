@@ -21,6 +21,7 @@ from homeassistant.core import (
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.config_validation as cv
@@ -91,7 +92,8 @@ from homeassistant.const import (
 )
 
 from .const import (
-    # DOMAIN,
+    DOMAIN,
+    DEVICE_MANUFACTURER,
     CONF_HEATER,
     CONF_POWER_SENSOR,
     CONF_TEMP_SENSOR,
@@ -267,6 +269,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
         self.post_init(entry_infos)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._unique_id)},
+            name=self._name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     def post_init(self, entry_infos):
         """Finish the initialization of the thermostast"""
@@ -1023,9 +1036,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._window_state
 
     @property
+    def security_state(self) -> bool | None:
+        """Get the security_state"""
+        return self._security_state
+
+    @property
     def motion_state(self) -> bool | None:
         """Get the motion_state"""
         return self._motion_state
+
+    @property
+    def presence_state(self) -> bool | None:
+        """Get the presence_state"""
+        return self._presence_state
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -1467,7 +1490,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_climate_changed(self, event):
         """Handle unerdlying climate state changes."""
         new_state = event.data.get("new_state")
-        _LOGGER.warning("%s - _async_climate_changed new_state is %s", self, new_state)
+        _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
         old_state = event.data.get("old_state")
         old_hvac_action = (
             old_state.attributes.get("hvac_action")

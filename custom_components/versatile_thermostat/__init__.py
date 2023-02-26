@@ -15,7 +15,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.CLIMATE]
+PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.BINARY_SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -58,13 +58,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-class VersatileThermostatAPI(Dict):
+class VersatileThermostatAPI(dict):
     """The VersatileThermostatAPI"""
 
     _hass: HomeAssistant
     # _entries: Dict(str, ConfigEntry)
 
-    def __init__(self, hass):
+    def __init__(self, hass: HomeAssistant) -> None:
         _LOGGER.debug("building a VersatileThermostatAPI")
         super().__init__()
         self._hass = hass
@@ -96,12 +96,11 @@ class VersatileThermostatAPI(Dict):
 
 
 # Example migration function
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate old entry."""
     _LOGGER.debug("Migrating from version %s", config_entry.version)
 
     if config_entry.version == 1:
-
         new = {**config_entry.data}
         # TODO: modify Config Entry data
 

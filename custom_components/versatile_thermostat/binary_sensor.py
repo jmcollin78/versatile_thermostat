@@ -1,0 +1,174 @@
+""" Implements the VersatileThermostat binary sensors component """
+import logging
+
+from homeassistant.core import HomeAssistant, callback, Event
+
+from homeassistant.const import STATE_ON
+
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.config_entries import ConfigEntry
+
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .commons import VersatileThermostatBaseEntity
+from .const import CONF_NAME
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the VersatileThermostat binary sensors with config flow."""
+    _LOGGER.debug(
+        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
+    )
+
+    unique_id = entry.entry_id
+    name = entry.data.get(CONF_NAME)
+
+    async_add_entities(
+        [
+            SecurityBinarySensor(hass, unique_id, name, entry.data),
+            OverpoweringBinarySensor(hass, unique_id, name, entry.data),
+            WindowBinarySensor(hass, unique_id, name, entry.data),
+            MotionBinarySensor(hass, unique_id, name, entry.data),
+            PresenceBinarySensor(hass, unique_id, name, entry.data),
+        ],
+        True,
+    )
+
+
+class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the security state"""
+
+    _security_state: bool
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the SecurityState Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Security state"
+        self._attr_unique_id = f"{self._device_name}_security_state"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+        old_state = self._attr_is_on
+        self._attr_is_on = self.my_climate.security_state
+        if old_state != self._attr_is_on:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        if self._attr_is_on:
+            return "mdi:shield-alert"
+        else:
+            return "mdi:shield-check-outline"
+
+
+class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the overpowering state"""
+
+    _security_state: bool
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the OverpoweringState Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Overpowering state"
+        self._attr_unique_id = f"{self._device_name}_overpowering_state"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+        old_state = self._attr_is_on
+        self._attr_is_on = self.my_climate.overpowering_state
+        if old_state != self._attr_is_on:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:flash-alert"
+
+
+class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the window state"""
+
+    _security_state: bool
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the WindowState Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Window state"
+        self._attr_unique_id = f"{self._device_name}_window_state"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+        old_state = self._attr_is_on
+        self._attr_is_on = self.my_climate.window_state == STATE_ON
+        if old_state != self._attr_is_on:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:window-open-variant"
+
+
+class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the motion state"""
+
+    _security_state: bool
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the MotionState Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Motion state"
+        self._attr_unique_id = f"{self._device_name}_motion_state"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+        old_state = self._attr_is_on
+        self._attr_is_on = self.my_climate.motion_state == STATE_ON
+        if old_state != self._attr_is_on:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:motion-sensor"
+
+
+class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the presence state"""
+
+    _security_state: bool
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the PresenceState Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Presence state"
+        self._attr_unique_id = f"{self._device_name}_presence_state"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+        old_state = self._attr_is_on
+        self._attr_is_on = self.my_climate.presence_state == STATE_ON
+        if old_state != self._attr_is_on:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:home-account"

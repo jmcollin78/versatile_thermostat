@@ -2,15 +2,18 @@
 
 from enum import Enum
 from homeassistant.const import CONF_NAME
-from homeassistant.components.climate.const import (
+from homeassistant.components.climate import (
     # PRESET_ACTIVITY,
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
 )
 
 from homeassistant.exceptions import HomeAssistantError
+
+DEVICE_MANUFACTURER = "JMCOLLIN"
+DEVICE_MODEL = "Versatile Thermostat"
 
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
@@ -126,7 +129,7 @@ CONF_FUNCTIONS = [
 
 CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE]
 
-SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE
+SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
