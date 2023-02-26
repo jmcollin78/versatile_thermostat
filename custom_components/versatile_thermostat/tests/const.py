@@ -51,6 +51,7 @@ MOCK_TH_OVER_SWITCH_USER_CONFIG = {
     CONF_CYCLE_MIN: 5,
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_DEVICE_POWER: 1,
     CONF_USE_WINDOW_FEATURE: True,
     CONF_USE_MOTION_FEATURE: True,
     CONF_USE_POWER_FEATURE: True,
@@ -65,6 +66,7 @@ MOCK_TH_OVER_CLIMATE_USER_CONFIG = {
     CONF_CYCLE_MIN: 5,
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_DEVICE_POWER: 1,
     # Keep default values which are False
 }
 
@@ -103,7 +105,6 @@ MOCK_MOTION_CONFIG = {
 MOCK_POWER_CONFIG = {
     CONF_POWER_SENSOR: "sensor.power_sensor",
     CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
-    CONF_DEVICE_POWER: 1,
     CONF_PRESET_POWER: 10,
 }
 

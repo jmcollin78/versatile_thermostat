@@ -13,6 +13,7 @@
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
+          "device_power": "Puissance de l'équipement",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
@@ -69,7 +70,6 @@
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "device_power": "Puissance de l'équipement",
           "power_temp": "Température si délestaqe"
         }
       },
@@ -117,6 +117,7 @@
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
+          "device_power": "Puissance de l'équipement",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
@@ -173,7 +174,6 @@
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "device_power": "Puissance de l'équipement",
           "power_temp": "Température si délestaqe"
         }
       },

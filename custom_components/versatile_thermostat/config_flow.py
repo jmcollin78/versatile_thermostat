@@ -204,6 +204,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
                 vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
                 vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+                vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
                 vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
                 vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
                 vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
@@ -290,7 +291,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
                     ),
                 ),  # vol.In(power_sensors),
-                vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
                 vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
             }
         )
