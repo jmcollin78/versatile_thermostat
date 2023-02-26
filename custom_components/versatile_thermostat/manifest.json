@@ -1,10 +1,10 @@
 {
   "domain": "versatile_thermostat",
   "name": "Versatile Thermostat",
-  "config_flow": true,
   "codeowners": [
     "@jmcollin78"
   ],
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/jmcollin78/versatile_thermostat",
   "homekit": {},
