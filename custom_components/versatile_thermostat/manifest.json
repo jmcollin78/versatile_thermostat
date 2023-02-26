@@ -1,19 +1,19 @@
 {
-  "version": "0.0.1",
   "domain": "versatile_thermostat",
   "name": "Versatile Thermostat",
   "config_flow": true,
-  "documentation": "https://github.com/jmcollin78/versatile_thermostat",
-  "issue_tracker": "https://github.com/jmcollin78/versatile_thermostat/issues",
-  "requirements": [],
-  "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
   "codeowners": [
     "@jmcollin78"
   ],
-  "quality_scale": "silver",
+  "dependencies": [],
+  "documentation": "https://github.com/jmcollin78/versatile_thermostat",
+  "homekit": {},
+  "integration_type": "device",
   "iot_class": "calculated",
-  "integration_type": "device"
+  "issue_tracker": "https://github.com/jmcollin78/versatile_thermostat/issues",
+  "quality_scale": "silver",
+  "requirements": [],
+  "ssdp": [],
+  "version": "0.0.1",
+  "zeroconf": []
 }
