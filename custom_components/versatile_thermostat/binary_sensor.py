@@ -11,7 +11,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .commons import VersatileThermostatBaseEntity
-from .const import CONF_NAME
+from .const import (
+    CONF_NAME,
+    CONF_USE_POWER_FEATURE,
+    CONF_USE_PRESENCE_FEATURE,
+    CONF_USE_MOTION_FEATURE,
+    CONF_USE_WINDOW_FEATURE,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,22 +35,21 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
 
-    async_add_entities(
-        [
-            SecurityBinarySensor(hass, unique_id, name, entry.data),
-            OverpoweringBinarySensor(hass, unique_id, name, entry.data),
-            WindowBinarySensor(hass, unique_id, name, entry.data),
-            MotionBinarySensor(hass, unique_id, name, entry.data),
-            PresenceBinarySensor(hass, unique_id, name, entry.data),
-        ],
-        True,
-    )
+    entities = [SecurityBinarySensor(hass, unique_id, name, entry.data)]
+    if entry.data.get(CONF_USE_MOTION_FEATURE):
+        entities.append(MotionBinarySensor(hass, unique_id, name, entry.data))
+    if entry.data.get(CONF_USE_WINDOW_FEATURE):
+        entities.append(WindowBinarySensor(hass, unique_id, name, entry.data))
+    if entry.data.get(CONF_USE_PRESENCE_FEATURE):
+        entities.append(PresenceBinarySensor(hass, unique_id, name, entry.data))
+    if entry.data.get(CONF_USE_POWER_FEATURE):
+        entities.append(OverpoweringBinarySensor(hass, unique_id, name, entry.data))
+
+    async_add_entities(entities, True)
 
 
 class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the security state"""
-
-    _security_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the SecurityState Binary sensor"""
@@ -73,8 +78,6 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the overpowering state"""
 
-    _security_state: bool
-
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the OverpoweringState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
@@ -93,13 +96,14 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
 
     @property
     def icon(self) -> str | None:
-        return "mdi:flash-alert"
+        if self._attr_is_on:
+            return "mdi:flash-alert-outline"
+        else:
+            return "mdi:flash-outline"
 
 
 class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the window state"""
-
-    _security_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the WindowState Binary sensor"""
@@ -119,13 +123,14 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 
     @property
     def icon(self) -> str | None:
-        return "mdi:window-open-variant"
+        if self._attr_is_on:
+            return "mdi:window-open-variant"
+        else:
+            return "mdi:window-closed-variant"
 
 
 class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the motion state"""
-
-    _security_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the MotionState Binary sensor"""
@@ -145,13 +150,14 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 
     @property
     def icon(self) -> str | None:
-        return "mdi:motion-sensor"
+        if self._attr_is_on:
+            return "mdi:motion-sensor"
+        else:
+            return "mdi:motion-sensor-off"
 
 
 class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the presence state"""
-
-    _security_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the PresenceState Binary sensor"""
@@ -162,6 +168,7 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event):
         """Called when my climate have change"""
+
         _LOGGER.debug("%s - climate state change", event.origin.name)
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.presence_state == STATE_ON
@@ -171,4 +178,7 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 
     @property
     def icon(self) -> str | None:
-        return "mdi:home-account"
+        if self._attr_is_on:
+            return "mdi:home-account"
+        else:
+            return "mdi:nature-people"
