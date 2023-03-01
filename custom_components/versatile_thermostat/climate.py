@@ -1050,6 +1050,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Get the presence_state"""
         return self._presence_state
 
+    @property
+    def proportional_algorithm(self) -> PropAlgorithm | None:
+        """Get the eventual ProportionalAlgorithm"""
+        return self._prop_algorithm
+
+    @property
+    def last_temperature_mesure(self) -> datetime | None:
+        """Get the last temperature datetime"""
+        return self._last_temperature_mesure
+
+    @property
+    def last_ext_temperature_mesure(self) -> datetime | None:
+        """Get the last external temperature datetime"""
+        return self._last_ext_temperature_mesure
+
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
         if self._is_over_climate and self._underlying_climate:
