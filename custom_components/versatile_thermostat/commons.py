@@ -55,12 +55,16 @@ class VersatileThermostatBaseEntity(Entity):
 
     def find_my_versatile_thermostat(self) -> VersatileThermostat:
         """Find the underlying climate entity"""
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
-            _LOGGER.debug("Device_info is %s", entity.device_info)
-            if entity.device_info == self.device_info:
-                _LOGGER.debug("Found %s!", entity)
-                return entity
+        try:
+            component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+            for entity in component.entities:
+                _LOGGER.debug("Device_info is %s", entity.device_info)
+                if entity.device_info == self.device_info:
+                    _LOGGER.debug("Found %s!", entity)
+                    return entity
+        except KeyError:
+            pass
+
         return None
 
     @callback

@@ -4,10 +4,13 @@ import math
 
 from homeassistant.core import HomeAssistant, callback, Event
 
-from homeassistant.const import STATE_ON, UnitOfTime
+from homeassistant.const import UnitOfTime
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorDeviceClass,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -15,10 +18,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .commons import VersatileThermostatBaseEntity
 from .const import (
     CONF_NAME,
-    CONF_USE_POWER_FEATURE,
-    CONF_USE_PRESENCE_FEATURE,
-    CONF_USE_MOTION_FEATURE,
-    CONF_USE_WINDOW_FEATURE,
     CONF_DEVICE_POWER,
     CONF_PROP_FUNCTION,
     PROPORTIONAL_FUNCTION_TPI,
@@ -55,12 +54,6 @@ async def async_setup_entry(
         entities.append(OnPercentSensor(hass, unique_id, name, entry.data))
         entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
         entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
-    # if entry.data.get(CONF_USE_WINDOW_FEATURE):
-    #     entities.append(WindowBinarySensor(hass, unique_id, name, entry.data))
-    # if entry.data.get(CONF_USE_PRESENCE_FEATURE):
-    #     entities.append(PresenceBinarySensor(hass, unique_id, name, entry.data))
-    # if entry.data.get(CONF_USE_POWER_FEATURE):
-    #     entities.append(OverpoweringBinarySensor(hass, unique_id, name, entry.data))
 
     async_add_entities(entities, True)
 
