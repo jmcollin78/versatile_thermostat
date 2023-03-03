@@ -4,7 +4,7 @@ import math
 
 from homeassistant.core import HomeAssistant, callback, Event
 
-from homeassistant.const import STATE_ON
+from homeassistant.const import STATE_ON, UnitOfTime
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
@@ -53,6 +53,8 @@ async def async_setup_entry(
 
     if entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
         entities.append(OnPercentSensor(hass, unique_id, name, entry.data))
+        entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
+        entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
     # if entry.data.get(CONF_USE_WINDOW_FEATURE):
     #     entities.append(WindowBinarySensor(hass, unique_id, name, entry.data))
     # if entry.data.get(CONF_USE_PRESENCE_FEATURE):
@@ -213,6 +215,96 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 1
+
+
+class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a on time sensor which exposes the on_time_sec in a cycle"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the energy sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "On time"
+        self._attr_unique_id = f"{self._device_name}_on_time"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+
+        on_time = (
+            float(self.my_climate.proportional_algorithm.on_time_sec)
+            if self.my_climate and self.my_climate.proportional_algorithm
+            else None
+        )
+        if math.isnan(on_time) or math.isinf(on_time):
+            raise ValueError(f"Sensor has illegal state {on_time}")
+
+        old_state = self._attr_native_value
+        self._attr_native_value = round(on_time)
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:timer-play"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.DURATION
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return UnitOfTime.SECONDS
+
+
+class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a on time sensor which exposes the off_time_sec in a cycle"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the energy sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Off time"
+        self._attr_unique_id = f"{self._device_name}_off_time"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", event.origin.name)
+
+        off_time = (
+            float(self.my_climate.proportional_algorithm.off_time_sec)
+            if self.my_climate and self.my_climate.proportional_algorithm
+            else None
+        )
+        if math.isnan(off_time) or math.isinf(off_time):
+            raise ValueError(f"Sensor has illegal state {off_time}")
+
+        old_state = self._attr_native_value
+        self._attr_native_value = round(off_time)
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:timer-off-outline"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.DURATION
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return UnitOfTime.SECONDS
 
 
 class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
