@@ -1,7 +1,8 @@
 """Constants for the Versatile Thermostat integration."""
 
 from enum import Enum
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_NAME, Platform
+
 from homeassistant.components.climate import (
     # PRESET_ACTIVITY,
     PRESET_BOOST,
@@ -25,6 +26,8 @@ PRESET_SECURITY = "security"
 HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 
 DOMAIN = "versatile_thermostat"
+
+PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.BINARY_SENSOR, Platform.SENSOR]
 
 CONF_HEATER = "heater_entity_id"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"

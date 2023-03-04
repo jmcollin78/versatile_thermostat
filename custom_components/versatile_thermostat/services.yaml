@@ -1,3 +1,6 @@
+reload:
+  description: Reload all Versatile Thermostat entities.
+
 set_presence:
   name: Set presence
   description: Force the presence mode in thermostat

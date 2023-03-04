@@ -25,6 +25,7 @@ from homeassistant.helpers.entity import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.reload import async_setup_reload_service
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -93,6 +94,7 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
+    PLATFORMS,
     DEVICE_MANUFACTURER,
     CONF_HEATER,
     CONF_POWER_SENSOR,
@@ -155,6 +157,8 @@ async def async_setup_entry(
     _LOGGER.debug(
         "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
     )
+
+    await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
@@ -1026,6 +1030,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._total_energy
 
     @property
+    def device_power(self) -> float | None:
+        """Returns the device_power for this thermostast"""
+        return self._device_power
+
+    @property
     def overpowering_state(self) -> bool | None:
         """Get the overpowering_state"""
         return self._overpowering_state
@@ -1506,6 +1515,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Handle unerdlying climate state changes."""
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
+        if not new_state:
+            return
+
         old_state = event.data.get("old_state")
         old_hvac_action = (
             old_state.attributes.get("hvac_action")

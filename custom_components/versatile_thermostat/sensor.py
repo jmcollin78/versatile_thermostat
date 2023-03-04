@@ -4,7 +4,7 @@ import math
 
 from homeassistant.core import HomeAssistant, callback, Event
 
-from homeassistant.const import UnitOfTime
+from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAGE
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -24,6 +24,8 @@ from .const import (
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_TYPE,
 )
+
+THRESHOLD_WATT_KILO = 100
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,7 +101,13 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
 
     @property
     def native_unit_of_measurement(self) -> str | None:
-        return "kWh"
+        if not self.my_climate:
+            return None
+
+        if self.my_climate.device_power > THRESHOLD_WATT_KILO:
+            return UnitOfEnergy.WATT_HOUR
+        else:
+            return UnitOfEnergy.KILO_WATT_HOUR
 
     @property
     def suggested_display_precision(self) -> int | None:
@@ -150,7 +158,13 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
 
     @property
     def native_unit_of_measurement(self) -> str | None:
-        return "kW"
+        if not self.my_climate:
+            return None
+
+        if self.my_climate.device_power > THRESHOLD_WATT_KILO:
+            return UnitOfPower.WATT
+        else:
+            return UnitOfPower.KILO_WATT
 
     @property
     def suggested_display_precision(self) -> int | None:
@@ -202,7 +216,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
 
     @property
     def native_unit_of_measurement(self) -> str | None:
-        return "%"
+        return PERCENTAGE
 
     @property
     def suggested_display_precision(self) -> int | None:
