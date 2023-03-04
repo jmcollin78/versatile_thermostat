@@ -30,6 +30,7 @@
   - [Mes presets](#mes-presets)
 - [Algorithme](#algorithme)
   - [Algorithme TPI](#algorithme-tpi)
+- [Capteurs](#capteurs)
 - [Services](#services)
   - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
@@ -73,9 +74,10 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Éteindre/allumer un thermostat lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
 - Changer de preset lorsqu'une **activité est détectée** ou non dans une pièce pendant un temps défini,
 - Utiliser un algorithme **TPI (Time Proportional Interval)** grâce à l'algorithme [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] ,
-- Ajoutez une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
-- Ajouter la **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
-- Ajoutez des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
+- Ajouter une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
+- La **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
+- Des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
+- Ajouter des capteurs pour voir les états internes du thermostat.
 
 # Comment installer cet incroyable Thermostat Versatile ?
 
@@ -121,7 +123,8 @@ Donnez les principaux attributs obligatoires :
 5. une entité capteur de température donnant la température extérieure. Si vous n'avez pas de capteur externe, vous pouvez utiliser l'intégration météo locale
 6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous),
 7. les températures minimales et maximales du thermostat,
-8. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
+8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil,
+9. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
       1. avec le type ```thermostat_over_swutch```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
@@ -213,7 +216,7 @@ Si vous avez choisi la fonctionnalité ```Avec détection de la puissance```, cl
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
-Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique de votre chauffage** et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
+Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique de votre chauffage** (en étape 1 de la configuration) et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
 
 Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW ou W par exemple).
 Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou de ce que vous voulez.
@@ -330,6 +333,27 @@ Pour régler ces coefficients, gardez à l'esprit que :
 
 Voir quelques situations à [examples](#some-results).
 
+# Capteurs
+
+Avec le thermostat sont disponibles des capteurs qui permettent de visualiser les alertes et l'état interne du thermostat. Ils sont disponibles dans les entités de l'appareil associé au thermostat :
+
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/thermostat-sensors.png?raw=true)
+
+Dans l'ordre, il y a :
+1. l'entité principale climate de commande du thermostat,
+2. l'énergie consommée par le thermostat (valeur qui s'incrémente en permanence),
+3. l'heure de réception de la dernière température extérieure,
+4. l'heure de réception de la dernière température intérieure,
+5. la puissance moyenne de l'appareil sur le cycle (pour les TPI seulement),
+6. le temps passé à l'état éteint dans le cycle (TPI seulement),
+7. le temps passé à l'état allumé dans le cycle (TPI seulement),
+8. l'état de délestage,
+9. le pourcentage de puissance sur le cycle (TPI seulement),
+10. l'état de présence (si la gestion de la présence est configurée),
+11. l'état de sécurité,
+12. l'état de l'ouverture (si la gestion des ouvertures est configurée),
+13. l'état du mouvement (si la gestion du mouvements est configurée)
+
 # Services
 
 Cette implémentation personnalisée offre des services spécifiques pour faciliter l'intégration avec d'autres composants Home Assistant.
@@ -420,25 +444,25 @@ Les attributs personnalisés sont les suivants :
 | ``[eco/confort/boost]_temp`` | La température configurée pour le préréglage xxx |
 | ``[eco/confort/boost]_away_temp`` | La température configurée pour le préréglage xxx lorsque la présence est désactivée ou not_home |
 | ``temp_power`` | La température utilisée lors de la détection de la perte |
-| ``on_percent`` | Le pourcentage sur calculé par l'algorithme TPI |
-| ``on_time_sec`` | La période On en sec. Doit être ```on_percent * cycle_min``` |
-| ``off_time_sec`` | La période d'arrêt en sec. Doit être ```(1 - on_percent) * cycle_min``` |
+| ``on_percent`` | (déprécié) Le pourcentage sur calculé par l'algorithme TPI |
+| ``on_time_sec`` | (déprécié) La période On en sec. Doit être ```on_percent * cycle_min``` |
+| ``off_time_sec`` | (déprécié) La période d'arrêt en sec. Doit être ```(1 - on_percent) * cycle_min``` |
 | ``cycle_min`` | Le cycle de calcul en minutes |
 | ``function`` | L'algorithme utilisé pour le calcul du cycle |
 | ``tpi_coef_int`` | Le ``coef_int`` de l'algorithme TPI |
 | ``tpi_coef_ext`` | Le ``coef_ext`` de l'algorithme TPI |
 | ``saved_preset_mode`` | Le dernier preset utilisé avant le basculement automatique du preset |
 | ``saved_target_temp`` | La dernière température utilisée avant la commutation automatique |
-| ``window_state`` | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée |
-| ``motion_state`` | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré |
-| ``overpowering_state`` | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
-| ``presence_state`` | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
+| ``window_state`` | (déprécié) Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée |
+| ``motion_state`` | (déprécié) Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré |
+| ``overpowering_state`` | (déprécié) Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
+| ``presence_state`` | (déprécié) Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
 | ``security_delay_min`` | Le délai avant de régler le mode de sécurité lorsque le capteur de température est éteint |
 | ``security_min_on_percent`` | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité |
 | ``security_default_on_percent`` | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité |
-| ``last_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température interne |
-| ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
-| ``security_state`` | L'état de sécurité. vrai ou faux |
+| ``last_temperature_datetime`` | (déprécié) La date et l'heure au format ISO8866 de la dernière réception de température interne |
+| ``last_ext_temperature_datetime`` | (déprécié) La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
+| ``security_state`` | (déprécié) L'état de sécurité. vrai ou faux |
 | ``minimal_activation_delay_sec`` | Le délai d'activation minimal en secondes |
 | ``last_update_datetime`` | La date et l'heure au format ISO8866 de cet état |
 | ``friendly_name`` | Le nom du thermostat |
@@ -523,6 +547,24 @@ Exemple de configuration :
           entity: input_boolean.etat_ouverture_porte_sam
           name: Porte sam
 ```
+
+Vous pouvez personnaliser ce composant à l'aide du composant HACS card-mod pour ajuster les couleurs des alertes. Exemple pour afficher en rouge les alertes sécurité et délestage :
+
+```
+          card_mod:
+            style: |
+              {% if is_state('binary_sensor.thermostat_chambre_security_state', 'on') %}
+              ha-card .body .sensor-heading ha-icon[icon="mdi:alert-outline"] {
+                color: red;
+              }
+              {% endif %}
+              {% if is_state('binary_sensor.thermostat_chambre_overpowering_state', 'on') %}
+              ha-card .body .sensor-heading ha-icon[icon="mdi:flash"] {
+                color: red;
+              }
+              {% endif %}
+```
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/custom-css-thermostat.png?raw=true)
 
 ## Toujours mieux avec Apex-chart pour régler votre thermostat
 Vous pouvez obtenir une courbe comme celle présentée dans [some results](#some-results) avec une sorte de configuration de graphique Apex uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](#custom-attributes) :

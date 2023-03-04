@@ -30,6 +30,7 @@
   - [My preset configuration](#my-preset-configuration)
 - [Algorithm](#algorithm)
   - [TPI algorithm](#tpi-algorithm)
+- [Sensors](#sensors)
 - [Services](#services)
   - [Force the presence / occupancy](#force-the-presence--occupancy)
   - [Change the temperature of presets](#change-the-temperature-of-presets)
@@ -74,6 +75,7 @@ This component named __Versatile thermostat__ manage the following use cases :
 - Add **power shedding management** or regulation to avoid exceeding a defined total power. When max power is exceeded, a hidden 'power' preset is set on the climate entity. When power goes below the max, the previous preset is restored.
 - Add **home presence management**. This feature allows you to dynamically change the temperature of preset considering a occupancy sensor of your home.
 - Add **services to interact with the thermostat** from others integration: you can force the presence / un-presence using a service, and you can dynamically change the temperature of the presets and change dynamically the security parameters.
+- Add sensors to see the internal states of the thermostat
 
 # How to install this incredible Versatile Thermostat ?
 
@@ -117,7 +119,8 @@ Give the main mandatory attributes:
 5. a temperature sensor entity giving the outside temperature. If you don't have an external sensor, you can use local weather integration
 6. a cycle duration in minutes. On each cycle, the heater will cycle on and then off for a calculated time to reach the target temperature (see [preset](#configure-the-preset-temperature) below),
 7. minimum and maximum thermostat temperatures,
-8. the list of features that will be used for this thermostat. Depending on your choices, the following configuration screens will appear or not.
+8. the power of the l'équipement which will activate the power and energy sensors of the device,
+9. the list of features that will be used for this thermostat. Depending on your choices, the following configuration screens will appear or not.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
       1. With the ```thermostat_over_switch``` type, calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
@@ -198,7 +201,7 @@ For this to work, the climate thermostat should be in ``Activity`` preset mode.
 If you choose the ```Power management``` feature, click on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
-This feature allows you to regulate the power consumption of your radiators. Known as shedding, this feature allows you to limit the electrical power consumption of your heater if overpowering conditions are detected. Give a **sensor to the current power consumption of your house**, a **sensor to the max power** that should not be exceeded, the **power consumption of your heater** and the algorithm will not start a radiator if the max power will be exceeded after radiator starts.
+This feature allows you to regulate the power consumption of your radiators. Known as shedding, this feature allows you to limit the electrical power consumption of your heater if overpowering conditions are detected. Give a **sensor to the current power consumption of your house**, a **sensor to the max power** that should not be exceeded, the **power consumption of your heater** (in the first step of the configuration) and the algorithm will not start a radiator if the max power will be exceeded after radiator starts.
 
 
 Note that all power values should have the same units (kW or W for example).
@@ -316,6 +319,27 @@ To tune those coefficients keep in mind that:
 
 See some situations at [examples](#some-results).
 
+# Sensors
+
+With the thermostat are available sensors that allow you to view the alerts and the internal status of the thermostat. They are available in the entities of the device associated with the thermostat:
+
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/thermostat-sensors.png?raw=true)
+
+In order, there are:
+1. the main climate thermostat command entity,
+2. the energy consumed by the thermostat (value which continuously increases),
+3. the time of receipt of the last outside temperature,
+4. the time of receipt of the last indoor temperature,
+5. the average power of the device over the cycle (for TPIs only),
+6. the time spent in the off state in the cycle (TPI only),
+7. the time spent in the on state in the cycle (TPI only),
+8. load shedding status,
+9. cycle power percentage (TPI only),
+10. presence status (if presence management is configured),
+11. security status,
+12. opening status (if opening management is configured),
+13. motion status (if motion management is configured)
+
 # Services
 
 This custom implementation offers some specific services to facilitate integration with others Home Assisstant components.
@@ -406,25 +430,25 @@ Custom attributes are the following:
 | ``[eco/comfort/boost]_temp`` | The temperature configured for the preset xxx |
 | ``[eco/comfort/boost]_away_temp`` | The temperature configured for the preset xxx when presence is off or not_home |
 | ``power_temp`` | The temperature used when shedding is detected |
-| ``on_percent`` | The percentage on calculated by the TPI algorithm |
-| ``on_time_sec`` | The On period in sec. Should be ```on_percent * cycle_min``` |
-| ``off_time_sec`` | The Off period in sec. Should be ```(1 - on_percent) * cycle_min``` |
+| ``on_percent`` | (deprecated) The percentage on calculated by the TPI algorithm |
+| ``on_time_sec`` | (deprecated) The On period in sec. Should be ```on_percent * cycle_min``` |
+| ``off_time_sec`` | (deprecated) The Off period in sec. Should be ```(1 - on_percent) * cycle_min``` |
 | ``cycle_min`` | The calculation cycle in minutes |
 | ``function`` | The algorithm used for cycle calculation |
 | ``tpi_coef_int`` | The ``coef_int`` of the TPI algorithm |
 | ``tpi_coef_ext`` | The ``coef_ext`` of the TPI algorithm |
 | ``saved_preset_mode`` | The last preset used before automatic switch of the preset |
 | ``saved_target_temp`` | The last temperature used before automatic switching |
-| ``window_state`` | The last known state of the window sensor. None if window is not configured |
-| ``motion_state`` | The last known state of the motion sensor. None if motion is not configured |
-| ``overpowering_state`` | The last known state of the overpowering sensor. None if power management is not configured |
-| ``presence_state`` | The last known state of the presence sensor. None if presence management is not configured |
+| ``window_state`` | (deprecated) The last known state of the window sensor. None if window is not configured |
+| ``motion_state`` | (deprecated) The last known state of the motion sensor. None if motion is not configured |
+| ``overpowering_state`` | (deprecated) The last known state of the overpowering sensor. None if power management is not configured |
+| ``presence_state`` | (deprecated) The last known state of the presence sensor. None if presence management is not configured |
 | ``security_delay_min`` | The delay before setting the security mode when temperature sensor are off |
 | ``security_min_on_percent`` | The minimal on_percent below which security preset won't be trigger |
 | ``security_default_on_percent`` | The on_percent used when thermostat is in ``security`` |
-| ``last_temperature_datetime`` | The date and time in ISO8866 format of the last internal temperature reception |
-| ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception |
-| ``security_state`` | The security state. true or false |
+| ``last_temperature_datetime`` | (deprecated) The date and time in ISO8866 format of the last internal temperature reception |
+| ``last_ext_temperature_datetime`` | (deprecated) The date and time in ISO8866 format of the last external temperature reception |
+| ``security_state`` | (deprecated) The security state. true or false |
 | ``minimal_activation_delay_sec`` | The minimal activation delay in seconds |
 | ``last_update_datetime`` | The date and time in ISO8866 format of this state |
 | ``friendly_name`` | The name of the thermostat |
@@ -509,6 +533,23 @@ Example configuration:
           entity: input_boolean.etat_ouverture_porte_sam
           name: Porte sam
 ```
+You can customize this component using the HACS card-mod component to adjust the alert colors. Example for displaying safety and load shedding alerts in red:
+
+```
+          card_mod:
+            style: |
+              {% if is_state('binary_sensor.thermostat_chambre_security_state', 'on') %}
+              ha-card .body .sensor-heading ha-icon[icon="mdi:alert-outline"] {
+                color: red;
+              }
+              {% endif %}
+              {% if is_state('binary_sensor.thermostat_chambre_overpowering_state', 'on') %}
+              ha-card .body .sensor-heading ha-icon[icon="mdi:flash"] {
+                color: red;
+              }
+              {% endif %}
+```
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/custom-css-thermostat.png?raw=true)
 
 ## Even better with Apex-chart to tune your Thermostat
 You can get curve like presented in [some results](#some-results) with kind of Apex-chart configuration only using the custom attributes of the thermostat described [here](#custom-attributes):
