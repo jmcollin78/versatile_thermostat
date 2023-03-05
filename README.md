@@ -45,7 +45,6 @@
   - [And always better and better with the NOTIFIER daemon app to notify events](#and-always-better-and-better-with-the-notifier-daemon-app-to-notify-events)
 - [Contributions are welcome!](#contributions-are-welcome)
 
-_Component developed by using the amazing development template [[blueprint](https://github.com/custom-components/integration_blueprint)]._
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
@@ -339,6 +338,22 @@ In order, there are:
 11. security status,
 12. opening status (if opening management is configured),
 13. motion status (if motion management is configured)
+
+To color the sensors, add these lines and customize them as needed, in your configuration.yaml:
+
+```
+frontend:
+  themes:
+    versatile_thermostat_theme:
+      state-binary_sensor-safety-on-color: "#FF0B0B"
+      state-binary_sensor-power-on-color: "#FF0B0B"
+      state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-presence-on-color: "lightgreen"
+```
+and choose the ```versatile_thermostat_theme``` theme in the panel configuration. You will get something that will look like this:
+
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/colored-thermostat-sensors.png?raw=true)
 
 # Services
 

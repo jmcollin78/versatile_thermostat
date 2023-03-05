@@ -45,8 +45,6 @@
   - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
 - [Les contributions sont les bienvenues !](#les-contributions-sont-les-bienvenues)
 
-_Composant développé à l'aide de l'incroyable modèle de développement [[blueprint](https://github.com/custom-components/integration_blueprint)]._
-
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -353,6 +351,22 @@ Dans l'ordre, il y a :
 11. l'état de sécurité,
 12. l'état de l'ouverture (si la gestion des ouvertures est configurée),
 13. l'état du mouvement (si la gestion du mouvements est configurée)
+
+Pour colorer les capteurs, ajouter ces lignes et personnalisez les au besoin, dans votre configuration.yaml :
+
+```
+frontend:
+  themes:
+    versatile_thermostat_theme:
+      state-binary_sensor-safety-on-color: "#FF0B0B"
+      state-binary_sensor-power-on-color: "#FF0B0B"
+      state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-presence-on-color: "lightgreen"
+```
+et choisissez le thème ```versatile_thermostat_theme``` dans la configuration du panel. Vous obtiendrez quelque-chose qui va ressembler à ça :
+
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/colored-thermostat-sensors.png?raw=true)
 
 # Services
 
