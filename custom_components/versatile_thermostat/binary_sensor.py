@@ -5,7 +5,10 @@ from homeassistant.core import HomeAssistant, callback, Event
 
 from homeassistant.const import STATE_ON
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntity,
+    BinarySensorDeviceClass,
+)
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -56,16 +59,24 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Security state"
         self._attr_unique_id = f"{self._device_name}_security_state"
+        self._attr_is_on = False
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.security_state
+        self._attr_is_on = self.my_climate.security_state is True
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.SAFETY
 
     @property
     def icon(self) -> str | None:
@@ -83,16 +94,24 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Overpowering state"
         self._attr_unique_id = f"{self._device_name}_overpowering_state"
+        self._attr_is_on = False
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.overpowering_state
+        self._attr_is_on = self.my_climate.overpowering_state is True
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.POWER
 
     @property
     def icon(self) -> str | None:
@@ -110,16 +129,24 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window state"
         self._attr_unique_id = f"{self._device_name}_window_state"
+        self._attr_is_on = False
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.window_state == STATE_ON
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.WINDOW
 
     @property
     def icon(self) -> str | None:
@@ -137,16 +164,24 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Motion state"
         self._attr_unique_id = f"{self._device_name}_motion_state"
+        self._attr_is_on = False
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.motion_state == STATE_ON
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.MOTION
 
     @property
     def icon(self) -> str | None:
@@ -164,17 +199,25 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Presence state"
         self._attr_unique_id = f"{self._device_name}_presence_state"
+        self._attr_is_on = False
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
 
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.presence_state == STATE_ON
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.PRESENCE
 
     @property
     def icon(self) -> str | None:

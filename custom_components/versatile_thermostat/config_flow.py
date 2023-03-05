@@ -180,7 +180,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
         )
 
-        self.STEP_USER_DATA_SCHEMA = vol.Schema(
+        self.STEP_USER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_NAME): cv.string,
                 vol.Required(
@@ -212,7 +212,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_THERMOSTAT_SWITCH = vol.Schema(
+        self.STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_HEATER): selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -229,7 +229,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_THERMOSTAT_CLIMATE = vol.Schema(
+        self.STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
@@ -237,21 +237,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_TPI_DATA_SCHEMA = vol.Schema(
+        self.STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_TPI_COEF_INT, default=0.6): vol.Coerce(float),
                 vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float),
             }
         )
 
-        self.STEP_PRESETS_DATA_SCHEMA = vol.Schema(
+        self.STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Optional(v, default=0.0): vol.Coerce(float)
                 for (k, v) in CONF_PRESETS.items()
             }
         )
 
-        self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(
+        self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Optional(CONF_WINDOW_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -262,7 +262,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_MOTION_DATA_SCHEMA = vol.Schema(
+        self.STEP_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Optional(CONF_MOTION_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -279,7 +279,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_POWER_DATA_SCHEMA = vol.Schema(
+        self.STEP_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Optional(CONF_POWER_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -295,7 +295,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_PRESENCE_DATA_SCHEMA = vol.Schema(
+        self.STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Optional(CONF_PRESENCE_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -314,7 +314,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             }
         )
 
-        self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(
+        self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(
                     CONF_MINIMAL_ACTIVATION_DELAY, default=10

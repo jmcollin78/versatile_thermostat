@@ -1,5 +1,5 @@
 """ Test the Power management """
-from unittest.mock import patch, call, MagicMock
+from unittest.mock import patch, call
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from datetime import datetime, timedelta
 
@@ -44,7 +44,7 @@ async def test_power_management_hvac_off(
             CONF_POWER_SENSOR: "sensor.mock_power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
-            CONF_PRESET_POWER: "eco",
+            CONF_PRESET_POWER: 12,
         },
     )
 
@@ -394,7 +394,7 @@ async def test_power_management_energy_over_climate(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity
-        assert entity._is_over_climate
+        assert entity.is_over_climate
 
     now = datetime.now(tz=get_tz(hass))
     await send_temperature_change_event(entity, 15, now)

@@ -357,7 +357,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._presence_on = self._presence_sensor_entity_id is not None
 
-        # TODO if self.ac_mode:
+        # if self.ac_mode: -> MODE_COOL should be better to use thermostat_over_climate type
         #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
         # else:
         self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
@@ -1118,6 +1118,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """
         return self._attr_preset_modes
 
+    @property
+    def is_over_climate(self) -> bool | None:
+        """return True is the thermostat is over a climate
+        or False is over switch"""
+        return self._is_over_climate
+
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
@@ -1488,6 +1494,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self.hass, timedelta(seconds=self._motion_delay_sec), try_motion_condition
         )
 
+        # For testing purpose we need to access the inner function
+        return try_motion_condition
+
     @callback
     async def _check_switch_initial_state(self):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
@@ -1551,7 +1560,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._hvac_mode = new_state.state
 
         # Interpretation of hvac
-        HVAC_ACTION_ON = [
+        HVAC_ACTION_ON = [  # pylint: disable=invalid-name
             HVACAction.COOLING,
             HVACAction.DRYING,
             HVACAction.FAN,
@@ -2126,7 +2135,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if self._hvac_mode == HVACMode.HEAT and on_time_sec > 0:
 
                 async def _turn_on_off_later(
-                    on: bool, time, heater_action, next_cycle_action
+                    on: bool,  # pylint: disable=invalid-name
+                    time,
+                    heater_action,
+                    next_cycle_action,
                 ):
                     if self._async_cancel_cycle:
                         self._async_cancel_cycle()

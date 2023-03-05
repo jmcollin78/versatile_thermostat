@@ -13,12 +13,12 @@ from homeassistant.components.climate import (
 
 from homeassistant.exceptions import HomeAssistantError
 
-DEVICE_MANUFACTURER = "JMCOLLIN"
-DEVICE_MODEL = "Versatile Thermostat"
-
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
+
+DEVICE_MANUFACTURER = "JMCOLLIN"
+DEVICE_MODEL = "Versatile Thermostat"
 
 PRESET_POWER = "power"
 PRESET_SECURITY = "security"

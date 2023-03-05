@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from ..climate import VersatileThermostat
 
-from .commons import *
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):

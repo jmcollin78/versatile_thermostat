@@ -19,7 +19,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     6. check that security is off and preset is changed to boost
     """
 
-    tz = get_tz(hass)
+    tz = get_tz(hass)  # pylint: disable=invalid-name
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -93,7 +93,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
         # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
-        assert entity._security_state is True
+        assert entity.security_state is True
         assert entity.preset_mode == PRESET_SECURITY
         assert entity._saved_preset_mode == PRESET_COMFORT
         assert entity._prop_algorithm.on_percent == 0.1

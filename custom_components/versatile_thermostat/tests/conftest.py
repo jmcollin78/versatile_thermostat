@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 import pytest
 
-from homeassistant.core import HomeAssistant, StateMachine
+from homeassistant.core import StateMachine
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -28,13 +28,14 @@ from custom_components.versatile_thermostat.climate import (
     VersatileThermostat,
 )
 
-pytest_plugins = "pytest_homeassistant_custom_component"
+pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
+    """Enable all integration in tests"""
     yield
 
 
@@ -46,6 +47,17 @@ def skip_notifications_fixture():
     """Skip notification calls."""
     with patch("homeassistant.components.persistent_notification.async_create"), patch(
         "homeassistant.components.persistent_notification.async_dismiss"
+    ):
+        yield
+
+
+@pytest.fixture(name="skip_turn_on_off_heater")
+def skip_turn_on_off_heater():
+    """Skip turning on and off the heater"""
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+    ), patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
     ):
         yield
 

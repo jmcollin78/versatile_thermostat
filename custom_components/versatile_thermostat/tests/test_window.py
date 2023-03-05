@@ -2,7 +2,6 @@
 from unittest.mock import patch, call
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from datetime import datetime
-import time
 
 import logging
 

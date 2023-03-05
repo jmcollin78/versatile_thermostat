@@ -70,9 +70,12 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_energy"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         if math.isnan(self.my_climate.total_energy) or math.isinf(
             self.my_climate.total_energy
@@ -125,9 +128,12 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_mean_power_cycle"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         if math.isnan(float(self.my_climate.mean_cycle_power)) or math.isinf(
             self.my_climate.mean_cycle_power
@@ -182,9 +188,12 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_power_percent"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         on_percent = (
             float(self.my_climate.proportional_algorithm.on_percent)
@@ -234,9 +243,12 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_on_time"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         on_time = (
             float(self.my_climate.proportional_algorithm.on_time_sec)
@@ -279,9 +291,12 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_off_time"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         off_time = (
             float(self.my_climate.proportional_algorithm.off_time_sec)
@@ -324,9 +339,12 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_temperature_mesure
@@ -353,9 +371,12 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", event.origin.name)
+        _LOGGER.debug(
+            "%s - climate state change",
+            event.origin.name if event and event.origin else None,
+        )
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_ext_temperature_mesure

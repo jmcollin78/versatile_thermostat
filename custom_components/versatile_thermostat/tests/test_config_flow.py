@@ -4,11 +4,7 @@ from homeassistant import data_entry_flow
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
 
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, load_fixture
-
 from custom_components.versatile_thermostat.const import DOMAIN
-from custom_components.versatile_thermostat import VersatileThermostatAPI
 
 from .const import (
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
@@ -41,7 +37,7 @@ async def test_show_form(hass: HomeAssistant) -> None:
     assert result["step_id"] == SOURCE_USER
 
 
-async def test_user_config_flow_over_switch(hass, skip_hass_states_get):
+async def test_user_config_flow_over_switch(hass: HomeAssistant, skip_hass_states_get):
     """Test the config flow with all thermostat_over_switch features"""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
@@ -138,7 +134,7 @@ async def test_user_config_flow_over_switch(hass, skip_hass_states_get):
     assert isinstance(result["result"], ConfigEntry)
 
 
-async def test_user_config_flow_over_climate(hass, skip_hass_states_get):
+async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_states_get):
     """Test the config flow with all thermostat_over_climate features and no additional features"""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}

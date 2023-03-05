@@ -169,3 +169,12 @@ switch:
             option: comfort-2
           target:
             entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
+
+frontend:
+  themes:
+    versatile_thermostat_theme:
+      state-binary_sensor-safety-on-color: "#FF0B0B"
+      state-binary_sensor-power-on-color: "#FF0B0B"
+      state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
+      state-binary_sensor-presence-on-color: "lightgreen"
