@@ -50,8 +50,17 @@
         "title": "Gestion d'une ouverture",
         "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
         "data": {
-          "window_sensor_entity_id": "Ouverture sensor entity id",
-          "window_delay": "Délai avant extinction (seconds)"
+          "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
+          "window_delay": "Délai avant extinction (seconds)",
+          "window_auto_open_threshold": "seuil haut de chute de température pour la détection automatique (en °/min)",
+          "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/min)",
+          "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur",
+          "window_auto_open_threshold": "Valeur recommandée: entre 0.05 et 0.1. Laissez vide si vous n'utilisez pas la détection automatique",
+          "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
+          "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique"
         }
       },
       "motion": {
@@ -96,7 +105,8 @@
     },
     "error": {
       "unknown": "Erreur inattendue",
-      "unknown_entity": "entity id inconnu"
+      "unknown_entity": "entity id inconnu",
+      "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux."
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -151,11 +161,20 @@
         }
       },
       "window": {
-        "title": "Gestion d'une ouverture",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
+        "title": "[%key:component::versatile_thermostat::config::step::window::title%]",
+        "description": "[%key:component::versatile_thermostat::config::step::window::description%]",
         "data": {
-          "window_sensor_entity_id": "Ouverture sensor entity id",
-          "window_delay": "Délai avant extinction (seconds)"
+          "window_sensor_entity_id": "[%key:component::versatile_thermostat::config::step::window::data::window_sensor_entity_id%]",
+          "window_delay": "[%key:component::versatile_thermostat::config::step::window::data::window_delay%]",
+          "window_auto_open_threshold": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_open_threshold%]",
+          "window_auto_close_threshold": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_close_threshold%]",
+          "window_auto_max_duration": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_max_duration%]"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "[%key:component::versatile_thermostat::config::step::window::data_description::window_sensor_entity_id%]",
+          "window_auto_open_threshold": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_open_threshold%]",
+          "window_auto_close_threshold": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_close_threshold%]",
+          "window_auto_max_duration": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_max_duration%]"
         }
       },
       "motion": {
@@ -199,11 +218,12 @@
       }
     },
     "error": {
-      "unknown": "Erreur inattendue",
-      "unknown_entity": "entity id inconnu"
+      "unknown": "[%key:component::versatile_thermostat::config::error::unknown%]",
+      "unknown_entity": "[%key:component::versatile_thermostat::config::error::unknown_entity%]",
+      "window_open_detection_method": "[%key:component::versatile_thermostat::config::error::window_open_detection_method%]"
     },
     "abort": {
-      "already_configured": "Le device est déjà configuré"
+      "already_configured": "[%key:component::versatile_thermostat::config::abort::already_configured%]"
     }
   },
   "selector": {

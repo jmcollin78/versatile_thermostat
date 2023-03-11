@@ -1,4 +1,5 @@
-from homeassistant.components.climate.const import (
+""" The commons const for all tests """
+from homeassistant.components.climate.const import (  # pylint: disable=unused-import
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
@@ -30,6 +31,9 @@ from custom_components.versatile_thermostat.const import (
     CONF_USE_PRESENCE_FEATURE,
     CONF_WINDOW_SENSOR,
     CONF_WINDOW_DELAY,
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
+    CONF_WINDOW_AUTO_MAX_DURATION,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
     CONF_MOTION_PRESET,
@@ -93,6 +97,12 @@ MOCK_PRESETS_CONFIG = {
 MOCK_WINDOW_CONFIG = {
     CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
     CONF_WINDOW_DELAY: 10,
+}
+
+MOCK_WINDOW_AUTO_CONFIG = {
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD: 1.0,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.0,
+    CONF_WINDOW_AUTO_MAX_DURATION: 5.0,
 }
 
 MOCK_MOTION_CONFIG = {

@@ -103,6 +103,9 @@ from .const import (
     CONF_MAX_POWER_SENSOR,
     CONF_WINDOW_SENSOR,
     CONF_WINDOW_DELAY,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD,
+    CONF_WINDOW_AUTO_MAX_DURATION,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
     CONF_MOTION_PRESET,
@@ -144,6 +147,7 @@ from .const import (
 )
 
 from .prop_algorithm import PropAlgorithm
+from .open_window_algorithm import WindowOpenDetectionAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -216,6 +220,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     _motion_state: bool
     _presence_state: bool
     _security_state: bool
+    _window_auto_state: bool
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
@@ -269,6 +274,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._total_energy = None
         self._underlying_climate_start_hvac_action_date = None
         self._underlying_climate_delta_t = 0
+
+        self._window_auto_open_threshold = 0
+        self._window_auto_close_threshold = 0
+        self._window_auto_max_duration = 0
+        self._window_auto_state = False
+        self._window_auto_on = False
+        self._window_auto_algo = None
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
@@ -340,6 +352,27 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._window_sensor_entity_id = entry_infos.get(CONF_WINDOW_SENSOR)
         self._window_delay_sec = entry_infos.get(CONF_WINDOW_DELAY)
+
+        self._window_auto_open_threshold = entry_infos.get(
+            CONF_WINDOW_AUTO_OPEN_THRESHOLD
+        )
+        self._window_auto_close_threshold = entry_infos.get(
+            CONF_WINDOW_AUTO_CLOSE_THRESHOLD
+        )
+        self._window_auto_max_duration = entry_infos.get(CONF_WINDOW_AUTO_MAX_DURATION)
+        self._window_auto_on = (
+            self._window_auto_open_threshold is not None
+            and self._window_auto_open_threshold > 0.0
+            and self._window_auto_close_threshold is not None
+            and self._window_auto_max_duration is not None
+            and self._window_auto_max_duration > 0
+        )
+        self._window_auto_state = False
+        self._window_auto_algo = WindowOpenDetectionAlgorithm(
+            alert_threshold=self._window_auto_open_threshold,
+            end_alert_threshold=self._window_auto_close_threshold,
+        )
+
         self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR)
         self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY)
         self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
@@ -1045,6 +1078,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._window_state
 
     @property
+    def window_auto_state(self) -> bool | None:
+        """Get the window_auto_state"""
+        return STATE_ON if self._window_auto_state else STATE_OFF
+
+    @property
     def security_state(self) -> bool | None:
         """Get the security_state"""
         return self._security_state
@@ -1074,6 +1112,41 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Get the last external temperature datetime"""
         return self._last_ext_temperature_mesure
 
+    @property
+    def preset_mode(self) -> str | None:
+        """Return the current preset mode, e.g., home, away, temp.
+
+        Requires ClimateEntityFeature.PRESET_MODE.
+        """
+        return self._attr_preset_mode
+
+    @property
+    def preset_modes(self) -> list[str] | None:
+        """Return a list of available preset modes.
+
+        Requires ClimateEntityFeature.PRESET_MODE.
+        """
+        return self._attr_preset_modes
+
+    @property
+    def is_over_climate(self) -> bool | None:
+        """return True is the thermostat is over a climate
+        or False is over switch"""
+        return self._is_over_climate
+
+    @property
+    def last_temperature_slope(self) -> float | None:
+        """Return the last temperature slope curve if any"""
+        if not self._window_auto_algo:
+            return None
+        else:
+            return self._window_auto_algo.last_slope
+
+    @property
+    def is_window_auto_enabled(self) -> bool:
+        """True if the Window auto feature is enabled"""
+        return self._window_auto_on
+
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
         if self._is_over_climate and self._underlying_climate:
@@ -1101,28 +1174,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             await self._underlying_climate.async_turn_aux_heat_off()
 
         raise NotImplementedError()
-
-    @property
-    def preset_mode(self) -> str | None:
-        """Return the current preset mode, e.g., home, away, temp.
-
-        Requires ClimateEntityFeature.PRESET_MODE.
-        """
-        return self._attr_preset_mode
-
-    @property
-    def preset_modes(self) -> list[str] | None:
-        """Return a list of available preset modes.
-
-        Requires ClimateEntityFeature.PRESET_MODE.
-        """
-        return self._attr_preset_modes
-
-    @property
-    def is_over_climate(self) -> bool | None:
-        """return True is the thermostat is over a climate
-        or False is over switch"""
-        return self._is_over_climate
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -1621,6 +1672,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             if self._security_state:
                 await self.check_security()
 
+            # check window_auto
+            await self._async_manage_window_auto()
+
         except ValueError as ex:
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)
 
@@ -1814,6 +1868,80 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             await self.hass.services.async_call(
                 HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
             )
+
+    async def _async_manage_window_auto(self):
+        """The management of the window auto feature"""
+
+        async def dearm_window_auto(_):
+            """Callback that will be called after end of WINDOW_AUTO_MAX_DURATION"""
+            _LOGGER.info("Unset window auto because MAX_DURATION is exceeded")
+            await deactivate_window_auto(auto=True)
+
+        async def deactivate_window_auto(auto=False):
+            """Deactivation of the Window auto state"""
+            _LOGGER.warning(
+                "%s - End auto detection of open window slope=%.3f", self, slope
+            )
+            # Send an event
+            cause = "max duration expiration" if auto else "end of slope alert"
+            self.send_event(
+                EventType.WINDOW_AUTO_EVENT,
+                {"type": "end", "cause": cause, "curve_slope": slope},
+            )
+            # Set attributes
+            self._window_auto_state = False
+            await self.restore_hvac_mode()
+
+            if self._window_call_cancel:
+                self._window_call_cancel()
+            self._window_call_cancel = None
+
+        if not self._window_auto_algo:
+            return
+
+        slope = self._window_auto_algo.add_temp_measurement(
+            temperature=self._cur_temp, datetime_measure=self._last_temperature_mesure
+        )
+        _LOGGER.debug(
+            "%s - Window auto is on, check the alert. last slope is %.3f",
+            self,
+            slope if slope is not None else 0.0,
+        )
+        if (
+            self._window_auto_algo.is_window_open_detected()
+            and self._window_auto_state is False
+        ):
+            _LOGGER.warning(
+                "%s - Start auto detection of open window slope=%.3f", self, slope
+            )
+            # Send an event
+            self.send_event(
+                EventType.WINDOW_AUTO_EVENT,
+                {"type": "start", "cause": "slope alert", "curve_slope": slope},
+            )
+            # Set attributes
+            self._window_auto_state = True
+            self.save_hvac_mode()
+            await self.async_set_hvac_mode(HVACMode.OFF)
+
+            # Arm the end trigger
+            if self._window_call_cancel:
+                self._window_call_cancel()
+                self._window_call_cancel = None
+            self._window_call_cancel = async_call_later(
+                self.hass,
+                timedelta(minutes=self._window_auto_max_duration),
+                dearm_window_auto,
+            )
+
+        elif (
+            self._window_auto_algo.is_window_close_detected()
+            and self._window_auto_state is True
+        ):
+            await deactivate_window_auto(False)
+
+        # For testing purpose we need to return the inner function
+        return dearm_window_auto
 
     def save_preset_mode(self):
         """Save the current preset mode to be restored later

@@ -46,6 +46,7 @@ async def async_setup_entry(
     entities = [
         LastTemperatureSensor(hass, unique_id, name, entry.data),
         LastExtTemperatureSensor(hass, unique_id, name, entry.data),
+        TemperatureSlopeSensor(hass, unique_id, name, entry.data),
     ]
     if entry.data.get(CONF_DEVICE_POWER):
         entities.append(EnergySensor(hass, unique_id, name, entry.data))
@@ -72,10 +73,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         if math.isnan(self.my_climate.total_energy) or math.isinf(
             self.my_climate.total_energy
@@ -130,10 +128,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         if math.isnan(float(self.my_climate.mean_cycle_power)) or math.isinf(
             self.my_climate.mean_cycle_power
@@ -190,10 +185,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         on_percent = (
             float(self.my_climate.proportional_algorithm.on_percent)
@@ -245,10 +237,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         on_time = (
             float(self.my_climate.proportional_algorithm.on_time_sec)
@@ -293,10 +282,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         off_time = (
             float(self.my_climate.proportional_algorithm.off_time_sec)
@@ -341,10 +327,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_temperature_mesure
@@ -373,10 +356,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug(
-            "%s - climate state change",
-            event.origin.name if event and event.origin else None,
-        )
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_ext_temperature_mesure
@@ -391,3 +371,56 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def device_class(self) -> SensorDeviceClass | None:
         return SensorDeviceClass.TIMESTAMP
+
+
+class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a sensor which exposes the temperature slope curve"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the slope sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Temperature slope"
+        self._attr_unique_id = f"{self._device_name}_temperature_slope"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+
+        last_slope = self.my_climate.last_temperature_slope
+        if last_slope is None:
+            return
+
+        if math.isnan(last_slope) or math.isinf(last_slope):
+            raise ValueError(f"Sensor has illegal state {last_slope}")
+
+        old_state = self._attr_native_value
+        self._attr_native_value = round(last_slope, self.suggested_display_precision)
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        if self._attr_native_value is None or self._attr_native_value == 0:
+            return "mdi:thermometer"
+        elif self._attr_native_value > 0:
+            return "mdi:thermometer-chevron-up"
+        else:
+            return "mdi:thermometer-chevron-down"
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if not self.my_climate:
+            return None
+
+        return self.my_climate.temperature_unit + "/min"
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Return the suggested number of decimal digits for display."""
+        return 2

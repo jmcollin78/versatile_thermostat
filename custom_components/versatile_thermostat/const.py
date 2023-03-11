@@ -61,6 +61,9 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
+CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
+CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
+CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -97,6 +100,9 @@ ALL_CONF = (
         CONF_MAX_POWER_SENSOR,
         CONF_WINDOW_SENSOR,
         CONF_WINDOW_DELAY,
+        CONF_WINDOW_AUTO_OPEN_THRESHOLD,
+        CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
+        CONF_WINDOW_AUTO_MAX_DURATION,
         CONF_MOTION_SENSOR,
         CONF_MOTION_DELAY,
         CONF_MOTION_PRESET,
@@ -153,7 +159,12 @@ class EventType(Enum):
     TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
     HVAC_MODE_EVENT: str = "versatile_thermostat_hvac_mode_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
+    WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
 
 
 class UnknownEntity(HomeAssistantError):
     """Error to indicate there is an unknown entity_id given."""
+
+
+class WindowOpenDetectionMethod(HomeAssistantError):
+    """Error to indicate there is an error in the window open detection method given."""

@@ -78,6 +78,15 @@ def skip_hass_states_get_fixture():
         yield
 
 
+@pytest.fixture(name="skip_control_heating")
+def skip_control_heating_fixture():
+    """Skip the control_heating of VersatileThermostat"""
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+    ):
+        yield
+
+
 @pytest.fixture(name="skip_hass_states_is_state")
 def skip_hass_states_is_state_fixture():
     """Skip the is_state in HomeAssistant"""
