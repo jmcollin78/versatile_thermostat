@@ -47,6 +47,9 @@ from .const import (
     CONF_MAX_POWER_SENSOR,
     CONF_WINDOW_SENSOR,
     CONF_WINDOW_DELAY,
+    CONF_WINDOW_AUTO_MAX_DURATION,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
     CONF_MOTION_PRESET,
@@ -79,6 +82,7 @@ from .const import (
     CONF_USE_POWER_FEATURE,
     CONF_THERMOSTAT_TYPES,
     UnknownEntity,
+    WindowOpenDetectionMethod,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -167,7 +171,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         is_empty: bool = not bool(infos)
         # Fix features selection depending to infos
         self._infos[CONF_USE_WINDOW_FEATURE] = (
-            is_empty or self._infos.get(CONF_WINDOW_SENSOR) is not None
+            is_empty
+            or self._infos.get(CONF_WINDOW_SENSOR) is not None
+            or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
         self._infos[CONF_USE_MOTION_FEATURE] = (
             is_empty or self._infos.get(CONF_MOTION_SENSOR) is not None
@@ -195,12 +201,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
                     ),
                 ),
-                #  vol.In(temp_sensors),
                 vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
                     ),
-                ),  # vol.In(temp_sensors),
+                ),
                 vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
                 vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
                 vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
@@ -218,7 +223,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     selector.EntitySelectorConfig(
                         domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
                     ),
-                ),  # vol.In(switches),
+                ),
                 vol.Required(
                     CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
                 ): vol.In(
@@ -233,7 +238,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             {
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-                ),  # vol.In(climates),
+                ),
             }
         )
 
@@ -257,8 +262,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     selector.EntitySelectorConfig(
                         domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
                     ),
-                ),  # vol.In(window_sensors),
+                ),
                 vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
+                vol.Optional(CONF_WINDOW_AUTO_OPEN_THRESHOLD): vol.Coerce(float),
+                vol.Optional(CONF_WINDOW_AUTO_CLOSE_THRESHOLD): vol.Coerce(float),
+                vol.Optional(CONF_WINDOW_AUTO_MAX_DURATION): cv.positive_int,
             }
         )
 
@@ -268,7 +276,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     selector.EntitySelectorConfig(
                         domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
                     ),
-                ),  # vol.In(window_sensors),
+                ),
                 vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
                 vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
                     CONF_PRESETS_SELECTIONABLE
@@ -285,12 +293,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     selector.EntitySelectorConfig(
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
                     ),
-                ),  # vol.In(power_sensors),
+                ),
                 vol.Optional(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
                     selector.EntitySelectorConfig(
                         domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
                     ),
-                ),  # vol.In(power_sensors),
+                ),
                 vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
             }
         )
@@ -305,7 +313,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                             INPUT_BOOLEAN_DOMAIN,
                         ]
                     ),
-                ),  # vol.In(presence_sensors),
+                ),
             }
         ).extend(
             {
@@ -357,6 +365,19 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 )
                 raise UnknownEntity(conf)
 
+        # Check that only one window feature is used
+        ws = data.get(CONF_WINDOW_SENSOR)  # pylint: disable=invalid-name
+        waot = data.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD)
+        wact = data.get(CONF_WINDOW_AUTO_CLOSE_THRESHOLD)
+        wamd = data.get(CONF_WINDOW_AUTO_MAX_DURATION)
+        if ws is not None and (
+            waot is not None or wact is not None or wamd is not None
+        ):
+            _LOGGER.error(
+                "Only one window detection method should be used. Use window_sensor or auto window open detection but not both"
+            )
+            raise WindowOpenDetectionMethod(CONF_WINDOW_SENSOR)
+
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
         self._infos.update(user_input)
@@ -387,6 +408,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 await self.validate_input(user_input)
             except UnknownEntity as err:
                 errors[str(err)] = "unknown_entity"
+            except WindowOpenDetectionMethod as err:
+                errors[str(err)] = "window_open_detection_method"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
