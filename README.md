@@ -2,6 +2,7 @@
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 [![hacs][hacs_badge]][hacs]
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png?raw=true)
 
@@ -732,8 +733,9 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ***
 
-[integration_blueprint]: https://github.com/custom-components/integration_blueprint
 [versatile_thermostat]: https://github.com/jmcollin78/versatile_thermostat
+[buymecoffee]: https://www.buymeacoffee.com/jmcollin78
+[buymecoffeebadge]: https://img.shields.io/badge/Buy%20me%20a%20beer-%245-orange?style=for-the-badge&logo=buy-me-a-beer
 [commits-shield]: https://img.shields.io/github/commit-activity/y/jmcollin78/versatile_thermostat.svg?style=for-the-badge
 [commits]: https://github.com/jmcollin78/versatile_thermostat/commits/master
 [hacs]: https://github.com/custom-components/hacs
