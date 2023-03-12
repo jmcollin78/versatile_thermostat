@@ -19,6 +19,7 @@ input_number:
     step: .1
     icon: mdi:thermometer
     unit_of_measurement: °C
+    mode: box
   fake_external_temperature_sensor1:
     name: Ext Temperature
     min: -10
@@ -26,6 +27,7 @@ input_number:
     step: .1
     icon: mdi:home-thermometer
     unit_of_measurement: °C
+    mode: box
   fake_current_power:
     name: Current power
     min: 0

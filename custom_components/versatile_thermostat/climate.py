@@ -275,6 +275,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._underlying_climate_start_hvac_action_date = None
         self._underlying_climate_delta_t = 0
 
+        self._window_sensor_entity_id = None
+        self._window_delay_sec = None
         self._window_auto_open_threshold = 0
         self._window_auto_close_threshold = 0
         self._window_auto_max_duration = 0
@@ -1910,10 +1912,23 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if (
             self._window_auto_algo.is_window_open_detected()
             and self._window_auto_state is False
+            and self.hvac_mode != HVACMode.OFF
         ):
+            if (
+                not self.proportional_algorithm
+                or self.proportional_algorithm.on_percent <= 0.0
+            ):
+                _LOGGER.info(
+                    "%s - Start auto detection of open window slope=%.3f but no heating detected (on_percent<=0). Forget the event",
+                    self,
+                    slope,
+                )
+                return dearm_window_auto
+
             _LOGGER.warning(
                 "%s - Start auto detection of open window slope=%.3f", self, slope
             )
+
             # Send an event
             self.send_event(
                 EventType.WINDOW_AUTO_EVENT,
@@ -2418,6 +2433,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "motion_state": self._motion_state,
             "overpowering_state": self._overpowering_state,
             "presence_state": self._presence_state,
+            "window_auto_state": self._window_auto_state,
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
@@ -2436,6 +2452,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             .astimezone(self._current_tz)
             .isoformat(),
             "timezone": str(self._current_tz),
+            "window_delay_sec": self._window_delay_sec,
+            "window_auto_open_threshold": self._window_auto_open_threshold,
+            "window_auto_close_threshold": self._window_auto_close_threshold,
+            "window_auto_max_duration": self._window_auto_max_duration,
         }
         if self._is_over_climate:
             self._attr_extra_state_attributes[

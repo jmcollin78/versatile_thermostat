@@ -59,6 +59,7 @@
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be use",
+          "window_delay": "The delay in seconds before sensor detection is taken into account",
           "window_auto_open_threshold": "Recommended value: between 0.05 and 0.1. Leave empty if automatic window open detection is not use",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
@@ -97,10 +98,16 @@
         "title": "Advanced parameters",
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
         "data": {
-          "minimal_activation_delay": "Delay in secondes under which the equipment will not be activated",
-          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a sceurity off state",
-          "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of on_percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating percent value in security preset. Set to 0 to switch off heater in security present"
+          "minimal_activation_delay": "Minimal activation delay",
+          "security_delay_min": "Security delay (in minutes)",
+          "security_min_on_percent": "Minimal power percent for security mode",
+          "security_default_on_percent": "Power percent to use in security mode"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a security off state",
+          "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security present"
         }
       }
     },
@@ -161,20 +168,21 @@
         }
       },
       "window": {
-        "title": "[%key:component::versatile_thermostat::config::step::window::title%]",
-        "description": "[%key:component::versatile_thermostat::config::step::window::description%]",
+        "title": "Window management",
+        "description": "Open window management.\nLeave corresponding entity_id empty if not used\nYou can also configure automatic window open detection based on temperature decrease",
         "data": {
-          "window_sensor_entity_id": "[%key:component::versatile_thermostat::config::step::window::data::window_sensor_entity_id%]",
-          "window_delay": "[%key:component::versatile_thermostat::config::step::window::data::window_delay%]",
-          "window_auto_open_threshold": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_open_threshold%]",
-          "window_auto_close_threshold": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_close_threshold%]",
-          "window_auto_max_duration": "[%key:component::versatile_thermostat::config::step::window::data::window_auto_max_duration%]"
+          "window_sensor_entity_id": "Window sensor entity id",
+          "window_delay": "Window sensor delay (seconds)",
+          "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/min)",
+          "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/min)",
+          "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
         },
         "data_description": {
-          "window_sensor_entity_id": "[%key:component::versatile_thermostat::config::step::window::data_description::window_sensor_entity_id%]",
-          "window_auto_open_threshold": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_open_threshold%]",
-          "window_auto_close_threshold": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_close_threshold%]",
-          "window_auto_max_duration": "[%key:component::versatile_thermostat::config::step::window::data_description::window_auto_max_duration%]"
+          "window_sensor_entity_id": "Leave empty if no window sensor should be use",
+          "window_delay": "The delay in seconds before sensor detection is taken into account",
+          "window_auto_open_threshold": "Recommended value: between 0.05 and 0.1. Leave empty if automatic window open detection is not use",
+          "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
+          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
         }
       },
       "motion": {
@@ -210,20 +218,26 @@
         "title": "Advanced parameters",
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
         "data": {
-          "minimal_activation_delay": "Delay in secondes under which the equipment will not be activated",
+          "minimal_activation_delay": "Minimal activation delay",
+          "security_delay_min": "Security delay (in minutes)",
+          "security_min_on_percent": "Minimal power percent for security mode",
+          "security_default_on_percent": "Power percent to use in security mode"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a security off state",
-          "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of on_percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating percent value in security preset. Set to 0 to switch off heater in security present"
+          "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security present"
         }
       }
     },
     "error": {
-      "unknown": "[%key:component::versatile_thermostat::config::error::unknown%]",
-      "unknown_entity": "[%key:component::versatile_thermostat::config::error::unknown_entity%]",
-      "window_open_detection_method": "[%key:component::versatile_thermostat::config::error::window_open_detection_method%]"
+      "unknown": "Unexpected error",
+      "unknown_entity": "Unknown entity id",
+      "window_open_detection_method": "Only one window open detection method should be used. Use sensor or automatic detection through temperature threshold but not both"
     },
     "abort": {
-      "already_configured": "[%key:component::versatile_thermostat::config::abort::already_configured%]"
+      "already_configured": "Device is already configured"
     }
   },
   "selector": {

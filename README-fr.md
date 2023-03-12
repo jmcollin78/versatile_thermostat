@@ -18,6 +18,8 @@
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
   - [Configurer les portes/fenêtres en allumant/éteignant les thermostats](#configurer-les-portesfenêtres-en-allumantéteignant-les-thermostats)
+    - [Le mode capteur](#le-mode-capteur)
+    - [Le mode auto](#le-mode-auto)
   - [Configurer le mode d'activité ou la détection de mouvement](#configurer-le-mode-dactivité-ou-la-détection-de-mouvement)
   - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
   - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
@@ -45,7 +47,16 @@
   - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
 - [Les contributions sont les bienvenues !](#les-contributions-sont-les-bienvenues)
 
+
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
+
+
+> ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 3.1** : ajout d'une détection de fenêtres/portes ouvertes par chute de température. Cette nouvelle fonction permet de stopper automatiquement un radiateur lorsque la température chute brutalement. Voir [Le mode auto](#le-mode-auto)
+> * **Release majeure 3.0** : ajout d'un équipement thermostat et de capteurs (binaires et non binaires) associés. Beaucoup plus proche de la philosphie Home Assistant, vous avez maintenant un accès direct à l'énergie consommée par le radiateur piloté par le thermostat et à plein d'autres capteurs qui seront utiles dans vos automatisations et dashboard.
+> * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
+> * **release 2.2** : ajout de fonction de sécurité permettant de ne pas laisser éternellement en chauffe un radiateur en cas de panne du thermomètre
+> * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 
 # Quand l'utiliser et ne pas l'utiliser
 Ce thermostat peut piloter 2 types d'équipement:
@@ -64,7 +75,6 @@ Parce que cette intégration vise à commander le radiateur en tenant compte du 
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
-Pour mon usage personnel, j'avais besoin d'ajouter quelques fonctionnalités et aussi de mettre à jour le comportement implémenté dans le composant précédent "Awesome thermostat".
 Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivants :
 - Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
 - Utilisations complètes du **mode préréglages**,
@@ -171,19 +181,45 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
     5. Si vous ne souhaitez pas utiliser le préréglage, indiquez 0 comme température. Le préréglage sera alors ignoré et ne s'affichera pas dans le composant front
 
 ## Configurer les portes/fenêtres en allumant/éteignant les thermostats
-Si vous avez choisi la fonctionnalité ```Avec détection des ouvertures```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+Vous devez avoir choisi la fonctionnalité ```Avec détection des ouvertures``` dans la première page pour arriver sur cette page.
+La détecttion des ouvertures peut se faire de 2 manières:
+1. soit avec un capteur placé sur l'ouverture (mode capteur),
+2. soit en détectant une chute brutale de température (mode auto)
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
+### Le mode capteur
+En mode capteur, vous devez renseigner les informations suivantes:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-sensor.png?raw=true)
 
-Donnez les attributs suivants :
 1. un identifiant d'entité d'un **capteur de fenêtre/porte**. Cela devrait être un binary_sensor ou un input_boolean. L'état de l'entité doit être 'on' lorsque la fenêtre est ouverte ou 'off' lorsqu'elle est fermée
 2. un **délai en secondes** avant tout changement. Cela permet d'ouvrir rapidement une fenêtre sans arrêter le chauffage.
 
-Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvertes et se rallumera lorsqu'il sera fermé après le délai.
+
+### Le mode auto
+En mode auto, la configuration est la suivante:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-auto.png?raw=true)
+
+1. un seuil de détection en degré par minute. Lorsque la température chute au delà de ce seuil, le thermostat s'éteindra. Plus cette valeur est faible et plus la détection sera rapide (en contre-partie d'un risque de faux positif),
+2. un seuil de fin de détection en degré par minute. Lorsque la chute de température repassera au-dessus cette valeur, le thermostat se remettra dans le mode précédent (mode et preset),
+3. une durée maximale de détection. Au delà de cette durée, le thermostat se remettra dans son mode et preset précédent même si la température continue de chuter.
+
+Pour régler les seuils il est conseillé de commencer avec les valeurs de référence et d'ajuster les seuils de détection. Quelques essais m'ont donné les valeurs suivantes (pour un bureau):
+- seuil de détection : 0,05 °C/min
+- seuil de non détection: 0 °C/min
+- durée max : 60 min.
+
+Un nouveau capteur "slope" a été ajouté pour tous les thermostats. Il donne la pente de la courbe de température en °C/min (ou °K/min). Cette pente est lissée et filtrée pour éviter les valeurs abérrantes des thermomètres qui viendraient pertuber la mesure.
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/temperature-slope.png?raw=true)
+
+Pour bien régler il est conseillé d'affocher sur un même graphique historique la courbe de température et la pente de la courbe (le "slope") :
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/window-auto-tuning.png?raw=true)
+
+Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvertes et se rallumera lorsqu'il sera fermé.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
     1. Si vous souhaitez utiliser **plusieurs capteurs de porte/fenêtre** pour automatiser votre thermostat, créez simplement un groupe avec le comportement habituel (https://www.home-assistant.io/integrations/binary_sensor.group/)
-    2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide
+    2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide,
+    3. **Un seul mode est permis**. On ne peut pas configurer un thermostat avec un capteur et une détection automatique. Les 2 modes risquant de se contredire, il n'est pas possible d'avoir les 2 modes en même temps,
+    4. Il est déconseillé d'utiliser le mode automatique pour un équipement soumis à des variations de température fréquentes et normales (couloirs, zones ouvertes, ...)
 
 ## Configurer le mode d'activité ou la détection de mouvement
 Si vous avez choisi la fonctionnalité ```Avec détection de mouvement```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :

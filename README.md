@@ -18,6 +18,8 @@
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
   - [Configure the preset temperature](#configure-the-preset-temperature)
   - [Configure the doors/windows turning on/off the thermostats](#configure-the-doorswindows-turning-onoff-the-thermostats)
+    - [The sensor mode](#the-sensor-mode)
+    - [Auto mode](#auto-mode)
   - [Configure the activity mode or motion detection](#configure-the-activity-mode-or-motion-detection)
   - [Configure the power management](#configure-the-power-management)
   - [Configure the presence or occupancy](#configure-the-presence-or-occupancy)
@@ -48,6 +50,13 @@
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
+>![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 3.1**: added detection of open windows/doors by temperature drop. This new function makes it possible to automatically stop a radiator when the temperature drops suddenly. See [Auto mode](#le-mode-auto)
+> * **Major release 3.0**: addition of thermostat equipment and associated sensors (binary and non-binary). Much closer to the Home Assistant philosophy, you now have direct access to the energy consumed by the radiator controlled by the thermostat and many other sensors that will be useful in your automations and dashboard.
+> * **release 2.3**: addition of the power and energy measurement of the radiator controlled by the thermostat.
+> * **release 2.2**: addition of a safety function allowing a radiator not to be left heating forever in the event of a thermometer failure
+> * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
+
 # When to use / not use
 This thermostat can control 2 types of equipment:
 1. a heater that only works in on/off mode (named ```thermostat_over_switch```). The minimum configuration required to use this type of thermostat is:
@@ -63,7 +72,7 @@ The ```thermostat_over_climate``` type allows you to add all the functionality p
 
 # Why another thermostat implementation ?
 
-For my personnal usage, I needed to add a couple of features and also to update the behavior that implemented in the previous component "Awesome thermostat".
+
 This component named __Versatile thermostat__ manage the following use cases :
 - Configuration through standard integration GUI (using Config Entry flow),
 - Full uses of **presets mode**,
@@ -160,19 +169,44 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
     5. ff you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
 
 ## Configure the doors/windows turning on/off the thermostats
-If you choose the ```Window management``` feature, click on 'Validate' on the previous page and you will get there:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window.png?raw=true)
+You must have chosen the ```With opening detection``` feature on the first page to arrive on this page.
+The detection of openings can be done in 2 ways:
+1. either with a sensor placed on the opening (sensor mode),
+2. either by detecting a sudden drop in temperature (auto mode)
 
-Give the following attributes:
-1. an entity id of a **window/door sensor**. This should be a binary_sensor or a input_boolean. The state of the entity should be 'on' when the window is open or 'off' when closed
-2. a **delay in seconds** before any change. This allow to quickly open a window without stopping the heater.
+### The sensor mode
+In sensor mode, you must fill in the following information:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-sensor.png?raw=true)
 
-And that's it ! your thermostat will turn off when the windows is open and be turned back on when it's closed afer the delay.
+1. an entity ID of a **window/door sensor**. It should be a binary_sensor or an input_boolean. The state of the entity must be 'on' when the window is open or 'off' when it is closed
+2. a **delay in seconds** before any change. This allows a window to be opened quickly without stopping the heating.
 
-> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
-    1. If you want to use **several door/windows sensors** to automatize your thermostat, just create a group with the regular behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
-    2. If you don't have any window/door sensor in your room, just leave the sensor entity id empty
+### Auto mode
+In auto mode, the configuration is as follows:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-auto.png?raw=true)
 
+1. a detection threshold in degrees per minute. When the temperature drops below this threshold, the thermostat will turn off. The lower this value, the faster the detection will be (in return for a risk of false positives),
+2. an end of detection threshold in degrees per minute. When the temperature drop goes above this value, the thermostat will go back to the previous mode (mode and preset),
+3. maximum detection time. Beyond this time, the thermostat will return to its previous mode and preset even if the temperature continues to drop.
+
+To set the thresholds it is advisable to start with the reference values ​​and adjust the detection thresholds. A few tries gave me the following values ​​(for a desktop):
+- detection threshold: 0.05°C/min
+- non-detection threshold: 0 °C/min
+- maximum duration: 60 min.
+
+A new "slope" sensor has been added for all thermostats. It gives the slope of the temperature curve in °C/min (or °K/min). This slope is smoothed and filtered to avoid aberrant values ​​from the thermometers which would interfere with the measurement.
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/temperature-slope.png?raw=true)
+
+To properly adjust it is advisable to display on the same historical graph the temperature curve and the slope of the curve (the "slope"):
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/window-auto-tuning.png?raw=true)
+
+And that's all ! your thermostat will turn off when the windows are open and turn back on when closed.
+
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+    1. If you want to use **multiple door/window sensors** to automate your thermostat, just create a group with the usual behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
+    2. If you don't have a window/door sensor in your room, just leave the sensor entity id blank,
+    3. **Only one mode is allowed**. You cannot configure a thermostat with a sensor and automatic detection. The 2 modes may contradict each other, it is not possible to have the 2 modes at the same time,
+    4. It is not recommended to use the automatic mode for equipment subject to frequent and normal temperature variations (corridors, open areas, ...)
 ## Configure the activity mode or motion detection
 If you choose the ```Motion management``` feature, lick on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
