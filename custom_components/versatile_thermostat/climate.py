@@ -454,11 +454,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._security_delay_min = entry_infos.get(CONF_SECURITY_DELAY_MIN)
         self._security_min_on_percent = (
             entry_infos.get(CONF_SECURITY_MIN_ON_PERCENT)
-            or DEFAULT_SECURITY_MIN_ON_PERCENT
+            if entry_infos.get(CONF_SECURITY_MIN_ON_PERCENT) is not None
+            else DEFAULT_SECURITY_MIN_ON_PERCENT
         )
         self._security_default_on_percent = (
             entry_infos.get(CONF_SECURITY_DEFAULT_ON_PERCENT)
-            or DEFAULT_SECURITY_DEFAULT_ON_PERCENT
+            if entry_infos.get(CONF_SECURITY_DEFAULT_ON_PERCENT) is not None
+            else DEFAULT_SECURITY_DEFAULT_ON_PERCENT
         )
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
         self._last_temperature_mesure = datetime.now(tz=self._current_tz)
