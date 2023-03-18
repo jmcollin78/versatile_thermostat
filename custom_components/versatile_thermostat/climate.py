@@ -598,7 +598,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self.async_on_remove(self.async_remove_thermostat)
 
-        await self.async_startup()
+        try:
+            await self.async_startup()
+        except UnknownEntity:
+            # Ingore this error which is possible if underlying climate is not found temporary
+            pass
 
         # starts a cycle if we are in over_climate type
         if self._is_over_climate:
@@ -651,7 +655,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                         self,
                         self._climate_entity_id,
                     )
-                    self._is_over_climate = False
+                    # #56 keep the over_climate and try periodically to find the underlying climate
+                    # self._is_over_climate = False
                     raise UnknownEntity(
                         f"Underlying thermostat {self._climate_entity_id} not found"
                     )
@@ -2228,6 +2233,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._security_state,
             self._attr_preset_mode,
         )
+
+        # Issue 56 in over_climate mode, if the underlying climate is not initialized, try to initialize it
+        if self._is_over_climate and self._underlying_climate is None:
+            _LOGGER.info(
+                "%s - Underlying climate is not initialized. Try to initialize it", self
+            )
+            try:
+                await self.async_startup()
+            except UnknownEntity as err:
+                # still not found, we an stop here
+                raise err
 
         # Check overpowering condition
         overpowering: bool = await self.check_overpowering()
