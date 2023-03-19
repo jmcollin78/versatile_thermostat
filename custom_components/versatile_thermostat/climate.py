@@ -1468,6 +1468,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # if not self._saved_hvac_mode:
             #    self._saved_hvac_mode = self._hvac_mode
 
+            if self._window_state == new_state.state:
+                _LOGGER.debug("%s - no change in window state. Forget the event")
+                return
+
             self._window_state = new_state.state
             if self._window_state == STATE_OFF:
                 _LOGGER.info(
