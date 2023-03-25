@@ -971,15 +971,24 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Need to be one of CURRENT_HVAC_*.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.hvac_action
+        if self._is_over_climate:
+            # if one not IDLE or OFF -> return it
+            # else if one IDLE -> IDLE
+            # else OFF
+            one_idle = False
+            for under in self._underlyings:
+                if action := under.hvac_action not in [HVACAction.IDLE, HVACAction.OFF]:
+                    return action
+                if under.hvac_action == HVACAction.IDLE:
+                    one_idle = True
+            if one_idle:
+                return HVACAction.IDLE
+            return HVACAction.OFF
 
         if self._hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
         if not self._is_device_active:
             return HVACAction.IDLE
-        if self._ac_mode:
-            return HVACAction.COOLING
         return HVACAction.HEATING
 
     @property
@@ -999,7 +1008,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def _is_device_active(self):
         """Returns true if one underlying is active"""
         for under in self._underlyings:
-            if under.is_device_active():
+            if under.is_device_active:
                 return True
         return False
 
@@ -1203,7 +1212,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Delegate to all underlying
         for under in self._underlyings:
-            await under.set_have_mode(hvac_mode)
+            await under.set_hvac_mode(hvac_mode)
 
         self._hvac_mode = hvac_mode
         await self._async_control_heating(force=True)
@@ -2441,16 +2450,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "window_auto_max_duration": self._window_auto_max_duration,
         }
         if self._is_over_climate:
-            self._attr_extra_state_attributes[
-                "underlying_climate"
-            ] = self._climate_entity_id
+            self._attr_extra_state_attributes["underlying_climate"] = self._underlyings[
+                0
+            ].entity_id
             self._attr_extra_state_attributes[
                 "start_hvac_action_date"
             ] = self._underlying_climate_start_hvac_action_date
         else:
             self._attr_extra_state_attributes[
-                "underlying_switch"
-            ] = self._heater_entity_id
+                "underlying_switch_1"
+            ] = self._underlyings[0].entity_id
+            self._attr_extra_state_attributes["underlying_switch_2"] = (
+                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
+            )
+            self._attr_extra_state_attributes["underlying_switch_3"] = (
+                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
+            )
+            self._attr_extra_state_attributes["underlying_switch_4"] = (
+                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+            )
             self._attr_extra_state_attributes[
                 "on_percent"
             ] = self._prop_algorithm.on_percent

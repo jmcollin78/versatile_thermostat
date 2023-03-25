@@ -144,7 +144,6 @@ class UnderlyingSwitch(UnderlyingEntity):
 class UnderlyingClimate(UnderlyingEntity):
     """Represent a underlying climate"""
 
-    _initialDelaySec: int
     _underlying_climate: ClimateEntity
 
     def __init__(
@@ -158,6 +157,7 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_type=UnderlyingEntityType.CLIMATE,
             entity_id=climate_entity_id,
         )
+        self._underlying_climate = None
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
@@ -279,3 +279,10 @@ class UnderlyingClimate(UnderlyingEntity):
             SERVICE_SET_TEMPERATURE,
             data,  # TODO needed ? context=self._context
         )
+
+    @property
+    def hvac_action(self) -> HVACAction:
+        """Get the hvac action of the underlying"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.hvac_action
