@@ -357,7 +357,7 @@ async def test_power_management_energy_over_climate(
 
     the_mock_underlying = MagicMockClimate()
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.find_underlying_climate",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=the_mock_underlying,
     ):
         entry = MockConfigEntry(

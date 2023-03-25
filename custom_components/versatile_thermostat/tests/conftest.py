@@ -87,6 +87,15 @@ def skip_control_heating_fixture():
         yield
 
 
+@pytest.fixture(name="skip_find_underlying_climate")
+def skip_find_underlying_climate_fixture():
+    """Skip the find_underlying_climate of VersatileThermostat"""
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate"
+    ):
+        yield
+
+
 @pytest.fixture(name="skip_hass_states_is_state")
 def skip_hass_states_is_state_fixture():
     """Skip the is_state in HomeAssistant"""

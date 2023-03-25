@@ -18,7 +18,7 @@ async def test_bug_56(
 
     the_mock_underlying = MagicMockClimate()
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.find_underlying_climate",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=None,  # dont find the underlying climate
     ):
         entry = MockConfigEntry(
@@ -70,7 +70,7 @@ async def test_bug_56(
 
     # This time the underlying will be found
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.find_underlying_climate",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=the_mock_underlying,  # dont find the underlying climate
     ):
         # try to call _async_control_heating

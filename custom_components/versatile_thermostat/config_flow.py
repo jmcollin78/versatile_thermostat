@@ -41,6 +41,9 @@ from .const import (
     DOMAIN,
     CONF_NAME,
     CONF_HEATER,
+    CONF_HEATER_2,
+    CONF_HEATER_3,
+    CONF_HEATER_4,
     CONF_TEMP_SENSOR,
     CONF_EXTERNAL_TEMP_SENSOR,
     CONF_POWER_SENSOR,
@@ -220,6 +223,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         self.STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_HEATER): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_HEATER_2): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_HEATER_3): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_HEATER_4): selector.EntitySelector(
                     selector.EntitySelectorConfig(
                         domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
                     ),

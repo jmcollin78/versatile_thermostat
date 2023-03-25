@@ -19,7 +19,7 @@ class VersatileThermostatBaseEntity(Entity):
     _my_climate: VersatileThermostat
     hass: HomeAssistant
     _config_id: str
-    _devince_name: str
+    _device_name: str
 
     def __init__(self, hass: HomeAssistant, config_id, device_name) -> None:
         """The CTOR"""

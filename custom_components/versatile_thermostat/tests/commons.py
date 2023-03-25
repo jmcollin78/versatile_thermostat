@@ -19,11 +19,14 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from ..climate import VersatileThermostat
 from ..const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from ..underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
+    MOCK_TH_OVER_4SWITCH_USER_CONFIG,
     MOCK_TH_OVER_CLIMATE_USER_CONFIG,
     MOCK_TH_OVER_SWITCH_TYPE_CONFIG,
+    MOCK_TH_OVER_4SWITCH_TYPE_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
     MOCK_TH_OVER_SWITCH_TPI_CONFIG,
     MOCK_PRESETS_CONFIG,
@@ -56,6 +59,18 @@ PARTIAL_CLIMATE_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG
     | MOCK_PRESETS_CONFIG
+    | MOCK_ADVANCED_CONFIG
+)
+
+FULL_4SWITCH_CONFIG = (
+    MOCK_TH_OVER_4SWITCH_USER_CONFIG
+    | MOCK_TH_OVER_4SWITCH_TYPE_CONFIG
+    | MOCK_TH_OVER_SWITCH_TPI_CONFIG
+    | MOCK_PRESETS_CONFIG
+    | MOCK_WINDOW_CONFIG
+    | MOCK_MOTION_CONFIG
+    | MOCK_POWER_CONFIG
+    | MOCK_PRESENCE_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
 

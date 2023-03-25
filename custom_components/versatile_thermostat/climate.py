@@ -4,8 +4,6 @@ import logging
 
 from datetime import timedelta, datetime
 
-# from typing import Any
-
 import voluptuous as vol
 
 from homeassistant.util import dt as dt_util
@@ -23,7 +21,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.reload import async_setup_reload_service
 
@@ -40,7 +37,6 @@ from homeassistant.helpers import (
 )  # , config_validation as cv
 
 from homeassistant.components.climate import (
-    DOMAIN as CLIMATE_DOMAIN,
     ATTR_PRESET_MODE,
     # ATTR_FAN_MODE,
     HVACMode,
@@ -57,14 +53,6 @@ from homeassistant.components.climate import (
     PRESET_NONE,
     # PRESET_SLEEP,
     ClimateEntityFeature,
-    # ClimateEntityFeature.PRESET_MODE,
-    # SUPPORT_TARGET_TEMPERATURE,
-    SERVICE_SET_FAN_MODE,
-    SERVICE_SET_HUMIDITY,
-    SERVICE_SET_HVAC_MODE,
-    # SERVICE_SET_PRESET_MODE,
-    SERVICE_SET_SWING_MODE,
-    SERVICE_SET_TEMPERATURE,
 )
 
 # from homeassistant.components.climate import (
@@ -86,7 +74,6 @@ from homeassistant.const import (
     STATE_ON,
     EVENT_HOMEASSISTANT_START,
     ATTR_ENTITY_ID,
-    SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_HOME,
     STATE_NOT_HOME,
@@ -97,6 +84,9 @@ from .const import (
     PLATFORMS,
     DEVICE_MANUFACTURER,
     CONF_HEATER,
+    CONF_HEATER_2,
+    CONF_HEATER_3,
+    CONF_HEATER_4,
     CONF_POWER_SENSOR,
     CONF_TEMP_SENSOR,
     CONF_EXTERNAL_TEMP_SENSOR,
@@ -145,6 +135,8 @@ from .const import (
     ATTR_MEAN_POWER_CYCLE,
     ATTR_TOTAL_ENERGY,
 )
+
+from .underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
@@ -212,6 +204,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     # The list of VersatileThermostat entities
     # No more needed
     # _registry: dict[str, object] = {}
+    _hass: HomeAssistant
     _last_temperature_mesure: datetime
     _last_ext_temperature_mesure: datetime
     _total_energy: float
@@ -219,8 +212,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     _window_state: bool
     _motion_state: bool
     _presence_state: bool
-    _security_state: bool
     _window_auto_state: bool
+    _underlyings: list[UnderlyingEntity]
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
@@ -264,14 +257,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._security_state = None
 
         self._thermostat_type = None
-        self._heater_entity_id = None
-        self._climate_entity_id = None
         self._is_over_climate = False
+        # TODO should be delegated to underlying climate
+        self._heater_entity_id = None
+        # self._climate_entity_id = None
         self._underlying_climate = None
 
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
+
+        # TODO should be delegated to underlying climate
         self._underlying_climate_start_hvac_action_date = None
         self._underlying_climate_delta_t = 0
 
@@ -286,18 +282,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
-        self.post_init(entry_infos)
+        self._underlyings = []
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, self._unique_id)},
-            name=self._name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
-        )
+        self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
         """Finish the initialization of the thermostast"""
@@ -335,16 +322,40 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._motion_call_cancel()
             self._motion_call_cancel = None
 
-        # Exploit usable attributs
+        self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
+
+        # Initialize underlying entities
         self._thermostat_type = entry_infos.get(CONF_THERMOSTAT_TYPE)
         if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
             self._is_over_climate = True
-            self._climate_entity_id = entry_infos.get(CONF_CLIMATE)
+            self._underlyings.append(
+                UnderlyingClimate(
+                    hass=self._hass,
+                    thermostat_name=str(self),
+                    climate_entity_id=entry_infos.get(CONF_CLIMATE),
+                )
+            )
         else:
-            self._heater_entity_id = entry_infos.get(CONF_HEATER)
-            self._is_over_climate = False
+            lst_switches = [entry_infos.get(CONF_HEATER)]
+            if entry_infos.get(CONF_HEATER_2):
+                lst_switches.append(entry_infos.get(CONF_HEATER_2))
+            if entry_infos.get(CONF_HEATER_3):
+                lst_switches.append(entry_infos.get(CONF_HEATER_3))
+            if entry_infos.get(CONF_HEATER_4):
+                lst_switches.append(entry_infos.get(CONF_HEATER_4))
 
-        self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
+            delta_cycle = self._cycle_min * 60 / len(lst_switches)
+            self._underlyings = []
+            for idx, switch in enumerate(lst_switches):
+                self._underlyings.append(
+                    UnderlyingSwitch(
+                        hass=self._hass,
+                        thermostat_name=str(self),
+                        switch_entity_id=switch,
+                        initial_delay_sec=idx * delta_cycle,
+                    )
+                )
+
         self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
@@ -523,19 +534,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         await super().async_added_to_hass()
 
-        # Add listener
-        if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass, [self._climate_entity_id], self._async_climate_changed
+        # Add listener to all underlying entities
+        if self.is_over_climate:
+            for climate in self._underlyings:
+                self.async_on_remove(
+                    async_track_state_change_event(
+                        self.hass, [climate.entity_id], self._async_climate_changed
+                    )
                 )
-            )
         else:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass, [self._heater_entity_id], self._async_switch_changed
+            for switch in self._underlyings:
+                self.async_on_remove(
+                    async_track_state_change_event(
+                        self.hass, [switch.entity_id], self._async_switch_changed
+                    )
                 )
-            )
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -623,14 +636,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._async_cancel_cycle()
             self._async_cancel_cycle = None
 
-    def find_underlying_climate(self, climate_entity_id) -> ClimateEntity:
-        """Find the underlying climate entity"""
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
-            if climate_entity_id == entity.entity_id:
-                return entity
-        return None
-
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
         _LOGGER.debug("%s - Calling async_startup", self)
@@ -640,28 +645,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.debug("%s - Calling async_startup_internal", self)
             need_write_state = False
 
-            # Get the underlying thermostat
-            if self._is_over_climate:
-                self._underlying_climate = self.find_underlying_climate(
-                    self._climate_entity_id
-                )
-                if self._underlying_climate:
-                    _LOGGER.info(
-                        "%s - The underlying climate entity: %s have been succesfully found",
-                        self,
-                        self._underlying_climate,
-                    )
-                else:
-                    _LOGGER.error(
-                        "%s - Cannot find the underlying climate entity: %s. Thermostat will not be operational",
-                        self,
-                        self._climate_entity_id,
-                    )
-                    # #56 keep the over_climate and try periodically to find the underlying climate
-                    # self._is_over_climate = False
-                    raise UnknownEntity(
-                        f"Underlying thermostat {self._climate_entity_id} not found"
-                    )
+            # Initialize all UnderlyingEntities
+            for under in self._underlyings:
+                under.startup()
 
             temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
             if temperature_state and temperature_state.state not in (
@@ -889,6 +875,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return f"VersatileThermostat-{self.name}"
 
     @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._unique_id)},
+            name=self._name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
+
+    @property
     def unique_id(self):
         return self._unique_id
 
@@ -1000,17 +997,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     @property
     def _is_device_active(self):
-        """If the toggleable device is currently active."""
-        if self._is_over_climate:
-            if self._underlying_climate:
-                return self._underlying_climate.hvac_action not in [
-                    HVACAction.IDLE,
-                    HVACAction.OFF,
-                ]
-            else:
-                return None
-        else:
-            return self._hass.states.is_state(self._heater_entity_id, STATE_ON)
+        """Returns true if one underlying is active"""
+        for under in self._underlyings:
+            if under.is_device_active():
+                return True
+        return False
 
     @property
     def current_temperature(self):
@@ -1156,6 +1147,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """True if the Window auto feature is enabled"""
         return self._window_auto_on
 
+    @property
+    def nb_underlying_entities(self) -> int:
+        """Returns the number of underlying entities"""
+        return len(self._underlyings)
+
+    def underlying_entity_id(self, index=0) -> str | None:
+        """The climate_entity_id. Added for retrocompatibility reason"""
+        if index < self.nb_underlying_entities:
+            return self.underlying_entity(index).entity_id
+        else:
+            return None
+
+    def underlying_entity(self, index=0) -> UnderlyingEntity | None:
+        """Get the underlying entity at specified index"""
+        if index < self.nb_underlying_entities:
+            return self._underlyings[index]
+        else:
+            return None
+
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
         if self._is_over_climate and self._underlying_climate:
@@ -1191,28 +1201,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if hvac_mode is None:
             return
 
-        if self._is_over_climate and self._underlying_climate:
-            data = {ATTR_ENTITY_ID: self._climate_entity_id, "hvac_mode": hvac_mode}
-            await self.hass.services.async_call(
-                CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, data, context=self._context
-            )
-            # await self._underlying_climate.async_set_hvac_mode(hvac_mode)
-            self._hvac_mode = hvac_mode  # self._underlying_climate.hvac_mode
-        else:
-            if hvac_mode == HVACMode.HEAT:
-                self._hvac_mode = HVACMode.HEAT
-                await self._async_control_heating(force=True)
-            elif hvac_mode == HVACMode.COOL:
-                self._hvac_mode = HVACMode.COOL
-                await self._async_control_heating(force=True)
-            elif hvac_mode == HVACMode.OFF:
-                self._hvac_mode = HVACMode.OFF
-                if self._is_device_active:
-                    await self._async_underlying_entity_turn_off()
-                await self._async_control_heating(force=True)
-            else:
-                _LOGGER.error("Unrecognized hvac mode: %s", hvac_mode)
-                return
+        # Delegate to all underlying
+        for under in self._underlyings:
+            await under.set_have_mode(hvac_mode)
+
+        self._hvac_mode = hvac_mode
+        await self._async_control_heating(force=True)
+
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
 
@@ -1304,52 +1299,32 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
-        if fan_mode is None:
+        if fan_mode is None or not self._is_over_climate:
             return
+
+        for under in self._underlyings:
+            await under.set_fan_mode(fan_mode)
         self._fan_mode = fan_mode
-
-        if self._is_over_climate and self._underlying_climate:
-            data = {
-                ATTR_ENTITY_ID: self._climate_entity_id,
-                "fan_mode": fan_mode,
-            }
-
-            await self.hass.services.async_call(
-                CLIMATE_DOMAIN, SERVICE_SET_FAN_MODE, data, context=self._context
-            )
         self.async_write_ha_state()
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
         _LOGGER.info("%s - Set fan mode: %s", self, humidity)
-        if humidity is None:
+        if humidity is None or not self._is_over_climate:
             return
+        for under in self._underlyings:
+            await under.set_humidity(humidity)
         self._humidity = humidity
-        if self._is_over_climate and self._underlying_climate:
-            data = {
-                ATTR_ENTITY_ID: self._climate_entity_id,
-                "humidity": humidity,
-            }
-
-            await self.hass.services.async_call(
-                CLIMATE_DOMAIN, SERVICE_SET_HUMIDITY, data, context=self._context
-            )
+        self.async_write_ha_state()
 
     async def async_set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
         _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
-        if swing_mode is None:
+        if swing_mode is None or not self._is_over_climate:
             return
+        for under in self._underlyings:
+            await under.set_swing_mode(swing_mode)
         self._swing_mode = swing_mode
-        if self._is_over_climate and self._underlying_climate:
-            data = {
-                ATTR_ENTITY_ID: self._climate_entity_id,
-                "swing_mode": swing_mode,
-            }
-
-            await self.hass.services.async_call(
-                CLIMATE_DOMAIN, SERVICE_SET_SWING_MODE, data, context=self._context
-            )
         self.async_write_ha_state()
 
     async def async_set_temperature(self, **kwargs):
@@ -1366,16 +1341,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _async_internal_set_temperature(self, temperature):
         """Set the target temperature and the target temperature of underlying climate if any"""
         self._target_temp = temperature
-        if self._is_over_climate and self._underlying_climate:
-            data = {
-                ATTR_ENTITY_ID: self._climate_entity_id,
-                "temperature": temperature,
-                "target_temp_high": self._attr_max_temp,
-                "target_temp_low": self._attr_min_temp,
-            }
+        if not self._is_over_climate:
+            return
 
-            await self.hass.services.async_call(
-                CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE, data, context=self._context
+        for under in self._underlyings:
+            await under.set_temperature(
+                temperature, self._attr_max_temp, self._attr_min_temp
             )
 
     def get_state_date_or_now(self, state: State):
@@ -1865,22 +1836,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     async def _async_underlying_entity_turn_off(self):
         """Turn heater toggleable device off."""
-        if not self._is_over_climate:
-            _LOGGER.debug(
-                "%s - Stopping underlying switch %s", self, self._heater_entity_id
-            )
-            data = {ATTR_ENTITY_ID: self._heater_entity_id}
-            await self.hass.services.async_call(
-                HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
-            )
-        else:
-            _LOGGER.debug(
-                "%s - Stopping underlying switch %s", self, self._climate_entity_id
-            )
-            data = {ATTR_ENTITY_ID: self._climate_entity_id}
-            await self.hass.services.async_call(
-                HA_DOMAIN, SERVICE_TURN_OFF, data, context=self._context
-            )
+
+        for under in self._underlyings:
+            await under.turn_off()
 
     async def _async_manage_window_auto(self):
         """The management of the window auto feature"""
@@ -2039,7 +1997,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         ret = self._current_power + self._device_power >= self._current_power_max
-        if not self._overpowering_state and ret and not self._hvac_mode == HVACMode.OFF:
+        if not self._overpowering_state and ret and self._hvac_mode != HVACMode.OFF:
             _LOGGER.warning(
                 "%s - overpowering is detected. Heater preset will be set to 'power'",
                 self,
@@ -2241,15 +2199,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 56 in over_climate mode, if the underlying climate is not initialized, try to initialize it
-        if self._is_over_climate and self._underlying_climate is None:
-            _LOGGER.info(
-                "%s - Underlying climate is not initialized. Try to initialize it", self
-            )
-            try:
-                await self.async_startup()
-            except UnknownEntity as err:
-                # still not found, we an stop here
-                raise err
+        for under in self._underlyings:
+            if not under.is_initialized:
+                _LOGGER.info(
+                    "%s - Underlying %s is not initialized. Try to initialize it",
+                    self,
+                    under.entity_id,
+                )
+                try:
+                    under.startup()
+                except UnknownEntity as err:
+                    # still not found, we an stop here
+                    raise err
 
         # Check overpowering condition
         overpowering: bool = await self.check_overpowering()

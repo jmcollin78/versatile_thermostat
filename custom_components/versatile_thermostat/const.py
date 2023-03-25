@@ -30,6 +30,9 @@ DOMAIN = "versatile_thermostat"
 PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.BINARY_SENSOR, Platform.SENSOR]
 
 CONF_HEATER = "heater_entity_id"
+CONF_HEATER_2 = "heater_entity2_id"
+CONF_HEATER_3 = "heater_entity3_id"
+CONF_HEATER_4 = "heater_entity4_id"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"
 CONF_EXTERNAL_TEMP_SENSOR = "external_temperature_sensor_entity_id"
 CONF_POWER_SENSOR = "power_sensor_entity_id"

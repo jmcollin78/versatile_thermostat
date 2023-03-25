@@ -9,6 +9,9 @@ from homeassistant.components.climate.const import (  # pylint: disable=unused-i
 from custom_components.versatile_thermostat.const import (
     CONF_NAME,
     CONF_HEATER,
+    CONF_HEATER_2,
+    CONF_HEATER_3,
+    CONF_HEATER_4,
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_TYPE,
@@ -62,6 +65,21 @@ MOCK_TH_OVER_SWITCH_USER_CONFIG = {
     CONF_USE_PRESENCE_FEATURE: True,
 }
 
+MOCK_TH_OVER_4SWITCH_USER_CONFIG = {
+    CONF_NAME: "TheOver4SwitchMockName",
+    CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+    CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+    CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    CONF_CYCLE_MIN: 8,
+    CONF_TEMP_MIN: 15,
+    CONF_TEMP_MAX: 30,
+    CONF_DEVICE_POWER: 1,
+    CONF_USE_WINDOW_FEATURE: True,
+    CONF_USE_MOTION_FEATURE: True,
+    CONF_USE_POWER_FEATURE: True,
+    CONF_USE_PRESENCE_FEATURE: True,
+}
+
 MOCK_TH_OVER_CLIMATE_USER_CONFIG = {
     CONF_NAME: "TheOverClimateMockName",
     CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
@@ -76,6 +94,14 @@ MOCK_TH_OVER_CLIMATE_USER_CONFIG = {
 
 MOCK_TH_OVER_SWITCH_TYPE_CONFIG = {
     CONF_HEATER: "switch.mock_switch",
+    CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+}
+
+MOCK_TH_OVER_4SWITCH_TYPE_CONFIG = {
+    CONF_HEATER: "switch.mock_4switch0",
+    CONF_HEATER_2: "switch.mock_4switch1",
+    CONF_HEATER_3: "switch.mock_4switch2",
+    CONF_HEATER_4: "switch.mock_4switch3",
     CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
 }
 
