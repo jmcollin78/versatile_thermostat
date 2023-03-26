@@ -87,7 +87,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = now - timedelta(minutes=6)
 
@@ -134,7 +134,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         await entity.async_set_preset_mode(PRESET_BOOST)
 
@@ -149,7 +149,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = datetime.now()
 
@@ -185,4 +185,5 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
             any_order=True,
         )
 
-        assert mock_heater_on.call_count == 0
+        # Heater is now on
+        assert mock_heater_on.call_count == 1

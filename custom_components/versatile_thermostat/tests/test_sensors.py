@@ -1,4 +1,5 @@
 """ Test the normal start of a Thermostat """
+import asyncio
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant
@@ -178,6 +179,8 @@ async def test_sensors_over_switch(
         and last_ext_temperature_sensor.state != last_temp_date
     )
     assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+
+    cancel_switchs_cycles(entity)
 
 
 async def test_sensors_over_climate(

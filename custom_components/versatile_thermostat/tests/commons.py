@@ -1,4 +1,6 @@
 """ Some common resources """
+import asyncio
+import logging
 from unittest.mock import patch, MagicMock
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
@@ -73,6 +75,8 @@ FULL_4SWITCH_CONFIG = (
     | MOCK_PRESENCE_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class MockClimate(ClimateEntity):
@@ -195,8 +199,16 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     return None
 
 
-async def send_temperature_change_event(entity: VersatileThermostat, new_temp, date):
+async def send_temperature_change_event(
+    entity: VersatileThermostat, new_temp, date, sleep=True
+):
     """Sending a new temperature event simulating a change on temperature sensor"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_temp=%.2f date=%s on %s",
+        new_temp,
+        date,
+        entity,
+    )
     temp_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -208,13 +220,21 @@ async def send_temperature_change_event(entity: VersatileThermostat, new_temp, d
             )
         },
     )
-    return await entity._async_temperature_changed(temp_event)
+    await entity._async_temperature_changed(temp_event)
+    if sleep:
+        await asyncio.sleep(0.1)
 
 
 async def send_ext_temperature_change_event(
-    entity: VersatileThermostat, new_temp, date
+    entity: VersatileThermostat, new_temp, date, sleep=True
 ):
     """Sending a new external temperature event simulating a change on temperature sensor"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_temp=%.2f date=%s on %s",
+        new_temp,
+        date,
+        entity,
+    )
     temp_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -226,11 +246,21 @@ async def send_ext_temperature_change_event(
             )
         },
     )
-    return await entity._async_ext_temperature_changed(temp_event)
+    await entity._async_ext_temperature_changed(temp_event)
+    if sleep:
+        await asyncio.sleep(0.1)
 
 
-async def send_power_change_event(entity: VersatileThermostat, new_power, date):
+async def send_power_change_event(
+    entity: VersatileThermostat, new_power, date, sleep=True
+):
     """Sending a new power event simulating a change on power sensor"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_power=%.2f date=%s on %s",
+        new_power,
+        date,
+        entity,
+    )
     power_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -242,11 +272,21 @@ async def send_power_change_event(entity: VersatileThermostat, new_power, date):
             )
         },
     )
-    return await entity._async_power_changed(power_event)
+    await entity._async_power_changed(power_event)
+    if sleep:
+        await asyncio.sleep(0.1)
 
 
-async def send_max_power_change_event(entity: VersatileThermostat, new_power_max, date):
+async def send_max_power_change_event(
+    entity: VersatileThermostat, new_power_max, date, sleep=True
+):
     """Sending a new power max event simulating a change on power max sensor"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_power_max=%.2f date=%s on %s",
+        new_power_max,
+        date,
+        entity,
+    )
     power_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -258,13 +298,22 @@ async def send_max_power_change_event(entity: VersatileThermostat, new_power_max
             )
         },
     )
-    return await entity._async_max_power_changed(power_event)
+    await entity._async_max_power_changed(power_event)
+    if sleep:
+        await asyncio.sleep(0.1)
 
 
 async def send_window_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date
+    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new window event simulating a change on the window state"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_state=%s old_state=%s date=%s on %s",
+        new_state,
+        old_state,
+        date,
+        entity,
+    )
     window_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -283,13 +332,22 @@ async def send_window_change_event(
         },
     )
     ret = await entity._async_windows_changed(window_event)
+    if sleep:
+        await asyncio.sleep(0.1)
     return ret
 
 
 async def send_motion_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date
+    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new motion event simulating a change on the window state"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_state=%s old_state=%s date=%s on %s",
+        new_state,
+        old_state,
+        date,
+        entity,
+    )
     motion_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -308,13 +366,22 @@ async def send_motion_change_event(
         },
     )
     ret = await entity._async_motion_changed(motion_event)
+    if sleep:
+        await asyncio.sleep(0.1)
     return ret
 
 
 async def send_presence_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date
+    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new presence event simulating a change on the window state"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_state=%s old_state=%s date=%s on %s",
+        new_state,
+        old_state,
+        date,
+        entity,
+    )
     presence_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -333,6 +400,8 @@ async def send_presence_change_event(
         },
     )
     ret = await entity._async_presence_changed(presence_event)
+    if sleep:
+        await asyncio.sleep(0.1)
     return ret
 
 
@@ -349,8 +418,18 @@ async def send_climate_change_event(
     new_hvac_action: HVACAction,
     old_hvac_action: HVACAction,
     date,
+    sleep=True,
 ):
     """Sending a new climate event simulating a change on the underlying climate state"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_hvac_mode=%s old_hvac_mode=%s new_hvac_action=%s old_hvac_action=%s date=%s on %s",
+        new_hvac_mode,
+        old_hvac_mode,
+        new_hvac_action,
+        old_hvac_action,
+        date,
+        entity,
+    )
     climate_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -371,4 +450,14 @@ async def send_climate_change_event(
         },
     )
     ret = await entity._async_climate_changed(climate_event)
+    if sleep:
+        await asyncio.sleep(0.1)
     return ret
+
+
+def cancel_switchs_cycles(entity: VersatileThermostat):
+    """This method will cancel all running cycle on all underlying switch entity"""
+    if entity._is_over_climate:
+        return
+    for under in entity._underlyings:
+        under._cancel_cycle()

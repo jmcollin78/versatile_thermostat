@@ -81,9 +81,9 @@ async def test_power_management_hvac_off(
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
         await send_max_power_change_event(entity, 149, datetime.now())
         assert await entity.check_overpowering() is True
@@ -160,9 +160,9 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
         await send_max_power_change_event(entity, 149, datetime.now())
         assert await entity.check_overpowering() is True
@@ -194,9 +194,9 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
         await send_power_change_event(entity, 48, datetime.now())
         assert await entity.check_overpowering() is False
@@ -278,13 +278,13 @@ async def test_power_management_energy_over_switch(
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
-        await send_temperature_change_event(entity, 15, datetime.now())
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_BOOST)
+        await send_temperature_change_event(entity, 15, datetime.now())
 
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
@@ -307,9 +307,9 @@ async def test_power_management_energy_over_switch(
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
         await send_temperature_change_event(entity, 18, datetime.now())
         assert tpi_algo.on_percent == 0.3
@@ -329,9 +329,9 @@ async def test_power_management_energy_over_switch(
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
         await send_temperature_change_event(entity, 20, datetime.now())
         assert tpi_algo.on_percent == 0.0

@@ -11,7 +11,6 @@ from homeassistant.core import (
     HomeAssistant,
     callback,
     CoreState,
-    DOMAIN as HA_DOMAIN,
     Event,
     State,
 )
@@ -73,8 +72,6 @@ from homeassistant.const import (
     STATE_OFF,
     STATE_ON,
     EVENT_HOMEASSISTANT_START,
-    ATTR_ENTITY_ID,
-    SERVICE_TURN_ON,
     STATE_HOME,
     STATE_NOT_HOME,
 )
@@ -142,6 +139,9 @@ from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
+
+# TODO remove this
+_LOGGER.setLevel(logging.DEBUG)
 
 
 async def async_setup_entry(
@@ -259,7 +259,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._thermostat_type = None
         self._is_over_climate = False
         # TODO should be delegated to underlying climate
-        self._heater_entity_id = None
+        # self._heater_entity_id = None
         # self._climate_entity_id = None
         self._underlying_climate = None
 
@@ -311,10 +311,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else:
                 _LOGGER.debug("value %s not found in Entry", value)
 
-        # Stop eventual cycle running
-        if self._async_cancel_cycle is not None:
-            self._async_cancel_cycle()
-            self._async_cancel_cycle = None
         if self._window_call_cancel is not None:
             self._window_call_cancel()
             self._window_call_cancel = None
@@ -522,10 +518,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._total_energy = 0
 
         _LOGGER.debug(
-            "%s - Creation of a new VersatileThermostat entity: unique_id=%s heater_entity_id=%s",
+            "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
             self,
             self.unique_id,
-            self._heater_entity_id,
         )
 
     async def async_added_to_hass(self):
@@ -632,9 +627,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def async_remove_thermostat(self):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
-        if self._async_cancel_cycle:
-            self._async_cancel_cycle()
-            self._async_cancel_cycle = None
+        for under in self._underlyings:
+            under.remove_entity()
 
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
@@ -686,22 +680,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     "%s - external temperature sensor have NOT been retrieved cause no external sensor",
                     self,
                 )
-
-            if self._is_over_climate:
-                climate_state = self.hass.states.get(self._climate_entity_id)
-                if climate_state and climate_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self._hvac_mode = climate_state.state
-                    need_write_state = True
-            else:
-                switch_state = self.hass.states.get(self._heater_entity_id)
-                if switch_state and switch_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self.hass.create_task(self._check_switch_initial_state())
 
             if self._pmax_on:
                 # try to acquire current power and power max
@@ -787,6 +765,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self._prop_algorithm.calculate(
                         self._target_temp, self._cur_temp, self._cur_ext_temp
                     )
+
+            self.hass.create_task(self._check_switch_initial_state())
             self.hass.create_task(self._async_control_heating())
 
         await self.get_my_previous_state()
@@ -958,15 +938,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._unit
 
     @property
-    def hvac_mode(self):
+    def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.hvac_mode
+        if self._is_over_climate:
+            # if one not OFF -> return it
+            # else OFF
+            for under in self._underlyings:
+                if (action := under.hvac_mode) not in [HVACMode.OFF]:
+                    return action
+            return HVACMode.OFF
 
         return self._hvac_mode
 
     @property
-    def hvac_action(self):
+    def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation if supported.
 
         Need to be one of CURRENT_HVAC_*.
@@ -1545,12 +1530,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _check_switch_initial_state(self):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_switch_initial_state", self)
-        if self._hvac_mode == HVACMode.OFF and self._is_device_active:
-            _LOGGER.warning(
-                "The climate mode is OFF, but the switch device is ON. Turning off device %s",
-                self._heater_entity_id,
-            )
-            await self._async_underlying_entity_turn_off()
+        if self.is_over_climate:
+            return
+        for under in self._underlyings:
+            await under.check_initial_state(self._hvac_mode)
 
     @callback
     def _async_switch_changed(self, event):
@@ -1838,10 +1821,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     async def _async_heater_turn_on(self):
         """Turn heater toggleable device on."""
-        data = {ATTR_ENTITY_ID: self._heater_entity_id}
-        await self.hass.services.async_call(
-            HA_DOMAIN, SERVICE_TURN_ON, data, context=self._context
-        )
+        # TODO should be delegated
+        # data = {ATTR_ENTITY_ID: self._heater_entity_id}
+        # await self.hass.services.async_call(
+        #    HA_DOMAIN, SERVICE_TURN_ON, data, context=self._context
+        # )
+        for under in self._underlyings:
+            await under.turn_on()
 
     async def _async_underlying_entity_turn_off(self):
         """Turn heater toggleable device off."""
@@ -2240,123 +2226,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return
 
         if not self._is_over_climate:
-            on_time_sec: int = self._prop_algorithm.on_time_sec
-            off_time_sec: int = self._prop_algorithm.off_time_sec
-
-            _LOGGER.debug(
-                "%s - Checking new cycle. on_time_sec=%.0f, off_time_sec=%.0f, security_state=%s, preset_mode=%s",
-                self,
-                on_time_sec,
-                off_time_sec,
-                self._security_state,
-                self._attr_preset_mode,
-            )
-
-            # Cancel eventual previous cycle if any
-            if self._async_cancel_cycle is not None:
-                if force:
-                    _LOGGER.debug("%s - we force a new cycle", self)
-                    self._async_cancel_cycle()
-                    self._async_cancel_cycle = None
-                else:
-                    _LOGGER.debug(
-                        "%s - A previous cycle is alredy running and no force -> waits for its end",
-                        self,
-                    )
-                    self._should_relaunch_control_heating = True
-                    _LOGGER.debug("%s - End of cycle (2)", self)
-                    return
-
-            if self._hvac_mode == HVACMode.HEAT and on_time_sec > 0:
-
-                async def _turn_on_off_later(
-                    on: bool,  # pylint: disable=invalid-name
-                    time,
-                    heater_action,
-                    next_cycle_action,
-                ):
-                    if self._async_cancel_cycle:
-                        self._async_cancel_cycle()
-                        self._async_cancel_cycle = None
-                        _LOGGER.debug("%s - Stopping cycle during calculation", self)
-
-                    if self._hvac_mode == HVACMode.OFF:
-                        _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-                        if self._is_device_active:
-                            await self._async_underlying_entity_turn_off()
-                        return
-
-                    if on:
-                        if await self.check_overpowering():
-                            _LOGGER.debug("%s - End of cycle (3)", self)
-                            return
-                        # Security mode could have change the on_time percent
-                        await self.check_security()
-                        time = self._prop_algorithm.on_time_sec
-
-                    action_label = "start" if on else "stop"
-                    if self._should_relaunch_control_heating:
-                        _LOGGER.debug(
-                            "Don't %s cause a cycle have to be relaunch", action_label
-                        )
-                        self._should_relaunch_control_heating = False
-                        self.hass.create_task(self._async_control_heating())
-                        # await self._async_control_heating()
-                        _LOGGER.debug("%s - End of cycle (3)", self)
-                        return
-
-                    if time > 0:
-                        _LOGGER.info(
-                            "%s - %s heating for %d min %d sec",
-                            self,
-                            action_label,
-                            time // 60,
-                            time % 60,
-                        )
-                        await heater_action()
-                    else:
-                        _LOGGER.debug(
-                            "%s - No action on heater cause duration is 0", self
-                        )
-                    self._async_cancel_cycle = async_call_later(
-                        self.hass,
-                        time,
-                        next_cycle_action,
-                    )
-
-                async def _turn_on_later(_):
-                    await _turn_on_off_later(
-                        on=True,
-                        time=self._prop_algorithm.on_time_sec,
-                        heater_action=self._async_heater_turn_on,
-                        next_cycle_action=_turn_off_later,
-                    )
-                    self.update_custom_attributes()
-
-                async def _turn_off_later(_):
-                    await _turn_on_off_later(
-                        on=False,
-                        time=self._prop_algorithm.off_time_sec,
-                        heater_action=self._async_underlying_entity_turn_off,
-                        next_cycle_action=_turn_on_later,
-                    )
-                    # increment energy at the end of the cycle
-                    self.incremente_energy()
-                    self.update_custom_attributes()
-
-                await _turn_on_later(None)
-
-            elif self._is_device_active:
-                _LOGGER.info(
-                    "%s - stop heating (2) for %d min %d sec",
-                    self,
-                    off_time_sec // 60,
-                    off_time_sec % 60,
+            for under in self._underlyings:
+                await under.start_cycle(
+                    self._hvac_mode,
+                    self._prop_algorithm.on_time_sec,
+                    self._prop_algorithm.off_time_sec,
+                    force,
                 )
-                await self._async_underlying_entity_turn_off()
-
-            else:
-                _LOGGER.debug("%s - nothing to do", self)
 
         self.update_custom_attributes()
 
