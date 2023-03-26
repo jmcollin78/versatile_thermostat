@@ -1,5 +1,4 @@
 """ Test the normal start of a Thermostat """
-import asyncio
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant

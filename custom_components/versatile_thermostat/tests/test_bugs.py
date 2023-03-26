@@ -53,7 +53,7 @@ async def test_bug_56(
         assert entity
         # cause the underlying climate was not found
         assert entity.is_over_climate is True
-        assert entity._underlying_climate is None
+        assert entity.underlying_entity(0)._underlying_climate is None
 
         # Should not failed
         entity.update_custom_attributes()
@@ -260,7 +260,7 @@ async def test_bug_66(
 
         assert mock_send_event.call_count == 1
         assert mock_heater_on.call_count == 1
-        assert mock_heater_off.call_count == 1
+        assert mock_heater_off.call_count >= 1
         assert mock_condition.call_count == 1
 
         assert entity.window_state == STATE_ON

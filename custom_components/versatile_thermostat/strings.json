@@ -22,12 +22,23 @@
         }
       },
       "type": {
-        "title": "Linked entity",
-        "description": "Linked entity attributes",
+        "title": "Linked entities",
+        "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "Heater entity id",
+          "heater_entity_id": "Heater switch",
+          "heater_entity2_id": "2nd Heater switch",
+          "heater_entity3_id": "3rd Heater switch",
+          "heater_entity4_id": "4th Heater switch",
+          "proportional_function": "Algorithm",
+          "climate_entity_id": "Underlying thermostat"
+        },
+        "data_description": {
+          "heater_entity_id": "Mandatory heater entity id",
+          "heater_entity2_id": "Optional 2nd Heater entity id. Leave empty if not used",
+          "heater_entity3_id": "Optional 3rd Heater entity id. Leave empty if not used",
+          "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not used",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "climate_entity_id": "Underlying thermostat entity id"
+          "climate_entity_id": "Underlying climate entity id"
         }
       },
       "tpi": {
@@ -142,12 +153,23 @@
         }
       },
       "type": {
-        "title": "Linked entity",
-        "description": "Linked entity attributes",
+        "title": "Linked entities",
+        "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "Heater entity id",
+          "heater_entity_id": "Heater switch",
+          "heater_entity2_id": "2nd Heater switch",
+          "heater_entity3_id": "3rd Heater switch",
+          "heater_entity4_id": "4th Heater switch",
+          "proportional_function": "Algorithm",
+          "climate_entity_id": "Underlying thermostat"
+        },
+        "data_description": {
+          "heater_entity_id": "Mandatory heater entity id",
+          "heater_entity2_id": "Optional 2nd Heater entity id. Leave empty if not used",
+          "heater_entity3_id": "Optional 3rd Heater entity id. Leave empty if not used",
+          "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not used",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "climate_entity_id": "Underlying thermostat entity id"
+          "climate_entity_id": "Underlying climate entity id"
         }
       },
       "tpi": {

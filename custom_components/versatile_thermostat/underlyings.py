@@ -1,7 +1,8 @@
 """ Underlying entities classes """
 import logging
+from typing import Any
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, UnitOfTemperature
 
 from homeassistant.exceptions import ServiceNotFound
 
@@ -9,6 +10,7 @@ from homeassistant.backports.enum import StrEnum
 from homeassistant.core import HomeAssistant, DOMAIN as HA_DOMAIN, CALLBACK_TYPE
 from homeassistant.components.climate import (
     ClimateEntity,
+    ClimateEntityFeature,
     DOMAIN as CLIMATE_DOMAIN,
     HVACMode,
     HVACAction,
@@ -27,8 +29,8 @@ from .const import UnknownEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO remove this
-_LOGGER.setLevel(logging.DEBUG)
+# remove this
+# _LOGGER.setLevel(logging.DEBUG)
 
 
 class UnderlyingEntityType(StrEnum):
@@ -45,25 +47,26 @@ class UnderlyingEntity:
     """Represent a underlying device which could be a switch or a climate"""
 
     _hass: HomeAssistant
-    _thermostat_name: str
+    # Cannot import VersatileThermostat due to circular reference
+    _thermostat: Any
     _entity_id: str
     _type: UnderlyingEntityType
 
     def __init__(
         self,
         hass: HomeAssistant,
-        thermostat_name: str,
+        thermostat: Any,
         entity_type: UnderlyingEntityType,
         entity_id: str,
     ) -> None:
         """Initialize the underlying entity"""
         self._hass = hass
-        self._thermostat_name = thermostat_name
+        self._thermostat = thermostat
         self._type = entity_type
         self._entity_id = entity_id
 
     def __str__(self):
-        return self._thermostat_name
+        return str(self._thermostat) + "-" + self._entity_id
 
     @property
     def entity_id(self):
@@ -147,7 +150,7 @@ class UnderlyingSwitch(UnderlyingEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        thermostat_name: str,
+        thermostat: Any,
         switch_entity_id: str,
         initial_delay_sec: int,
     ) -> None:
@@ -155,7 +158,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         super().__init__(
             hass=hass,
-            thermostat_name=thermostat_name,
+            thermostat=thermostat,
             entity_type=UnderlyingEntityType.SWITCH,
             entity_id=switch_entity_id,
         )
@@ -227,7 +230,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 _LOGGER.debug("%s - End of cycle (2)", self)
                 return
 
-        # If we should heat
+        # If we should heat, starts the cycle with delay
         if self._hvac_mode == HVACMode.HEAT and on_time_sec > 0:
             # Starts the cycle after the initial delay
             self._async_cancel_cycle = self.call_later(
@@ -272,23 +275,23 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
             return
 
-        # TODO if await self.check_overpowering():
-        #     _LOGGER.debug("%s - End of cycle (3)", self)
-        #     return
+        if await self._thermostat.check_overpowering():
+            _LOGGER.debug("%s - End of cycle (3)", self)
+            return
         # Security mode could have change the on_time percent
-        # TODO await self.check_security()
+        await self._thermostat.check_security()
         time = self._on_time_sec
 
         action_label = "start"
-        if self._should_relaunch_control_heating:
-            _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-            self._should_relaunch_control_heating = False
-            # self.hass.create_task(self._async_control_heating())
-            await self.start_cycle(
-                self._hvac_mode, self._on_time_sec, self._off_time_sec
-            )
-            _LOGGER.debug("%s - End of cycle (3)", self)
-            return
+        # if self._should_relaunch_control_heating:
+        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
+        #    self._should_relaunch_control_heating = False
+        #    # self.hass.create_task(self._async_control_heating())
+        #    await self.start_cycle(
+        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
+        #    )
+        #    _LOGGER.debug("%s - End of cycle (3)", self)
+        #    return
 
         if time > 0:
             _LOGGER.info(
@@ -325,15 +328,15 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         action_label = "stop"
-        if self._should_relaunch_control_heating:
-            _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-            self._should_relaunch_control_heating = False
-            # self.hass.create_task(self._async_control_heating())
-            await self.start_cycle(
-                self._hvac_mode, self._on_time_sec, self._off_time_sec
-            )
-            _LOGGER.debug("%s - End of cycle (3)", self)
-            return
+        # if self._should_relaunch_control_heating:
+        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
+        #    self._should_relaunch_control_heating = False
+        #    # self.hass.create_task(self._async_control_heating())
+        #    await self.start_cycle(
+        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
+        #    )
+        #    _LOGGER.debug("%s - End of cycle (3)", self)
+        #    return
 
         time = self._off_time_sec
 
@@ -355,7 +358,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         )
 
         # increment energy at the end of the cycle
-        # TODO self.incremente_energy()
+        self._thermostat.incremente_energy()
 
     async def remove_entity(self):
         """Remove the entity"""
@@ -368,13 +371,16 @@ class UnderlyingClimate(UnderlyingEntity):
     _underlying_climate: ClimateEntity
 
     def __init__(
-        self, hass: HomeAssistant, thermostat_name: str, climate_entity_id: str
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        climate_entity_id: str,
     ) -> None:
         """Initialize the underlying climate"""
 
         super().__init__(
             hass=hass,
-            thermostat_name=thermostat_name,
+            thermostat=thermostat,
             entity_type=UnderlyingEntityType.CLIMATE,
             entity_id=climate_entity_id,
         )
@@ -423,7 +429,7 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
-            data,  # TODO Needed ?, context=self._context
+            data,
         )
 
     @property
@@ -449,7 +455,7 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_FAN_MODE,
-            data,  # TODO needed ? context=self._context
+            data,
         )
 
     async def set_humidity(self, humidity: int):
@@ -465,7 +471,7 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HUMIDITY,
-            data,  # TODO needed ? context=self._context
+            data,
         )
 
     async def set_swing_mode(self, swing_mode):
@@ -481,7 +487,7 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_MODE,
-            data,  # TODO needed ? context=self._context
+            data,
         )
 
     async def set_temperature(self, temperature, max_temp, min_temp):
@@ -498,19 +504,75 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_TEMPERATURE,
-            data,  # TODO needed ? context=self._context
+            data,
         )
 
     @property
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> HVACAction | None:
         """Get the hvac action of the underlying"""
         if not self.is_initialized:
             return None
         return self._underlying_climate.hvac_action
 
     @property
-    def hvac_mode(self) -> HVACMode:
+    def hvac_mode(self) -> HVACMode | None:
         """Get the hvac mode of the underlying"""
         if not self.is_initialized:
             return None
         return self._underlying_climate.hvac_mode
+
+    @property
+    def fan_mode(self) -> str | None:
+        """Get the fan_mode of the underlying"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.fan_mode
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Get the swing_mode of the underlying"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.swing_mode
+
+    @property
+    def supported_features(self) -> ClimateEntityFeature:
+        """Get the supported features of the climate"""
+        if not self.is_initialized:
+            return ClimateEntityFeature.TARGET_TEMPERATURE
+        return self._underlying_climate.supported_features
+
+    @property
+    def hvac_modes(self) -> list[HVACMode]:
+        """Get the hvac_modes"""
+        if not self.is_initialized:
+            return []
+        return self._underlying_climate.hvac_modes
+
+    @property
+    def fan_modes(self) -> list[str]:
+        """Get the fan_modes"""
+        if not self.is_initialized:
+            return []
+        return self._underlying_climate.fan_modes
+
+    @property
+    def swing_modes(self) -> list[str]:
+        """Get the swing_modes"""
+        if not self.is_initialized:
+            return []
+        return self._underlying_climate.swing_modes
+
+    @property
+    def temperature_unit(self) -> str:
+        """Get the temperature_unit"""
+        if not self.is_initialized:
+            return UnitOfTemperature.CELSIUS
+        return self._underlying_climate.temperature_unit
+
+    @property
+    def target_temperature_step(self) -> str:
+        """Get the target_temperature_step"""
+        if not self.is_initialized:
+            return 1
+        return self._underlying_climate.target_temperature_step

@@ -55,9 +55,9 @@ def skip_notifications_fixture():
 def skip_turn_on_off_heater():
     """Skip turning on and off the heater"""
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_heater_turn_on"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingEntity.turn_on"
     ), patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_underlying_entity_turn_off"
+        "custom_components.versatile_thermostat.underlyings.UnderlyingEntity.turn_off"
     ):
         yield
 

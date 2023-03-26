@@ -21,12 +21,23 @@
         }
       },
       "type": {
-        "title": "Entité liée",
-        "description": "Attributs de l'entité liée",
+        "title": "Entité(s) liée(s)",
+        "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "Radiateur entity id",
+          "heater_entity_id": "1er radiateur",
+          "heater_entity2_id": "2ème radiateur",
+          "heater_entity3_id": "3ème radiateur",
+          "heater_entity4_id": "4ème radiateur",
+          "proportional_function": "Algorithme",
+          "climate_entity_id": "Thermostat sous-jacent"
+        },
+        "data_description": {
+          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
+          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
+          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
+          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Thermostat sous-jacent entity id"
+          "climate_entity_id": "Entity id du thermostat sous-jacent"
         }
       },
       "tpi": {
@@ -142,12 +153,23 @@
         }
       },
       "type": {
-        "title": "Entité liée",
-        "description": "Attributs de l'entité liée",
+        "title": "Entité(s) liée(s)",
+        "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "Radiateur entity id",
+          "heater_entity_id": "1er radiateur",
+          "heater_entity2_id": "2ème radiateur",
+          "heater_entity3_id": "3ème radiateur",
+          "heater_entity4_id": "4ème radiateur",
+          "proportional_function": "Algorithme",
+          "climate_entity_id": "Thermostat sous-jacent"
+        },
+        "data_description": {
+          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
+          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
+          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
+          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Thermostat sous-jacent entity id"
+          "climate_entity_id": "Entity id du thermostat sous-jacent"
         }
       },
       "tpi": {

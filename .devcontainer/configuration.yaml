@@ -54,11 +54,17 @@ input_boolean:
   fake_heater_switch1:
     name: Heater 1 (Linear)
     icon: mdi:radiator
-  fake_heater_switch2:
-    name: Heater (TPI with presence preset)
+  fake_heater_4switch1:
+    name: Heater (multiswitch1)
     icon: mdi:radiator
-  fake_heater_switch3:
-    name: Heater (TPI with offset)
+  fake_heater_4switch2:
+    name: Heater (multiswitch2)
+    icon: mdi:radiator
+  fake_heater_4switch3:
+    name: Heater (multiswitch3)
+    icon: mdi:radiator
+  fake_heater_4switch4:
+    name: Heater (multiswitch4)
     icon: mdi:radiator
   # input_boolean to simulate the motion sensor entity. Only for development environment.
   fake_motion_sensor1:

@@ -140,8 +140,7 @@ from .open_window_algorithm import WindowOpenDetectionAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO remove this
-_LOGGER.setLevel(logging.DEBUG)
+# _LOGGER.setLevel(logging.DEBUG)
 
 
 async def async_setup_entry(
@@ -258,16 +257,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._thermostat_type = None
         self._is_over_climate = False
-        # TODO should be delegated to underlying climate
-        # self._heater_entity_id = None
-        # self._climate_entity_id = None
-        self._underlying_climate = None
 
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
 
-        # TODO should be delegated to underlying climate
+        # because energy of climate is calculated in the thermostat we have to keep that here and not in underlying entity
         self._underlying_climate_start_hvac_action_date = None
         self._underlying_climate_delta_t = 0
 
@@ -327,7 +322,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._underlyings.append(
                 UnderlyingClimate(
                     hass=self._hass,
-                    thermostat_name=str(self),
+                    thermostat=self,
                     climate_entity_id=entry_infos.get(CONF_CLIMATE),
                 )
             )
@@ -346,7 +341,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._underlyings.append(
                     UnderlyingSwitch(
                         hass=self._hass,
-                        thermostat_name=str(self),
+                        thermostat=self,
                         switch_entity_id=switch,
                         initial_delay_sec=idx * delta_cycle,
                     )
@@ -614,16 +609,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # Ingore this error which is possible if underlying climate is not found temporary
             pass
 
-        # starts a cycle if we are in over_climate type
-        if self._is_over_climate:
-            self.async_on_remove(
-                async_track_time_interval(
-                    self.hass,
-                    self._async_control_heating,
-                    interval=timedelta(minutes=self._cycle_min),
-                )
-            )
-
     def async_remove_thermostat(self):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
@@ -767,7 +752,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     )
 
             self.hass.create_task(self._check_switch_initial_state())
-            self.hass.create_task(self._async_control_heating())
+            # Start the control_heating
+            # starts a cycle if we are in over_climate type
+            if self._is_over_climate:
+                self.async_on_remove(
+                    async_track_time_interval(
+                        self.hass,
+                        self._async_control_heating,
+                        interval=timedelta(minutes=self._cycle_min),
+                    )
+                )
+            else:
+                self.hass.create_task(self._async_control_heating())
 
         await self.get_my_previous_state()
 
@@ -880,8 +876,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def hvac_modes(self):
         """List of available operation modes."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.hvac_modes
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).hvac_modes
 
         return self._hvac_list
 
@@ -891,8 +887,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.FAN_MODE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.fan_mode
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).fan_mode
 
         return None
 
@@ -902,8 +898,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.FAN_MODE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.fan_modes
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).fan_modes
 
         return []
 
@@ -913,8 +909,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.SWING_MODE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.swing_mode
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).swing_mode
 
         return None
 
@@ -924,16 +920,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.SWING_MODE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.swing_modes
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).swing_modes
 
         return None
 
     @property
-    def temperature_unit(self):
+    def temperature_unit(self) -> str:
         """Return the unit of measurement."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.temperature_unit
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).temperature_unit
 
         return self._unit
 
@@ -984,8 +980,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.supported_features | self._support_flags
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).supported_features | self._support_flags
 
         return self._support_flags
 
@@ -1005,8 +1001,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def target_temperature_step(self) -> float | None:
         """Return the supported step of target temperature."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.target_temperature_step
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_step
 
         return None
 
@@ -1016,8 +1012,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.target_temperature_high
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_high
 
         return None
 
@@ -1027,8 +1023,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.target_temperature_low
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_low
 
         return None
 
@@ -1038,8 +1034,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.AUX_HEAT.
         """
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.is_aux_heat
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).is_aux_heat
 
         return None
 
@@ -1049,7 +1045,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if not self._device_power or self._is_over_climate:
             return None
 
-        return float(self._device_power * self._prop_algorithm.on_percent)
+        return float(
+            self.nb_underlying_entities
+            * self._device_power
+            * self._prop_algorithm.on_percent
+        )
 
     @property
     def total_energy(self) -> float | None:
@@ -1162,29 +1162,32 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.turn_aux_heat_on()
+        if self._is_over_climate and self.underlying_entity(0):
+            return self.underlying_entity(0).turn_aux_heat_on()
 
         raise NotImplementedError()
 
     async def async_turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
-        if self._is_over_climate and self._underlying_climate:
-            await self._underlying_climate.async_turn_aux_heat_on()
+        if self._is_over_climate:
+            for under in self._underlyings:
+                await under.async_turn_aux_heat_on()
 
         raise NotImplementedError()
 
     def turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
-        if self._is_over_climate and self._underlying_climate:
-            return self._underlying_climate.turn_aux_heat_off()
+        if self._is_over_climate:
+            for under in self._underlyings:
+                return under.turn_aux_heat_off()
 
         raise NotImplementedError()
 
     async def async_turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
-        if self._is_over_climate and self._underlying_climate:
-            await self._underlying_climate.async_turn_aux_heat_off()
+        if self._is_over_climate:
+            for under in self._underlyings:
+                await under.async_turn_aux_heat_off()
 
         raise NotImplementedError()
 
@@ -1624,7 +1627,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
 
         self.update_custom_attributes()
-        await self._async_control_heating(True)
+        await self._async_control_heating()
 
     @callback
     async def _async_update_temp(self, state: State):
@@ -1819,18 +1822,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._target_temp,
         )
 
-    async def _async_heater_turn_on(self):
-        """Turn heater toggleable device on."""
-        # TODO should be delegated
-        # data = {ATTR_ENTITY_ID: self._heater_entity_id}
-        # await self.hass.services.async_call(
-        #    HA_DOMAIN, SERVICE_TURN_ON, data, context=self._context
-        # )
-        for under in self._underlyings:
-            await under.turn_on()
-
     async def _async_underlying_entity_turn_off(self):
-        """Turn heater toggleable device off."""
+        """Turn heater toggleable device off. Used by Window, overpowering, control_heating to turn all off"""
 
         for under in self._underlyings:
             await under.turn_off()
@@ -2208,10 +2201,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     raise err
 
         # Check overpowering condition
-        overpowering: bool = await self.check_overpowering()
-        if overpowering:
-            _LOGGER.debug("%s - End of cycle (overpowering)", self)
-            return
+        # Not necessary for switch because each switch is checking at startup
+        if self.is_over_climate:
+            overpowering: bool = await self.check_overpowering()
+            if overpowering:
+                _LOGGER.debug("%s - End of cycle (overpowering)", self)
+                return
 
         security: bool = await self.check_security()
         if security and self._is_over_climate:
