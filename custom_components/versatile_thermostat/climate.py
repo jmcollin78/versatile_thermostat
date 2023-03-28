@@ -1203,7 +1203,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             await under.set_hvac_mode(hvac_mode)
 
         self._hvac_mode = hvac_mode
-        await self._async_control_heating(force=True)
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()

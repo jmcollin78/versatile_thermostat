@@ -178,6 +178,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if hvac_mode == HVACMode.OFF:
             if self.is_device_active:
                 await self.turn_off()
+            await self._thermostat._async_control_heating(force=True)
         return
 
     @property

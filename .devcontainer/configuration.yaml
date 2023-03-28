@@ -51,8 +51,14 @@ input_boolean:
     name: Window 1
     icon: mdi:window-closed-variant
   # input_boolean to simulate the heater entity switch. Only for development environment.
+  fake_heater_switch3:
+    name: Heater 3
+    icon: mdi:radiator
+  fake_heater_switch2:
+    name: Heater 2
+    icon: mdi:radiator
   fake_heater_switch1:
-    name: Heater 1 (Linear)
+    name: Heater 1
     icon: mdi:radiator
   fake_heater_4switch1:
     name: Heater (multiswitch1)
