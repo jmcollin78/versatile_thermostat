@@ -227,7 +227,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                     "%s - A previous cycle is alredy running and no force -> waits for its end",
                     self,
                 )
-                self._should_relaunch_control_heating = True
+                # self._should_relaunch_control_heating = True
                 _LOGGER.debug("%s - End of cycle (2)", self)
                 return
 

@@ -2201,11 +2201,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Check overpowering condition
         # Not necessary for switch because each switch is checking at startup
-        if self.is_over_climate:
-            overpowering: bool = await self.check_overpowering()
-            if overpowering:
-                _LOGGER.debug("%s - End of cycle (overpowering)", self)
-                return
+        overpowering: bool = await self.check_overpowering()
+        if overpowering:
+            _LOGGER.debug("%s - End of cycle (overpowering)", self)
+            return
 
         security: bool = await self.check_security()
         if security and self._is_over_climate:
