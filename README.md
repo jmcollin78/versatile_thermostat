@@ -52,6 +52,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 3.2**: added the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
 > * **Release 3.1**: added detection of open windows/doors by temperature drop. This new function makes it possible to automatically stop a radiator when the temperature drops suddenly. See [Auto mode](#auto-mode)
 > * **Major release 3.0**: addition of thermostat equipment and associated sensors (binary and non-binary). Much closer to the Home Assistant philosophy, you now have direct access to the energy consumed by the radiator controlled by the thermostat and many other sensors that will be useful in your automations and dashboard.
 > * **release 2.3**: addition of the power and energy measurement of the radiator controlled by the thermostat.
@@ -141,6 +142,9 @@ Depending on your choice on the type of thermostat, you will have to choose a sw
 For a ```thermostat_over_switch``` thermostat:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
 The algorithm to be used today is limited to TPI is available. See [algorithm](#algorithm)
+If several type entities are configured, the thermostat staggers the activations in order to minimize the number of active switches at a time t. This allows a better distribution of power since each radiator will turn on in turn.
+Example of synchronized triggering:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/multi-switch-activation.png?raw=true)
 
 For a ```thermostat_over_climate``` thermostat:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)

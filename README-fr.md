@@ -15,7 +15,7 @@
   - [Installation manuelle](#installation-manuelle)
 - [Configuration](#configuration)
   - [Choix des attributs de base](#choix-des-attributs-de-base)
-  - [Sélectionnez l'entité pilotée](#sélectionnez-lentité-pilotée)
+  - [Sélectionnez des entités pilotées](#sélectionnez-des-entités-pilotées)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
   - [Configurer les portes/fenêtres en allumant/éteignant les thermostats](#configurer-les-portesfenêtres-en-allumantéteignant-les-thermostats)
@@ -53,6 +53,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puisssance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
 > * **Release 3.1** : ajout d'une détection de fenêtres/portes ouvertes par chute de température. Cette nouvelle fonction permet de stopper automatiquement un radiateur lorsque la température chute brutalement. Voir [Le mode auto](#le-mode-auto)
 > * **Release majeure 3.0** : ajout d'un équipement thermostat et de capteurs (binaires et non binaires) associés. Beaucoup plus proche de la philosphie Home Assistant, vous avez maintenant un accès direct à l'énergie consommée par le radiateur piloté par le thermostat et à plein d'autres capteurs qui seront utiles dans vos automatisations et dashboard.
 > * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
@@ -139,12 +140,16 @@ Donnez les principaux attributs obligatoires :
       1. avec le type ```thermostat_over_swutch```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
       2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible en effet pour le radiateur à accumulation et il sera sollicité inutilement
 
-## Sélectionnez l'entité pilotée
-En fonction de votre choix sur le type de thermostat, vous devrez choisir une entité de type switch ou une entité de type climate. Seules les entités compatibles sont présentées.
+## Sélectionnez des entités pilotées
+En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type switch ou une entité de type climate. Seules les entités compatibles sont présentées.
 
 Pour un thermostat de type ```thermostat_over_switch```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme)
+L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
+Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
+Exemple de déclenchement synchronisé :
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/multi-switch-activation.png?raw=true)
+
 
 Pour un thermostat de type ```thermostat_over_climate```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)

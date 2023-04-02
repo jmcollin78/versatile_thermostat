@@ -146,7 +146,25 @@ async def test_window_management_time_enough(
 
     assert entity.window_state is None
 
-    # Open the window, but condition of time is not satisfied and check the thermostat don't turns off
+    # change temperature to force turning on the heater
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=False,
+    ):
+        await send_temperature_change_event(entity, 15, datetime.now())
+
+        # Heater shoud turn-on
+        assert mock_heater_on.call_count >= 1
+        assert mock_heater_off.call_count == 0
+        assert mock_send_event.call_count == 0
+
+    # Open the window, condition of time is satisfied, check the thermostat and heater turns off
     with patch(
         "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
     ) as mock_send_event, patch(
@@ -156,10 +174,9 @@ async def test_window_management_time_enough(
     ) as mock_heater_off, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        await send_temperature_change_event(entity, 15, datetime.now())
         await send_window_change_event(entity, True, False, datetime.now())
 
         assert mock_send_event.call_count == 1
@@ -167,26 +184,41 @@ async def test_window_management_time_enough(
             [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
         )
 
-        # TODO should be == 1
-        assert mock_heater_on.call_count >= 1
-        # One call in turn_oiff and one call in the control_heating
-        assert mock_heater_off.call_count == 1
+        # Heater should not be on
+        assert mock_heater_on.call_count == 0
+        # One call in set_hvac_mode turn_off and one call in the control_heating for security
+        assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
-
+        assert entity.hvac_mode is HVACMode.OFF
         assert entity.window_state == STATE_ON
 
-        # Close the window
-        try_window_condition = await send_window_change_event(
-            entity, False, True, datetime.now()
+    # Close the window
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ) as mock_condition, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=False,
+    ):
+        try_function = await send_window_change_event(
+            entity, False, True, datetime.now(), sleep=False
         )
-        # simulate the call to try_window_condition
-        await try_window_condition(None)
+
+        await try_function(None)
+
+        # Wait for initial delay of heater
+        await asyncio.sleep(0.3)
+
         assert entity.window_state == STATE_OFF
-        assert mock_heater_on.call_count == 2
-        assert mock_send_event.call_count == 2
+        assert mock_heater_on.call_count == 1
+        assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
                 ),
@@ -259,7 +291,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=4)
@@ -281,7 +313,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=3)
@@ -316,7 +348,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=False,
     ):
@@ -341,7 +373,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=False,
     ):
@@ -438,7 +470,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=4)
@@ -459,7 +491,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=3)
@@ -497,7 +529,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=False,
     ):
         await asyncio.sleep(0.3)
@@ -578,7 +610,7 @@ async def test_window_auto_no_on_percent(
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=4)
@@ -600,7 +632,7 @@ async def test_window_auto_no_on_percent(
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._is_device_active",
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
         event_timestamp = now - timedelta(minutes=3)

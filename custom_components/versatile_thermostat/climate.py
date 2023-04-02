@@ -1198,11 +1198,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if hvac_mode is None:
             return
 
-        # Delegate to all underlying
-        for under in self._underlyings:
-            await under.set_hvac_mode(hvac_mode)
-
         self._hvac_mode = hvac_mode
+
+        # Delegate to all underlying
+        need_control_heating = False
+        for under in self._underlyings:
+            need_control_heating = (
+                await under.set_hvac_mode(hvac_mode) or need_control_heating
+            )
+
+        if need_control_heating:
+            await self._async_control_heating(force=True)
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
@@ -1514,7 +1520,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     new_preset,
                 )
                 # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-                await self._async_internal_set_temperature(self._presets[new_preset])
+                # We take the presence into account
+                await self._async_internal_set_temperature(self.find_preset_temp(new_preset))
             self.recalculate()
             await self._async_control_heating(force=True)
 
@@ -2214,6 +2221,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Stop here if we are off
         if self._hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
+            # A security to force stop heater if still active
             if self._is_device_active:
                 await self._async_underlying_entity_turn_off()
             return

@@ -173,13 +173,12 @@ class UnderlyingSwitch(UnderlyingEntity):
         """The initial delay for this class"""
         return self._initial_delay_sec
 
-    async def set_hvac_mode(self, hvac_mode: HVACMode):
-        """Set the HVACmode"""
+    async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
+        """Set the HVACmode. Returns true if we need to redo a control_heating"""
         if hvac_mode == HVACMode.OFF:
             if self.is_device_active:
                 await self.turn_off()
-            await self._thermostat._async_control_heating(force=True)
-        return
+        return True
 
     @property
     def is_device_active(self):
