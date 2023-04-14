@@ -54,7 +54,7 @@ class WindowOpenDetectionAlgorithm:
         delta_t_sec = float((datetime_measure - self._last_datetime).total_seconds())
         delta_t = delta_t_sec / 60.0
         if delta_t_sec <= MIN_DELTA_T_SEC:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "Delta t is %d < %d which should be not possible. We don't consider this value",
                 delta_t_sec,
                 MIN_DELTA_T_SEC,
@@ -64,7 +64,7 @@ class WindowOpenDetectionAlgorithm:
         delta_temp = float(temperature - self._last_temperature)
         new_slope = delta_temp / delta_t
         if new_slope > MAX_SLOPE_VALUE or new_slope < -MAX_SLOPE_VALUE:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
                 new_slope,
                 MAX_SLOPE_VALUE,

@@ -6,8 +6,9 @@
 
 ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png?raw=true)
 
-> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true?raw=true) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
 
+- [Merci pour la bière buymecoffee: https://www.buymeacoffee.com/jmcollin78](#merci-pour-la-bière-buymecoffee-httpswwwbuymeacoffeecomjmcollin78)
 - [Quand l'utiliser et ne pas l'utiliser](#quand-lutiliser-et-ne-pas-lutiliser)
 - [Pourquoi une nouvelle implémentation du thermostat ?](#pourquoi-une-nouvelle-implémentation-du-thermostat-)
 - [Comment installer cet incroyable Thermostat Versatile ?](#comment-installer-cet-incroyable-thermostat-versatile-)
@@ -59,6 +60,10 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
 > * **release 2.2** : ajout de fonction de sécurité permettant de ne pas laisser éternellement en chauffe un radiateur en cas de panne du thermomètre
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
+
+# Merci pour la bière [buymecoffee]: https://www.buymeacoffee.com/jmcollin78
+Un grand merci à @salabur pour la bière. Ca fait très plaisir.
+
 
 # Quand l'utiliser et ne pas l'utiliser
 Ce thermostat peut piloter 2 types d'équipement:
