@@ -61,7 +61,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release 2.2** : ajout de fonction de sécurité permettant de ne pas laisser éternellement en chauffe un radiateur en cas de panne du thermomètre
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 
-# Merci pour la bière [buymecoffee]: https://www.buymeacoffee.com/jmcollin78
+# Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
 Un grand merci à @salabur pour la bière. Ca fait très plaisir.
 
 

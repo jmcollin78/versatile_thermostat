@@ -8,7 +8,7 @@
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?), you don't have to build over complicated scripts and automations to manage your climates ;-).
 
-- [Thanks for the beer](#thanks-for-the-beer)
+- [Thanks for the beer buymecoffee](#thanks-for-the-beer-buymecoffee)
 - [When to use / not use](#when-to-use--not-use)
 - [Why another thermostat implementation ?](#why-another-thermostat-implementation-)
 - [How to install this incredible Versatile Thermostat ?](#how-to-install-this-incredible-versatile-thermostat-)
@@ -60,7 +60,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **release 2.2**: addition of a safety function allowing a radiator not to be left heating forever in the event of a thermometer failure
 > * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
 
-# Thanks for the beer [buymecoffee]: https://www.buymeacoffee.com/jmcollin78
+# Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
 Many thanks to @salabur for the beer. It's very pleasing. (Vielen Dank an @salabur für das Bier. Es ist sehr erfreulich.)
 
 # When to use / not use
