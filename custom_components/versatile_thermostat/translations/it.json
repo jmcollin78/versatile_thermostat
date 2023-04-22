@@ -1,0 +1,288 @@
+{
+  "title": "Configurazione Versatile Thermostat",
+  "config": {
+    "flow_title": "Configurazione Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Aggiungi un nuovo Versatile Thermostat",
+        "description": "Principali parametri obbligatori",
+        "data": {
+          "name": "Nome",
+          "thermostat_type": "Tipologia di termostato",
+          "temperature_sensor_entity_id": "Entity id sensore temperatura",
+          "external_temperature_sensor_entity_id": "Entity id sensore temperatura esterna",
+          "cycle_min": "Durata del ciclo (minuti)",
+          "temp_min": "Temperatura minima ammessa",
+          "temp_max": "Temperatura massima ammessa",
+          "device_power": "Potenza dispositivo (kW)",
+          "use_window_feature": "Usa il rilevamento della finestra",
+          "use_motion_feature": "Usa il rilevamento del movimento",
+          "use_power_feature": "Usa la gestione della potenza",
+          "use_presence_feature": "Usa il rilevamento della presenza"
+        }
+      },
+      "type": {
+        "title": "Entità collegate",
+        "description": "Parametri entità collegate",
+        "data": {
+          "heater_entity_id": "Primo riscaldatore",
+          "heater_entity2_id": "Secondo riscaldatore",
+          "heater_entity3_id": "Terzo riscaldatore",
+          "heater_entity4_id": "Quarto riscaldatore",
+          "proportional_function": "Algoritmo",
+          "climate_entity_id": "Termostato sottostante"
+        },
+        "data_description": {
+          "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
+          "heater_entity2_id": "Entity id del secondo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "heater_entity3_id": "Entity id del terzo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
+          "climate_entity_id": "Entity id del termostato sottostante"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Parametri del Time Proportional Integral",
+        "data": {
+          "tpi_coef_int": "Coefficiente per il delta della temperatura interna",
+          "tpi_coef_ext": "Coefficiente per il delta della temperatura esterna"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "Per ogni preset, impostare la temperatura desiderata (0 per ignorare il preset)",
+        "data": {
+          "eco_temp": "Temperatura nel preset Eco",
+          "comfort_temp": "Temperatura nel preset Comfort",
+          "boost_temp": "Temperatura nel preset Boost"
+        }
+      },
+      "window": {
+        "title": "Gestione della finestra",
+        "description": "Gestione della finestra aperta.\nLasciare vuoto l'entity_id corrispondente se non utilizzato\nÈ inoltre possibile configurare il rilevamento automatico della finestra aperta in base alla diminuzione della temperatura",
+        "data": {
+          "window_sensor_entity_id": "Entity id sensore finestra",
+          "window_delay": "Ritardo sensore finestra (secondi)",
+          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/min)",
+          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/min)",
+          "window_auto_max_duration": "Durata massima del rilevamento automatico della finestra aperta (in min)"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Lasciare vuoto se non deve essere utilizzato alcun sensore finestra",
+          "window_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "window_auto_open_threshold": "Valore consigliato: tra 0.05 e 0.1. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_max_duration": "Valore consigliato: 60 (un'ora). Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato"
+        }
+      },
+      "motion": {
+        "title": "Gestione movimento",
+        "description": "Gestione sensore movimento. Il preset può cambiare automaticamente a seconda di un rilevamento di movimento\nLasciare vuoto l'entity_id corrispondente se non utilizzato.\nmotion_preset e no_motion_preset devono essere impostati con il nome del preset corrispondente",
+        "data": {
+          "motion_sensor_entity_id": "Entity id sensore di movimento",
+          "motion_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "motion_preset": "Preset da utilizzare quando viene rilevato il movimento",
+          "no_motion_preset": "Preset da utilizzare quando non viene rilevato il movimento"
+        }
+      },
+      "power": {
+        "title": "Gestione dell'energia",
+        "description": "Parametri di gestione dell'energia.\nInserire la potenza massima disponibile e l'entity_id del sensore che la misura.\nQuindi inserire il consumo del riscaldatore quando è in funzione.\nTutti i parametri devono essere nella stessa unità di misura (kW o W).\nLasciare vuoto l'entity_id corrispondente se non utilizzato.",
+        "data": {
+          "power_sensor_entity_id": "Entity id sensore potenza",
+          "max_power_sensor_entity_id": "Entity id sensore di massima potenza",
+          "power_temp": "Temperatura in caso di distribuzione del carico"
+        }
+      },
+      "presence": {
+        "title": "Gestione della presenza",
+        "description": "Parametri di gestione della presenza.\nInserire un sensore di presenza (true se è presente qualcuno).\nQuindi specificare il preset o la riduzione di temperatura da utilizzare quando il sensore di presenza è in false.\nSe è impostato il preset, la riduzione non sarà utilizzata.\nLasciare vuoto l'entity_id corrispondente se non utilizzato.",
+        "data": {
+          "presence_sensor_entity_id": "Entity id sensore presenza (true se è presente qualcuno)",
+          "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
+          "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
+          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza"
+        }
+      },
+      "advanced": {
+        "title": "Parametri avanzati",
+        "description": "Configurazione avanzata dei parametri. Lasciare i valori predefiniti se non conoscete cosa state modificando.\nQuesti parametri possono determinare una pessima gestione della temperatura e della potenza.",
+        "data": {
+          "minimal_activation_delay": "Ritardo minimo di accensione",
+          "security_delay_min": "Ritardo di sicurezza (in minuti)",
+          "security_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
+          "security_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Ritardo in secondi al di sotto del quale l'apparecchiatura non verrà attivata",
+          "security_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
+          "security_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
+          "security_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Errore inatteso",
+      "unknown_entity": "Entity id sconosciuta",
+      "window_open_detection_method": "Può essere utilizzato un solo metodo di rilevamento finestra aperta. Utilizzare il sensore od il rilevamento automatico ma non entrambi"
+    },
+    "abort": {
+      "already_configured": "Il dispositivo è già configurato"
+    }
+  },
+  "options": {
+    "flow_title": "Configurazione di Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Aggiungi un nuovo Versatile Thermostat",
+        "description": "Principali attributi obbligatori",
+        "data": {
+          "name": "Nome",
+          "thermostat_type": "Tipologia termostato",
+          "temperature_sensor_entity_id": "Entity id sensore di temperatura",
+          "external_temperature_sensor_entity_id": "Entity id sensore temperatura esterna",
+          "cycle_min": "Durata del ciclo (minuti)",
+          "temp_min": "Temperatura minima consentita",
+          "temp_max": "Temperatura massima consentita",
+          "device_power": "Potenza dispositivo (kW)",
+          "use_window_feature": "Usa il rilevamento della finestra",
+          "use_motion_feature": "Usa il rilevamento del movimento",
+          "use_power_feature": "Usa la gestione della potenza",
+          "use_presence_feature": "Usa il rilevamento della presenza"
+        }
+      },
+      "type": {
+        "title": "Entità collegate",
+        "description": "Attributi delle entità collegate",
+        "data": {
+          "heater_entity_id": "Interruttore riscaldatore",
+          "heater_entity2_id": "Secondo interruttore riscaldatore",
+          "heater_entity3_id": "Terzo interruttore riscaldatore",
+          "heater_entity4_id": "Quarto interruttore riscaldatore",
+          "proportional_function": "Algoritmo",
+          "climate_entity_id": "Termostato sottostante"
+        },
+        "data_description": {
+          "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
+          "heater_entity2_id": "Entity id del secondo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "heater_entity3_id": "Entity id del terzo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
+          "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
+          "climate_entity_id": "Entity id del termostato sottostante"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Parametri del Time Proportional Integral",
+        "data": {
+          "tpi_coef_int": "Coefficiente per il delta della temperatura interna",
+          "tpi_coef_ext": "Coefficiente per il delta della temperatura esterna"
+        }
+      },
+      "presets": {
+        "title": "Presets",
+        "description": "Per ogni preset, impostare la temperatura desiderata (0 per ignorare il preset)",
+        "data": {
+          "eco_temp": "Temperatura nel preset Eco",
+          "comfort_temp": "Temperatura nel preset Comfort",
+          "boost_temp": "Temperatura nel preset Boost"
+        }
+      },
+      "window": {
+        "title": "Gestione della finestra",
+        "description": "Gestione della finestra aperta.\nLasciare vuoto l'entity_id corrispondente se non utilizzato\nÈ inoltre possibile configurare il rilevamento automatico della finestra aperta in base alla diminuzione della temperatura",
+        "data": {
+          "window_sensor_entity_id": "Entity id sensore finestra",
+          "window_delay": "Ritardo sensore finestra (secondi)",
+          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/min)",
+          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/min)",
+          "window_auto_max_duration": "Durata massima del rilevamento automatico della finestra aperta (in min)"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Lasciare vuoto se non deve essere utilizzato alcun sensore finestra",
+          "window_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "window_auto_open_threshold": "Valore consigliato: tra 0.05 e 0.1. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_max_duration": "Valore consigliato: 60 (un'ora). Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato"
+        }
+      },
+      "motion": {
+        "title": "Gestione movimento",
+        "description": "Gestione sensore movimento. Il preset può cambiare automaticamente a seconda di un rilevamento di movimento\nLasciare vuoto l'entity_id corrispondente se non utilizzato.\nmotion_preset e no_motion_preset devono essere impostati con il nome del preset corrispondente",
+        "data": {
+          "motion_sensor_entity_id": "Entity id sensore di movimento",
+          "motion_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "motion_preset": "Preset da utilizzare quando viene rilevato il movimento",
+          "no_motion_preset": "Preset da utilizzare quando non viene rilevato il movimento"
+        }
+      },
+      "power": {
+        "title": "Gestione dell'energia",
+        "description": "Parametri di gestione dell'energia.\nInserire la potenza massima disponibile e l'entity_id del sensore che la misura.\nQuindi inserire il consumo del riscaldatore quando è in funzione.\nTutti i parametri devono essere nella stessa unità di misura (kW o W).\nLasciare vuoto l'entity_id corrispondente se non utilizzato.",
+        "data": {
+          "power_sensor_entity_id": "Entity id sensore potenza",
+          "max_power_sensor_entity_id": "Entity id sensore di massima potenza",
+          "power_temp": "Temperatura in caso di distribuzione del carico"
+        }
+      },
+      "presence": {
+        "title": "Gestione della presenza",
+        "description": "Parametri di gestione della presenza.\nInserire un sensore di presenza (true se è presente qualcuno).\nQuindi specificare il preset o la riduzione di temperatura da utilizzare quando il sensore di presenza è in false.\nSe è impostato il preset, la riduzione non sarà utilizzata.\nLasciare vuoto l'entity_id corrispondente se non utilizzato.",
+        "data": {
+          "presence_sensor_entity_id": "Entity id sensore presenza (true se è presente qualcuno)",
+          "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
+          "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
+          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza"
+        }
+      },
+      "advanced": {
+        "title": "Parametri avanzati",
+        "description": "Configurazione avanzata dei parametri. Lasciare i valori predefiniti se non conoscete cosa state modificando.\nQuesti parametri possono determinare una pessima gestione della temperatura e della potenza.",
+        "data": {
+          "minimal_activation_delay": "Ritardo minimo di accensione",
+          "security_delay_min": "Ritardo di sicurezza (in minuti)",
+          "security_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
+          "security_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Ritardo in secondi al di sotto del quale l'apparecchiatura non verrà attivata",
+          "security_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
+          "security_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
+          "security_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Errore inatteso",
+      "unknown_entity": "Entity id sconosciuta",
+      "window_open_detection_method": "Può essere utilizzato un solo metodo di rilevamento finestra aperta. Utilizzare il sensore od il rilevamento automatico ma non entrambi"
+    },
+    "abort": {
+      "already_configured": "Il dispositivo è già configurato"
+    }
+  },
+  "selector": {
+    "thermostat_type": {
+      "options": {
+        "thermostat_over_switch": "Termostato su un interruttore",
+        "thermostat_over_climate": "Termostato sopra un altro termostato"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "power": "Ripartizione",
+              "security": "Sicurezza",
+              "none": "Manuale"
+            }
+          }
+        }
+      }
+    }
+  }
+}
