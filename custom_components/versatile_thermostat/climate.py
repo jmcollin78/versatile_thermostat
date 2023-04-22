@@ -1578,7 +1578,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         _LOGGER.info(
-            "%s - Underlying climate changed. Event.new_state is %s, hvac_mode=%s, hvac_action=%s, old_hvac_action=%s",
+            "%s - Underlying climate changed. Event.new_state is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
             self,
             new_state,
             self._hvac_mode,

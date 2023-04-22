@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .commons import *
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from ..climate import VersatileThermostat
 from ..binary_sensor import (
     SecurityBinarySensor,
