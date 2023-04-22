@@ -9,6 +9,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_movement_management_time_not_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -140,6 +142,8 @@ async def test_movement_management_time_not_enough(
         assert mock_send_event.call_count == 0
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_movement_management_time_enough_and_presence(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -270,6 +274,8 @@ async def test_movement_management_time_enough_and_presence(
         assert mock_send_event.call_count == 0
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_movement_management_time_enoughand_not_presence(
     hass: HomeAssistant, skip_hass_states_is_state
 ):

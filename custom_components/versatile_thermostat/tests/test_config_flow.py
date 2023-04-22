@@ -6,9 +6,12 @@ from homeassistant.config_entries import SOURCE_USER, ConfigEntry
 
 from custom_components.versatile_thermostat.const import DOMAIN
 
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_show_form(hass: HomeAssistant) -> None:
     """Test that the form is served with no input"""
     # Init the API
@@ -24,6 +27,8 @@ async def test_show_form(hass: HomeAssistant) -> None:
     assert result["step_id"] == SOURCE_USER
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_over_switch(hass: HomeAssistant, skip_hass_states_get):
     """Test the config flow with all thermostat_over_switch features"""
     result = await hass.config_entries.flow.async_init(
@@ -121,6 +126,8 @@ async def test_user_config_flow_over_switch(hass: HomeAssistant, skip_hass_state
     assert isinstance(result["result"], ConfigEntry)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_states_get):
     """Test the config flow with all thermostat_over_climate features and no additional features"""
     result = await hass.config_entries.flow.async_init(
@@ -206,6 +213,8 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
     assert isinstance(result["result"], ConfigEntry)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_window_auto_ok(
     hass: HomeAssistant, skip_hass_states_get, skip_control_heating
 ):
@@ -301,6 +310,8 @@ async def test_user_config_flow_window_auto_ok(
     assert isinstance(result["result"], ConfigEntry)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_window_auto_ko(
     hass: HomeAssistant, skip_hass_states_get
 ):
@@ -371,6 +382,8 @@ async def test_user_config_flow_window_auto_ko(
     }
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_over_4_switches(
     hass: HomeAssistant, skip_hass_states_get, skip_control_heating
 ):

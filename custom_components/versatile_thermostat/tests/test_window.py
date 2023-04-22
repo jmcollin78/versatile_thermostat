@@ -9,6 +9,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_management_time_not_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -92,7 +94,11 @@ async def test_window_management_time_not_enough(
         await try_window_condition(None)
         assert entity.window_state == STATE_OFF
 
+    await entity.remove_thermostat()
 
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_management_time_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -227,7 +233,12 @@ async def test_window_management_time_enough(
         )
         assert entity.preset_mode is PRESET_BOOST
 
+    # Clean the entity
+    await entity.remove_thermostat()
 
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Power management"""
 
@@ -406,7 +417,12 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.window_auto_state == STATE_OFF
         assert entity.hvac_mode is HVACMode.HEAT
 
+    # Clean the entity
+    await entity.remove_thermostat()
 
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Power management"""
 
@@ -544,7 +560,12 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
 
+    # Clean the entity
+    await entity.remove_thermostat()
 
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_no_on_percent(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -647,3 +668,6 @@ async def test_window_auto_no_on_percent(
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.window_auto_state == STATE_OFF
         assert entity.hvac_mode is HVACMode.HEAT
+
+    # Clean the entity
+    await entity.remove_thermostat()

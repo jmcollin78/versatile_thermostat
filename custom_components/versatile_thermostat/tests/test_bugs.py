@@ -8,6 +8,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_56(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -85,6 +87,8 @@ async def test_bug_56(
         entity.update_custom_attributes()
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_63(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -135,6 +139,8 @@ async def test_bug_63(
 
 # Waiting for answer in https://github.com/jmcollin78/versatile_thermostat/issues/64
 # Repro case not evident
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_64(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -180,6 +186,8 @@ async def test_bug_64(
     assert entity
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_66(
     hass: HomeAssistant,
     skip_hass_states_is_state,

@@ -601,7 +601,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
             )
 
-        self.async_on_remove(self.async_remove_thermostat)
+        self.async_on_remove(self.remove_thermostat)
 
         try:
             await self.async_startup()
@@ -609,11 +609,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # Ingore this error which is possible if underlying climate is not found temporary
             pass
 
-    def async_remove_thermostat(self):
+    async def remove_thermostat(self):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
         for under in self._underlyings:
-            under.remove_entity()
+            await under.remove_entity()
 
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
@@ -1521,7 +1521,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
                 # We do not change the preset which is kept to ACTIVITY but only the target_temperature
                 # We take the presence into account
-                await self._async_internal_set_temperature(self.find_preset_temp(new_preset))
+                await self._async_internal_set_temperature(
+                    self.find_preset_temp(new_preset)
+                )
             self.recalculate()
             await self._async_control_heating(force=True)
 

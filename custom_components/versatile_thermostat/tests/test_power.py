@@ -10,6 +10,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_hvac_off(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -96,6 +98,8 @@ async def test_power_management_hvac_off(
         assert mock_heater_off.call_count == 0
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Power management"""
 
@@ -226,6 +230,8 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_off.call_count == 0
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_energy_over_switch(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -350,6 +356,8 @@ async def test_power_management_energy_over_switch(
     assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_energy_over_climate(
     hass: HomeAssistant, skip_hass_states_is_state
 ):

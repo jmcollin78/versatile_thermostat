@@ -9,6 +9,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from .commons import *
 from ..climate import VersatileThermostat
 from ..binary_sensor import (
     SecurityBinarySensor,
@@ -21,6 +22,8 @@ from ..binary_sensor import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -96,6 +99,8 @@ async def test_security_binary_sensors(
     assert security_binary_sensor.state == STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_overpowering_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -178,6 +183,8 @@ async def test_overpowering_binary_sensors(
     assert overpowering_binary_sensor.state == STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -264,6 +271,8 @@ async def test_window_binary_sensors(
     assert window_binary_sensor.state == STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -350,6 +359,8 @@ async def test_motion_binary_sensors(
     assert motion_binary_sensor.state == STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_presence_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -432,6 +443,8 @@ async def test_presence_binary_sensors(
     assert presence_binary_sensor.state == STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_binary_sensors_over_climate_minimal(
     hass: HomeAssistant,
     skip_hass_states_is_state,

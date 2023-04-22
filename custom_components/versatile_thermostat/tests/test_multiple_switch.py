@@ -9,6 +9,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_one_switch_cycle(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -206,6 +208,8 @@ async def test_one_switch_cycle(
         # assert entity.underlying_entity(0)._should_relaunch_control_heating is False
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switchs(
     hass: HomeAssistant,
     skip_hass_states_is_state,

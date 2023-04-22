@@ -15,6 +15,8 @@ from ..climate import VersatileThermostat
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
@@ -76,6 +78,8 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         )
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_climate type"""
 
@@ -143,6 +147,8 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_switch with 4 switches type"""
 

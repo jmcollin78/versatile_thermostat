@@ -3,6 +3,8 @@
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the TPI calculation"""
 

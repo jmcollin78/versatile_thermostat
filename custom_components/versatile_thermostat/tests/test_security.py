@@ -9,6 +9,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the security feature and https://github.com/jmcollin78/versatile_thermostat/issues/49:
     1. creates a thermostat and check that security is off

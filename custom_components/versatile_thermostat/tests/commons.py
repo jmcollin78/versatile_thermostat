@@ -2,6 +2,7 @@
 import asyncio
 import logging
 from unittest.mock import patch, MagicMock
+import pytest
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
 from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF
