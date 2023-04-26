@@ -61,7 +61,8 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur for the beer. It's very pleasing. (Vielen Dank an @salabur für das Bier. Es ist sehr erfreulich.)
+Many thanks to @salabur, @pvince83 and @bergoglio for the beers. It's very pleasing.
+
 
 # When to use / not use
 This thermostat can control 2 types of equipment:
