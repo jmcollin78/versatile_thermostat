@@ -167,6 +167,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
         self._off_time_sec = 0
+        self._hvac_mode = None
 
     @property
     def initial_delay_sec(self):
@@ -174,12 +175,18 @@ class UnderlyingSwitch(UnderlyingEntity):
         return self._initial_delay_sec
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
-        """Set the HVACmode. Returns true if we need to redo a control_heating"""
+        """Set the HVACmode. Returns true if something have change"""
+
         if hvac_mode == HVACMode.OFF:
             if self.is_device_active:
                 await self.turn_off()
             await self._cancel_cycle()
-        return True
+
+        if self._hvac_mode != hvac_mode:
+            self._hvac_mode = hvac_mode
+            return True
+        else:
+            return False
 
     @property
     def is_device_active(self):
@@ -421,10 +428,10 @@ class UnderlyingClimate(UnderlyingEntity):
         """True if the underlying climate was found"""
         return self._underlying_climate is not None
 
-    async def set_hvac_mode(self, hvac_mode: HVACMode):
-        """Set the HVACmode of the underlying climate"""
+    async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
+        """Set the HVACmode of the underlying climate. Returns true if something have change"""
         if not self.is_initialized:
-            return
+            return False
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": hvac_mode}
         await self._hass.services.async_call(
@@ -432,6 +439,8 @@ class UnderlyingClimate(UnderlyingEntity):
             SERVICE_SET_HVAC_MODE,
             data,
         )
+
+        return True
 
     @property
     def is_device_active(self):

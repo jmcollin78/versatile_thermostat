@@ -1191,7 +1191,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         raise NotImplementedError()
 
-    async def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode, need_control_heating=True):
         """Set new target hvac mode."""
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
 
@@ -1201,13 +1201,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._hvac_mode = hvac_mode
 
         # Delegate to all underlying
-        need_control_heating = False
+        sub_need_control_heating = False
         for under in self._underlyings:
-            need_control_heating = (
+            sub_need_control_heating = (
                 await under.set_hvac_mode(hvac_mode) or need_control_heating
             )
 
-        if need_control_heating:
+        if need_control_heating and sub_need_control_heating:
             await self._async_control_heating(force=True)
 
         # Ensure we update the current operation after changing the mode
@@ -1452,7 +1452,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self,
                     self._saved_hvac_mode,
                 )
-                await self.restore_hvac_mode()
+                await self.restore_hvac_mode(True)
             elif self._window_state == STATE_ON:
                 _LOGGER.info(
                     "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
@@ -1857,7 +1857,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
             # Set attributes
             self._window_auto_state = False
-            await self.restore_hvac_mode()
+            await self.restore_hvac_mode(True)
 
             if self._window_call_cancel:
                 self._window_call_cancel()
@@ -1953,9 +1953,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._hvac_mode,
         )
 
-    async def restore_hvac_mode(self):
+    async def restore_hvac_mode(self, need_control_heating=False):
         """Restore a previous hvac_mod"""
-        await self.async_set_hvac_mode(self._saved_hvac_mode)
+        await self.async_set_hvac_mode(self._saved_hvac_mode, need_control_heating)
         _LOGGER.debug(
             "%s - Restored hvac_mode - saved_hvac_mode is %s, hvac_mode is %s",
             self,
@@ -2025,7 +2025,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._saved_preset_mode,
             )
             if self._is_over_climate:
-                await self.restore_hvac_mode()
+                await self.restore_hvac_mode(False)
             await self.restore_preset_mode()
             self.send_event(
                 EventType.POWER_EVENT,
@@ -2127,7 +2127,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
             # Turn off the underlying climate or heater if security default on_percent is 0
             if self._is_over_climate or self._security_default_on_percent <= 0.0:
-                await self.async_set_hvac_mode(HVACMode.OFF)
+                await self.async_set_hvac_mode(HVACMode.OFF, False)
             if self._prop_algorithm:
                 self._prop_algorithm.set_security(self._security_default_on_percent)
 
@@ -2161,7 +2161,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._security_state = ret
             # Restore hvac_mode if previously saved
             if self._is_over_climate or self._security_default_on_percent <= 0.0:
-                await self.restore_hvac_mode()
+                await self.restore_hvac_mode(False)
             await self.restore_preset_mode()
             if self._prop_algorithm:
                 self._prop_algorithm.unset_security()
@@ -2294,6 +2294,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.get_preset_away_name(PRESET_COMFORT)
             ),
             "power_temp": self._power_temp,
+            "target_temp": self.target_temperature,
+            "current_temp": self._cur_temp,
             "ext_current_temperature": self._cur_ext_temp,
             "current_power": self._current_power,
             "current_power_max": self._current_power_max,
