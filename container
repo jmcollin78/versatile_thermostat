@@ -27,6 +27,7 @@ fi
 if [ "$command" == "hassfest" ]; then
     echo "Running container start"
     python3 -m script.hassfest
+    # python -m script.hassfest --requirements --action validate --integration-path config/custom_components/versatile_thermostat/
 fi
 
 if [ "$command" == "restart" ]; then
