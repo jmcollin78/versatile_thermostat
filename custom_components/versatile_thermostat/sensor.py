@@ -47,6 +47,7 @@ async def async_setup_entry(
         LastTemperatureSensor(hass, unique_id, name, entry.data),
         LastExtTemperatureSensor(hass, unique_id, name, entry.data),
         TemperatureSlopeSensor(hass, unique_id, name, entry.data),
+        TargetTemperatureSensor(hass, unique_id, name, entry.data),
     ]
     if entry.data.get(CONF_DEVICE_POWER):
         entities.append(EnergySensor(hass, unique_id, name, entry.data))
@@ -423,4 +424,41 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
-        return 2
+        return 
+    
+    
+class TargetTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Rapresentation of the target temperature in sensor format"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the target temperature sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Target Temperature"
+        self._attr_unique_id = f"{self._device_name}_target_temp"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+
+        old_state = self._attr_native_value
+        self._attr_native_value = self._target_temp
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+    
+    @property
+    def icon(self) -> str | None:
+        return "mdi:sun-thermometer-outline"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.TEMPERATURE
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return UnitOfTemperature.CELSIUS
