@@ -2050,7 +2050,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             now - self._last_ext_temperature_mesure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
 
-        mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
+        # TODO before change:
+        # mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
+        # fixed into this. Why if _is_over_climate we could into security even if HVACMode is OFF ?
+        mode_cond = self._hvac_mode != HVACMode.OFF
 
         temp_cond: bool = (
             delta_temp > self._security_delay_min

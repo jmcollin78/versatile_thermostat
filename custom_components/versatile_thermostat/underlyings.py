@@ -581,8 +581,41 @@ class UnderlyingClimate(UnderlyingEntity):
         return self._underlying_climate.temperature_unit
 
     @property
-    def target_temperature_step(self) -> str:
+    def target_temperature_step(self) -> float:
         """Get the target_temperature_step"""
         if not self.is_initialized:
             return 1
         return self._underlying_climate.target_temperature_step
+
+    @property
+    def target_temperature_high(self) -> float:
+        """Get the target_temperature_high"""
+        if not self.is_initialized:
+            return 30
+        return self._underlying_climate.target_temperature_high
+
+    @property
+    def target_temperature_low(self) -> float:
+        """Get the target_temperature_low"""
+        if not self.is_initialized:
+            return 15
+        return self._underlying_climate.target_temperature_low
+
+    @property
+    def is_aux_heat(self) -> bool:
+        """Get the is_aux_heat"""
+        if not self.is_initialized:
+            return False
+        return self._underlying_climate.is_aux_heat
+
+    def turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.turn_aux_heat_on()
+
+    def turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater on."""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.turn_aux_heat_off()
