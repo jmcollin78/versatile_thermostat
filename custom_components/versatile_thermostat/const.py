@@ -68,7 +68,7 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
-CONF_USE_AC_MODE = "use_ac_mode"
+CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
@@ -162,7 +162,7 @@ ALL_CONF = (
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
-        CONF_USE_AC_MODE,
+        CONF_AC_MODE,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES

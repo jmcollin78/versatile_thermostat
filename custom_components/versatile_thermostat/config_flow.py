@@ -85,7 +85,7 @@ from .const import (
     CONF_USE_MOTION_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_POWER_FEATURE,
-    CONF_USE_AC_MODE,
+    CONF_AC_MODE,
     CONF_THERMOSTAT_TYPES,
     UnknownEntity,
     WindowOpenDetectionMethod,
@@ -231,7 +231,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
-                vol.Optional(CONF_USE_AC_MODE, default=False): cv.boolean,
+                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             }
         )
 
@@ -494,7 +494,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        if self._infos[CONF_USE_AC_MODE]:
+        if self._infos[CONF_AC_MODE]:
             schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESETS_DATA_SCHEMA
@@ -550,7 +550,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
-        if self._infos[CONF_USE_AC_MODE]:
+        if self._infos[CONF_AC_MODE]:
             schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESENCE_DATA_SCHEMA
@@ -689,7 +689,7 @@ class VersatileThermostatOptionsFlowHandler(
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        if self._infos[CONF_USE_AC_MODE]:
+        if self._infos[CONF_AC_MODE]:
             schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESETS_DATA_SCHEMA
@@ -752,7 +752,7 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_presence user_input=%s", user_input
         )
 
-        if self._infos[CONF_USE_AC_MODE]:
+        if self._infos[CONF_AC_MODE]:
             schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESENCE_DATA_SCHEMA
