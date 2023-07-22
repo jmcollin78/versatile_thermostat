@@ -127,7 +127,7 @@ class UnderlyingEntity:
         """Set the target temperature"""
         return
 
-    async def remove_entity(self):
+    def remove_entity(self):
         """Remove the underlying entity"""
         return
 
@@ -228,7 +228,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if self._async_cancel_cycle is not None:
             if force:
                 _LOGGER.debug("%s - we force a new cycle", self)
-                await self._cancel_cycle()
+                self._cancel_cycle()
             else:
                 _LOGGER.debug(
                     "%s - A previous cycle is alredy running and no force -> waits for its end",
@@ -258,7 +258,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         else:
             _LOGGER.debug("%s - nothing to do", self)
 
-    async def _cancel_cycle(self):
+    def _cancel_cycle(self):
         """Cancel the cycle"""
         if self._async_cancel_cycle:
             self._async_cancel_cycle()
@@ -368,9 +368,9 @@ class UnderlyingSwitch(UnderlyingEntity):
         # increment energy at the end of the cycle
         self._thermostat.incremente_energy()
 
-    async def remove_entity(self):
-        """Remove the entity"""
-        await self._cancel_cycle()
+    def remove_entity(self):
+        """Remove the entity after stopping its cycle"""
+        self._cancel_cycle()
 
 
 class UnderlyingClimate(UnderlyingEntity):

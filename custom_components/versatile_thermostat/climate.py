@@ -100,6 +100,8 @@ from .const import (
     CONF_DEVICE_POWER,
     CONF_PRESETS,
     CONF_PRESETS_AWAY,
+    CONF_PRESETS_WITH_AC,
+    CONF_PRESETS_AWAY_WITH_AC,
     CONF_CYCLE_MIN,
     CONF_PROP_FUNCTION,
     CONF_TPI_COEF_INT,
@@ -127,10 +129,12 @@ from .const import (
     # CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
     CONF_CLIMATE,
+    CONF_AC_MODE,
     UnknownEntity,
     EventType,
     ATTR_MEAN_POWER_CYCLE,
     ATTR_TOTAL_ENERGY,
+    PRESET_AC_SUFFIX,
 )
 
 from .underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingEntity
@@ -289,9 +293,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self,
             entry_infos,
         )
+
+        self._ac_mode = entry_infos.get(CONF_AC_MODE) == True
         # convert entry_infos into usable attributes
         presets = {}
-        for key, value in CONF_PRESETS.items():
+        items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
+        for key, value in items:
             _LOGGER.debug("looking for key=%s, value=%s", key, value)
             if value in entry_infos:
                 presets[key] = entry_infos.get(value)
@@ -299,7 +306,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.debug("value %s not found in Entry", value)
 
         presets_away = {}
-        for key, value in CONF_PRESETS_AWAY.items():
+        items = (
+            CONF_PRESETS_AWAY_WITH_AC.items()
+            if self._ac_mode
+            else CONF_PRESETS_AWAY.items()
+        )
+        for key, value in items:
             _LOGGER.debug("looking for key=%s, value=%s", key, value)
             if value in entry_infos:
                 presets_away[key] = entry_infos.get(value)
@@ -394,10 +406,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._presence_on = self._presence_sensor_entity_id is not None
 
-        # if self.ac_mode: -> MODE_COOL should be better to use thermostat_over_climate type
-        #    self.hvac_list = [HVAC_MODE_COOL, HVAC_MODE_OFF]
-        # else:
-        self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
+        if self._ac_mode:
+            self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+        else:
+            self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
 
         self._unit = self._hass.config.units.temperature_unit
         # Will be restored if possible
@@ -437,7 +449,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._target_temp = None
         self._saved_target_temp = PRESET_NONE
         self._humidity = None
-        self._ac_mode = False
         self._fan_mode = None
         self._swing_mode = None
         self._cur_temp = None
@@ -494,13 +505,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if len(presets):
             self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
 
-            for key, val in presets.items():
+            for key, val in CONF_PRESETS.items():  # TODO before presets.items():
                 if val != 0.0:
                     self._attr_preset_modes.append(key)
 
-            # self._attr_preset_modes = (
-            #    [PRESET_NONE] + list(presets.keys()) + [PRESET_ACTIVITY]
-            # )
             _LOGGER.debug(
                 "After adding presets, preset_modes to %s", self._attr_preset_modes
             )
@@ -609,11 +617,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # Ingore this error which is possible if underlying climate is not found temporary
             pass
 
-    async def remove_thermostat(self):
+    def remove_thermostat(self):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
         for under in self._underlyings:
-            await under.remove_entity()
+            under.remove_entity()
 
     async def async_startup(self):
         """Triggered on startup, used to get old state and set internal states accordingly"""
@@ -1286,13 +1294,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )  # in security just keep the current target temperature, the thermostat should be off
         if preset_mode == PRESET_POWER:
             return self._power_temp
-        elif self._presence_on is False or self._presence_state in [
-            STATE_ON,
-            STATE_HOME,
-        ]:
-            return self._presets[preset_mode]
         else:
-            return self._presets_away[self.get_preset_away_name(preset_mode)]
+            # Select _ac presets if in COOL Mode
+            if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+                preset_mode = preset_mode + PRESET_AC_SUFFIX
+
+            if self._presence_on is False or self._presence_state in [
+                STATE_ON,
+                STATE_HOME,
+            ]:
+                return self._presets[preset_mode]
+            else:
+                return self._presets_away[self.get_preset_away_name(preset_mode)]
 
     def get_preset_away_name(self, preset_mode):
         """Get the preset name in away mode (when presence is off)"""

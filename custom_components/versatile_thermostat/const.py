@@ -11,9 +11,10 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
-PRESET_ECO_AC = PRESET_ECO + "_ac"
-PRESET_COMFORT_AC = PRESET_COMFORT + "_ac"
-PRESET_BOOST_AC = PRESET_BOOST + "_ac"
+PRESET_AC_SUFFIX = "_ac"
+PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
+PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
+PRESET_BOOST_AC = PRESET_BOOST + PRESET_AC_SUFFIX
 
 from homeassistant.exceptions import HomeAssistantError
 

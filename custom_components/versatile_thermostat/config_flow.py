@@ -494,7 +494,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        if self._infos[CONF_AC_MODE]:
+        if self._infos.get(CONF_AC_MODE) == True:
             schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESETS_DATA_SCHEMA
