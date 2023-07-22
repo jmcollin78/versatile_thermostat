@@ -30,7 +30,8 @@
           "heater_entity3_id": "Terzo riscaldatore",
           "heater_entity4_id": "Quarto riscaldatore",
           "proportional_function": "Algoritmo",
-          "climate_entity_id": "Termostato sottostante"
+          "climate_entity_id": "Termostato sottostante",
+          "ac_mode": "AC mode ?"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -38,7 +39,8 @@
           "heater_entity3_id": "Entity id del terzo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
-          "climate_entity_id": "Entity id del termostato sottostante"
+          "climate_entity_id": "Entity id del termostato sottostante",
+          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
         }
       },
       "tpi": {
@@ -55,7 +57,10 @@
         "data": {
           "eco_temp": "Temperatura nel preset Eco",
           "comfort_temp": "Temperatura nel preset Comfort",
-          "boost_temp": "Temperatura nel preset Boost"
+          "boost_temp": "Temperatura nel preset Boost",
+          "eco_ac_temp": "Temperatura nel preset Eco (AC mode)",
+          "comfort_ac_temp": "Temperatura nel preset Comfort (AC mode)",
+          "boost_ac_temp": "Temperatura nel preset Boost (AC mode)"
         }
       },
       "window": {
@@ -102,7 +107,10 @@
           "presence_sensor_entity_id": "Entity id sensore presenza (true se è presente qualcuno)",
           "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
           "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
-          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza"
+          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza",
+          "eco_ac_away_temp": "Temperatura al preset Eco in caso d'assenza (AC mode)",
+          "comfort_ac_away_temp": "Temperatura al preset Comfort in caso d'assenza (AC mode)",
+          "boost_ac_away_temp": "Temperatura al preset Boost in caso d'assenza (AC mode)"
         }
       },
       "advanced": {
@@ -161,7 +169,8 @@
           "heater_entity3_id": "Terzo interruttore riscaldatore",
           "heater_entity4_id": "Quarto interruttore riscaldatore",
           "proportional_function": "Algoritmo",
-          "climate_entity_id": "Termostato sottostante"
+          "climate_entity_id": "Termostato sottostante",
+          "ac_mode": "AC mode ?"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -169,7 +178,8 @@
           "heater_entity3_id": "Entity id del terzo riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
-          "climate_entity_id": "Entity id del termostato sottostante"
+          "climate_entity_id": "Entity id del termostato sottostante",
+          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
         }
       },
       "tpi": {
@@ -186,7 +196,10 @@
         "data": {
           "eco_temp": "Temperatura nel preset Eco",
           "comfort_temp": "Temperatura nel preset Comfort",
-          "boost_temp": "Temperatura nel preset Boost"
+          "boost_temp": "Temperatura nel preset Boost",
+          "eco_ac_temp": "Temperatura nel preset Eco (AC mode)",
+          "comfort_ac_temp": "Temperatura nel preset Comfort (AC mode)",
+          "boost_ac_temp": "Temperatura nel preset Boost (AC mode)"
         }
       },
       "window": {
@@ -233,7 +246,10 @@
           "presence_sensor_entity_id": "Entity id sensore presenza (true se è presente qualcuno)",
           "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
           "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
-          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza"
+          "boost_away_temp": "Temperatura al preset Boost in caso d'assenza",
+          "eco_ac_away_temp": "Temperatura al preset Eco in caso d'assenza (AC mode)",
+          "comfort_ac_away_temp": "Temperatura al preset Comfort in caso d'assenza (AC mode)",
+          "boost_ac_away_temp": "Temperatura al preset Boost in caso d'assenza (AC mode)"
         }
       },
       "advanced": {

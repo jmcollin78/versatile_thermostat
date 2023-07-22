@@ -61,7 +61,9 @@ from .const import (
     CONF_CYCLE_MIN,
     CONF_PRESET_POWER,
     CONF_PRESETS,
+    CONF_PRESETS_WITH_AC,
     CONF_PRESETS_AWAY,
+    CONF_PRESETS_AWAY_WITH_AC,
     CONF_PRESETS_SELECTIONABLE,
     CONF_PROP_FUNCTION,
     CONF_TPI_COEF_EXT,
@@ -83,6 +85,7 @@ from .const import (
     CONF_USE_MOTION_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_POWER_FEATURE,
+    CONF_USE_AC_MODE,
     CONF_THERMOSTAT_TYPES,
     UnknownEntity,
     WindowOpenDetectionMethod,
@@ -130,35 +133,6 @@ def add_suggested_values_to_schema(
         schema[new_key] = val
     _LOGGER.debug("add_suggested_values_to_schema: schema=%s", schema)
     return vol.Schema(schema)
-
-
-# def is_temperature_sensor(sensor: RegistryEntry):
-#     """Check if a registryEntry is a temperature sensor or assimilable to a temperature sensor"""
-#     if not sensor.entity_id.startswith(
-#         INPUT_NUMBER_DOMAIN
-#     ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
-#         return False
-#     return (
-#         sensor.device_class == TEMPERATURE
-#         or sensor.original_device_class == TEMPERATURE
-#         or sensor.unit_of_measurement in TEMPERATURE_UNITS
-#     )
-#
-#
-# def is_power_sensor(sensor: RegistryEntry):
-#     """Check if a registryEntry is a power sensor or assimilable to a temperature sensor"""
-#     if not sensor.entity_id.startswith(
-#         INPUT_NUMBER_DOMAIN
-#     ) and not sensor.entity_id.startswith(SENSOR_DOMAIN):
-#         return False
-#     return (
-#         sensor.unit_of_measurement
-#         in [
-#             UnitOfPower.KILO_WATT,
-#             UnitOfPower.WATT,
-#             UnitOfPower.BTU_PER_HOUR,
-#         ]
-#     )
 
 
 class VersatileThermostatBaseConfigFlow(FlowHandler):
@@ -257,6 +231,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
+                vol.Optional(CONF_USE_AC_MODE, default=False): cv.boolean,
             }
         )
 
@@ -272,6 +247,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Optional(v, default=0.0): vol.Coerce(float)
                 for (k, v) in CONF_PRESETS.items()
             }
+        )
+
+        self.STEP_PRESETS_WITH_AC_DATA_SCHEMA = (  # pylint: disable=invalid-name
+            vol.Schema(  # pylint: disable=invalid-name
+                {
+                    vol.Optional(v, default=0.0): vol.Coerce(float)
+                    for (k, v) in CONF_PRESETS_WITH_AC.items()
+                }
+            )
         )
 
         self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
@@ -338,6 +322,27 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Optional(v, default=17): vol.Coerce(float)
                 for (k, v) in CONF_PRESETS_AWAY.items()
             }
+        )
+
+        self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA = (  # pylint: disable=invalid-name
+            vol.Schema(
+                {
+                    vol.Optional(CONF_PRESENCE_SENSOR): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain=[
+                                PERSON_DOMAIN,
+                                BINARY_SENSOR_DOMAIN,
+                                INPUT_BOOLEAN_DOMAIN,
+                            ]
+                        ),
+                    ),
+                }
+            ).extend(
+                {
+                    vol.Optional(v, default=17): vol.Coerce(float)
+                    for (k, v) in CONF_PRESETS_AWAY_WITH_AC.items()
+                }
+            )
         )
 
         self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
@@ -489,9 +494,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        return await self.generic_step(
-            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, next_step
-        )
+        if self._infos[CONF_USE_AC_MODE]:
+            schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
+        else:
+            schema = self.STEP_PRESETS_DATA_SCHEMA
+
+        return await self.generic_step("presets", schema, user_input, next_step)
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window  sensor flow steps"""
@@ -542,9 +550,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
+        if self._infos[CONF_USE_AC_MODE]:
+            schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
+        else:
+            schema = self.STEP_PRESENCE_DATA_SCHEMA
+
         return await self.generic_step(
             "presence",
-            self.STEP_PRESENCE_DATA_SCHEMA,
+            schema,
             user_input,
             self.async_step_advanced,
         )
@@ -676,9 +689,12 @@ class VersatileThermostatOptionsFlowHandler(
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        return await self.generic_step(
-            "presets", self.STEP_PRESETS_DATA_SCHEMA, user_input, next_step
-        )
+        if self._infos[CONF_USE_AC_MODE]:
+            schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
+        else:
+            schema = self.STEP_PRESETS_DATA_SCHEMA
+
+        return await self.generic_step("presets", schema, user_input, next_step)
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window  sensor flow steps"""
@@ -736,9 +752,14 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_presence user_input=%s", user_input
         )
 
+        if self._infos[CONF_USE_AC_MODE]:
+            schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
+        else:
+            schema = self.STEP_PRESENCE_DATA_SCHEMA
+
         return await self.generic_step(
             "presence",
-            self.STEP_PRESENCE_DATA_SCHEMA,
+            schema,
             user_input,
             self.async_step_advanced,
         )

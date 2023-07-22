@@ -11,6 +11,10 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
+PRESET_ECO_AC = PRESET_ECO + "_ac"
+PRESET_COMFORT_AC = PRESET_COMFORT + "_ac"
+PRESET_BOOST_AC = PRESET_BOOST + "_ac"
+
 from homeassistant.exceptions import HomeAssistantError
 
 from .prop_algorithm import (
@@ -64,6 +68,7 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
+CONF_USE_AC_MODE = "use_ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
@@ -77,14 +82,39 @@ CONF_PRESETS = {
     )
 }
 
+CONF_PRESETS_WITH_AC = {
+    p: f"{p}_temp"
+    for p in (
+        PRESET_ECO,
+        PRESET_COMFORT,
+        PRESET_BOOST,
+        PRESET_ECO_AC,
+        PRESET_COMFORT_AC,
+        PRESET_BOOST_AC,
+    )
+}
+
+
 PRESET_AWAY_SUFFIX = "_away"
 
 CONF_PRESETS_AWAY = {
     p: f"{p}_temp"
     for p in (
         PRESET_ECO + PRESET_AWAY_SUFFIX,
-        PRESET_BOOST + PRESET_AWAY_SUFFIX,
         PRESET_COMFORT + PRESET_AWAY_SUFFIX,
+        PRESET_BOOST + PRESET_AWAY_SUFFIX,
+    )
+}
+
+CONF_PRESETS_AWAY_WITH_AC = {
+    p: f"{p}_temp"
+    for p in (
+        PRESET_ECO + PRESET_AWAY_SUFFIX,
+        PRESET_COMFORT + PRESET_AWAY_SUFFIX,
+        PRESET_BOOST + PRESET_AWAY_SUFFIX,
+        PRESET_ECO_AC + PRESET_AWAY_SUFFIX,
+        PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX,
+        PRESET_BOOST_AC + PRESET_AWAY_SUFFIX,
     )
 }
 
@@ -92,6 +122,8 @@ CONF_PRESETS_SELECTIONABLE = [PRESET_ECO, PRESET_COMFORT, PRESET_BOOST]
 
 CONF_PRESETS_VALUES = list(CONF_PRESETS.values())
 CONF_PRESETS_AWAY_VALUES = list(CONF_PRESETS_AWAY.values())
+CONF_PRESETS_WITH_AC_VALUES = list(CONF_PRESETS_WITH_AC.values())
+CONF_PRESETS_AWAY_WITH_AC_VALUES = list(CONF_PRESETS_AWAY_WITH_AC.values())
 
 ALL_CONF = (
     [
@@ -130,9 +162,12 @@ ALL_CONF = (
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
+        CONF_USE_AC_MODE,
     ]
     + CONF_PRESETS_VALUES
-    + CONF_PRESETS_AWAY_VALUES,
+    + CONF_PRESETS_AWAY_VALUES
+    + CONF_PRESETS_WITH_AC_VALUES
+    + CONF_PRESETS_AWAY_WITH_AC_VALUES,
 )
 
 CONF_FUNCTIONS = [
