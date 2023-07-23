@@ -1215,6 +1215,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 await under.set_hvac_mode(hvac_mode) or need_control_heating
             )
 
+        # If AC is on maybe we have to change the temperature in force mode
+        if self._ac_mode:
+            await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
+
         if need_control_heating and sub_need_control_heating:
             await self._async_control_heating(force=True)
 

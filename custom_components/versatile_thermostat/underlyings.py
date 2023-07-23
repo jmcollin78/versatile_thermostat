@@ -180,7 +180,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if hvac_mode == HVACMode.OFF:
             if self.is_device_active:
                 await self.turn_off()
-            await self._cancel_cycle()
+            self._cancel_cycle()
 
         if self._hvac_mode != hvac_mode:
             self._hvac_mode = hvac_mode
