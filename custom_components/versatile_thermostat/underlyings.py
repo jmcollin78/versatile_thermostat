@@ -275,7 +275,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._on_time_sec,
         )
 
-        await self._cancel_cycle()
+        self._cancel_cycle()
 
         if self._hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
@@ -327,7 +327,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._should_relaunch_control_heating,
             self._off_time_sec,
         )
-        await self._cancel_cycle()
+        self._cancel_cycle()
 
         if self._hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
