@@ -446,7 +446,7 @@ class UnderlyingClimate(UnderlyingEntity):
     def is_device_active(self):
         """If the toggleable device is currently active."""
         if self.is_initialized:
-            return self._underlying_climate.hvac_action not in [
+            return self._underlying_climate.hvac_mode != HVACMode.OFF and self._underlying_climate.hvac_action not in [
                 HVACAction.IDLE,
                 HVACAction.OFF,
             ]
