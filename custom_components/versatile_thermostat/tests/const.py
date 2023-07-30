@@ -15,6 +15,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_TYPE,
+    CONF_AC_MODE,
     CONF_TEMP_SENSOR,
     CONF_EXTERNAL_TEMP_SENSOR,
     CONF_CYCLE_MIN,
@@ -112,6 +113,7 @@ MOCK_TH_OVER_SWITCH_TPI_CONFIG = {
 
 MOCK_TH_OVER_CLIMATE_TYPE_CONFIG = {
     CONF_CLIMATE: "climate.mock_climate",
+    CONF_AC_MODE: False,
 }
 
 MOCK_PRESETS_CONFIG = {

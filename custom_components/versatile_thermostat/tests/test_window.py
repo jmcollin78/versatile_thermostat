@@ -94,7 +94,7 @@ async def test_window_management_time_not_enough(
         await try_window_condition(None)
         assert entity.window_state == STATE_OFF
 
-    await entity.remove_thermostat()
+    entity.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -234,7 +234,7 @@ async def test_window_management_time_enough(
         assert entity.preset_mode is PRESET_BOOST
 
     # Clean the entity
-    await entity.remove_thermostat()
+    entity.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -418,7 +418,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.hvac_mode is HVACMode.HEAT
 
     # Clean the entity
-    await entity.remove_thermostat()
+    entity.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -561,7 +561,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.preset_mode is PRESET_BOOST
 
     # Clean the entity
-    await entity.remove_thermostat()
+    entity.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -670,4 +670,4 @@ async def test_window_auto_no_on_percent(
         assert entity.hvac_mode is HVACMode.HEAT
 
     # Clean the entity
-    await entity.remove_thermostat()
+    entity.remove_thermostat()
