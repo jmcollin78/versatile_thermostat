@@ -1611,6 +1611,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.DRY,
             HVACMode.AUTO,
             HVACMode.FAN_ONLY,
+            None
         ]:
             self._hvac_mode = new_state.state
 
@@ -2098,9 +2099,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             switch_cond,
         )
 
-        ret = False
-        if mode_cond and temp_cond and climate_cond:
-            if not self._security_state:
+        shouldClimateBeInSecurity = temp_cond and climate_cond
+        shouldSwitchBeInSecurity = temp_cond and switch_cond
+        shouldBeInSecurity = shouldClimateBeInSecurity or shouldSwitchBeInSecurity
+
+        shouldStartSecurity = mode_cond and not self._security_state and shouldBeInSecurity
+        # attr_preset_mode is not necessary normaly. It is just here to be sure
+        shouldStopSecurity = self._security_state and not shouldBeInSecurity and self._attr_preset_mode == PRESET_SECURITY
+
+        # Logging and event
+        if shouldStartSecurity:
+            if shouldClimateBeInSecurity:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and underlying climate is %s. Set it into security mode",
                     self,
@@ -2109,10 +2118,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     delta_ext_temp,
                     self.hvac_action,
                 )
-            ret = True
-
-        if mode_cond and temp_cond and switch_cond:
-            if not self._security_state:
+            elif shouldSwitchBeInSecurity:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into security mode",
                     self,
@@ -2122,9 +2128,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self._prop_algorithm.on_percent,
                     self._security_min_on_percent,
                 )
-            ret = True
 
-        if mode_cond and temp_cond and not self._security_state:
             self.send_event(
                 EventType.TEMPERATURE_EVENT,
                 {
@@ -2140,8 +2144,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        if not self._security_state and ret:
-            self._security_state = ret
+        if shouldStartSecurity:
+            self._security_state = True
             self.save_hvac_mode()
             self.save_preset_mode()
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
@@ -2167,18 +2171,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        if (
-            self._security_state
-            and self._attr_preset_mode == PRESET_SECURITY
-            and not ret
-        ):
+        if shouldStopSecurity:
             _LOGGER.warning(
                 "%s - End of security mode. restoring hvac_mode to %s and preset_mode to %s",
                 self,
                 self._saved_hvac_mode,
                 self._saved_preset_mode,
             )
-            self._security_state = ret
+            self._security_state = False
             # Restore hvac_mode if previously saved
             if self._is_over_climate or self._security_default_on_percent <= 0.0:
                 await self.restore_hvac_mode(False)
@@ -2201,7 +2201,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        return ret
+        return shouldBeInSecurity
 
     async def _async_control_heating(self, force=False, _=None):
         """The main function used to run the calculation at each cycle"""

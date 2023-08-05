@@ -1,196 +1,196 @@
 default_config:
 
 logger:
-  default: info
-  logs:
-    custom_components.versatile_thermostat: info
-    custom_components.versatile_thermostat.underlyings: debug
-    custom_components.versatile_thermostat.climate: debug
+    default: info
+    logs:
+        custom_components.versatile_thermostat: info
+        custom_components.versatile_thermostat.underlyings: debug
+        custom_components.versatile_thermostat.climate: debug
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
-  start: true
-  wait: false
-  port: 5678
+    start: true
+    wait: false
+    port: 5678
 
 input_number:
-  fake_temperature_sensor1:
-    name: Temperature
-    min: 0
-    max: 35
-    step: .1
-    icon: mdi:thermometer
-    unit_of_measurement: °C
-    mode: box
-  fake_external_temperature_sensor1:
-    name: Ext Temperature
-    min: -10
-    max: 35
-    step: .1
-    icon: mdi:home-thermometer
-    unit_of_measurement: °C
-    mode: box
-  fake_current_power:
-    name: Current power
-    min: 0
-    max: 1000
-    step: 10
-    icon: mdi:flash
-    unit_of_measurement: kW
-  fake_current_power_max:
-    name: Current power max threshold
-    min: 0
-    max: 1000
-    step: 10
-    icon: mdi:flash
-    unit_of_measurement: kW
+    fake_temperature_sensor1:
+        name: Temperature
+        min: 0
+        max: 35
+        step: .1
+        icon: mdi:thermometer
+        unit_of_measurement: °C
+        mode: box
+    fake_external_temperature_sensor1:
+        name: Ext Temperature
+        min: -10
+        max: 35
+        step: .1
+        icon: mdi:home-thermometer
+        unit_of_measurement: °C
+        mode: box
+    fake_current_power:
+        name: Current power
+        min: 0
+        max: 1000
+        step: 10
+        icon: mdi:flash
+        unit_of_measurement: kW
+    fake_current_power_max:
+        name: Current power max threshold
+        min: 0
+        max: 1000
+        step: 10
+        icon: mdi:flash
+        unit_of_measurement: kW
 
 input_boolean:
-  # input_boolean to simulate the windows entity. Only for development environment.
-  fake_window_sensor1:
-    name: Window 1
-    icon: mdi:window-closed-variant
-  # input_boolean to simulate the heater entity switch. Only for development environment.
-  fake_heater_switch3:
-    name: Heater 3
-    icon: mdi:radiator
-  fake_heater_switch2:
-    name: Heater 2
-    icon: mdi:radiator
-  fake_heater_switch1:
-    name: Heater 1
-    icon: mdi:radiator
-  fake_heater_4switch1:
-    name: Heater (multiswitch1)
-    icon: mdi:radiator
-  fake_heater_4switch2:
-    name: Heater (multiswitch2)
-    icon: mdi:radiator
-  fake_heater_4switch3:
-    name: Heater (multiswitch3)
-    icon: mdi:radiator
-  fake_heater_4switch4:
-    name: Heater (multiswitch4)
-    icon: mdi:radiator
-  # input_boolean to simulate the motion sensor entity. Only for development environment.
-  fake_motion_sensor1:
-    name: Motion Sensor 1
-    icon: mdi:run
-  # input_boolean to simulate the presence sensor entity. Only for development environment.
-  fake_presence_sensor1:
-    name: Presence Sensor 1
-    icon: mdi:home
+    # input_boolean to simulate the windows entity. Only for development environment.
+    fake_window_sensor1:
+        name: Window 1
+        icon: mdi:window-closed-variant
+    # input_boolean to simulate the heater entity switch. Only for development environment.
+    fake_heater_switch3:
+        name: Heater 3
+        icon: mdi:radiator
+    fake_heater_switch2:
+        name: Heater 2
+        icon: mdi:radiator
+    fake_heater_switch1:
+        name: Heater 1
+        icon: mdi:radiator
+    fake_heater_4switch1:
+        name: Heater (multiswitch1)
+        icon: mdi:radiator
+    fake_heater_4switch2:
+        name: Heater (multiswitch2)
+        icon: mdi:radiator
+    fake_heater_4switch3:
+        name: Heater (multiswitch3)
+        icon: mdi:radiator
+    fake_heater_4switch4:
+        name: Heater (multiswitch4)
+        icon: mdi:radiator
+    # input_boolean to simulate the motion sensor entity. Only for development environment.
+    fake_motion_sensor1:
+        name: Motion Sensor 1
+        icon: mdi:run
+    # input_boolean to simulate the presence sensor entity. Only for development environment.
+    fake_presence_sensor1:
+        name: Presence Sensor 1
+        icon: mdi:home
 
 climate:
-  - platform: generic_thermostat
-    name: Underlying thermostat1
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat2
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat3
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat4
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat5
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat6
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat7
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat8
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
-  - platform: generic_thermostat
-    name: Underlying thermostat9
-    heater: input_boolean.fake_heater_switch3
-    target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat1
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat2
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat3
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat4
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat5
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat6
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat7
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat8
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
+    - platform: generic_thermostat
+      name: Underlying thermostat9
+      heater: input_boolean.fake_heater_switch3
+      target_sensor: input_number.fake_temperature_sensor1
 
 recorder:
-  include:
-    domains:
-      - input_boolean
-      - input_number
-      - switch
-      - climate
-      - sensor
+    include:
+        domains:
+            - input_boolean
+            - input_number
+            - switch
+            - climate
+            - sensor
 
 template:
-  - binary_sensor:
-      - name: maison_occupee
-        unique_id: maison_occupee
-        state: "{{is_state('person.jmc', 'home') }}"
-        device_class: occupancy
-  - sensor:
-      - name: "Total énergie switch1"
-        unique_id: total_energie_switch1
-        unit_of_measurement: "kWh"
-        device_class: energy
-        state_class: total_increasing
-        state: >
-          {% set energy = state_attr('climate.thermostat_switch_1', 'total_energy') %}
-          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
-            {{ ((energy | float) / 1.0) | round(2, default=0) }}
-          {% endif %}
-      - name: "Total énergie climate 2"
-        unique_id: total_energie_climate2
-        unit_of_measurement: "kWh"
-        device_class: energy
-        state_class: total_increasing
-        state: >
-          {% set energy = state_attr('climate.thermostat_climate_2', 'total_energy') %}
-          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
-            {{ ((energy | float) / 1.0) | round(2, default=0) }}
-          {% endif %}
-      - name: "Total énergie chambre"
-        unique_id: total_energie_chambre
-        unit_of_measurement: "kWh"
-        device_class: energy
-        state_class: total_increasing
-        state: >
-          {% set energy = state_attr('climate.thermostat_chambre', 'total_energy') %}
-          {% if energy == 'unavailable' or energy is none%}unavailable{% else %}
-            {{ ((energy | float) / 1.0) | round(2, default=0) }}
-          {% endif %}
+    - binary_sensor:
+          - name: maison_occupee
+            unique_id: maison_occupee
+            state: "{{is_state('person.jmc', 'home') }}"
+            device_class: occupancy
+    - sensor:
+          - name: "Total énergie switch1"
+            unique_id: total_energie_switch1
+            unit_of_measurement: "kWh"
+            device_class: energy
+            state_class: total_increasing
+            state: >
+                {% set energy = state_attr('climate.thermostat_switch_1', 'total_energy') | float(default=-1) %}
+                {% if energy < 0 %}{{none}}{% else %}
+                  {{ energy | round(2, default=0) }}
+                {% endif %}
+          - name: "Total énergie climate 2"
+            unique_id: total_energie_climate2
+            unit_of_measurement: "kWh"
+            device_class: energy
+            state_class: total_increasing
+            state: >
+                {% set energy = state_attr('climate.thermostat_climate_2', 'total_energy') | float(default=-1) %}
+                {% if energy < 0 %}{{none}}{% else %}
+                  {{ energy | round(2, default=0) }}
+                {% endif %}
+          - name: "Total énergie chambre"
+            unique_id: total_energie_chambre
+            unit_of_measurement: "kWh"
+            device_class: energy
+            state_class: total_increasing
+            state: >
+                {% set energy = state_attr('climate.thermostat_chambre', 'total_energy') | float(default=-1) %}
+                {% if energy < 0 %}{{none}}{% else %}
+                  {{ energy | round(2, default=0) }}
+                {% endif %}
 
 switch:
-  - platform: template
-    switches:
-      pilote_sdb_rdc:
-        friendly_name: "Pilote chauffage SDB RDC"
-        value_template: "{{ is_state_attr('switch_seche_serviettes_sdb_rdc', 'sensor_state', 'on') }}"
-        turn_on:
-          service: select.select_option
-          data:
-            option: comfort
-          target:
-            entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
+    - platform: template
+      switches:
+          pilote_sdb_rdc:
+              friendly_name: "Pilote chauffage SDB RDC"
+              value_template: "{{ is_state_attr('switch_seche_serviettes_sdb_rdc', 'sensor_state', 'on') }}"
+              turn_on:
+                  service: select.select_option
+                  data:
+                      option: comfort
+                  target:
+                      entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
 
-        turn_off:
-          service: select.select_option
-          data:
-            option: comfort-2
-          target:
-            entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
+              turn_off:
+                  service: select.select_option
+                  data:
+                      option: comfort-2
+                  target:
+                      entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
 
 frontend:
-  themes:
-    versatile_thermostat_theme:
-      state-binary_sensor-safety-on-color: "#FF0B0B"
-      state-binary_sensor-power-on-color: "#FF0B0B"
-      state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
-      state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
-      state-binary_sensor-presence-on-color: "lightgreen"
+    themes:
+        versatile_thermostat_theme:
+            state-binary_sensor-safety-on-color: "#FF0B0B"
+            state-binary_sensor-power-on-color: "#FF0B0B"
+            state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
+            state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
+            state-binary_sensor-presence-on-color: "lightgreen"
