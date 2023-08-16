@@ -1,120 +1,121 @@
 reload:
-  description: Reload all Versatile Thermostat entities.
+    name: Reload
+    description: Reload all Versatile Thermostat entities.
 
 set_presence:
-  name: Set presence
-  description: Force the presence mode in thermostat
-  target:
-    entity:
-      integration: versatile_thermostat
-  fields:
-    presence:
-      name: Presence
-      description: Presence setting
-      required: true
-      advanced: false
-      example: "on"
-      default: "on"
-      selector:
-        select:
-          options:
-            - "on"
-            - "off"
-            - "home"
-            - "not_home"
+    name: Set presence
+    description: Force the presence mode in thermostat
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        presence:
+            name: Presence
+            description: Presence setting
+            required: true
+            advanced: false
+            example: "on"
+            default: "on"
+            selector:
+                select:
+                    options:
+                        - "on"
+                        - "off"
+                        - "home"
+                        - "not_home"
 
 set_preset_temperature:
-  name: Set temperature preset
-  description: Change the target temperature of a preset
-  target:
-    entity:
-      integration: versatile_thermostat
-  fields:
-    preset:
-      name: Preset
-      description: Preset name
-      required: true
-      advanced: false
-      example: "comfort"
-      selector:
-        select:
-          options:
-            - "eco"
-            - "comfort"
-            - "boost"
-    temperature:
-      name: Temperature when present
-      description: Target temperature for the preset when present
-      required: false
-      advanced: false
-      example: "19.5"
-      default: "17"
-      selector:
-        number:
-          min: 7
-          max: 35
-          step: 0.1
-          unit_of_measurement: °
-          mode: slider
-    temperature_away:
-      name: Temperature when not present
-      description: Target temperature for the preset when not present
-      required: false
-      advanced: false
-      example: "17"
-      default: "15"
-      selector:
-        number:
-          min: 7
-          max: 35
-          step: 0.1
-          unit_of_measurement: °
-          mode: slider
+    name: Set temperature preset
+    description: Change the target temperature of a preset
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        preset:
+            name: Preset
+            description: Preset name
+            required: true
+            advanced: false
+            example: "comfort"
+            selector:
+                select:
+                    options:
+                        - "eco"
+                        - "comfort"
+                        - "boost"
+        temperature:
+            name: Temperature when present
+            description: Target temperature for the preset when present
+            required: false
+            advanced: false
+            example: "19.5"
+            default: "17"
+            selector:
+                number:
+                    min: 7
+                    max: 35
+                    step: 0.1
+                    unit_of_measurement: °
+                    mode: slider
+        temperature_away:
+            name: Temperature when not present
+            description: Target temperature for the preset when not present
+            required: false
+            advanced: false
+            example: "17"
+            default: "15"
+            selector:
+                number:
+                    min: 7
+                    max: 35
+                    step: 0.1
+                    unit_of_measurement: °
+                    mode: slider
 
 set_security:
-  name: Set security
-  description: Change the security parameters
-  target:
-    entity:
-      integration: versatile_thermostat
-  fields:
-    delay_min:
-      name: Delay in minutes
-      description: Maximum allowed delay in minutes between two temperature mesures
-      required: false
-      advanced: false
-      example: "30"
-      selector:
-        number:
-          min: 0
-          max: 9999
-          unit_of_measurement: "min"
-          mode: box
-    min_on_percent:
-      name: Minimal on_percent
-      description: Minimal heating percent value for security preset activation
-      required: false
-      advanced: false
-      example: "0.5"
-      default: "0.5"
-      selector:
-        number:
-          min: 0
-          max: 1
-          step: 0.05
-          unit_of_measurement: "%"
-          mode: slider
-    default_on_percent:
-      name: on_percent used in security mode
-      description: The default heating percent value in security preset
-      required: false
-      advanced: false
-      example: "0.1"
-      default: "0.1"
-      selector:
-        number:
-          min: 0
-          max: 1
-          step: 0.05
-          unit_of_measurement: "%"
-          mode: slider
+    name: Set security
+    description: Change the security parameters
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        delay_min:
+            name: Delay in minutes
+            description: Maximum allowed delay in minutes between two temperature mesures
+            required: false
+            advanced: false
+            example: "30"
+            selector:
+                number:
+                    min: 0
+                    max: 9999
+                    unit_of_measurement: "min"
+                    mode: box
+        min_on_percent:
+            name: Minimal on_percent
+            description: Minimal heating percent value for security preset activation
+            required: false
+            advanced: false
+            example: "0.5"
+            default: "0.5"
+            selector:
+                number:
+                    min: 0
+                    max: 1
+                    step: 0.05
+                    unit_of_measurement: "%"
+                    mode: slider
+        default_on_percent:
+            name: on_percent used in security mode
+            description: The default heating percent value in security preset
+            required: false
+            advanced: false
+            example: "0.1"
+            default: "0.1"
+            selector:
+                number:
+                    min: 0
+                    max: 1
+                    step: 0.05
+                    unit_of_measurement: "%"
+                    mode: slider
