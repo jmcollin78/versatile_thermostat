@@ -1582,6 +1582,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if not new_state:
             return
 
+        new_hvac_mode = new_state.state
+
         old_state = event.data.get("old_state")
         old_hvac_action = (
             old_state.attributes.get("hvac_action")
@@ -1594,16 +1596,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else None
         )
 
+        # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
+        if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
+            _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
+            new_hvac_mode = HVACMode.OFF
+
         _LOGGER.info(
-            "%s - Underlying climate changed. Event.new_state is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
+            "%s - Underlying climate changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
             self,
-            new_state,
+            new_hvac_mode,
             self._hvac_mode,
             new_hvac_action,
             old_hvac_action,
         )
 
-        if new_state.state in [
+        if new_hvac_mode in [
             HVACMode.OFF,
             HVACMode.HEAT,
             HVACMode.COOL,
@@ -1613,7 +1620,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.FAN_ONLY,
             None
         ]:
-            self._hvac_mode = new_state.state
+            self._hvac_mode = new_hvac_mode
 
         # Interpretation of hvac
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
