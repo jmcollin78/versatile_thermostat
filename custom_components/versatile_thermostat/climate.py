@@ -2106,7 +2106,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             switch_cond,
         )
 
-        shouldClimateBeInSecurity = temp_cond and climate_cond
+        # Issue 99 - a climate is regulated by the device itself and not by VTherm. So a VTherm should never be in security !
+        shouldClimateBeInSecurity = False # temp_cond and climate_cond
         shouldSwitchBeInSecurity = temp_cond and switch_cond
         shouldBeInSecurity = shouldClimateBeInSecurity or shouldSwitchBeInSecurity
 
