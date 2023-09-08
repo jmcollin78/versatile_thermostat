@@ -4,7 +4,8 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.helpers.entity import Entity, DeviceInfo, DeviceEntryType
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.event import async_track_state_change_event, async_call_later
 
 from .climate import VersatileThermostat

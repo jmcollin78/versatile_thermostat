@@ -18,7 +18,7 @@ from homeassistant.core import (
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.reload import async_setup_reload_service
@@ -505,7 +505,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if len(presets):
             self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
 
-            for key, val in CONF_PRESETS.items():  # TODO before presets.items():
+            for key, val in CONF_PRESETS.items():
                 if val != 0.0:
                     self._attr_preset_modes.append(key)
 

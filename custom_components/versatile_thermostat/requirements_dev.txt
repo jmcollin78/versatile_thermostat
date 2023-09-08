@@ -1,2 +1,2 @@
-homeassistant==2023.8.3
+homeassistant==2023.9.0
 ffmpeg
