@@ -990,6 +990,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return HVACAction.OFF
         if not self._is_device_active:
             return HVACAction.IDLE
+        if self._hvac_mode == HVACMode.COOL:
+            return HVACAction.COOLING
         return HVACAction.HEATING
 
     @property
