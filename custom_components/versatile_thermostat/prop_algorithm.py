@@ -45,7 +45,7 @@ class PropAlgorithm:
         self._default_on_percent = 0
 
     def calculate(
-        self, target_temp: float, current_temp: float, ext_current_temp: float
+        self, target_temp: float, current_temp: float, ext_current_temp: float, cooling: bool
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
@@ -54,10 +54,16 @@ class PropAlgorithm:
             )
             self._calculated_on_percent = 0
         else:
-            delta_temp = target_temp - current_temp
-            delta_ext_temp = (
-                target_temp - ext_current_temp if ext_current_temp is not None else 0
-            )
+            if cooling:
+                delta_temp = current_temp - target_temp
+                delta_ext_temp = (
+                    ext_current_temp if ext_current_temp is not None else 0 - target_temp
+                )
+            else:
+                delta_temp = target_temp - current_temp
+                delta_ext_temp = (
+                    target_temp - ext_current_temp if ext_current_temp is not None else 0
+                )
 
             if self._function == PROPORTIONAL_FUNCTION_TPI:
                 self._calculated_on_percent = (
