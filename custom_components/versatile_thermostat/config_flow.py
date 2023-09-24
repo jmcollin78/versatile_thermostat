@@ -223,6 +223,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         PROPORTIONAL_FUNCTION_TPI,
                     ]
                 ),
+                vol.Optional(CONF_AC_MODE, default=False): cv.boolean
             }
         )
 
@@ -231,14 +232,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
-                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             }
         )
 
         self.STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_TPI_COEF_INT, default=0.6): vol.Coerce(float),
-                vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float),
+                vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float)
             }
         )
 
