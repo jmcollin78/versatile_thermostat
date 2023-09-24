@@ -226,6 +226,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         PROPORTIONAL_FUNCTION_TPI,
                     ]
                 ),
+                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             }
         )
 
@@ -243,7 +244,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
-                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             }
         )
 
