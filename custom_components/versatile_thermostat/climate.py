@@ -756,7 +756,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.async_write_ha_state()
                 if self._prop_algorithm:
                     self._prop_algorithm.calculate(
-                        self._target_temp, self._cur_temp, self._cur_ext_temp
+                        self._target_temp, self._cur_temp, self._cur_ext_temp, self._hvac_mode == HVACMode.COOL
                     )
 
             self.hass.create_task(self._check_switch_initial_state())
@@ -2279,7 +2279,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         _LOGGER.debug("%s - recalculate all", self)
         self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
+            self._target_temp, self._cur_temp, self._cur_ext_temp, self._hvac_mode == HVACMode.COOL
         )
         self.update_custom_attributes()
         self.async_write_ha_state()

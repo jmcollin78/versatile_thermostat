@@ -239,7 +239,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 return
 
         # If we should heat, starts the cycle with delay
-        if self._hvac_mode == HVACMode.HEAT and on_time_sec > 0:
+        if self._hvac_mode in [HVACMode.HEAT, HVACMode.COOL] and on_time_sec > 0:
             # Starts the cycle after the initial delay
             self._async_cancel_cycle = self.call_later(
                 self._hass, self._initial_delay_sec, self._turn_on_later
