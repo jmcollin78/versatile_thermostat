@@ -1063,7 +1063,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     @property
     def mean_cycle_power(self) -> float | None:
-        """Returns tne mean power consumption during the cycle"""
+        """Returns the mean power consumption during the cycle"""
         if not self._device_power or self._is_over_climate:
             return None
 
