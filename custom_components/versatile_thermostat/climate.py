@@ -966,7 +966,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # else OFF
             one_idle = False
             for under in self._underlyings:
-                if action := under.hvac_action not in [HVACAction.IDLE, HVACAction.OFF]:
+                if (action := under.hvac_action) not in [HVACAction.IDLE, HVACAction.OFF]:
                     return action
                 if under.hvac_action == HVACAction.IDLE:
                     one_idle = True
