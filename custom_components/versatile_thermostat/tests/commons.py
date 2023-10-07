@@ -83,7 +83,7 @@ _LOGGER = logging.getLogger(__name__)
 class MockClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF) -> None:
         """Initialize the thermostat."""
 
         super().__init__()
@@ -93,10 +93,26 @@ class MockClimate(ClimateEntity):
         self._unique_id = unique_id
         self._name = name
         self._attr_hvac_action = HVACAction.OFF
-        self._attr_hvac_mode = HVACMode.OFF
+        self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
 
+class MockUnavailableClimate(ClimateEntity):
+    """A Mock Climate class used for Underlying climate mode"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the thermostat."""
+
+        super().__init__()
+
+        self._hass = hass
+        self._attr_extra_state_attributes = {}
+        self._unique_id = unique_id
+        self._name = name
+        self._attr_hvac_action = None
+        self._attr_hvac_mode = None
+        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
+        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
 
 class MagicMockClimate(MagicMock):
     """A Magic Mock class for a underlying climate entity"""
