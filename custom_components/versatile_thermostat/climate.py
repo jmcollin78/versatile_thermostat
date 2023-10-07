@@ -183,7 +183,7 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         SERVICE_SET_PRESET_TEMPERATURE,
         {
-            vol.Required("preset"): vol.In(CONF_PRESETS),
+            vol.Required("preset"): vol.In(CONF_PRESETS_WITH_AC),
             vol.Optional("temperature"): vol.Coerce(float),
             vol.Optional("temperature_away"): vol.Coerce(float),
         },
@@ -2429,8 +2429,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Called by a service call:
         service: versatile_thermostat.set_preset_temperature
         data:
-            temperature: 17.8
             preset: boost
+            temperature: 17.8
             temperature_away: 15
         target:
             entity_id: climate.thermostat_2

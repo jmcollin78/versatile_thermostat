@@ -43,6 +43,9 @@ set_preset_temperature:
                         - "eco"
                         - "comfort"
                         - "boost"
+                        - "eco_ac"
+                        - "comfort_ac"
+                        - "boost_ac"
         temperature:
             name: Temperature when present
             description: Target temperature for the preset when present
