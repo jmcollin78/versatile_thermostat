@@ -1659,6 +1659,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self._underlying_climate_delta_t,
             )
 
+        # Manage new target temperature set
+        if self._is_over_climate and new_state.attributes and (new_target_temp := new_state.attributes.get("temperature")) and new_target_temp != self.target_temperature:
+            _LOGGER.info("%s - Target temp have change to %s", self, new_target_temp)
+            await self.async_set_temperature(temperature = new_target_temp)
+
         self.update_custom_attributes()
         await self._async_control_heating()
 

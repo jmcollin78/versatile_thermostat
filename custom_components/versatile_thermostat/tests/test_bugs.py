@@ -446,5 +446,83 @@ async def test_bug_82(
             assert entity.preset_mode == 'none'
             assert entity._saved_preset_mode == 'none'
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_101(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when a underlying climate target temp is changed, the VTherm change its own temperature target and switch to manual"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_CONFIG, # 5 minutes security delay
+    )
+
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
+
+    with patch(
+        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ) as mock_find_climate:
+        entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(entry.entry_id)
+        assert entry.state is ConfigEntryState.LOADED
+
+        def find_my_entity(entity_id) -> ClimateEntity:
+            """Find my new entity"""
+            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
+            for entity in component.entities:
+                if entity.entity_id == entity_id:
+                    return entity
+
+        entity = find_my_entity("climate.theoverclimatemockname")
+
+        assert entity
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity._is_over_climate is True
+        assert entity.hvac_action is HVACAction.OFF
+        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.target_temperature == entity.min_temp
+        assert entity.preset_mode is PRESET_NONE
+
+        # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
+        assert mock_send_event.call_count == 2
+        mock_send_event.assert_has_calls(
+            [
+                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(
+                    EventType.HVAC_MODE_EVENT,
+                    {"hvac_mode": HVACMode.OFF},
+                ),
+            ]
+        )
+
+        assert mock_find_climate.call_count == 1
+        assert mock_find_climate.mock_calls[0] == call()
+        mock_find_climate.assert_has_calls([call.find_underlying_entity()])
+
+        # Force preset mode
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity.hvac_mode == HVACMode.HEAT
+        await entity.async_set_preset_mode(PRESET_COMFORT)
+        assert entity.preset_mode == PRESET_COMFORT
+
+        # 2. Change the target temp of underlying thermostat
+        await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, now, 12.75)
+        # Should have been switched to Manual preset
+        assert entity.target_temperature == 12.75
+        assert entity.preset_mode is PRESET_NONE
+
 
 

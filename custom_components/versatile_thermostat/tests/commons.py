@@ -88,7 +88,9 @@ class MockClimate(ClimateEntity):
 
         super().__init__()
 
-        self._hass = hass
+        self.hass = hass
+        self.platform = 'climate'
+        self.entity_id= self.platform+'.'+unique_id
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
@@ -96,6 +98,13 @@ class MockClimate(ClimateEntity):
         self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_target_temperature = 20
+        self._attr_current_temperature = 15
+
+    def set_temperature(self, temperature):
+        """ Set the target temperature"""
+        self._attr_target_temperature = temperature
+        self.async_write_ha_state()
 
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
@@ -454,6 +463,51 @@ async def send_climate_change_event(
                 entity_id=entity.entity_id,
                 state=new_hvac_mode,
                 attributes={"hvac_action": new_hvac_action},
+                last_changed=date,
+                last_updated=date,
+            ),
+            "old_state": State(
+                entity_id=entity.entity_id,
+                state=old_hvac_mode,
+                attributes={"hvac_action": old_hvac_action},
+                last_changed=date,
+                last_updated=date,
+            ),
+        },
+    )
+    ret = await entity._async_climate_changed(climate_event)
+    if sleep:
+        await asyncio.sleep(0.1)
+    return ret
+
+async def send_climate_change_event_with_temperature(
+    entity: VersatileThermostat,
+    new_hvac_mode: HVACMode,
+    old_hvac_mode: HVACMode,
+    new_hvac_action: HVACAction,
+    old_hvac_action: HVACAction,
+    date,
+    temperature,
+    sleep=True,
+):
+    """Sending a new climate event simulating a change on the underlying climate state"""
+    _LOGGER.info(
+        "------- Testu: sending send_temperature_change_event, new_hvac_mode=%s old_hvac_mode=%s new_hvac_action=%s old_hvac_action=%s date=%s temperature=%s on %s",
+        new_hvac_mode,
+        old_hvac_mode,
+        new_hvac_action,
+        old_hvac_action,
+        date,
+        temperature,
+        entity,
+    )
+    climate_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=new_hvac_mode,
+                attributes={"hvac_action": new_hvac_action, "temperature": temperature},
                 last_changed=date,
                 last_updated=date,
             ),
