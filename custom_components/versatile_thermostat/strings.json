@@ -26,11 +26,14 @@
         "description": "Linked entities attributes",
         "data": {
           "heater_entity_id": "Heater switch",
-          "heater_entity2_id": "2nd Heater switch",
-          "heater_entity3_id": "3rd Heater switch",
-          "heater_entity4_id": "4th Heater switch",
+          "heater_entity2_id": "2nd heater switch",
+          "heater_entity3_id": "3rd heater switch",
+          "heater_entity4_id": "4th heater switch",
           "proportional_function": "Algorithm",
-          "climate_entity_id": "Underlying thermostat",
+          "climate_entity_id": "Underlying climate",
+          "climate_entity2_id": "2nd underlying climate",
+          "climate_entity3_id": "3rd underlying climate",
+          "climate_entity4_id": "4th underlying climate",
           "ac_mode": "AC mode"
         },
         "data_description": {
@@ -40,6 +43,9 @@
           "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not used",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "climate_entity_id": "Underlying climate entity id",
+          "climate_entity2_id": "2nd underlying climate entity id",
+          "climate_entity3_id": "3rd underlying climate entity id",
+          "climate_entity4_id": "4th underlying climate entity id",
           "ac_mode": "Use the Air Conditioning (AC) mode"
         }
       },
@@ -170,6 +176,9 @@
           "heater_entity4_id": "4th Heater switch",
           "proportional_function": "Algorithm",
           "climate_entity_id": "Underlying thermostat",
+          "climate_entity2_id": "2nd underlying climate",
+          "climate_entity3_id": "3rd underlying climate",
+          "climate_entity4_id": "4th underlying climate",
           "ac_mode": "AC mode"
         },
         "data_description": {
@@ -179,6 +188,9 @@
           "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not used",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "climate_entity_id": "Underlying climate entity id",
+          "climate_entity2_id": "2nd underlying climate entity id",
+          "climate_entity3_id": "3rd underlying climate entity id",
+          "climate_entity4_id": "4th underlying climate entity id",
           "ac_mode": "Use the Air Conditioning (AC) mode"
         }
       },

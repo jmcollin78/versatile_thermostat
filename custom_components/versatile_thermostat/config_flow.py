@@ -81,6 +81,9 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_SWITCH,
     CONF_CLIMATE,
+    CONF_CLIMATE_2,
+    CONF_CLIMATE_3,
+    CONF_CLIMATE_4,
     CONF_USE_WINDOW_FEATURE,
     CONF_USE_MOTION_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
@@ -229,6 +232,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         self.STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             {
                 vol.Required(CONF_CLIMATE): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),
+                vol.Optional(CONF_CLIMATE_2): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),
+                vol.Optional(CONF_CLIMATE_3): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),
+                vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
                 vol.Optional(CONF_AC_MODE, default=False): cv.boolean,

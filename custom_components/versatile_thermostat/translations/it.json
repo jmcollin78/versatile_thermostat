@@ -31,6 +31,9 @@
           "heater_entity4_id": "Quarto riscaldatore",
           "proportional_function": "Algoritmo",
           "climate_entity_id": "Termostato sottostante",
+          "climate_entity2_id": "Secundo termostato sottostante",
+          "climate_entity3_id": "Terzo termostato sottostante",
+          "climate_entity4_id": "Quarto termostato sottostante",
           "ac_mode": "AC mode ?"
         },
         "data_description": {
@@ -40,6 +43,9 @@
           "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
           "climate_entity_id": "Entity id del termostato sottostante",
+          "climate_entity2_id": "Entity id del secundo termostato sottostante",
+          "climate_entity3_id": "Entity id del terzo termostato sottostante",
+          "climate_entity4_id": "Entity id del quarto termostato sottostante",
           "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
         }
       },
@@ -170,6 +176,9 @@
           "heater_entity4_id": "Quarto interruttore riscaldatore",
           "proportional_function": "Algoritmo",
           "climate_entity_id": "Termostato sottostante",
+          "climate_entity2_id": "Secundo termostato sottostante",
+          "climate_entity3_id": "Terzo termostato sottostante",
+          "climate_entity4_id": "Quarto termostato sottostante",
           "ac_mode": "AC mode ?"
         },
         "data_description": {
@@ -179,6 +188,9 @@
           "heater_entity4_id": "Entity id del quarto riscaldatore facoltativo. Lasciare vuoto se non utilizzato",
           "proportional_function": "Algoritmo da utilizzare (il TPI per adesso è l'unico)",
           "climate_entity_id": "Entity id del termostato sottostante",
+          "climate_entity2_id": "Entity id del secundo termostato sottostante",
+          "climate_entity3_id": "Entity id del terzo termostato sottostante",
+          "climate_entity4_id": "Entity id del quarto termostato sottostante",
           "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
         }
       },

@@ -65,6 +65,9 @@ CONF_THERMOSTAT_TYPE = "thermostat_type"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
 CONF_THERMOSTAT_CLIMATE = "thermostat_over_climate"
 CONF_CLIMATE = "climate_entity_id"
+CONF_CLIMATE_2 = "climate_entity2_id"
+CONF_CLIMATE_3 = "climate_entity3_id"
+CONF_CLIMATE_4 = "climate_entity4_id"
 CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
@@ -130,6 +133,9 @@ ALL_CONF = (
     [
         CONF_NAME,
         CONF_HEATER,
+        CONF_HEATER_2,
+        CONF_HEATER_3,
+        CONF_HEATER_4,
         CONF_TEMP_SENSOR,
         CONF_EXTERNAL_TEMP_SENSOR,
         CONF_POWER_SENSOR,
@@ -159,6 +165,9 @@ ALL_CONF = (
         CONF_THERMOSTAT_SWITCH,
         CONF_THERMOSTAT_CLIMATE,
         CONF_CLIMATE,
+        CONF_CLIMATE_2,
+        CONF_CLIMATE_3,
+        CONF_CLIMATE_4,
         CONF_USE_WINDOW_FEATURE,
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,

@@ -30,6 +30,9 @@
           "heater_entity4_id": "4ème radiateur",
           "proportional_function": "Algorithme",
           "climate_entity_id": "Thermostat sous-jacent",
+          "climate_entity2_id": "2ème thermostat sous-jacent",
+          "climate_entity3_id": "3ème thermostat sous-jacent",
+          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?"
         },
         "data_description": {
@@ -39,6 +42,9 @@
           "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "climate_entity_id": "Entity id du thermostat sous-jacent",
+          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
+          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
+          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)"
         }
       },
@@ -170,6 +176,9 @@
           "heater_entity4_id": "4ème radiateur",
           "proportional_function": "Algorithme",
           "climate_entity_id": "Thermostat sous-jacent",
+          "climate_entity2_id": "2ème thermostat sous-jacent",
+          "climate_entity3_id": "3ème thermostat sous-jacent",
+          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?"
         },
         "data_description": {
@@ -179,6 +188,9 @@
           "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "climate_entity_id": "Entity id du thermostat sous-jacent",
+          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
+          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
+          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)"
         }
       },

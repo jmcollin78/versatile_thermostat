@@ -72,6 +72,18 @@ input_boolean:
     fake_heater_4switch4:
         name: Heater (multiswitch4)
         icon: mdi:radiator
+    fake_heater_4climate1:
+        name: Heater (multiclimate1)
+        icon: mdi:radiator
+    fake_heater_4climate2:
+        name: Heater (multiclimate2)
+        icon: mdi:radiator
+    fake_heater_4climate3:
+        name: Heater (multiclimate3)
+        icon: mdi:radiator
+    fake_heater_4climate4:
+        name: Heater (multiclimate4)
+        icon: mdi:radiator
     # input_boolean to simulate the motion sensor entity. Only for development environment.
     fake_motion_sensor1:
         name: Motion Sensor 1
@@ -99,20 +111,20 @@ climate:
       heater: input_boolean.fake_heater_switch3
       target_sensor: input_number.fake_temperature_sensor1
     - platform: generic_thermostat
-      name: Underlying thermostat5
-      heater: input_boolean.fake_heater_switch3
+      name: Underlying thermostat 4-1
+      heater: input_boolean.fake_heater_4climate1
       target_sensor: input_number.fake_temperature_sensor1
     - platform: generic_thermostat
-      name: Underlying thermostat6
-      heater: input_boolean.fake_heater_switch3
+      name: Underlying thermostat 4-2
+      heater: input_boolean.fake_heater_4climate2
       target_sensor: input_number.fake_temperature_sensor1
     - platform: generic_thermostat
-      name: Underlying thermostat7
-      heater: input_boolean.fake_heater_switch3
+      name: Underlying thermostat 4-3
+      heater: input_boolean.fake_heater_4climate3
       target_sensor: input_number.fake_temperature_sensor1
     - platform: generic_thermostat
-      name: Underlying thermostat8
-      heater: input_boolean.fake_heater_switch3
+      name: Underlying thermostat 4-4
+      heater: input_boolean.fake_heater_4climate4
       target_sensor: input_number.fake_temperature_sensor1
     - platform: generic_thermostat
       name: Underlying thermostat9

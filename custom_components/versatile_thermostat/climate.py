@@ -129,6 +129,9 @@ from .const import (
     # CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
     CONF_CLIMATE,
+    CONF_CLIMATE_2,
+    CONF_CLIMATE_3,
+    CONF_CLIMATE_4,
     CONF_AC_MODE,
     UnknownEntity,
     EventType,
@@ -328,16 +331,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
 
         # Initialize underlying entities
+        self._underlyings = []
         self._thermostat_type = entry_infos.get(CONF_THERMOSTAT_TYPE)
         if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
             self._is_over_climate = True
-            self._underlyings.append(
-                UnderlyingClimate(
-                    hass=self._hass,
-                    thermostat=self,
-                    climate_entity_id=entry_infos.get(CONF_CLIMATE),
-                )
-            )
+            for climate in [CONF_CLIMATE, CONF_CLIMATE_2, CONF_CLIMATE_3, CONF_CLIMATE_4]:
+                if entry_infos.get(climate):
+                    self._underlyings.append(
+                        UnderlyingClimate(
+                            hass=self._hass,
+                            thermostat=self,
+                            climate_entity_id=entry_infos.get(climate),
+                        )
+                    )
         else:
             lst_switches = [entry_infos.get(CONF_HEATER)]
             if entry_infos.get(CONF_HEATER_2):
@@ -348,7 +354,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 lst_switches.append(entry_infos.get(CONF_HEATER_4))
 
             delta_cycle = self._cycle_min * 60 / len(lst_switches)
-            self._underlyings = []
             for idx, switch in enumerate(lst_switches):
                 self._underlyings.append(
                     UnderlyingSwitch(
@@ -1582,6 +1587,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if not new_state:
             return
 
+        changes = False
         new_hvac_mode = new_state.state
 
         old_state = event.data.get("old_state")
@@ -1597,9 +1603,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
-        if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-            _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
-            new_hvac_mode = HVACMode.OFF
+        #if self._hvac_mode == HVACMode.OFF and new_hvac_mode == HVACMode.COOL and new_hvac_action == HVACAction.IDLE:
+        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
+        #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
             "%s - Underlying climate changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
@@ -1619,8 +1625,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.AUTO,
             HVACMode.FAN_ONLY,
             None
-        ]:
+        ] and self._hvac_mode != new_hvac_mode:
+            changes = True
             self._hvac_mode = new_hvac_mode
+            # Do not try to update all underlying state, else we will have a loop
+            if self._is_over_climate:
+                for under in self._underlyings:
+                    await under.set_hvac_mode(new_hvac_mode)
 
         # Interpretation of hvac
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
@@ -1638,6 +1649,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self,
                 self._underlying_climate_start_hvac_action_date.isoformat(),
             )
+            changes = True
 
         if old_hvac_action in HVAC_ACTION_ON and new_hvac_action not in HVAC_ACTION_ON:
             stop_power_date = self.get_last_updated_date_or_now(new_state)
@@ -1658,14 +1670,20 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 stop_power_date.isoformat(),
                 self._underlying_climate_delta_t,
             )
+            changes = True
 
-        # Manage new target temperature set
-        if self._is_over_climate and new_state.attributes and (new_target_temp := new_state.attributes.get("temperature")) and new_target_temp != self.target_temperature:
-            _LOGGER.info("%s - Target temp have change to %s", self, new_target_temp)
-            await self.async_set_temperature(temperature = new_target_temp)
+        if not changes:
+            # try to manage new target temperature set if state
+            _LOGGER.debug("Do temperature check. temperature is %s, new_state.attributes is %s", self.target_temperature, new_state.attributes)
+            if self._is_over_climate and new_state.attributes and (new_target_temp := new_state.attributes.get("temperature")) and new_target_temp != self.target_temperature:
+                _LOGGER.info("%s - Target temp have change to %s", self, new_target_temp)
+                await self.async_set_temperature(temperature = new_target_temp)
+                changes = True
 
-        self.update_custom_attributes()
-        await self._async_control_heating()
+        if changes:
+            self.async_write_ha_state()
+            self.update_custom_attributes()
+            await self._async_control_heating()
 
     @callback
     async def _async_update_temp(self, state: State):
@@ -2364,9 +2382,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "window_auto_max_duration": self._window_auto_max_duration,
         }
         if self._is_over_climate:
-            self._attr_extra_state_attributes["underlying_climate"] = self._underlyings[
+            self._attr_extra_state_attributes["underlying_climate_1"] = self._underlyings[
                 0
             ].entity_id
+            self._attr_extra_state_attributes["underlying_climate_1"] = self._underlyings[
+                1
+            ].entity_id  if len(self._underlyings) > 1 else None
+            self._attr_extra_state_attributes["underlying_climate_2"] = self._underlyings[
+                2
+            ].entity_id  if len(self._underlyings) > 2 else None
+            self._attr_extra_state_attributes["underlying_climate_3"] = self._underlyings[
+                3
+            ].entity_id  if len(self._underlyings) > 3 else None
+
             self._attr_extra_state_attributes[
                 "start_hvac_action_date"
             ] = self._underlying_climate_start_hvac_action_date
