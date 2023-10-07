@@ -53,6 +53,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
 > * **Release 3.2**: add the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
 > * **Release 3.1**: added detection of open windows/doors by temperature drop. This new function makes it possible to automatically stop a radiator when the temperature drops suddenly. See [Auto mode](#auto-mode)
@@ -68,15 +69,15 @@ Many thanks to @salabur, @pvince83 and @bergoglio for the beers. It's very pleas
 # When to use / not use
 This thermostat can control 2 types of equipment:
 1. a heater that only works in on/off mode (named ```thermostat_over_switch```). The minimum configuration required to use this type of thermostat is:
-   has. equipment such as a radiator (a ```switch``` or equivalent),
-   b. a temperature probe for the room (or an input_number),
-   vs. an external temperature sensor (think about weather integration if you don't have one)
+   - an equipment such as a radiator (a ```switch``` or equivalent),
+   - a temperature probe for the room (or an input_number),
+   - an external temperature sensor (think about weather integration if you don't have one)
 2. another thermostat that has its own operating modes (named ```thermostat_over_climate```). For this type of thermostat, the minimum configuration requires:
-   has. equipment such as air conditioning which is controlled by its own ```climate``` type entity,
-   b. a temperature probe for the room (or an input_number),
-   vs. an external temperature sensor (think about weather integration if you don't have one)
+   - an equipment such as air conditioning which is controlled by its own ```climate``` type entity,
+   - a temperature probe for the room (or an input_number),
+   - an external temperature sensor (think about weather integration if you don't have one)
 
-The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
+The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 
 # Why another thermostat implementation ?
 
@@ -218,6 +219,7 @@ And that's all ! your thermostat will turn off when the windows are open and tur
     2. If you don't have a window/door sensor in your room, just leave the sensor entity id blank,
     3. **Only one mode is allowed**. You cannot configure a thermostat with a sensor and automatic detection. The 2 modes may contradict each other, it is not possible to have the 2 modes at the same time,
     4. It is not recommended to use the automatic mode for equipment subject to frequent and normal temperature variations (corridors, open areas, ...)
+
 ## Configure the activity mode or motion detection
 If you choose the ```Motion management``` feature, lick on 'Validate' on the previous page and you will get there:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
