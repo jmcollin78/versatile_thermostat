@@ -391,8 +391,8 @@ async def test_bug_82(
         assert entity.name == "TheOverClimateMockName"
         assert entity._is_over_climate is True
         # assert entity.hvac_action is HVACAction.OFF
-        # assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_mode is None
+        assert entity.hvac_mode is HVACMode.OFF
+        # assert entity.hvac_mode is None
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
@@ -429,7 +429,7 @@ async def test_bug_82(
 
         # Tries to turns on the Thermostat
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode == None
+        assert entity.hvac_mode == HVACMode.HEAT
 
         # 2. activate security feature when date is expired
         with patch(
@@ -466,6 +466,7 @@ async def test_bug_101(
         data=PARTIAL_CLIMATE_CONFIG, # 5 minutes security delay
     )
 
+    # Underlying is in HEAT mode but should be shutdown at startup
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
 
     with patch(
@@ -473,7 +474,9 @@ async def test_bug_101(
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
-    ) as mock_find_climate:
+    ) as mock_find_climate, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
@@ -491,8 +494,17 @@ async def test_bug_101(
 
         assert entity.name == "TheOverClimateMockName"
         assert entity._is_over_climate is True
-        assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is HVACMode.OFF
+        # because the underlying is heating. In real life the underlying should be shut-off
+        assert entity.hvac_action is HVACAction.HEATING
+        # Underlying should have been shutdown
+        assert mock_underlying_set_hvac_mode.call_count == 1
+        mock_underlying_set_hvac_mode.assert_has_calls(
+            [
+                call.set_hvac_mode(HVACMode.OFF),
+            ]
+        )
+
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_mode is PRESET_NONE
 

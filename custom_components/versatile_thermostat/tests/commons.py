@@ -94,7 +94,7 @@ class MockClimate(ClimateEntity):
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
-        self._attr_hvac_action = HVACAction.OFF
+        self._attr_hvac_action = HVACAction.OFF if hvac_mode == HVACMode.OFF else HVACAction.HEATING
         self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -104,6 +104,11 @@ class MockClimate(ClimateEntity):
     def set_temperature(self, temperature):
         """ Set the target temperature"""
         self._attr_target_temperature = temperature
+        self.async_write_ha_state()
+
+    def async_set_hvac_mode(self, hvac_mode):
+        """ The hvac mode"""
+        self._attr_hvac_mode = hvac_mode
         self.async_write_ha_state()
 
 class MockUnavailableClimate(ClimateEntity):

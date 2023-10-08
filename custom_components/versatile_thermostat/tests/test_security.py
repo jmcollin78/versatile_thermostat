@@ -236,8 +236,10 @@ async def test_security_over_climate(
 
         assert entity.name == "TheOverClimateMockName"
         assert entity._is_over_climate is True
-        assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+
+        # Because the underlying is HEATING. In real life the underlying will be shut-off
+        assert entity.hvac_action is HVACAction.HEATING
+        assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
@@ -252,6 +254,7 @@ async def test_security_over_climate(
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
+                # At startup
                 call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
@@ -275,6 +278,17 @@ async def test_security_over_climate(
         # Tries to turns on the Thermostat
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
+
+        # One call more
+        assert mock_send_event.call_count == 3
+        mock_send_event.assert_has_calls(
+            [
+                call.send_event(
+                    EventType.HVAC_MODE_EVENT,
+                    {"hvac_mode": HVACMode.HEAT},
+                ),
+            ]
+        )
 
         # 2. activate security feature when date is expired
         with patch(

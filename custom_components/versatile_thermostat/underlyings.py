@@ -6,7 +6,7 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, UnitOfTemperature
 
 from homeassistant.exceptions import ServiceNotFound
 
-from homeassistant.backports.enum import StrEnum
+from enum import StrEnum
 from homeassistant.core import HomeAssistant, DOMAIN as HA_DOMAIN, CALLBACK_TYPE
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -131,6 +131,23 @@ class UnderlyingEntity:
         """Remove the underlying entity"""
         return
 
+    async def check_initial_state(self, hvac_mode: HVACMode):
+        """Prevent the underlying to be on but thermostat is off"""
+        if hvac_mode == HVACMode.OFF and self.is_device_active:
+            _LOGGER.warning(
+                "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
+                self,
+                self._entity_id,
+            )
+            await self.set_hvac_mode(hvac_mode)
+        elif hvac_mode != HVACMode.OFF and self.is_device_active:
+            _LOGGER.warning(
+                "%s - The hvac mode is ON, but the underlying device is not ON. Turning on device %s",
+                self,
+                self._entity_id,
+            )
+            await self.set_hvac_mode(hvac_mode)
+
     # override to be able to mock the call
     def call_later(
         self, hass: HomeAssistant, delay_sec: int, called_method
@@ -192,16 +209,6 @@ class UnderlyingSwitch(UnderlyingEntity):
     def is_device_active(self):
         """If the toggleable device is currently active."""
         return self._hass.states.is_state(self._entity_id, STATE_ON)
-
-    async def check_initial_state(self, hvac_mode: HVACMode):
-        """Prevent the heater to be on but thermostat is off"""
-        if hvac_mode == HVACMode.OFF and self.is_device_active:
-            _LOGGER.warning(
-                "%s - The hvac mode is OFF, but the switch device is ON. Turning off device %s",
-                self,
-                self._entity_id,
-            )
-            await self.turn_off()
 
     async def start_cycle(
         self,

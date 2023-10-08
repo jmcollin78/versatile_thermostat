@@ -1566,8 +1566,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     async def _check_switch_initial_state(self):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_switch_initial_state", self)
-        if self.is_over_climate:
-            return
+        # We need to do the same check for over_climate underlyings
+        #if self.is_over_climate:
+        #    return
         for under in self._underlyings:
             await under.check_initial_state(self._hvac_mode)
 
