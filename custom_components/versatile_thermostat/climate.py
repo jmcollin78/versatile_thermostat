@@ -949,13 +949,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        if self._is_over_climate:
+        # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
+        # delta will be managed by climate_state_change event.
+        # TODO remove this when ok
+        # if self._is_over_climate:
             # if one not OFF -> return it
             # else OFF
-            for under in self._underlyings:
-                if (action := under.hvac_mode) not in [HVACMode.OFF]:
-                    return action
-            return HVACMode.OFF
+        #    for under in self._underlyings:
+        #        if (mode := under.hvac_mode) not in [HVACMode.OFF]
+        #            return mode
+        #    return HVACMode.OFF
 
         return self._hvac_mode
 
@@ -1603,7 +1606,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
-        #if self._hvac_mode == HVACMode.OFF and new_hvac_mode == HVACMode.COOL and new_hvac_action == HVACAction.IDLE:
+        # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
+        #if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
         #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
         #    new_hvac_mode = HVACMode.OFF
 
