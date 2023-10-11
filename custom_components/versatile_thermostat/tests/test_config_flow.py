@@ -410,6 +410,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_HEATER_3: "switch.mock_switch3",
         CONF_HEATER_4: "switch.mock_switch4",
         CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+        CONF_AC_MODE: False,
     }
 
     result = await hass.config_entries.flow.async_init(
