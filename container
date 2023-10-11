@@ -6,33 +6,45 @@
 
 cd $HA
 
-echo "arguments are: "$*
-# Post installation of container
-command=$1
-if [ "$command" == "install" ]; then
-    echo "Running container post installation"
-    script/setup
-fi
+function get_dev() {
+     cd /workspaces/versatile_thermostat/custom_components/versatile_thermostat/
+     pip install pytest
+     pip install -r requirements_dev.txt
+     pip install -r requirements_test.txt
+     sudo chown -R vscode:  /home/vscode/core
+     cd -
+}
 
-if [ "$command" == "start" ]; then
-    echo "Running container start"
-    hass -c ./config --debug
-fi
+echo "arguments are: "$1
 
-if [ "$command" == "translations" ]; then
-    echo "Running container start"
-    python3 -m script.translations develop
-fi
-
-if [ "$command" == "hassfest" ]; then
-    echo "Running container start"
-    python3 -m script.hassfest
-    # python -m script.hassfest --requirements --action validate --integration-path config/custom_components/versatile_thermostat/
-fi
-
-if [ "$command" == "restart" ]; then
-    echo "Killing existing container"
-    pkill hass
-    echo "Killing existing container"
-    hass -c ./config
-fi
+case $1 in
+    start)
+        echo "Running container start"
+        cd $HA
+        hass -c ./config --debug
+    ;;
+    dev-setup)
+        get_dev
+    ;;
+    install)
+        echo "Running container post installation"
+        script/setup
+    ;;
+    translations)
+        echo "Running container start"
+        cd $HA
+        python3 -m script.translations develop
+    ;;
+    hassfest)
+        echo "Running container start"
+        python3 -m script.hassfest
+        # python -m script.hassfest --requirements --action validate --integration-path config/custom_components/versatile_thermostat/
+    ;;
+    restart)
+        echo "Killing existing container"
+        pkill hass
+        echo "Killing existing container"
+        cd $HA
+        hass -c ./config
+    ;;
+esac
