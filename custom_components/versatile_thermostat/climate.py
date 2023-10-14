@@ -1619,10 +1619,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else None
         )
 
-        old_state_date_changed = old_state.last_changed
-        old_state_date_updated = old_state.last_updated
-        new_state_date_changed = new_state.last_changed
-        new_state_date_updated = new_state.last_updated
+        old_state_date_changed = old_state.last_changed if old_state.last_changed else None
+        old_state_date_updated = old_state.last_updated if old_state.last_updated else None
+        new_state_date_changed = new_state.last_changed if new_state.last_changed else None
+        new_state_date_updated = new_state.last_updated if new_state.last_updated else None
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
