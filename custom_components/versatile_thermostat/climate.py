@@ -1298,7 +1298,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     def reset_last_change_time(self, old_preset_mode=None):
         """Reset to now the last change time"""
         self._last_change_time = datetime.now(tz=self._current_tz)
-        _LOGGER.warning("%s - last_change_time is now %s", self, self._last_change_time)
+        _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time)
 
     def reset_last_temperature_time(self, old_preset_mode=None):
         """Reset to now the last temperature time if conditions are satisfied"""
