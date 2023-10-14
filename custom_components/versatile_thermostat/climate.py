@@ -1599,6 +1599,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @callback
     async def _async_climate_changed(self, event):
         """Handle unerdlying climate state changes."""
+
+        async def end_climate_changed(changes):
+            """ To end the event management"""
+            if changes:
+                self.async_write_ha_state()
+                self.update_custom_attributes()
+                await self._async_control_heating()
+
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
         if not new_state:
@@ -1639,26 +1647,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             old_hvac_action,
         )
 
-        _LOGGER.warning("%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s", self, self._last_change_time, old_state_date_changed, old_state_date_updated, new_state_date_changed, new_state_date_updated)
+        _LOGGER.debug("%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s", self, self._last_change_time, old_state_date_changed, old_state_date_updated, new_state_date_changed, new_state_date_updated)
 
-        if new_hvac_mode in [
-            HVACMode.OFF,
-            HVACMode.HEAT,
-            HVACMode.COOL,
-            HVACMode.HEAT_COOL,
-            HVACMode.DRY,
-            HVACMode.AUTO,
-            HVACMode.FAN_ONLY,
-            None
-        ] and self._hvac_mode != new_hvac_mode:
-            changes = True
-            self._hvac_mode = new_hvac_mode
-            # Update all underlyings state
-            if self._is_over_climate:
-                for under in self._underlyings:
-                    await under.set_hvac_mode(new_hvac_mode)
-
-        # Interpretation of hvac
+        # Interpretation of hvac action
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
             HVACAction.COOLING,
             HVACAction.DRYING,
@@ -1697,19 +1688,42 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
             changes = True
 
+        # Issue #120 - Some TRV are chaning target temperature a very long time (6 sec) after the change. In that case a loop is possible because
+        if new_state_date_updated and self._last_change_time:
+            delta = (new_state_date_updated - self._last_change_time).total_seconds()
+            if delta < 10:
+                _LOGGER.info("%s - underlying event is received less than 10 sec after command. Forget it to avoid loop", self
+                )
+                await end_climate_changed(changes)
+                return
+
+        if new_hvac_mode in [
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACMode.COOL,
+            HVACMode.HEAT_COOL,
+            HVACMode.DRY,
+            HVACMode.AUTO,
+            HVACMode.FAN_ONLY,
+            None
+        ] and self._hvac_mode != new_hvac_mode:
+            changes = True
+            self._hvac_mode = new_hvac_mode
+            # Update all underlyings state
+            if self._is_over_climate:
+                for under in self._underlyings:
+                    await under.set_hvac_mode(new_hvac_mode)
+
         if not changes:
             # try to manage new target temperature set if state
             _LOGGER.debug("Do temperature check. temperature is %s, new_state.attributes is %s", self.target_temperature, new_state.attributes)
             if self._is_over_climate and new_state.attributes and (new_target_temp := new_state.attributes.get("temperature")) and new_target_temp != self.target_temperature:
-                _LOGGER.warning("%s - Target temp have change to %s", self, new_target_temp)
-                # TODO temporary removes the temperature changes for test
-                # await self.async_set_temperature(temperature = new_target_temp)
+                _LOGGER.info("%s - Target temp in underlying have change to %s", self, new_target_temp)
+                await self.async_set_temperature(temperature = new_target_temp)
                 changes = True
 
-        if changes:
-            self.async_write_ha_state()
-            self.update_custom_attributes()
-            await self._async_control_heating()
+        await end_climate_changed(changes)
+
 
     @callback
     async def _async_update_temp(self, state: State):
