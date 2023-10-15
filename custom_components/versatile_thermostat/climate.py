@@ -2301,7 +2301,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     under.startup()
                 except UnknownEntity as err:
                     # still not found, we an stop here
-                    raise err
+                    return
 
         # Check overpowering condition
         # Not necessary for switch because each switch is checking at startup
