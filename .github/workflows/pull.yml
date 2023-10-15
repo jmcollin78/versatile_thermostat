@@ -44,8 +44,7 @@ jobs:
         run: cd custom_components/versatile_thermostat && python3 -m pip install -r requirements_test.txt
       - name: Run tests
         run: |
-          cd custom_components/versatile_thermostat && \   
-          pytest \
+          cd custom_components/versatile_thermostat && pytest \
             -qq \
             --timeout=9 \
             --durations=10 \

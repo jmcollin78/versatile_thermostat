@@ -1,3 +1,4 @@
+# For automatic run of test in Gitlab CI, we must not include other things that pytest-homeassistant-custom-component
 #-r requirements_dev.txt
 # aiodiscover
 # ulid_transform
