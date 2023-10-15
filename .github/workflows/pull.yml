@@ -40,12 +40,11 @@ jobs:
         uses: "actions/setup-python@v4.6.0"
         with:
           python-version: "3.8"
-      - name: set dir
-        run: cd custom_components/versatile_thermostat
       - name: Install requirements
-        run: python3 -m pip install -r requirements_test.txt
+        run: cd custom_components/versatile_thermostat && python3 -m pip install -r requirements_test.txt
       - name: Run tests
         run: |
+          cd custom_components/versatile_thermostat && \   
           pytest \
             -qq \
             --timeout=9 \
