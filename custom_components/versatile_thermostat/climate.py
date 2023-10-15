@@ -2338,14 +2338,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
-        if self._is_over_climate:
-            self.update_custom_attributes()
-            return
-
         _LOGGER.debug("%s - recalculate all", self)
-        self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp
-        )
+        if not self._is_over_climate:
+            self._prop_algorithm.calculate(
+                self._target_temp, self._cur_temp, self._cur_ext_temp
+            )
         self.update_custom_attributes()
         self.async_write_ha_state()
 
@@ -2420,10 +2417,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             .astimezone(self._current_tz)
             .isoformat(),
             "timezone": str(self._current_tz),
+            "window_sensor_entity_id": self._window_sensor_entity_id,
             "window_delay_sec": self._window_delay_sec,
             "window_auto_open_threshold": self._window_auto_open_threshold,
             "window_auto_close_threshold": self._window_auto_close_threshold,
             "window_auto_max_duration": self._window_auto_max_duration,
+            "motion_sensor_entity_id": self._motion_sensor_entity_id,
+            "presence_sensor_entity_id": self._presence_sensor_entity_id,
+            "power_sensor_entity_id": self._power_sensor_entity_id,
+            "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
         }
         if self._is_over_climate:
             self._attr_extra_state_attributes["underlying_climate_0"] = self._underlyings[
@@ -2527,8 +2529,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
 
         # If the changed preset is active, change the current temperature
-        if self._attr_preset_mode == preset:
-            await self._async_set_preset_mode_internal(preset, force=True)
+        # Issue #119 - reload new preset temperature also in ac mode
+        if preset.startswith(self._attr_preset_mode):
+            await self._async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX), force=True)
             await self._async_control_heating(force=True)
 
     async def service_set_security(self, delay_min, min_on_percent, default_on_percent):

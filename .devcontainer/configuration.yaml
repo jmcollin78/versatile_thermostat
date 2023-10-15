@@ -114,18 +114,22 @@ climate:
       name: Underlying thermostat 4-1
       heater: input_boolean.fake_heater_4climate1
       target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: true
     - platform: generic_thermostat
       name: Underlying thermostat 4-2
       heater: input_boolean.fake_heater_4climate2
       target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: true
     - platform: generic_thermostat
       name: Underlying thermostat 4-3
       heater: input_boolean.fake_heater_4climate3
       target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: true
     - platform: generic_thermostat
       name: Underlying thermostat 4-4
       heater: input_boolean.fake_heater_4climate4
       target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: true
     - platform: generic_thermostat
       name: Underlying thermostat9
       heater: input_boolean.fake_heater_switch3
