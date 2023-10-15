@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: "3.8"
       - name: set dir
-        run: cd config/custom_components/versatile_thermostat
+        run: cd custom_components/versatile_thermostat
       - name: Install requirements
         run: python3 -m pip install -r requirements_test.txt
       - name: Run tests
