@@ -2299,21 +2299,21 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
                 try:
                     under.startup()
-                except UnknownEntity as err:
+                except UnknownEntity:
                     # still not found, we an stop here
-                    return
+                    return False
 
         # Check overpowering condition
         # Not necessary for switch because each switch is checking at startup
         overpowering: bool = await self.check_overpowering()
         if overpowering:
             _LOGGER.debug("%s - End of cycle (overpowering)", self)
-            return
+            return True
 
         security: bool = await self.check_security()
         if security and self._is_over_climate:
             _LOGGER.debug("%s - End of cycle (security and over climate)", self)
-            return
+            return True
 
         # Stop here if we are off
         if self._hvac_mode == HVACMode.OFF:
@@ -2321,7 +2321,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # A security to force stop heater if still active
             if self._is_device_active:
                 await self._async_underlying_entity_turn_off()
-            return
+            return True
 
         if not self._is_over_climate:
             for under in self._underlyings:
@@ -2333,6 +2333,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 )
 
         self.update_custom_attributes()
+        return True
 
     def recalculate(self):
         """A utility function to force the calculation of a the algo and

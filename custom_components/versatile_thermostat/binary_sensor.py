@@ -3,7 +3,7 @@ import logging
 
 from homeassistant.core import HomeAssistant, callback, Event
 
-from homeassistant.const import STATE_ON
+from homeassistant.const import STATE_ON, STATE_OFF
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -133,12 +133,14 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
-        self._attr_is_on = (
-            self.my_climate.window_state == STATE_ON
-            or self.my_climate.window_auto_state == STATE_ON
-        )
-        if old_state != self._attr_is_on:
-            self.async_write_ha_state()
+        # Issue 120 - only take defined presence value
+        if self.my_climate.window_state in [STATE_ON, STATE_OFF] or self.my_climate.window_auto_state in [STATE_ON, STATE_OFF]:
+            self._attr_is_on = (
+                self.my_climate.window_state == STATE_ON
+                or self.my_climate.window_auto_state == STATE_ON
+            )
+            if old_state != self._attr_is_on:
+                self.async_write_ha_state()
         return
 
     @property
@@ -171,9 +173,11 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Called when my climate have change"""
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.motion_state == STATE_ON
-        if old_state != self._attr_is_on:
-            self.async_write_ha_state()
+        # Issue 120 - only take defined presence value
+        if self.my_climate.motion_state in [STATE_ON, STATE_OFF]:
+            self._attr_is_on = self.my_climate.motion_state == STATE_ON
+            if old_state != self._attr_is_on:
+                self.async_write_ha_state()
         return
 
     @property
@@ -204,9 +208,11 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.presence_state == STATE_ON
-        if old_state != self._attr_is_on:
-            self.async_write_ha_state()
+        # Issue 120 - only take defined presence value
+        if self.my_climate.presence_state in [STATE_ON, STATE_OFF]:
+            self._attr_is_on = self.my_climate.presence_state == STATE_ON
+            if old_state != self._attr_is_on:
+                self.async_write_ha_state()
         return
 
     @property

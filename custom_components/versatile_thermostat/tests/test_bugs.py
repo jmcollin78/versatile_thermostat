@@ -62,11 +62,9 @@ async def test_bug_56(
 
         # try to call _async_control_heating
         try:
-            await entity._async_control_heating()
+            ret = await entity._async_control_heating()
             # an exception should be send
-            assert False
-        except UnknownEntity:
-            pass
+            assert ret is False
         except Exception:  # pylint: disable=broad-exception-caught
             assert False
 
