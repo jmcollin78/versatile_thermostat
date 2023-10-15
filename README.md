@@ -26,6 +26,7 @@
   - [Configure the power management](#configure-the-power-management)
   - [Configure the presence or occupancy](#configure-the-presence-or-occupancy)
   - [Advanced configuration](#advanced-configuration)
+  - [Parameters synthesis](#parameters-synthesis)
 - [Examples tuning](#examples-tuning)
   - [Electrical heater](#electrical-heater)
   - [Central heating (gaz or fuel heating system)](#central-heating-gaz-or-fuel-heating-system)
@@ -64,16 +65,16 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83 and @bergoglio for the beers. It's very pleasing.
+Many thanks to @@salabur, @pvince83, @bergoglio, @EPicLURcher, @Kriss1670, @maia for the beers. It's very pleasing.
 
 
 # When to use / not use
 This thermostat can control 2 types of equipment:
-1. a heater that only works in on/off mode (named ```thermostat_over_switch```). The minimum configuration required to use this type of thermostat is:
+1. a heater that only works in on/off mode (named ```thermostat_over_switch```). Versatile Thermostat will regulate the length of a heating cycle and the pauses in-between by controlling a binary on/off switch. This mode is e.g. suitable for an electrical radiator controlled by a switch. The minimum configuration required to use this type of thermostat is:
    - an equipment such as a radiator (a ```switch``` or equivalent),
    - a temperature probe for the room (or an input_number),
    - an external temperature sensor (think about weather integration if you don't have one)
-2. another thermostat that has its own operating modes (named ```thermostat_over_climate```). For this type of thermostat, the minimum configuration requires:
+2. another thermostat that has its own operating modes (named ```thermostat_over_climate```). Versatile Thermostat will regulate the target temperature of a climate entity. Common examples for this mode are the control of thermostatic radiator valves (TRV), air-conditions (AC), floor heating systems and pellet heating. For this type of thermostat, the minimum configuration requires:
    - an equipment such as air conditioning which is controlled by its own ```climate``` type entity,
    - a temperature probe for the room (or an input_number),
    - an external temperature sensor (think about weather integration if you don't have one)
@@ -300,6 +301,64 @@ See [example tuning](#examples-tuning) for common tuning examples
     5. For natural usage, the ``security_default_on_percent`` should be less than ``security_min_on_percent``,
     6. When a ``thermostat_over_climate`` type thermostat goes into ``security`` mode it is turned off. The ``security_min_on_percent`` and ``security_default_on_percent`` parameters are then not used.
 
+## Parameters synthesis
+
+| Paramètre | Libellé | "over switch" | "over climate" |
+| ----------| --------| --- | --- |
+| ``name`` | Name | X | X |
+| ``thermostat_type`` | Thermostat type | X | X |
+| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - |
+| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id | X | - |
+| ``cycle_min`` | Cycle duration (minutes) | X | X |
+| ``temp_min`` | Minimal temperature allowed | X | X |
+| ``temp_max`` | Maximal temperature allowed | X | X |
+| ``device_power`` | Device power | X | X |
+| ``use_window_feature`` | Use window detection | X | X |
+| ``use_motion_feature`` | Use motion detection | X | X |
+| ``use_power_feature`` | Use power management | X | X |
+| ``use_presence_feature`` | Use presence detection | X | X |
+| ``heater_entity1_id`` | 1rst heater switch | X | - |
+| ``heater_entity2_id`` | 2nd heater switch | X | - |
+| ``heater_entity3_id`` | 3rd heater switch | X | - |
+| ``heater_entity4_id`` | 4th heater switch | X | - |
+| ``proportional_function`` | Algorithm | X | - |
+| ``climate_entity1_id`` | 1rst underlying climate | - | X |
+| ``climate_entity2_id`` | 2nd underlying climate | - | X |
+| ``climate_entity3_id`` | 3rd underlying climate | - | X |
+| ``climate_entity4_id`` | 4th underlying climate | - | X |
+| ``ac_mode`` | Use the Air Conditioning (AC) mode | - | X |
+| ``tpi_coef_int`` | Coefficient to use for internal temperature delta | X | - |
+| ``tpi_coef_ext`` | Coefficient to use for external temperature delta | X | - |
+| ``eco_temp`` | Temperature in Eco preset | X | X |
+| ``comfort_temp`` | Temperature in Comfort preset | X | X |
+| ``boost_temp`` | Temperature in Boost preset | X | X |
+| ``eco_ac_temp`` | Temperature in Eco preset for AC mode | X | X |
+| ``comfort_ac_temp`` | Temperature in Comfort preset for AC mode | X | X |
+| ``boost_ac_temp`` | Temperature in Boost preset for AC mode | X | X |
+| ``window_sensor_entity_id`` | Window sensor entity id |  X | X |
+| ``window_delay`` | Window sensor delay (seconds) | X | X |
+| ``window_auto_open_threshold`` | Temperature decrease threshold for automatic window open detection (in °/min) | X | X |
+| ``window_auto_close_threshold`` | Temperature increase threshold for end of automatic detection (in °/min) | X | X |
+| ``window_auto_max_duration`` | Maximum duration of automatic window open detection (in min) | X | X |
+| ``motion_sensor_entity_id`` | Motion sensor entity id | X | X |
+| ``motion_delay`` | Motion delay (seconds) | X | X |
+| ``motion_preset`` | Preset to use when motion is detected | X | X |
+| ``no_motion_preset`` | Preset to use when no motion is detected | X | X |
+| ``power_sensor_entity_id`` | Power sensor entity id | X | X |
+| ``max_power_sensor_entity_id`` | Max power sensor entity id | X | X |
+| ``power_temp`` | Temperature for Power shedding | X | X |
+| ``presence_sensor_entity_id`` | Presence sensor entity id | X | X |
+| ``eco_away_temp`` | Temperature in Eco preset when no presence | X | X |
+| ``comfort_away_temp`` | Temperature in Comfort preset when no presence | X | X |
+| ``boost_away_temp`` | Temperature in Boost preset when no presence | X | X |
+| ``eco_ac_away_temp`` | Temperature in Eco preset when no presence in AC mode | X | X |
+| ``comfort_ac_away_temp`` | Temperature in Comfort preset when no presence in AC mode | X | X |
+| ``boost_ac_away_temp`` | Temperature in Boost preset when no presence in AC mode | X | X |
+| ``minimal_activation_delay`` | Minimal activation delay | X | - |
+| ``security_delay_min`` | Security delay (in minutes) | X | X |
+| ``security_min_on_percent`` | Minimal power percent to enable security mode | X | X |
+| ``security_default_on_percent`` | Power percent to use in security mode | X | X |
+
 # Examples tuning
 
 ## Electrical heater
@@ -432,6 +491,17 @@ data:
     preset: boost
     temperature: 17.8
     temperature_away: 15
+target:
+    entity_id: climate.my_thermostat
+```
+
+Or to change the preset of the AC mode, add _ac to the preset name like this:
+```
+service: versatile_thermostat.set_preset_temperature
+data:
+    preset: boost_ac
+    temperature: 25
+    temperature_away: 30
 target:
     entity_id: climate.my_thermostat
 ```

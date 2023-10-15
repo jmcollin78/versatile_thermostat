@@ -8,8 +8,9 @@
         "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
+          "thermostat_type": "Type de thermostat",
           "temperature_sensor_entity_id": "Température sensor entity id",
-          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
+          "external_temperature_sensor_entity_id": "Température exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
@@ -74,7 +75,7 @@
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
-          "window_auto_open_threshold": "seuil haut de chute de température pour la détection automatique (en °/min)",
+          "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/min)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/min)",
           "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)"
         },

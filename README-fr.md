@@ -26,6 +26,7 @@
   - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
   - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
   - [Configuration avancée](#configuration-avancée)
+  - [Synthèse des paramètres](#synthèse-des-paramètres)
 - [Exemples de réglage](#exemples-de-réglage)
   - [Chauffage électrique](#chauffage-électrique)
   - [Chauffage central (chauffage gaz ou fuel)](#chauffage-central-chauffage-gaz-ou-fuel)
@@ -65,7 +66,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83 and @bergoglio pour les bières. Ca fait très plaisir.
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @Kriss1670, @maia pour les bières. Ca fait très plaisir.
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -315,6 +316,64 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
     5. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
     6. Lorsqu'un thermostat de type ``thermostat_over_climate`` passe en mode ``security`` il est éteint. Les paramètres ``security_min_on_percent`` et ``security_default_on_percent`` ne sont alors pas utilisés.
 
+## Synthèse des paramètres
+
+| Paramètre | Libellé | "over switch" | "over climate" |
+| ----------| --------| --- | ---|
+| ``name`` | Nom | X | X |
+| ``thermostat_type`` | Type de thermostat | X | X |
+| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - |
+| ``external_temperature_sensor_entity_id`` | Température exterieure sensor entity id | X | - |
+| ``cycle_min`` | Durée du cycle (minutes) | X | X |
+| ``temp_min`` | Température minimale permise | X | X |
+| ``temp_max`` | Température maximale permise | X | X |
+| ``device_power`` | Puissance de l'équipement | X | X |
+| ``use_window_feature`` | Avec détection des ouvertures | X | X |
+| ``use_motion_feature`` | Avec détection de mouvement | X | X |
+| ``use_power_feature`` | Avec gestion de la puissance | X | X |
+| ``use_presence_feature`` | Avec détection de présence | X | X |
+| ``heater_entity1_id`` | 1er radiateur | X | - |
+| ``heater_entity2_id`` | 2ème radiateur | X | - |
+| ``heater_entity3_id`` | 3ème radiateur | X | - |
+| ``heater_entity4_id`` | 4ème radiateur | X | - |
+| ``proportional_function`` | Algorithme | X | - |
+| ``climate_entity1_id`` | Thermostat sous-jacent | - | X |
+| ``climate_entity2_id`` | 2ème thermostat sous-jacent | - | X |
+| ``climate_entity3_id`` | 3ème thermostat sous-jacent | - | X |
+| ``climate_entity4_id`` | 4ème thermostat sous-jacent | - | X |
+| ``ac_mode`` | utilisation de l'air conditionné (AC) ? | - | X |
+| ``tpi_coef_int`` | Coefficient à utiliser pour le delta de température interne | X | - |
+| ``tpi_coef_ext`` | Coefficient à utiliser pour le delta de température externe | X | - |
+| ``eco_temp`` | Température en preset Eco | X | X |
+| ``comfort_temp`` | Température en preset Confort | X | X |
+| ``boost_temp`` | Température en preset Boost | X | X |
+| ``eco_ac_temp`` | Température en preset Eco en mode AC | X | X |
+| ``comfort_ac_temp`` | Température en preset Confort en mode AC | X | X |
+| ``boost_ac_temp`` | Température en preset Boost en mode AC | X | X |
+| ``window_sensor_entity_id`` | Détecteur d'ouverture (entity id) |  X | X |
+| ``window_delay`` | Délai avant extinction (secondes) | X | X |
+| ``window_auto_open_threshold`` | Seuil haut de chute de température pour la détection automatique (en °/min) | X | X |
+| ``window_auto_close_threshold`` | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X | X |
+| ``window_auto_max_duration`` | Durée maximum d'une extinction automatique (en min) | X | X |
+| ``motion_sensor_entity_id`` | Détecteur de mouvement entity id | X | X |
+| ``motion_delay`` | Délai avant changement (seconds) | X | X |
+| ``motion_preset`` | Preset à utiliser si mouvement détecté | X | X |
+| ``no_motion_preset`` | Preset à utiliser si pas de mouvement détecté | X | X |
+| ``power_sensor_entity_id`` | Capteur de puissance totale (entity id) | X | X |
+| ``max_power_sensor_entity_id`` | Capteur de puissance Max (entity id) | X | X |
+| ``power_temp`` | Température si délestaqe | X | X |
+| ``presence_sensor_entity_id`` | Capteur de présence entity id (true si quelqu'un est présent) | X | X |
+| ``eco_away_temp`` | Température en preset Eco en cas d'absence | X | X |
+| ``comfort_away_temp`` | Température en preset Comfort en cas d'absence | X | X |
+| ``boost_away_temp`` | Température en preset Boost en cas d'absence | X | X |
+| ``eco_ac_away_temp`` | Température en preset Eco en cas d'absence en mode AC | X | X |
+| ``comfort_ac_away_temp`` | Température en preset Comfort en cas d'absence en mode AC | X | X |
+| ``boost_ac_away_temp`` | Température en preset Boost en cas d'absence en mode AC | X | X |
+| ``minimal_activation_delay`` | Délai minimal d'activation | X | - |
+| ``security_delay_min`` | Délai maximal entre 2 mesures de températures | X | - |
+| ``security_min_on_percent`` | Pourcentage minimal de puissance pour passer en mode sécurité | X | - |
+| ``security_default_on_percent`` | Pourcentage de puissance a utiliser en mode securité | X | - |
+
 # Exemples de réglage
 
 ## Chauffage électrique
@@ -449,6 +508,17 @@ date:
     temperature_away : 15
 target:
     entity_id : climate.my_thermostat
+```
+
+Ou pour changer le pré-réglage du mode Air Conditionné (AC) ajoutez un préfixe `_ac`` au nom du preset comme ceci :
+```
+service: versatile_thermostat.set_preset_temperature
+data:
+    preset: boost_ac
+    temperature: 25
+    temperature_away: 30
+target:
+    entity_id: climate.my_thermostat
 ```
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_

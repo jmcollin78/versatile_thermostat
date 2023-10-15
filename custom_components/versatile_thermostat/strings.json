@@ -14,7 +14,7 @@
           "cycle_min": "Cycle duration (minutes)",
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
-          "device_power": "Device power (kW)",
+          "device_power": "Device power",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
@@ -25,12 +25,12 @@
         "title": "Linked entities",
         "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "Heater switch",
+          "heater_entity_id": "1rst heater switch",
           "heater_entity2_id": "2nd heater switch",
           "heater_entity3_id": "3rd heater switch",
           "heater_entity4_id": "4th heater switch",
           "proportional_function": "Algorithm",
-          "climate_entity_id": "Underlying climate",
+          "climate_entity_id": "1rst underlying climate",
           "climate_entity2_id": "2nd underlying climate",
           "climate_entity3_id": "3rd underlying climate",
           "climate_entity4_id": "4th underlying climate",
@@ -110,7 +110,7 @@
         "title": "Presence management",
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
-          "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
+          "presence_sensor_entity_id": "Presence sensor entity id",
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence",
@@ -125,7 +125,7 @@
         "data": {
           "minimal_activation_delay": "Minimal activation delay",
           "security_delay_min": "Security delay (in minutes)",
-          "security_min_on_percent": "Minimal power percent for security mode",
+          "security_min_on_percent": "Minimal power percent to enable security mode",
           "security_default_on_percent": "Power percent to use in security mode"
         },
         "data_description": {
