@@ -163,7 +163,7 @@ async def test_one_switch_cycle(
         await asyncio.sleep(0.1)
 
         assert mock_heater_on.call_count == 1
-        # TODO normal ? assert entity.underlying_entity(0)._should_relaunch_control_heating is False
+        # normal ? assert entity.underlying_entity(0)._should_relaunch_control_heating is False
 
     # Simulate the end of heater on cycle
     event_timestamp = now - timedelta(minutes=3)
@@ -522,7 +522,9 @@ async def test_multiple_climates_underlying_changes(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await send_climate_change_event(entity, HVACMode.OFF, HVACMode.HEAT, HVACAction.OFF, HVACAction.HEATING, now)
+        # Wait 11 sec so that the event will not be discarded
+        event_timestamp = now + timedelta(seconds=11)
+        await send_climate_change_event(entity, HVACMode.OFF, HVACMode.HEAT, HVACAction.OFF, HVACAction.HEATING, event_timestamp)
 
         # Should be call for all Switch
         assert mock_underlying_set_hvac_mode.call_count == 4
@@ -543,7 +545,9 @@ async def test_multiple_climates_underlying_changes(
         # notice that there is no need of return_value=HVACAction.IDLE because this is not a function but a property
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_action", HVACAction.IDLE
     ) as mock_underlying_get_hvac_action:
-        await send_climate_change_event(entity, HVACMode.HEAT, HVACMode.OFF, HVACAction.IDLE, HVACAction.OFF, now)
+        # Wait 11 sec so that the event will not be discarded
+        event_timestamp = now + timedelta(seconds=11)
+        await send_climate_change_event(entity, HVACMode.HEAT, HVACMode.OFF, HVACAction.IDLE, HVACAction.OFF, event_timestamp)
 
         # Should be call for all Switch
         assert mock_underlying_set_hvac_mode.call_count == 4

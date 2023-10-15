@@ -956,7 +956,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Return current operation."""
         # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
         # delta will be managed by climate_state_change event.
-        # TODO remove this when ok
         # if self._is_over_climate:
             # if one not OFF -> return it
             # else OFF
@@ -1598,7 +1597,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     @callback
     async def _async_climate_changed(self, event):
-        """Handle unerdlying climate state changes."""
+        """Handle unerdlying climate state changes.
+           This method takes the underlying values and update the VTherm with them.
+           To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
+           less than 10 sec after the last command. What we want here is to take the values
+           from underlyings ONLY if someone have change directly on the underlying and not
+           as a return of the command. The only thing we take all the time is the HVACAction
+           which is important for feedaback and which cannot generates loops.
+        """
 
         async def end_climate_changed(changes):
             """ To end the event management"""
@@ -1688,7 +1694,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             )
             changes = True
 
-        # Issue #120 - Some TRV are chaning target temperature a very long time (6 sec) after the change. In that case a loop is possible because
+        # Issue #120 - Some TRV are chaning target temperature a very long time (6 sec) after the change.
+        # In that case a loop is possible if a user change multiple times during this 6 sec.
         if new_state_date_updated and self._last_change_time:
             delta = (new_state_date_updated - self._last_change_time).total_seconds()
             if delta < 10:
@@ -2138,9 +2145,6 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             now - self._last_ext_temperature_mesure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
 
-        # TODO before change:
-        # mode_cond = self._is_over_climate or self._hvac_mode != HVACMode.OFF
-        # fixed into this. Why if _is_over_climate we could into security even if HVACMode is OFF ?
         mode_cond = self._hvac_mode != HVACMode.OFF
 
         temp_cond: bool = (
@@ -2422,7 +2426,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "window_auto_max_duration": self._window_auto_max_duration,
         }
         if self._is_over_climate:
-            self._attr_extra_state_attributes["underlying_climate_1"] = self._underlyings[
+            self._attr_extra_state_attributes["underlying_climate_0"] = self._underlyings[
                 0
             ].entity_id
             self._attr_extra_state_attributes["underlying_climate_1"] = self._underlyings[

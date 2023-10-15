@@ -530,9 +530,16 @@ async def test_bug_101(
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.preset_mode == PRESET_COMFORT
 
-        # 2. Change the target temp of underlying thermostat
+        # 2. Change the target temp of underlying thermostat at now -> the event will be disgarded because to fast (to avoid loop cf issue 121)
         await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, now, 12.75)
-        # Should have been switched to Manual preset
+        # Should NOT have been switched to Manual preset
+        assert entity.target_temperature == 17
+        assert entity.preset_mode is PRESET_COMFORT
+
+        # 2. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
+        # Wait 11 sec
+        event_timestamp = now + timedelta(seconds=11)
+        await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, event_timestamp, 12.75)
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE
 
