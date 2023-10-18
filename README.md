@@ -75,9 +75,7 @@ This thermostat can control 2 types of equipment:
    - a temperature probe for the room (or an input_number),
    - an external temperature sensor (think about weather integration if you don't have one)
 2. another thermostat that has its own operating modes (named ```thermostat_over_climate```). Versatile Thermostat will regulate the target temperature of a climate entity. Common examples for this mode are the control of thermostatic radiator valves (TRV), air-conditions (AC), floor heating systems and pellet heating. For this type of thermostat, the minimum configuration requires:
-   - an equipment such as air conditioning which is controlled by its own ```climate``` type entity,
-   - a temperature probe for the room (or an input_number),
-   - an external temperature sensor (think about weather integration if you don't have one)
+   - an equipment such as air conditioning or thermostatic valve (TRV) which is controlled by its own ```climate``` type entity,
 
 The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 

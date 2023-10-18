@@ -76,9 +76,7 @@ Ce thermostat peut piloter 2 types d'équipement:
    b. une sonde de température pour la pièce (ou un input_number),
    c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
 2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
-   a. un équipement comme une climatisation qui est pilotée par sa propre entity de type ```climate```,
-   b. une sonde de température pour la pièce (ou un input_number),
-   c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+   a. un équipement - comme une climatisation une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
 
 Le type ```thermostat_over_climate``` permet d'ajouter à votre équipement existant toutes les fonctionnalités fournies par VersatileThermostat. L'entité climate VersatileThermostat pilotera votre entité climate, en la coupant si les fenêtres sont ouvertes, la passant en mode Eco si personne n'est présent, etc. Cf. [ici](#pourquoi-une-nouvelle-implémentation-du-thermostat). Pour ce type de thermostat, les cycles éventuels de chauffe sont pilotés par l'entité climate sous-jacente et pas par le Versatile Thermostat lui-même.
 
