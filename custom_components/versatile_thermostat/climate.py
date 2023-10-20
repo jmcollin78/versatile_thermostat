@@ -300,7 +300,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             entry_infos,
         )
 
-        self._ac_mode = entry_infos.get(CONF_AC_MODE) == True
+        self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         # convert entry_infos into usable attributes
         presets = {}
         items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
@@ -1660,10 +1660,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
-        # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
-        # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
-        #    new_hvac_mode = HVACMode.OFF
+        if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
+            _LOGGER.debug(
+                "The underlying switch to idle instead of OFF. We will consider it as OFF"
+            )
+            new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
             "%s - Underlying climate changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
@@ -1674,15 +1675,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             old_hvac_action,
         )
 
-        _LOGGER.debug(
-            "%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s",
-            self,
-            self._last_change_time,
-            old_state_date_changed,
-            old_state_date_updated,
-            new_state_date_changed,
-            new_state_date_updated,
-        )
+        if new_hvac_mode in [
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACMode.COOL,
+            HVACMode.HEAT_COOL,
+            HVACMode.DRY,
+            HVACMode.AUTO,
+            HVACMode.FAN_ONLY,
+            None,
+        ]:
+            self._hvac_mode = new_hvac_mode
 
         # Interpretation of hvac action
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
@@ -2393,13 +2396,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate all", self)
-        if not self._is_over_climate:
-            self._prop_algorithm.calculate(
-                self._target_temp,
-                self._cur_temp,
-                self._cur_ext_temp,
-                self._hvac_mode == HVACMode.COOL,
-            )
+        self._prop_algorithm.calculate(
+            self._target_temp,
+            self._cur_temp,
+            self._cur_ext_temp,
+            self._hvac_mode == HVACMode.COOL,
+        )
         self.update_custom_attributes()
         self.async_write_ha_state()
 

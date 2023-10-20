@@ -45,24 +45,32 @@ class PropAlgorithm:
         self._default_on_percent = 0
 
     def calculate(
-        self, target_temp: float, current_temp: float, ext_current_temp: float, cooling: bool
+        self,
+        target_temp: float,
+        current_temp: float,
+        ext_current_temp: float,
+        cooling=False,
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
             _LOGGER.warning(
-                "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating will be disabled"  # pylint: disable=line-too-long
+                "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating/cooling will be disabled"  # pylint: disable=line-too-long
             )
             self._calculated_on_percent = 0
         else:
             if cooling:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = (
-                    ext_current_temp if ext_current_temp is not None else 0 - target_temp
+                    ext_current_temp
+                    if ext_current_temp is not None
+                    else 0 - target_temp
                 )
             else:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = (
-                    target_temp - ext_current_temp if ext_current_temp is not None else 0
+                    target_temp - ext_current_temp
+                    if ext_current_temp is not None
+                    else 0
                 )
 
             if self._function == PROPORTIONAL_FUNCTION_TPI:
