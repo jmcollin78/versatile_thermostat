@@ -1660,11 +1660,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
-        if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-            _LOGGER.debug(
-                "The underlying switch to idle instead of OFF. We will consider it as OFF"
-            )
-            new_hvac_mode = HVACMode.OFF
+        # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
+        # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
+        #    _LOGGER.debug(
+        #        "The underlying switch to idle instead of OFF. We will consider it as OFF"
+        #    )
+        #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
             "%s - Underlying climate changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
@@ -2396,12 +2397,13 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate all", self)
-        self._prop_algorithm.calculate(
-            self._target_temp,
-            self._cur_temp,
-            self._cur_ext_temp,
-            self._hvac_mode == HVACMode.COOL,
-        )
+        if not self._is_over_climate:
+            self._prop_algorithm.calculate(
+                self._target_temp,
+                self._cur_temp,
+                self._cur_ext_temp,
+                self._hvac_mode == HVACMode.COOL,
+            )
         self.update_custom_attributes()
         self.async_write_ha_state()
 
