@@ -95,6 +95,7 @@ from .const import (
     CONF_WINDOW_AUTO_MAX_DURATION,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
+    CONF_MOTION_OFF_DELAY,
     CONF_MOTION_PRESET,
     CONF_NO_MOTION_PRESET,
     CONF_DEVICE_POWER,
@@ -399,6 +400,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR)
         self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY)
+        self._motion_off_delay_sec = entry_infos.get(CONF_MOTION_OFF_DELAY)
+        if not self._motion_off_delay_sec:
+            self._motion_off_delay_sec = self._motion_delay_sec
+
         self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
         self._no_motion_preset = entry_infos.get(CONF_NO_MOTION_PRESET)
         self._motion_on = (
@@ -1532,7 +1537,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                     self.hass,
                     self._motion_sensor_entity_id,
                     new_state.state,
-                    timedelta(seconds=self._motion_delay_sec),
+                    timedelta(seconds=delay),
                 )
             except ConditionError:
                 long_enough = False
@@ -1567,8 +1572,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._motion_call_cancel:
             self._motion_call_cancel()
             self._motion_call_cancel = None
+
+        # Delay
+        delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
         self._motion_call_cancel = async_call_later(
-            self.hass, timedelta(seconds=self._motion_delay_sec), try_motion_condition
+            self.hass, timedelta(seconds=delay), try_motion_condition
         )
 
         # For testing purpose we need to access the inner function

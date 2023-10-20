@@ -54,6 +54,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 3.6**: Add a `motion_off_delay` parameter for activity management,
 > * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
@@ -228,15 +229,17 @@ We will now see how to configure the new Activity mode.
 What we need:
 - a **motion sensor**. The entity id of a motion sensor. Motion sensor states should be 'on' (motion detected) or 'off' (no motion detected)
 - a **motion delay** (in seconds) duration defining how long we wait for motion confirmation before considering the motion
+- a **end of motion delay** (in seconds) duration defining how long we wait for end of motion confirmation before considering the end of motion
 - a **target "motion" preset**. We will used the temperature of this preset when an activity is detected.
 - a **target "no motion" preset**. We will used the temperature of this second preset when no activity is detected.
 
-So imagine we want to have the following behavior :
-- we have room with a thermostat set in activity mode, the "motion" mode chosen is comfort (21.5C), the "no motion" mode chosen is Eco (18.5 C) and the motion delay is 5 min.
-- the room is empty for a while (no activity detected), the temperature of this room is 18.5 C
-- somebody enters into the room, an activity is detected the temperature is set to 21.5 C
-- the person leaves the room, after 5 min the temperature is set back to 18.5 C
-
+- we have a room with a thermostat set to activity mode, the "movement" mode chosen is comfort (21.5°C), the "no movement" mode chosen is Eco (18.5°C) and the movement delay is 30 sec during detection and 5 minutes at the end of detection.
+- the room has been empty for a while (no activity detected), the temperature of this room is 18.5°
+- someone enters the room, activity is detected if movement is present for at least 30 seconds. The temperature then rises to 21.5°
+- if the movement is present for less than 30 seconds (rapid passage), the temperature remains at 18.5°,
+- imagine that the temperature has risen to 21.5°, when the person leaves the room, after 5 minutes the temperature is reduced to 18.5°.
+- if the person returns before 5 minutes, the temperature remains at 21.5°
+  
 For this to work, the climate thermostat should be in ``Activity`` preset mode.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
@@ -339,7 +342,8 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``window_auto_close_threshold`` | Temperature increase threshold for end of automatic detection (in °/min) | X | X |
 | ``window_auto_max_duration`` | Maximum duration of automatic window open detection (in min) | X | X |
 | ``motion_sensor_entity_id`` | Motion sensor entity id | X | X |
-| ``motion_delay`` | Motion delay (seconds) | X | X |
+| ``motion_delay`` | Delay before considering the motion (seconds) | X | X |
+| ``motion_off_delay`` | Delay before considering the end of motion (seconds) | X | X |
 | ``motion_preset`` | Preset to use when motion is detected | X | X |
 | ``no_motion_preset`` | Preset to use when no motion is detected | X | X |
 | ``power_sensor_entity_id`` | Power sensor entity id | X | X |

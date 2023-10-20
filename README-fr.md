@@ -55,6 +55,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour la gestion de l'activité.
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
@@ -242,17 +243,20 @@ Si vous avez choisi la fonctionnalité ```Avec détection de mouvement```, cliqu
 Nous allons maintenant voir comment configurer le nouveau mode Activité.
 Ce dont nous avons besoin:
 - un **capteur de mouvement**. ID d'entité d'un capteur de mouvement. Les états du capteur de mouvement doivent être « on » (mouvement détecté) ou « off » (aucun mouvement détecté)
-- une durée de **délai de mouvement** (en secondes) définissant combien de temps nous attendons la confirmation du mouvement avant de considérer le mouvement
+- une durée de **délai de mouvement** (en secondes) définissant combien de temps nous attendons la confirmation du mouvement avant de considérer le mouvement. Ce paramètre peut être supérieur à la temporision de votre détecteur de mouvement, sinon la détection se fera à chaque mouvement signalé par le détecteur,
+- une durée de fin **délai de mouvement** (en secondes) définissant combien de temps nous attendons la confirmation d'une fin de mouvement avant de ne plus considérer le mouvement.
 - un **préréglage de "mouvement" **. Nous utiliserons la température de ce préréglage lorsqu'une activité sera détectée.
 - un **préréglage "pas de mouvement"**. Nous utiliserons la température de ce deuxième préréglage lorsqu'aucune activité n'est détectée.
 
 Alors imaginons que nous voulions avoir le comportement suivant :
-- nous avons une pièce avec un thermostat réglé en mode activité, le mode "mouvement" choisi est confort (21.5C), le mode "pas de mouvement" choisi est Eco (18.5C) et la temporisation du mouvement est de 5 min.
-- la pièce est vide depuis un moment (aucune activité détectée), la température de cette pièce est de 18,5 C
-- quelqu'un entre dans la pièce, une activité est détectée la température est fixée à 21,5 C
-- la personne quitte la chambre, au bout de 5 min la température est ramenée à 18,5 C
+- nous avons une pièce avec un thermostat réglé en mode activité, le mode "mouvement" choisi est confort (21,5°C), le mode "pas de mouvement" choisi est Eco (18.5°C) et la temporisation du mouvement est de 30 sec lors de la détection et de 5 minutes sur fin de détection.
+- la pièce est vide depuis un moment (aucune activité détectée), la température de cette pièce est de 18,5°
+- quelqu'un entre dans la pièce, une activité est détectée si le mouvement est présent pendant au moins 30 sec. La température passe alors à 21,5°
+- si le mouvement est présent pendant moins de 30 sec (passage rapide), la température reste sur 18,5°,
+- imaginons que la température soit passée sur 21,5°, lorsque la personne quitte la pièce, au bout de 5 min la température est ramenée à 18,5°.
+- si la personne revient avant les 5 minutes, la température reste sur 21,5°
 
-Pour que cela fonctionne, le thermostat climatique doit être en mode préréglé « Activité ».
+Pour que cela fonctionne, le thermostat doit être en mode préréglé « Activité ».
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
     1. Sachez que comme pour les autres modes prédéfinis, ``Activity`` ne sera proposé que s'il est correctement configuré. En d'autres termes, les 4 clés de configuration doivent être définies si vous souhaitez voir l'activité dans l'interface de l'assistant domestique
@@ -354,7 +358,8 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 | ``window_auto_close_threshold`` | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X | X |
 | ``window_auto_max_duration`` | Durée maximum d'une extinction automatique (en min) | X | X |
 | ``motion_sensor_entity_id`` | Détecteur de mouvement entity id | X | X |
-| ``motion_delay`` | Délai avant changement (seconds) | X | X |
+| ``motion_delay`` | Délai avant prise en compte du mouvement (seconds) | X | X |
+| ``motion_off_delay`` | Délai avant prise en compte de la fin de mouvement (seconds) | X | X |
 | ``motion_preset`` | Preset à utiliser si mouvement détecté | X | X |
 | ``no_motion_preset`` | Preset à utiliser si pas de mouvement détecté | X | X |
 | ``power_sensor_entity_id`` | Capteur de puissance totale (entity id) | X | X |

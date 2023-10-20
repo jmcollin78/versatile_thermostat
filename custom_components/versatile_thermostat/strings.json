@@ -92,7 +92,15 @@
         "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
-          "motion_delay": "Motion delay (seconds)",
+          "motion_delay": "Activation delay",
+          "motion_off_delay": "Deactivation delay",
+          "motion_preset": "Motion preset",
+          "no_motion_preset": "No motion preset"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "The entity id of the motion sensor",
+          "motion_delay": "Motion activation activation delay (seconds)",
+          "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
           "no_motion_preset": "Preset to use when no motion is detected"
         }
@@ -237,7 +245,15 @@
         "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
-          "motion_delay": "Motion delay (seconds)",
+          "motion_delay": "Activation delay",
+          "motion_off_delay": "Deactivation delay",
+          "motion_preset": "Motion preset",
+          "no_motion_preset": "No motion preset"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "The entity id of the motion sensor",
+          "motion_delay": "Motion activation activation delay (seconds)",
+          "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
           "no_motion_preset": "Preset to use when no motion is detected"
         }

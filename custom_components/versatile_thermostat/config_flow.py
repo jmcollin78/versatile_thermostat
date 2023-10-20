@@ -55,6 +55,7 @@ from .const import (
     CONF_WINDOW_AUTO_OPEN_THRESHOLD,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
+    CONF_MOTION_OFF_DELAY,
     CONF_MOTION_PRESET,
     CONF_NO_MOTION_PRESET,
     CONF_DEVICE_POWER,
@@ -292,6 +293,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     ),
                 ),
                 vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
+                vol.Optional(CONF_MOTION_OFF_DELAY, default=300): cv.positive_int,
                 vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
                     CONF_PRESETS_SELECTIONABLE
                 ),
