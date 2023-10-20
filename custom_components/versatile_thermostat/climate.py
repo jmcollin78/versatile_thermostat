@@ -294,7 +294,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             entry_infos,
         )
 
-        self._ac_mode = entry_infos.get(CONF_AC_MODE) == True
+        self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         # convert entry_infos into usable attributes
         presets = {}
         items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
@@ -756,7 +756,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.async_write_ha_state()
                 if self._prop_algorithm:
                     self._prop_algorithm.calculate(
-                        self._target_temp, self._cur_temp, self._cur_ext_temp, self._hvac_mode == HVACMode.COOL
+                        self._target_temp,
+                        self._cur_temp,
+                        self._cur_ext_temp,
+                        self._hvac_mode == HVACMode.COOL,
                     )
 
             self.hass.create_task(self._check_switch_initial_state())
@@ -1600,7 +1603,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-            _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
+            _LOGGER.debug(
+                "The underlying switch to idle instead of OFF. We will consider it as OFF"
+            )
             new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
@@ -1620,7 +1625,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             HVACMode.DRY,
             HVACMode.AUTO,
             HVACMode.FAN_ONLY,
-            None
+            None,
         ]:
             self._hvac_mode = new_hvac_mode
 
@@ -2109,13 +2114,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - a climate is regulated by the device itself and not by VTherm. So a VTherm should never be in security !
-        shouldClimateBeInSecurity = False # temp_cond and climate_cond
+        shouldClimateBeInSecurity = False  # temp_cond and climate_cond
         shouldSwitchBeInSecurity = temp_cond and switch_cond
         shouldBeInSecurity = shouldClimateBeInSecurity or shouldSwitchBeInSecurity
 
-        shouldStartSecurity = mode_cond and not self._security_state and shouldBeInSecurity
+        shouldStartSecurity = (
+            mode_cond and not self._security_state and shouldBeInSecurity
+        )
         # attr_preset_mode is not necessary normaly. It is just here to be sure
-        shouldStopSecurity = self._security_state and not shouldBeInSecurity and self._attr_preset_mode == PRESET_SECURITY
+        shouldStopSecurity = (
+            self._security_state
+            and not shouldBeInSecurity
+            and self._attr_preset_mode == PRESET_SECURITY
+        )
 
         # Logging and event
         if shouldStartSecurity:
@@ -2279,7 +2290,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         _LOGGER.debug("%s - recalculate all", self)
         self._prop_algorithm.calculate(
-            self._target_temp, self._cur_temp, self._cur_ext_temp, self._hvac_mode == HVACMode.COOL
+            self._target_temp,
+            self._cur_temp,
+            self._cur_ext_temp,
+            self._hvac_mode == HVACMode.COOL,
         )
         self.update_custom_attributes()
         self.async_write_ha_state()

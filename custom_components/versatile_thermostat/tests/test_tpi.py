@@ -43,7 +43,7 @@ async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state: N
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    tpi_algo.calculate(15, 10, 7, False)
+    tpi_algo.calculate(15, 10, 7)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
