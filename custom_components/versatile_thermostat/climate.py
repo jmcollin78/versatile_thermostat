@@ -655,7 +655,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             # Initialize all UnderlyingEntities
             for under in self._underlyings:
-                under.startup()
+                try:
+                    under.startup()
+                except UnknownEntity:
+                    # Not found, we will try later
+                    pass
 
             temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
             if temperature_state and temperature_state.state not in (
