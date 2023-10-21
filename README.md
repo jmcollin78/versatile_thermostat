@@ -54,7 +54,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 3.6**: Add a `motion_off_delay` parameter for activity management,
+> * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https ://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
@@ -154,8 +154,12 @@ If several type entities are configured, the thermostat staggers the activations
 Example of synchronized triggering:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/multi-switch-activation.png?raw=true)
 
+It is possible to choose an over switch thermostat which controls air conditioning by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+
 For a ```thermostat_over_climate``` thermostat:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
+
+It is possible to choose an over climate thermostat which controls reversible air conditioning by checking the “AC Mode” box. In this case, depending on the equipment ordered, you will have access to heating and/or cooling.
 
 ## Configure the TPI algorithm coefficients
 Click on 'Validate' on the previous page and you will get there:
@@ -171,6 +175,8 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
  - **Eco** : device is running an energy-saving mode
  - **Comfort** : device is in comfort mode
  - **Boost** : device turn all valve full up
+
+ If AC mode is used, you will also be able to configure temperatures when the equipment is in cooling mode.
 
 **None** is always added in the list of modes, as it is a way to not use the presets modes but a **manual temperature** instead.
 
@@ -239,7 +245,7 @@ What we need:
 - if the movement is present for less than 30 seconds (rapid passage), the temperature remains at 18.5°,
 - imagine that the temperature has risen to 21.5°, when the person leaves the room, after 5 minutes the temperature is reduced to 18.5°.
 - if the person returns before 5 minutes, the temperature remains at 21.5°
-  
+
 For this to work, the climate thermostat should be in ``Activity`` preset mode.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
@@ -273,6 +279,8 @@ For this you need to configure:
 2. The **temperature used in Eco** preset when absent,
 3. The **temperature used in Comfort** preset when absent,
 4. The **temperature used in Boost** preset when absent
+
+Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
       1. the switch of temperature is immediate and is reflected on the front component. The calculation will take the new target temperature into account at the next cycle calculation,
@@ -327,7 +335,7 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``climate_entity2_id`` | 2nd underlying climate | - | X |
 | ``climate_entity3_id`` | 3rd underlying climate | - | X |
 | ``climate_entity4_id`` | 4th underlying climate | - | X |
-| ``ac_mode`` | Use the Air Conditioning (AC) mode | - | X |
+| ``ac_mode`` | Use the Air Conditioning (AC) mode | X | X |
 | ``tpi_coef_int`` | Coefficient to use for internal temperature delta | X | - |
 | ``tpi_coef_ext`` | Coefficient to use for external temperature delta | X | - |
 | ``eco_temp`` | Temperature in Eco preset | X | X |
