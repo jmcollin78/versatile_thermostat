@@ -60,6 +60,9 @@ input_boolean:
     fake_heater_switch1:
         name: Heater 1
         icon: mdi:radiator
+    fake_heater_ac1:
+        name: Air contionner 1
+        icon: mdi:air-conditioner
     fake_heater_4switch1:
         name: Heater (multiswitch1)
         icon: mdi:radiator
@@ -114,22 +117,22 @@ climate:
       name: Underlying thermostat 4-1
       heater: input_boolean.fake_heater_4climate1
       target_sensor: input_number.fake_temperature_sensor1
-      ac_mode: true
+      ac_mode: false
     - platform: generic_thermostat
       name: Underlying thermostat 4-2
       heater: input_boolean.fake_heater_4climate2
       target_sensor: input_number.fake_temperature_sensor1
-      ac_mode: true
+      ac_mode: false
     - platform: generic_thermostat
       name: Underlying thermostat 4-3
       heater: input_boolean.fake_heater_4climate3
       target_sensor: input_number.fake_temperature_sensor1
-      ac_mode: true
+      ac_mode: false
     - platform: generic_thermostat
       name: Underlying thermostat 4-4
       heater: input_boolean.fake_heater_4climate4
       target_sensor: input_number.fake_temperature_sensor1
-      ac_mode: true
+      ac_mode: false
     - platform: generic_thermostat
       name: Underlying thermostat9
       heater: input_boolean.fake_heater_switch3

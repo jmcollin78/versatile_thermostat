@@ -9,9 +9,8 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from ..climate import VersatileThermostat
-from ..binary_sensor import (
+from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.binary_sensor import (
     SecurityBinarySensor,
     OverpoweringBinarySensor,
     WindowBinarySensor,
@@ -29,7 +28,7 @@ async def test_security_binary_sensors(
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
-):
+):   # pylint: disable=unused-argument
     """Test the security binary sensors in thermostat type"""
 
     entry = MockConfigEntry(

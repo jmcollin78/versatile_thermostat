@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 import pytest  # pylint: disable=unused-import
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
-from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF
+from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF, ATTR_TEMPERATURE
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.util import dt as dt_util
@@ -20,23 +20,26 @@ from homeassistant.components.climate import (
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from ..climate import VersatileThermostat
-from ..const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from ..underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
     MOCK_TH_OVER_4SWITCH_USER_CONFIG,
     MOCK_TH_OVER_CLIMATE_USER_CONFIG,
     MOCK_TH_OVER_SWITCH_TYPE_CONFIG,
+    MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG,
     MOCK_TH_OVER_4SWITCH_TYPE_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
     MOCK_TH_OVER_SWITCH_TPI_CONFIG,
     MOCK_PRESETS_CONFIG,
+    MOCK_PRESETS_AC_CONFIG,
     MOCK_WINDOW_CONFIG,
     MOCK_MOTION_CONFIG,
     MOCK_POWER_CONFIG,
     MOCK_PRESENCE_CONFIG,
+    MOCK_PRESENCE_AC_CONFIG,
     MOCK_ADVANCED_CONFIG,
     # MOCK_DEFAULT_FEATURE_CONFIG,
     PRESET_BOOST,
@@ -57,6 +60,19 @@ FULL_SWITCH_CONFIG = (
     | MOCK_PRESENCE_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
+
+FULL_SWITCH_AC_CONFIG = (
+    MOCK_TH_OVER_SWITCH_USER_CONFIG
+    | MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG
+    | MOCK_TH_OVER_SWITCH_TPI_CONFIG
+    | MOCK_PRESETS_AC_CONFIG
+    | MOCK_WINDOW_CONFIG
+    | MOCK_MOTION_CONFIG
+    | MOCK_POWER_CONFIG
+    | MOCK_PRESENCE_AC_CONFIG
+    | MOCK_ADVANCED_CONFIG
+)
+
 
 PARTIAL_CLIMATE_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
@@ -83,7 +99,7 @@ _LOGGER = logging.getLogger(__name__)
 class MockClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF) -> None:
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF) -> None:   # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()
@@ -101,12 +117,13 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
 
-    def set_temperature(self, temperature):
+    def set_temperature(self, **kwargs):
         """ Set the target temperature"""
+        temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
         self.async_write_ha_state()
 
-    def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode):
         """ The hvac mode"""
         self._attr_hvac_mode = hvac_mode
         self.async_write_ha_state()
@@ -114,7 +131,7 @@ class MockClimate(ClimateEntity):
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:   # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()

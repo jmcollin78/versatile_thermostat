@@ -51,7 +51,6 @@ from custom_components.versatile_thermostat.const import (
     PRESET_AWAY_SUFFIX,
     CONF_CLIMATE,
 )
-
 MOCK_TH_OVER_SWITCH_USER_CONFIG = {
     CONF_NAME: "TheOverSwitchMockName",
     CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
@@ -100,6 +99,12 @@ MOCK_TH_OVER_SWITCH_TYPE_CONFIG = {
     CONF_AC_MODE: False,
 }
 
+MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG = {
+    CONF_HEATER: "switch.mock_air_conditioner",
+    CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+    CONF_AC_MODE: True,
+}
+
 MOCK_TH_OVER_4SWITCH_TYPE_CONFIG = {
     CONF_HEATER: "switch.mock_4switch0",
     CONF_HEATER_2: "switch.mock_4switch1",
@@ -116,12 +121,22 @@ MOCK_TH_OVER_SWITCH_TPI_CONFIG = {
 
 MOCK_TH_OVER_CLIMATE_TYPE_CONFIG = {
     CONF_CLIMATE: "climate.mock_climate",
+    CONF_AC_MODE: False,
 }
 
 MOCK_PRESETS_CONFIG = {
     PRESET_ECO + "_temp": 16,
     PRESET_COMFORT + "_temp": 17,
     PRESET_BOOST + "_temp": 18,
+}
+
+MOCK_PRESETS_AC_CONFIG = {
+    PRESET_ECO + "_temp": 17,
+    PRESET_COMFORT + "_temp": 19,
+    PRESET_BOOST + "_temp": 20,
+    PRESET_ECO + "_ac_temp": 25,
+    PRESET_COMFORT + "_ac_temp": 23,
+    PRESET_BOOST + "_ac_temp": 21,
 }
 
 MOCK_WINDOW_CONFIG = {
@@ -154,6 +169,16 @@ MOCK_PRESENCE_CONFIG = {
     PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 16,
     PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17,
     PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 18,
+}
+
+MOCK_PRESENCE_AC_CONFIG = {
+    CONF_PRESENCE_SENSOR: "person.presence_sensor",
+    PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 16,
+    PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17,
+    PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 18,
+    PRESET_ECO + "_ac" + PRESET_AWAY_SUFFIX + "_temp": 27,
+    PRESET_COMFORT +  "_ac" + PRESET_AWAY_SUFFIX + "_temp": 26,
+    PRESET_BOOST +  "_ac" + PRESET_AWAY_SUFFIX + "_temp": 25,
 }
 
 MOCK_ADVANCED_CONFIG = {

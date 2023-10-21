@@ -3,36 +3,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      // Example of attaching to local debug server
-      "name": "Python: Attach Local",
+      "name": "Home Assistant (debug)",
       "type": "python",
-      "request": "attach",
-      "port": 5678,
-      "host": "localhost",
+      "request": "launch",
+      "module": "homeassistant",
       "justMyCode": false,
-      "pathMappings": [
-        // {
-        //  "localRoot": "${workspaceFolder}",
-        //  "remoteRoot": "."
-        //},
-        {
-          "localRoot": "${workspaceFolder}/../core",
-          "remoteRoot": "/home/vscode/core"
-        }
-      ]
-    },
-    {
-      // Example of attaching to my production server
-      "name": "Python: Attach Remote",
-      "type": "python",
-      "request": "attach",
-      "port": 5678,
-      "host": "homeassistant.local",
-      "pathMappings": [
-        {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/usr/src/homeassistant"
-        }
+      "args": [
+          "--debug",
+          "-c",
+          "config"
       ]
     }
   ]

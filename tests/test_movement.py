@@ -1,10 +1,10 @@
 """ Test the Window management """
 import asyncio
+from datetime import datetime, timedelta
+import logging
 from unittest.mock import patch, call, PropertyMock
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from datetime import datetime, timedelta
 
-import logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
