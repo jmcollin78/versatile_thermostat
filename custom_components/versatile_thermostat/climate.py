@@ -428,7 +428,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._presence_on = self._presence_sensor_entity_id is not None
 
         if self._ac_mode:
-            self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+            self._hvac_list = [HVACMode.COOL, HVACMode.OFF]
         else:
             self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
 
@@ -920,6 +920,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         return self._hvac_list
 
     @property
+    def ac_mode(self) -> bool:
+        """ Get the ac_mode of the Themostat"""
+        return self._ac_mode
+
+    @property
     def fan_mode(self) -> str | None:
         """Return the fan setting.
 
@@ -1345,8 +1350,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == PRESET_POWER:
             return self._power_temp
         else:
-            # Select _ac presets if in COOL Mode
-            if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+            # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
+            if self._ac_mode and (self._hvac_mode == HVACMode.COOL or not self._is_over_climate):
                 preset_mode = preset_mode + PRESET_AC_SUFFIX
 
             if self._presence_on is False or self._presence_state in [
@@ -1974,25 +1979,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode not in [PRESET_BOOST, PRESET_COMFORT, PRESET_ECO]:
             return
 
-        # Change temperature with preset named _way
-        new_temp = None
-        if new_state == STATE_ON or new_state == STATE_HOME:
-            new_temp = self._presets[self._attr_preset_mode]
-            _LOGGER.info(
-                "%s - Someone is back home. Restoring temperature to %.2f",
-                self,
-                new_temp,
-            )
-        else:
-            new_temp = self._presets_away[
-                self.get_preset_away_name(self._attr_preset_mode)
-            ]
-            _LOGGER.info(
-                "%s - No one is at home. Apply temperature %.2f",
-                self,
-                new_temp,
-            )
-
+        # Change temperature with preset named _away
+        # new_temp = None
+        #if new_state == STATE_ON or new_state == STATE_HOME:
+        #    new_temp = self._presets[self._attr_preset_mode]
+        #    _LOGGER.info(
+        #        "%s - Someone is back home. Restoring temperature to %.2f",
+        #        self,
+        #        new_temp,
+        #    )
+        #else:
+        #    new_temp = self._presets_away[
+        #        self.get_preset_away_name(self._attr_preset_mode)
+        #    ]
+        #    _LOGGER.info(
+        #        "%s - No one is at home. Apply temperature %.2f",
+        #        self,
+        #        new_temp,
+        #    )
+        new_temp = self.find_preset_temp(self.preset_mode)
         if new_temp is not None:
             _LOGGER.debug(
                 "%s - presence change in temperature mode new_temp will be: %.2f",
@@ -2503,6 +2508,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "target_temp": self.target_temperature,
             "current_temp": self._cur_temp,
             "ext_current_temperature": self._cur_ext_temp,
+            "ac_mode": self._ac_mode,
             "current_power": self._current_power,
             "current_power_max": self._current_power_max,
             "saved_preset_mode": self._saved_preset_mode,

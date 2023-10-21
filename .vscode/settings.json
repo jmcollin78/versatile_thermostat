@@ -14,7 +14,7 @@
     "python.testing.pytestEnabled": true,
     "python.analysis.extraPaths": [
     //    "/home/vscode/core",
-        "/workspaces/custom_components/versatile_thermostat"
+        "/workspaces/versatile_thermostat/custom_components/versatile_thermostat"
     ],
     "python.formatting.provider": "none"
 }

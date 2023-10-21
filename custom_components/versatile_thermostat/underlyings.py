@@ -1,12 +1,12 @@
 """ Underlying entities classes """
 import logging
 from typing import Any
+from enum import StrEnum
 
 from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, UnitOfTemperature
 
 from homeassistant.exceptions import ServiceNotFound
 
-from enum import StrEnum
 from homeassistant.core import HomeAssistant, DOMAIN as HA_DOMAIN, CALLBACK_TYPE
 from homeassistant.components.climate import (
     ClimateEntity,
