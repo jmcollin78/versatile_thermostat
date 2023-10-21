@@ -4,7 +4,7 @@
 	"image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
 	"name": "Versatile Thermostat integration",
 	"appPort": [
-		"9123:8123"
+		"8123:8123"
 	],
 	// "postCreateCommand": "container install",
 	"postCreateCommand": "./container dev-setup",

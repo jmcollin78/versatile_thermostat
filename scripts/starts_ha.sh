@@ -11,11 +11,12 @@ if [[ ! -d "${PWD}/config" ]]; then
     mkdir -p "${PWD}/config"
     # Add defaults configuration
     hass --config "${PWD}/config" --script ensure_config
-    # Overwrite configuration.yaml if provided
-    if [ -f ${PWD}/.devcontainer/configuration.yaml ]; then
-        rm -f ${PWD}/config/configuration.yaml
-        ln -s ${PWD}/.devcontainer/configuration.yaml ${PWD}/config/configuration.yaml
-    fi
+fi
+
+# Overwrite configuration.yaml if provided
+if [ -f ${PWD}/.devcontainer/configuration.yaml ]; then
+    rm -f ${PWD}/config/configuration.yaml
+    ln -s ${PWD}/.devcontainer/configuration.yaml ${PWD}/config/configuration.yaml
 fi
 
 # Set the path to custom_components
