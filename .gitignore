@@ -106,3 +106,5 @@ dist
 # init file required for unittest
 custom_components/__init__.py
 __pycache__
+
+config/**
