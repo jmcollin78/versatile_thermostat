@@ -5,7 +5,9 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state: None):
+async def test_tpi_calculation(
+    hass: HomeAssistant, skip_hass_states_is_state: None
+):  # pylint: disable=unused-argument
     """Test the TPI calculation"""
 
     entry = MockConfigEntry(
@@ -40,7 +42,7 @@ async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state: N
     )
     assert entity
 
-    tpi_algo = entity._prop_algorithm
+    tpi_algo = entity._prop_algorithm   # pylint: disable=protected-access
     assert tpi_algo
 
     tpi_algo.calculate(15, 10, 7)

@@ -1,12 +1,20 @@
 {
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.pythonPath": "/usr/local/bin/python",
     "files.associations": {
         "*.yaml": "home-assistant"
     },
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "python.analysis.extraPaths": [
-        "/home/vscode/core",
-        "/workspaces/versatile_thermostat"
-    ]
+    //    "/home/vscode/core",
+        "/workspaces/versatile_thermostat/custom_components/versatile_thermostat"
+    ],
+    "python.formatting.provider": "none"
 }

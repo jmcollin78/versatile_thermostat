@@ -55,7 +55,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
-> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour la gestion de l'activité.
+> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
@@ -82,6 +82,9 @@ Ce thermostat peut piloter 2 types d'équipement:
 Le type ```thermostat_over_climate``` permet d'ajouter à votre équipement existant toutes les fonctionnalités fournies par VersatileThermostat. L'entité climate VersatileThermostat pilotera votre entité climate, en la coupant si les fenêtres sont ouvertes, la passant en mode Eco si personne n'est présent, etc. Cf. [ici](#pourquoi-une-nouvelle-implémentation-du-thermostat). Pour ce type de thermostat, les cycles éventuels de chauffe sont pilotés par l'entité climate sous-jacente et pas par le Versatile Thermostat lui-même.
 
 Parce que cette intégration vise à commander le radiateur en tenant compte du préréglage configuré (preset) et de la température ambiante, ces informations sont obligatoires.
+
+Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
+1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle d'auto-régule d'elle-même causant des conflits avec le VTherm,
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
@@ -158,9 +161,13 @@ Si plusieurs entités de type sont configurées, la thermostat décale les activ
 Exemple de déclenchement synchronisé :
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/multi-switch-activation.png?raw=true)
 
+Il est possible de choisir un thermostat over switch qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
+
 
 Pour un thermostat de type ```thermostat_over_climate```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
+
+Il est possible de choisir un thermostat over climate qui commande une climatisation réversible en cochant la case "AC Mode". Dans ce cas, selon l'équipement commandé vous aurez accès au chauffage et/ou au réfroidissement.
 
 ## Configurez les coefficients de l'algorithme TPI
 
@@ -184,6 +191,8 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
  - **Eco** : l'appareil est en mode d'économie d'énergie
  - **Confort** : l'appareil est en mode confort
  - **Boost** : l'appareil tourne toutes les vannes à fond
+
+ Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
 
 **Aucun** est toujours ajouté dans la liste des modes, car c'est un moyen de ne pas utiliser les preset mais une **température manuelle** à la place.
 
@@ -290,6 +299,8 @@ Pour cela, vous devez configurer :
 3. La **température utilisée en Confort** préréglée en cas d'absence,
 4. La **température utilisée en Boost** préréglée en cas d'absence
 
+Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
+
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
       1. le changement de température est immédiat et se répercute sur le volet avant. Le calcul prendra en compte la nouvelle température cible au prochain calcul du cycle,
       2. vous pouvez utiliser le capteur direct person.xxxx ou un groupe de capteurs de Home Assistant. Le capteur de présence gère les états ``on`` ou ``home`` comme présents et les états ``off`` ou ``not_home`` comme absents.
@@ -343,7 +354,7 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 | ``climate_entity2_id`` | 2ème thermostat sous-jacent | - | X |
 | ``climate_entity3_id`` | 3ème thermostat sous-jacent | - | X |
 | ``climate_entity4_id`` | 4ème thermostat sous-jacent | - | X |
-| ``ac_mode`` | utilisation de l'air conditionné (AC) ? | - | X |
+| ``ac_mode`` | utilisation de l'air conditionné (AC) ? | X | X |
 | ``tpi_coef_int`` | Coefficient à utiliser pour le delta de température interne | X | - |
 | ``tpi_coef_ext`` | Coefficient à utiliser pour le delta de température externe | X | - |
 | ``eco_temp`` | Température en preset Eco | X | X |
@@ -544,7 +555,7 @@ target:
 
 # Notifications
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
-Les évènements notifiés sont les suivants: 
+Les évènements notifiés sont les suivants:
 
 - ``versatile_thermostat_security_event`` : un thermostat entre ou sort du preset ``security``
 - ``versatile_thermostat_power_event`` : un thermostat entre ou sort du preset ``power``

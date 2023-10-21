@@ -54,7 +54,9 @@ async def async_setup_entry(
 class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the security state"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the SecurityState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Security state"
@@ -87,7 +89,9 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the overpowering state"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the OverpoweringState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Overpowering state"
@@ -120,7 +124,9 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
 class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the window state"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the WindowState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window state"
@@ -134,7 +140,10 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 
         old_state = self._attr_is_on
         # Issue 120 - only take defined presence value
-        if self.my_climate.window_state in [STATE_ON, STATE_OFF] or self.my_climate.window_auto_state in [STATE_ON, STATE_OFF]:
+        if self.my_climate.window_state in [
+            STATE_ON,
+            STATE_OFF,
+        ] or self.my_climate.window_auto_state in [STATE_ON, STATE_OFF]:
             self._attr_is_on = (
                 self.my_climate.window_state == STATE_ON
                 or self.my_climate.window_auto_state == STATE_ON
@@ -161,7 +170,9 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the motion state"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the MotionState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Motion state"
@@ -195,7 +206,9 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
 class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the presence state"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the PresenceState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Presence state"

@@ -1,3 +1,6 @@
+# pylint: disable=line-too-long
+# pylint: disable=too-many-lines
+# pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
@@ -425,7 +428,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._presence_on = self._presence_sensor_entity_id is not None
 
         if self._ac_mode:
-            self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+            self._hvac_list = [HVACMode.COOL, HVACMode.OFF]
         else:
             self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
 
@@ -652,7 +655,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
             # Initialize all UnderlyingEntities
             for under in self._underlyings:
-                under.startup()
+                try:
+                    under.startup()
+                except UnknownEntity:
+                    # Not found, we will try later
+                    pass
 
             temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
             if temperature_state and temperature_state.state not in (
@@ -911,6 +918,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return self.underlying_entity(0).hvac_modes
 
         return self._hvac_list
+
+    @property
+    def ac_mode(self) -> bool:
+        """ Get the ac_mode of the Themostat"""
+        return self._ac_mode
 
     @property
     def fan_mode(self) -> str | None:
@@ -1312,7 +1324,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self.recalculate()
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
-    def reset_last_change_time(self, old_preset_mode=None):
+    def reset_last_change_time(
+        self, old_preset_mode=None
+    ):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
         self._last_change_time = datetime.now(tz=self._current_tz)
         _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time)
@@ -1336,8 +1350,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == PRESET_POWER:
             return self._power_temp
         else:
-            # Select _ac presets if in COOL Mode
-            if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+            # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
+            if self._ac_mode and (self._hvac_mode == HVACMode.COOL or not self._is_over_climate):
                 preset_mode = preset_mode + PRESET_AC_SUFFIX
 
             if self._presence_on is False or self._presence_state in [
@@ -1546,7 +1560,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Check delay condition
         async def try_motion_condition(_):
             try:
-                delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+                delay = (
+                    self._motion_delay_sec
+                    if new_state.state == STATE_ON
+                    else self._motion_off_delay_sec
+                )
                 long_enough = condition.state(
                     self.hass,
                     self._motion_sensor_entity_id,
@@ -1583,13 +1601,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 await self._async_control_heating(force=True)
             self._motion_call_cancel = None
 
-        im_on = (self._motion_state == STATE_ON)
-        delay_running = (self._motion_call_cancel is not None)
-        event_on = (new_state.state == STATE_ON)
+        im_on = self._motion_state == STATE_ON
+        delay_running = self._motion_call_cancel is not None
+        event_on = new_state.state == STATE_ON
 
         def arm():
-            """ Arm the timer"""
-            delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+            """Arm the timer"""
+            delay = (
+                self._motion_delay_sec
+                if new_state.state == STATE_ON
+                else self._motion_off_delay_sec
+            )
             self._motion_call_cancel = async_call_later(
                 self.hass, timedelta(seconds=delay), try_motion_condition
             )
@@ -1602,7 +1624,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # if I'm off
         if not im_on:
             if event_on and not delay_running:
-                _LOGGER.debug("%s - Arm delay cause i'm off and event is on and no delay is running", self)
+                _LOGGER.debug(
+                    "%s - Arm delay cause i'm off and event is on and no delay is running",
+                    self,
+                )
                 arm()
                 return try_motion_condition
             # Ignore the event
@@ -1614,7 +1639,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 arm()
                 return try_motion_condition
             if event_on and delay_running:
-                _LOGGER.debug("%s - Desarm off delay cause i'm on and event is on and a delay is running", self)
+                _LOGGER.debug(
+                    "%s - Desarm off delay cause i'm on and event is on and a delay is running",
+                    self,
+                )
                 desarm()
                 return None
             # Ignore the event
@@ -1696,9 +1724,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
         # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug(
-        #        "The underlying switch to idle instead of OFF. We will consider it as OFF"
-        #    )
+        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
         #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
@@ -1710,17 +1736,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             old_hvac_action,
         )
 
-        if new_hvac_mode in [
-            HVACMode.OFF,
-            HVACMode.HEAT,
-            HVACMode.COOL,
-            HVACMode.HEAT_COOL,
-            HVACMode.DRY,
-            HVACMode.AUTO,
-            HVACMode.FAN_ONLY,
-            None,
-        ]:
-            self._hvac_mode = new_hvac_mode
+        _LOGGER.debug(
+            "%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s",
+            self,
+            self._last_change_time,
+            old_state_date_changed,
+            old_state_date_updated,
+            new_state_date_changed,
+            new_state_date_updated,
+        )
 
         # Interpretation of hvac action
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
@@ -1955,25 +1979,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode not in [PRESET_BOOST, PRESET_COMFORT, PRESET_ECO]:
             return
 
-        # Change temperature with preset named _way
-        new_temp = None
-        if new_state == STATE_ON or new_state == STATE_HOME:
-            new_temp = self._presets[self._attr_preset_mode]
-            _LOGGER.info(
-                "%s - Someone is back home. Restoring temperature to %.2f",
-                self,
-                new_temp,
-            )
-        else:
-            new_temp = self._presets_away[
-                self.get_preset_away_name(self._attr_preset_mode)
-            ]
-            _LOGGER.info(
-                "%s - No one is at home. Apply temperature %.2f",
-                self,
-                new_temp,
-            )
-
+        # Change temperature with preset named _away
+        # new_temp = None
+        #if new_state == STATE_ON or new_state == STATE_HOME:
+        #    new_temp = self._presets[self._attr_preset_mode]
+        #    _LOGGER.info(
+        #        "%s - Someone is back home. Restoring temperature to %.2f",
+        #        self,
+        #        new_temp,
+        #    )
+        #else:
+        #    new_temp = self._presets_away[
+        #        self.get_preset_away_name(self._attr_preset_mode)
+        #    ]
+        #    _LOGGER.info(
+        #        "%s - No one is at home. Apply temperature %.2f",
+        #        self,
+        #        new_temp,
+        #    )
+        new_temp = self.find_preset_temp(self.preset_mode)
         if new_temp is not None:
             _LOGGER.debug(
                 "%s - presence change in temperature mode new_temp will be: %.2f",
@@ -2135,6 +2159,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     async def restore_hvac_mode(self, need_control_heating=False):
         """Restore a previous hvac_mod"""
+        old_hvac_mode = self.hvac_mode
         await self.async_set_hvac_mode(self._saved_hvac_mode, need_control_heating)
         _LOGGER.debug(
             "%s - Restored hvac_mode - saved_hvac_mode is %s, hvac_mode is %s",
@@ -2142,6 +2167,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._saved_hvac_mode,
             self._hvac_mode,
         )
+        # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
+        if old_hvac_mode == HVACMode.OFF and self.hvac_mode != HVACMode.OFF and self._is_over_climate:
+            _LOGGER.info("%s - force resent target temp cause we turn on some over climate")
+            await self._async_internal_set_temperature(self._target_temp)
 
     async def check_overpowering(self) -> bool:
         """Check the overpowering condition
@@ -2484,6 +2513,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "target_temp": self.target_temperature,
             "current_temp": self._cur_temp,
             "ext_current_temperature": self._cur_ext_temp,
+            "ac_mode": self._ac_mode,
             "current_power": self._current_power,
             "current_power_max": self._current_power_max,
             "saved_preset_mode": self._saved_preset_mode,

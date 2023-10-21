@@ -4,15 +4,12 @@
 
 . .bashrc
 
-cd $HA
-
 function get_dev() {
-     cd /workspaces/versatile_thermostat/custom_components/versatile_thermostat/
-     pip install pytest
      pip install -r requirements_dev.txt
      pip install -r requirements_test.txt
-     sudo chown -R vscode:  /home/vscode/core
-     cd -
+     if [ -d /home/vscode/core ]; then
+        sudo chown -R vscode:  /home/vscode/core
+    fi
 }
 
 echo "arguments are: "$1
@@ -20,8 +17,7 @@ echo "arguments are: "$1
 case $1 in
     start)
         echo "Running container start"
-        cd $HA
-        hass -c ./config --debug
+        ./scripts/starts_ha.sh
     ;;
     dev-setup)
         get_dev
@@ -43,8 +39,8 @@ case $1 in
     restart)
         echo "Killing existing container"
         pkill hass
-        echo "Killing existing container"
-        cd $HA
-        hass -c ./config
+        echo "Restarting existing container"
+        pwd
+        ./scripts/starts_ha.sh
     ;;
 esac

@@ -10,7 +10,7 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from ..climate import VersatileThermostat
+from custom_components.versatile_thermostat.climate import VersatileThermostat
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 

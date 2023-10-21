@@ -2,4 +2,5 @@
 -r requirements_dev.txt
 aiodiscover
 ulid_transform
+pytest-asyncio
 pytest-homeassistant-custom-component

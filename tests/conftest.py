@@ -1,4 +1,6 @@
 """Global fixtures for integration_blueprint integration."""
+# pylint: disable=line-too-long
+
 # Fixtures allow you to replace functions with a Mock object. You can perform
 # many options via the Mock to reflect a particular behavior from the original
 # function that you want to see without going through the function's actual logic.
@@ -34,7 +36,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=inva
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
+def auto_enable_custom_integrations(enable_custom_integrations):  # pylint: disable=unused-argument
     """Enable all integration in tests"""
     yield
 
