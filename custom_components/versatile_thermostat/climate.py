@@ -301,7 +301,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             entry_infos,
         )
 
-        self._ac_mode = entry_infos.get(CONF_AC_MODE) == True
+        self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         # convert entry_infos into usable attributes
         presets = {}
         items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
@@ -339,7 +339,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._thermostat_type = entry_infos.get(CONF_THERMOSTAT_TYPE)
         if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
             self._is_over_climate = True
-            for climate in [CONF_CLIMATE, CONF_CLIMATE_2, CONF_CLIMATE_3, CONF_CLIMATE_4]:
+            for climate in [
+                CONF_CLIMATE,
+                CONF_CLIMATE_2,
+                CONF_CLIMATE_3,
+                CONF_CLIMATE_4,
+            ]:
                 if entry_infos.get(climate):
                     self._underlyings.append(
                         UnderlyingClimate(
@@ -769,7 +774,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 self.async_write_ha_state()
                 if self._prop_algorithm:
                     self._prop_algorithm.calculate(
-                        self._target_temp, self._cur_temp, self._cur_ext_temp
+                        self._target_temp,
+                        self._cur_temp,
+                        self._cur_ext_temp,
+                        self._hvac_mode == HVACMode.COOL,
                     )
 
             self.hass.create_task(self._check_switch_initial_state())
@@ -962,8 +970,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
         # delta will be managed by climate_state_change event.
         # if self._is_over_climate:
-            # if one not OFF -> return it
-            # else OFF
+        # if one not OFF -> return it
+        # else OFF
         #    for under in self._underlyings:
         #        if (mode := under.hvac_mode) not in [HVACMode.OFF]
         #            return mode
@@ -983,7 +991,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             # else OFF
             one_idle = False
             for under in self._underlyings:
-                if (action := under.hvac_action) not in [HVACAction.IDLE, HVACAction.OFF]:
+                if (action := under.hvac_action) not in [
+                    HVACAction.IDLE,
+                    HVACAction.OFF,
+                ]:
                     return action
                 if under.hvac_action == HVACAction.IDLE:
                     one_idle = True
@@ -995,6 +1006,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             return HVACAction.OFF
         if not self._is_device_active:
             return HVACAction.IDLE
+        if self._hvac_mode == HVACMode.COOL:
+            return HVACAction.COOLING
         return HVACAction.HEATING
 
     @property
@@ -1066,7 +1079,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     @property
     def mean_cycle_power(self) -> float | None:
-        """Returns tne mean power consumption during the cycle"""
+        """Returns the mean power consumption during the cycle"""
         if not self._device_power or self._is_over_climate:
             return None
 
@@ -1613,7 +1626,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_switch_initial_state", self)
         # We need to do the same check for over_climate underlyings
-        #if self.is_over_climate:
+        # if self.is_over_climate:
         #    return
         for under in self._underlyings:
             await under.check_initial_state(self._hvac_mode)
@@ -1632,16 +1645,16 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     @callback
     async def _async_climate_changed(self, event):
         """Handle unerdlying climate state changes.
-           This method takes the underlying values and update the VTherm with them.
-           To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
-           less than 10 sec after the last command. What we want here is to take the values
-           from underlyings ONLY if someone have change directly on the underlying and not
-           as a return of the command. The only thing we take all the time is the HVACAction
-           which is important for feedaback and which cannot generates loops.
+        This method takes the underlying values and update the VTherm with them.
+        To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
+        less than 10 sec after the last command. What we want here is to take the values
+        from underlyings ONLY if someone have change directly on the underlying and not
+        as a return of the command. The only thing we take all the time is the HVACAction
+        which is important for feedaback and which cannot generates loops.
         """
 
         async def end_climate_changed(changes):
-            """ To end the event management"""
+            """To end the event management"""
             if changes:
                 self.async_write_ha_state()
                 self.update_custom_attributes()
@@ -1667,15 +1680,25 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             else None
         )
 
-        old_state_date_changed = old_state.last_changed if old_state and old_state.last_changed else None
-        old_state_date_updated = old_state.last_updated if old_state and old_state.last_updated else None
-        new_state_date_changed = new_state.last_changed if new_state and new_state.last_changed else None
-        new_state_date_updated = new_state.last_updated if new_state and new_state.last_updated else None
+        old_state_date_changed = (
+            old_state.last_changed if old_state and old_state.last_changed else None
+        )
+        old_state_date_updated = (
+            old_state.last_updated if old_state and old_state.last_updated else None
+        )
+        new_state_date_changed = (
+            new_state.last_changed if new_state and new_state.last_changed else None
+        )
+        new_state_date_updated = (
+            new_state.last_updated if new_state and new_state.last_updated else None
+        )
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
-        #if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
+        # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
+        #    _LOGGER.debug(
+        #        "The underlying switch to idle instead of OFF. We will consider it as OFF"
+        #    )
         #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
@@ -1687,7 +1710,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             old_hvac_action,
         )
 
-        _LOGGER.debug("%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s", self, self._last_change_time, old_state_date_changed, old_state_date_updated, new_state_date_changed, new_state_date_updated)
+        if new_hvac_mode in [
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACMode.COOL,
+            HVACMode.HEAT_COOL,
+            HVACMode.DRY,
+            HVACMode.AUTO,
+            HVACMode.FAN_ONLY,
+            None,
+        ]:
+            self._hvac_mode = new_hvac_mode
 
         # Interpretation of hvac action
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
@@ -1733,21 +1766,27 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         if new_state_date_updated and self._last_change_time:
             delta = (new_state_date_updated - self._last_change_time).total_seconds()
             if delta < 10:
-                _LOGGER.info("%s - underlying event is received less than 10 sec after command. Forget it to avoid loop", self
+                _LOGGER.info(
+                    "%s - underlying event is received less than 10 sec after command. Forget it to avoid loop",
+                    self,
                 )
                 await end_climate_changed(changes)
                 return
 
-        if new_hvac_mode in [
-            HVACMode.OFF,
-            HVACMode.HEAT,
-            HVACMode.COOL,
-            HVACMode.HEAT_COOL,
-            HVACMode.DRY,
-            HVACMode.AUTO,
-            HVACMode.FAN_ONLY,
-            None
-        ] and self._hvac_mode != new_hvac_mode:
+        if (
+            new_hvac_mode
+            in [
+                HVACMode.OFF,
+                HVACMode.HEAT,
+                HVACMode.COOL,
+                HVACMode.HEAT_COOL,
+                HVACMode.DRY,
+                HVACMode.AUTO,
+                HVACMode.FAN_ONLY,
+                None,
+            ]
+            and self._hvac_mode != new_hvac_mode
+        ):
             changes = True
             self._hvac_mode = new_hvac_mode
             # Update all underlyings state
@@ -1757,14 +1796,26 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         if not changes:
             # try to manage new target temperature set if state
-            _LOGGER.debug("Do temperature check. temperature is %s, new_state.attributes is %s", self.target_temperature, new_state.attributes)
-            if self._is_over_climate and new_state.attributes and (new_target_temp := new_state.attributes.get("temperature")) and new_target_temp != self.target_temperature:
-                _LOGGER.info("%s - Target temp in underlying have change to %s", self, new_target_temp)
-                await self.async_set_temperature(temperature = new_target_temp)
+            _LOGGER.debug(
+                "Do temperature check. temperature is %s, new_state.attributes is %s",
+                self.target_temperature,
+                new_state.attributes,
+            )
+            if (
+                self._is_over_climate
+                and new_state.attributes
+                and (new_target_temp := new_state.attributes.get("temperature"))
+                and new_target_temp != self.target_temperature
+            ):
+                _LOGGER.info(
+                    "%s - Target temp in underlying have change to %s",
+                    self,
+                    new_target_temp,
+                )
+                await self.async_set_temperature(temperature=new_target_temp)
                 changes = True
 
         await end_climate_changed(changes)
-
 
     @callback
     async def _async_update_temp(self, state: State):
@@ -2208,13 +2259,19 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         )
 
         # Issue 99 - a climate is regulated by the device itself and not by VTherm. So a VTherm should never be in security !
-        shouldClimateBeInSecurity = False # temp_cond and climate_cond
+        shouldClimateBeInSecurity = False  # temp_cond and climate_cond
         shouldSwitchBeInSecurity = temp_cond and switch_cond
         shouldBeInSecurity = shouldClimateBeInSecurity or shouldSwitchBeInSecurity
 
-        shouldStartSecurity = mode_cond and not self._security_state and shouldBeInSecurity
+        shouldStartSecurity = (
+            mode_cond and not self._security_state and shouldBeInSecurity
+        )
         # attr_preset_mode is not necessary normaly. It is just here to be sure
-        shouldStopSecurity = self._security_state and not shouldBeInSecurity and self._attr_preset_mode == PRESET_SECURITY
+        shouldStopSecurity = (
+            self._security_state
+            and not shouldBeInSecurity
+            and self._attr_preset_mode == PRESET_SECURITY
+        )
 
         # Logging and event
         if shouldStartSecurity:
@@ -2376,7 +2433,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug("%s - recalculate all", self)
         if not self._is_over_climate:
             self._prop_algorithm.calculate(
-                self._target_temp, self._cur_temp, self._cur_ext_temp
+                self._target_temp,
+                self._cur_temp,
+                self._cur_ext_temp,
+                self._hvac_mode == HVACMode.COOL,
             )
         self.update_custom_attributes()
         self.async_write_ha_state()
@@ -2463,18 +2523,18 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
         }
         if self._is_over_climate:
-            self._attr_extra_state_attributes["underlying_climate_0"] = self._underlyings[
-                0
-            ].entity_id
-            self._attr_extra_state_attributes["underlying_climate_1"] = self._underlyings[
-                1
-            ].entity_id  if len(self._underlyings) > 1 else None
-            self._attr_extra_state_attributes["underlying_climate_2"] = self._underlyings[
-                2
-            ].entity_id  if len(self._underlyings) > 2 else None
-            self._attr_extra_state_attributes["underlying_climate_3"] = self._underlyings[
-                3
-            ].entity_id  if len(self._underlyings) > 3 else None
+            self._attr_extra_state_attributes[
+                "underlying_climate_0"
+            ] = self._underlyings[0].entity_id
+            self._attr_extra_state_attributes["underlying_climate_1"] = (
+                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
+            )
+            self._attr_extra_state_attributes["underlying_climate_2"] = (
+                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
+            )
+            self._attr_extra_state_attributes["underlying_climate_3"] = (
+                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+            )
 
             self._attr_extra_state_attributes[
                 "start_hvac_action_date"
@@ -2566,7 +2626,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
         if preset.startswith(self._attr_preset_mode):
-            await self._async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX), force=True)
+            await self._async_set_preset_mode_internal(
+                preset.rstrip(PRESET_AC_SUFFIX), force=True
+            )
             await self._async_control_heating(force=True)
 
     async def service_set_security(self, delay_min, min_on_percent, default_on_percent):

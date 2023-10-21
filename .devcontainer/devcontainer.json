@@ -16,7 +16,6 @@
 		"ms-python.vscode-pylance"
 	],
 	"mounts": [
-		"source=/Users/jmcollin/SugarSync/Projets/home-assistant/core,target=/home/vscode/core,type=bind,consistency=cached",
 		"source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=/home/vscode/core/config/configuration.yaml,type=bind,consistency=cached",
 		"source=${localWorkspaceFolder}/custom_components,target=/home/vscode/core/config/custom_components,type=bind,consistency=cached"
 	],
