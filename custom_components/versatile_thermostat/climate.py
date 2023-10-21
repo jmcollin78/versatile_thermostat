@@ -2159,6 +2159,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
     async def restore_hvac_mode(self, need_control_heating=False):
         """Restore a previous hvac_mod"""
+        old_hvac_mode = self.hvac_mode
         await self.async_set_hvac_mode(self._saved_hvac_mode, need_control_heating)
         _LOGGER.debug(
             "%s - Restored hvac_mode - saved_hvac_mode is %s, hvac_mode is %s",
@@ -2166,6 +2167,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._saved_hvac_mode,
             self._hvac_mode,
         )
+        # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
+        if old_hvac_mode == HVACMode.OFF and self.hvac_mode != HVACMode.OFF and self._is_over_climate:
+            _LOGGER.info("%s - force resent target temp cause we turn on some over climate")
+            await self._async_internal_set_temperature(self._target_temp)
 
     async def check_overpowering(self) -> bool:
         """Check the overpowering condition
