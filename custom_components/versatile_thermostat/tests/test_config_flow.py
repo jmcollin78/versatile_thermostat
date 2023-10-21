@@ -157,38 +157,6 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
         result["flow_id"], user_input=MOCK_PRESETS_CONFIG
     )
 
-    # assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    # assert result["step_id"] == "window"
-    # assert result["errors"] == {}
-
-    # result = await hass.config_entries.flow.async_configure(
-    #     result["flow_id"], user_input=MOCK_WINDOW_CONFIG
-    # )
-
-    # assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    # assert result["step_id"] == "motion"
-    # assert result["errors"] == {}
-
-    # result = await hass.config_entries.flow.async_configure(
-    #     result["flow_id"], user_input=MOCK_MOTION_CONFIG
-    # )
-
-    # assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    # assert result["step_id"] == "power"
-    # assert result["errors"] == {}
-
-    # result = await hass.config_entries.flow.async_configure(
-    #     result["flow_id"], user_input=MOCK_POWER_CONFIG
-    # )
-
-    # assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    # assert result["step_id"] == "presence"
-    # assert result["errors"] == {}
-
-    # result = await hass.config_entries.flow.async_configure(
-    #     result["flow_id"], user_input=MOCK_PRESENCE_CONFIG
-    # )
-
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "advanced"
     assert result["errors"] == {}

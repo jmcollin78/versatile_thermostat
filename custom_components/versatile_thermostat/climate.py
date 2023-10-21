@@ -95,6 +95,7 @@ from .const import (
     CONF_WINDOW_AUTO_MAX_DURATION,
     CONF_MOTION_SENSOR,
     CONF_MOTION_DELAY,
+    CONF_MOTION_OFF_DELAY,
     CONF_MOTION_PRESET,
     CONF_NO_MOTION_PRESET,
     CONF_DEVICE_POWER,
@@ -399,6 +400,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
 
         self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR)
         self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY)
+        self._motion_off_delay_sec = entry_infos.get(CONF_MOTION_OFF_DELAY)
+        if not self._motion_off_delay_sec:
+            self._motion_off_delay_sec = self._motion_delay_sec
+
         self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
         self._no_motion_preset = entry_infos.get(CONF_NO_MOTION_PRESET)
         self._motion_on = (
@@ -1528,11 +1533,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Check delay condition
         async def try_motion_condition(_):
             try:
+                delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
                 long_enough = condition.state(
                     self.hass,
                     self._motion_sensor_entity_id,
                     new_state.state,
-                    timedelta(seconds=self._motion_delay_sec),
+                    timedelta(seconds=delay),
                 )
             except ConditionError:
                 long_enough = False
@@ -1541,38 +1547,66 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 _LOGGER.debug(
                     "Motion delay condition is not satisfied. Ignore motion event"
                 )
-                return
+            else:
+                _LOGGER.debug("%s - Motion delay condition is satisfied", self)
+                self._motion_state = new_state.state
+                if self._attr_preset_mode == PRESET_ACTIVITY:
+                    new_preset = (
+                        self._motion_preset
+                        if self._motion_state == STATE_ON
+                        else self._no_motion_preset
+                    )
+                    _LOGGER.info(
+                        "%s - Motion condition have changes. New preset temp will be %s",
+                        self,
+                        new_preset,
+                    )
+                    # We do not change the preset which is kept to ACTIVITY but only the target_temperature
+                    # We take the presence into account
+                    await self._async_internal_set_temperature(
+                        self.find_preset_temp(new_preset)
+                    )
+                self.recalculate()
+                await self._async_control_heating(force=True)
+            self._motion_call_cancel = None
 
-            _LOGGER.debug("%s - Motion delay condition is satisfied", self)
-            self._motion_state = new_state.state
-            if self._attr_preset_mode == PRESET_ACTIVITY:
-                new_preset = (
-                    self._motion_preset
-                    if self._motion_state == STATE_ON
-                    else self._no_motion_preset
-                )
-                _LOGGER.info(
-                    "%s - Motion condition have changes. New preset temp will be %s",
-                    self,
-                    new_preset,
-                )
-                # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-                # We take the presence into account
-                await self._async_internal_set_temperature(
-                    self.find_preset_temp(new_preset)
-                )
-            self.recalculate()
-            await self._async_control_heating(force=True)
+        im_on = (self._motion_state == STATE_ON)
+        delay_running = (self._motion_call_cancel is not None)
+        event_on = (new_state.state == STATE_ON)
 
-        if self._motion_call_cancel:
+        def arm():
+            """ Arm the timer"""
+            delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+            self._motion_call_cancel = async_call_later(
+                self.hass, timedelta(seconds=delay), try_motion_condition
+            )
+
+        def desarm():
+            # restart the timer
             self._motion_call_cancel()
             self._motion_call_cancel = None
-        self._motion_call_cancel = async_call_later(
-            self.hass, timedelta(seconds=self._motion_delay_sec), try_motion_condition
-        )
 
-        # For testing purpose we need to access the inner function
-        return try_motion_condition
+        # if I'm off
+        if not im_on:
+            if event_on and not delay_running:
+                _LOGGER.debug("%s - Arm delay cause i'm off and event is on and no delay is running", self)
+                arm()
+                return try_motion_condition
+            # Ignore the event
+            _LOGGER.debug("%s - Event ignored cause i'm already off", self)
+            return None
+        else:  # I'm On
+            if not event_on and not delay_running:
+                _LOGGER.info("%s - Arm delay cause i'm on and event is off", self)
+                arm()
+                return try_motion_condition
+            if event_on and delay_running:
+                _LOGGER.debug("%s - Desarm off delay cause i'm on and event is on and a delay is running", self)
+                desarm()
+                return None
+            # Ignore the event
+            _LOGGER.debug("%s - Event ignored cause i'm already on", self)
+            return None
 
     @callback
     async def _check_switch_initial_state(self):

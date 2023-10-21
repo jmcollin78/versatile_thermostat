@@ -91,8 +91,16 @@
         "title": "Gestion de la détection de mouvement",
         "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
         "data": {
+          "motion_sensor_entity_id": "Détecteur de mouvement",
+          "motion_delay": "Délai d'activation",
+          "motion_off_delay": "Délai de désactivation",
+          "motion_preset": "Preset si mouvement",
+          "no_motion_preset": "Preset si pas de mouvement"
+        },
+        "data_description": {
           "motion_sensor_entity_id": "Détecteur de mouvement entity id",
-          "motion_delay": "Délai avant changement (seconds)",
+          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
+          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
         }
@@ -237,8 +245,16 @@
         "title": "Gestion de la détection de mouvement",
         "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
         "data": {
+          "motion_sensor_entity_id": "Détecteur de mouvement",
+          "motion_delay": "Délai d'activation",
+          "motion_off_delay": "Délai de désactivation",
+          "motion_preset": "Preset si mouvement",
+          "no_motion_preset": "Preset si pas de mouvement"
+        },
+        "data_description": {
           "motion_sensor_entity_id": "Détecteur de mouvement entity id",
-          "motion_delay": "Délai avant changement (seconds)",
+          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
+          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
         }

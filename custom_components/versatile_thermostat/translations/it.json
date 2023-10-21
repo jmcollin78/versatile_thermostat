@@ -93,6 +93,7 @@
         "data": {
           "motion_sensor_entity_id": "Entity id sensore di movimento",
           "motion_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "motion_off_delay": "Ritardo in secondi di disattivazione prima che del sensore sia preso in considerazione",
           "motion_preset": "Preset da utilizzare quando viene rilevato il movimento",
           "no_motion_preset": "Preset da utilizzare quando non viene rilevato il movimento"
         }
@@ -238,6 +239,7 @@
         "data": {
           "motion_sensor_entity_id": "Entity id sensore di movimento",
           "motion_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
+          "motion_off_delay": "Ritardo in secondi di disattivazione prima che del sensore sia preso in considerazione",
           "motion_preset": "Preset da utilizzare quando viene rilevato il movimento",
           "no_motion_preset": "Preset da utilizzare quando non viene rilevato il movimento"
         }
