@@ -20,9 +20,9 @@ from homeassistant.components.climate import (
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from ..climate import VersatileThermostat
-from ..const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from ..underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,

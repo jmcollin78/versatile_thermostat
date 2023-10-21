@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from ..open_window_algorithm import WindowOpenDetectionAlgorithm
+from custom_components.versatile_thermostat.open_window_algorithm import WindowOpenDetectionAlgorithm
 
 
 async def test_open_window_algo(
