@@ -1,3 +1,6 @@
+# pylint: disable=line-too-long
+# pylint: disable=too-many-lines
+# pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
@@ -1312,7 +1315,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self.recalculate()
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
-    def reset_last_change_time(self, old_preset_mode=None):
+    def reset_last_change_time(
+        self, old_preset_mode=None
+    ):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
         self._last_change_time = datetime.now(tz=self._current_tz)
         _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time)
@@ -1546,7 +1551,11 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Check delay condition
         async def try_motion_condition(_):
             try:
-                delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+                delay = (
+                    self._motion_delay_sec
+                    if new_state.state == STATE_ON
+                    else self._motion_off_delay_sec
+                )
                 long_enough = condition.state(
                     self.hass,
                     self._motion_sensor_entity_id,
@@ -1583,13 +1592,17 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 await self._async_control_heating(force=True)
             self._motion_call_cancel = None
 
-        im_on = (self._motion_state == STATE_ON)
-        delay_running = (self._motion_call_cancel is not None)
-        event_on = (new_state.state == STATE_ON)
+        im_on = self._motion_state == STATE_ON
+        delay_running = self._motion_call_cancel is not None
+        event_on = new_state.state == STATE_ON
 
         def arm():
-            """ Arm the timer"""
-            delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+            """Arm the timer"""
+            delay = (
+                self._motion_delay_sec
+                if new_state.state == STATE_ON
+                else self._motion_off_delay_sec
+            )
             self._motion_call_cancel = async_call_later(
                 self.hass, timedelta(seconds=delay), try_motion_condition
             )
@@ -1602,7 +1615,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # if I'm off
         if not im_on:
             if event_on and not delay_running:
-                _LOGGER.debug("%s - Arm delay cause i'm off and event is on and no delay is running", self)
+                _LOGGER.debug(
+                    "%s - Arm delay cause i'm off and event is on and no delay is running",
+                    self,
+                )
                 arm()
                 return try_motion_condition
             # Ignore the event
@@ -1614,7 +1630,10 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 arm()
                 return try_motion_condition
             if event_on and delay_running:
-                _LOGGER.debug("%s - Desarm off delay cause i'm on and event is on and a delay is running", self)
+                _LOGGER.debug(
+                    "%s - Desarm off delay cause i'm on and event is on and a delay is running",
+                    self,
+                )
                 desarm()
                 return None
             # Ignore the event
@@ -1696,9 +1715,7 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
         # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug(
-        #        "The underlying switch to idle instead of OFF. We will consider it as OFF"
-        #    )
+        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
         #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
@@ -1710,17 +1727,15 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             old_hvac_action,
         )
 
-        if new_hvac_mode in [
-            HVACMode.OFF,
-            HVACMode.HEAT,
-            HVACMode.COOL,
-            HVACMode.HEAT_COOL,
-            HVACMode.DRY,
-            HVACMode.AUTO,
-            HVACMode.FAN_ONLY,
-            None,
-        ]:
-            self._hvac_mode = new_hvac_mode
+        _LOGGER.debug(
+            "%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s",
+            self,
+            self._last_change_time,
+            old_state_date_changed,
+            old_state_date_updated,
+            new_state_date_changed,
+            new_state_date_updated,
+        )
 
         # Interpretation of hvac action
         HVAC_ACTION_ON = [  # pylint: disable=invalid-name
