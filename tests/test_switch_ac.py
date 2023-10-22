@@ -11,7 +11,7 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -31,7 +31,7 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
     now: datetime = datetime.now(tz=tz)
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -45,7 +45,7 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
                     return entity
 
         # The name is in the CONF and not the title of the entry
-        entity: VersatileThermostat = find_my_entity("climate.theoverswitchmockname")
+        entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
 
         assert entity
 

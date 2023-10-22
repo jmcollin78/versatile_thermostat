@@ -12,7 +12,7 @@ from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAG
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.sensor import (
     EnergySensor,
     MeanPowerSensor,

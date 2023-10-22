@@ -58,7 +58,7 @@ async def test_one_switch_cycle(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_BOOST)
@@ -82,7 +82,7 @@ async def test_one_switch_cycle(
 
     # Set temperature to a low level
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -117,7 +117,7 @@ async def test_one_switch_cycle(
     # Set a temperature at middle level
     event_timestamp = now - timedelta(minutes=4)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -139,7 +139,7 @@ async def test_one_switch_cycle(
     # Set another temperature at middle level
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -172,7 +172,7 @@ async def test_one_switch_cycle(
     # Simulate the end of heater on cycle
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -195,7 +195,7 @@ async def test_one_switch_cycle(
     # Simulate the start of heater on cycle
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -269,7 +269,7 @@ async def test_multiple_switchs(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -297,7 +297,7 @@ async def test_multiple_switchs(
 
     # Set temperature to a low level
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -335,7 +335,7 @@ async def test_multiple_switchs(
     # Set a temperature at middle level
     event_timestamp = now - timedelta(minutes=4)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -405,7 +405,7 @@ async def test_multiple_climates(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -431,7 +431,7 @@ async def test_multiple_climates(
 
     # Stop heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -505,7 +505,7 @@ async def test_multiple_climates_underlying_changes(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -531,7 +531,7 @@ async def test_multiple_climates_underlying_changes(
 
     # Stop heating on one underlying climate
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -558,7 +558,7 @@ async def test_multiple_climates_underlying_changes(
 
     # Start heating on one underlying climate
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode, patch(

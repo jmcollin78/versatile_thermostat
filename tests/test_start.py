@@ -10,7 +10,7 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -28,7 +28,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
     )
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -93,7 +93,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -160,7 +160,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
     )
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)

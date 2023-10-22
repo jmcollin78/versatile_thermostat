@@ -1,3 +1,5 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, unused-argument, line-too-long
+
 """ Test the normal start of a Thermostat """
 from unittest.mock import patch
 from datetime import timedelta, datetime
@@ -9,7 +11,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.binary_sensor import (
     SecurityBinarySensor,
     OverpoweringBinarySensor,
@@ -18,7 +20,7 @@ from custom_components.versatile_thermostat.binary_sensor import (
     PresenceBinarySensor,
 )
 
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import *
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -60,7 +62,7 @@ async def test_security_binary_sensors(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat (
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -141,7 +143,7 @@ async def test_overpowering_binary_sensors(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -223,7 +225,7 @@ async def test_window_binary_sensors(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -311,7 +313,7 @@ async def test_motion_binary_sensors(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -401,7 +403,7 @@ async def test_presence_binary_sensors(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -483,7 +485,7 @@ async def test_binary_sensors_over_climate_minimal(
             },
         )
 
-        entity: VersatileThermostat = await create_thermostat(
+        entity: BaseThermostat = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity
