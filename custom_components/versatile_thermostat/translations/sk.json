@@ -1,0 +1,332 @@
+{
+  "title": "Všestranná konfigurácia termostatu",
+  "config": {
+    "flow_title": "Všestranná konfigurácia termostatu",
+    "step": {
+      "user": {
+        "title": "Pridajte nový všestranný termostat",
+        "description": "Hlavné povinné atribúty",
+        "data": {
+          "name": "Názov",
+          "thermostat_type": "Termostat typ",
+          "temperature_sensor_entity_id": "ID entity snímača teploty",
+          "external_temperature_sensor_entity_id": "ID entity externého snímača teploty",
+          "cycle_min": "Trvanie cyklu (minúty)",
+          "temp_min": "Minimálna povolená teplota",
+          "temp_max": "Maximálna povolená teplota",
+          "device_power": "Napájanie zariadenia",
+          "use_window_feature": "Použite detekciu okien",
+          "use_motion_feature": "Použite detekciu pohybu",
+          "use_power_feature": "Použite správu napájania",
+          "use_presence_feature": "Použite detekciu prítomnosti"
+        }
+      },
+      "type": {
+        "title": "Prepojené entity",
+        "description": "Atribúty prepojených entít",
+        "data": {
+          "heater_entity_id": "1. spínač ohrievača",
+          "heater_entity2_id": "2. spínač ohrievača",
+          "heater_entity3_id": "3. spínač ohrievača",
+          "heater_entity4_id": "4. spínač ohrievača",
+          "proportional_function": "Algoritmus",
+          "climate_entity_id": "1. základná klíma",
+          "climate_entity2_id": "2. základná klíma",
+          "climate_entity3_id": "3. základná klíma",
+          "climate_entity4_id": "4. základná klíma",
+          "ac_mode": "AC režim"
+        },
+        "data_description": {
+          "heater_entity_id": "ID entity povinného ohrievača",
+          "heater_entity2_id": "Voliteľné ID entity 2. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "heater_entity3_id": "Voliteľné ID entity 3. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "heater_entity4_id": "Voliteľné ID entity 4. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (TPI je zatiaľ jediný)",
+          "climate_entity_id": "ID základnej klimatickej entity",
+          "climate_entity2_id": "2. základné identifikačné číslo klimatickej entity",
+          "climate_entity3_id": "3. základné identifikačné číslo klimatickej entity",
+          "climate_entity4_id": "4. základné identifikačné číslo klimatickej entity",
+          "ac_mode": "Použite režim klimatizácie (AC)"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Časovo proporcionálne integrálne atribúty",
+        "data": {
+          "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
+          "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty"
+        }
+      },
+      "presets": {
+        "title": "Predvoľby",
+        "description": "Pre každú predvoľbu zadajte cieľovú teplotu (0, ak chcete predvoľbu ignorovať)",
+        "data": {
+          "eco_temp": "Teplota v predvoľbe Eco",
+          "comfort_temp": "Prednastavená teplota v komfortnom režime",
+          "boost_temp": "Teplota v prednastavení Boost",
+          "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
+          "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+        }
+      },
+      "window": {
+        "title": "Správa okien",
+        "description": "Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
+        "data": {
+          "window_sensor_entity_id": "ID entity snímača okna",
+          "window_delay": "Oneskorenie snímača okna (sekundy)",
+          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/min)",
+          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/min)",
+          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
+          "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
+          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 0,05 a 0,1. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+        }
+      },
+      "motion": {
+        "title": "Riadenie pohybu",
+        "description": "Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
+        "data": {
+          "motion_sensor_entity_id": "ID entity snímača pohybu",
+          "motion_delay": "Oneskorenie aktivácie",
+          "motion_off_delay": "Oneskorenie deaktivácie",
+          "motion_preset": "Prednastavený pohyb",
+          "no_motion_preset": "Žiadna predvoľba pohybu"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID entity snímača pohybu",
+          "motion_delay": "Oneskorenie aktivácie pohybu (sekundy)",
+          "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
+          "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
+          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+        }
+      },
+      "power": {
+        "title": "Správa napájania",
+        "description": "Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
+        "data": {
+          "power_sensor_entity_id": "ID entity snímača výkonu",
+          "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_temp": "Teplota pre zníženie výkonu"
+        }
+      },
+      "presence": {
+        "title": "Riadenie prítomnosti",
+        "description": "Atribúty správy prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, ak je niekto prítomný).\nPotom zadajte buď predvoľbu, ktorá sa má použiť, keď je senzor prítomnosti nepravdivý, alebo posun teploty, ktorý sa má použiť.\nAk je zadaná predvoľba, posun sa nepoužije.\nAk sa nepoužije, ponechajte zodpovedajúce entity_id prázdne.",
+        "data": {
+          "presence_sensor_entity_id": "ID entity senzora prítomnosti",
+          "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
+          "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
+          "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
+          "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+        }
+      },
+      "advanced": {
+        "title": "Pokročilé parametre",
+        "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
+        "data": {
+          "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
+          "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
+          "security_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
+          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
+          "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
+          "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
+          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Neočakávaná chyba",
+      "unknown_entity": "Neznáme ID entity",
+      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+    },
+    "abort": {
+      "already_configured": "Zariadenie je už nakonfigurované"
+    }
+  },
+  "options": {
+    "flow_title": "Všestranná konfigurácia termostatu",
+    "step": {
+      "user": {
+        "title": "Pridajte nový všestranný termostat",
+        "description": "Hlavné povinné atribúty",
+        "data": {
+          "name": "Názov",
+          "thermostat_type": "Termostat typ",
+          "temperature_sensor_entity_id": "ID entity snímača teploty",
+          "external_temperature_sensor_entity_id": "ID entity externého snímača teploty",
+          "cycle_min": "Trvanie cyklu (minúty)",
+          "temp_min": "Minimálna povolená teplota",
+          "temp_max": "Maximálna povolená teplota",
+          "device_power": "Výkon zariadenia (kW)",
+          "use_window_feature": "Použite detekciu okien",
+          "use_motion_feature": "Použite detekciu pohybu",
+          "use_power_feature": "Použite správu napájania",
+          "use_presence_feature": "Použite detekciu prítomnosti"
+        }
+      },
+      "type": {
+        "title": "Prepojené entity",
+        "description": "Atribúty prepojených entít",
+        "data": {
+          "heater_entity_id": "Spínač ohrievača",
+          "heater_entity2_id": "2. spínač ohrievača",
+          "heater_entity3_id": "3. spínač ohrievača",
+          "heater_entity4_id": "4. spínač ohrievača",
+          "proportional_function": "Algoritmus",
+          "climate_entity_id": "Základná klíma",
+          "climate_entity2_id": "2. základná klíma",
+          "climate_entity3_id": "3. základná klíma",
+          "climate_entity4_id": "4. základná klíma",
+          "ac_mode": "AC režim"
+        },
+        "data_description": {
+          "heater_entity_id": "ID entity povinného ohrievača",
+          "heater_entity2_id": "Voliteľné ID entity 2. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "heater_entity3_id": "Voliteľné ID entity 3. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "heater_entity4_id": "Voliteľné ID entity 4. ohrievača. Ak sa nepoužíva, nechajte prázdne",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (TPI je zatiaľ jediný)",
+          "climate_entity_id": "ID základnej klimatickej entity",
+          "climate_entity2_id": "2. základný identifikátor klimatickej entity",
+          "climate_entity3_id": "3. základný identifikátor klimatickej entity",
+          "climate_entity4_id": "4. základný identifikátor klimatickej entity",
+          "ac_mode": "Použite režim klimatizácie (AC)"
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Časovo proporcionálne integrálne atribúty",
+        "data": {
+          "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
+          "tpi_coef_ext": "Koeficient na použitie pre vonkajšiu teplotnú deltu"
+        }
+      },
+      "presets": {
+        "title": "Predvoľby",
+        "description": "Pre každú predvoľbu zadajte cieľovú teplotu (0, ak chcete predvoľbu ignorovať)",
+        "data": {
+          "eco_temp": "Teplota v predvoľbe Eco",
+          "comfort_temp": "Prednastavená teplota v komfortnom režime",
+          "boost_temp": "Teplota v prednastavení Boost",
+          "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
+          "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+        }
+      },
+      "window": {
+        "title": "Správa okien",
+        "description": "Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
+        "data": {
+          "window_sensor_entity_id": "ID entity snímača okna",
+          "window_delay": "Oneskorenie snímača okna (sekundy)",
+          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/min)",
+          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/min)",
+          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
+          "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
+          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 0,05 a 0,1. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+        }
+      },
+      "motion": {
+        "title": "Riadenie pohybu",
+        "description": "Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
+        "data": {
+          "motion_sensor_entity_id": "ID entity snímača pohybu",
+          "motion_delay": "Oneskorenie aktivácie",
+          "motion_off_delay": "Oneskorenie deaktivácie",
+          "motion_preset": "Prednastavený pohyb",
+          "no_motion_preset": "Žiadna predvoľba pohybu"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID entity snímača pohybu",
+          "motion_delay": "Oneskorenie aktivácie pohybu (sekundy)",
+          "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
+          "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
+          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+        }
+      },
+      "power": {
+        "title": "Správa napájania",
+        "description": "Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
+        "data": {
+          "power_sensor_entity_id": "ID entity snímača výkonu",
+          "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_temp": "Teplota pre zníženie výkonu"
+        }
+      },
+      "presence": {
+        "title": "Riadenie prítomnosti",
+        "description": "Atribúty správy prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, ak je niekto prítomný).\nPotom zadajte buď predvoľbu, ktorá sa má použiť, keď je senzor prítomnosti nepravdivý, alebo posun teploty, ktorý sa má použiť.\nAk je zadaná predvoľba, posun sa nepoužije.\nAk sa nepoužije, ponechajte zodpovedajúce entity_id prázdne.",
+        "data": {
+          "presence_sensor_entity_id": "ID entity senzora prítomnosti (pravda je prítomná)",
+          "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
+          "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
+          "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
+          "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+        }
+      },
+      "advanced": {
+        "title": "Pokročilé parametre",
+        "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
+        "data": {
+          "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
+          "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
+          "security_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
+          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
+          "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
+          "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
+          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Neočakávaná chyba",
+      "unknown_entity": "Neznáme ID entity",
+      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+    },
+    "abort": {
+      "already_configured": "Zariadenie je už nakonfigurované"
+    }
+  },
+  "selector": {
+    "thermostat_type": {
+      "options": {
+        "thermostat_over_switch": "Termostat nad spínačom",
+        "thermostat_over_climate": "Termostat nad iným termostatom"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "power": "Vyradenie",
+              "security": "Zabezpečenie",
+              "none": "Manuálne"
+            }
+          }
+        }
+      }
+    }
+  }
+}
