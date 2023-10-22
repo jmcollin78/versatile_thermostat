@@ -34,7 +34,11 @@
           "climate_entity2_id": "Secundo termostato sottostante",
           "climate_entity3_id": "Terzo termostato sottostante",
           "climate_entity4_id": "Quarto termostato sottostante",
-          "ac_mode": "AC mode ?"
+          "ac_mode": "AC mode ?",
+          "valve_entity_id": "Primo valvola numero",
+          "valve_entity2_id": "Secondo valvola numero",
+          "valve_entity3_id": "Terzo valvola numero",
+          "valve_entity4_id": "Quarto valvola numero"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -46,7 +50,11 @@
           "climate_entity2_id": "Entity id del secundo termostato sottostante",
           "climate_entity3_id": "Entity id del terzo termostato sottostante",
           "climate_entity4_id": "Entity id del quarto termostato sottostante",
-          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
+          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?",
+          "valve_entity_id": "Entity id del primo valvola numero",
+          "valve_entity2_id": "Entity id del secondo valvola numero",
+          "valve_entity3_id": "Entity id del terzo valvola numero",
+          "valve_entity4_id": "Entity id del quarto valvola numero"
         }
       },
       "tpi": {
@@ -169,18 +177,22 @@
       },
       "type": {
         "title": "Entità collegate",
-        "description": "Attributi delle entità collegate",
+        "description": "Parametri entità collegate",
         "data": {
-          "heater_entity_id": "Interruttore riscaldatore",
-          "heater_entity2_id": "Secondo interruttore riscaldatore",
-          "heater_entity3_id": "Terzo interruttore riscaldatore",
-          "heater_entity4_id": "Quarto interruttore riscaldatore",
+          "heater_entity_id": "Primo riscaldatore",
+          "heater_entity2_id": "Secondo riscaldatore",
+          "heater_entity3_id": "Terzo riscaldatore",
+          "heater_entity4_id": "Quarto riscaldatore",
           "proportional_function": "Algoritmo",
           "climate_entity_id": "Termostato sottostante",
           "climate_entity2_id": "Secundo termostato sottostante",
           "climate_entity3_id": "Terzo termostato sottostante",
           "climate_entity4_id": "Quarto termostato sottostante",
-          "ac_mode": "AC mode ?"
+          "ac_mode": "AC mode ?",
+          "valve_entity_id": "Primo valvola numero",
+          "valve_entity2_id": "Secondo valvola numero",
+          "valve_entity3_id": "Terzo valvola numero",
+          "valve_entity4_id": "Quarto valvola numero"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -192,7 +204,11 @@
           "climate_entity2_id": "Entity id del secundo termostato sottostante",
           "climate_entity3_id": "Entity id del terzo termostato sottostante",
           "climate_entity4_id": "Entity id del quarto termostato sottostante",
-          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?"
+          "ac_mode": "Utilizzare la modalità AC (Air Conditioned) ?",
+          "valve_entity_id": "Entity id del primo valvola numero",
+          "valve_entity2_id": "Entity id del secondo valvola numero",
+          "valve_entity3_id": "Entity id del terzo valvola numero",
+          "valve_entity4_id": "Entity id del quarto valvola numero"
         }
       },
       "tpi": {
@@ -296,7 +312,8 @@
     "thermostat_type": {
       "options": {
         "thermostat_over_switch": "Termostato su un interruttore",
-        "thermostat_over_climate": "Termostato sopra un altro termostato"
+        "thermostat_over_climate": "Termostato sopra un altro termostato",
+        "thermostat_over_valve": "Thermostato su una valvola"
       }
     }
   },

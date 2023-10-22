@@ -310,7 +310,8 @@
     "thermostat_type": {
       "options": {
         "thermostat_over_switch": "Thermostat over a switch",
-        "thermostat_over_climate": "Thermostat over another thermostat"
+        "thermostat_over_climate": "Thermostat over another thermostat",
+        "thermostat_over_valve": "Thermostat over a valve"
       }
     }
   },
