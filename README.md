@@ -80,6 +80,12 @@ This thermostat can control 2 types of equipment:
 
 The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 
+Because this integration aims to control the radiator taking into account the configured preset and the ambient temperature, this information is mandatory.
+
+Some TRV type thermostats are known to be incompatible with the Versatile Thermostat. This is the case for the following valves:
+1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve and it self-regulates, causing conflicts with the VTherm,
+2. “Homematic radio” thermostatic valves. They have a duty cycle incompatible with control by the Versatile Thermostat
+
 # Why another thermostat implementation ?
 
 

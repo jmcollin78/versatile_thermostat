@@ -85,6 +85,7 @@ Parce que cette intégration vise à commander le radiateur en tenant compte du 
 
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
 1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle d'auto-régule d'elle-même causant des conflits avec le VTherm,
+2. les vannes thermstatiques "Homematic radio". Elles ont un cycle de service incompatible avec une commande par le Versatile Thermostat
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
