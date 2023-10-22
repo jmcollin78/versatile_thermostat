@@ -1,6 +1,6 @@
 {
     "[python]": {
-        "editor.defaultFormatter": "mikoz.black-py"
+        "editor.defaultFormatter": "ms-python.python"
     },
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,

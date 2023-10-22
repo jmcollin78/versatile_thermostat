@@ -1,3 +1,5 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Some common resources """
 import asyncio
 import logging
@@ -550,7 +552,7 @@ async def send_climate_change_event_with_temperature(
 
 def cancel_switchs_cycles(entity: BaseThermostat):
     """This method will cancel all running cycle on all underlying switch entity"""
-    if entity._is_over_climate:
+    if entity.is_over_climate:
         return
     for under in entity._underlyings:
         under._cancel_cycle()

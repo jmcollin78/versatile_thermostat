@@ -189,7 +189,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._security_state = None
 
         self._thermostat_type = None
-        self._is_over_climate = False
 
         self._attr_translation_key = "versatile_thermostat"
 
@@ -262,7 +261,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._underlyings = []
         self._thermostat_type = entry_infos.get(CONF_THERMOSTAT_TYPE)
         if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
-            self._is_over_climate = True
             for climate in [
                 CONF_CLIMATE,
                 CONF_CLIMATE_2,
@@ -426,7 +424,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         # Initiate the ProportionalAlgorithm
         if self._prop_algorithm is not None:
             del self._prop_algorithm
-        if not self._is_over_climate:
+        if not self.is_over_climate:
             self._prop_algorithm = PropAlgorithm(
                 self._proportional_function,
                 self._tpi_coef_int,
@@ -711,7 +709,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self.hass.create_task(self._check_switch_initial_state())
             # Start the control_heating
             # starts a cycle if we are in over_climate type
-            if self._is_over_climate:
+            if self.is_over_climate:
                 self.async_on_remove(
                     async_track_time_interval(
                         self.hass,
@@ -810,6 +808,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return f"VersatileThermostat-{self.name}"
 
     @property
+    def is_over_climate(self):
+        """ True if the Thermostat is over_climate"""
+        return False
+
+    @property
+    def is_over_switch(self):
+        """ True if the Thermostat is over_switch"""
+        return False
+
+    @property
+    def is_over_valve(self):
+        """ True if the Thermostat is over_valve"""
+        return False
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
@@ -835,7 +848,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def hvac_modes(self):
         """List of available operation modes."""
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).hvac_modes
 
         return self._hvac_list
@@ -851,7 +864,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.FAN_MODE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).fan_mode
 
         return None
@@ -862,7 +875,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.FAN_MODE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).fan_modes
 
         return []
@@ -873,7 +886,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.SWING_MODE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).swing_mode
 
         return None
@@ -884,7 +897,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.SWING_MODE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).swing_modes
 
         return None
@@ -892,7 +905,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).temperature_unit
 
         return self._unit
@@ -902,7 +915,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Return current operation."""
         # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
         # delta will be managed by climate_state_change event.
-        # if self._is_over_climate:
+        # if self.is_over_climate:
         # if one not OFF -> return it
         # else OFF
         #    for under in self._underlyings:
@@ -918,7 +931,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Need to be one of CURRENT_HVAC_*.
         """
-        if self._is_over_climate:
+        if self.is_over_climate:
             # if one not IDLE or OFF -> return it
             # else if one IDLE -> IDLE
             # else OFF
@@ -951,7 +964,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).supported_features | self._support_flags
 
         return self._support_flags
@@ -972,7 +985,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def target_temperature_step(self) -> float | None:
         """Return the supported step of target temperature."""
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).target_temperature_step
 
         return None
@@ -983,7 +996,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).target_temperature_high
 
         return None
@@ -994,7 +1007,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).target_temperature_low
 
         return None
@@ -1005,7 +1018,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         Requires ClimateEntityFeature.AUX_HEAT.
         """
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).is_aux_heat
 
         return None
@@ -1013,7 +1026,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def mean_cycle_power(self) -> float | None:
         """Returns the mean power consumption during the cycle"""
-        if not self._device_power or self._is_over_climate:
+        if not self._device_power or self.is_over_climate:
             return None
 
         return float(
@@ -1094,12 +1107,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return self._attr_preset_modes
 
     @property
-    def is_over_climate(self) -> bool | None:
-        """return True is the thermostat is over a climate
-        or False is over switch"""
-        return self._is_over_climate
-
-    @property
     def last_temperature_slope(self) -> float | None:
         """Return the last temperature slope curve if any"""
         if not self._window_auto_algo:
@@ -1133,14 +1140,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
-        if self._is_over_climate and self.underlying_entity(0):
+        if self.is_over_climate and self.underlying_entity(0):
             return self.underlying_entity(0).turn_aux_heat_on()
 
         raise NotImplementedError()
 
     async def async_turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
-        if self._is_over_climate:
+        if self.is_over_climate:
             for under in self._underlyings:
                 await under.async_turn_aux_heat_on()
 
@@ -1148,7 +1155,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     def turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
-        if self._is_over_climate:
+        if self.is_over_climate:
             for under in self._underlyings:
                 return under.turn_aux_heat_off()
 
@@ -1156,7 +1163,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     async def async_turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
-        if self._is_over_climate:
+        if self.is_over_climate:
             for under in self._underlyings:
                 await under.async_turn_aux_heat_off()
 
@@ -1273,7 +1280,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
             if self._ac_mode and (
-                self._hvac_mode == HVACMode.COOL or not self._is_over_climate
+                self._hvac_mode == HVACMode.COOL or not self.is_over_climate
             ):
                 preset_mode = preset_mode + PRESET_AC_SUFFIX
 
@@ -1292,7 +1299,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
-        if fan_mode is None or not self._is_over_climate:
+        if fan_mode is None or not self.is_over_climate:
             return
 
         for under in self._underlyings:
@@ -1303,7 +1310,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
         _LOGGER.info("%s - Set fan mode: %s", self, humidity)
-        if humidity is None or not self._is_over_climate:
+        if humidity is None or not self.is_over_climate:
             return
         for under in self._underlyings:
             await under.set_humidity(humidity)
@@ -1313,7 +1320,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     async def async_set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
         _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
-        if swing_mode is None or not self._is_over_climate:
+        if swing_mode is None or not self.is_over_climate:
             return
         for under in self._underlyings:
             await under.set_swing_mode(swing_mode)
@@ -1335,7 +1342,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     async def _async_internal_set_temperature(self, temperature):
         """Set the target temperature and the target temperature of underlying climate if any"""
         self._target_temp = temperature
-        if not self._is_over_climate:
+        if not self.is_over_climate:
             return
 
         for under in self._underlyings:
@@ -1737,7 +1744,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             changes = True
             self._hvac_mode = new_hvac_mode
             # Update all underlyings state
-            if self._is_over_climate:
+            if self.is_over_climate:
                 for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
 
@@ -1749,7 +1756,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 new_state.attributes,
             )
             if (
-                self._is_over_climate
+                self.is_over_climate
                 and new_state.attributes
                 and (new_target_temp := new_state.attributes.get("temperature"))
                 and new_target_temp != self.target_temperature
@@ -2094,7 +2101,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if (
             old_hvac_mode == HVACMode.OFF
             and self.hvac_mode != HVACMode.OFF
-            and self._is_over_climate
+            and self.is_over_climate
         ):
             _LOGGER.info(
                 "%s - force resent target temp cause we turn on some over climate"
@@ -2136,7 +2143,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 "%s - overpowering is detected. Heater preset will be set to 'power'",
                 self,
             )
-            if self._is_over_climate:
+            if self.is_over_climate:
                 self.save_hvac_mode()
             self.save_preset_mode()
             await self._async_underlying_entity_turn_off()
@@ -2162,7 +2169,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 self,
                 self._saved_preset_mode,
             )
-            if self._is_over_climate:
+            if self.is_over_climate:
                 await self.restore_hvac_mode(False)
             await self.restore_preset_mode()
             self.send_event(
@@ -2194,12 +2201,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             delta_temp > self._security_delay_min
             or delta_ext_temp > self._security_delay_min
         )
-        climate_cond: bool = self._is_over_climate and self.hvac_action not in [
+        climate_cond: bool = self.is_over_climate and self.hvac_action not in [
             HVACAction.COOLING,
             HVACAction.IDLE,
         ]
         switch_cond: bool = (
-            not self._is_over_climate
+            not self.is_over_climate
             and self._prop_algorithm is not None
             and self._prop_algorithm.calculated_on_percent
             >= self._security_min_on_percent
@@ -2274,7 +2281,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self.save_preset_mode()
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
             # Turn off the underlying climate or heater if security default on_percent is 0
-            if self._is_over_climate or self._security_default_on_percent <= 0.0:
+            if self.is_over_climate or self._security_default_on_percent <= 0.0:
                 await self.async_set_hvac_mode(HVACMode.OFF, False)
             if self._prop_algorithm:
                 self._prop_algorithm.set_security(self._security_default_on_percent)
@@ -2304,7 +2311,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
             self._security_state = False
             # Restore hvac_mode if previously saved
-            if self._is_over_climate or self._security_default_on_percent <= 0.0:
+            if self.is_over_climate or self._security_default_on_percent <= 0.0:
                 await self.restore_hvac_mode(False)
             await self.restore_preset_mode()
             if self._prop_algorithm:
@@ -2360,7 +2367,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return True
 
         security: bool = await self.check_security()
-        if security and self._is_over_climate:
+        if security and self.is_over_climate:
             _LOGGER.debug("%s - End of cycle (security and over climate)", self)
             return True
 
@@ -2372,7 +2379,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 await self._async_underlying_entity_turn_off()
             return True
 
-        if not self._is_over_climate:
+        if not self.is_over_climate:
             for under in self._underlyings:
                 await under.start_cycle(
                     self._hvac_mode,
@@ -2389,7 +2396,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate all", self)
-        if not self._is_over_climate:
+        if not self.is_over_climate:
             self._prop_algorithm.calculate(
                 self._target_temp,
                 self._cur_temp,
@@ -2405,10 +2412,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return
 
         added_energy = 0
-        if self._is_over_climate and self._underlying_climate_delta_t is not None:
+        if self.is_over_climate and self._underlying_climate_delta_t is not None:
             added_energy = self._device_power * self._underlying_climate_delta_t
 
-        if not self._is_over_climate and self.mean_cycle_power is not None:
+        if not self.is_over_climate and self.mean_cycle_power is not None:
             added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
 
         self._total_energy += added_energy
@@ -2481,7 +2488,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "power_sensor_entity_id": self._power_sensor_entity_id,
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
         }
-        if self._is_over_climate:
+        if self.is_over_climate:
             self._attr_extra_state_attributes[
                 "underlying_climate_0"
             ] = self._underlyings[0].entity_id

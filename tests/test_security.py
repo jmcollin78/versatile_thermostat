@@ -235,7 +235,7 @@ async def test_security_over_climate(
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
-        assert entity._is_over_climate is True
+        assert entity.is_over_climate is True
 
         # Because the underlying is HEATING. In real life the underlying will be shut-off
         assert entity.hvac_action is HVACAction.HEATING

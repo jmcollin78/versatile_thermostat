@@ -12,20 +12,40 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_is_state):   # pylint: disable=unused-argument
+async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_state):   # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="TheOverSwitchACMockName",
+        title="TheOverValveMockName",
         unique_id="uniqueId",
-        data=FULL_SWITCH_AC_CONFIG,
+        data={
+            CONF_NAME: "TheOverValveMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_VALVE: "number.mock_valve",
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            # CONF_DEVICE_POWER: 100,
+        },
     )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -46,14 +66,16 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
                     return entity
 
         # The name is in the CONF and not the title of the entry
-        entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
+        entity: BaseThermostat = find_my_entity("climate.theovervalvemockname")
 
         assert entity
-        assert isinstance(entity, ThermostatOverSwitch)
+        assert isinstance(entity, ThermostatOverValve)
 
-        assert entity.name == "TheOverSwitchMockName"
-        assert entity.is_over_climate is False     # pylint: disable=protected-access
-        assert entity.ac_mode is True
+        assert entity.name == "TheOverValveMockName"
+        assert entity.is_over_climate is False
+        assert entity.is_over_switch is False
+        assert entity.is_over_valve is True
+        assert entity.ac_mode is False
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.hvac_modes == [HVACMode.COOL, HVACMode.OFF]
