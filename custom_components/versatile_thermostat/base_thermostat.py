@@ -24,7 +24,6 @@ from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_call_later,
-    async_track_time_interval,
 )
 
 from homeassistant.exceptions import ConditionError
@@ -63,10 +62,6 @@ from homeassistant.const import (
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
-    CONF_HEATER,
-    CONF_HEATER_2,
-    CONF_HEATER_3,
-    CONF_HEATER_4,
     CONF_POWER_SENSOR,
     CONF_TEMP_SENSOR,
     CONF_EXTERNAL_TEMP_SENSOR,
@@ -106,13 +101,6 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     HIDDEN_PRESETS,
-    CONF_THERMOSTAT_TYPE,
-    # CONF_THERMOSTAT_SWITCH,
-    CONF_THERMOSTAT_CLIMATE,
-    CONF_CLIMATE,
-    CONF_CLIMATE_2,
-    CONF_CLIMATE_3,
-    CONF_CLIMATE_4,
     CONF_AC_MODE,
     UnknownEntity,
     EventType,
@@ -121,7 +109,7 @@ from .const import (
     PRESET_AC_SUFFIX,
 )
 
-from .underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingEntity
+from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
@@ -257,43 +245,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
 
-        # Initialize underlying entities
+        # Initialize underlying entities (will be done in subclasses)
         self._underlyings = []
-        self._thermostat_type = entry_infos.get(CONF_THERMOSTAT_TYPE)
-        if self._thermostat_type == CONF_THERMOSTAT_CLIMATE:
-            for climate in [
-                CONF_CLIMATE,
-                CONF_CLIMATE_2,
-                CONF_CLIMATE_3,
-                CONF_CLIMATE_4,
-            ]:
-                if entry_infos.get(climate):
-                    self._underlyings.append(
-                        UnderlyingClimate(
-                            hass=self._hass,
-                            thermostat=self,
-                            climate_entity_id=entry_infos.get(climate),
-                        )
-                    )
-        else:
-            lst_switches = [entry_infos.get(CONF_HEATER)]
-            if entry_infos.get(CONF_HEATER_2):
-                lst_switches.append(entry_infos.get(CONF_HEATER_2))
-            if entry_infos.get(CONF_HEATER_3):
-                lst_switches.append(entry_infos.get(CONF_HEATER_3))
-            if entry_infos.get(CONF_HEATER_4):
-                lst_switches.append(entry_infos.get(CONF_HEATER_4))
-
-            delta_cycle = self._cycle_min * 60 / len(lst_switches)
-            for idx, switch in enumerate(lst_switches):
-                self._underlyings.append(
-                    UnderlyingSwitch(
-                        hass=self._hass,
-                        thermostat=self,
-                        switch_entity_id=switch,
-                        initial_delay_sec=idx * delta_cycle,
-                    )
-                )
 
         self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
@@ -419,7 +372,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._last_temperature_mesure = datetime.now(tz=self._current_tz)
         self._last_ext_temperature_mesure = datetime.now(tz=self._current_tz)
         self._security_state = False
-        self._saved_hvac_mode = None
 
         # Initiate the ProportionalAlgorithm
         if self._prop_algorithm is not None:
@@ -471,22 +423,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug("Calling async_added_to_hass")
 
         await super().async_added_to_hass()
-
-        # Add listener to all underlying entities
-        if self.is_over_climate:
-            for climate in self._underlyings:
-                self.async_on_remove(
-                    async_track_state_change_event(
-                        self.hass, [climate.entity_id], self._async_climate_changed
-                    )
-                )
-        else:
-            for switch in self._underlyings:
-                self.async_on_remove(
-                    async_track_state_change_event(
-                        self.hass, [switch.entity_id], self._async_switch_changed
-                    )
-                )
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -707,18 +643,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     )
 
             self.hass.create_task(self._check_switch_initial_state())
-            # Start the control_heating
-            # starts a cycle if we are in over_climate type
-            if self.is_over_climate:
-                self.async_on_remove(
-                    async_track_time_interval(
-                        self.hass,
-                        self._async_control_heating,
-                        interval=timedelta(minutes=self._cycle_min),
-                    )
-                )
-            else:
-                self.hass.create_task(self._async_control_heating())
 
             self.reset_last_change_time()
 
@@ -848,9 +772,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def hvac_modes(self):
         """List of available operation modes."""
-        if self.is_over_climate and self.underlying_entity(0):
-            return self.underlying_entity(0).hvac_modes
-
         return self._hvac_list
 
     @property
@@ -928,26 +849,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation if supported.
-
         Need to be one of CURRENT_HVAC_*.
         """
-        if self.is_over_climate:
-            # if one not IDLE or OFF -> return it
-            # else if one IDLE -> IDLE
-            # else OFF
-            one_idle = False
-            for under in self._underlyings:
-                if (action := under.hvac_action) not in [
-                    HVACAction.IDLE,
-                    HVACAction.OFF,
-                ]:
-                    return action
-                if under.hvac_action == HVACAction.IDLE:
-                    one_idle = True
-            if one_idle:
-                return HVACAction.IDLE
-            return HVACAction.OFF
-
         if self._hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
         if not self._is_device_active:

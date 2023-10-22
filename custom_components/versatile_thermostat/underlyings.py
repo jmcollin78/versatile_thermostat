@@ -1,3 +1,5 @@
+# pylint: disable=unused-argument, line-too-long
+
 """ Underlying entities classes """
 import logging
 from typing import Any
@@ -41,6 +43,9 @@ class UnderlyingEntityType(StrEnum):
 
     # a climate
     CLIMATE = "climate"
+
+    # a valve
+    VALVE = "valve"
 
 
 class UnderlyingEntity:
@@ -626,3 +631,182 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return None
         return self._underlying_climate.turn_aux_heat_off()
+
+class UnderlyingValve(UnderlyingEntity):
+    """Represent a underlying switch"""
+
+    _hvac_mode: HVACMode
+    # The percentage of opening the valve
+    _percent_open: int
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        valve_entity_id: str
+    ) -> None:
+        """Initialize the underlying switch"""
+
+        super().__init__(
+            hass=hass,
+            thermostat=thermostat,
+            entity_type=UnderlyingEntityType.VALVE,
+            entity_id=valve_entity_id,
+        )
+        self._async_cancel_cycle = None
+        self._should_relaunch_control_heating = False
+        self._hvac_mode = None
+        self._percent_open = 0
+
+    async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
+        """Set the HVACmode. Returns true if something have change"""
+
+        if hvac_mode == HVACMode.OFF:
+            if self.is_device_active:
+                await self.turn_off()
+            self._cancel_cycle()
+
+        if self._hvac_mode != hvac_mode:
+            self._hvac_mode = hvac_mode
+            return True
+        else:
+            return False
+
+    @property
+    def is_device_active(self):
+        """If the toggleable device is currently active."""
+        try:
+            return float(self._hass.states.get(self._entity_id)) > 0
+        except Exception: # pylint: disable=broad-exception-caught
+            return False
+
+    async def start_cycle(
+        self,
+        hvac_mode: HVACMode,
+        force=False,
+    ):
+        """Starting cycle for switch"""
+        _LOGGER.debug(
+            "%s - Starting new cycle hvac_mode=%s percent_open=%d force=%s",
+            self,
+            hvac_mode,
+            self._percent_open,
+            force,
+        )
+
+        self._hvac_mode = hvac_mode
+
+        # Cancel eventual previous cycle if any
+        if self._async_cancel_cycle is not None:
+            if force:
+                _LOGGER.debug("%s - we force a new cycle", self)
+                self._cancel_cycle()
+            else:
+                _LOGGER.debug(
+                    "%s - A previous cycle is alredy running and no force -> waits for its end",
+                    self,
+                )
+                # self._should_relaunch_control_heating = True
+                _LOGGER.debug("%s - End of cycle (2)", self)
+                return
+
+        # If we should heat, starts the cycle with delay
+        if self._hvac_mode in [HVACMode.HEAT, HVACMode.COOL] and self._percent_open > 0:
+            # Starts the cycle after the initial delay
+            self._async_cancel_cycle = self.call_later(
+                self._hass, 0, self._turn_on_later
+            )
+            _LOGGER.debug("%s - _async_cancel_cycle=%s", self, self._async_cancel_cycle)
+
+        # if we not heat but device is active
+        elif self.is_device_active:
+            _LOGGER.info(
+                "%s - stop heating (2)",
+                self,
+            )
+            await self.turn_off()
+        else:
+            _LOGGER.debug("%s - nothing to do", self)
+
+    def _cancel_cycle(self):
+        """Cancel the cycle"""
+        if self._async_cancel_cycle:
+            self._async_cancel_cycle()
+            self._async_cancel_cycle = None
+            _LOGGER.debug("%s - Stopping cycle during calculation", self)
+
+    async def _turn_on_later(self, _):
+        """Turn the heater on after a delay"""
+        _LOGGER.debug(
+            "%s - calling turn_on_later hvac_mode=%s, should_relaunch_later=%s",
+            self,
+            self._hvac_mode,
+            self._should_relaunch_control_heating,
+        )
+
+        self._cancel_cycle()
+
+        if self._hvac_mode == HVACMode.OFF:
+            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
+            if self.is_device_active:
+                await self.turn_off()
+            return
+
+        if await self._thermostat.check_overpowering():
+            _LOGGER.debug("%s - End of cycle (3)", self)
+            return
+        # Security mode could have change the on_time percent
+        await self._thermostat.check_security()
+
+        action_label = "start"
+
+        _LOGGER.info(
+            "%s - %s heating",
+            self,
+            action_label,
+        )
+        await self.turn_on()
+
+        self._async_cancel_cycle = self.call_later(
+            self._hass,
+            0,
+            self._turn_off_later,
+        )
+
+    async def _turn_off_later(self, _):
+        """Turn the heater off and call the next cycle after the delay"""
+        _LOGGER.debug(
+            "%s - calling turn_off_later hvac_mode=%s, should_relaunch_later=%s",
+            self,
+            self._hvac_mode,
+            self._should_relaunch_control_heating,
+        )
+        self._cancel_cycle()
+
+        if self._hvac_mode == HVACMode.OFF:
+            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
+            if self.is_device_active:
+                await self.turn_off()
+            return
+
+        action_label = "stop"
+
+        _LOGGER.info(
+            "%s - %s heating",
+            self,
+            action_label
+        )
+        await self.turn_off()
+
+        self._async_cancel_cycle = self.call_later(
+            self._hass,
+            0,
+            self._turn_on_later
+        )
+
+        # increment energy at the end of the cycle
+        self._thermostat.incremente_energy()
+
+    def remove_entity(self):
+        """Remove the entity after stopping its cycle"""
+        self._cancel_cycle()

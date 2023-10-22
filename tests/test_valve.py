@@ -30,21 +30,39 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_VALVE: "number.mock_valve",
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            CONF_USE_WINDOW_FEATURE: False,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
-            CONF_VALVE: "number.mock_valve",
+            PRESET_ECO + "_temp": 17,
+            PRESET_COMFORT + "_temp": 19,
+            PRESET_BOOST + "_temp": 21,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: True,
+            CONF_USE_POWER_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
+            CONF_MOTION_SENSOR: "input_boolean.motion_sensor",
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_DELAY: 10,
+            CONF_MOTION_DELAY: 10,
+            CONF_MOTION_OFF_DELAY: 30,
+            CONF_MOTION_PRESET: PRESET_COMFORT,
+            CONF_NO_MOTION_PRESET: PRESET_ECO,
+            CONF_POWER_SENSOR: "sensor.power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
+            CONF_PRESENCE_SENSOR: "person.presence_sensor",
+            PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 17.1,
+            PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17.2,
+            PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 17.3,
+            CONF_PRESET_POWER: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            # CONF_DEVICE_POWER: 100,
+            CONF_DEVICE_POWER: 100,
+            CONF_AC_MODE: False
         },
     )
 
@@ -76,10 +94,10 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.is_over_switch is False
         assert entity.is_over_valve is True
         assert entity.ac_mode is False
-        assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_modes == [HVACMode.COOL, HVACMode.OFF]
-        assert entity.target_temperature == entity.max_temp
+        assert entity.hvac_action is HVACAction.OFF
+        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.OFF]
+        assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
             PRESET_ECO,
