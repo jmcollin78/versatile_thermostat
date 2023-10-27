@@ -97,3 +97,37 @@ class ThermostatOverClimate(BaseThermostat):
                 interval=timedelta(minutes=self._cycle_min),
             )
         )
+
+    def update_custom_attributes(self):
+        """ Custom attributes """
+        super().update_custom_attributes()
+
+        self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
+        self._attr_extra_state_attributes["start_hvac_action_date"] = (
+            self._underlying_climate_start_hvac_action_date)
+        self._attr_extra_state_attributes["underlying_climate_0"] = (
+                self._underlyings[0].entity_id)
+        self._attr_extra_state_attributes["underlying_climate_1"] = (
+                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
+            )
+        self._attr_extra_state_attributes["underlying_climate_2"] = (
+                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
+            )
+        self._attr_extra_state_attributes["underlying_climate_3"] = (
+                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+            )
+
+        self.async_write_ha_state()
+        _LOGGER.debug(
+            "%s - Calling update_custom_attributes: %s",
+            self,
+            self._attr_extra_state_attributes,
+        )
+
+    def recalculate(self):
+        """A utility function to force the calculation of a the algo and
+        update the custom attributes and write the state
+        """
+        _LOGGER.debug("%s - recalculate all", self)
+        self.update_custom_attributes()
+        self.async_write_ha_state()

@@ -852,12 +852,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         Need to be one of CURRENT_HVAC_*.
         """
         if self._hvac_mode == HVACMode.OFF:
-            return HVACAction.OFF
-        if not self.is_device_active:
-            return HVACAction.IDLE
-        if self._hvac_mode == HVACMode.COOL:
-            return HVACAction.COOLING
-        return HVACAction.HEATING
+            action = HVACAction.OFF
+        elif not self.is_device_active:
+            action = HVACAction.IDLE
+        elif self._hvac_mode == HVACMode.COOL:
+            action = HVACAction.COOLING
+        else:
+            action = HVACAction.HEATING
+        return action
 
     @property
     def target_temperature(self):
@@ -2329,11 +2331,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._total_energy,
         )
 
-    # TODO implement this with overrides
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
 
         self._attr_extra_state_attributes: dict(str, str) = {
+            "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
@@ -2392,56 +2394,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "power_sensor_entity_id": self._power_sensor_entity_id,
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
         }
-        if self.is_over_climate:
-            self._attr_extra_state_attributes[
-                "underlying_climate_0"
-            ] = self._underlyings[0].entity_id
-            self._attr_extra_state_attributes["underlying_climate_1"] = (
-                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-            )
-            self._attr_extra_state_attributes["underlying_climate_2"] = (
-                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-            )
-            self._attr_extra_state_attributes["underlying_climate_3"] = (
-                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-            )
-
-            self._attr_extra_state_attributes[
-                "start_hvac_action_date"
-            ] = self._underlying_climate_start_hvac_action_date
-        else:
-            self._attr_extra_state_attributes[
-                "underlying_switch_1"
-            ] = self._underlyings[0].entity_id
-            self._attr_extra_state_attributes["underlying_switch_2"] = (
-                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-            )
-            self._attr_extra_state_attributes["underlying_switch_3"] = (
-                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-            )
-            self._attr_extra_state_attributes["underlying_switch_4"] = (
-                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-            )
-            self._attr_extra_state_attributes[
-                "on_percent"
-            ] = self._prop_algorithm.on_percent
-            self._attr_extra_state_attributes[
-                "on_time_sec"
-            ] = self._prop_algorithm.on_time_sec
-            self._attr_extra_state_attributes[
-                "off_time_sec"
-            ] = self._prop_algorithm.off_time_sec
-            self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
-            self._attr_extra_state_attributes["function"] = self._proportional_function
-            self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
-            self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
-
-        self.async_write_ha_state()
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
 
     @callback
     def async_registry_entry_updated(self):

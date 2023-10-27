@@ -44,6 +44,12 @@ input_number:
         step: 10
         icon: mdi:flash
         unit_of_measurement: kW
+    fake_valve1:
+        name: The valve 1
+        min: 0
+        max: 100
+        icon: mdi:pipe-valve
+        unit_of_measurement: percentage
 
 input_boolean:
     # input_boolean to simulate the windows entity. Only for development environment.

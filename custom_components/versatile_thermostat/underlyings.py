@@ -662,9 +662,10 @@ class UnderlyingValve(UnderlyingEntity):
         """ Send the percent open to the underlying valve """
         # This may fails if called after shutdown
         try:
-            data = { "value": self._percent_open }
+            data = { ATTR_ENTITY_ID: self._entity_id, "value": self._percent_open }
+            domain = self._entity_id.split('.')[0]
             await self._hass.services.async_call(
-                HA_DOMAIN,
+                domain,
                 SERVICE_SET_VALUE,
                 data,
             )
@@ -697,7 +698,10 @@ class UnderlyingValve(UnderlyingEntity):
     def is_device_active(self):
         """If the toggleable device is currently active."""
         try:
-            return float(self._hass.states.get(self._entity_id)) > 0
+            return self._percent_open > 0
+            # To test if real device is open but this is causing some side effect
+            # because the activation can be deferred -
+            # or float(self._hass.states.get(self._entity_id).state) > 0
         except Exception: # pylint: disable=broad-exception-caught
             return False
 
@@ -711,20 +715,22 @@ class UnderlyingValve(UnderlyingEntity):
         force=False,
     ):
         """We use this function to change the on_percent"""
+        if force:
+            await self.send_percent_open()
+
+    def set_valve_open_percent(self, percent):
+        """ Update the valve open percent """
         caped_val = self._thermostat.valve_open_percent
-        if not force and self._percent_open == caped_val:
+        if self._percent_open == caped_val:
             # No changes
             return
 
         self._percent_open = caped_val
         # Send the new command to valve via a service call
 
-        try:
-            _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
-
-            await self.send_percent_open()
-        except ServiceNotFound as err:
-            _LOGGER.error(err)
+        _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
+        # Send the change to the valve, in background
+        self._hass.create_task(self.send_percent_open())
 
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""

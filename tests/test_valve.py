@@ -17,7 +17,6 @@ from custom_components.versatile_thermostat.thermostat_valve import ThermostatOv
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_state):   # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
@@ -160,7 +159,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
     ) as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.get", return_value=90
+        "homeassistant.core.StateMachine.get", return_value=State(entity_id="number.mock_valve", state="90")
     ):
         # Change temperature
         event_timestamp = now - timedelta(minutes=10)
@@ -174,20 +173,8 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
 
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls([
-            call.async_call(
-                HA_DOMAIN,
-                SERVICE_SET_VALUE,
-                {
-                    "value": 90
-                }
-            ),
-            call.async_call(
-                HA_DOMAIN,
-                SERVICE_SET_VALUE,
-                {
-                    "value": 98
-                }
-            )
+            call.async_call('number', 'set_value', {'entity_id': 'number.mock_valve', 'value': 90}),
+            call.async_call('number', 'set_value', {'entity_id': 'number.mock_valve', 'value': 98})
         ])
 
         assert mock_send_event.call_count == 0
@@ -238,8 +225,8 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.presence_state == STATE_OFF   # pylint: disable=protected-access
         assert entity.valve_open_percent == 10
         assert entity.target_temperature == 17.1 # eco_away
-        assert entity.is_device_active is False
-        assert entity.hvac_action == HVACAction.IDLE
+        assert entity.is_device_active is True
+        assert entity.hvac_action == HVACAction.HEATING
 
         # Open a window
         with patch(

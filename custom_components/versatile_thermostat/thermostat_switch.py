@@ -2,6 +2,7 @@
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.components.climate import HVACMode
 
 from .const import (
     CONF_HEATER,
@@ -66,3 +67,55 @@ class ThermostatOverSwitch(BaseThermostat):
         )
 
         self.hass.create_task(self.async_control_heating())
+
+    def update_custom_attributes(self):
+        """ Custom attributes """
+        super().update_custom_attributes()
+
+        self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
+        self._attr_extra_state_attributes["underlying_switch_0"] = (
+                self._underlyings[0].entity_id)
+        self._attr_extra_state_attributes["underlying_switch_1"] = (
+                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
+            )
+        self._attr_extra_state_attributes["underlying_switch_2"] = (
+                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
+            )
+        self._attr_extra_state_attributes["underlying_switch_3"] = (
+                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+            )
+
+        self._attr_extra_state_attributes[
+                "on_percent"
+            ] = self._prop_algorithm.on_percent
+        self._attr_extra_state_attributes[
+            "on_time_sec"
+        ] = self._prop_algorithm.on_time_sec
+        self._attr_extra_state_attributes[
+            "off_time_sec"
+        ] = self._prop_algorithm.off_time_sec
+        self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
+        self._attr_extra_state_attributes["function"] = self._proportional_function
+        self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
+        self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
+
+        self.async_write_ha_state()
+        _LOGGER.debug(
+            "%s - Calling update_custom_attributes: %s",
+            self,
+            self._attr_extra_state_attributes,
+        )
+
+    def recalculate(self):
+        """A utility function to force the calculation of a the algo and
+        update the custom attributes and write the state
+        """
+        _LOGGER.debug("%s - recalculate all", self)
+        self._prop_algorithm.calculate(
+            self._target_temp,
+            self._cur_temp,
+            self._cur_ext_temp,
+            self._hvac_mode == HVACMode.COOL,
+        )
+        self.update_custom_attributes()
+        self.async_write_ha_state()
