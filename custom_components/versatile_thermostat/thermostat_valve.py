@@ -31,7 +31,10 @@ class ThermostatOverValve(BaseThermostat):
     @property
     def valve_open_percent(self) -> int:
         """ Gives the percentage of valve needed"""
-        return round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
+        if self._hvac_mode == HVACMode.OFF:
+            return 0
+        else:
+            return round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
 
     def post_init(self, entry_infos):
         """ Initialize the Thermostat"""

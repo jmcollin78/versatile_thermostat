@@ -658,13 +658,34 @@ class UnderlyingValve(UnderlyingEntity):
         self._hvac_mode = None
         self._percent_open = self._thermostat.valve_open_percent
 
+    async def send_percent_open(self):
+        """ Send the percent open to the underlying valve """
+        # This may fails if called after shutdown
+        try:
+            data = { "value": self._percent_open }
+            await self._hass.services.async_call(
+                HA_DOMAIN,
+                SERVICE_SET_VALUE,
+                data,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+
+    async def turn_off(self):
+        """Turn heater toggleable device off."""
+        _LOGGER.debug("%s - Stopping underlying valve entity %s", self, self._entity_id)
+        self._percent_open = 0
+        if self.is_device_active:
+            await self.send_percent_open()
+
+    async def turn_on(self):
+        """Nothing to do for Valve because it cannot be turned off"""
+
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
         if hvac_mode == HVACMode.OFF:
-            if self.is_device_active:
-                await self.turn_off()
-            self._cancel_cycle()
+            await self.turn_off()
 
         if self._hvac_mode != hvac_mode:
             self._hvac_mode = hvac_mode
@@ -701,12 +722,7 @@ class UnderlyingValve(UnderlyingEntity):
         try:
             _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
 
-            data = { "value": self._percent_open }
-            await self._hass.services.async_call(
-                HA_DOMAIN,
-                SERVICE_SET_VALUE,
-                data,
-            )
+            await self.send_percent_open()
         except ServiceNotFound as err:
             _LOGGER.error(err)
 
