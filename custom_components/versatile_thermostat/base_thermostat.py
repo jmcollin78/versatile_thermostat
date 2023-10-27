@@ -732,17 +732,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return f"VersatileThermostat-{self.name}"
 
     @property
-    def is_over_climate(self):
+    def is_over_climate(self) -> bool:
         """ True if the Thermostat is over_climate"""
         return False
 
     @property
-    def is_over_switch(self):
+    def is_over_switch(self) -> bool:
         """ True if the Thermostat is over_switch"""
         return False
 
     @property
-    def is_over_valve(self):
+    def is_over_valve(self) -> bool:
         """ True if the Thermostat is over_valve"""
         return False
 
@@ -853,7 +853,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """
         if self._hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
-        if not self._is_device_active:
+        if not self.is_device_active:
             return HVACAction.IDLE
         if self._hvac_mode == HVACMode.COOL:
             return HVACAction.COOLING
@@ -873,7 +873,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return self._support_flags
 
     @property
-    def _is_device_active(self):
+    def is_device_active(self):
         """Returns true if one underlying is active"""
         for under in self._underlyings:
             if under.is_device_active:
@@ -1093,7 +1093,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
 
         if need_control_heating and sub_need_control_heating:
-            await self._async_control_heating(force=True)
+            await self.async_control_heating(force=True)
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
@@ -1107,7 +1107,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     async def async_set_preset_mode(self, preset_mode):
         """Set new preset mode."""
         await self._async_set_preset_mode_internal(preset_mode)
-        await self._async_control_heating(force=True)
+        await self.async_control_heating(force=True)
 
     async def _async_set_preset_mode_internal(self, preset_mode, force=False):
         """Set new preset mode."""
@@ -1240,7 +1240,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._attr_preset_mode = PRESET_NONE
         self.recalculate()
         self.reset_last_change_time()
-        await self._async_control_heating(force=True)
+        await self.async_control_heating(force=True)
 
     async def _async_internal_set_temperature(self, temperature):
         """Set the target temperature and the target temperature of underlying climate if any"""
@@ -1290,7 +1290,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         await self._async_update_temp(new_state)
         self.recalculate()
-        await self._async_control_heating(force=False)
+        await self.async_control_heating(force=False)
 
     async def _async_ext_temperature_changed(self, event: Event):
         """Handle external temperature opf the sensor changes."""
@@ -1305,7 +1305,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         await self._async_update_ext_temp(new_state)
         self.recalculate()
-        await self._async_control_heating(force=False)
+        await self.async_control_heating(force=False)
 
     @callback
     async def _async_windows_changed(self, event):
@@ -1431,7 +1431,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                         self.find_preset_temp(new_preset)
                     )
                 self.recalculate()
-                await self._async_control_heating(force=True)
+                await self.async_control_heating(force=True)
             self._motion_call_cancel = None
 
         im_on = self._motion_state == STATE_ON
@@ -1519,7 +1519,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             if changes:
                 self.async_write_ha_state()
                 self.update_custom_attributes()
-                await self._async_control_heating()
+                await self.async_control_heating()
 
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
@@ -1746,7 +1746,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._current_power = current_power
 
             if self._attr_preset_mode == PRESET_POWER:
-                await self._async_control_heating()
+                await self.async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1771,7 +1771,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 raise ValueError(f"Sensor has illegal state {new_state.state}")
             self._current_power_max = current_power_max
             if self._attr_preset_mode == PRESET_POWER:
-                await self._async_control_heating()
+                await self.async_control_heating()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
@@ -1791,7 +1791,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return
 
         await self._async_update_presence(new_state.state)
-        await self._async_control_heating(force=True)
+        await self.async_control_heating(force=True)
 
     async def _async_update_presence(self, new_state):
         _LOGGER.debug("%s - Updating presence. New state is %s", self, new_state)
@@ -2237,7 +2237,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         return shouldBeInSecurity
 
-    async def _async_control_heating(self, force=False, _=None):
+    async def async_control_heating(self, force=False, _=None):
         """The main function used to run the calculation at each cycle"""
 
         _LOGGER.debug(
@@ -2278,18 +2278,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if self._hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
             # A security to force stop heater if still active
-            if self._is_device_active:
+            if self.is_device_active:
                 await self._async_underlying_entity_turn_off()
             return True
 
-        if not self.is_over_climate:
-            for under in self._underlyings:
-                await under.start_cycle(
-                    self._hvac_mode,
-                    self._prop_algorithm.on_time_sec,
-                    self._prop_algorithm.off_time_sec,
-                    force,
-                )
+        for under in self._underlyings:
+            await under.start_cycle(
+                self._hvac_mode,
+                self._prop_algorithm.on_time_sec if self._prop_algorithm else None,
+                self._prop_algorithm.off_time_sec if self._prop_algorithm else None,
+                self._prop_algorithm.on_percent if self._prop_algorithm else None,
+                force,
+            )
 
         self.update_custom_attributes()
         return True
@@ -2329,6 +2329,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._total_energy,
         )
 
+    # TODO implement this with overrides
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
 
@@ -2459,7 +2460,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """
         _LOGGER.info("%s - Calling service_set_presence, presence: %s", self, presence)
         await self._async_update_presence(presence)
-        await self._async_control_heating(force=True)
+        await self.async_control_heating(force=True)
 
     async def service_set_preset_temperature(
         self, preset, temperature=None, temperature_away=None
@@ -2498,7 +2499,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             await self._async_set_preset_mode_internal(
                 preset.rstrip(PRESET_AC_SUFFIX), force=True
             )
-            await self._async_control_heating(force=True)
+            await self.async_control_heating(force=True)
 
     async def service_set_security(self, delay_min, min_on_percent, default_on_percent):
         """Called by a service call:
@@ -2527,7 +2528,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if self._prop_algorithm and self._security_state:
             self._prop_algorithm.set_security(self._security_default_on_percent)
 
-        await self._async_control_heating()
+        await self.async_control_heating()
         self.update_custom_attributes()
 
     def send_event(self, event_type: EventType, data: dict):

@@ -62,9 +62,9 @@ async def test_bug_56(
         # Should not failed
         entity.update_custom_attributes()
 
-        # try to call _async_control_heating
+        # try to call async_control_heating
         try:
-            ret = await entity._async_control_heating()
+            ret = await entity.async_control_heating()
             # an exception should be send
             assert ret is False
         except Exception:  # pylint: disable=broad-exception-caught
@@ -75,9 +75,9 @@ async def test_bug_56(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=the_mock_underlying,  # dont find the underlying climate
     ):
-        # try to call _async_control_heating
+        # try to call async_control_heating
         try:
-            await entity._async_control_heating()
+            await entity.async_control_heating()
         except UnknownEntity:
             assert False
         except Exception:  # pylint: disable=broad-exception-caught

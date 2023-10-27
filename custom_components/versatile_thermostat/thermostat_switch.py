@@ -24,7 +24,7 @@ class ThermostatOverSwitch(BaseThermostat):
         super().__init__(hass, unique_id, name, entry_infos)
 
     @property
-    def is_over_switch(self):
+    def is_over_switch(self) -> bool:
         """ True if the Thermostat is over_switch"""
         return True
 
@@ -65,4 +65,4 @@ class ThermostatOverSwitch(BaseThermostat):
                 )
         )
 
-        self.hass.create_task(self._async_control_heating())
+        self.hass.create_task(self.async_control_heating())

@@ -82,7 +82,7 @@ def skip_hass_states_get_fixture():
 def skip_control_heating_fixture():
     """Skip the control_heating of VersatileThermostat"""
     with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         yield
 

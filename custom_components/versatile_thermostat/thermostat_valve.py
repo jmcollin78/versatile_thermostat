@@ -24,9 +24,14 @@ class ThermostatOverValve(BaseThermostat):
         super().__init__(hass, unique_id, name, entry_infos)
 
     @property
-    def is_over_valve(self):
+    def is_over_valve(self) -> bool:
         """ True if the Thermostat is over_valve"""
         return True
+
+    @property
+    def valve_open_percent(self) -> int:
+        """ Gives the percentage of valve needed"""
+        return round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
 
     def post_init(self, entry_infos):
         """ Initialize the Thermostat"""
@@ -40,7 +45,7 @@ class ThermostatOverValve(BaseThermostat):
         if entry_infos.get(CONF_VALVE_4):
             lst_valves.append(entry_infos.get(CONF_VALVE_4))
 
-        for valve in enumerate(lst_valves):
+        for _, valve in enumerate(lst_valves):
             self._underlyings.append(
                 UnderlyingValve(
                     hass=self._hass,
@@ -68,7 +73,7 @@ class ThermostatOverValve(BaseThermostat):
         self.async_on_remove(
             async_track_time_interval(
                 self.hass,
-                self._async_control_heating,
+                self.async_control_heating,
                 interval=timedelta(minutes=self._cycle_min),
             )
         )
@@ -90,7 +95,7 @@ class ThermostatOverValve(BaseThermostat):
             if changes:
                 self.async_write_ha_state()
                 self.update_custom_attributes()
-                await self._async_control_heating()
+                await self.async_control_heating()
 
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)

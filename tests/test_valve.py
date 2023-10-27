@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long
+
 """ Test the normal start of a Switch AC Thermostat """
 from unittest.mock import patch, call
 from datetime import datetime, timedelta
@@ -11,7 +13,6 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -84,7 +85,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
                     return entity
 
         # The name is in the CONF and not the title of the entry
-        entity: BaseThermostat = find_my_entity("climate.theovervalvemockname")
+        entity: ThermostatOverValve = find_my_entity("climate.theovervalvemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverValve)
@@ -114,7 +115,6 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
-
         mock_send_event.assert_has_calls(
             [
                 call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
@@ -125,9 +125,73 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             ]
         )
 
+    # Set the HVACMode to HEAT, with manual preset and target_temp to 18 before receiving temperature
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event:
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode is HVACMode.COOL
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        #
+        assert entity.hvac_mode is HVACMode.HEAT
+        # No heating now
+        assert entity.valve_open_percent == 0
+        assert entity.hvac_action == HVACAction.IDLE
+        assert mock_send_event.call_count == 1
+        mock_send_event.assert_has_calls(
+            [
+                call.send_event(
+                    EventType.HVAC_MODE_EVENT,
+                    {"hvac_mode": HVACMode.HEAT},
+                ),
+            ]
+        )
+
+        # set manual target temp
+        await entity.async_set_temperature(temperature=18)
+        assert entity.preset_mode == PRESET_NONE # Manual mode
+        assert entity.target_temperature == 18
+        # Nothing have changed cause we don't have room and external temperature
+        assert mock_send_event.call_count == 1
+
+
+    # Set temperature and external temperature
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "homeassistant.core.ServiceRegistry.async_call"
+    ) as mock_service_call, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingValve.is_device_active", return_value=True
+    ):
+        # Change temperature
+        event_timestamp = now - timedelta(minutes=10)
+        await send_temperature_change_event(entity, 15, datetime.now())
+        await send_ext_temperature_change_event(entity, 10, datetime.now())
+        # Should heating strongly now
+        assert entity.valve_open_percent == 98
+        assert entity.is_device_active is True
+        assert entity.hvac_action == HVACAction.HEATING
+
+        assert mock_service_call.call_count == 2
+        mock_service_call.assert_has_calls([
+            call.async_call(
+                HA_DOMAIN,
+                SERVICE_SET_VALUE,
+                {
+                    "value": 90
+                }
+            ),
+            call.async_call(
+                HA_DOMAIN,
+                SERVICE_SET_VALUE,
+                {
+                    "value": 98
+                }
+            )
+        ])
+
+        assert mock_send_event.call_count == 0
+
+        # ICI
 
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)

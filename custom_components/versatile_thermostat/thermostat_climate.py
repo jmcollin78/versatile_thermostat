@@ -23,7 +23,7 @@ class ThermostatOverClimate(BaseThermostat):
         super().__init__(hass, unique_id, name, entry_infos)
 
     @property
-    def is_over_climate(self):
+    def is_over_climate(self) -> bool:
         """ True if the Thermostat is over_climate"""
         return True
 
@@ -93,7 +93,7 @@ class ThermostatOverClimate(BaseThermostat):
         self.async_on_remove(
             async_track_time_interval(
                 self.hass,
-                self._async_control_heating,
+                self.async_control_heating,
                 interval=timedelta(minutes=self._cycle_min),
             )
         )

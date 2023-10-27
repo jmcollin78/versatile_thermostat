@@ -227,3 +227,14 @@ class UnknownEntity(HomeAssistantError):
 
 class WindowOpenDetectionMethod(HomeAssistantError):
     """Error to indicate there is an error in the window open detection method given."""
+
+class overrides: # pylint: disable=invalid-name
+    """ An annotation to inform overrides """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        return self.func.__get__(instance, owner)
+
+    def __call__(self, *args, **kwargs):
+        raise RuntimeError(f"Method {self.func.__name__} should have been overridden")

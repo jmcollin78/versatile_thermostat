@@ -64,7 +64,7 @@ async def test_movement_management_time_not_enough(
 
     # start heating, in boost mode, when someone is present. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -261,7 +261,7 @@ async def test_movement_management_time_enough_and_presence(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -393,7 +393,7 @@ async def test_movement_management_time_enoughand_not_presence(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -527,7 +527,7 @@ async def test_movement_management_with_stop_during_condition(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)

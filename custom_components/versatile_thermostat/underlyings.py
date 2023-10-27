@@ -24,10 +24,13 @@ from homeassistant.components.climate import (
     SERVICE_TURN_ON,
     SERVICE_SET_TEMPERATURE,
 )
+
+from homeassistant.components.number import SERVICE_SET_VALUE
+
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 
-from .const import UnknownEntity
+from .const import UnknownEntity, overrides
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -160,6 +163,19 @@ class UnderlyingEntity:
         """Call the method after a delay"""
         return async_call_later(hass, delay_sec, called_method)
 
+    async def start_cycle(
+        self,
+        hvac_mode: HVACMode,
+        on_time_sec: int,
+        off_time_sec: int,
+        on_percent: int,
+        force=False,
+    ):
+        """Starting cycle for switch"""
+
+    def _cancel_cycle(self):
+        """ Stops an eventual cycle """
+
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -215,11 +231,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         """If the toggleable device is currently active."""
         return self._hass.states.is_state(self._entity_id, STATE_ON)
 
+    @overrides
     async def start_cycle(
         self,
         hvac_mode: HVACMode,
         on_time_sec: int,
         off_time_sec: int,
+        on_percent: int,
         force=False,
     ):
         """Starting cycle for switch"""
@@ -270,6 +288,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         else:
             _LOGGER.debug("%s - nothing to do", self)
 
+    @overrides
     def _cancel_cycle(self):
         """Cancel the cycle"""
         if self._async_cancel_cycle:
@@ -303,15 +322,6 @@ class UnderlyingSwitch(UnderlyingEntity):
         time = self._on_time_sec
 
         action_label = "start"
-        # if self._should_relaunch_control_heating:
-        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-        #    self._should_relaunch_control_heating = False
-        #    # self.hass.create_task(self._async_control_heating())
-        #    await self.start_cycle(
-        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
-        #    )
-        #    _LOGGER.debug("%s - End of cycle (3)", self)
-        #    return
 
         if time > 0:
             _LOGGER.info(
@@ -348,16 +358,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         action_label = "stop"
-        # if self._should_relaunch_control_heating:
-        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-        #    self._should_relaunch_control_heating = False
-        #    # self.hass.create_task(self._async_control_heating())
-        #    await self.start_cycle(
-        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
-        #    )
-        #    _LOGGER.debug("%s - End of cycle (3)", self)
-        #    return
-
         time = self._off_time_sec
 
         if time > 0:
@@ -636,7 +636,7 @@ class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
 
     _hvac_mode: HVACMode
-    # The percentage of opening the valve
+    # This is the percentage of opening int integer (from 0 to 100)
     _percent_open: int
 
     def __init__(
@@ -656,7 +656,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._async_cancel_cycle = None
         self._should_relaunch_control_heating = False
         self._hvac_mode = None
-        self._percent_open = 0
+        self._percent_open = self._thermostat.valve_open_percent
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
@@ -680,132 +680,35 @@ class UnderlyingValve(UnderlyingEntity):
         except Exception: # pylint: disable=broad-exception-caught
             return False
 
+    @overrides
     async def start_cycle(
         self,
         hvac_mode: HVACMode,
+        _1,
+        _2,
+        _3,
         force=False,
     ):
-        """Starting cycle for switch"""
-        _LOGGER.debug(
-            "%s - Starting new cycle hvac_mode=%s percent_open=%d force=%s",
-            self,
-            hvac_mode,
-            self._percent_open,
-            force,
-        )
+        """We use this function to change the on_percent"""
+        caped_val = self._thermostat.valve_open_percent
+        if not force and self._percent_open == caped_val:
+            # No changes
+            return
 
-        self._hvac_mode = hvac_mode
+        self._percent_open = caped_val
+        # Send the new command to valve via a service call
 
-        # Cancel eventual previous cycle if any
-        if self._async_cancel_cycle is not None:
-            if force:
-                _LOGGER.debug("%s - we force a new cycle", self)
-                self._cancel_cycle()
-            else:
-                _LOGGER.debug(
-                    "%s - A previous cycle is alredy running and no force -> waits for its end",
-                    self,
-                )
-                # self._should_relaunch_control_heating = True
-                _LOGGER.debug("%s - End of cycle (2)", self)
-                return
+        try:
+            _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
 
-        # If we should heat, starts the cycle with delay
-        if self._hvac_mode in [HVACMode.HEAT, HVACMode.COOL] and self._percent_open > 0:
-            # Starts the cycle after the initial delay
-            self._async_cancel_cycle = self.call_later(
-                self._hass, 0, self._turn_on_later
+            data = { "value": self._percent_open }
+            await self._hass.services.async_call(
+                HA_DOMAIN,
+                SERVICE_SET_VALUE,
+                data,
             )
-            _LOGGER.debug("%s - _async_cancel_cycle=%s", self, self._async_cancel_cycle)
-
-        # if we not heat but device is active
-        elif self.is_device_active:
-            _LOGGER.info(
-                "%s - stop heating (2)",
-                self,
-            )
-            await self.turn_off()
-        else:
-            _LOGGER.debug("%s - nothing to do", self)
-
-    def _cancel_cycle(self):
-        """Cancel the cycle"""
-        if self._async_cancel_cycle:
-            self._async_cancel_cycle()
-            self._async_cancel_cycle = None
-            _LOGGER.debug("%s - Stopping cycle during calculation", self)
-
-    async def _turn_on_later(self, _):
-        """Turn the heater on after a delay"""
-        _LOGGER.debug(
-            "%s - calling turn_on_later hvac_mode=%s, should_relaunch_later=%s",
-            self,
-            self._hvac_mode,
-            self._should_relaunch_control_heating,
-        )
-
-        self._cancel_cycle()
-
-        if self._hvac_mode == HVACMode.OFF:
-            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.is_device_active:
-                await self.turn_off()
-            return
-
-        if await self._thermostat.check_overpowering():
-            _LOGGER.debug("%s - End of cycle (3)", self)
-            return
-        # Security mode could have change the on_time percent
-        await self._thermostat.check_security()
-
-        action_label = "start"
-
-        _LOGGER.info(
-            "%s - %s heating",
-            self,
-            action_label,
-        )
-        await self.turn_on()
-
-        self._async_cancel_cycle = self.call_later(
-            self._hass,
-            0,
-            self._turn_off_later,
-        )
-
-    async def _turn_off_later(self, _):
-        """Turn the heater off and call the next cycle after the delay"""
-        _LOGGER.debug(
-            "%s - calling turn_off_later hvac_mode=%s, should_relaunch_later=%s",
-            self,
-            self._hvac_mode,
-            self._should_relaunch_control_heating,
-        )
-        self._cancel_cycle()
-
-        if self._hvac_mode == HVACMode.OFF:
-            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.is_device_active:
-                await self.turn_off()
-            return
-
-        action_label = "stop"
-
-        _LOGGER.info(
-            "%s - %s heating",
-            self,
-            action_label
-        )
-        await self.turn_off()
-
-        self._async_cancel_cycle = self.call_later(
-            self._hass,
-            0,
-            self._turn_on_later
-        )
-
-        # increment energy at the end of the cycle
-        self._thermostat.incremente_energy()
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
 
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
