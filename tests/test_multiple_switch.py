@@ -58,7 +58,7 @@ async def test_one_switch_cycle(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_BOOST)
@@ -75,14 +75,14 @@ async def test_one_switch_cycle(
     with patch(
         "homeassistant.core.StateMachine.is_state", return_value=False
     ) as mock_is_state:
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
         # Should be call for the Switch
         assert mock_is_state.call_count == 1
 
     # Set temperature to a low level
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -117,7 +117,7 @@ async def test_one_switch_cycle(
     # Set a temperature at middle level
     event_timestamp = now - timedelta(minutes=4)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -139,7 +139,7 @@ async def test_one_switch_cycle(
     # Set another temperature at middle level
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -172,7 +172,7 @@ async def test_one_switch_cycle(
     # Simulate the end of heater on cycle
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -195,7 +195,7 @@ async def test_one_switch_cycle(
     # Simulate the start of heater on cycle
     event_timestamp = now - timedelta(minutes=3)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -269,7 +269,7 @@ async def test_multiple_switchs(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -285,7 +285,7 @@ async def test_multiple_switchs(
         await send_temperature_change_event(entity, 15, event_timestamp)
 
         # Checks that all climates are off
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
         # Should be call for all Switch
         assert mock_underlying_set_hvac_mode.call_count == 4
@@ -297,7 +297,7 @@ async def test_multiple_switchs(
 
     # Set temperature to a low level
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -335,7 +335,7 @@ async def test_multiple_switchs(
     # Set a temperature at middle level
     event_timestamp = now - timedelta(minutes=4)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -405,7 +405,7 @@ async def test_multiple_climates(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -427,11 +427,11 @@ async def test_multiple_climates(
                 call.set_hvac_mode(HVACMode.HEAT),
             ]
         )
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Stop heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -452,7 +452,7 @@ async def test_multiple_climates(
                 call.set_hvac_mode(HVACMode.OFF),
             ]
         )
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -505,7 +505,7 @@ async def test_multiple_climates_underlying_changes(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -527,11 +527,11 @@ async def test_multiple_climates_underlying_changes(
                 call.set_hvac_mode(HVACMode.HEAT),
             ]
         )
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Stop heating on one underlying climate
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
@@ -554,11 +554,11 @@ async def test_multiple_climates_underlying_changes(
             ]
         )
         assert entity.hvac_mode == HVACMode.OFF
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Start heating on one underlying climate
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode, patch(
@@ -587,4 +587,4 @@ async def test_multiple_climates_underlying_changes(
         )
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.hvac_action == HVACAction.IDLE
-        assert entity._is_device_active is False  # pylint: disable=protected-access
+        assert entity.is_device_active is False  # pylint: disable=protected-access

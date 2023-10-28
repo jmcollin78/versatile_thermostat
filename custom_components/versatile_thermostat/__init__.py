@@ -8,7 +8,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .climate import VersatileThermostat
+from .base_thermostat import BaseThermostat
 
 from .const import DOMAIN, PLATFORMS
 

@@ -1,10 +1,12 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Test the Window management """
 from unittest.mock import patch, call
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from datetime import datetime, timedelta
 
 import logging
 
+from .commons import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 
@@ -49,7 +51,7 @@ async def test_bug_56(
             },
         )
 
-        entity: VersatileThermostat = await create_thermostat(
+        entity: BaseThermostat = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity
@@ -60,9 +62,9 @@ async def test_bug_56(
         # Should not failed
         entity.update_custom_attributes()
 
-        # try to call _async_control_heating
+        # try to call async_control_heating
         try:
-            ret = await entity._async_control_heating()
+            ret = await entity.async_control_heating()
             # an exception should be send
             assert ret is False
         except Exception:  # pylint: disable=broad-exception-caught
@@ -73,9 +75,9 @@ async def test_bug_56(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=the_mock_underlying,  # dont find the underlying climate
     ):
-        # try to call _async_control_heating
+        # try to call async_control_heating
         try:
-            await entity._async_control_heating()
+            await entity.async_control_heating()
         except UnknownEntity:
             assert False
         except Exception:  # pylint: disable=broad-exception-caught
@@ -126,7 +128,7 @@ async def test_bug_63(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -178,7 +180,7 @@ async def test_bug_64(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -230,7 +232,7 @@ async def test_bug_66(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -245,7 +247,7 @@ async def test_bug_66(
 
     # Open the window and let the thermostat shut down
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -273,7 +275,7 @@ async def test_bug_66(
 
     # Close the window but too shortly
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -296,7 +298,7 @@ async def test_bug_66(
 
     # Reopen immediatly with sufficient time
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -319,7 +321,7 @@ async def test_bug_66(
 
     # Close the window but with sufficient time this time
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -366,7 +368,7 @@ async def test_bug_82(
     fake_underlying_climate = MockUnavailableClimate(hass, "mockUniqueId", "MockClimateName", {})
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -387,7 +389,7 @@ async def test_bug_82(
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
-        assert entity._is_over_climate is True
+        assert entity.is_over_climate is True
         # assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         # assert entity.hvac_mode is None
@@ -431,10 +433,10 @@ async def test_bug_82(
 
         # 2. activate security feature when date is expired
         with patch(
-            "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-        ) as mock_heater_on:
+        ):
             event_timestamp = now - timedelta(minutes=6)
 
             # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
@@ -468,7 +470,7 @@ async def test_bug_101(
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -491,7 +493,7 @@ async def test_bug_101(
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
-        assert entity._is_over_climate is True
+        assert entity.is_over_climate is True
         assert entity.hvac_mode is HVACMode.OFF
         # because the underlying is heating. In real life the underlying should be shut-off
         assert entity.hvac_action is HVACAction.HEATING
@@ -540,6 +542,3 @@ async def test_bug_101(
         await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, event_timestamp, 12.75)
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE
-
-
-

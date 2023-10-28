@@ -1,3 +1,5 @@
+# pylint: disable=unused-argument, line-too-long
+
 """ Underlying entities classes """
 import logging
 from typing import Any
@@ -22,10 +24,13 @@ from homeassistant.components.climate import (
     SERVICE_TURN_ON,
     SERVICE_SET_TEMPERATURE,
 )
+
+from homeassistant.components.number import SERVICE_SET_VALUE
+
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 
-from .const import UnknownEntity
+from .const import UnknownEntity, overrides
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +46,9 @@ class UnderlyingEntityType(StrEnum):
 
     # a climate
     CLIMATE = "climate"
+
+    # a valve
+    VALVE = "valve"
 
 
 class UnderlyingEntity:
@@ -140,7 +148,7 @@ class UnderlyingEntity:
                 self._entity_id,
             )
             await self.set_hvac_mode(hvac_mode)
-        elif hvac_mode != HVACMode.OFF and self.is_device_active:
+        elif hvac_mode != HVACMode.OFF and not self.is_device_active:
             _LOGGER.warning(
                 "%s - The hvac mode is ON, but the underlying device is not ON. Turning on device %s",
                 self,
@@ -154,6 +162,19 @@ class UnderlyingEntity:
     ) -> CALLBACK_TYPE:
         """Call the method after a delay"""
         return async_call_later(hass, delay_sec, called_method)
+
+    async def start_cycle(
+        self,
+        hvac_mode: HVACMode,
+        on_time_sec: int,
+        off_time_sec: int,
+        on_percent: int,
+        force=False,
+    ):
+        """Starting cycle for switch"""
+
+    def _cancel_cycle(self):
+        """ Stops an eventual cycle """
 
 
 class UnderlyingSwitch(UnderlyingEntity):
@@ -210,11 +231,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         """If the toggleable device is currently active."""
         return self._hass.states.is_state(self._entity_id, STATE_ON)
 
+    @overrides
     async def start_cycle(
         self,
         hvac_mode: HVACMode,
         on_time_sec: int,
         off_time_sec: int,
+        on_percent: int,
         force=False,
     ):
         """Starting cycle for switch"""
@@ -265,6 +288,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         else:
             _LOGGER.debug("%s - nothing to do", self)
 
+    @overrides
     def _cancel_cycle(self):
         """Cancel the cycle"""
         if self._async_cancel_cycle:
@@ -298,15 +322,6 @@ class UnderlyingSwitch(UnderlyingEntity):
         time = self._on_time_sec
 
         action_label = "start"
-        # if self._should_relaunch_control_heating:
-        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-        #    self._should_relaunch_control_heating = False
-        #    # self.hass.create_task(self._async_control_heating())
-        #    await self.start_cycle(
-        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
-        #    )
-        #    _LOGGER.debug("%s - End of cycle (3)", self)
-        #    return
 
         if time > 0:
             _LOGGER.info(
@@ -343,16 +358,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         action_label = "stop"
-        # if self._should_relaunch_control_heating:
-        #    _LOGGER.debug("Don't %s cause a cycle have to be relaunch", action_label)
-        #    self._should_relaunch_control_heating = False
-        #    # self.hass.create_task(self._async_control_heating())
-        #    await self.start_cycle(
-        #        self._hvac_mode, self._on_time_sec, self._off_time_sec
-        #    )
-        #    _LOGGER.debug("%s - End of cycle (3)", self)
-        #    return
-
         time = self._off_time_sec
 
         if time > 0:
@@ -626,3 +631,107 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return None
         return self._underlying_climate.turn_aux_heat_off()
+
+class UnderlyingValve(UnderlyingEntity):
+    """Represent a underlying switch"""
+
+    _hvac_mode: HVACMode
+    # This is the percentage of opening int integer (from 0 to 100)
+    _percent_open: int
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        valve_entity_id: str
+    ) -> None:
+        """Initialize the underlying switch"""
+
+        super().__init__(
+            hass=hass,
+            thermostat=thermostat,
+            entity_type=UnderlyingEntityType.VALVE,
+            entity_id=valve_entity_id,
+        )
+        self._async_cancel_cycle = None
+        self._should_relaunch_control_heating = False
+        self._hvac_mode = None
+        self._percent_open = self._thermostat.valve_open_percent
+
+    async def send_percent_open(self):
+        """ Send the percent open to the underlying valve """
+        # This may fails if called after shutdown
+        try:
+            data = { ATTR_ENTITY_ID: self._entity_id, "value": self._percent_open }
+            domain = self._entity_id.split('.')[0]
+            await self._hass.services.async_call(
+                domain,
+                SERVICE_SET_VALUE,
+                data,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+
+    async def turn_off(self):
+        """Turn heater toggleable device off."""
+        _LOGGER.debug("%s - Stopping underlying valve entity %s", self, self._entity_id)
+        self._percent_open = 0
+        if self.is_device_active:
+            await self.send_percent_open()
+
+    async def turn_on(self):
+        """Nothing to do for Valve because it cannot be turned off"""
+
+    async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
+        """Set the HVACmode. Returns true if something have change"""
+
+        if hvac_mode == HVACMode.OFF:
+            await self.turn_off()
+
+        if self._hvac_mode != hvac_mode:
+            self._hvac_mode = hvac_mode
+            return True
+        else:
+            return False
+
+    @property
+    def is_device_active(self):
+        """If the toggleable device is currently active."""
+        try:
+            return self._percent_open > 0
+            # To test if real device is open but this is causing some side effect
+            # because the activation can be deferred -
+            # or float(self._hass.states.get(self._entity_id).state) > 0
+        except Exception: # pylint: disable=broad-exception-caught
+            return False
+
+    @overrides
+    async def start_cycle(
+        self,
+        hvac_mode: HVACMode,
+        _1,
+        _2,
+        _3,
+        force=False,
+    ):
+        """We use this function to change the on_percent"""
+        if force:
+            await self.send_percent_open()
+
+    def set_valve_open_percent(self, percent):
+        """ Update the valve open percent """
+        caped_val = self._thermostat.valve_open_percent
+        if self._percent_open == caped_val:
+            # No changes
+            return
+
+        self._percent_open = caped_val
+        # Send the new command to valve via a service call
+
+        _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
+        # Send the change to the valve, in background
+        self._hass.create_task(self.send_percent_open())
+
+    def remove_entity(self):
+        """Remove the entity after stopping its cycle"""
+        self._cancel_cycle()

@@ -8,7 +8,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.event import async_track_state_change_event, async_call_later
 
-from .climate import VersatileThermostat
+from .base_thermostat import BaseThermostat
 from .const import DOMAIN, DEVICE_MANUFACTURER
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class VersatileThermostatBaseEntity(Entity):
     """A base class for all entities"""
 
-    _my_climate: VersatileThermostat
+    _my_climate: BaseThermostat
     hass: HomeAssistant
     _config_id: str
     _device_name: str
@@ -37,7 +37,7 @@ class VersatileThermostatBaseEntity(Entity):
         return False
 
     @property
-    def my_climate(self) -> VersatileThermostat | None:
+    def my_climate(self) -> BaseThermostat | None:
         """Returns my climate if found"""
         if not self._my_climate:
             self._my_climate = self.find_my_versatile_thermostat()
@@ -54,7 +54,7 @@ class VersatileThermostatBaseEntity(Entity):
             model=DOMAIN,
         )
 
-    def find_my_versatile_thermostat(self) -> VersatileThermostat:
+    def find_my_versatile_thermostat(self) -> BaseThermostat:
         """Find the underlying climate entity"""
         try:
             component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]

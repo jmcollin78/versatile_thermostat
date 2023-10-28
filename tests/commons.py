@@ -1,3 +1,5 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Some common resources """
 import asyncio
 import logging
@@ -20,7 +22,7 @@ from homeassistant.components.climate import (
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -219,10 +221,10 @@ class MagicMockClimate(MagicMock):
 
 async def create_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
-) -> VersatileThermostat:
+) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ):
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -248,7 +250,7 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
 
 
 async def send_temperature_change_event(
-    entity: VersatileThermostat, new_temp, date, sleep=True
+    entity: BaseThermostat, new_temp, date, sleep=True
 ):
     """Sending a new temperature event simulating a change on temperature sensor"""
     _LOGGER.info(
@@ -274,7 +276,7 @@ async def send_temperature_change_event(
 
 
 async def send_ext_temperature_change_event(
-    entity: VersatileThermostat, new_temp, date, sleep=True
+    entity: BaseThermostat, new_temp, date, sleep=True
 ):
     """Sending a new external temperature event simulating a change on temperature sensor"""
     _LOGGER.info(
@@ -300,7 +302,7 @@ async def send_ext_temperature_change_event(
 
 
 async def send_power_change_event(
-    entity: VersatileThermostat, new_power, date, sleep=True
+    entity: BaseThermostat, new_power, date, sleep=True
 ):
     """Sending a new power event simulating a change on power sensor"""
     _LOGGER.info(
@@ -326,7 +328,7 @@ async def send_power_change_event(
 
 
 async def send_max_power_change_event(
-    entity: VersatileThermostat, new_power_max, date, sleep=True
+    entity: BaseThermostat, new_power_max, date, sleep=True
 ):
     """Sending a new power max event simulating a change on power max sensor"""
     _LOGGER.info(
@@ -352,7 +354,7 @@ async def send_max_power_change_event(
 
 
 async def send_window_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
+    entity: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new window event simulating a change on the window state"""
     _LOGGER.info(
@@ -386,7 +388,7 @@ async def send_window_change_event(
 
 
 async def send_motion_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
+    entity: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new motion event simulating a change on the window state"""
     _LOGGER.info(
@@ -420,7 +422,7 @@ async def send_motion_change_event(
 
 
 async def send_presence_change_event(
-    entity: VersatileThermostat, new_state: bool, old_state: bool, date, sleep=True
+    entity: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new presence event simulating a change on the window state"""
     _LOGGER.info(
@@ -460,7 +462,7 @@ def get_tz(hass: HomeAssistant):
 
 
 async def send_climate_change_event(
-    entity: VersatileThermostat,
+    entity: BaseThermostat,
     new_hvac_mode: HVACMode,
     old_hvac_mode: HVACMode,
     new_hvac_action: HVACAction,
@@ -503,7 +505,7 @@ async def send_climate_change_event(
     return ret
 
 async def send_climate_change_event_with_temperature(
-    entity: VersatileThermostat,
+    entity: BaseThermostat,
     new_hvac_mode: HVACMode,
     old_hvac_mode: HVACMode,
     new_hvac_action: HVACAction,
@@ -548,9 +550,9 @@ async def send_climate_change_event_with_temperature(
     return ret
 
 
-def cancel_switchs_cycles(entity: VersatileThermostat):
+def cancel_switchs_cycles(entity: BaseThermostat):
     """This method will cancel all running cycle on all underlying switch entity"""
-    if entity._is_over_climate:
+    if entity.is_over_climate:
         return
     for under in entity._underlyings:
         under._cancel_cycle()

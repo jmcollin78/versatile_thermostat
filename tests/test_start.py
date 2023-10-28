@@ -1,3 +1,5 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Test the normal start of a Thermostat """
 from unittest.mock import patch, call
 
@@ -10,7 +12,9 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.thermostat_climate import ThermostatOverClimate
+from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -28,7 +32,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
     )
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -41,12 +45,13 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
                 if entity.entity_id == entity_id:
                     return entity
 
-        entity: VersatileThermostat = find_my_entity("climate.theoverswitchmockname")
+        entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
 
         assert entity
+        assert isinstance(entity, ThermostatOverSwitch)
 
         assert entity.name == "TheOverSwitchMockName"
-        assert entity._is_over_climate is False
+        assert entity.is_over_climate is False
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
@@ -93,7 +98,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -112,9 +117,10 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         entity = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
+        assert isinstance(entity, ThermostatOverClimate)
 
         assert entity.name == "TheOverClimateMockName"
-        assert entity._is_over_climate is True
+        assert entity.is_over_climate is True
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
@@ -160,7 +166,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
     )
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -173,12 +179,12 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
                 if entity.entity_id == entity_id:
                     return entity
 
-        entity: VersatileThermostat = find_my_entity("climate.theover4switchmockname")
+        entity: BaseThermostat = find_my_entity("climate.theover4switchmockname")
 
         assert entity
 
         assert entity.name == "TheOver4SwitchMockName"
-        assert entity._is_over_climate is False
+        assert entity.is_over_climate is False
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp

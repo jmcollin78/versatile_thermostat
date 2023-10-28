@@ -87,7 +87,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 2. activate security feature when date is expired
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
@@ -134,7 +134,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 3. Change the preset to Boost (we should stay in SECURITY)
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
@@ -149,7 +149,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 5. resolve the datetime issue
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
@@ -214,7 +214,7 @@ async def test_security_over_climate(
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
 
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -235,7 +235,7 @@ async def test_security_over_climate(
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
-        assert entity._is_over_climate is True
+        assert entity.is_over_climate is True
 
         # Because the underlying is HEATING. In real life the underlying will be shut-off
         assert entity.hvac_action is HVACAction.HEATING
@@ -292,7 +292,7 @@ async def test_security_over_climate(
 
         # 2. activate security feature when date is expired
         with patch(
-            "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
         ) as mock_heater_on:

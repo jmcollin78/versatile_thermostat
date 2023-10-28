@@ -64,7 +64,7 @@ async def test_movement_management_time_not_enough(
 
     # start heating, in boost mode, when someone is present. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -85,7 +85,7 @@ async def test_movement_management_time_not_enough(
 
     # starts detecting motion with time not enough
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -118,7 +118,7 @@ async def test_movement_management_time_not_enough(
 
     # starts detecting motion with time enough this time
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -144,7 +144,7 @@ async def test_movement_management_time_not_enough(
 
     # stop detecting motion with off delay too low
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -176,7 +176,7 @@ async def test_movement_management_time_not_enough(
 
     # stop detecting motion with off delay enough long
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -261,7 +261,7 @@ async def test_movement_management_time_enough_and_presence(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -282,7 +282,7 @@ async def test_movement_management_time_enough_and_presence(
 
     # starts detecting motion
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -311,7 +311,7 @@ async def test_movement_management_time_enough_and_presence(
 
     # stop detecting motion with confirmation of stop
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -393,7 +393,7 @@ async def test_movement_management_time_enoughand_not_presence(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -414,7 +414,7 @@ async def test_movement_management_time_enoughand_not_presence(
 
     # starts detecting motion
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -443,7 +443,7 @@ async def test_movement_management_time_enoughand_not_presence(
 
     # stop detecting motion with confirmation of stop
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -527,7 +527,7 @@ async def test_movement_management_with_stop_during_condition(
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -548,7 +548,7 @@ async def test_movement_management_with_stop_during_condition(
 
     # starts detecting motion
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
