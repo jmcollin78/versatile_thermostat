@@ -56,7 +56,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
-> * **Release 3.7**: Ajout du type de Versatile Thermostat `over number` pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131)
+> * **Release 3.7**: Ajout du type de Versatile Thermostat `over valve` pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131)
 > * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
@@ -64,7 +64,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puissance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
 
 <details>
-<summary>Autre version</summary>
+<summary>Autres versions</summary>
 
 > * **Release 3.1** : ajout d'une détection de fenêtres/portes ouvertes par chute de température. Cette nouvelle fonction permet de stopper automatiquement un radiateur lorsque la température chute brutalement. Voir [Le mode auto](#le-mode-auto)
 > * **Release majeure 3.0** : ajout d'un équipement thermostat et de capteurs (binaires et non binaires) associés. Beaucoup plus proche de la philosphie Home Assistant, vous avez maintenant un accès direct à l'énergie consommée par le radiateur piloté par le thermostat et à plein d'autres capteurs qui seront utiles dans vos automatisations et dashboard.
@@ -75,7 +75,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 </details>
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moute69 pour les bières. Ca fait très plaisir.
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69 pour les bières. Ca fait très plaisir.
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -86,7 +86,7 @@ Ce thermostat peut piloter 2 types d'équipement:
    c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
 2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
    a. un équipement - comme une climatisation, une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
-3. un équipement qui peut prendre une valeur de 0 à 100%. 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une valve thermostatique (cf. valve Shelly) qui expose une entité de type `number.` permetttant de piloter directement l'ouverture de la vanne
+3. un équipement qui peut prendre une valeur de 0 à 100% (nommée ```thermostat_over_valve```). A 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une valve thermostatique (cf. valve Shelly) qui expose une entité de type `number.` permetttant de piloter directement l'ouverture de la vanne. Versatile Thermostat régule la température de la pièce en jouant sur le pourcentage d'ouverture, à l'aide des capteurs de température intérieur et extérieur en utilisant l'algorithme TPI décrit ci-dessous.
 
 Le type ```thermostat_over_climate``` permet d'ajouter à votre équipement existant toutes les fonctionnalités fournies par VersatileThermostat. L'entité climate VersatileThermostat pilotera votre entité climate, en la coupant si les fenêtres sont ouvertes, la passant en mode Eco si personne n'est présent, etc. Cf. [ici](#pourquoi-une-nouvelle-implémentation-du-thermostat). Pour ce type de thermostat, les cycles éventuels de chauffe sont pilotés par l'entité climate sous-jacente et pas par le Versatile Thermostat lui-même.
 
@@ -116,10 +116,10 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 ## HACS installation (recommendé)
 
 1. Installez [HACS](https://hacs.xyz/). De cette façon, vous obtenez automatiquement les mises à jour.
-2. Ajoutez ce repository Github en tant que repository personnalisé dans les paramètres HACS.
+2. L'intégration Versatile Thermostat est maintenant proposée directement depuis l'interface HACF (onglet intégrations),
 3. recherchez et installez "Versatile Thermostat" dans HACS et cliquez sur "installer".
 4. Redémarrez Home Assistant.
-5. Ensuite, vous pouvez ajouter une intégration de Versatile Thermostat dans la page d'intégration. Vous ajoutez autant de thermostats dont vous avez besoin (généralement un par radiateur qui doit être géré ou par pompe dans le cas d'un chauffage centralisé)
+5. Ensuite, vous pouvez ajouter une intégration de Versatile Thermostat dans la page Paramètres / Intégrations. Vous ajoutez autant de thermostats dont vous avez besoin (généralement un par radiateur ou par groupe de radiateurs qui doivent être gérés ou par pompe dans le cas d'un chauffage centralisé)
 
 
 ## Installation manuelle
@@ -150,10 +150,10 @@ Suivez ensuite les étapes de configuration comme suit :
 
 Donnez les principaux attributs obligatoires :
 1. un nom (sera le nom de l'intégration et aussi le nom de l'entité climate)
-2. le type de thermostat ```thermostat_over_switch``` pour piloter un radiateur commandé par un switch ou ```thermostat_over_climate``` pour piloter un autre thermostat. Cf. [ci-dessus](#pourquoi-une-nouvelle-implémentation-du-thermostat)
+2. le type de thermostat ```thermostat_over_switch``` pour piloter un radiateur commandé par un switch ou ```thermostat_over_climate``` pour piloter un autre thermostat, ou ```thermostat_over_valve``` Cf. [ci-dessus](#pourquoi-une-nouvelle-implémentation-du-thermostat)
 4. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle le radiateur est installé,
 5. une entité capteur de température donnant la température extérieure. Si vous n'avez pas de capteur externe, vous pouvez utiliser l'intégration météo locale
-6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous),
+6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous). En mode ```over_climate```, le cycle ne sert qu'à faire des controles de base mais ne régule pas directement la température. C'est le ```climate``` sous-jacent qui le fait,
 7. les températures minimales et maximales du thermostat,
 8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil,
 9. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
@@ -163,7 +163,15 @@ Donnez les principaux attributs obligatoires :
       2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible en effet pour le radiateur à accumulation et il sera sollicité inutilement
 
 ## Sélectionnez des entités pilotées
-En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type switch ou une entité de type climate. Seules les entités compatibles sont présentées.
+En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type `switch`, `climate` ou `number`. Seules les entités compatibles avec le type sont présentées.
+
+> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Comment choisir le type*_
+> Le choix du type est important. Même si il toujours possible de le modifier ensuite via l'IHM de configuration, il est préférable de se poser les quelques questions suivantes :
+> 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire :
+>   a. si vous avez une vanne thermostatique (TRV) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
+>   b. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
+>   c. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```
+> 2. **quelle type de régulation je veux ?** Si l'équipement piloté possède son propre mécanisme de régulation (clim, certaine vanne TRV) et que cette régulation fonctionne bien, optez pour un ```over_climate```
 
 Pour un thermostat de type ```thermostat_over_switch```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
@@ -179,6 +187,13 @@ Pour un thermostat de type ```thermostat_over_climate```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 Il est possible de choisir un thermostat over climate qui commande une climatisation réversible en cochant la case "AC Mode". Dans ce cas, selon l'équipement commandé vous aurez accès au chauffage et/ou au réfroidissement.
+
+Pour un thermostat de type ```thermostat_over_valve```:
+![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
+Vous pouvez choisir jusqu'à entité du domaine ```number``` ou ```ìnput_number``` qui vont commander les vannes.
+L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
+
+Il est possible de choisir un thermostat over valve qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
 
 ## Configurez les coefficients de l'algorithme TPI
 
@@ -342,62 +357,66 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 
 ## Synthèse des paramètres
 
-| Paramètre | Libellé | "over switch" | "over climate" |
-| ----------| --------| --- | ---|
-| ``name`` | Nom | X | X |
-| ``thermostat_type`` | Type de thermostat | X | X |
-| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - |
-| ``external_temperature_sensor_entity_id`` | Température exterieure sensor entity id | X | - |
-| ``cycle_min`` | Durée du cycle (minutes) | X | X |
-| ``temp_min`` | Température minimale permise | X | X |
-| ``temp_max`` | Température maximale permise | X | X |
-| ``device_power`` | Puissance de l'équipement | X | X |
-| ``use_window_feature`` | Avec détection des ouvertures | X | X |
-| ``use_motion_feature`` | Avec détection de mouvement | X | X |
-| ``use_power_feature`` | Avec gestion de la puissance | X | X |
-| ``use_presence_feature`` | Avec détection de présence | X | X |
-| ``heater_entity1_id`` | 1er radiateur | X | - |
-| ``heater_entity2_id`` | 2ème radiateur | X | - |
-| ``heater_entity3_id`` | 3ème radiateur | X | - |
-| ``heater_entity4_id`` | 4ème radiateur | X | - |
-| ``proportional_function`` | Algorithme | X | - |
-| ``climate_entity1_id`` | Thermostat sous-jacent | - | X |
-| ``climate_entity2_id`` | 2ème thermostat sous-jacent | - | X |
-| ``climate_entity3_id`` | 3ème thermostat sous-jacent | - | X |
-| ``climate_entity4_id`` | 4ème thermostat sous-jacent | - | X |
-| ``ac_mode`` | utilisation de l'air conditionné (AC) ? | X | X |
-| ``tpi_coef_int`` | Coefficient à utiliser pour le delta de température interne | X | - |
-| ``tpi_coef_ext`` | Coefficient à utiliser pour le delta de température externe | X | - |
-| ``eco_temp`` | Température en preset Eco | X | X |
-| ``comfort_temp`` | Température en preset Confort | X | X |
-| ``boost_temp`` | Température en preset Boost | X | X |
-| ``eco_ac_temp`` | Température en preset Eco en mode AC | X | X |
-| ``comfort_ac_temp`` | Température en preset Confort en mode AC | X | X |
-| ``boost_ac_temp`` | Température en preset Boost en mode AC | X | X |
-| ``window_sensor_entity_id`` | Détecteur d'ouverture (entity id) |  X | X |
-| ``window_delay`` | Délai avant extinction (secondes) | X | X |
-| ``window_auto_open_threshold`` | Seuil haut de chute de température pour la détection automatique (en °/min) | X | X |
-| ``window_auto_close_threshold`` | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X | X |
-| ``window_auto_max_duration`` | Durée maximum d'une extinction automatique (en min) | X | X |
-| ``motion_sensor_entity_id`` | Détecteur de mouvement entity id | X | X |
-| ``motion_delay`` | Délai avant prise en compte du mouvement (seconds) | X | X |
-| ``motion_off_delay`` | Délai avant prise en compte de la fin de mouvement (seconds) | X | X |
-| ``motion_preset`` | Preset à utiliser si mouvement détecté | X | X |
-| ``no_motion_preset`` | Preset à utiliser si pas de mouvement détecté | X | X |
-| ``power_sensor_entity_id`` | Capteur de puissance totale (entity id) | X | X |
-| ``max_power_sensor_entity_id`` | Capteur de puissance Max (entity id) | X | X |
-| ``power_temp`` | Température si délestaqe | X | X |
-| ``presence_sensor_entity_id`` | Capteur de présence entity id (true si quelqu'un est présent) | X | X |
-| ``eco_away_temp`` | Température en preset Eco en cas d'absence | X | X |
-| ``comfort_away_temp`` | Température en preset Comfort en cas d'absence | X | X |
-| ``boost_away_temp`` | Température en preset Boost en cas d'absence | X | X |
-| ``eco_ac_away_temp`` | Température en preset Eco en cas d'absence en mode AC | X | X |
-| ``comfort_ac_away_temp`` | Température en preset Comfort en cas d'absence en mode AC | X | X |
-| ``boost_ac_away_temp`` | Température en preset Boost en cas d'absence en mode AC | X | X |
-| ``minimal_activation_delay`` | Délai minimal d'activation | X | - |
-| ``security_delay_min`` | Délai maximal entre 2 mesures de températures | X | - |
-| ``security_min_on_percent`` | Pourcentage minimal de puissance pour passer en mode sécurité | X | - |
-| ``security_default_on_percent`` | Pourcentage de puissance a utiliser en mode securité | X | - |
+| Paramètre | Libellé | "over switch" | "over climate" | "over valve" |
+| ----------| --------| ------------- | ---------------| -------------|
+| ``name`` | Nom | X | X | X |
+| ``thermostat_type`` | Type de thermostat | X | X | X |
+| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - | X |
+| ``external_temperature_sensor_entity_id`` | Température exterieure sensor entity id | X | - | X |
+| ``cycle_min`` | Durée du cycle (minutes) | X | X | X |
+| ``temp_min`` | Température minimale permise | X | X | X |
+| ``temp_max`` | Température maximale permise | X | X | X |
+| ``device_power`` | Puissance de l'équipement | X | X | X |
+| ``use_window_feature`` | Avec détection des ouvertures | X | X | X |
+| ``use_motion_feature`` | Avec détection de mouvement | X | X | X |
+| ``use_power_feature`` | Avec gestion de la puissance | X | X | X |
+| ``use_presence_feature`` | Avec détection de présence | X | X | X |
+| ``heater_entity1_id`` | 1er radiateur | X | - | - |
+| ``heater_entity2_id`` | 2ème radiateur | X | - | - |
+| ``heater_entity3_id`` | 3ème radiateur | X | - | - |
+| ``heater_entity4_id`` | 4ème radiateur | X | - | - |
+| ``proportional_function`` | Algorithme | X | - | - |
+| ``climate_entity1_id`` | Thermostat sous-jacent | - | X | - |
+| ``climate_entity2_id`` | 2ème thermostat sous-jacent | - | X | - |
+| ``climate_entity3_id`` | 3ème thermostat sous-jacent | - | X | - |
+| ``climate_entity4_id`` | 4ème thermostat sous-jacent | - | X | - |
+| ``valve_entity1_id`` | Vanne sous-jacente      | - | - | X |
+| ``valve_entity2_id`` | 2ème vanne sous-jacente | - | - | X |
+| ``valve_entity3_id`` | 3ème vanne sous-jacente | - | - | X |
+| ``valve_entity4_id`` | 4ème vanne sous-jacente | - | - | X |
+| ``ac_mode`` | utilisation de l'air conditionné (AC) ? | X | X | X |
+| ``tpi_coef_int`` | Coefficient à utiliser pour le delta de température interne | X | - | X |
+| ``tpi_coef_ext`` | Coefficient à utiliser pour le delta de température externe | X | - | X |
+| ``eco_temp`` | Température en preset Eco | X | X | X |
+| ``comfort_temp`` | Température en preset Confort | X | X | X |
+| ``boost_temp`` | Température en preset Boost | X | X | X |
+| ``eco_ac_temp`` | Température en preset Eco en mode AC | X | X | X |
+| ``comfort_ac_temp`` | Température en preset Confort en mode AC | X | X | X |
+| ``boost_ac_temp`` | Température en preset Boost en mode AC | X | X | X |
+| ``window_sensor_entity_id`` | Détecteur d'ouverture (entity id) |  X | X | X |
+| ``window_delay`` | Délai avant extinction (secondes) | X | X | X |
+| ``window_auto_open_threshold`` | Seuil haut de chute de température pour la détection automatique (en °/min) | X | X | X |
+| ``window_auto_close_threshold`` | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X | X | X |
+| ``window_auto_max_duration`` | Durée maximum d'une extinction automatique (en min) | X | X | X |
+| ``motion_sensor_entity_id`` | Détecteur de mouvement entity id | X | X | X |
+| ``motion_delay`` | Délai avant prise en compte du mouvement (seconds) | X | X | X |
+| ``motion_off_delay`` | Délai avant prise en compte de la fin de mouvement (seconds) | X | X | X |
+| ``motion_preset`` | Preset à utiliser si mouvement détecté | X | X | X |
+| ``no_motion_preset`` | Preset à utiliser si pas de mouvement détecté | X | X | X |
+| ``power_sensor_entity_id`` | Capteur de puissance totale (entity id) | X | X | X |
+| ``max_power_sensor_entity_id`` | Capteur de puissance Max (entity id) | X | X | X |
+| ``power_temp`` | Température si délestaqe | X | X | X |
+| ``presence_sensor_entity_id`` | Capteur de présence entity id (true si quelqu'un est présent) | X | X | X |
+| ``eco_away_temp`` | Température en preset Eco en cas d'absence | X | X | X |
+| ``comfort_away_temp`` | Température en preset Comfort en cas d'absence | X | X | X |
+| ``boost_away_temp`` | Température en preset Boost en cas d'absence | X | X | X |
+| ``eco_ac_away_temp`` | Température en preset Eco en cas d'absence en mode AC | X | X | X |
+| ``comfort_ac_away_temp`` | Température en preset Comfort en cas d'absence en mode AC | X | X | X |
+| ``boost_ac_away_temp`` | Température en preset Boost en cas d'absence en mode AC | X | X | X |
+| ``minimal_activation_delay`` | Délai minimal d'activation | X | - | - |
+| ``security_delay_min`` | Délai maximal entre 2 mesures de températures | X | - | X |
+| ``security_min_on_percent`` | Pourcentage minimal de puissance pour passer en mode sécurité | X | - | X |
+| ``security_default_on_percent`` | Pourcentage de puissance a utiliser en mode securité | X | - | X |
 
 # Exemples de réglage
 
@@ -448,12 +467,12 @@ Cette intégration utilise un algorithme proportionnel. Un algorithme proportion
 Cet algorithme fait converger la température et arrête d'osciller.
 
 ## Algorithme TPI
-L'algorithme TPI consiste à calculer à chaque cycle un pourcentage d'état On vs Off pour le radiateur en utilisant la température cible, la température actuelle dans la pièce et la température extérieure actuelle.
+L'algorithme TPI consiste à calculer à chaque cycle un pourcentage d'état On vs Off pour le radiateur en utilisant la température cible, la température actuelle dans la pièce et la température extérieure actuelle. Cet algorithme n'est donc valable que pour les Versatile Thermostat qui régulent : `over_switch` et `over_valve`.
 
 Le pourcentage est calculé avec cette formule :
 
     on_percent = coef_int * (température cible - température actuelle) + coef_ext * (température cible - température extérieure)
-    Ensuite, faites 0 <= on_percent <= 1
+    Ensuite, limité 0 <= on_percent <= 1
 
 Les valeurs par défaut pour coef_int et coef_ext sont respectivement : ``0.6`` et ``0.01``. Ces valeurs par défaut conviennent à une pièce standard bien isolée.
 
@@ -461,7 +480,9 @@ Pour régler ces coefficients, gardez à l'esprit que :
 1. **si la température cible n'est pas atteinte** après une situation stable, vous devez augmenter le ``coef_ext`` (le ``on_percent`` est trop bas),
 2. **si la température cible est dépassée** après une situation stable, vous devez diminuer le ``coef_ext`` (le ``on_percent`` est trop haut),
 3. **si l'atteinte de la température cible est trop lente**, vous pouvez augmenter le ``coef_int`` pour donner plus de puissance au réchauffeur,
-4. **si l'atteinte de la température cible est trop rapide et que des oscillations apparaissent** autour de la cible, vous pouvez diminuer le ``coef_int`` pour donner moins de puissance au radiateur
+4. **si l'atteinte de la température cible est trop rapide et que des oscillations apparaissent** autour de la cible, vous pouvez diminuer le ``coef_int`` pour donner moins de puissance au radiateur.
+
+En type `over_valve` le `on_percent` est ramené à une valeur entre 0 et 100% et sert directement à commander l'ouverture de la vanne.
 
 Voir quelques situations à [examples](#some-results).
 
@@ -485,6 +506,7 @@ Dans l'ordre, il y a :
 11. l'état de sécurité,
 12. l'état de l'ouverture (si la gestion des ouvertures est configurée),
 13. l'état du mouvement (si la gestion du mouvements est configurée)
+14. le pourcentage d'ouverture de la vanne (pour le type `over_valve`)
 
 Pour colorer les capteurs, ajouter ces lignes et personnalisez les au besoin, dans votre configuration.yaml :
 
@@ -626,6 +648,7 @@ Les attributs personnalisés sont les suivants :
 | ``last_update_datetime`` | La date et l'heure au format ISO8866 de cet état |
 | ``friendly_name`` | Le nom du thermostat |
 | ``supported_features`` | Une combinaison de toutes les fonctionnalités prises en charge par ce thermostat. Voir la documentation officielle sur l'intégration climatique pour plus d'informations |
+| ``valve_open_percent`` | Le pourcentage d'ouverture de la vanne |
 
 # Quelques résultats
 
