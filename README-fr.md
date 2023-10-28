@@ -360,8 +360,8 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 
 ## Synthèse des paramètres
 
-| Paramètre | Libellé | "over switch" | "over climate" | "over valve" |
-| ----------| --------| ------------- | ---------------| -------------|
+| Paramètre | Libellé | "over switch" | "over climate" | over valve |
+| - | - | - | - | - |
 | ``name`` | Nom | X | X | X |
 | ``thermostat_type`` | Type de thermostat | X | X | X |
 | ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - | X |
