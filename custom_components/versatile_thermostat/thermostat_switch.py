@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long
+
 """ A climate over switch classe """
 import logging
 from homeassistant.core import HomeAssistant
@@ -19,6 +21,13 @@ _LOGGER = logging.getLogger(__name__)
 
 class ThermostatOverSwitch(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a switch."""
+
+    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
+        {
+            "is_over_switch", "underlying_switch_0", "underlying_switch_1",
+            "underlying_switch_2", "underlying_switch_3", "on_time_sec", "off_time_sec",
+            "cycle_min", "function", "tpi_coef_int", "tpi_coef_ext"
+        }))
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat over switch."""
