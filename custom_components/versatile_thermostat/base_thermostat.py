@@ -2554,6 +2554,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.info("%s - Last window state was open & ByPass is now off. Set hvac_mode to '%s'", self, HVACMode.OFF)
             self.save_hvac_mode()
             await self.async_set_hvac_mode(HVACMode.OFF)
+        if self._window_bypass_state and self._window_state == STATE_ON:
+            _LOGGER.info("%s - Last window state was open & ByPass is now on. Set hvac_mode to last available mode", self)
+            await self.restore_hvac_mode(True)
         self.update_custom_attributes()
 
     def send_event(self, event_type: EventType, data: dict):
