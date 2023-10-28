@@ -65,7 +65,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
 > * **Release 3.2**: add the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
 <details>
-<summary>Autres versions</summary>
+<summary>Others releases</summary>
 
 > * **Release 3.1**: added detection of open windows/doors by temperature drop. This new function makes it possible to automatically stop a radiator when the temperature drops suddenly. See [Auto mode](#auto-mode)
 > * **Major release 3.0**: addition of thermostat equipment and associated sensors (binary and non-binary). Much closer to the Home Assistant philosophy, you now have direct access to the energy consumed by the radiator controlled by the thermostat and many other sensors that will be useful in your automations and dashboard.
@@ -86,7 +86,7 @@ This thermostat can control 3 types of equipment:
    3. an external temperature sensor (consider weather integration if you don't have one)
 2. another thermostat which has its own operating modes (named ``thermostat_over_climate```). For this type of thermostat the minimum configuration requires:
    1. equipment - such as air conditioning, a thermostatic valve - which is controlled by its own ``climate'' type entity,
-3. equipment which can take a value from 0 to 100% (called ``thermostat_over_valve```). At 0 the heating is cut off, 100% it is fully opened. This type allows you to control a thermostatic valve (see Shelly valve) which exposes an entity of type `number.` allowing you to directly control the opening of the valve. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using the interior and exterior temperature sensors using the TPI algorithm described below.
+3. equipment which can take a value from 0 to 100% (called `thermostat_over_valve`). At 0 the heating is cut off, 100% it is fully opened. This type allows you to control a thermostatic valve (see Shelly valve) which exposes an entity of type `number.` allowing you to directly control the opening of the valve. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using the interior and exterior temperature sensors using the TPI algorithm described below.
 The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 
 ## Incompatibilities
@@ -155,8 +155,8 @@ Give the main mandatory attributes:
 9. the list of features that will be used for this thermostat. Depending on your choices, the following configuration screens will appear or not.
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
-      1. With the ```thermostat_over_switch``` type, calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
-      2. if the cycle is too short, the heater could never reach the target temperature. For the storage radiator for example it will be used unnecessarily.
+> 1. With the ```thermostat_over_switch``` type, calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
+> 2. if the cycle is too short, the heater could never reach the target temperature. For the storage radiator for example it will be used unnecessarily.
 
 ## Select the driven entity
 Depending on your choice of thermostat type, you will need to choose one or more `switch`, `climate` or `number` type entities. Only entities compatible with the type are presented.
