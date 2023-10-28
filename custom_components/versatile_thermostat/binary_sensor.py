@@ -38,7 +38,7 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
 
-    entities = [SecurityBinarySensor(hass, unique_id, name, entry.data)]
+    entities = [SecurityBinarySensor(hass, unique_id, name, entry.data),WindowByPassBinarySensor(hass, unique_id, name, entry.data)]
     if entry.data.get(CONF_USE_MOTION_FEATURE):
         entities.append(MotionBinarySensor(hass, unique_id, name, entry.data))
     if entry.data.get(CONF_USE_WINDOW_FEATURE):
@@ -238,3 +238,38 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
             return "mdi:home-account"
         else:
             return "mdi:nature-people"
+
+#PR - Adding Window ByPass
+class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the Window ByPass state"""
+
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
+        """Initialize the WindowByPass Binary sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Window ByPass"
+        self._attr_unique_id = f"{self._device_name}_window_bypass_state"
+        self._attr_is_on = False
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        old_state = self._attr_is_on
+        if self.my_climate.window_bypass_state in [True, False]:
+            self._attr_is_on = self.my_climate.window_bypass_state
+            if old_state != self._attr_is_on:
+                self.async_write_ha_state()
+        return
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.RUNNING
+
+    @property
+    def icon(self) -> str | None:
+        if self._attr_is_on:
+            return "mdi:autorenew-off"
+        else:
+            return "mdi:autorenew"

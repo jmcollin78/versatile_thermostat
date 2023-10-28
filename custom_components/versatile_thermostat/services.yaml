@@ -122,3 +122,19 @@ set_security:
                     step: 0.05
                     unit_of_measurement: "%"
                     mode: slider
+
+set_window_bypass:
+    name: Set Window ByPass
+    description: Bypass the window state to enable heating with window open.
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        window_bypass:
+            name: Window ByPass
+            description: ByPass value
+            required: true
+            advanced: false
+            default: true
+            selector:
+                boolean:
