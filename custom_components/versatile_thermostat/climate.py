@@ -119,6 +119,8 @@ from .const import (
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
     SERVICE_SET_SECURITY,
+    #PR - Adding Window ByPass
+    SERVICE_SET_WINDOW_BYPASS,
     PRESET_AWAY_SUFFIX,
     CONF_SECURITY_DELAY_MIN,
     CONF_SECURITY_MIN_ON_PERCENT,
@@ -207,6 +209,15 @@ async def async_setup_entry(
         "service_set_security",
     )
 
+    #PR - Adding Window ByPass
+    platform.async_register_entity_service(
+        SERVICE_SET_WINDOW_BYPASS,
+        {
+            vol.Required("window_bypass"): vol.In([True, False]
+            ),
+        },
+        "service_set_window_bypass_state",
+    )
 
 class VersatileThermostat(ClimateEntity, RestoreEntity):
     """Representation of a Versatile Thermostat device."""
@@ -223,6 +234,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
     _motion_state: bool
     _presence_state: bool
     _window_auto_state: bool
+    #PR - Adding Window ByPass
+    _window_bypass_state: bool
     _underlyings: list[UnderlyingEntity]
     _last_change_time: datetime
 
@@ -286,6 +299,9 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         self._window_auto_state = False
         self._window_auto_on = False
         self._window_auto_algo = None
+
+        # PR - Adding Window ByPass
+        self._window_bypass_state = False
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
@@ -1196,6 +1212,12 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
         """Returns the number of underlying entities"""
         return len(self._underlyings)
 
+    #PR - Adding Window ByPass
+    @property
+    def window_bypass_state(self) -> bool | None:
+        """Get the Window Bypass"""
+        return self._window_bypass_state
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1515,6 +1537,14 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
                 return
 
             self._window_state = new_state.state
+
+            #PR - Adding Window ByPass
+            _LOGGER.debug("%s - Window ByPass is : %s", self, self._window_bypass_state)
+            if self._window_bypass_state:
+                _LOGGER.debug("Window ByPass is activated. Ignore window event")
+                self.update_custom_attributes()
+                return
+
             if self._window_state == STATE_OFF:
                 _LOGGER.info(
                     "%s - Window is closed. Restoring hvac_mode '%s'",
@@ -2524,6 +2554,8 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             "overpowering_state": self._overpowering_state,
             "presence_state": self._presence_state,
             "window_auto_state": self._window_auto_state,
+            #PR - Adding Window ByPass
+            "window_bypass_state": self._window_bypass_state,
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
@@ -2689,6 +2721,23 @@ class VersatileThermostat(ClimateEntity, RestoreEntity):
             self._prop_algorithm.set_security(self._security_default_on_percent)
 
         await self._async_control_heating()
+        self.update_custom_attributes()
+
+    #PR - Adding Window ByPass
+    async def service_set_window_bypass_state(self, window_bypass):
+        """Called by a service call:
+        service: versatile_thermostat.set_window_bypass
+        data:
+            window_bypass: True
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info("%s - Calling service_set_window_bypass, window_bypass: %s", self, window_bypass)
+        self._window_bypass_state = window_bypass
+        if not self._window_bypass_state and self._window_state == STATE_ON:
+            _LOGGER.info("%s - Last window state was open & ByPass is now off. Set hvac_mode to '%s'", self, HVACMode.OFF)
+            self.save_hvac_mode()
+            await self.async_set_hvac_mode(HVACMode.OFF)
         self.update_custom_attributes()
 
     def send_event(self, event_type: EventType, data: dict):
