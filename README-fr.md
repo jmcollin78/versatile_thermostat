@@ -18,6 +18,9 @@
 - [Configuration](#configuration)
   - [Choix des attributs de base](#choix-des-attributs-de-base)
   - [Sélectionnez des entités pilotées](#sélectionnez-des-entités-pilotées)
+    - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
+    - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
+    - [Pour un thermostat de type ```thermostat_over_valve```:](#pour-un-thermostat-de-type-thermostat_over_valve)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
   - [Configurer les portes/fenêtres en allumant/éteignant les thermostats](#configurer-les-portesfenêtres-en-allumantéteignant-les-thermostats)
@@ -168,16 +171,12 @@ En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Comment choisir le type*_
 > Le choix du type est important. Même si il toujours possible de le modifier ensuite via l'IHM de configuration, il est préférable de se poser les quelques questions suivantes :
 > 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire :
-> 
->   a. si vous avez une vanne thermostatique (TRV) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
-> 
->   b. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
-> 
->   c. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```
-> 
+>    1. si vous avez une vanne thermostatique (TRV) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
+>    2. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
+>    3. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```
 > 2. **quelle type de régulation je veux ?** Si l'équipement piloté possède son propre mécanisme de régulation (clim, certaine vanne TRV) et que cette régulation fonctionne bien, optez pour un ```over_climate```
 
-Pour un thermostat de type ```thermostat_over_switch```:
+### Pour un thermostat de type ```thermostat_over_switch```
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
@@ -187,12 +186,12 @@ Exemple de déclenchement synchronisé :
 Il est possible de choisir un thermostat over switch qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
 
 
-Pour un thermostat de type ```thermostat_over_climate```:
+### Pour un thermostat de type ```thermostat_over_climate```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 Il est possible de choisir un thermostat over climate qui commande une climatisation réversible en cochant la case "AC Mode". Dans ce cas, selon l'équipement commandé vous aurez accès au chauffage et/ou au réfroidissement.
 
-Pour un thermostat de type ```thermostat_over_valve```:
+### Pour un thermostat de type ```thermostat_over_valve```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
 Vous pouvez choisir jusqu'à entité du domaine ```number``` ou ```ìnput_number``` qui vont commander les vannes.
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
