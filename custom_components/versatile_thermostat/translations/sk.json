@@ -311,6 +311,7 @@
       "options": {
         "thermostat_over_switch": "Termostat nad spínačom",
         "thermostat_over_climate": "Termostat nad iným termostatom"
+        "thermostat_over_valve": "Thermostat over a valve"
       }
     }
   },
