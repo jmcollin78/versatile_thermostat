@@ -532,7 +532,7 @@ Ce service permet de forcer l'état de présence indépendamment du capteur de p
 
 Le code pour appeler ce service est le suivant :
 ```
-service : thermostat_polyvalent.set_presence
+service : versatile_thermostat.set_presence
 Les données:
     présence : "off"
 cible:
@@ -547,7 +547,7 @@ Vous pouvez modifier l'une ou les deux températures (lorsqu'elles sont présent
 
 Utilisez le code suivant pour régler la température du préréglage :
 ```
-service : thermostat_polyvalent.set_preset_temperature
+service : versatile_thermostat.set_preset_temperature
 date:
     preset : boost
     temperature : 17,8
@@ -576,7 +576,7 @@ Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqu�
 
 Pour changer les paramètres de sécurité utilisez le code suivant :
 ```
-service : thermostat_polyvalent.set_security
+service : versatile_thermostat.set_security
 data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
@@ -587,12 +587,12 @@ target:
 
 ## ByPass Window Check
 Ce service permet d'activer ou non un bypass de la vérification des fenetres.
-Il permet de continuer à chauffer même si la fenetre est detecté ouverte.
+Il permet de continuer à chauffer même si la fenetre est detectée ouverte.
 Mis à ``true`` les modifications de status de la fenetre n'auront plus d'effet sur le thermostat, remis à ``false`` cela s'assurera de désactiver le thermostat si la fenetre est toujours ouverte.
 
-Pour changer le paramétre de bypass utilisez le code suivant :
+Pour changer le paramètre de bypass utilisez le code suivant :
 ```
-service : thermostat_polyvalent.set_window_bypass
+service : versatile_thermostat.set_window_bypass
 data:
     window_bypass: true
 target:

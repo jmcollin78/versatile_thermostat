@@ -270,6 +270,6 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     @property
     def icon(self) -> str | None:
         if self._attr_is_on:
-            return "mdi:check-circle-outline"
+            return "mdi:window-shutter-cog"
         else:
-            return "mdi:alpha-b-circle-outline"
+            return "mdi:window-shutter-auto"
