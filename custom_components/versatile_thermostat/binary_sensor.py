@@ -248,7 +248,7 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     ) -> None:  # pylint: disable=unused-argument
         """Initialize the WindowByPass Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Window ByPass"
+        self._attr_name = "Window bypass"
         self._attr_unique_id = f"{self._device_name}_window_bypass_state"
         self._attr_is_on = False
 
@@ -270,6 +270,6 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     @property
     def icon(self) -> str | None:
         if self._attr_is_on:
-            return "mdi:autorenew-off"
+            return "mdi:check-circle-outline"
         else:
-            return "mdi:autorenew"
+            return "mdi:alpha-b-circle-outline"
