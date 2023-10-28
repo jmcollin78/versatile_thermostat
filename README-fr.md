@@ -546,13 +546,26 @@ Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqu�
 Pour changer les paramètres de sécurité utilisez le code suivant :
 ```
 service : thermostat_polyvalent.set_security
-date:
+data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
     delay_min: 60
 target:
     entity_id : climate.my_thermostat
 ```
+
+## ByPass Window Check
+Ce service permet d'activer ou non un bypass de la vérification des fenetres.
+Il permet de continuer à chauffer même si la fenetre est detecté ouverte.
+Mis à ``true`` les modifications de status de la fenetre n'auront plus d'effet sur le thermostat, remis à ``false`` cela s'assurera de désactiver le thermostat si la fenetre est toujours ouverte.
+
+Pour changer le paramétre de bypass utilisez le code suivant :
+```
+service : thermostat_polyvalent.set_window_bypass
+data:
+    window_bypass: true
+target:
+    entity_id : climate.my_thermostat
 
 # Notifications
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
