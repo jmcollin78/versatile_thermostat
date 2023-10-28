@@ -19,6 +19,13 @@ _LOGGER = logging.getLogger(__name__)
 class ThermostatOverValve(BaseThermostat):
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
+    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
+        {
+            "is_over_valve", "underlying_valve_0", "underlying_valve_1",
+            "underlying_valve_2", "underlying_valve_3", "on_time_sec", "off_time_sec",
+            "cycle_min", "function", "tpi_coef_int", "tpi_coef_ext"
+        }))
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat over switch."""
         super().__init__(hass, unique_id, name, entry_infos)

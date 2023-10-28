@@ -121,8 +121,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     """Representation of a base class for all Versatile Thermostat device."""
 
     # The list of VersatileThermostat entities
-    # No more needed
-    # _registry: dict[str, object] = {}
     _hass: HomeAssistant
     _last_temperature_mesure: datetime
     _last_ext_temperature_mesure: datetime
@@ -134,6 +132,43 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     _window_auto_state: bool
     _underlyings: list[UnderlyingEntity]
     _last_change_time: datetime
+
+    _entity_component_unrecorded_attributes = ClimateEntity._entity_component_unrecorded_attributes.union(frozenset(
+        {
+            "type",
+            "eco_temp",
+            "boost_temp",
+            "comfort_temp",
+            "eco_away_temp",
+            "boost_away_temp",
+            "comfort_away_temp",
+            "power_temp",
+            "ac_mode",
+            "current_power_max",
+            "saved_preset_mode",
+            "saved_target_temp",
+            "saved_hvac_mode",
+            "security_delay_min",
+            "security_min_on_percent",
+            "security_default_on_percent",
+            "last_temperature_datetime",
+            "last_ext_temperature_datetime",
+            "minimal_activation_delay_sec",
+            "device_power",
+            "mean_cycle_power",
+            "last_update_datetime",
+            "timezone",
+            "window_sensor_entity_id",
+            "window_delay_sec",
+            "window_auto_open_threshold",
+            "window_auto_close_threshold",
+            "window_auto_max_duration",
+            "motion_sensor_entity_id",
+            "presence_sensor_entity_id",
+            "power_sensor_entity_id",
+            "max_power_sensor_entity_id",
+        }
+    ))
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the thermostat."""
