@@ -148,7 +148,7 @@ class UnderlyingEntity:
                 self._entity_id,
             )
             await self.set_hvac_mode(hvac_mode)
-        elif hvac_mode != HVACMode.OFF and self.is_device_active:
+        elif hvac_mode != HVACMode.OFF and not self.is_device_active:
             _LOGGER.warning(
                 "%s - The hvac mode is ON, but the underlying device is not ON. Turning on device %s",
                 self,
