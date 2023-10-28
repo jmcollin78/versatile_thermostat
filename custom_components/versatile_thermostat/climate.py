@@ -100,6 +100,7 @@ async def async_setup_entry(
         },
         "service_set_security",
     )
+
     #PR - Adding Window ByPass
     platform.async_register_entity_service(
         SERVICE_SET_WINDOW_BYPASS,
