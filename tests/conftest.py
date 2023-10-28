@@ -26,9 +26,7 @@ from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 
-from custom_components.versatile_thermostat.climate import (
-    VersatileThermostat,
-)
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
@@ -84,7 +82,7 @@ def skip_hass_states_get_fixture():
 def skip_control_heating_fixture():
     """Skip the control_heating of VersatileThermostat"""
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat._async_control_heating"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         yield
 
@@ -107,6 +105,6 @@ def skip_hass_states_is_state_fixture():
 
 @pytest.fixture(name="skip_send_event")
 def skip_send_event_fixture():
-    """Skip the send_event in VersatileThermostat"""
-    with patch.object(VersatileThermostat, "send_event"):
+    """Skip the send_event in BaseThermostat"""
+    with patch.object(BaseThermostat, "send_event"):
         yield

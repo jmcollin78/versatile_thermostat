@@ -1,3 +1,5 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Test the normal start of a Thermostat """
 from datetime import timedelta, datetime
 
@@ -12,7 +14,7 @@ from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAG
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.climate import VersatileThermostat
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.sensor import (
     EnergySensor,
     MeanPowerSensor,
@@ -66,7 +68,7 @@ async def test_sensors_over_switch(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -229,7 +231,7 @@ async def test_sensors_over_climate(
             },
         )
 
-        entity: VersatileThermostat = await create_thermostat(
+        entity: BaseThermostat = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity
@@ -361,7 +363,7 @@ async def test_sensors_over_climate_minimal(
             },
         )
 
-        entity: VersatileThermostat = await create_thermostat(
+        entity: BaseThermostat = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity

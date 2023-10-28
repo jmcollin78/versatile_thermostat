@@ -34,7 +34,11 @@
           "climate_entity2_id": "2nd underlying climate",
           "climate_entity3_id": "3rd underlying climate",
           "climate_entity4_id": "4th underlying climate",
-          "ac_mode": "AC mode"
+          "ac_mode": "AC mode",
+          "valve_entity_id": "1rst valve number",
+          "valve_entity2_id": "2nd valve number",
+          "valve_entity3_id": "3rd valve number",
+          "valve_entity4_id": "4th valve number"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -46,7 +50,11 @@
           "climate_entity2_id": "2nd underlying climate entity id",
           "climate_entity3_id": "3rd underlying climate entity id",
           "climate_entity4_id": "4th underlying climate entity id",
-          "ac_mode": "Use the Air Conditioning (AC) mode"
+          "ac_mode": "Use the Air Conditioning (AC) mode",
+          "valve_entity_id": "1rst valve number entity id",
+          "valve_entity2_id": "2nd valve number entity id",
+          "valve_entity3_id": "3rd valve number entity id",
+          "valve_entity4_id": "4th valve number entity id"
         }
       },
       "tpi": {
@@ -178,16 +186,20 @@
         "title": "Linked entities",
         "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "Heater switch",
-          "heater_entity2_id": "2nd Heater switch",
-          "heater_entity3_id": "3rd Heater switch",
-          "heater_entity4_id": "4th Heater switch",
+          "heater_entity_id": "1rst heater switch",
+          "heater_entity2_id": "2nd heater switch",
+          "heater_entity3_id": "3rd heater switch",
+          "heater_entity4_id": "4th heater switch",
           "proportional_function": "Algorithm",
-          "climate_entity_id": "Underlying thermostat",
+          "climate_entity_id": "1rst underlying climate",
           "climate_entity2_id": "2nd underlying climate",
           "climate_entity3_id": "3rd underlying climate",
           "climate_entity4_id": "4th underlying climate",
-          "ac_mode": "AC mode"
+          "ac_mode": "AC mode",
+          "valve_entity_id": "1rst valve number",
+          "valve_entity2_id": "2nd valve number",
+          "valve_entity3_id": "3rd valve number",
+          "valve_entity4_id": "4th valve number"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -199,7 +211,11 @@
           "climate_entity2_id": "2nd underlying climate entity id",
           "climate_entity3_id": "3rd underlying climate entity id",
           "climate_entity4_id": "4th underlying climate entity id",
-          "ac_mode": "Use the Air Conditioning (AC) mode"
+          "ac_mode": "Use the Air Conditioning (AC) mode",
+          "valve_entity_id": "1rst valve number entity id",
+          "valve_entity2_id": "2nd valve number entity id",
+          "valve_entity3_id": "3rd valve number entity id",
+          "valve_entity4_id": "4th valve number entity id"
         }
       },
       "tpi": {
@@ -310,7 +326,8 @@
     "thermostat_type": {
       "options": {
         "thermostat_over_switch": "Thermostat over a switch",
-        "thermostat_over_climate": "Thermostat over another thermostat"
+        "thermostat_over_climate": "Thermostat over a climate",
+        "thermostat_over_valve": "Thermostat over a valve"
       }
     }
   },

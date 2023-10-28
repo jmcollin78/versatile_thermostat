@@ -34,7 +34,11 @@
           "climate_entity2_id": "2ème thermostat sous-jacent",
           "climate_entity3_id": "3ème thermostat sous-jacent",
           "climate_entity4_id": "4ème thermostat sous-jacent",
-          "ac_mode": "AC mode ?"
+          "ac_mode": "AC mode ?",
+          "valve_entity_id": "1ère valve number",
+          "valve_entity2_id": "2ème valve number",
+          "valve_entity3_id": "3ème valve number",
+          "valve_entity4_id": "4ème valve number"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -46,7 +50,11 @@
           "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
           "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
           "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
-          "ac_mode": "Utilisation du mode Air Conditionné (AC)"
+          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "valve_entity_id": "Entity id de la 1ère valve",
+          "valve_entity2_id": "Entity id de la 2ème valve",
+          "valve_entity3_id": "Entity id de la 3ème valve",
+          "valve_entity4_id": "Entity id de la 4ème valve"
         }
       },
       "tpi": {
@@ -188,7 +196,11 @@
           "climate_entity2_id": "2ème thermostat sous-jacent",
           "climate_entity3_id": "3ème thermostat sous-jacent",
           "climate_entity4_id": "4ème thermostat sous-jacent",
-          "ac_mode": "AC mode ?"
+          "ac_mode": "AC mode ?",
+          "valve_entity_id": "1ère valve number",
+          "valve_entity2_id": "2ème valve number",
+          "valve_entity3_id": "3ème valve number",
+          "valve_entity4_id": "4ème valve number"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -200,7 +212,11 @@
           "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
           "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
           "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
-          "ac_mode": "Utilisation du mode Air Conditionné (AC)"
+          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "valve_entity_id": "Entity id de la 1ère valve",
+          "valve_entity2_id": "Entity id de la 2ème valve",
+          "valve_entity3_id": "Entity id de la 3ème valve",
+          "valve_entity4_id": "Entity id de la 4ème valve"
         }
       },
       "tpi": {
@@ -311,7 +327,8 @@
     "thermostat_type": {
       "options": {
         "thermostat_over_switch": "Thermostat sur un switch",
-        "thermostat_over_climate": "Thermostat sur un autre thermostat"
+        "thermostat_over_climate": "Thermostat sur un autre thermostat",
+        "thermostat_over_valve": "Thermostat sur une valve"
       }
     }
   },

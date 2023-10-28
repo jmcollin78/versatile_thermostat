@@ -11,16 +11,16 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
-PRESET_AC_SUFFIX = "_ac"
-PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
-PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
-PRESET_BOOST_AC = PRESET_BOOST + PRESET_AC_SUFFIX
-
 from homeassistant.exceptions import HomeAssistantError
 
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
+PRESET_AC_SUFFIX = "_ac"
+PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
+PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
+PRESET_BOOST_AC = PRESET_BOOST + PRESET_AC_SUFFIX
+
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
@@ -65,6 +65,7 @@ CONF_SECURITY_DEFAULT_ON_PERCENT = "security_default_on_percent"
 CONF_THERMOSTAT_TYPE = "thermostat_type"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
 CONF_THERMOSTAT_CLIMATE = "thermostat_over_climate"
+CONF_THERMOSTAT_VALVE = "thermostat_over_valve"
 CONF_CLIMATE = "climate_entity_id"
 CONF_CLIMATE_2 = "climate_entity2_id"
 CONF_CLIMATE_3 = "climate_entity3_id"
@@ -77,6 +78,10 @@ CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
+CONF_VALVE = "valve_entity_id"
+CONF_VALVE_2 = "valve_entity2_id"
+CONF_VALVE_3 = "valve_entity3_id"
+CONF_VALVE_4 = "valve_entity4_id"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -174,6 +179,11 @@ ALL_CONF = (
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
         CONF_AC_MODE,
+        CONF_VALVE,
+        CONF_VALVE_2,
+        CONF_VALVE_3,
+        CONF_VALVE_4,
+
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -185,7 +195,7 @@ CONF_FUNCTIONS = [
     PROPORTIONAL_FUNCTION_TPI,
 ]
 
-CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE]
+CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE, CONF_THERMOSTAT_VALVE]
 
 SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 
@@ -217,3 +227,14 @@ class UnknownEntity(HomeAssistantError):
 
 class WindowOpenDetectionMethod(HomeAssistantError):
     """Error to indicate there is an error in the window open detection method given."""
+
+class overrides: # pylint: disable=invalid-name
+    """ An annotation to inform overrides """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        return self.func.__get__(instance, owner)
+
+    def __call__(self, *args, **kwargs):
+        raise RuntimeError(f"Method {self.func.__name__} should have been overridden")

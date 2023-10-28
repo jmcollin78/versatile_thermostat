@@ -1,3 +1,4 @@
+# pylint: disable=unused-argument
 """ Implements the VersatileThermostat sensors component """
 import logging
 import math
@@ -22,6 +23,7 @@ from .const import (
     CONF_PROP_FUNCTION,
     PROPORTIONAL_FUNCTION_TPI,
     CONF_THERMOSTAT_SWITCH,
+    CONF_THERMOSTAT_VALVE,
     CONF_THERMOSTAT_TYPE,
 )
 
@@ -50,13 +52,16 @@ async def async_setup_entry(
     ]
     if entry.data.get(CONF_DEVICE_POWER):
         entities.append(EnergySensor(hass, unique_id, name, entry.data))
-        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH:
+        if entry.data.get(CONF_THERMOSTAT_TYPE) in [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_VALVE]:
             entities.append(MeanPowerSensor(hass, unique_id, name, entry.data))
 
     if entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
         entities.append(OnPercentSensor(hass, unique_id, name, entry.data))
         entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
         entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
+
+    if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE:
+        entities.append(ValveOpenPercentSensor(hass, unique_id, name, entry.data))
 
     async_add_entities(entities, True)
 
@@ -223,6 +228,47 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 1
+
+class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a on percent sensor which exposes the on_percent in a cycle"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the energy sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Vave open percent"
+        self._attr_unique_id = f"{self._device_name}_valve_open_percent"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+
+        old_state = self._attr_native_value
+        self._attr_native_value = self.my_climate.valve_open_percent
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:pipe-valve"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.POWER_FACTOR
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return PERCENTAGE
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Return the suggested number of decimal digits for display."""
+        return 0
 
 
 class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):

@@ -81,7 +81,7 @@ async def test_power_management_hvac_off(
 
     # Send power max mesurement too low but HVACMode is off
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -162,7 +162,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
 
     # Send power max mesurement too low and HVACMode is on
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -196,7 +196,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
 
     # Send power mesurement low to unseet power preset
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -282,7 +282,7 @@ async def test_power_management_energy_over_switch(
 
     # set temperature to 15 so that on_percent will be set
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -311,7 +311,7 @@ async def test_power_management_energy_over_switch(
 
     # change temperature to a higher value
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(
@@ -333,7 +333,7 @@ async def test_power_management_energy_over_switch(
 
     # change temperature to a much higher value so that heater will be shut down
     with patch(
-        "custom_components.versatile_thermostat.climate.VersatileThermostat.send_event"
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch(

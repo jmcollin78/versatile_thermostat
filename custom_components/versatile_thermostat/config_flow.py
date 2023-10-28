@@ -1,3 +1,7 @@
+# pylint: disable=line-too-long
+# pylint: disable=too-many-lines
+# pylint: disable=invalid-name
+
 """Config flow for Versatile Thermostat integration."""
 from __future__ import annotations
 
@@ -24,6 +28,7 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers import selector
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.input_boolean import (
     DOMAIN as INPUT_BOOLEAN_DOMAIN,
 )
@@ -91,6 +96,11 @@ from .const import (
     CONF_USE_POWER_FEATURE,
     CONF_AC_MODE,
     CONF_THERMOSTAT_TYPES,
+    CONF_THERMOSTAT_VALVE,
+    CONF_VALVE,
+    CONF_VALVE_2,
+    CONF_VALVE_3,
+    CONF_VALVE_4,
     UnknownEntity,
     WindowOpenDetectionMethod,
 )
@@ -244,6 +254,39 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 ),
                 vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),
+                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
+            }
+        )
+
+        self.STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
+            {
+                vol.Required(CONF_VALVE): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_VALVE_2): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_VALVE_3): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),
+                vol.Optional(CONF_VALVE_4): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+                    ),
+                ),
+                vol.Required(
+                    CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
+                ): vol.In(
+                    [
+                        PROPORTIONAL_FUNCTION_TPI,
+                    ]
                 ),
                 vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             }
@@ -479,6 +522,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             return await self.generic_step(
                 "type", self.STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
             )
+        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
+            return await self.generic_step(
+                "type", self.STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
+            )
         else:
             return await self.generic_step(
                 "type",
@@ -509,7 +556,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        if self._infos.get(CONF_AC_MODE) == True:
+        if self._infos.get(CONF_AC_MODE) is True:
             schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESETS_DATA_SCHEMA
@@ -565,7 +612,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
-        if self._infos.get(CONF_AC_MODE) == True:
+        if self._infos.get(CONF_AC_MODE) is True:
             schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESENCE_DATA_SCHEMA
@@ -670,6 +717,10 @@ class VersatileThermostatOptionsFlowHandler(
             return await self.generic_step(
                 "type", self.STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
             )
+        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
+            return await self.generic_step(
+                "type", self.STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
+            )
         else:
             return await self.generic_step(
                 "type",
@@ -704,7 +755,7 @@ class VersatileThermostatOptionsFlowHandler(
         elif self._infos[CONF_USE_PRESENCE_FEATURE]:
             next_step = self.async_step_presence
 
-        if self._infos.get(CONF_AC_MODE) == True:
+        if self._infos.get(CONF_AC_MODE) is True:
             schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESETS_DATA_SCHEMA
@@ -767,7 +818,7 @@ class VersatileThermostatOptionsFlowHandler(
             "Into OptionsFlowHandler.async_step_presence user_input=%s", user_input
         )
 
-        if self._infos.get(CONF_AC_MODE) == True:
+        if self._infos.get(CONF_AC_MODE) is True:
             schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
         else:
             schema = self.STEP_PRESENCE_DATA_SCHEMA
