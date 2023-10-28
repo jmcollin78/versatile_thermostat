@@ -65,7 +65,6 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
 > * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puissance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
-
 <details>
 <summary>Autres versions</summary>
 
@@ -74,7 +73,6 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
 > * **release 2.2** : ajout de fonction de sécurité permettant de ne pas laisser éternellement en chauffe un radiateur en cas de panne du thermomètre
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
-
 </details>
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
@@ -82,18 +80,16 @@ Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @
 
 
 # Quand l'utiliser et ne pas l'utiliser
-Ce thermostat peut piloter 2 types d'équipement:
+Ce thermostat peut piloter 3 types d'équipement:
 1. un radiateur qui ne fonctionne qu'en mode marche/arrêt (nommé ```thermostat_over_switch```). La configuration minimale nécessaire pour utiliser ce type thermostat est :
-   a. un équipement comme un radiateur (un ```switch``` ou équivalent),
-   b. une sonde de température pour la pièce (ou un input_number),
-   c. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+   1. un équipement comme un radiateur (un ```switch``` ou équivalent),
+   2. une sonde de température pour la pièce (ou un input_number),
+   3. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
 2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
-   a. un équipement - comme une climatisation, une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
+   1. un équipement - comme une climatisation, une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
 3. un équipement qui peut prendre une valeur de 0 à 100% (nommée ```thermostat_over_valve```). A 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une valve thermostatique (cf. valve Shelly) qui expose une entité de type `number.` permetttant de piloter directement l'ouverture de la vanne. Versatile Thermostat régule la température de la pièce en jouant sur le pourcentage d'ouverture, à l'aide des capteurs de température intérieur et extérieur en utilisant l'algorithme TPI décrit ci-dessous.
 
-Le type ```thermostat_over_climate``` permet d'ajouter à votre équipement existant toutes les fonctionnalités fournies par VersatileThermostat. L'entité climate VersatileThermostat pilotera votre entité climate, en la coupant si les fenêtres sont ouvertes, la passant en mode Eco si personne n'est présent, etc. Cf. [ici](#pourquoi-une-nouvelle-implémentation-du-thermostat). Pour ce type de thermostat, les cycles éventuels de chauffe sont pilotés par l'entité climate sous-jacente et pas par le Versatile Thermostat lui-même.
-
-Parce que cette intégration vise à commander le radiateur en tenant compte du préréglage configuré (preset) et de la température ambiante, ces informations sont obligatoires.
+The ```thermostat_over_climate``` type allows you to add to your existing equipment all the functionalities provided by VersatileThermostat. The VersatileThermostat climate entity will control your climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-thermostat-implementation). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
 
 ## Incompatibilités
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
@@ -162,7 +158,7 @@ Donnez les principaux attributs obligatoires :
 9. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
->  1. avec le type ```thermostat_over_switch```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
+>  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
 >  2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
 
 ## Sélectionnez des entités pilotées
@@ -200,7 +196,7 @@ Il est possible de choisir un thermostat over valve qui commande une climatisati
 
 ## Configurez les coefficients de l'algorithme TPI
 
-Si vous avez choisi un thermostat de type ```thermostat_over_switch``` vous arriverez sur cette page :
+Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` vous arriverez sur cette page :
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-tpi.png?raw=true)
 
@@ -475,7 +471,7 @@ L'algorithme TPI consiste à calculer à chaque cycle un pourcentage d'état On 
 Le pourcentage est calculé avec cette formule :
 
     on_percent = coef_int * (température cible - température actuelle) + coef_ext * (température cible - température extérieure)
-    Ensuite, limité 0 <= on_percent <= 1
+    Ensuite, l'algo fait en sorte que 0 <= on_percent <= 1
 
 Les valeurs par défaut pour coef_int et coef_ext sont respectivement : ``0.6`` et ``0.01``. Ces valeurs par défaut conviennent à une pièce standard bien isolée.
 
