@@ -321,10 +321,12 @@
       }
     },
     "auto_regulation_mode": {
-      "auto_regulation_strong": "Forte",
-      "auto_regulation_medium": "Media",
-      "auto_regulation_light": "Leggera",
-      "auto_regulation_none": "Nessuna autoregolamentazione"
+      "options": {
+        "auto_regulation_strong": "Forte",
+        "auto_regulation_medium": "Media",
+        "auto_regulation_light": "Leggera",
+        "auto_regulation_none": "Nessuna autoregolamentazione"
+      }
     }
   },
   "entity": {

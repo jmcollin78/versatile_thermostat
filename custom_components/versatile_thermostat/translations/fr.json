@@ -39,7 +39,7 @@
           "valve_entity2_id": "2ème valve number",
           "valve_entity3_id": "3ème valve number",
           "valve_entity4_id": "4ème valve number",
-          "auto_regulation_mode": "Auto-regulation"
+          "auto_regulation_mode": "Auto-régulation"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -56,7 +56,7 @@
           "valve_entity2_id": "Entity id de la 2ème valve",
           "valve_entity3_id": "Entity id de la 3ème valve",
           "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la consigne"
+          "auto_regulation_mode": "Ajustement automatique de la température cible"
         }
       },
       "tpi": {
@@ -336,10 +336,12 @@
       }
     },
     "auto_regulation_mode": {
-      "auto_regulation_strong": "Forte",
-      "auto_regulation_medium": "Moyenne",
-      "auto_regulation_light": "Légère",
-      "auto_regulation_none": "Aucune"
+      "options": {
+        "auto_regulation_strong": "Forte",
+        "auto_regulation_medium": "Moyenne",
+        "auto_regulation_light": "Légère",
+        "auto_regulation_none": "Aucune"
+      }
     }
   },
   "entity": {
