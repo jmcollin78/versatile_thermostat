@@ -1,12 +1,11 @@
+# pylint: disable=protected-access, unused-argument, line-too-long
 """ Test the Power management """
 from unittest.mock import patch, call
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from datetime import datetime, timedelta
-
-from homeassistant.const import UnitOfTemperature
-
 import logging
 
+from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 logging.getLogger().setLevel(logging.DEBUG)
 
 
@@ -50,7 +49,7 @@ async def test_power_management_hvac_off(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: ThermostatOverSwitch = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -136,7 +135,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: ThermostatOverSwitch = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -270,7 +269,7 @@ async def test_power_management_energy_over_switch(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: ThermostatOverSwitch = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -305,9 +304,9 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_off.call_count == 0
 
     entity.incremente_energy()
-    assert entity.total_energy == 100 * 5 / 60.0
+    assert entity.total_energy == round(100 * 5 / 60.0, 2)
     entity.incremente_energy()
-    assert entity.total_energy == 2 * 100 * 5 / 60.0
+    assert entity.total_energy == round(2 * 100 * 5 / 60.0, 2)
 
     # change temperature to a higher value
     with patch(
@@ -398,7 +397,7 @@ async def test_power_management_energy_over_climate(
             },
         )
 
-        entity: VersatileThermostat = await create_thermostat(
+        entity: ThermostatOverSwitch = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity

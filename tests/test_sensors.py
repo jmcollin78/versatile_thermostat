@@ -140,7 +140,7 @@ async def test_sensors_over_switch(
     entity.incremente_energy()
 
     await energy_sensor.async_my_climate_changed()
-    assert energy_sensor.state == 16.667
+    assert energy_sensor.state == round(16.667, 2)
     assert energy_sensor.device_class == SensorDeviceClass.ENERGY
     assert energy_sensor.state_class == SensorStateClass.TOTAL_INCREASING
     # because device_power is 200

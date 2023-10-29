@@ -2,7 +2,7 @@
 
 """ A climate over switch classe """
 import logging
-from homeassistant.core import HomeAssistant
+from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.components.climate import HVACMode
 
@@ -10,12 +10,13 @@ from .const import (
     CONF_HEATER,
     CONF_HEATER_2,
     CONF_HEATER_3,
-    CONF_HEATER_4
+    CONF_HEATER_4,
+    overrides
 )
 
 from .base_thermostat import BaseThermostat
-
 from .underlyings import UnderlyingSwitch
+from .prop_algorithm import PropAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,19 +30,30 @@ class ThermostatOverSwitch(BaseThermostat):
             "cycle_min", "function", "tpi_coef_int", "tpi_coef_ext"
         }))
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
-        """Initialize the thermostat over switch."""
-        super().__init__(hass, unique_id, name, entry_infos)
+    # useless for now
+    # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    #    """Initialize the thermostat over switch."""
+    #    super().__init__(hass, unique_id, name, entry_infos)
 
     @property
     def is_over_switch(self) -> bool:
         """ True if the Thermostat is over_switch"""
         return True
 
+    @overrides
     def post_init(self, entry_infos):
         """ Initialize the Thermostat"""
 
         super().post_init(entry_infos)
+
+        self._prop_algorithm = PropAlgorithm(
+            self._proportional_function,
+            self._tpi_coef_int,
+            self._tpi_coef_ext,
+            self._cycle_min,
+            self._minimal_activation_delay,
+        )
+
         lst_switches = [entry_infos.get(CONF_HEATER)]
         if entry_infos.get(CONF_HEATER_2):
             lst_switches.append(entry_infos.get(CONF_HEATER_2))
@@ -61,6 +73,9 @@ class ThermostatOverSwitch(BaseThermostat):
                 )
             )
 
+        self._should_relaunch_control_heating = False
+
+    @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         _LOGGER.debug("Calling async_added_to_hass")
@@ -77,6 +92,7 @@ class ThermostatOverSwitch(BaseThermostat):
 
         self.hass.create_task(self.async_control_heating())
 
+    @overrides
     def update_custom_attributes(self):
         """ Custom attributes """
         super().update_custom_attributes()
@@ -115,6 +131,7 @@ class ThermostatOverSwitch(BaseThermostat):
             self._attr_extra_state_attributes,
         )
 
+    @overrides
     def recalculate(self):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
@@ -127,4 +144,33 @@ class ThermostatOverSwitch(BaseThermostat):
             self._hvac_mode == HVACMode.COOL,
         )
         self.update_custom_attributes()
+        self.async_write_ha_state()
+
+    @overrides
+    def incremente_energy(self):
+        """increment the energy counter if device is active"""
+        if self.hvac_mode == HVACMode.OFF:
+            return
+
+        added_energy = 0
+        if not self.is_over_climate and self.mean_cycle_power is not None:
+            added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
+
+        self._total_energy += added_energy
+        _LOGGER.debug(
+            "%s - added energy is %.3f . Total energy is now: %.3f",
+            self,
+            added_energy,
+            self._total_energy,
+        )
+
+    @callback
+    def _async_switch_changed(self, event):
+        """Handle heater switch state changes."""
+        new_state = event.data.get("new_state")
+        old_state = event.data.get("old_state")
+        if new_state is None:
+            return
+        if old_state is None:
+            self.hass.create_task(self._check_initial_state())
         self.async_write_ha_state()
