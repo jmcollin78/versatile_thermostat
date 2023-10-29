@@ -66,8 +66,6 @@ async def async_setup_entry(
         entity = ThermostatOverValve(hass, unique_id, name, entry.data)
 
     async_add_entities([entity], True)
-    # No more needed
-    # VersatileThermostat.add_entity(entry.entry_id, entity)
 
     # Add services
     platform = entity_platform.async_get_current_platform()

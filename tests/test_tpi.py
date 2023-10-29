@@ -1,5 +1,6 @@
 """ Test the TPI algorithm """
 
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
@@ -37,7 +38,7 @@ async def test_tpi_calculation(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
