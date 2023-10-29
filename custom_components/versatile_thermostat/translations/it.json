@@ -38,7 +38,8 @@
           "valve_entity_id": "Primo valvola numero",
           "valve_entity2_id": "Secondo valvola numero",
           "valve_entity3_id": "Terzo valvola numero",
-          "valve_entity4_id": "Quarto valvola numero"
+          "valve_entity4_id": "Quarto valvola numero",
+          "auto_regulation_mode": "Autoregolamentazione"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -54,7 +55,8 @@
           "valve_entity_id": "Entity id del primo valvola numero",
           "valve_entity2_id": "Entity id del secondo valvola numero",
           "valve_entity3_id": "Entity id del terzo valvola numero",
-          "valve_entity4_id": "Entity id del quarto valvola numero"
+          "valve_entity4_id": "Entity id del quarto valvola numero",
+          "auto_regulation_mode": "Regolazione automatica della temperatura target"
         }
       },
       "tpi": {
@@ -192,7 +194,8 @@
           "valve_entity_id": "Primo valvola numero",
           "valve_entity2_id": "Secondo valvola numero",
           "valve_entity3_id": "Terzo valvola numero",
-          "valve_entity4_id": "Quarto valvola numero"
+          "valve_entity4_id": "Quarto valvola numero",
+          "auto_regulation_mode": "Autoregolamentazione"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -208,7 +211,8 @@
           "valve_entity_id": "Entity id del primo valvola numero",
           "valve_entity2_id": "Entity id del secondo valvola numero",
           "valve_entity3_id": "Entity id del terzo valvola numero",
-          "valve_entity4_id": "Entity id del quarto valvola numero"
+          "valve_entity4_id": "Entity id del quarto valvola numero",
+          "auto_regulation_mode": "Autoregolamentazione"
         }
       },
       "tpi": {
@@ -315,6 +319,12 @@
         "thermostat_over_climate": "Termostato sopra un altro termostato",
         "thermostat_over_valve": "Thermostato su una valvola"
       }
+    },
+    "auto_regulation_mode": {
+      "auto_regulation_strong": "Forte",
+      "auto_regulation_medium": "Media",
+      "auto_regulation_light": "Leggera",
+      "auto_regulation_none": "Nessuna autoregolamentazione"
     }
   },
   "entity": {

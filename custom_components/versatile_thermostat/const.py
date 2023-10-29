@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """Constants for the Versatile Thermostat integration."""
 
 from enum import Enum
@@ -82,6 +83,11 @@ CONF_VALVE = "valve_entity_id"
 CONF_VALVE_2 = "valve_entity2_id"
 CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
+CONF_AUTO_REGULATION_MODE= "auto_regulation_mode"
+CONF_AUTO_REGULATION_NONE= "auto_regulation_none"
+CONF_AUTO_REGULATION_LIGHT= "auto_regulation_light"
+CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
+CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -183,7 +189,7 @@ ALL_CONF = (
         CONF_VALVE_2,
         CONF_VALVE_3,
         CONF_VALVE_4,
-
+        CONF_AUTO_REGULATION_MODE
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -194,6 +200,8 @@ ALL_CONF = (
 CONF_FUNCTIONS = [
     PROPORTIONAL_FUNCTION_TPI,
 ]
+
+CONF_AUTO_REGULATION_MODES = [CONF_AUTO_REGULATION_LIGHT, CONF_AUTO_REGULATION_MEDIUM, CONF_AUTO_REGULATION_STRONG]
 
 CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE, CONF_THERMOSTAT_VALVE]
 

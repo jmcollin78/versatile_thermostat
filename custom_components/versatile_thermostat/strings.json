@@ -38,7 +38,8 @@
           "valve_entity_id": "1rst valve number",
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
-          "valve_entity4_id": "4th valve number"
+          "valve_entity4_id": "4th valve number",
+          "auto_regulation_mode": "Self-regulation"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -54,7 +55,8 @@
           "valve_entity_id": "1rst valve number entity id",
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
-          "valve_entity4_id": "4th valve number entity id"
+          "valve_entity4_id": "4th valve number entity id",
+          "auto_regulation_mode": "Auto adjustment of the target temperature"
         }
       },
       "tpi": {
@@ -199,7 +201,8 @@
           "valve_entity_id": "1rst valve number",
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
-          "valve_entity4_id": "4th valve number"
+          "valve_entity4_id": "4th valve number",
+          "auto_regulation_mode": "Self-regulation"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -215,7 +218,8 @@
           "valve_entity_id": "1rst valve number entity id",
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
-          "valve_entity4_id": "4th valve number entity id"
+          "valve_entity4_id": "4th valve number entity id",
+          "auto_regulation_mode": "Auto adjustment of the target temperature"
         }
       },
       "tpi": {
@@ -329,6 +333,12 @@
         "thermostat_over_climate": "Thermostat over a climate",
         "thermostat_over_valve": "Thermostat over a valve"
       }
+    },
+    "auto_regulation_mode": {
+      "auto_regulation_strong": "Strong",
+      "auto_regulation_medium": "Medium",
+      "auto_regulation_light": "Light",
+      "auto_regulation_none": "No auto-regulation"
     }
   },
   "entity": {

@@ -1,6 +1,4 @@
-# pylint: disable=line-too-long
-# pylint: disable=too-many-lines
-# pylint: disable=invalid-name
+# pylint: disable=line-too-long, too-many-lines, invalid-name
 
 """Config flow for Versatile Thermostat integration."""
 from __future__ import annotations
@@ -101,6 +99,9 @@ from .const import (
     CONF_VALVE_2,
     CONF_VALVE_3,
     CONF_VALVE_4,
+    CONF_AUTO_REGULATION_MODES,
+    CONF_AUTO_REGULATION_MODE,
+    CONF_AUTO_REGULATION_NONE,
     UnknownEntity,
     WindowOpenDetectionMethod,
 )
@@ -256,6 +257,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
                 ),
                 vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
+                vol.Optional(
+                    CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=CONF_AUTO_REGULATION_MODES, translation_key="auto_regulation_mode"
+                    )
+                ),
             }
         )
 

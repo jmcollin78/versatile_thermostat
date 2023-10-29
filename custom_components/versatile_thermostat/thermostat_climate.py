@@ -55,180 +55,6 @@ class ThermostatOverClimate(BaseThermostat):
             return HVACAction.IDLE
         return HVACAction.OFF
 
-    @property
-    def hvac_modes(self):
-        """List of available operation modes."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).hvac_modes
-        else:
-            return super.hvac_modes
-
-    @property
-    def mean_cycle_power(self) -> float | None:
-        """Returns the mean power consumption during the cycle"""
-        return None
-
-    @property
-    def fan_mode(self) -> str | None:
-        """Return the fan setting.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).fan_mode
-
-        return None
-
-    @property
-    def fan_modes(self) -> list[str] | None:
-        """Return the list of available fan modes.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).fan_modes
-
-        return []
-
-    @property
-    def swing_mode(self) -> str | None:
-        """Return the swing setting.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).swing_mode
-
-        return None
-
-    @property
-    def swing_modes(self) -> list[str] | None:
-        """Return the list of available swing modes.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).swing_modes
-
-        return None
-
-    @property
-    def temperature_unit(self) -> str:
-        """Return the unit of measurement."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).temperature_unit
-
-        return self._unit
-
-    @property
-    def supported_features(self):
-        """Return the list of supported features."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).supported_features | self._support_flags
-
-        return self._support_flags
-
-    @property
-    def target_temperature_step(self) -> float | None:
-        """Return the supported step of target temperature."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_step
-
-        return None
-
-    @property
-    def target_temperature_high(self) -> float | None:
-        """Return the highbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_high
-
-        return None
-
-    @property
-    def target_temperature_low(self) -> float | None:
-        """Return the lowbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_low
-
-        return None
-
-    @property
-    def is_aux_heat(self) -> bool | None:
-        """Return true if aux heater.
-
-        Requires ClimateEntityFeature.AUX_HEAT.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).is_aux_heat
-
-        return None
-
-    @overrides
-    def turn_aux_heat_on(self) -> None:
-        """Turn auxiliary heater on."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).turn_aux_heat_on()
-
-        raise NotImplementedError()
-
-    @overrides
-    async def async_turn_aux_heat_on(self) -> None:
-        """Turn auxiliary heater on."""
-        for under in self._underlyings:
-            await under.async_turn_aux_heat_on()
-
-    @overrides
-    def turn_aux_heat_off(self) -> None:
-        """Turn auxiliary heater off."""
-        for under in self._underlyings:
-            return under.turn_aux_heat_off()
-
-    @overrides
-    async def async_turn_aux_heat_off(self) -> None:
-        """Turn auxiliary heater off."""
-        for under in self._underlyings:
-            await under.async_turn_aux_heat_off()
-
-    @overrides
-    async def async_set_fan_mode(self, fan_mode):
-        """Set new target fan mode."""
-        _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
-        if fan_mode is None:
-            return
-
-        for under in self._underlyings:
-            await under.set_fan_mode(fan_mode)
-        self._fan_mode = fan_mode
-        self.async_write_ha_state()
-
-    @overrides
-    async def async_set_humidity(self, humidity: int):
-        """Set new target humidity."""
-        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
-        if humidity is None:
-            return
-        for under in self._underlyings:
-            await under.set_humidity(humidity)
-        self._humidity = humidity
-        self.async_write_ha_state()
-
-    @overrides
-    async def async_set_swing_mode(self, swing_mode):
-        """Set new target swing operation."""
-        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
-        if swing_mode is None:
-            return
-        for under in self._underlyings:
-            await under.set_swing_mode(swing_mode)
-        self._swing_mode = swing_mode
-        self.async_write_ha_state()
-
     @overrides
     async def _async_internal_set_temperature(self, temperature):
         """Set the target temperature and the target temperature of underlying climate if any"""
@@ -258,6 +84,8 @@ class ThermostatOverClimate(BaseThermostat):
                         climate_entity_id=entry_infos.get(climate),
                     )
                 )
+
+
 
     @overrides
     async def async_added_to_hass(self):
@@ -523,3 +351,177 @@ class ThermostatOverClimate(BaseThermostat):
                 changes = True
 
         await end_climate_changed(changes)
+
+    @property
+    def hvac_modes(self):
+        """List of available operation modes."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).hvac_modes
+        else:
+            return super.hvac_modes
+
+    @property
+    def mean_cycle_power(self) -> float | None:
+        """Returns the mean power consumption during the cycle"""
+        return None
+
+    @property
+    def fan_mode(self) -> str | None:
+        """Return the fan setting.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).fan_mode
+
+        return None
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        """Return the list of available fan modes.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).fan_modes
+
+        return []
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the swing setting.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_mode
+
+        return None
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        """Return the list of available swing modes.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_modes
+
+        return None
+
+    @property
+    def temperature_unit(self) -> str:
+        """Return the unit of measurement."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).temperature_unit
+
+        return self._unit
+
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).supported_features | self._support_flags
+
+        return self._support_flags
+
+    @property
+    def target_temperature_step(self) -> float | None:
+        """Return the supported step of target temperature."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_step
+
+        return None
+
+    @property
+    def target_temperature_high(self) -> float | None:
+        """Return the highbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_high
+
+        return None
+
+    @property
+    def target_temperature_low(self) -> float | None:
+        """Return the lowbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_low
+
+        return None
+
+    @property
+    def is_aux_heat(self) -> bool | None:
+        """Return true if aux heater.
+
+        Requires ClimateEntityFeature.AUX_HEAT.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).is_aux_heat
+
+        return None
+
+    @overrides
+    def turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).turn_aux_heat_on()
+
+        raise NotImplementedError()
+
+    @overrides
+    async def async_turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        for under in self._underlyings:
+            await under.async_turn_aux_heat_on()
+
+    @overrides
+    def turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        for under in self._underlyings:
+            return under.turn_aux_heat_off()
+
+    @overrides
+    async def async_turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        for under in self._underlyings:
+            await under.async_turn_aux_heat_off()
+
+    @overrides
+    async def async_set_fan_mode(self, fan_mode):
+        """Set new target fan mode."""
+        _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
+        if fan_mode is None:
+            return
+
+        for under in self._underlyings:
+            await under.set_fan_mode(fan_mode)
+        self._fan_mode = fan_mode
+        self.async_write_ha_state()
+
+    @overrides
+    async def async_set_humidity(self, humidity: int):
+        """Set new target humidity."""
+        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
+        if humidity is None:
+            return
+        for under in self._underlyings:
+            await under.set_humidity(humidity)
+        self._humidity = humidity
+        self.async_write_ha_state()
+
+    @overrides
+    async def async_set_swing_mode(self, swing_mode):
+        """Set new target swing operation."""
+        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
+        if swing_mode is None:
+            return
+        for under in self._underlyings:
+            await under.set_swing_mode(swing_mode)
+        self._swing_mode = swing_mode
+        self.async_write_ha_state()
