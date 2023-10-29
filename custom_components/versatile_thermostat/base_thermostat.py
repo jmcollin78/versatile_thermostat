@@ -1400,7 +1400,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             #PR - Adding Window ByPass
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._window_bypass_state)
             if self._window_bypass_state:
-                _LOGGER.debug("Window ByPass is activated. Ignore window event")
+                _LOGGER.info("Window ByPass is activated. Ignore window event")
                 self.update_custom_attributes()
                 return
 
