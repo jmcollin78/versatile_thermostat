@@ -764,10 +764,7 @@ async def test_window_bypass(
     ):
         await send_window_change_event(entity, True, False, datetime.now())
 
-        #assert mock_send_event.call_count == 1
-        #mock_send_event.assert_has_calls(
-        #    [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
-        #)
+        assert mock_send_event.call_count == 0
 
         # Heater should not be on
         assert mock_heater_on.call_count == 0
