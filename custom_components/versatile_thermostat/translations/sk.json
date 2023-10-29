@@ -34,7 +34,11 @@
           "climate_entity2_id": "2. základná klíma",
           "climate_entity3_id": "3. základná klíma",
           "climate_entity4_id": "4. základná klíma",
-          "ac_mode": "AC režim"
+          "ac_mode": "AC režim",
+          "valve_entity_id": "1. ventil číslo",
+          "valve_entity2_id": "2. ventil číslo",
+          "valve_entity3_id": "3. ventil číslo",
+          "valve_entity4_id": "4. ventil číslo"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -46,7 +50,11 @@
           "climate_entity2_id": "2. základné identifikačné číslo klimatickej entity",
           "climate_entity3_id": "3. základné identifikačné číslo klimatickej entity",
           "climate_entity4_id": "4. základné identifikačné číslo klimatickej entity",
-          "ac_mode": "Použite režim klimatizácie (AC)"
+          "ac_mode": "Použite režim klimatizácie (AC)",
+          "valve_entity_id": "1. ventil číslo entity id",
+          "valve_entity2_id": "2. ventil číslo entity id",
+          "valve_entity3_id": "3. ventil číslo entity id",
+          "valve_entity4_id": "4. ventil číslo entity id"
         }
       },
       "tpi": {
@@ -187,7 +195,11 @@
           "climate_entity2_id": "2. základná klíma",
           "climate_entity3_id": "3. základná klíma",
           "climate_entity4_id": "4. základná klíma",
-          "ac_mode": "AC režim"
+          "ac_mode": "AC režim",
+          "valve_entity_id": "1. ventil číslo",
+          "valve_entity2_id": "2. ventil číslo",
+          "valve_entity3_id": "3. ventil číslo",
+          "valve_entity4_id": "4. ventil číslo"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -199,7 +211,11 @@
           "climate_entity2_id": "2. základný identifikátor klimatickej entity",
           "climate_entity3_id": "3. základný identifikátor klimatickej entity",
           "climate_entity4_id": "4. základný identifikátor klimatickej entity",
-          "ac_mode": "Použite režim klimatizácie (AC)"
+          "ac_mode": "Použite režim klimatizácie (AC)",
+          "valve_entity_id": "1. ventil číslo entity id",
+          "valve_entity2_id": "2. ventil číslo entity id",
+          "valve_entity3_id": "3. ventil číslo entity id",
+          "valve_entity4_id": "4. ventil číslo entity id"
         }
       },
       "tpi": {
