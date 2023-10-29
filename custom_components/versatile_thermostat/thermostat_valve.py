@@ -3,14 +3,14 @@
 import logging
 from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 from homeassistant.core import callback
-from homeassistant.components.climate import HVACMode, HVACAction
+from homeassistant.components.climate import HVACMode
 
 from .base_thermostat import BaseThermostat
+from .prop_algorithm import PropAlgorithm
 
-from .const import CONF_VALVE, CONF_VALVE_2, CONF_VALVE_3, CONF_VALVE_4
+from .const import CONF_VALVE, CONF_VALVE_2, CONF_VALVE_3, CONF_VALVE_4, overrides
 
 from .underlyings import UnderlyingValve
 
@@ -26,9 +26,10 @@ class ThermostatOverValve(BaseThermostat):
             "cycle_min", "function", "tpi_coef_int", "tpi_coef_ext"
         }))
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
-        """Initialize the thermostat over switch."""
-        super().__init__(hass, unique_id, name, entry_infos)
+    # Useless for now
+    # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    #    """Initialize the thermostat over switch."""
+    #    super().__init__(hass, unique_id, name, entry_infos)
 
     @property
     def is_over_valve(self) -> bool:
@@ -43,10 +44,19 @@ class ThermostatOverValve(BaseThermostat):
         else:
             return round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
 
+    @overrides
     def post_init(self, entry_infos):
         """ Initialize the Thermostat"""
 
         super().post_init(entry_infos)
+        self._prop_algorithm = PropAlgorithm(
+            self._proportional_function,
+            self._tpi_coef_int,
+            self._tpi_coef_ext,
+            self._cycle_min,
+            self._minimal_activation_delay,
+        )
+
         lst_valves = [entry_infos.get(CONF_VALVE)]
         if entry_infos.get(CONF_VALVE_2):
             lst_valves.append(entry_infos.get(CONF_VALVE_2))
@@ -64,6 +74,9 @@ class ThermostatOverValve(BaseThermostat):
                 )
             )
 
+        self._should_relaunch_control_heating = False
+
+    @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         _LOGGER.debug("Calling async_added_to_hass")
@@ -96,6 +109,7 @@ class ThermostatOverValve(BaseThermostat):
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_valve_changed new_state is %s", self, new_state.state)
 
+    @overrides
     def update_custom_attributes(self):
         """ Custom attributes """
         super().update_custom_attributes()
@@ -134,6 +148,7 @@ class ThermostatOverValve(BaseThermostat):
             self._attr_extra_state_attributes,
         )
 
+    @overrides
     def recalculate(self):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
@@ -153,3 +168,21 @@ class ThermostatOverValve(BaseThermostat):
 
         self.update_custom_attributes()
         self.async_write_ha_state()
+
+    @overrides
+    def incremente_energy(self):
+        """increment the energy counter if device is active"""
+        if self.hvac_mode == HVACMode.OFF:
+            return
+
+        added_energy = 0
+        if not self.is_over_climate and self.mean_cycle_power is not None:
+            added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
+
+        self._total_energy += added_energy
+        _LOGGER.debug(
+            "%s - added energy is %.3f . Total energy is now: %.3f",
+            self,
+            added_energy,
+            self._total_energy,
+        )
