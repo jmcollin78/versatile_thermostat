@@ -40,7 +40,7 @@ class ThermostatOverClimate(BaseThermostat):
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
         {
             "is_over_climate", "start_hvac_action_date", "underlying_climate_0", "underlying_climate_1",
-            "underlying_climate_2", "underlying_climate_3"
+            "underlying_climate_2", "underlying_climate_3", "regulation_accumulated_error"
         }))
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
@@ -197,6 +197,7 @@ class ThermostatOverClimate(BaseThermostat):
 
         if self.is_regulated:
             self._attr_extra_state_attributes["regulated_target_temp"] = self._regulated_target_temp
+            self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -403,7 +404,8 @@ class ThermostatOverClimate(BaseThermostat):
                 new_state.attributes,
             )
             if (
-                self.is_over_climate
+                # we do not change target temperature on regulated VTherm
+                not self.is_regulated
                 and new_state.attributes
                 and (new_target_temp := new_state.attributes.get("temperature"))
                 and new_target_temp != self.target_temperature

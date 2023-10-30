@@ -1,10 +1,14 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+
 """ Test the Security featrure """
 from unittest.mock import patch, call
-
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-
 from datetime import timedelta, datetime
 import logging
+
+from custom_components.versatile_thermostat.thermostat_climate import ThermostatOverClimate
+from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -55,7 +59,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 1. creates a thermostat and check that security is off
     now: datetime = datetime.now(tz=tz)
-    entity: VersatileThermostat = await create_thermostat(
+    entity: ThermostatOverSwitch = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -211,7 +215,7 @@ async def test_security_over_climate(
         data=PARTIAL_CLIMATE_CONFIG, # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING)
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -230,7 +234,7 @@ async def test_security_over_climate(
                 if entity.entity_id == entity_id:
                     return entity
 
-        entity = find_my_entity("climate.theoverclimatemockname")
+        entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
 
@@ -295,7 +299,7 @@ async def test_security_over_climate(
             "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-        ) as mock_heater_on:
+        ):
             event_timestamp = now - timedelta(minutes=6)
 
             await send_temperature_change_event(entity, 15, event_timestamp)

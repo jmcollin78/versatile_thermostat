@@ -463,11 +463,11 @@ async def test_bug_101(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
-        data=PARTIAL_CLIMATE_CONFIG, # 5 minutes security delay
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG, # 5 minutes security delay
     )
 
     # Underlying is in HEAT mode but should be shutdown at startup
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT)
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING)
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -495,7 +495,7 @@ async def test_bug_101(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.hvac_mode is HVACMode.OFF
-        # because the underlying is heating. In real life the underlying should be shut-off
+        # because in MockClimate HVACAction is HEATING if hvac_mode is not set
         assert entity.hvac_action is HVACAction.HEATING
         # Underlying should have been shutdown
         assert mock_underlying_set_hvac_mode.call_count == 1
@@ -539,6 +539,7 @@ async def test_bug_101(
         # 2. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
         # Wait 11 sec
         event_timestamp = now + timedelta(seconds=11)
+        assert entity.is_regulated is False
         await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, event_timestamp, 12.75)
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE
