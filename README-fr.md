@@ -59,7 +59,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
-> * **Release 3.7**: Ajout du type de Versatile Thermostat `over valve` pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131)
+> * **Release 3.7**: Ajout du type de Versatile Thermostat `over valve` pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
 > * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
@@ -76,7 +76,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 </details>
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69 pour les bières. Ca fait très plaisir.
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome pour les bières. Ca fait très plaisir.
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -598,6 +598,7 @@ data:
     window_bypass: true
 target:
     entity_id : climate.my_thermostat
+```
 
 # Notifications
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
@@ -638,25 +639,26 @@ Les attributs personnalisés sont les suivants :
 | ``[eco/confort/boost]_temp`` | La température configurée pour le préréglage xxx |
 | ``[eco/confort/boost]_away_temp`` | La température configurée pour le préréglage xxx lorsque la présence est désactivée ou not_home |
 | ``temp_power`` | La température utilisée lors de la détection de la perte |
-| ``on_percent`` | (déprécié) Le pourcentage sur calculé par l'algorithme TPI |
-| ``on_time_sec`` | (déprécié) La période On en sec. Doit être ```on_percent * cycle_min``` |
-| ``off_time_sec`` | (déprécié) La période d'arrêt en sec. Doit être ```(1 - on_percent) * cycle_min``` |
+| ``on_percent`` | Le pourcentage sur calculé par l'algorithme TPI |
+| ``on_time_sec`` | La période On en sec. Doit être ```on_percent * cycle_min``` |
+| ``off_time_sec`` | La période d'arrêt en sec. Doit être ```(1 - on_percent) * cycle_min``` |
 | ``cycle_min`` | Le cycle de calcul en minutes |
 | ``function`` | L'algorithme utilisé pour le calcul du cycle |
 | ``tpi_coef_int`` | Le ``coef_int`` de l'algorithme TPI |
 | ``tpi_coef_ext`` | Le ``coef_ext`` de l'algorithme TPI |
 | ``saved_preset_mode`` | Le dernier preset utilisé avant le basculement automatique du preset |
 | ``saved_target_temp`` | La dernière température utilisée avant la commutation automatique |
-| ``window_state`` | (déprécié) Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée |
-| ``motion_state`` | (déprécié) Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré |
-| ``overpowering_state`` | (déprécié) Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
-| ``presence_state`` | (déprécié) Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
+| ``window_state`` | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée |
+| ``window_bypass_state`` | True si le bypass de la détection d'ouverture et activé |
+| ``motion_state`` | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré |
+| ``overpowering_state`` | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée |
+| ``presence_state`` | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée |
 | ``security_delay_min`` | Le délai avant de régler le mode de sécurité lorsque le capteur de température est éteint |
 | ``security_min_on_percent`` | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité |
 | ``security_default_on_percent`` | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité |
-| ``last_temperature_datetime`` | (déprécié) La date et l'heure au format ISO8866 de la dernière réception de température interne |
-| ``last_ext_temperature_datetime`` | (déprécié) La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
-| ``security_state`` | (déprécié) L'état de sécurité. vrai ou faux |
+| ``last_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température interne |
+| ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure |
+| ``security_state`` | L'état de sécurité. vrai ou faux |
 | ``minimal_activation_delay_sec`` | Le délai d'activation minimal en secondes |
 | ``last_update_datetime`` | La date et l'heure au format ISO8866 de cet état |
 | ``friendly_name`` | Le nom du thermostat |

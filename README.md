@@ -58,7 +58,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 3.7**: Addition of the Versatile Thermostat type `over valve` to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131)
+> * **Release 3.7**: Addition of the Versatile Thermostat type `over valve` to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Added a function allowing the bypass of opening detection [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Added Slovak language
 > * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https ://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
@@ -75,8 +75,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 </details>
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69 for the beers. It's very pleasing.
-
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome for the beers. It's very pleasing.
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
@@ -583,6 +582,7 @@ data:
     window_bypass: true
 target:
     entity_id : climate.my_thermostat
+```
 
 # Notifications
 Significant thermostat events are notified via the message bus.
@@ -623,25 +623,26 @@ Custom attributes are the following:
 | ``[eco/comfort/boost]_temp`` | The temperature configured for the preset xxx |
 | ``[eco/comfort/boost]_away_temp`` | The temperature configured for the preset xxx when presence is off or not_home |
 | ``power_temp`` | The temperature used when shedding is detected |
-| ``on_percent`` | (deprecated) The percentage on calculated by the TPI algorithm |
-| ``on_time_sec`` | (deprecated) The On period in sec. Should be ```on_percent * cycle_min``` |
-| ``off_time_sec`` | (deprecated) The Off period in sec. Should be ```(1 - on_percent) * cycle_min``` |
+| ``on_percent`` | The percentage on calculated by the TPI algorithm |
+| ``on_time_sec`` | The On period in sec. Should be ```on_percent * cycle_min``` |
+| ``off_time_sec`` | The Off period in sec. Should be ```(1 - on_percent) * cycle_min``` |
 | ``cycle_min`` | The calculation cycle in minutes |
 | ``function`` | The algorithm used for cycle calculation |
 | ``tpi_coef_int`` | The ``coef_int`` of the TPI algorithm |
 | ``tpi_coef_ext`` | The ``coef_ext`` of the TPI algorithm |
 | ``saved_preset_mode`` | The last preset used before automatic switch of the preset |
 | ``saved_target_temp`` | The last temperature used before automatic switching |
-| ``window_state`` | (deprecated) The last known state of the window sensor. None if window is not configured |
-| ``motion_state`` | (deprecated) The last known state of the motion sensor. None if motion is not configured |
-| ``overpowering_state`` | (deprecated) The last known state of the overpowering sensor. None if power management is not configured |
-| ``presence_state`` | (deprecated) The last known state of the presence sensor. None if presence management is not configured |
+| ``window_state`` | The last known state of the window sensor. None if window is not configured |
+| ``window_bypass_state`` | True if the bypass of the window detection is activated |
+| ``motion_state`` | The last known state of the motion sensor. None if motion is not configured |
+| ``overpowering_state`` | The last known state of the overpowering sensor. None if power management is not configured |
+| ``presence_state`` | The last known state of the presence sensor. None if presence management is not configured |
 | ``security_delay_min`` | The delay before setting the security mode when temperature sensor are off |
 | ``security_min_on_percent`` | The minimal on_percent below which security preset won't be trigger |
 | ``security_default_on_percent`` | The on_percent used when thermostat is in ``security`` |
-| ``last_temperature_datetime`` | (deprecated) The date and time in ISO8866 format of the last internal temperature reception |
-| ``last_ext_temperature_datetime`` | (deprecated) The date and time in ISO8866 format of the last external temperature reception |
-| ``security_state`` | (deprecated) The security state. true or false |
+| ``last_temperature_datetime`` | The date and time in ISO8866 format of the last internal temperature reception |
+| ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception |
+| ``security_state`` | The security state. true or false |
 | ``minimal_activation_delay_sec`` | The minimal activation delay in seconds |
 | ``last_update_datetime`` | The date and time in ISO8866 format of this state |
 | ``friendly_name`` | The name of the thermostat |
