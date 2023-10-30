@@ -564,13 +564,24 @@ If the thermostat is in ``security`` mode the new settings are applied immediate
 To change the security settings use the following code:
 ```
 service : thermostat_polyvalent.set_security
-date:
+data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
     delay_min: 60
 target:
     entity_id : climate.my_thermostat
 ```
+## ByPass Window Check
+This service is used to bypass the window check implemented to stop thermostat when an open window is detected.
+When set to ``true`` window event won't have any effect on the thermostat, when set back to ``false`` it will make sure to disable the thermostat if window is still open.
+
+To change the bypass setting use the following code:
+```
+service : thermostat_polyvalent.set_window_bypass
+data:
+    window_bypass: true
+target:
+    entity_id : climate.my_thermostat
 
 # Notifications
 Significant thermostat events are notified via the message bus.

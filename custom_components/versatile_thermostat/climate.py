@@ -24,6 +24,8 @@ from .const import (
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
     SERVICE_SET_SECURITY,
+    #PR - Adding Window ByPass
+    SERVICE_SET_WINDOW_BYPASS,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
@@ -97,4 +99,14 @@ async def async_setup_entry(
             vol.Optional("default_on_percent"): vol.Coerce(float),
         },
         "service_set_security",
+    )
+
+    #PR - Adding Window ByPass
+    platform.async_register_entity_service(
+        SERVICE_SET_WINDOW_BYPASS,
+        {
+            vol.Required("window_bypass"): vol.In([True, False]
+            ),
+        },
+        "service_set_window_bypass_state",
     )
