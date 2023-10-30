@@ -1,8 +1,10 @@
+# pylint: disable=unused-argument, line-too-long
 """ Test the OpenWindow algorithm """
 
 from datetime import datetime, timedelta
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.open_window_algorithm import WindowOpenDetectionAlgorithm
+
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 async def test_open_window_algo(

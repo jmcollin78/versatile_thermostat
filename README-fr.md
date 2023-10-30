@@ -518,6 +518,7 @@ frontend:
       state-binary_sensor-window-on-color: "rgb(156, 39, 176)"
       state-binary_sensor-motion-on-color: "rgb(156, 39, 176)"
       state-binary_sensor-presence-on-color: "lightgreen"
+      state-binary_sensor-running-on-color: "orange"
 ```
 et choisissez le thème ```versatile_thermostat_theme``` dans la configuration du panel. Vous obtiendrez quelque-chose qui va ressembler à ça :
 

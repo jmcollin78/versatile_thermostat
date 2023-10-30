@@ -1324,8 +1324,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             #PR - Adding Window ByPass
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._window_bypass_state)
             if self._window_bypass_state:
-                _LOGGER.info("Window ByPass is activated. Ignore window event")
-                self.update_custom_attributes()
+                _LOGGER.info("%s - Window ByPass is activated. Ignore window event", self)
                 return
 
             if self._window_state == STATE_OFF:
@@ -1706,6 +1705,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self,
             slope if slope is not None else 0.0,
         )
+
+        if self.window_bypass_state:
+            _LOGGER.info("%s - Window auto event is ignored because bypass is ON", self)
+            return
+
         if (
             self._window_auto_algo.is_window_open_detected()
             and self._window_auto_state is False
