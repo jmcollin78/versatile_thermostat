@@ -1325,21 +1325,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._window_bypass_state)
             if self._window_bypass_state:
                 _LOGGER.info("%s - Window ByPass is activated. Ignore window event", self)
-                return
-
-            if self._window_state == STATE_OFF:
-                _LOGGER.info(
-                    "%s - Window is closed. Restoring hvac_mode '%s'",
-                    self,
-                    self._saved_hvac_mode,
-                )
-                await self.restore_hvac_mode(True)
-            elif self._window_state == STATE_ON:
-                _LOGGER.info(
-                    "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
-                )
-                self.save_hvac_mode()
-                await self.async_set_hvac_mode(HVACMode.OFF)
+            else:
+                if self._window_state == STATE_OFF:
+                    _LOGGER.info(
+                        "%s - Window is closed. Restoring hvac_mode '%s'",
+                        self,
+                        self._saved_hvac_mode,
+                    )
+                    await self.restore_hvac_mode(True)
+                elif self._window_state == STATE_ON:
+                    _LOGGER.info(
+                        "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
+                    )
+                    self.save_hvac_mode()
+                    await self.async_set_hvac_mode(HVACMode.OFF)
             self.update_custom_attributes()
 
         if new_state is None or old_state is None or new_state.state == old_state.state:
