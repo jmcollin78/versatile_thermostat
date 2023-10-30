@@ -198,7 +198,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._saved_hvac_mode = None
         self._window_call_cancel = None
         self._motion_call_cancel = None
-        self._cur_ext_temp = None
         self._cur_temp = None
         self._ac_mode = None
         self._last_ext_temperature_mesure = None

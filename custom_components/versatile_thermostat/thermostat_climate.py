@@ -3,14 +3,29 @@
 import logging
 from datetime import timedelta
 
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 
 from homeassistant.components.climate import HVACAction, HVACMode
 
 from .base_thermostat import BaseThermostat
+from .pi_algorithm import PITemperatureRegulator
 
-from .const import CONF_CLIMATE, CONF_CLIMATE_2, CONF_CLIMATE_3, CONF_CLIMATE_4, overrides
+from .const import (
+    overrides,
+    CONF_CLIMATE,
+    CONF_CLIMATE_2,
+    CONF_CLIMATE_3,
+    CONF_CLIMATE_4,
+    CONF_AUTO_REGULATION_MODE,
+    CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_LIGHT,
+    CONF_AUTO_REGULATION_MEDIUM,
+    CONF_AUTO_REGULATION_STRONG,
+    RegulationParamLight,
+    RegulationParamMedium,
+    RegulationParamStrong
+)
 
 from .underlyings import UnderlyingClimate
 
@@ -18,6 +33,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class ThermostatOverClimate(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a climate"""
+    _regulation_mode:str = None
+    _regulation_algo = None
+    _regulated_target_temp: float = None
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
         {
@@ -25,10 +43,11 @@ class ThermostatOverClimate(BaseThermostat):
             "underlying_climate_2", "underlying_climate_3"
         }))
 
-    # Useless for now
-    # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
-    #    """Initialize the thermostat over switch."""
-    #    super().__init__(hass, unique_id, name, entry_infos)
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the thermostat over switch."""
+        # super.__init__ calls post_init at the end. So it must be called after regulation initialization
+        super().__init__(hass, unique_id, name, entry_infos)
+        self._regulated_target_temp = self.target_temperature
 
     @property
     def is_over_climate(self) -> bool:
@@ -60,10 +79,22 @@ class ThermostatOverClimate(BaseThermostat):
         """Set the target temperature and the target temperature of underlying climate if any"""
         await super()._async_internal_set_temperature(temperature)
 
-        for under in self._underlyings:
-            await under.set_temperature(
-                temperature, self._attr_max_temp, self._attr_min_temp
-            )
+        self._regulation_algo.set_target_temp(self.target_temperature)
+        await self._send_regulated_temperature()
+
+    async def _send_regulated_temperature(self):
+        """ Sends the regulated temperature to all underlying """
+        new_regulated_temp = self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp)
+        if new_regulated_temp != self._regulated_target_temp:
+            _LOGGER.info("%s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
+            self._regulated_target_temp = new_regulated_temp
+
+            for under in self._underlyings:
+                await under.set_temperature(
+                    self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
+                )
+        else:
+            _LOGGER.debug("%s - No change on regulated temperature (%.1f)", self, self._regulated_target_temp)
 
     @overrides
     def post_init(self, entry_infos):
@@ -85,7 +116,39 @@ class ThermostatOverClimate(BaseThermostat):
                     )
                 )
 
+        self._regulation_mode = entry_infos.get(CONF_AUTO_REGULATION_MODE) if entry_infos.get(CONF_AUTO_REGULATION_MODE) is not None else CONF_AUTO_REGULATION_NONE
 
+        if self._regulation_mode == CONF_AUTO_REGULATION_LIGHT:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamLight.kp,
+                RegulationParamLight.ki,
+                RegulationParamLight.k_ext,
+                RegulationParamLight.offset_max,
+                RegulationParamLight.stabilization_threshold,
+                RegulationParamLight.accumulated_error_threshold)
+        elif self._regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamMedium.kp,
+                RegulationParamMedium.ki,
+                RegulationParamMedium.k_ext,
+                RegulationParamMedium.offset_max,
+                RegulationParamMedium.stabilization_threshold,
+                RegulationParamMedium.accumulated_error_threshold)
+        elif self._regulation_mode == CONF_AUTO_REGULATION_STRONG:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamStrong.kp,
+                RegulationParamStrong.ki,
+                RegulationParamStrong.k_ext,
+                RegulationParamStrong.offset_max,
+                RegulationParamStrong.stabilization_threshold,
+                RegulationParamStrong.accumulated_error_threshold)
+        else:
+            # A default empty algo (which does nothing)
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature, 0, 0, 0, 0, 0.1, 0)
 
     @overrides
     async def async_added_to_hass(self):
@@ -131,6 +194,9 @@ class ThermostatOverClimate(BaseThermostat):
         self._attr_extra_state_attributes["underlying_climate_3"] = (
                 self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
             )
+
+        if self.is_regulated:
+            self._attr_extra_state_attributes["regulated_target_temp"] = self._regulated_target_temp
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -351,6 +417,30 @@ class ThermostatOverClimate(BaseThermostat):
                 changes = True
 
         await end_climate_changed(changes)
+
+    @overrides
+    async def async_control_heating(self, force=False, _=None):
+        """The main function used to run the calculation at each cycle"""
+        ret = await super().async_control_heating(force, _)
+
+        await self._send_regulated_temperature()
+
+        return ret
+
+    @property
+    def regulation_mode(self):
+        """ Get the regulation mode """
+        return self._regulation_mode
+
+    @property
+    def regulated_target_temp(self):
+        """ Get the regulated target temperature """
+        return self._regulated_target_temp
+
+    @property
+    def is_regulated(self):
+        """ Check if the ThermostatOverClimate is regulated """
+        return self.regulation_mode != CONF_AUTO_REGULATION_NONE
 
     @property
     def hvac_modes(self):

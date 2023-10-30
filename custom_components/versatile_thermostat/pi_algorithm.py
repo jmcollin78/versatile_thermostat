@@ -16,23 +16,27 @@ class PITemperatureRegulator:
     - call set_target_temp when the target temperature change.
     """
 
-    def __init__(self, target_temp, kp, ki, k_ext, offset_max, stabilization_threshold, accumulated_error_threshold):
-        self.target_temp = target_temp
-        self.kp = kp  # proportionnel gain
-        self.ki = ki  # integral gain
-        self.k_ext = k_ext # exterior gain
-        self.offset_max = offset_max
-        self.stabilization_threshold = stabilization_threshold
-        self.accumulated_error = 0
-        self.accumulated_error_threshold = accumulated_error_threshold
+    def __init__(self, target_temp: float, kp: float, ki: float, k_ext: float, offset_max: float, stabilization_threshold: float, accumulated_error_threshold: float):
+        self.target_temp:float = target_temp
+        self.kp:float = kp  # proportionnel gain
+        self.ki:float = ki  # integral gain
+        self.k_ext:float = k_ext # exterior gain
+        self.offset_max:float = offset_max
+        self.stabilization_threshold:float = stabilization_threshold
+        self.accumulated_error:float = 0
+        self.accumulated_error_threshold:float = accumulated_error_threshold
 
     def set_target_temp(self, target_temp):
         """ Set the new target_temp"""
         self.target_temp = target_temp
         self.accumulated_error = 0
 
-    def calculate_regulated_temperature(self, internal_temp, external_temp): # pylint: disable=unused-argument
+    def calculate_regulated_temperature(self, internal_temp: float, external_temp:float): # pylint: disable=unused-argument
         """ Calculate a new target_temp given some temperature"""
+        if internal_temp is None or external_temp is None:
+            _LOGGER.warning("Internal_temp or external_temp are not set. Regulation will be suspended")
+            return self.target_temp
+
         # Calculate the error factor (P)
         error = self.target_temp - internal_temp
 

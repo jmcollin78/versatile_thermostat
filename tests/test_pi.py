@@ -43,7 +43,7 @@ def test_pi_algorithm_basics():
     assert the_algo.calculate_regulated_temperature(20, 20) == 20.0    # =
 
 
-def test_pi_algorithm_very_light():
+def test_pi_algorithm_light():
     """ Test the PI algorithm """
 
     the_algo = PITemperatureRegulator(target_temp=20, kp=0.2, ki=0.05, k_ext=0.1, offset_max=2, stabilization_threshold=0.1, accumulated_error_threshold=20)

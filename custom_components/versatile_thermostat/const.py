@@ -219,6 +219,33 @@ DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
+class RegulationParamLight:
+    """ Light parameters for regulation"""
+    kp:float = 0.2
+    ki:float = 0.05
+    k_ext:float = 0.1
+    offset_max:float = 2
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 20
+
+
+class RegulationParamMedium:
+    """ Medium parameters for regulation"""
+    kp:float = 0.5
+    ki:float = 0.1
+    k_ext:float = 0.1
+    offset_max:float = 3
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 30
+
+class RegulationParamStrong:
+    """ Strong parameters for regulation"""
+    kp:float = 0.6
+    ki:float = 0.2
+    k_ext:float = 0.2
+    offset_max:float = 4
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 40
 
 class EventType(Enum):
     """The event type that can be sent"""
