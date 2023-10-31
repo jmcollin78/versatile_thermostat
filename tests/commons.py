@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
 from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF, ATTR_TEMPERATURE
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -25,6 +24,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.commons import get_tz, NowClass # pylint: disable=unused-import
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
@@ -34,6 +34,8 @@ from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG,
     MOCK_TH_OVER_4SWITCH_TYPE_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
+    MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG,
+    MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG,
     MOCK_TH_OVER_SWITCH_TPI_CONFIG,
     MOCK_PRESETS_CONFIG,
     MOCK_PRESETS_AC_CONFIG,
@@ -83,6 +85,20 @@ PARTIAL_CLIMATE_CONFIG = (
     | MOCK_ADVANCED_CONFIG
 )
 
+PARTIAL_CLIMATE_NOT_REGULATED_CONFIG = (
+    MOCK_TH_OVER_CLIMATE_USER_CONFIG
+    | MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG
+    | MOCK_PRESETS_CONFIG
+    | MOCK_ADVANCED_CONFIG
+)
+
+PARTIAL_CLIMATE_AC_CONFIG = (
+    MOCK_TH_OVER_CLIMATE_USER_CONFIG
+    | MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG
+    | MOCK_PRESETS_CONFIG
+    | MOCK_ADVANCED_CONFIG
+)
+
 FULL_4SWITCH_CONFIG = (
     MOCK_TH_OVER_4SWITCH_USER_CONFIG
     | MOCK_TH_OVER_4SWITCH_TYPE_CONFIG
@@ -101,7 +117,7 @@ _LOGGER = logging.getLogger(__name__)
 class MockClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF) -> None:   # pylint: disable=unused-argument
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF, hvac_action:HVACAction = HVACAction.OFF) -> None:   # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()
@@ -118,17 +134,25 @@ class MockClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
+        self._attr_hvac_action = hvac_action
 
     def set_temperature(self, **kwargs):
         """ Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode):
         """ The hvac mode"""
         self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+
+    @property
+    def hvac_action(self):
+        """ The hvac action of the mock climate"""
+        return self._attr_hvac_action
+
+    def set_hvac_action(self, hvac_action: HVACAction):
+        """ Set the HVACaction """
+        self._attr_hvac_action = hvac_action
 
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
@@ -453,13 +477,6 @@ async def send_presence_change_event(
     if sleep:
         await asyncio.sleep(0.1)
     return ret
-
-
-def get_tz(hass: HomeAssistant):
-    """Get the current timezone"""
-
-    return dt_util.get_time_zone(hass.config.time_zone)
-
 
 async def send_climate_change_event(
     entity: BaseThermostat,

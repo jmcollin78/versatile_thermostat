@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """Constants for the Versatile Thermostat integration."""
 
 from enum import Enum
@@ -82,6 +83,13 @@ CONF_VALVE = "valve_entity_id"
 CONF_VALVE_2 = "valve_entity2_id"
 CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
+CONF_AUTO_REGULATION_MODE= "auto_regulation_mode"
+CONF_AUTO_REGULATION_NONE= "auto_regulation_none"
+CONF_AUTO_REGULATION_LIGHT= "auto_regulation_light"
+CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
+CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
+CONF_AUTO_REGULATION_DTEMP="auto_regulation_dtemp"
+CONF_AUTO_REGULATION_PERIOD_MIN="auto_regulation_periode_min"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -183,7 +191,9 @@ ALL_CONF = (
         CONF_VALVE_2,
         CONF_VALVE_3,
         CONF_VALVE_4,
-
+        CONF_AUTO_REGULATION_MODE,
+        CONF_AUTO_REGULATION_DTEMP,
+        CONF_AUTO_REGULATION_PERIOD_MIN
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -195,6 +205,8 @@ CONF_FUNCTIONS = [
     PROPORTIONAL_FUNCTION_TPI,
 ]
 
+CONF_AUTO_REGULATION_MODES = [CONF_AUTO_REGULATION_NONE, CONF_AUTO_REGULATION_LIGHT, CONF_AUTO_REGULATION_MEDIUM, CONF_AUTO_REGULATION_STRONG]
+
 CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE, CONF_THERMOSTAT_VALVE]
 
 SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
@@ -202,8 +214,8 @@ SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
 SERVICE_SET_SECURITY = "set_security"
-#PR - Adding Window ByPass
 SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
+SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
 
 DEFAULT_SECURITY_MIN_ON_PERCENT = 0.5
 DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
@@ -211,6 +223,44 @@ DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
+class RegulationParamLight:
+    """ Light parameters for regulation"""
+    kp:float = 0.2
+    ki:float = 0.05
+    k_ext:float = 0.05
+    offset_max:float = 1.5
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 10
+
+
+class RegulationParamMedium:
+    """ Light parameters for regulation"""
+    kp:float = 0.3
+    ki:float = 0.05
+    k_ext:float = 0.1
+    offset_max:float = 2
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 20
+
+
+class RegulationParamStrong:
+    """ Medium parameters for regulation"""
+    kp:float = 0.4
+    ki:float = 0.08
+    k_ext:float = 0.1
+    offset_max:float = 3
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 25
+
+# Not used now
+class RegulationParamVeryStrong:
+    """ Strong parameters for regulation"""
+    kp:float = 0.6
+    ki:float = 0.1
+    k_ext:float = 0.2
+    offset_max:float = 4
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 30
 
 class EventType(Enum):
     """The event type that can be sent"""

@@ -1,18 +1,50 @@
 """ Some usefull commons class """
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.event import async_track_state_change_event, async_call_later
+from homeassistant.util import dt as dt_util
 
 from .base_thermostat import BaseThermostat
 from .const import DOMAIN, DEVICE_MANUFACTURER
 
 _LOGGER = logging.getLogger(__name__)
 
+def get_tz(hass: HomeAssistant):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)
+
+class NowClass:
+    """ For testing purpose only"""
+
+    @staticmethod
+    def get_now(hass: HomeAssistant) -> datetime:
+        """ A test function to get the now.
+            For testing purpose this method can be overriden to get a specific
+            timestamp.
+        """
+        return datetime.now( get_tz(hass))
+
+def round_to_nearest(n:float, x: float)->float:
+    """ Round a number to the nearest x (which should be decimal but not null)
+        Example:
+            nombre1 = 3.2
+            nombre2 = 4.7
+            x = 0.3
+
+            nombre_arrondi1 = round_to_nearest(nombre1, x)
+            nombre_arrondi2 = round_to_nearest(nombre2, x)
+
+            print(nombre_arrondi1)  # Output: 3.3
+            print(nombre_arrondi2)  # Output: 4.6
+    """
+    assert x > 0
+    return round(n * (1/x)) / (1/x)
 
 class VersatileThermostatBaseEntity(Entity):
     """A base class for all entities"""
@@ -98,7 +130,7 @@ class VersatileThermostatBaseEntity(Entity):
         await try_find_climate(None)
 
     @callback
-    async def async_my_climate_changed(self, event: Event):
+    async def async_my_climate_changed(self, event: Event):         # pylint: disable=unused-argument
         """Called when my climate have change
         This method aims to be overriden to take the status change
         """

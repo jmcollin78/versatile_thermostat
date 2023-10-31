@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
+    UnitOfTemperature
 )
 from homeassistant.config_entries import ConfigEntry
 
@@ -24,6 +25,7 @@ from .const import (
     PROPORTIONAL_FUNCTION_TPI,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_VALVE,
+    CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_TYPE,
 )
 
@@ -62,6 +64,9 @@ async def async_setup_entry(
 
     if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE:
         entities.append(ValveOpenPercentSensor(hass, unique_id, name, entry.data))
+
+    if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE:
+        entities.append(RegulatedTemperatureSensor(hass, unique_id, name, entry.data))
 
     async_add_entities(entities, True)
 
@@ -470,3 +475,53 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 2
+
+class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a Energy sensor which exposes the energy"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the regulated temperature sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "Regulated temperature"
+        self._attr_unique_id = f"{self._device_name}_regulated_temperature"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+
+        if math.isnan(self.my_climate.regulated_target_temp) or math.isinf(
+            self.my_climate.regulated_target_temp
+        ):
+            raise ValueError(f"Sensor has illegal state {self.my_climate.regulated_target_temp}")
+
+        old_state = self._attr_native_value
+        self._attr_native_value = round(
+            self.my_climate.regulated_target_temp, self.suggested_display_precision
+        )
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:thermometer-auto"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.TEMPERATURE
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if not self.my_climate:
+            return UnitOfTemperature.CELSIUS
+        return self.my_climate.temperature_unit
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Return the suggested number of decimal digits for display."""
+        return 1

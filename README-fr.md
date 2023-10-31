@@ -20,6 +20,7 @@
   - [Sélectionnez des entités pilotées](#sélectionnez-des-entités-pilotées)
     - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
     - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
+      - [L'auto-régulation](#lauto-régulation)
     - [Pour un thermostat de type ```thermostat_over_valve```:](#pour-un-thermostat-de-type-thermostat_over_valve)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
@@ -44,6 +45,7 @@
   - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
   - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
+  - [ByPass Window Check](#bypass-window-check)
 - [Notifications](#notifications)
 - [Attributs personnalisés](#attributs-personnalisés)
 - [Quelques résultats](#quelques-résultats)
@@ -59,15 +61,16 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 3.8**: Ajout d'une fonction d'auto-régulation pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la possibilité d'inverser la commande pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
 > * **Release 3.7**: Ajout du type de Versatile Thermostat `over valve` pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
 > * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
-> * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
-> * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
-> * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puissance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
 <details>
 <summary>Autres versions</summary>
 
+> * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
+> * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
+> * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puissance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
 > * **Release 3.1** : ajout d'une détection de fenêtres/portes ouvertes par chute de température. Cette nouvelle fonction permet de stopper automatiquement un radiateur lorsque la température chute brutalement. Voir [Le mode auto](#le-mode-auto)
 > * **Release majeure 3.0** : ajout d'un équipement thermostat et de capteurs (binaires et non binaires) associés. Beaucoup plus proche de la philosphie Home Assistant, vous avez maintenant un accès direct à l'énergie consommée par le radiateur piloté par le thermostat et à plein d'autres capteurs qui seront utiles dans vos automatisations et dashboard.
 > * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
@@ -76,11 +79,11 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 </details>
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome pour les bières. Ca fait très plaisir.
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
 
 
 # Quand l'utiliser et ne pas l'utiliser
-Ce thermostat peut piloter 3 types d'équipement:
+Ce thermostat peut piloter 3 types d'équipements :
 1. un radiateur qui ne fonctionne qu'en mode marche/arrêt (nommé ```thermostat_over_switch```). La configuration minimale nécessaire pour utiliser ce type thermostat est :
    1. un équipement comme un radiateur (un ```switch``` ou équivalent),
    2. une sonde de température pour la pièce (ou un input_number),
@@ -89,7 +92,9 @@ Ce thermostat peut piloter 3 types d'équipement:
    1. un équipement - comme une climatisation, une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
 3. un équipement qui peut prendre une valeur de 0 à 100% (nommée ```thermostat_over_valve```). A 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une valve thermostatique (cf. valve Shelly) qui expose une entité de type `number.` permetttant de piloter directement l'ouverture de la vanne. Versatile Thermostat régule la température de la pièce en jouant sur le pourcentage d'ouverture, à l'aide des capteurs de température intérieur et extérieur en utilisant l'algorithme TPI décrit ci-dessous.
 
-The ```thermostat_over_climate``` type allows you to add to your existing equipment all the functionalities provided by VersatileThermostat. The VersatileThermostat climate entity will control your climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-thermostat-implementation). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
+Le type `over_climate` vous permet d'ajouter à votre équipement existant toutes les fonctionnalités apportées par VersatileThermostat. L'entité climate VersatileThermostat contrôlera votre entité climate sous-jacente, l'éteindra si les fenêtres sont ouvertes, la fera passer en mode Eco si personne n'est présent, etc. Voir [ici] (#pourquoi-un-nouveau-thermostat-implémentation). Pour ce type de thermostat, tous les cycles de chauffage sont contrôlés par l'entité climate sous-jacente et non par le thermostat polyvalent lui-même. Une fonction facultative d'auto-régulation permet au Versatile Thermostat d'ajuster la température donnée en consigne au sous-jacent afin d'atteindre la consigne.
+
+Les installations avec fil pilote et diode d'activation bénéficie d'une option qui permet d'inverser la commande on/off du radiateur sous-jacent. Pour cela, utilisez le type `over switch` et cochez l'option d'inversion de la commande.
 
 ## Incompatibilités
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
@@ -186,6 +191,33 @@ Il est possible de choisir un thermostat over switch qui commande une climatisat
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 Il est possible de choisir un thermostat over climate qui commande une climatisation réversible en cochant la case "AC Mode". Dans ce cas, selon l'équipement commandé vous aurez accès au chauffage et/ou au réfroidissement.
+
+#### L'auto-régulation
+Depuis la release 3.8, vous avez la possibilité d'activer la fonction d'auto-régulation. Cette fonction autorise VersatileThermostat à adapter la consigne de température donnée au climate sous-jacent afin que la température de la pièce atteigne réellement la consigne.
+Pour faire ça, le VersatileThermostat calcule un décalage basé sur les informations suivantes :
+1. la différence actuelle entre la température réelle et la température de consigne,
+2. l'accumulation des différences passées,
+3. la différence entre la température extérieure et la consigne
+
+Ces trois informations sont combinées pour calculer le décalage qui sera ajouté à la consigne courante et envoyé au climate sous-jacent.
+
+La fonction d'auto-régulation se paramètre avec :
+1. une dégré de régulation :
+   1. Légère - pour des faibles besoin en auto-régulation. Dans ce mode, le décalage maximal sera de 1,5°,
+   2. Medium - pour une auto-régulation moyenne. Un décalage maximal de 2° est possible dans ce mode,
+   3. Forte - pour un fort besoin d'auto-régulation. Le décalage maximal est de 3° dans ce mode et l'auto-régulation réagira fortement aux changements de température.
+2. Un seuil d'auto-régulation : valeur en dessous de laquelle une nouvelle régulation ne sera pas appliquée. Imaginons qu'à un instant t, le décalage soit de 2°. Si au prochain calcul, le décalage est de 2.4°, il sera pas appliqué. Il ne sera appliqué que la différence entre 2 décalages sera au moins égal à ce seuil,
+3. Période minimal entre 2 auto-régulation : ce nombre, exprimé en minute, indique la durée entre 2 changements de régulation.
+
+Ces trois paramètres permettent de moduler la régulation et éviter de multiplier les envois de régulation. Certains équipements comme les TRV, les chaudières n'aiment pas qu'on change la consigne de température trop souvent.
+
+> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Conseil de mise en place*_
+> 1. Ne démarrez pas tout de suite l'auto-régulation. Regardez comment se passe la régulation naturelle de votre équipement. Si vous constatez que la température de consigne n'est pas atteinte ou qu'elle met trop de temps à être atteinte, démarrez la régulation,
+> 2. D'abord commencez par une légère auto-régulation et gardez les deux paramètres avec leur valeurs par défaut. Attendez quelques jours et vérifiez si la situation s'est améliorée,
+> 3. Si ce n'est pas suffisant, passez en auto-régulation Medium, attendez une stabilisation,
+> 4. Si ce n'est toujours pas suffisant, passez en auto-régulation Forte.
+
+L'auto-régulation consiste à forcer l'équipement a aller plus loin en lui forçant sa température de consigne régulièrement. Sa consommation peut donc être augmentée, ainsi que son usure.
 
 ### Pour un thermostat de type ```thermostat_over_valve```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
@@ -415,7 +447,9 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 | ``minimal_activation_delay`` | Délai minimal d'activation | X | - | - |
 | ``security_delay_min`` | Délai maximal entre 2 mesures de températures | X | - | X |
 | ``security_min_on_percent`` | Pourcentage minimal de puissance pour passer en mode sécurité | X | - | X |
-| ``security_default_on_percent`` | Pourcentage de puissance a utiliser en mode securité | X | - | X |
+| ``auto_regulation_mode`` | Le mode d'auto-régulation | - | X | - |
+| ``auto_regulation_dtemp`` | La seuil d'auto-régulation | - | X | - |
+| ``auto_regulation_period_min`` | La période minimale d'auto-régulation | - | X | - |
 
 # Exemples de réglage
 
@@ -664,6 +698,7 @@ Les attributs personnalisés sont les suivants :
 | ``friendly_name`` | Le nom du thermostat |
 | ``supported_features`` | Une combinaison de toutes les fonctionnalités prises en charge par ce thermostat. Voir la documentation officielle sur l'intégration climatique pour plus d'informations |
 | ``valve_open_percent`` | Le pourcentage d'ouverture de la vanne |
+| ``regulated_target_temperature`` | La température de consigne calculée par l'auto-régulation |
 
 # Quelques résultats
 
@@ -795,9 +830,19 @@ series:
     name: Current temp
     curve: smooth
     yaxis_id: left
-  - entity: climate.thermostat_mythermostat
+  - entity: climate.thermostat_mythermostat    <--- for over_switch
     attribute: on_percent
     name: Power percent
+    curve: stepline
+    yaxis_id: right
+  - entity: climate.thermostat_mythermostat    <--- for over_thermostast
+    attribute: regulated_target_temperature
+    name: Regulated temperature
+    curve: stepline
+    yaxis_id: left
+  - entity: climate.thermostat_mythermostat    <--- for over_valve
+    attribute: valve_open_percent
+    name: Valve open percent
     curve: stepline
     yaxis_id: right
 ```

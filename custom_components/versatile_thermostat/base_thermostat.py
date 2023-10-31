@@ -198,7 +198,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._saved_hvac_mode = None
         self._window_call_cancel = None
         self._motion_call_cancel = None
-        self._cur_ext_temp = None
         self._cur_temp = None
         self._ac_mode = None
         self._last_ext_temperature_mesure = None
@@ -1220,7 +1219,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         await self.async_control_heating(force=True)
 
     async def _async_internal_set_temperature(self, temperature):
-        """Set the target temperature and the target temperature of underlying climate if any"""
+        """Set the target temperature and the target temperature of underlying climate if any
+           For testing purpose you can pass an event_timestamp.
+        """
         self._target_temp = temperature
         return
 
@@ -2248,7 +2249,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         await self.async_control_heating()
         self.update_custom_attributes()
 
-    #PR - Adding Window ByPass
     async def service_set_window_bypass_state(self, window_bypass):
         """Called by a service call:
         service: versatile_thermostat.set_window_bypass

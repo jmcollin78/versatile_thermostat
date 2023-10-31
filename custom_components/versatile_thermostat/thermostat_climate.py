@@ -1,16 +1,34 @@
 # pylint: disable=line-too-long
 """ A climate over switch classe """
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 
 from homeassistant.components.climate import HVACAction, HVACMode
 
+from .commons import NowClass, round_to_nearest
 from .base_thermostat import BaseThermostat
+from .pi_algorithm import PITemperatureRegulator
 
-from .const import CONF_CLIMATE, CONF_CLIMATE_2, CONF_CLIMATE_3, CONF_CLIMATE_4, overrides
+from .const import (
+    overrides,
+    CONF_CLIMATE,
+    CONF_CLIMATE_2,
+    CONF_CLIMATE_3,
+    CONF_CLIMATE_4,
+    CONF_AUTO_REGULATION_MODE,
+    CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_LIGHT,
+    CONF_AUTO_REGULATION_MEDIUM,
+    CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_DTEMP,
+    CONF_AUTO_REGULATION_PERIOD_MIN,
+    RegulationParamLight,
+    RegulationParamMedium,
+    RegulationParamStrong
+)
 
 from .underlyings import UnderlyingClimate
 
@@ -18,17 +36,25 @@ _LOGGER = logging.getLogger(__name__)
 
 class ThermostatOverClimate(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a climate"""
+    _auto_regulation_mode:str = None
+    _regulation_algo = None
+    _regulated_target_temp: float = None
+    _auto_regulation_dtemp: float = None
+    _auto_regulation_period_min: int = None
+    _last_regulation_change: datetime = None
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
         {
             "is_over_climate", "start_hvac_action_date", "underlying_climate_0", "underlying_climate_1",
-            "underlying_climate_2", "underlying_climate_3"
+            "underlying_climate_2", "underlying_climate_3", "regulation_accumulated_error"
         }))
 
-    # Useless for now
-    # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
-    #    """Initialize the thermostat over switch."""
-    #    super().__init__(hass, unique_id, name, entry_infos)
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the thermostat over switch."""
+        # super.__init__ calls post_init at the end. So it must be called after regulation initialization
+        super().__init__(hass, unique_id, name, entry_infos)
+        self._regulated_target_temp = self.target_temperature
+        self._last_regulation_change = NowClass.get_now(hass)
 
     @property
     def is_over_climate(self) -> bool:
@@ -55,188 +81,42 @@ class ThermostatOverClimate(BaseThermostat):
             return HVACAction.IDLE
         return HVACAction.OFF
 
-    @property
-    def hvac_modes(self):
-        """List of available operation modes."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).hvac_modes
-        else:
-            return super.hvac_modes
-
-    @property
-    def mean_cycle_power(self) -> float | None:
-        """Returns the mean power consumption during the cycle"""
-        return None
-
-    @property
-    def fan_mode(self) -> str | None:
-        """Return the fan setting.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).fan_mode
-
-        return None
-
-    @property
-    def fan_modes(self) -> list[str] | None:
-        """Return the list of available fan modes.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).fan_modes
-
-        return []
-
-    @property
-    def swing_mode(self) -> str | None:
-        """Return the swing setting.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).swing_mode
-
-        return None
-
-    @property
-    def swing_modes(self) -> list[str] | None:
-        """Return the list of available swing modes.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).swing_modes
-
-        return None
-
-    @property
-    def temperature_unit(self) -> str:
-        """Return the unit of measurement."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).temperature_unit
-
-        return self._unit
-
-    @property
-    def supported_features(self):
-        """Return the list of supported features."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).supported_features | self._support_flags
-
-        return self._support_flags
-
-    @property
-    def target_temperature_step(self) -> float | None:
-        """Return the supported step of target temperature."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_step
-
-        return None
-
-    @property
-    def target_temperature_high(self) -> float | None:
-        """Return the highbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_high
-
-        return None
-
-    @property
-    def target_temperature_low(self) -> float | None:
-        """Return the lowbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_low
-
-        return None
-
-    @property
-    def is_aux_heat(self) -> bool | None:
-        """Return true if aux heater.
-
-        Requires ClimateEntityFeature.AUX_HEAT.
-        """
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).is_aux_heat
-
-        return None
-
-    @overrides
-    def turn_aux_heat_on(self) -> None:
-        """Turn auxiliary heater on."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).turn_aux_heat_on()
-
-        raise NotImplementedError()
-
-    @overrides
-    async def async_turn_aux_heat_on(self) -> None:
-        """Turn auxiliary heater on."""
-        for under in self._underlyings:
-            await under.async_turn_aux_heat_on()
-
-    @overrides
-    def turn_aux_heat_off(self) -> None:
-        """Turn auxiliary heater off."""
-        for under in self._underlyings:
-            return under.turn_aux_heat_off()
-
-    @overrides
-    async def async_turn_aux_heat_off(self) -> None:
-        """Turn auxiliary heater off."""
-        for under in self._underlyings:
-            await under.async_turn_aux_heat_off()
-
-    @overrides
-    async def async_set_fan_mode(self, fan_mode):
-        """Set new target fan mode."""
-        _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
-        if fan_mode is None:
-            return
-
-        for under in self._underlyings:
-            await under.set_fan_mode(fan_mode)
-        self._fan_mode = fan_mode
-        self.async_write_ha_state()
-
-    @overrides
-    async def async_set_humidity(self, humidity: int):
-        """Set new target humidity."""
-        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
-        if humidity is None:
-            return
-        for under in self._underlyings:
-            await under.set_humidity(humidity)
-        self._humidity = humidity
-        self.async_write_ha_state()
-
-    @overrides
-    async def async_set_swing_mode(self, swing_mode):
-        """Set new target swing operation."""
-        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
-        if swing_mode is None:
-            return
-        for under in self._underlyings:
-            await under.set_swing_mode(swing_mode)
-        self._swing_mode = swing_mode
-        self.async_write_ha_state()
-
     @overrides
     async def _async_internal_set_temperature(self, temperature):
         """Set the target temperature and the target temperature of underlying climate if any"""
         await super()._async_internal_set_temperature(temperature)
 
+        self._regulation_algo.set_target_temp(self.target_temperature)
+        await self._send_regulated_temperature(force=True)
+
+    async def _send_regulated_temperature(self, force=False):
+        """ Sends the regulated temperature to all underlying """
+        if not self._regulated_target_temp:
+            self._regulated_target_temp = self.target_temperature
+
+        new_regulated_temp = round_to_nearest(
+            self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp),
+            self._auto_regulation_dtemp)
+        dtemp = new_regulated_temp - self._regulated_target_temp
+
+        if not force and abs(dtemp) < self._auto_regulation_dtemp:
+            _LOGGER.debug("%s - dtemp (%.1f) is < %.1f -> forget the regulation send", self, dtemp, self._auto_regulation_dtemp)
+            return
+
+        now:datetime = NowClass.get_now(self._hass)
+        period = float((now - self._last_regulation_change).total_seconds()) / 60.
+        if not force and period < self._auto_regulation_period_min:
+            _LOGGER.debug("%s - period (%.1f) is < %.0f -> forget the regulation send", self, period, self._auto_regulation_period_min)
+            return
+
+
+        self._regulated_target_temp = new_regulated_temp
+        _LOGGER.info("%s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
+        self._last_regulation_change = now
+
         for under in self._underlyings:
             await under.set_temperature(
-                temperature, self._attr_max_temp, self._attr_min_temp
+                self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
             )
 
     @overrides
@@ -258,6 +138,48 @@ class ThermostatOverClimate(BaseThermostat):
                         climate_entity_id=entry_infos.get(climate),
                     )
                 )
+
+        self.choose_auto_regulation_mode(
+            entry_infos.get(CONF_AUTO_REGULATION_MODE) if entry_infos.get(CONF_AUTO_REGULATION_MODE) is not None else CONF_AUTO_REGULATION_NONE
+        )
+
+        self._auto_regulation_dtemp = entry_infos.get(CONF_AUTO_REGULATION_DTEMP) if entry_infos.get(CONF_AUTO_REGULATION_DTEMP) is not None else 0.5
+        self._auto_regulation_period_min = entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) if entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None else 5
+
+    def choose_auto_regulation_mode(self, auto_regulation_mode):
+        """ Choose or change the regulation mode"""
+        self._auto_regulation_mode = auto_regulation_mode
+        if self._auto_regulation_mode == CONF_AUTO_REGULATION_LIGHT:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamLight.kp,
+                RegulationParamLight.ki,
+                RegulationParamLight.k_ext,
+                RegulationParamLight.offset_max,
+                RegulationParamLight.stabilization_threshold,
+                RegulationParamLight.accumulated_error_threshold)
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamMedium.kp,
+                RegulationParamMedium.ki,
+                RegulationParamMedium.k_ext,
+                RegulationParamMedium.offset_max,
+                RegulationParamMedium.stabilization_threshold,
+                RegulationParamMedium.accumulated_error_threshold)
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_STRONG:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamStrong.kp,
+                RegulationParamStrong.ki,
+                RegulationParamStrong.k_ext,
+                RegulationParamStrong.offset_max,
+                RegulationParamStrong.stabilization_threshold,
+                RegulationParamStrong.accumulated_error_threshold)
+        else:
+            # A default empty algo (which does nothing)
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature, 0, 0, 0, 0, 0.1, 0)
 
     @overrides
     async def async_added_to_hass(self):
@@ -303,6 +225,10 @@ class ThermostatOverClimate(BaseThermostat):
         self._attr_extra_state_attributes["underlying_climate_3"] = (
                 self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
             )
+
+        if self.is_regulated:
+            self._attr_extra_state_attributes["regulated_target_temperature"] = self._regulated_target_temp
+            self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -509,7 +435,8 @@ class ThermostatOverClimate(BaseThermostat):
                 new_state.attributes,
             )
             if (
-                self.is_over_climate
+                # we do not change target temperature on regulated VTherm
+                not self.is_regulated
                 and new_state.attributes
                 and (new_target_temp := new_state.attributes.get("temperature"))
                 and new_target_temp != self.target_temperature
@@ -523,3 +450,222 @@ class ThermostatOverClimate(BaseThermostat):
                 changes = True
 
         await end_climate_changed(changes)
+
+    @overrides
+    async def async_control_heating(self, force=False, _=None):
+        """The main function used to run the calculation at each cycle"""
+        ret = await super().async_control_heating(force, _)
+
+        await self._send_regulated_temperature()
+
+        return ret
+
+    @property
+    def auto_regulation_mode(self):
+        """ Get the regulation mode """
+        return self._auto_regulation_mode
+
+    @property
+    def regulated_target_temp(self):
+        """ Get the regulated target temperature """
+        return self._regulated_target_temp
+
+    @property
+    def is_regulated(self):
+        """ Check if the ThermostatOverClimate is regulated """
+        return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
+
+    @property
+    def hvac_modes(self):
+        """List of available operation modes."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).hvac_modes
+        else:
+            return super.hvac_modes
+
+    @property
+    def mean_cycle_power(self) -> float | None:
+        """Returns the mean power consumption during the cycle"""
+        return None
+
+    @property
+    def fan_mode(self) -> str | None:
+        """Return the fan setting.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).fan_mode
+
+        return None
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        """Return the list of available fan modes.
+
+        Requires ClimateEntityFeature.FAN_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).fan_modes
+
+        return []
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the swing setting.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_mode
+
+        return None
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        """Return the list of available swing modes.
+
+        Requires ClimateEntityFeature.SWING_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_modes
+
+        return None
+
+    @property
+    def temperature_unit(self) -> str:
+        """Return the unit of measurement."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).temperature_unit
+
+        return self._unit
+
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).supported_features | self._support_flags
+
+        return self._support_flags
+
+    @property
+    def target_temperature_step(self) -> float | None:
+        """Return the supported step of target temperature."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_step
+
+        return None
+
+    @property
+    def target_temperature_high(self) -> float | None:
+        """Return the highbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_high
+
+        return None
+
+    @property
+    def target_temperature_low(self) -> float | None:
+        """Return the lowbound target temperature we try to reach.
+
+        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_temperature_low
+
+        return None
+
+    @property
+    def is_aux_heat(self) -> bool | None:
+        """Return true if aux heater.
+
+        Requires ClimateEntityFeature.AUX_HEAT.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).is_aux_heat
+
+        return None
+
+    @overrides
+    def turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).turn_aux_heat_on()
+
+        raise NotImplementedError()
+
+    @overrides
+    async def async_turn_aux_heat_on(self) -> None:
+        """Turn auxiliary heater on."""
+        for under in self._underlyings:
+            await under.async_turn_aux_heat_on()
+
+    @overrides
+    def turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        for under in self._underlyings:
+            return under.turn_aux_heat_off()
+
+    @overrides
+    async def async_turn_aux_heat_off(self) -> None:
+        """Turn auxiliary heater off."""
+        for under in self._underlyings:
+            await under.async_turn_aux_heat_off()
+
+    @overrides
+    async def async_set_fan_mode(self, fan_mode):
+        """Set new target fan mode."""
+        _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
+        if fan_mode is None:
+            return
+
+        for under in self._underlyings:
+            await under.set_fan_mode(fan_mode)
+        self._fan_mode = fan_mode
+        self.async_write_ha_state()
+
+    @overrides
+    async def async_set_humidity(self, humidity: int):
+        """Set new target humidity."""
+        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
+        if humidity is None:
+            return
+        for under in self._underlyings:
+            await under.set_humidity(humidity)
+        self._humidity = humidity
+        self.async_write_ha_state()
+
+    @overrides
+    async def async_set_swing_mode(self, swing_mode):
+        """Set new target swing operation."""
+        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
+        if swing_mode is None:
+            return
+        for under in self._underlyings:
+            await under.set_swing_mode(swing_mode)
+        self._swing_mode = swing_mode
+        self.async_write_ha_state()
+
+    async def service_set_auto_regulation_mode(self, auto_regulation_mode):
+        """Called by a service call:
+        service: versatile_thermostat.set_auto_regulation_mode
+        data:
+            auto_regulation_mode: [None | Light | Medium | Strong]
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info("%s - Calling service_set_auto_regulation_mode, auto_regulation_mode: %s", self, auto_regulation_mode)
+        if auto_regulation_mode == "None":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_NONE)
+        elif auto_regulation_mode == "Light":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_LIGHT)
+        elif auto_regulation_mode == "Medium":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_MEDIUM)
+        elif auto_regulation_mode == "Strong":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_STRONG)
+
+        await self._send_regulated_temperature()
+        self.update_custom_attributes()
