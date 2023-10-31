@@ -227,7 +227,7 @@ class ThermostatOverClimate(BaseThermostat):
             )
 
         if self.is_regulated:
-            self._attr_extra_state_attributes["regulated_target_temp"] = self._regulated_target_temp
+            self._attr_extra_state_attributes["regulated_target_temperature"] = self._regulated_target_temp
             self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
 
         self.async_write_ha_state()

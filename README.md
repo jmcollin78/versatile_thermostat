@@ -20,6 +20,7 @@
   - [Select the driven entity](#select-the-driven-entity)
     - [For a ```thermostat_over_switch``` type thermostat](#for-a-thermostat_over_switch-type-thermostat)
     - [For a thermostat of type ```thermostat_over_climate```:](#for-a-thermostat-of-type-thermostat_over_climate)
+      - [Self-regulation](#self-regulation)
     - [For a thermostat of type ```thermostat_over_valve```:](#for-a-thermostat-of-type-thermostat_over_valve)
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
   - [Configure the preset temperature](#configure-the-preset-temperature)
@@ -44,6 +45,7 @@
   - [Force the presence / occupancy](#force-the-presence--occupancy)
   - [Change the temperature of presets](#change-the-temperature-of-presets)
   - [Change security settings](#change-security-settings)
+  - [ByPass Window Check](#bypass-window-check)
 - [Notifications](#notifications)
 - [Custom attributes](#custom-attributes)
 - [Some results](#some-results)
@@ -58,15 +60,16 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 3.8**: Added a self-regulation function for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of inverting the command for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
 > * **Release 3.7**: Addition of the Versatile Thermostat type `over valve` to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Added a function allowing the bypass of opening detection [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Added Slovak language
 > * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https ://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
-> * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
-> * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
-> * **Release 3.2**: add the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
 <details>
 <summary>Others releases</summary>
 
+> * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
+> * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
+> * **Release 3.2**: add the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
 > * **Release 3.1**: added detection of open windows/doors by temperature drop. This new function makes it possible to automatically stop a radiator when the temperature drops suddenly. See [Auto mode](#auto-mode)
 > * **Major release 3.0**: addition of thermostat equipment and associated sensors (binary and non-binary). Much closer to the Home Assistant philosophy, you now have direct access to the energy consumed by the radiator controlled by the thermostat and many other sensors that will be useful in your automations and dashboard.
 > * **release 2.3**: addition of the power and energy measurement of the radiator controlled by the thermostat.
@@ -75,7 +78,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 </details>
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome for the beers. It's very pleasing.
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
@@ -86,7 +89,10 @@ This thermostat can control 3 types of equipment:
 2. another thermostat which has its own operating modes (named ``thermostat_over_climate```). For this type of thermostat the minimum configuration requires:
    1. equipment - such as air conditioning, a thermostatic valve - which is controlled by its own ``climate'' type entity,
 3. equipment which can take a value from 0 to 100% (called `thermostat_over_valve`). At 0 the heating is cut off, 100% it is fully opened. This type allows you to control a thermostatic valve (see Shelly valve) which exposes an entity of type `number.` allowing you to directly control the opening of the valve. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using the interior and exterior temperature sensors using the TPI algorithm described below.
-The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself.
+
+The ```thermostat_over_climate``` type allows you to add all the functionality provided by VersatileThermostat to your existing equipment. The climate VersatileThermostat entity will control your existing climate entity, turning it off if the windows are open, switching it to Eco mode if no one is present, etc. See [here](#why-a-new-implementation-of-the-thermostat). For this type of thermostat, any heating cycles are controlled by the underlying climate entity and not by the Versatile Thermostat itself. An optional self-regulation function allows the Versatile Thermostat to adjust the temperature given as a setpoint to the underlying in order to reach the setpoint.
+
+Installations with pilot wire and activation diode benefit from an option which allows the on/off control of the underlying radiator to be reversed. To do this, use the `over switch` type and check the command inversion option.
 
 ## Incompatibilities
 
@@ -183,6 +189,33 @@ It is possible to choose an over switch thermostat which controls air conditioni
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
 
 It is possible to choose an over climate thermostat which controls reversible air conditioning by checking the “AC Mode” box. In this case, depending on the equipment ordered, you will have access to heating and/or cooling.
+
+#### Self-regulation
+Since release 3.8, you have the possibility to activate the self-regulation function. This function allows VersatileThermostat to adapt the temperature setpoint given to the underlying climate so that the room temperature actually reaches the setpoint.
+To do this, the VersatileThermostat calculates an offset based on the following information:
+1. the current difference between the actual temperature and the set temperature,
+2. the accumulation of past differences,
+3. the difference between the outside temperature and the setpoint
+
+These three pieces of information are combined to calculate the offset which will be added to the current setpoint and sent to the underlying climate.
+
+The self-regulation function is configured with:
+1. a degree of regulation:
+    1. Light - for low self-regulation needs. In this mode, the maximum offset will be 1.5°,
+    2. Medium - for average self-regulation. A maximum offset of 2° is possible in this mode,
+    3. Strong - for a strong need for self-regulation. The maximum offset is 3° in this mode and the auto-regulation will react strongly to temperature changes.
+2. A self-regulation threshold: value below which new regulation will not be applied. Let us imagine that at a time t, the offset is 2°. If in the next calculation, the offset is 2.4°, it will not be applied. It will only be applied that the difference between 2 offsets will be at least equal to this threshold,
+3. Minimum period between 2 self-regulation changes: this number, expressed in minutes, indicates the duration between 2 regulation changes.
+
+These three parameters make it possible to modulate the regulation and avoid multiplying the regulation sendings. Some equipment such as TRVs and boilers do not like the temperature setpoint to be changed too often.
+
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Implementation tip*_
+> 1. Do not start self-regulation straight away. Watch how the natural regulation of your equipment works. If you notice that the set temperature is not reached or that it is taking too long to be reached, start the regulation,
+> 2. First start with a slight self-regulation and keep both parameters at their default values. Wait a few days and check if the situation has improved,
+> 3. If this is not sufficient, switch to Medium self-regulation, wait for stabilization,
+> 4. If this is still not sufficient, switch to Strong self-regulation.
+
+Self-regulation consists of forcing the equipment to go further by forcing its set temperature regularly. Its consumption can therefore be increased, as well as its wear.
 
 ### For a thermostat of type ```thermostat_over_valve```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
@@ -402,6 +435,10 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``security_delay_min`` | Security delay (in minutes) | X | X | X |
 | ``security_min_on_percent`` | Minimal power percent to enable security mode | X | X | X |
 | ``security_default_on_percent`` | Power percent to use in security mode | X | X | X |
+| ``auto_regulation_mode`` | Le mode d'auto-régulation | - | X | - |
+| ``auto_regulation_dtemp`` | La seuil d'auto-régulation | - | X | - |
+| ``auto_regulation_period_min`` | La période minimale d'auto-régulation | - | X | - |
+
 
 # Examples tuning
 
@@ -648,6 +685,8 @@ Custom attributes are the following:
 | ``friendly_name`` | The name of the thermostat |
 | ``supported_features`` | A combination of all features supported by this thermostat. See official climate integration documentation for more informations |
 | ``valve_open_percent`` | The opening percentage of the valve |
+| ``regulated_target_temperature`` | The self-regulated target temperature calculated |
+
 
 # Some results
 
@@ -778,9 +817,19 @@ series:
     name: Current temp
     curve: smooth
     yaxis_id: left
-  - entity: climate.thermostat_mythermostat
+  - entity: climate.thermostat_mythermostat    <--- for over_switch
     attribute: on_percent
     name: Power percent
+    curve: stepline
+    yaxis_id: right
+  - entity: climate.thermostat_mythermostat    <--- for over_thermostast
+    attribute: regulated_target_temperature
+    name: Regulated temperature
+    curve: stepline
+    yaxis_id: left
+  - entity: climate.thermostat_mythermostat    <--- for over_valve
+    attribute: valve_open_percent
+    name: Valve open percent
     curve: stepline
     yaxis_id: right
 ```
