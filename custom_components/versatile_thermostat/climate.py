@@ -24,12 +24,12 @@ from .const import (
     SERVICE_SET_PRESENCE,
     SERVICE_SET_PRESET_TEMPERATURE,
     SERVICE_SET_SECURITY,
-    #PR - Adding Window ByPass
     SERVICE_SET_WINDOW_BYPASS,
+    SERVICE_SET_AUTO_REGULATION_MODE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
-    CONF_THERMOSTAT_VALVE,
+    CONF_THERMOSTAT_VALVE
 )
 
 from .thermostat_switch import ThermostatOverSwitch
@@ -99,7 +99,6 @@ async def async_setup_entry(
         "service_set_security",
     )
 
-    #PR - Adding Window ByPass
     platform.async_register_entity_service(
         SERVICE_SET_WINDOW_BYPASS,
         {
@@ -107,4 +106,12 @@ async def async_setup_entry(
             ),
         },
         "service_set_window_bypass_state",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_AUTO_REGULATION_MODE,
+        {
+            vol.Required("auto_regulation_mode"): vol.In(["None", "Light", "Medium", "Strong"]),
+        },
+        "service_set_auto_regulation_mode",
     )

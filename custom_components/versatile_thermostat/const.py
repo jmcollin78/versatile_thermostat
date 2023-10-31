@@ -88,6 +88,8 @@ CONF_AUTO_REGULATION_NONE= "auto_regulation_none"
 CONF_AUTO_REGULATION_LIGHT= "auto_regulation_light"
 CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
 CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
+CONF_AUTO_REGULATION_DTEMP="auto_regulation_dtemp"
+CONF_AUTO_REGULATION_PERIOD_MIN="auto_regulation_periode_min"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -189,7 +191,9 @@ ALL_CONF = (
         CONF_VALVE_2,
         CONF_VALVE_3,
         CONF_VALVE_4,
-        CONF_AUTO_REGULATION_MODE
+        CONF_AUTO_REGULATION_MODE,
+        CONF_AUTO_REGULATION_DTEMP,
+        CONF_AUTO_REGULATION_PERIOD_MIN
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -210,8 +214,8 @@ SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
 SERVICE_SET_SECURITY = "set_security"
-#PR - Adding Window ByPass
 SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
+SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
 
 DEFAULT_SECURITY_MIN_ON_PERCENT = 0.5
 DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1

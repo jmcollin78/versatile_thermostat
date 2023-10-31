@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
 from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF, ATTR_TEMPERATURE
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -25,6 +24,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.commons import get_tz, NowClass # pylint: disable=unused-import
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
@@ -477,13 +477,6 @@ async def send_presence_change_event(
     if sleep:
         await asyncio.sleep(0.1)
     return ret
-
-
-def get_tz(hass: HomeAssistant):
-    """Get the current timezone"""
-
-    return dt_util.get_time_zone(hass.config.time_zone)
-
 
 async def send_climate_change_event(
     entity: BaseThermostat,

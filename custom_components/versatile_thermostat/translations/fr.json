@@ -39,7 +39,9 @@
           "valve_entity2_id": "2ème valve number",
           "valve_entity3_id": "3ème valve number",
           "valve_entity4_id": "4ème valve number",
-          "auto_regulation_mode": "Auto-régulation"
+          "auto_regulation_mode": "Auto-régulation",
+          "auto_regulation_dtemp": "Seuil de régulation",
+          "auto_regulation_periode_min": "Période minimale de régulation"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -56,7 +58,9 @@
           "valve_entity2_id": "Entity id de la 2ème valve",
           "valve_entity3_id": "Entity id de la 3ème valve",
           "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la température cible"
+          "auto_regulation_mode": "Ajustement automatique de la température cible",
+          "auto_regulation_dtemp": "Le seuil en ° au-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation"
         }
       },
       "tpi": {
@@ -203,7 +207,9 @@
           "valve_entity2_id": "2ème valve",
           "valve_entity3_id": "3ème valve",
           "valve_entity4_id": "4ème valve",
-          "auto_regulation_mode": "Auto-regulation"
+          "auto_regulation_mode": "Auto-regulation",
+          "auto_regulation_dtemp": "Seuil de régulation",
+          "auto_regulation_periode_min": "Période minimale de régulation"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -220,7 +226,9 @@
           "valve_entity2_id": "Entity id de la 2ème valve",
           "valve_entity3_id": "Entity id de la 3ème valve",
           "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la consigne"
+          "auto_regulation_mode": "Ajustement automatique de la consigne",
+          "auto_regulation_dtemp": "Le seuil en ° au-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation"
         }
       },
       "tpi": {

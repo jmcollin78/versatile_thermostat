@@ -1,13 +1,14 @@
 # pylint: disable=line-too-long
 """ A climate over switch classe """
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 
 from homeassistant.components.climate import HVACAction, HVACMode
 
+from .commons import NowClass
 from .base_thermostat import BaseThermostat
 from .pi_algorithm import PITemperatureRegulator
 
@@ -22,6 +23,8 @@ from .const import (
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_DTEMP,
+    CONF_AUTO_REGULATION_PERIOD_MIN,
     RegulationParamLight,
     RegulationParamMedium,
     RegulationParamStrong
@@ -33,9 +36,12 @@ _LOGGER = logging.getLogger(__name__)
 
 class ThermostatOverClimate(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a climate"""
-    _regulation_mode:str = None
+    _auto_regulation_mode:str = None
     _regulation_algo = None
     _regulated_target_temp: float = None
+    _auto_regulation_dtemp: float = None
+    _auto_regulation_period_min: int = None
+    _last_regulation_change: datetime = None
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
         {
@@ -48,6 +54,7 @@ class ThermostatOverClimate(BaseThermostat):
         # super.__init__ calls post_init at the end. So it must be called after regulation initialization
         super().__init__(hass, unique_id, name, entry_infos)
         self._regulated_target_temp = self.target_temperature
+        self._last_regulation_change = NowClass.get_now(hass)
 
     @property
     def is_over_climate(self) -> bool:
@@ -84,17 +91,31 @@ class ThermostatOverClimate(BaseThermostat):
 
     async def _send_regulated_temperature(self):
         """ Sends the regulated temperature to all underlying """
-        new_regulated_temp = self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp)
-        if new_regulated_temp != self._regulated_target_temp:
-            _LOGGER.info("%s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
-            self._regulated_target_temp = new_regulated_temp
+        if not self._regulated_target_temp:
+            self._regulated_target_temp = self.target_temperature
 
-            for under in self._underlyings:
-                await under.set_temperature(
-                    self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
-                )
-        else:
-            _LOGGER.debug("%s - No change on regulated temperature (%.1f)", self, self._regulated_target_temp)
+        new_regulated_temp = self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp)
+        dtemp = new_regulated_temp - self._regulated_target_temp
+
+        if abs(dtemp) < self._auto_regulation_dtemp:
+            _LOGGER.info("!!!!! %s - dtemp (%.1f) is < %.1f -> forget the regulation send", self, dtemp, self._auto_regulation_dtemp)
+            return
+
+        now:datetime = NowClass.get_now(self._hass)
+        period = float((now - self._last_regulation_change).total_seconds()) / 60.
+        if period < self._auto_regulation_period_min:
+            _LOGGER.debug("%s - period (%.1f) is < %.0f -> forget the regulation send", self, period, self._auto_regulation_period_min)
+            return
+
+
+        self._regulated_target_temp = new_regulated_temp
+        _LOGGER.info("!!!!! %s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
+        self._last_regulation_change = now
+
+        for under in self._underlyings:
+            await under.set_temperature(
+                self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
+            )
 
     @overrides
     def post_init(self, entry_infos):
@@ -116,9 +137,17 @@ class ThermostatOverClimate(BaseThermostat):
                     )
                 )
 
-        self._regulation_mode = entry_infos.get(CONF_AUTO_REGULATION_MODE) if entry_infos.get(CONF_AUTO_REGULATION_MODE) is not None else CONF_AUTO_REGULATION_NONE
+        self.choose_auto_regulation_mode(
+            entry_infos.get(CONF_AUTO_REGULATION_MODE) if entry_infos.get(CONF_AUTO_REGULATION_MODE) is not None else CONF_AUTO_REGULATION_NONE
+        )
 
-        if self._regulation_mode == CONF_AUTO_REGULATION_LIGHT:
+        self._auto_regulation_dtemp = entry_infos.get(CONF_AUTO_REGULATION_DTEMP) if entry_infos.get(CONF_AUTO_REGULATION_DTEMP) is not None else 0.5
+        self._auto_regulation_period_min = entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) if entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None else 5
+
+    def choose_auto_regulation_mode(self, auto_regulation_mode):
+        """ Choose or change the regulation mode"""
+        self._auto_regulation_mode = auto_regulation_mode
+        if self._auto_regulation_mode == CONF_AUTO_REGULATION_LIGHT:
             self._regulation_algo = PITemperatureRegulator(
                 self.target_temperature,
                 RegulationParamLight.kp,
@@ -127,7 +156,7 @@ class ThermostatOverClimate(BaseThermostat):
                 RegulationParamLight.offset_max,
                 RegulationParamLight.stabilization_threshold,
                 RegulationParamLight.accumulated_error_threshold)
-        elif self._regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
             self._regulation_algo = PITemperatureRegulator(
                 self.target_temperature,
                 RegulationParamMedium.kp,
@@ -136,7 +165,7 @@ class ThermostatOverClimate(BaseThermostat):
                 RegulationParamMedium.offset_max,
                 RegulationParamMedium.stabilization_threshold,
                 RegulationParamMedium.accumulated_error_threshold)
-        elif self._regulation_mode == CONF_AUTO_REGULATION_STRONG:
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_STRONG:
             self._regulation_algo = PITemperatureRegulator(
                 self.target_temperature,
                 RegulationParamStrong.kp,
@@ -430,9 +459,9 @@ class ThermostatOverClimate(BaseThermostat):
         return ret
 
     @property
-    def regulation_mode(self):
+    def auto_regulation_mode(self):
         """ Get the regulation mode """
-        return self._regulation_mode
+        return self._auto_regulation_mode
 
     @property
     def regulated_target_temp(self):
@@ -442,7 +471,7 @@ class ThermostatOverClimate(BaseThermostat):
     @property
     def is_regulated(self):
         """ Check if the ThermostatOverClimate is regulated """
-        return self.regulation_mode != CONF_AUTO_REGULATION_NONE
+        return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
     @property
     def hvac_modes(self):
@@ -617,3 +646,24 @@ class ThermostatOverClimate(BaseThermostat):
             await under.set_swing_mode(swing_mode)
         self._swing_mode = swing_mode
         self.async_write_ha_state()
+
+    async def service_set_auto_regulation_mode(self, auto_regulation_mode):
+        """Called by a service call:
+        service: versatile_thermostat.set_auto_regulation_mode
+        data:
+            auto_regulation_mode: [None | Light | Medium | Strong]
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info("%s - Calling service_set_auto_regulation_mode, auto_regulation_mode: %s", self, auto_regulation_mode)
+        if auto_regulation_mode == "None":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_NONE)
+        elif auto_regulation_mode == "Light":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_LIGHT)
+        elif auto_regulation_mode == "Medium":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_MEDIUM)
+        elif auto_regulation_mode == "Strong":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_STRONG)
+
+        await self._send_regulated_temperature()
+        self.update_custom_attributes()

@@ -138,3 +138,24 @@ set_window_bypass:
             default: true
             selector:
                 boolean:
+
+set_auto_regulation_mode:
+    name: Set Auto Regulation mode
+    description: Change the mode of self-regulation (only for VTherm over climate)
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        auto_regulation_mode:
+            name: Auto regulation mode
+            description: Possible values
+            required: true
+            advanced: false
+            default: true
+            selector:
+                select:
+                    options:
+                        - "None"
+                        - "Light"
+                        - "Medium"
+                        - "Strong"

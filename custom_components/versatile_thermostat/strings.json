@@ -39,7 +39,9 @@
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
           "valve_entity4_id": "4th valve number",
-          "auto_regulation_mode": "Self-regulation"
+          "auto_regulation_mode": "Self-regulation",
+          "auto_regulation_dtemp": "Regulation threshold",
+          "auto_regulation_periode_min": "Regulation minimal period"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -56,7 +58,9 @@
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
-          "auto_regulation_mode": "Auto adjustment of the target temperature"
+          "auto_regulation_mode": "Auto adjustment of the target temperature",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_periode_min": "Duration in minutes between two regulation update"
         }
       },
       "tpi": {
@@ -202,7 +206,9 @@
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
           "valve_entity4_id": "4th valve number",
-          "auto_regulation_mode": "Self-regulation"
+          "auto_regulation_mode": "Self-regulation",
+          "auto_regulation_dtemp": "Regulation threshold",
+          "auto_regulation_periode_min": "Regulation minimal period"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -219,7 +225,9 @@
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
-          "auto_regulation_mode": "Auto adjustment of the target temperature"
+          "auto_regulation_mode": "Auto adjustment of the target temperature",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_periode_min": "Duration in minutes between two regulation update"
         }
       },
       "tpi": {

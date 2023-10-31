@@ -102,6 +102,8 @@ from .const import (
     CONF_AUTO_REGULATION_MODES,
     CONF_AUTO_REGULATION_MODE,
     CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_DTEMP,
+    CONF_AUTO_REGULATION_PERIOD_MIN,
     UnknownEntity,
     WindowOpenDetectionMethod,
 )
@@ -264,6 +266,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                         options=CONF_AUTO_REGULATION_MODES, translation_key="auto_regulation_mode"
                     )
                 ),
+                vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
+                vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int
+
             }
         )
 
