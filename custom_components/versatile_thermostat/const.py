@@ -227,13 +227,23 @@ class RegulationParamLight:
     """ Light parameters for regulation"""
     kp:float = 0.2
     ki:float = 0.05
+    k_ext:float = 0.05
+    offset_max:float = 1.5
+    stabilization_threshold:float = 0.1
+    accumulated_error_threshold:float = 10
+
+
+class RegulationParamMedium:
+    """ Light parameters for regulation"""
+    kp:float = 0.3
+    ki:float = 0.05
     k_ext:float = 0.1
     offset_max:float = 2
     stabilization_threshold:float = 0.1
     accumulated_error_threshold:float = 20
 
 
-class RegulationParamMedium:
+class RegulationParamStrong:
     """ Medium parameters for regulation"""
     kp:float = 0.4
     ki:float = 0.08
@@ -242,7 +252,8 @@ class RegulationParamMedium:
     stabilization_threshold:float = 0.1
     accumulated_error_threshold:float = 25
 
-class RegulationParamStrong:
+# Not used now
+class RegulationParamVeryStrong:
     """ Strong parameters for regulation"""
     kp:float = 0.6
     ki:float = 0.1

@@ -306,7 +306,7 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
         ):
             await entity.async_set_temperature(temperature=17)
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 18+0.5 # In medium we could go up to +3 degre. 0.7 without round_to_nearest
+            assert entity.regulated_target_temp == 18+1 # In strong we could go up to +3 degre. 0.7 without round_to_nearest
             old_regulated_temp = entity.regulated_target_temp
 
         # change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
@@ -331,4 +331,4 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
             # the regulated should have been done
             assert entity.regulated_target_temp != old_regulated_temp
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 17 + 0.5 # 0.7 without round_to_nearest
+            assert entity.regulated_target_temp == 17 + 1 # 0.7 without round_to_nearest

@@ -29,7 +29,8 @@ class PITemperatureRegulator:
     def set_target_temp(self, target_temp):
         """ Set the new target_temp"""
         self.target_temp = target_temp
-        self.accumulated_error = 0
+        # Do not reset the accumulated error
+        # self.accumulated_error = 0
 
     def calculate_regulated_temperature(self, internal_temp: float, external_temp:float): # pylint: disable=unused-argument
         """ Calculate a new target_temp given some temperature"""
