@@ -82,7 +82,7 @@ async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.hvac_action == HVACAction.OFF
 
-        assert entity.regulated_target_temp is entity.min_temp
+        assert entity.regulated_target_temp == entity.min_temp
 
         await send_temperature_change_event(entity, 15, event_timestamp)
         await send_ext_temperature_change_event(entity, 10, event_timestamp)
@@ -296,8 +296,8 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
             fake_underlying_climate.set_hvac_action(HVACAction.HEATING) # simulate under heating
             assert entity.hvac_action == HVACAction.HEATING
 
-            # the regulated temperature should be unchanged
-            assert entity.regulated_target_temp == 15
+            # the regulated temperature will change because when we set temp manually it is forced
+            assert entity.regulated_target_temp == 20.
 
         # set manual target temp (at now - 18) -> the regulation should be taken into account
         event_timestamp = now - timedelta(minutes=18)

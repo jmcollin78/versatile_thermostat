@@ -87,9 +87,9 @@ class ThermostatOverClimate(BaseThermostat):
         await super()._async_internal_set_temperature(temperature)
 
         self._regulation_algo.set_target_temp(self.target_temperature)
-        await self._send_regulated_temperature()
+        await self._send_regulated_temperature(force=True)
 
-    async def _send_regulated_temperature(self):
+    async def _send_regulated_temperature(self, force=False):
         """ Sends the regulated temperature to all underlying """
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
@@ -99,13 +99,13 @@ class ThermostatOverClimate(BaseThermostat):
             self._auto_regulation_dtemp)
         dtemp = new_regulated_temp - self._regulated_target_temp
 
-        if abs(dtemp) < self._auto_regulation_dtemp:
+        if not force and abs(dtemp) < self._auto_regulation_dtemp:
             _LOGGER.debug("%s - dtemp (%.1f) is < %.1f -> forget the regulation send", self, dtemp, self._auto_regulation_dtemp)
             return
 
         now:datetime = NowClass.get_now(self._hass)
         period = float((now - self._last_regulation_change).total_seconds()) / 60.
-        if period < self._auto_regulation_period_min:
+        if not force and period < self._auto_regulation_period_min:
             _LOGGER.debug("%s - period (%.1f) is < %.0f -> forget the regulation send", self, period, self._auto_regulation_period_min)
             return
 
