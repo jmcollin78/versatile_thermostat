@@ -100,7 +100,9 @@ async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 18+2.2 # In medium we could go up to +3 degre
+            # In medium we could go up to +3 degre
+            # normally the calcul gives 18 + 2.2 but we round the result to the nearest 0.5 which is 2.0
+            assert entity.regulated_target_temp == 18+2.0
             assert entity.hvac_action == HVACAction.HEATING
 
         # change temperature so that the regulated temperature should slow down
@@ -113,7 +115,7 @@ async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 18-0.6
+            assert entity.regulated_target_temp == 18-0.5 # normally 0.6 but round_to_nearest gives 0.5
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -210,7 +212,7 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_hass_st
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 25-2.3
+            assert entity.regulated_target_temp == 25-2.5 # +2.3 without round_to_nearest
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=3)
@@ -222,7 +224,7 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_hass_st
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 25+0.4
+            assert entity.regulated_target_temp == 25+0.5 # +0.4 without round_to_nearest
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -304,7 +306,7 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
         ):
             await entity.async_set_temperature(temperature=17)
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 18+0.7 # In medium we could go up to +3 degre
+            assert entity.regulated_target_temp == 18+0.5 # In medium we could go up to +3 degre. 0.7 without round_to_nearest
             old_regulated_temp = entity.regulated_target_temp
 
         # change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
@@ -329,4 +331,4 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
             # the regulated should have been done
             assert entity.regulated_target_temp != old_regulated_temp
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 17 + 0.7
+            assert entity.regulated_target_temp == 17 + 0.5 # 0.7 without round_to_nearest

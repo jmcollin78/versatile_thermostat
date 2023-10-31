@@ -26,9 +26,25 @@ class NowClass:
     def get_now(hass: HomeAssistant) -> datetime:
         """ A test function to get the now.
             For testing purpose this method can be overriden to get a specific
-            timestamp
+            timestamp.
         """
         return datetime.now( get_tz(hass))
+
+def round_to_nearest(n:float, x: float)->float:
+    """ Round a number to the nearest x (which should be decimal but not null)
+        Example:
+            nombre1 = 3.2
+            nombre2 = 4.7
+            x = 0.3
+
+            nombre_arrondi1 = round_to_nearest(nombre1, x)
+            nombre_arrondi2 = round_to_nearest(nombre2, x)
+
+            print(nombre_arrondi1)  # Output: 3.3
+            print(nombre_arrondi2)  # Output: 4.6
+    """
+    assert x > 0
+    return round(n * (1/x)) / (1/x)
 
 class VersatileThermostatBaseEntity(Entity):
     """A base class for all entities"""

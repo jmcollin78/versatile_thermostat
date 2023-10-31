@@ -8,7 +8,7 @@ from homeassistant.helpers.event import async_track_state_change_event, async_tr
 
 from homeassistant.components.climate import HVACAction, HVACMode
 
-from .commons import NowClass
+from .commons import NowClass, round_to_nearest
 from .base_thermostat import BaseThermostat
 from .pi_algorithm import PITemperatureRegulator
 
@@ -94,11 +94,13 @@ class ThermostatOverClimate(BaseThermostat):
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
 
-        new_regulated_temp = self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp)
+        new_regulated_temp = round_to_nearest(
+            self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp),
+            self._auto_regulation_dtemp)
         dtemp = new_regulated_temp - self._regulated_target_temp
 
         if abs(dtemp) < self._auto_regulation_dtemp:
-            _LOGGER.info("!!!!! %s - dtemp (%.1f) is < %.1f -> forget the regulation send", self, dtemp, self._auto_regulation_dtemp)
+            _LOGGER.debug("%s - dtemp (%.1f) is < %.1f -> forget the regulation send", self, dtemp, self._auto_regulation_dtemp)
             return
 
         now:datetime = NowClass.get_now(self._hass)
@@ -109,7 +111,7 @@ class ThermostatOverClimate(BaseThermostat):
 
 
         self._regulated_target_temp = new_regulated_temp
-        _LOGGER.info("!!!!! %s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
+        _LOGGER.info("%s - Regulated temp have changed to %.1f. Resend it to underlyings", self, new_regulated_temp)
         self._last_regulation_change = now
 
         for under in self._underlyings:
