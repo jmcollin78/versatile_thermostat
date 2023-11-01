@@ -90,6 +90,7 @@ CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
 CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
 CONF_AUTO_REGULATION_DTEMP="auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN="auto_regulation_periode_min"
+CONF_INVERSE_SWITCH="inverse_switch_command"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -193,7 +194,8 @@ ALL_CONF = (
         CONF_VALVE_4,
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
-        CONF_AUTO_REGULATION_PERIOD_MIN
+        CONF_AUTO_REGULATION_PERIOD_MIN,
+        CONF_INVERSE_SWITCH
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES

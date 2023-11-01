@@ -16,6 +16,7 @@ def test_pi_algorithm_basics():
 
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
+    the_algo.reset_accumulated_error()
 
     # Test the accumulator threshold effect and offset_max
     assert the_algo.calculate_regulated_temperature(10, 10) == 22   # +2
@@ -23,8 +24,8 @@ def test_pi_algorithm_basics():
     assert the_algo.calculate_regulated_temperature(10, 10) == 22
     # Will keep infinitly 22.0
 
-    # to reset the accumulated erro
-    the_algo.set_target_temp(20)
+    # to reset the accumulated error
+    the_algo.reset_accumulated_error()
     assert the_algo.calculate_regulated_temperature(18, 10) == 21.5    # +1.5
     assert the_algo.calculate_regulated_temperature(18.1, 10) == 21.6  # +1.6
     assert the_algo.calculate_regulated_temperature(18.3, 10) == 21.6  # +1.6
@@ -104,6 +105,7 @@ def test_pi_algorithm_medium():
 
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
+    the_algo.reset_accumulated_error()
     # Test the error acculation effect
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.1
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.2
@@ -157,6 +159,7 @@ def test_pi_algorithm_strong():
 
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
+    the_algo.reset_accumulated_error()
     # Test the error acculation effect
     assert the_algo.calculate_regulated_temperature(19, 10) == 22.8
     assert the_algo.calculate_regulated_temperature(19, 10) == 23

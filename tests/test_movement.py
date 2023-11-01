@@ -1,10 +1,12 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, unused-variable
+
 """ Test the Window management """
-import asyncio
 from datetime import datetime, timedelta
 import logging
-from unittest.mock import patch, call, PropertyMock
-from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from unittest.mock import patch
 
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -54,7 +56,7 @@ async def test_movement_management_time_not_enough(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -251,7 +253,7 @@ async def test_movement_management_time_enough_and_presence(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -383,7 +385,7 @@ async def test_movement_management_time_enoughand_not_presence(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -517,7 +519,7 @@ async def test_movement_management_with_stop_during_condition(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
@@ -597,4 +599,3 @@ async def test_movement_management_with_stop_during_condition(
         assert entity.target_temperature == 19 # Boost
         assert entity.motion_state is "on"     # switch to movement on
         assert entity.presence_state is "off"  # Non change
-

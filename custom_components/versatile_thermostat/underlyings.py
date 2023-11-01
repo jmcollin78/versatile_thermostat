@@ -9,7 +9,7 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, UnitOfTemperature
 
 from homeassistant.exceptions import ServiceNotFound
 
-from homeassistant.core import HomeAssistant, DOMAIN as HA_DOMAIN, CALLBACK_TYPE
+from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -104,36 +104,26 @@ class UnderlyingEntity:
         """If the toggleable device is currently active."""
         return None
 
-    async def turn_off(self):
-        """Turn heater toggleable device off."""
-        _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
-        # This may fails if called after shutdown
-        try:
-            data = {ATTR_ENTITY_ID: self._entity_id}
-            await self._hass.services.async_call(
-                HA_DOMAIN,
-                SERVICE_TURN_OFF,
-                data,
-            )
-        except ServiceNotFound as err:
-            _LOGGER.error(err)
-
-    async def turn_on(self):
-        """Turn heater toggleable device on."""
-        _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
-        try:
-            data = {ATTR_ENTITY_ID: self._entity_id}
-            await self._hass.services.async_call(
-                HA_DOMAIN,
-                SERVICE_TURN_ON,
-                data,
-            )
-        except ServiceNotFound as err:
-            _LOGGER.error(err)
-
     async def set_temperature(self, temperature, max_temp, min_temp):
         """Set the target temperature"""
         return
+
+    # This should be the correct way to handle turn_off and turn_on but this breaks the unit test
+    # will an not understandable error: TypeError: object MagicMock can't be used in 'await' expression
+    async def turn_off(self):
+        """ Turn off the underlying equipement.
+            Need to be overriden"""
+        return NotImplementedError
+
+    async def turn_on(self):
+        """ Turn off the underlying equipement.
+            Need to be overriden"""
+        return NotImplementedError
+
+    @property
+    def is_inversed(self):
+        """ Tells if the switch command should be inversed"""
+        return False
 
     def remove_entity(self):
         """Remove the underlying entity"""
@@ -212,6 +202,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         """The initial delay for this class"""
         return self._initial_delay_sec
 
+    @overrides
+    @property
+    def is_inversed(self):
+        """ Tells if the switch command should be inversed"""
+        return self._thermostat.is_inversed
+
+    # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
@@ -229,7 +226,41 @@ class UnderlyingSwitch(UnderlyingEntity):
     @property
     def is_device_active(self):
         """If the toggleable device is currently active."""
-        return self._hass.states.is_state(self._entity_id, STATE_ON)
+        real_state = self._hass.states.is_state(self._entity_id, STATE_ON)
+        return self.is_inversed and not real_state
+
+    # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
+    async def turn_off(self):
+        """Turn heater toggleable device off."""
+        _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
+        command = SERVICE_TURN_OFF if not self.is_inversed else SERVICE_TURN_ON
+        domain = self._entity_id.split('.')[0]
+        # This may fails if called after shutdown
+        try:
+            data = {ATTR_ENTITY_ID: self._entity_id}
+            await self._hass.services.async_call(
+                domain,
+                command,
+                data,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+
+    async def turn_on(self):
+        """Turn heater toggleable device on."""
+        _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
+        command = SERVICE_TURN_ON if not self.is_inversed else SERVICE_TURN_OFF
+        domain = self._entity_id.split('.')[0]
+        try:
+            data = {ATTR_ENTITY_ID: self._entity_id}
+            await self._hass.services.async_call(
+                domain,
+                command,
+                data,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+
 
     @overrides
     async def start_cycle(
@@ -380,6 +411,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         # increment energy at the end of the cycle
         self._thermostat.incremente_energy()
 
+    @overrides
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()

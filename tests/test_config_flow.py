@@ -17,7 +17,7 @@ async def test_show_form(hass: HomeAssistant) -> None:
     # Init the API
     # hass.data["custom_components"] = None
     # loader.async_get_custom_components(hass)
-    # VersatileThermostatAPI(hass)
+    # BaseThermostatAPI(hass)
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
@@ -369,7 +369,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USE_WINDOW_FEATURE: False,
         CONF_USE_MOTION_FEATURE: False,
         CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False,
+        CONF_USE_PRESENCE_FEATURE: False
     }
 
     TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
@@ -434,6 +434,7 @@ async def test_user_config_flow_over_4_switches(
         | MOCK_TH_OVER_SWITCH_TPI_CONFIG
         | MOCK_PRESETS_CONFIG
         | MOCK_ADVANCED_CONFIG
+        | { CONF_INVERSE_SWITCH: False }
     )
     assert result["result"]
     assert result["result"].domain == DOMAIN

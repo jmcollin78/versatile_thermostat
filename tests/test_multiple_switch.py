@@ -1,9 +1,12 @@
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, unused-variable
+
 """ Test the Multiple switch management """
 import asyncio
 from unittest.mock import patch, call, ANY
 from datetime import datetime, timedelta
 import logging
 
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -50,7 +53,7 @@ async def test_one_switch_cycle(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theover4switchmockname"
     )
     assert entity
@@ -260,7 +263,7 @@ async def test_multiple_switchs(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theover4switchmockname"
     )
     assert entity
@@ -396,7 +399,7 @@ async def test_multiple_climates(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theover4climatemockname"
     )
     assert entity
@@ -496,7 +499,7 @@ async def test_multiple_climates_underlying_changes(
         },
     )
 
-    entity: VersatileThermostat = await create_thermostat(
+    entity: BaseThermostat = await create_thermostat(
         hass, entry, "climate.theover4climatemockname"
     )
     assert entity
