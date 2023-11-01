@@ -331,8 +331,8 @@ This allows you to change the max power along time using a Scheduler or whatever
 > 2. I use this to avoid exceeded the limit of my electrical power contract when an electrical vehicle is charging. This makes a kind of auto-regulation.
 > 3. Always keep a margin, because max power can be briefly exceeded while waiting for the next cycle calculation typically or by not regulated equipement.
 > 4. If you don't want to use this feature, just leave the entities id empty
+> 5. If you control several heaters, the **power consumption of your heater** setup should be the sum of the power.
 
-## Configure the presence or occupancy
 If you choose the ```Presence management``` feature, this feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
 To configure presence fills this form:
 

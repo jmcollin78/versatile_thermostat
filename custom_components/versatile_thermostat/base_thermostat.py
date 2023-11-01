@@ -934,8 +934,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return None
 
         return float(
-            self.nb_underlying_entities
-            * self._device_power
+            self._device_power
             * self._prop_algorithm.on_percent
         )
 
