@@ -38,7 +38,11 @@
           "valve_entity_id": "1. ventil číslo",
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
-          "valve_entity4_id": "4. ventil číslo"
+          "valve_entity4_id": "4. ventil číslo",
+          "auto_regulation_mode": "Self-regulation",
+          "auto_regulation_dtemp": "Regulation threshold",
+          "auto_regulation_periode_min": "Regulation minimal period",
+          "inverse_switch_command": "Inverse switch command"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -54,7 +58,11 @@
           "valve_entity_id": "1. ventil číslo entity id",
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
-          "valve_entity4_id": "4. ventil číslo entity id"
+          "valve_entity4_id": "4. ventil číslo entity id",
+          "auto_regulation_mode": "Auto adjustment of the target temperature",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_periode_min": "Duration in minutes between two regulation update",
+          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command"
         }
       },
       "tpi": {
@@ -199,7 +207,11 @@
           "valve_entity_id": "1. ventil číslo",
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
-          "valve_entity4_id": "4. ventil číslo"
+          "valve_entity4_id": "4. ventil číslo",
+          "auto_regulation_mode": "Self-regulation",
+          "auto_regulation_dtemp": "Regulation threshold",
+          "auto_regulation_periode_min": "Regulation minimal period",
+          "inverse_switch_command": "Inverse switch command"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -215,7 +227,11 @@
           "valve_entity_id": "1. ventil číslo entity id",
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
-          "valve_entity4_id": "4. ventil číslo entity id"
+          "valve_entity4_id": "4. ventil číslo entity id",
+          "auto_regulation_mode": "Auto adjustment of the target temperature",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_periode_min": "Duration in minutes between two regulation update",
+          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command"
         }
       },
       "tpi": {
@@ -328,6 +344,14 @@
         "thermostat_over_switch": "Termostat nad spínačom",
         "thermostat_over_climate": "Termostat nad iným termostatom",
         "thermostat_over_valve": "Thermostat over a valve"
+      }
+    },
+    "auto_regulation_mode": {
+      "options": {
+        "auto_regulation_strong": "Strong",
+        "auto_regulation_medium": "Medium",
+        "auto_regulation_light": "Light",
+        "auto_regulation_none": "No auto-regulation"
       }
     }
   },

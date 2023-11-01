@@ -104,6 +104,7 @@ from .const import (
     CONF_AUTO_REGULATION_NONE,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
+    CONF_INVERSE_SWITCH,
     UnknownEntity,
     WindowOpenDetectionMethod,
 )
@@ -241,6 +242,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     ]
                 ),
                 vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
+                vol.Optional(CONF_INVERSE_SWITCH, default=False): cv.boolean,
             }
         )
 
