@@ -369,7 +369,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USE_WINDOW_FEATURE: False,
         CONF_USE_MOTION_FEATURE: False,
         CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False,
+        CONF_USE_PRESENCE_FEATURE: False
     }
 
     TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
@@ -434,6 +434,7 @@ async def test_user_config_flow_over_4_switches(
         | MOCK_TH_OVER_SWITCH_TPI_CONFIG
         | MOCK_PRESETS_CONFIG
         | MOCK_ADVANCED_CONFIG
+        | { CONF_INVERSE_SWITCH: False }
     )
     assert result["result"]
     assert result["result"].domain == DOMAIN
