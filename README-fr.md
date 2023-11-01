@@ -385,7 +385,7 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
 > 4. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
-> 5. Lorsqu'un thermostat de type ``thermostat_over_climate`` passe en mode ``security`` il est éteint. Les paramètres ``security_min_on_percent`` et ``security_default_on_percent`` ne sont alors pas utilisés.
+> 5. Les thermostats de type ``thermostat_over_climate`` ne sont pas concernés par le mode security.
 
 ## Synthèse des paramètres
 

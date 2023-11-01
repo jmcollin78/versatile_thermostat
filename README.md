@@ -372,7 +372,7 @@ See [example tuning](#examples-tuning) for common tuning examples
 > 2. Attention, two temperatures are needed: internal temperature and external temperature and each must give the temperature, otherwise the thermostat will be in "security" preset,
 > 3. A service is available that allows you to set the 3 security parameters. This can be used to adapt the security function to your use.
 > 4. For natural usage, the ``security_default_on_percent`` should be less than ``security_min_on_percent``,
-> 5. When a ``thermostat_over_climate`` type thermostat goes into ``security`` mode it is turned off. The ``security_min_on_percent`` and ``security_default_on_percent`` parameters are then not used.
+> 5. Thermostat of type ``thermostat_over_climate`` are not concerned by the security feature.
 
 ## Parameters synthesis
 
@@ -433,9 +433,9 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``comfort_ac_away_temp`` | Temperature in Comfort preset when no presence in AC mode | X | X | X |
 | ``boost_ac_away_temp`` | Temperature in Boost preset when no presence in AC mode | X | X | X |
 | ``minimal_activation_delay`` | Minimal activation delay | X | - | X |
-| ``security_delay_min`` | Security delay (in minutes) | X | X | X |
-| ``security_min_on_percent`` | Minimal power percent to enable security mode | X | X | X |
-| ``security_default_on_percent`` | Power percent to use in security mode | X | X | X |
+| ``security_delay_min`` | Security delay (in minutes) | X | - | X |
+| ``security_min_on_percent`` | Minimal power percent to enable security mode | X | - | X |
+| ``security_default_on_percent`` | Power percent to use in security mode | X | - | X |
 | ``auto_regulation_mode`` | Le mode d'auto-régulation | - | X | - |
 | ``auto_regulation_dtemp`` | La seuil d'auto-régulation | - | X | - |
 | ``auto_regulation_period_min`` | La période minimale d'auto-régulation | - | X | - |
