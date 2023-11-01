@@ -338,7 +338,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._presence_on = self._presence_sensor_entity_id is not None
 
         if self._ac_mode:
-            self._hvac_list = [HVACMode.COOL, HVACMode.OFF]
+            self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
         else:
             self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
 

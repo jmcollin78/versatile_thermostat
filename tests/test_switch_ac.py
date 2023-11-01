@@ -56,7 +56,7 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         assert entity.ac_mode is True
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_modes == [HVACMode.COOL, HVACMode.OFF]
+        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             PRESET_NONE,
@@ -138,3 +138,15 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
             assert entity.hvac_mode is HVACMode.COOL
             assert (entity.hvac_action is HVACAction.OFF or entity.hvac_action is HVACAction.IDLE)
             assert entity.target_temperature == 27 # eco_ac_away
+
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity.hvac_mode is HVACMode.HEAT
+
+        await entity.async_set_preset_mode(PRESET_COMFORT)
+        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.target_temperature == 26
+
+        # switch to Eco
+        await entity.async_set_preset_mode(PRESET_ECO)
+        assert entity.preset_mode is PRESET_ECO
+        assert entity.target_temperature == 27
