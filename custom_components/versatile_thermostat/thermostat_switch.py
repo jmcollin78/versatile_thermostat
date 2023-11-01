@@ -11,6 +11,7 @@ from .const import (
     CONF_HEATER_2,
     CONF_HEATER_3,
     CONF_HEATER_4,
+    CONF_INVERSE_SWITCH,
     overrides
 )
 
@@ -34,11 +35,17 @@ class ThermostatOverSwitch(BaseThermostat):
     # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
     #    """Initialize the thermostat over switch."""
     #    super().__init__(hass, unique_id, name, entry_infos)
+    _is_inversed: bool = None
 
     @property
     def is_over_switch(self) -> bool:
         """ True if the Thermostat is over_switch"""
         return True
+
+    @property
+    def is_inversed(self) -> bool:
+        """ True if the switch is inversed (for pilot wire and diode)"""
+        return self._is_inversed is True
 
     @overrides
     def post_init(self, entry_infos):
@@ -73,6 +80,7 @@ class ThermostatOverSwitch(BaseThermostat):
                 )
             )
 
+        self._is_inversed = entry_infos.get(CONF_INVERSE_SWITCH) is True
         self._should_relaunch_control_heating = False
 
     @overrides

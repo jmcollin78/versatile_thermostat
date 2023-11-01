@@ -17,7 +17,7 @@ async def test_show_form(hass: HomeAssistant) -> None:
     # Init the API
     # hass.data["custom_components"] = None
     # loader.async_get_custom_components(hass)
-    # VersatileThermostatAPI(hass)
+    # BaseThermostatAPI(hass)
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
