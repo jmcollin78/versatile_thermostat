@@ -60,9 +60,9 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 3.8**: Added a self-regulation function for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of inverting the command for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
-> * **Release 3.7**: Addition of the Versatile Thermostat type `over valve` to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Added a function allowing the bypass of opening detection [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Added Slovak language
-> * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https ://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
+> * **Release 3.8**: Added a **self-regulation function** for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of **inverting the command** for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
+> * **Release 3.7**: Addition of the **Versatile Thermostat type `over valve`** to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Added a function allowing the bypass of opening detection [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Added Slovak language
+> * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 <details>
 <summary>Others releases</summary>
@@ -184,6 +184,7 @@ Example of synchronized triggering:
 
 It is possible to choose an over switch thermostat which controls air conditioning by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
 
+If your equipment is controlled by a pilot wire with a diode, you will certainly need to check the "Invert Check" box. It allows you to set the switch to On when you need to turn the equipment off and to Off when you need to turn it on.
 
 ### For a thermostat of type ```thermostat_over_climate```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
@@ -438,7 +439,7 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``auto_regulation_mode`` | Le mode d'auto-régulation | - | X | - |
 | ``auto_regulation_dtemp`` | La seuil d'auto-régulation | - | X | - |
 | ``auto_regulation_period_min`` | La période minimale d'auto-régulation | - | X | - |
-
+| ``inverse_switch_command`` | Inverse the switch command (for pilot wire switch) | X | - | - |
 
 # Examples tuning
 
@@ -686,7 +687,7 @@ Custom attributes are the following:
 | ``supported_features`` | A combination of all features supported by this thermostat. See official climate integration documentation for more informations |
 | ``valve_open_percent`` | The opening percentage of the valve |
 | ``regulated_target_temperature`` | The self-regulated target temperature calculated |
-
+| ``is_inversed`` | True if the command is inversed (pilot wire with diode) |
 
 # Some results
 
