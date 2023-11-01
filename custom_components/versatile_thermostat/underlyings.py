@@ -227,7 +227,7 @@ class UnderlyingSwitch(UnderlyingEntity):
     def is_device_active(self):
         """If the toggleable device is currently active."""
         real_state = self._hass.states.is_state(self._entity_id, STATE_ON)
-        return self.is_inversed and not real_state
+        return (self.is_inversed and not real_state) or (not self.is_inversed and real_state)
 
     # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
     async def turn_off(self):

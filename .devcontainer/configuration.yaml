@@ -212,6 +212,8 @@ switch:
                       entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
 
 frontend:
+    extra_module_url:
+        - /config/www/community/better-thermostat-ui-card/better-thermostat-ui-card.js
     themes:
         versatile_thermostat_theme:
             state-binary_sensor-safety-on-color: "#FF0B0B"
