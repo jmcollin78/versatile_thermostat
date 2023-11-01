@@ -26,6 +26,10 @@ class PITemperatureRegulator:
         self.accumulated_error:float = 0
         self.accumulated_error_threshold:float = accumulated_error_threshold
 
+    def reset_accumulated_error(self):
+        """ Reset the accumulated error """
+        self.accumulated_error = 0
+
     def set_target_temp(self, target_temp):
         """ Set the new target_temp"""
         self.target_temp = target_temp
