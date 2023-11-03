@@ -256,6 +256,7 @@ async def test_power_management_energy_over_switch(
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_HEATER: "switch.mock_switch",
+            CONF_HEATER_2: "switch.mock_switch2",
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -278,6 +279,7 @@ async def test_power_management_energy_over_switch(
     assert tpi_algo
 
     assert entity.total_energy == 0
+    assert entity.nb_underlying_entities == 2
 
     # set temperature to 15 so that on_percent will be set
     with patch(
@@ -297,7 +299,7 @@ async def test_power_management_energy_over_switch(
         assert entity.current_temperature == 15
         assert tpi_algo.on_percent == 1
 
-        assert entity.mean_cycle_power == 100.0
+        assert entity.device_power == 100.0
 
         assert mock_send_event.call_count == 2
         assert mock_heater_on.call_count == 1
