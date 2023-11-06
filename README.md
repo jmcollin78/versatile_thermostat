@@ -8,6 +8,7 @@
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?), you don't have to build over complicated scripts and automations to manage your climates ;-).
 
+- [Breaking changes in 4.0.0](#breaking-changes-in-400)
 - [Thanks for the beer buymecoffee](#thanks-for-the-beer-buymecoffee)
 - [When to use / not use](#when-to-use--not-use)
   - [Incompatibilities](#incompatibilities)
@@ -29,7 +30,6 @@
     - [Auto mode](#auto-mode)
   - [Configure the activity mode or motion detection](#configure-the-activity-mode-or-motion-detection)
   - [Configure the power management](#configure-the-power-management)
-  - [Configure the presence or occupancy](#configure-the-presence-or-occupancy)
   - [Advanced configuration](#advanced-configuration)
   - [Parameters synthesis](#parameters-synthesis)
 - [Examples tuning](#examples-tuning)
@@ -50,6 +50,7 @@
 - [Custom attributes](#custom-attributes)
 - [Some results](#some-results)
 - [Even better](#even-better)
+  - [Much better with the Veersatile Thermostat UI Card](#much-better-with-the-veersatile-thermostat-ui-card)
   - [Even Better with Scheduler Component !](#even-better-with-scheduler-component-)
   - [Even-even better with custom:simple-thermostat front integration](#even-even-better-with-customsimple-thermostat-front-integration)
   - [Even better with Apex-chart to tune your Thermostat](#even-better-with-apex-chart-to-tune-your-thermostat)
@@ -60,13 +61,14 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 4.0**: Added the support of **Versatile Thermostat UI Card**. See [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Added a **Slow** regulation mode for slow latency heating devices [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Change the way **the power is calculated** in case of VTherm with multi-underlying equipements [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Added the support of AC and Heat for VTherm over switch alse [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Added a **self-regulation function** for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of **inverting the command** for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
 > * **Release 3.7**: Addition of the **Versatile Thermostat type `over valve`** to control a TRV valve directly or any other dimmer type equipment for heating. Regulation is then done directly by acting on the opening percentage of the underlying entity: 0 the valve is cut off, 100: the valve is fully opened. See [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Added a function allowing the bypass of opening detection [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Added Slovak language
 > * **Release 3.6**: Added the `motion_off_delay` parameter to improve motion management [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Added AC (air conditioning) mode for a VTherm over switch. Preparing the Github project to facilitate contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
-> * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 <details>
 <summary>Others releases</summary>
 
+> * **Release 3.5**: Multiple thermostats when using "thermostat over another thermostat" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fixes and expose preset temperatures for AC mode [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: add the Air Conditionned mode (AC). This feature allow to use the eventual AC mode of your underlying climate entity. You have to check the "Use AC mode" checkbox in configuration and give preset temperature value for AC mode and AC mode when absent if absence is configured
 > * **Release 3.2**: add the ability to control multiple switches from the same thermostat. In this mode, the switches are triggered with a delay to minimize the power required at one time (we minimize the recovery periods). See [Configuration](#select-the-driven-entity)
@@ -76,6 +78,9 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **release 2.2**: addition of a safety function allowing a radiator not to be left heating forever in the event of a thermometer failure
 > * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
 </details>
+
+# Breaking changes in 4.0.0
+The power of the device should now be the total power of all controler devices by the VTherm. This allow to have eterogeneous equipment with different power. In case of multi-devices controlled by a single VTherm you will have to edit and change the `device_power` value. Set the total power of all devices.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
 Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome for the beers. It's very nice and encourages me to continue!
@@ -713,6 +718,11 @@ We can see stability around the target temperature (consigne) and when at target
 Enjoy !
 
 # Even better
+
+## Much better with the Veersatile Thermostat UI Card
+A special card for the Versatile Thermostat has been developed (based on the Better Thermostat). It is available here [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) and offers a modern vision of all the VTherm statuses:
+
+![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
 ## Even Better with Scheduler Component !
 
