@@ -51,7 +51,7 @@
 - [Attributs personnalisés](#attributs-personnalisés)
 - [Quelques résultats](#quelques-résultats)
 - [Encore mieux](#encore-mieux)
-  - [Bien mieux avec le Veersatile Thermostat UI Card](#bien-mieux-avec-le-veersatile-thermostat-ui-card)
+  - [Bien mieux avec le Versatile Thermostat UI Card](#bien-mieux-avec-le-versatile-thermostat-ui-card)
   - [Encore mieux avec le composant Scheduler !](#encore-mieux-avec-le-composant-scheduler-)
   - [Encore bien mieux avec la custom:simple-thermostat front integration](#encore-bien-mieux-avec-la-customsimple-thermostat-front-integration)
   - [Toujours mieux avec Apex-chart pour régler votre thermostat](#toujours-mieux-avec-apex-chart-pour-régler-votre-thermostat)
@@ -735,7 +735,7 @@ Enjoy !
 
 # Encore mieux
 
-## Bien mieux avec le Veersatile Thermostat UI Card
+## Bien mieux avec le Versatile Thermostat UI Card
 Une carte spéciale pour le Versatile Thermostat a été développée (sur la base du Better Thermostat). Elle est dispo ici [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) et propose une vision moderne de tous les status du VTherm :
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)

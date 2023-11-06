@@ -1,9 +1,9 @@
 {
     "[python]": {
-        "editor.defaultFormatter": "ms-python.python"
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
     },
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
+    "pylint.lintOnChange": true,
     "files.associations": {
         "*.yaml": "home-assistant"
     },

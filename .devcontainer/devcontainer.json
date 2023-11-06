@@ -21,7 +21,9 @@
 				"ms-python.python",
 				"github.vscode-pull-request-github",
 				"ryanluker.vscode-coverage-gutters",
-				"ms-python.vscode-pylance"
+				"ms-python.black-formatter",
+				"ms-python.pylint",
+				"ferrierbenjamin.fold-unfold-all-icone"
 			],
 			// "mounts": [
 			//	"source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=${localWorkspaceFolder}/config/www/community/,type=bind,consistency=cached",
@@ -40,8 +42,7 @@
 				// "terminal.integrated.shell.linux": "/bin/bash",
 				"python.pythonPath": "/usr/bin/python3",
 				"python.analysis.autoSearchPaths": true,
-				"python.linting.pylintEnabled": true,
-				"python.linting.enabled": true,
+				"pylint.lintOnChange": true,
 				"python.formatting.provider": "black",
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
 				"editor.formatOnPaste": false,
