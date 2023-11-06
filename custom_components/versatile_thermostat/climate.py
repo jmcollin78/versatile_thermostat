@@ -111,7 +111,7 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         SERVICE_SET_AUTO_REGULATION_MODE,
         {
-            vol.Required("auto_regulation_mode"): vol.In(["None", "Light", "Medium", "Strong"]),
+            vol.Required("auto_regulation_mode"): vol.In(["None", "Light", "Medium", "Strong", "Slow"]),
         },
         "service_set_auto_regulation_mode",
     )

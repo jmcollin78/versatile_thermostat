@@ -20,11 +20,13 @@ from .const import (
     CONF_CLIMATE_4,
     CONF_AUTO_REGULATION_MODE,
     CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_SLOW,
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
+    RegulationParamSlow,
     RegulationParamLight,
     RegulationParamMedium,
     RegulationParamStrong
@@ -176,6 +178,15 @@ class ThermostatOverClimate(BaseThermostat):
                 RegulationParamStrong.offset_max,
                 RegulationParamStrong.stabilization_threshold,
                 RegulationParamStrong.accumulated_error_threshold)
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_SLOW:
+            self._regulation_algo = PITemperatureRegulator(
+                self.target_temperature,
+                RegulationParamSlow.kp,
+                RegulationParamSlow.ki,
+                RegulationParamSlow.k_ext,
+                RegulationParamSlow.offset_max,
+                RegulationParamSlow.stabilization_threshold,
+                RegulationParamSlow.accumulated_error_threshold)
         else:
             # A default empty algo (which does nothing)
             self._regulation_algo = PITemperatureRegulator(
@@ -666,6 +677,8 @@ class ThermostatOverClimate(BaseThermostat):
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_MEDIUM)
         elif auto_regulation_mode == "Strong":
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_STRONG)
+        elif auto_regulation_mode == "Slow":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_SLOW)
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()

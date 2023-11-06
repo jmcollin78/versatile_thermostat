@@ -108,3 +108,4 @@ custom_components/__init__.py
 __pycache__
 
 config/**
+custom_components/hacs

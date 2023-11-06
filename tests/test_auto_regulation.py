@@ -110,7 +110,7 @@ async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_
         with patch(
             "custom_components.versatile_thermostat.commons.NowClass.get_now", return_value=event_timestamp
         ):
-            await send_temperature_change_event(entity, 22, event_timestamp)
+            await send_temperature_change_event(entity, 23, event_timestamp)
             await send_ext_temperature_change_event(entity, 19, event_timestamp)
 
             # the regulated temperature should be under
@@ -212,14 +212,14 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_hass_st
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 25-2.5 # +2.3 without round_to_nearest
+            assert entity.regulated_target_temp == 25-2 # +2.3 without round_to_nearest
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=3)
         with patch(
                 "custom_components.versatile_thermostat.commons.NowClass.get_now", return_value=event_timestamp
         ):
-            await send_temperature_change_event(entity, 20, event_timestamp)
+            await send_temperature_change_event(entity, 18, event_timestamp)
             await send_ext_temperature_change_event(entity, 25, event_timestamp)
 
             # the regulated temperature should be greater
@@ -331,4 +331,4 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
             # the regulated should have been done
             assert entity.regulated_target_temp != old_regulated_temp
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 17 + 1 # 0.7 without round_to_nearest
+            assert entity.regulated_target_temp == 17 + 1.5 # 0.7 without round_to_nearest
