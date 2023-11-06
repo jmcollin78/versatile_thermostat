@@ -349,6 +349,7 @@
     },
     "auto_regulation_mode": {
       "options": {
+        "auto_regulation_slow": "Lente",
         "auto_regulation_strong": "Forte",
         "auto_regulation_medium": "Moyenne",
         "auto_regulation_light": "Légère",
