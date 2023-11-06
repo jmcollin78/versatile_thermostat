@@ -159,3 +159,4 @@ set_auto_regulation_mode:
                         - "Light"
                         - "Medium"
                         - "Strong"
+                        - "Slow"

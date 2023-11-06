@@ -26,15 +26,15 @@ def test_pi_algorithm_basics():
 
     # to reset the accumulated error
     the_algo.reset_accumulated_error()
-    assert the_algo.calculate_regulated_temperature(18, 10) == 21.5    # +1.5
-    assert the_algo.calculate_regulated_temperature(18.1, 10) == 21.6  # +1.6
-    assert the_algo.calculate_regulated_temperature(18.3, 10) == 21.6  # +1.6
-    assert the_algo.calculate_regulated_temperature(18.5, 10) == 21.7  # +1.7
-    assert the_algo.calculate_regulated_temperature(18.7, 10) == 21.7  # +1.7
-    assert the_algo.calculate_regulated_temperature(19, 10) == 21.7    # +1.7
+    assert the_algo.calculate_regulated_temperature(18, 10) == 21.3    # +1.5
+    assert the_algo.calculate_regulated_temperature(18.1, 10) == 21.4  # +1.6
+    assert the_algo.calculate_regulated_temperature(18.3, 10) == 21.4  # +1.6
+    assert the_algo.calculate_regulated_temperature(18.5, 10) == 21.5  # +1.7
+    assert the_algo.calculate_regulated_temperature(18.7, 10) == 21.6  # +1.7
+    assert the_algo.calculate_regulated_temperature(19, 10) == 21.6    # +1.7
     assert the_algo.calculate_regulated_temperature(20, 10) == 21.5    # +1.5
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20.8    # +0.8
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20.7    # +0.7
+    assert the_algo.calculate_regulated_temperature(21, 10) == 20.9    # +0.8
+    assert the_algo.calculate_regulated_temperature(21, 10) == 20.8    # +0.7
     assert the_algo.calculate_regulated_temperature(20, 10) == 20.9    # +0.7
 
     # Test temperature external
@@ -54,15 +54,15 @@ def test_pi_algorithm_light():
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
 
-    assert the_algo.calculate_regulated_temperature(18, 10) == 21.5    # +1.5
-    assert the_algo.calculate_regulated_temperature(18.1, 10) == 21.6  # +1.6
-    assert the_algo.calculate_regulated_temperature(18.3, 10) == 21.6  # +1.6
-    assert the_algo.calculate_regulated_temperature(18.5, 10) == 21.7  # +1.7
-    assert the_algo.calculate_regulated_temperature(18.7, 10) == 21.7  # +1.7
-    assert the_algo.calculate_regulated_temperature(19, 10) == 21.7    # +1.7
+    assert the_algo.calculate_regulated_temperature(18, 10) == 21.3    # +1.5
+    assert the_algo.calculate_regulated_temperature(18.1, 10) == 21.4  # +1.6
+    assert the_algo.calculate_regulated_temperature(18.3, 10) == 21.4  # +1.6
+    assert the_algo.calculate_regulated_temperature(18.5, 10) == 21.5  # +1.7
+    assert the_algo.calculate_regulated_temperature(18.7, 10) == 21.6  # +1.7
+    assert the_algo.calculate_regulated_temperature(19, 10) == 21.6    # +1.7
     assert the_algo.calculate_regulated_temperature(20, 10) == 21.5    # +1.5
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20.8    # +0.8
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20.7    # +0.7
+    assert the_algo.calculate_regulated_temperature(21, 10) == 20.9    # +0.8
+    assert the_algo.calculate_regulated_temperature(21, 10) == 20.8    # +0.7
     assert the_algo.calculate_regulated_temperature(20, 10) == 20.9    # +0.7
 
     # Test temperature external
@@ -81,15 +81,15 @@ def test_pi_algorithm_medium():
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
 
-    assert the_algo.calculate_regulated_temperature(18, 10) == 22.2
-    assert the_algo.calculate_regulated_temperature(18.1, 10) == 22.3
-    assert the_algo.calculate_regulated_temperature(18.3, 10) == 22.4
-    assert the_algo.calculate_regulated_temperature(18.5, 10) == 22.5
-    assert the_algo.calculate_regulated_temperature(18.7, 10) == 22.5
-    assert the_algo.calculate_regulated_temperature(19, 10) == 22.4
+    assert the_algo.calculate_regulated_temperature(18, 10) == 22.0
+    assert the_algo.calculate_regulated_temperature(18.1, 10) == 22.1
+    assert the_algo.calculate_regulated_temperature(18.3, 10) == 22.2
+    assert the_algo.calculate_regulated_temperature(18.5, 10) == 22.3
+    assert the_algo.calculate_regulated_temperature(18.7, 10) == 22.4
+    assert the_algo.calculate_regulated_temperature(19, 10) == 22.3
     assert the_algo.calculate_regulated_temperature(20, 10) == 21.9
+    assert the_algo.calculate_regulated_temperature(21, 10) == 20.5
     assert the_algo.calculate_regulated_temperature(21, 10) == 20.4
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20.3
     assert the_algo.calculate_regulated_temperature(20, 10) == 20.8
 
     # Test temperature external
@@ -107,6 +107,7 @@ def test_pi_algorithm_medium():
     the_algo.set_target_temp(20)
     the_algo.reset_accumulated_error()
     # Test the error acculation effect
+    assert the_algo.calculate_regulated_temperature(19, 5) == 22.0
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.1
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.2
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.3
@@ -116,7 +117,6 @@ def test_pi_algorithm_medium():
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.7
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.8
     assert the_algo.calculate_regulated_temperature(19, 5) == 22.9
-    assert the_algo.calculate_regulated_temperature(19, 5) == 23
     assert the_algo.calculate_regulated_temperature(19, 5) == 23
     assert the_algo.calculate_regulated_temperature(19, 5) == 23
     assert the_algo.calculate_regulated_temperature(19, 5) == 23
@@ -131,20 +131,20 @@ def test_pi_algorithm_strong():
     # to reset the accumulated erro
     the_algo.set_target_temp(20)
 
-    assert the_algo.calculate_regulated_temperature(18, 10) == 23.6
-    assert the_algo.calculate_regulated_temperature(18.1, 10) == 23.9
-    assert the_algo.calculate_regulated_temperature(18.3, 10) == 24.0
+    assert the_algo.calculate_regulated_temperature(18, 10) == 23.2
+    assert the_algo.calculate_regulated_temperature(18.1, 10) == 23.5
+    assert the_algo.calculate_regulated_temperature(18.3, 10) == 23.8
     assert the_algo.calculate_regulated_temperature(18.5, 10) == 24
     assert the_algo.calculate_regulated_temperature(18.7, 10) == 24
     assert the_algo.calculate_regulated_temperature(19, 10) == 24
     assert the_algo.calculate_regulated_temperature(20, 10) == 23.9
+    assert the_algo.calculate_regulated_temperature(21, 10) == 21.4
     assert the_algo.calculate_regulated_temperature(21, 10) == 21.2
     assert the_algo.calculate_regulated_temperature(21, 10) == 21
     assert the_algo.calculate_regulated_temperature(21, 10) == 20.8
     assert the_algo.calculate_regulated_temperature(21, 10) == 20.6
     assert the_algo.calculate_regulated_temperature(21, 10) == 20.4
     assert the_algo.calculate_regulated_temperature(21, 10) == 20.2
-    assert the_algo.calculate_regulated_temperature(21, 10) == 20
 
     # Test temperature external
     assert the_algo.calculate_regulated_temperature(20, 8) == 21.0
@@ -161,14 +161,14 @@ def test_pi_algorithm_strong():
     the_algo.set_target_temp(20)
     the_algo.reset_accumulated_error()
     # Test the error acculation effect
+    assert the_algo.calculate_regulated_temperature(19, 10) == 22.6
     assert the_algo.calculate_regulated_temperature(19, 10) == 22.8
-    assert the_algo.calculate_regulated_temperature(19, 10) == 23
+    assert the_algo.calculate_regulated_temperature(19, 10) == 23.0
     assert the_algo.calculate_regulated_temperature(19, 10) == 23.2
     assert the_algo.calculate_regulated_temperature(19, 10) == 23.4
     assert the_algo.calculate_regulated_temperature(19, 10) == 23.6
     assert the_algo.calculate_regulated_temperature(19, 10) == 23.8
-    assert the_algo.calculate_regulated_temperature(19, 10) == 24
-    assert the_algo.calculate_regulated_temperature(19, 10) == 24
-    assert the_algo.calculate_regulated_temperature(19, 10) == 24
-    assert the_algo.calculate_regulated_temperature(19, 10) == 24
-    assert the_algo.calculate_regulated_temperature(19, 10) == 24
+    assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
+    assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
+    assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
+    assert the_algo.calculate_regulated_temperature(19, 10) == 24.0

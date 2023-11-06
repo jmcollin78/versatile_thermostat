@@ -213,7 +213,7 @@ switch:
 
 frontend:
     extra_module_url:
-        - /config/www/community/better-thermostat-ui-card/better-thermostat-ui-card.js
+        - /config/www/community/versatile-thermostat-ui-card/versatile-thermostat-ui-card.js
     themes:
         versatile_thermostat_theme:
             state-binary_sensor-safety-on-color: "#FF0B0B"

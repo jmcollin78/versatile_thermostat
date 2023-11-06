@@ -64,7 +64,7 @@ async def test_window_management_time_not_enough(
     assert entity.overpowering_state is None
     assert entity.target_temperature == 19
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Open the window, but condition of time is not satisfied and check the thermostat don't turns off
     with patch(
@@ -152,7 +152,7 @@ async def test_window_management_time_enough(
     assert entity.overpowering_state is None
     assert entity.target_temperature == 19
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # change temperature to force turning on the heater
     with patch(
@@ -294,7 +294,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     assert entity.overpowering_state is None
     assert entity.target_temperature == 21
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Make the temperature down
     with patch(
@@ -478,7 +478,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     assert entity.overpowering_state is None
     assert entity.target_temperature == 21
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Make the temperature down
     with patch(
@@ -623,7 +623,7 @@ async def test_window_auto_no_on_percent(
     assert entity.overpowering_state is None
     assert entity.target_temperature == 21
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Make the temperature down
     with patch(
@@ -728,7 +728,7 @@ async def test_window_bypass(
     assert entity.overpowering_state is None
     assert entity.target_temperature == 19
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # change temperature to force turning on the heater
     with patch(
@@ -866,7 +866,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
     assert entity.overpowering_state is None
     assert entity.target_temperature == 21
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Make the temperature down
     with patch(
@@ -973,7 +973,7 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
     assert entity.overpowering_state is None
     assert entity.target_temperature == 19
 
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # change temperature to force turning on the heater
     with patch(

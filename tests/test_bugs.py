@@ -243,7 +243,7 @@ async def test_bug_66(
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
     assert entity.target_temperature == 19
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     # Open the window and let the thermostat shut down
     with patch(

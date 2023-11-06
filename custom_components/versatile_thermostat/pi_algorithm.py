@@ -55,7 +55,8 @@ class PITemperatureRegulator:
         offset = self.kp * error + self.ki * self.accumulated_error
 
         # Calculate the exterior offset
-        offset_ext = self.k_ext * (self.target_temp - external_temp)
+        # For Maia tests - use the internal_temp vs external_temp and not target_temp - external_temp
+        offset_ext = self.k_ext * (internal_temp - external_temp)
 
         # Capping of offset_ext
         total_offset = offset + offset_ext

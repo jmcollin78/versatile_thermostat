@@ -241,7 +241,7 @@ async def test_window_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.window_state is None
+    assert entity.window_state is STATE_OFF
 
     await window_binary_sensor.async_my_climate_changed()
     assert window_binary_sensor.state is STATE_OFF

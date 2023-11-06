@@ -85,6 +85,7 @@ CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
 CONF_AUTO_REGULATION_MODE= "auto_regulation_mode"
 CONF_AUTO_REGULATION_NONE= "auto_regulation_none"
+CONF_AUTO_REGULATION_SLOW= "auto_regulation_slow"
 CONF_AUTO_REGULATION_LIGHT= "auto_regulation_light"
 CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
 CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
@@ -207,7 +208,7 @@ CONF_FUNCTIONS = [
     PROPORTIONAL_FUNCTION_TPI,
 ]
 
-CONF_AUTO_REGULATION_MODES = [CONF_AUTO_REGULATION_NONE, CONF_AUTO_REGULATION_LIGHT, CONF_AUTO_REGULATION_MEDIUM, CONF_AUTO_REGULATION_STRONG]
+CONF_AUTO_REGULATION_MODES = [CONF_AUTO_REGULATION_NONE, CONF_AUTO_REGULATION_LIGHT, CONF_AUTO_REGULATION_MEDIUM, CONF_AUTO_REGULATION_STRONG, CONF_AUTO_REGULATION_SLOW]
 
 CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE, CONF_THERMOSTAT_VALVE]
 
@@ -224,6 +225,16 @@ DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
+
+#  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
+class RegulationParamSlow:
+    """ Light parameters for slow latency regulation"""
+    kp:float = 0.2 # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki:float = 0.8 / 288.0 # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext:float = 1.0 / 25.0 # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    offset_max:float = 2.0 # limit to a final offset of -2°C to +2°C
+    stabilization_threshold:float = 0.0 # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    accumulated_error_threshold:float = 2.0 * 288 # this allows up to 2°C long term offset in both directions
 
 class RegulationParamLight:
     """ Light parameters for regulation"""
