@@ -42,7 +42,7 @@
 				// "terminal.integrated.shell.linux": "/bin/bash",
 				"python.pythonPath": "/usr/bin/python3",
 				"python.analysis.autoSearchPaths": true,
-				"pylint.lintOnChange": true,
+				"pylint.lintOnChange": false,
 				"python.formatting.provider": "black",
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
 				"editor.formatOnPaste": false,

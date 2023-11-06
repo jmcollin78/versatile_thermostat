@@ -1827,7 +1827,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._device_power,
         )
 
-        ret = (self._current_power + self._device_power) >= self._current_power_max
+        if self.is_over_climate:
+            power_consumption_max = self._device_power
+        else:
+            power_consumption_max = max(
+                self._device_power / self.nb_underlying_entities,
+                self._device_power * self._prop_algorithm.on_percent,
+            )
+
+        ret = (self._current_power + power_consumption_max) >= self._current_power_max
         if not self._overpowering_state and ret and self._hvac_mode != HVACMode.OFF:
             _LOGGER.warning(
                 "%s - overpowering is detected. Heater preset will be set to 'power'",
@@ -1845,6 +1853,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "current_power": self._current_power,
                     "device_power": self._device_power,
                     "current_power_max": self._current_power_max,
+                    "current_power_consumption": power_consumption_max,
                 },
             )
 

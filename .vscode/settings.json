@@ -3,7 +3,7 @@
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true
     },
-    "pylint.lintOnChange": true,
+    "pylint.lintOnChange": false,
     "files.associations": {
         "*.yaml": "home-assistant"
     },

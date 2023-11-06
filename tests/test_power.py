@@ -4,8 +4,11 @@ from unittest.mock import patch, call
 from datetime import datetime, timedelta
 import logging
 
-from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 
@@ -185,6 +188,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
                         "current_power": 50,
                         "device_power": 100,
                         "current_power_max": 149,
+                        "current_power_consumption": 100.0,
                     },
                 ),
             ],
