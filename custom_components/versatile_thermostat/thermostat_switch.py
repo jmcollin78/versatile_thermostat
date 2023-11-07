@@ -12,7 +12,7 @@ from .const import (
     CONF_HEATER_3,
     CONF_HEATER_4,
     CONF_INVERSE_SWITCH,
-    overrides
+    overrides,
 )
 
 from .base_thermostat import BaseThermostat
@@ -21,15 +21,29 @@ from .prop_algorithm import PropAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ThermostatOverSwitch(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
-    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(frozenset(
-        {
-            "is_over_switch", "underlying_switch_0", "underlying_switch_1",
-            "underlying_switch_2", "underlying_switch_3", "on_time_sec", "off_time_sec",
-            "cycle_min", "function", "tpi_coef_int", "tpi_coef_ext"
-        }))
+    _entity_component_unrecorded_attributes = (
+        BaseThermostat._entity_component_unrecorded_attributes.union(
+            frozenset(
+                {
+                    "is_over_switch",
+                    "underlying_switch_0",
+                    "underlying_switch_1",
+                    "underlying_switch_2",
+                    "underlying_switch_3",
+                    "on_time_sec",
+                    "off_time_sec",
+                    "cycle_min",
+                    "function",
+                    "tpi_coef_int",
+                    "tpi_coef_ext",
+                }
+            )
+        )
+    )
 
     # useless for now
     # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
@@ -39,17 +53,25 @@ class ThermostatOverSwitch(BaseThermostat):
 
     @property
     def is_over_switch(self) -> bool:
-        """ True if the Thermostat is over_switch"""
+        """True if the Thermostat is over_switch"""
         return True
 
     @property
     def is_inversed(self) -> bool:
-        """ True if the switch is inversed (for pilot wire and diode)"""
+        """True if the switch is inversed (for pilot wire and diode)"""
         return self._is_inversed is True
+
+    @property
+    def power_percent(self) -> float | None:
+        """Get the current on_percent value"""
+        if self._prop_algorithm:
+            return round(self._prop_algorithm.on_percent * 100, 0)
+        else:
+            return None
 
     @overrides
     def post_init(self, entry_infos):
-        """ Initialize the Thermostat"""
+        """Initialize the Thermostat"""
 
         super().post_init(entry_infos)
 
@@ -96,31 +118,32 @@ class ThermostatOverSwitch(BaseThermostat):
                 async_track_state_change_event(
                     self.hass, [switch.entity_id], self._async_switch_changed
                 )
-        )
+            )
 
         self.hass.create_task(self.async_control_heating())
 
     @overrides
     def update_custom_attributes(self):
-        """ Custom attributes """
+        """Custom attributes"""
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
-        self._attr_extra_state_attributes["underlying_switch_0"] = (
-                self._underlyings[0].entity_id)
+        self._attr_extra_state_attributes["underlying_switch_0"] = self._underlyings[
+            0
+        ].entity_id
         self._attr_extra_state_attributes["underlying_switch_1"] = (
-                self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-            )
+            self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
+        )
         self._attr_extra_state_attributes["underlying_switch_2"] = (
-                self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-            )
+            self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
+        )
         self._attr_extra_state_attributes["underlying_switch_3"] = (
-                self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-            )
+            self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+        )
 
         self._attr_extra_state_attributes[
-                "on_percent"
-            ] = self._prop_algorithm.on_percent
+            "on_percent"
+        ] = self._prop_algorithm.on_percent
         self._attr_extra_state_attributes[
             "on_time_sec"
         ] = self._prop_algorithm.on_time_sec
