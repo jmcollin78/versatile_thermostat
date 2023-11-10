@@ -103,7 +103,8 @@ Installations with pilot wire and activation diode benefit from an option which 
 
 Some TRV type thermostats are known to be incompatible with the Versatile Thermostat. This is the case for the following valves:
 1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve and it self-regulates, causing conflicts with the VTherm,
-2. “Homematic radio” thermostatic valves. They have a duty cycle incompatible with control by the Versatile Thermostat
+2. “Homematic radio” thermostatic valves. They have a duty cycle incompatible with control by the Versatile Thermostat,
+3. Thermostat of type Heatzy which doesn't supports the set_temperature command.
 
 # Why another thermostat implementation ?
 
