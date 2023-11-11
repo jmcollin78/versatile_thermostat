@@ -1723,8 +1723,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             and self.hvac_mode != HVACMode.OFF
         ):
             if (
-                not self.proportional_algorithm
-                or self.proportional_algorithm.on_percent <= 0.0
+                self.proportional_algorithm
+                and self.proportional_algorithm.on_percent <= 0.0
             ):
                 _LOGGER.info(
                     "%s - Start auto detection of open window slope=%.3f but no heating detected (on_percent<=0). Forget the event",

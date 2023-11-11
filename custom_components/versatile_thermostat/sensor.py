@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
-    UnitOfTemperature
+    UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
 
@@ -54,7 +54,10 @@ async def async_setup_entry(
     ]
     if entry.data.get(CONF_DEVICE_POWER):
         entities.append(EnergySensor(hass, unique_id, name, entry.data))
-        if entry.data.get(CONF_THERMOSTAT_TYPE) in [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_VALVE]:
+        if entry.data.get(CONF_THERMOSTAT_TYPE) in [
+            CONF_THERMOSTAT_SWITCH,
+            CONF_THERMOSTAT_VALVE,
+        ]:
             entities.append(MeanPowerSensor(hass, unique_id, name, entry.data))
 
     if entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
@@ -202,6 +205,9 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
             if self.my_climate and self.my_climate.proportional_algorithm
             else None
         )
+        if on_percent is None:
+            return
+
         if math.isnan(on_percent) or math.isinf(on_percent):
             raise ValueError(f"Sensor has illegal state {on_percent}")
 
@@ -233,6 +239,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 1
+
 
 class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a on percent sensor which exposes the on_percent in a cycle"""
@@ -295,6 +302,10 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
             if self.my_climate and self.my_climate.proportional_algorithm
             else None
         )
+
+        if on_time is None:
+            return
+
         if math.isnan(on_time) or math.isinf(on_time):
             raise ValueError(f"Sensor has illegal state {on_time}")
 
@@ -340,6 +351,9 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
             if self.my_climate and self.my_climate.proportional_algorithm
             else None
         )
+        if off_time is None:
+            return
+
         if math.isnan(off_time) or math.isinf(off_time):
             raise ValueError(f"Sensor has illegal state {off_time}")
 
@@ -476,6 +490,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Return the suggested number of decimal digits for display."""
         return 2
 
+
 class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a Energy sensor which exposes the energy"""
 
@@ -493,7 +508,9 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         if math.isnan(self.my_climate.regulated_target_temp) or math.isinf(
             self.my_climate.regulated_target_temp
         ):
-            raise ValueError(f"Sensor has illegal state {self.my_climate.regulated_target_temp}")
+            raise ValueError(
+                f"Sensor has illegal state {self.my_climate.regulated_target_temp}"
+            )
 
         old_state = self._attr_native_value
         self._attr_native_value = round(
