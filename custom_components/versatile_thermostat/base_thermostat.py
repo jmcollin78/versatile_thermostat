@@ -1595,7 +1595,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         await self.async_control_heating(force=True)
 
     async def _async_update_presence(self, new_state):
-        _LOGGER.debug("%s - Updating presence. New state is %s", self, new_state)
+        _LOGGER.info("%s - Updating presence. New state is %s", self, new_state)
         self._presence_state = new_state
         if self._attr_preset_mode in HIDDEN_PRESETS or self._presence_on is False:
             _LOGGER.info(
@@ -1613,24 +1613,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if self._attr_preset_mode not in [PRESET_BOOST, PRESET_COMFORT, PRESET_ECO]:
             return
 
-        # Change temperature with preset named _away
-        # new_temp = None
-        # if new_state == STATE_ON or new_state == STATE_HOME:
-        #    new_temp = self._presets[self._attr_preset_mode]
-        #    _LOGGER.info(
-        #        "%s - Someone is back home. Restoring temperature to %.2f",
-        #        self,
-        #        new_temp,
-        #    )
-        # else:
-        #    new_temp = self._presets_away[
-        #        self.get_preset_away_name(self._attr_preset_mode)
-        #    ]
-        #    _LOGGER.info(
-        #        "%s - No one is at home. Apply temperature %.2f",
-        #        self,
-        #        new_temp,
-        #    )
         new_temp = self.find_preset_temp(self.preset_mode)
         if new_temp is not None:
             _LOGGER.debug(

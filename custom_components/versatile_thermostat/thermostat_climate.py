@@ -109,6 +109,12 @@ class ThermostatOverClimate(BaseThermostat):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
+        _LOGGER.info(
+            "%s - Calling ThermostatClimate._send_regulated_temperature force=%s",
+            self,
+            force,
+        )
+
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
 
