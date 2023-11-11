@@ -138,6 +138,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         ClimateEntity._entity_component_unrecorded_attributes.union(
             frozenset(
                 {
+                    "is_on",
                     "type",
                     "eco_temp",
                     "boost_temp",
@@ -170,6 +171,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "presence_sensor_entity_id",
                     "power_sensor_entity_id",
                     "max_power_sensor_entity_id",
+                    "temperature_unit",
                 }
             )
         )
@@ -1031,6 +1033,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     def nb_underlying_entities(self) -> int:
         """Returns the number of underlying entities"""
         return len(self._underlyings)
+
+    @property
+    def is_on(self) -> bool:
+        """True if the VTherm is on (! HVAC_OFF)"""
+        return self.hvac_mode and self.hvac_mode != HVACMode.OFF
 
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
@@ -2107,6 +2114,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Update the custom extra attributes for the entity"""
 
         self._attr_extra_state_attributes: dict(str, str) = {
+            "is_on": self.is_on,
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
@@ -2166,6 +2174,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "presence_sensor_entity_id": self._presence_sensor_entity_id,
             "power_sensor_entity_id": self._power_sensor_entity_id,
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
+            "temperature_unit": self.temperature_unit,
         }
 
     @callback

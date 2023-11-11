@@ -40,6 +40,7 @@ class ThermostatOverSwitch(BaseThermostat):
                     "function",
                     "tpi_coef_int",
                     "tpi_coef_ext",
+                    "power_percent",
                 }
             )
         )
@@ -144,6 +145,7 @@ class ThermostatOverSwitch(BaseThermostat):
         self._attr_extra_state_attributes[
             "on_percent"
         ] = self._prop_algorithm.on_percent
+        self._attr_extra_state_attributes["power_percent"] = self.power_percent
         self._attr_extra_state_attributes[
             "on_time_sec"
         ] = self._prop_algorithm.on_time_sec
