@@ -85,7 +85,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 La puissance de l'appareil doit maintenant être la puissance totale de tous les appareils controlée par le VTherm. Cela permet d'avoir des équipements hétérogènes de puissance différente. Dans le cas de plusieurs appareils contrôlés par un seul VTherm, vous devrez éditer et changer la valeur `device_power`. Vous devez configurer la puissance totale de tous les appareils.
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
 
 
 # Quand l'utiliser et ne pas l'utiliser

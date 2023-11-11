@@ -83,7 +83,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 The power of the device should now be the total power of all controler devices by the VTherm. This allow to have eterogeneous equipment with different power. In case of multi-devices controlled by a single VTherm you will have to edit and change the `device_power` value. Set the total power of all devices.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome for the beers. It's very nice and encourages me to continue!
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
