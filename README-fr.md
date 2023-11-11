@@ -107,6 +107,7 @@ Certains thermostat de type TRV sont réputés incompatibles avec le Versatile T
 1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le VTherm,
 2. les vannes thermstatiques "Homematic radio". Elles ont un cycle de service incompatible avec une commande par le Versatile Thermostat,
 3. les thermostats de type Heatzy qui ne supportent pas les commandes de type set_temperature
+4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
