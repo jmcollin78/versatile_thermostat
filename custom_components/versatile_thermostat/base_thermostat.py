@@ -1888,7 +1888,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        self._overpowering_state = ret
+        if self._overpowering_state != ret:
+            self._overpowering_state = ret
+            self.update_custom_attributes()
+
         return self._overpowering_state
 
     async def check_security(self) -> bool:
