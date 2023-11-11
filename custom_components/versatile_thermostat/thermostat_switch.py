@@ -30,6 +30,7 @@ class ThermostatOverSwitch(BaseThermostat):
             frozenset(
                 {
                     "is_over_switch",
+                    "is_inversed",
                     "underlying_switch_0",
                     "underlying_switch_1",
                     "underlying_switch_2",
@@ -129,6 +130,7 @@ class ThermostatOverSwitch(BaseThermostat):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
+        self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
         self._attr_extra_state_attributes["underlying_switch_0"] = self._underlyings[
             0
         ].entity_id
@@ -207,3 +209,4 @@ class ThermostatOverSwitch(BaseThermostat):
         if old_state is None:
             self.hass.create_task(self._check_initial_state())
         self.async_write_ha_state()
+        self.update_custom_attributes()

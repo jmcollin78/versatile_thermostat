@@ -172,6 +172,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "power_sensor_entity_id",
                     "max_power_sensor_entity_id",
                     "temperature_unit",
+                    "is_device_active",
                 }
             )
         )
@@ -2178,6 +2179,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "power_sensor_entity_id": self._power_sensor_entity_id,
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
             "temperature_unit": self.temperature_unit,
+            "is_device_active": self.is_device_active,
         }
 
     @callback
