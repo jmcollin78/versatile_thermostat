@@ -297,6 +297,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
         self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
         self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
+        # Default value not configurable
+        self._attr_target_temperature_step = 0.1
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._window_sensor_entity_id = entry_infos.get(CONF_WINDOW_SENSOR)
