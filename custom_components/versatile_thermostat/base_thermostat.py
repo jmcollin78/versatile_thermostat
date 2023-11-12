@@ -173,6 +173,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "max_power_sensor_entity_id",
                     "temperature_unit",
                     "is_device_active",
+                    "target_temperature_step",
                 }
             )
         )
@@ -905,27 +906,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     def current_temperature(self):
         """Return the sensor temperature."""
         return self._cur_temp
-
-    @property
-    def target_temperature_step(self) -> float | None:
-        """Return the supported step of target temperature."""
-        return None
-
-    @property
-    def target_temperature_high(self) -> float | None:
-        """Return the highbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        return None
-
-    @property
-    def target_temperature_low(self) -> float | None:
-        """Return the lowbound target temperature we try to reach.
-
-        Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
-        """
-        return None
 
     @property
     def is_aux_heat(self) -> bool | None:
@@ -2122,6 +2102,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "power_temp": self._power_temp,
             # Already in super class - "target_temp": self.target_temperature,
             # Already in super class - "current_temp": self._cur_temp,
+            "target_temperature_step": self.target_temperature_step,
             "ext_current_temperature": self._cur_ext_temp,
             "ac_mode": self._ac_mode,
             "current_power": self._current_power,
