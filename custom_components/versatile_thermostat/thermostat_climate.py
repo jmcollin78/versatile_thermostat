@@ -115,8 +115,21 @@ class ThermostatOverClimate(BaseThermostat):
             force,
         )
 
+        now: datetime = NowClass.get_now(self._hass)
+        period = float((now - self._last_regulation_change).total_seconds()) / 60.0
+        if not force and period < self._auto_regulation_period_min:
+            _LOGGER.info(
+                "%s - period (%.1f) min is < %.0f min -> forget the regulation send",
+                self,
+                period,
+                self._auto_regulation_period_min,
+            )
+            return
+
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
+
+        _LOGGER.info("%s - regulation calculation will be done", self)
 
         new_regulated_temp = round_to_nearest(
             self._regulation_algo.calculate_regulated_temperature(
@@ -127,22 +140,11 @@ class ThermostatOverClimate(BaseThermostat):
         dtemp = new_regulated_temp - self._regulated_target_temp
 
         if not force and abs(dtemp) < self._auto_regulation_dtemp:
-            _LOGGER.debug(
+            _LOGGER.info(
                 "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
                 self,
                 dtemp,
                 self._auto_regulation_dtemp,
-            )
-            return
-
-        now: datetime = NowClass.get_now(self._hass)
-        period = float((now - self._last_regulation_change).total_seconds()) / 60.0
-        if not force and period < self._auto_regulation_period_min:
-            _LOGGER.debug(
-                "%s - period (%.1f) is < %.0f -> forget the regulation send",
-                self,
-                period,
-                self._auto_regulation_period_min,
             )
             return
 
