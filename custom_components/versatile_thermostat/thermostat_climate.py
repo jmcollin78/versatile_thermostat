@@ -17,6 +17,7 @@ from .pi_algorithm import PITemperatureRegulator
 
 from .const import (
     overrides,
+    DOMAIN,
     CONF_CLIMATE,
     CONF_CLIMATE_2,
     CONF_CLIMATE_3,
@@ -27,6 +28,7 @@ from .const import (
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_EXPERT,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
     RegulationParamSlow,
@@ -35,6 +37,7 @@ from .const import (
     RegulationParamStrong,
 )
 
+from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingClimate
 
 _LOGGER = logging.getLogger(__name__)
@@ -241,7 +244,32 @@ class ThermostatOverClimate(BaseThermostat):
                 RegulationParamSlow.stabilization_threshold,
                 RegulationParamSlow.accumulated_error_threshold,
             )
-        else:
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_EXPERT:
+            api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
+                self._hass
+            )
+            if api:
+                if expert_param := api.self_regulation_expert:
+                    self._regulation_algo = PITemperatureRegulator(
+                        self.target_temperature,
+                        expert_param.kp,
+                        expert_param.ki,
+                        expert_param.k_ext,
+                        expert_param.offset_max,
+                        expert_param.stabilization_threshold,
+                        expert_param.accumulated_error_threshold,
+                    )
+                else:
+                    _LOGGER.ERROR(
+                        "Cannot initialize Expert self-regulation mode due to VTherm API doesn't exists. Please contact the publisher of the integration"
+                    )
+            else:
+                _LOGGER.ERROR(
+                    "Cannot initialize Expert self-regulation mode cause the configuration in configuration.yaml have not been found. Please see readme documentation for %s",
+                    DOMAIN,
+                )
+
+        if not self._regulation_algo:
             # A default empty algo (which does nothing)
             self._regulation_algo = PITemperatureRegulator(
                 self.target_temperature, 0, 0, 0, 0, 0.1, 0

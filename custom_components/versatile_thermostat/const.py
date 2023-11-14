@@ -90,6 +90,7 @@ CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
 CONF_AUTO_REGULATION_LIGHT = "auto_regulation_light"
 CONF_AUTO_REGULATION_MEDIUM = "auto_regulation_medium"
 CONF_AUTO_REGULATION_STRONG = "auto_regulation_strong"
+CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
@@ -215,6 +216,7 @@ CONF_AUTO_REGULATION_MODES = [
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
     CONF_AUTO_REGULATION_SLOW,
+    CONF_AUTO_REGULATION_EXPERT,
 ]
 
 CONF_THERMOSTAT_TYPES = [

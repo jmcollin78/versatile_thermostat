@@ -13,6 +13,15 @@ debugpy:
     wait: false
     port: 5678
 
+versatile_thermostat:
+    auto_regulation_expert:
+        kp: 0.4
+        ki: 0.08
+        k_ext: 0.0
+        offset_max: 5
+        stabilization_threshold: 0.1
+        accumulated_error_threshold: 50
+
 input_number:
     fake_temperature_sensor1:
         name: Temperature
