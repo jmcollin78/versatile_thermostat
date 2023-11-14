@@ -17,6 +17,7 @@ from homeassistant.exceptions import HomeAssistantError
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
+
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
 PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
@@ -83,15 +84,15 @@ CONF_VALVE = "valve_entity_id"
 CONF_VALVE_2 = "valve_entity2_id"
 CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
-CONF_AUTO_REGULATION_MODE= "auto_regulation_mode"
-CONF_AUTO_REGULATION_NONE= "auto_regulation_none"
-CONF_AUTO_REGULATION_SLOW= "auto_regulation_slow"
-CONF_AUTO_REGULATION_LIGHT= "auto_regulation_light"
-CONF_AUTO_REGULATION_MEDIUM= "auto_regulation_medium"
-CONF_AUTO_REGULATION_STRONG= "auto_regulation_strong"
-CONF_AUTO_REGULATION_DTEMP="auto_regulation_dtemp"
-CONF_AUTO_REGULATION_PERIOD_MIN="auto_regulation_periode_min"
-CONF_INVERSE_SWITCH="inverse_switch_command"
+CONF_AUTO_REGULATION_MODE = "auto_regulation_mode"
+CONF_AUTO_REGULATION_NONE = "auto_regulation_none"
+CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
+CONF_AUTO_REGULATION_LIGHT = "auto_regulation_light"
+CONF_AUTO_REGULATION_MEDIUM = "auto_regulation_medium"
+CONF_AUTO_REGULATION_STRONG = "auto_regulation_strong"
+CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
+CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
+CONF_INVERSE_SWITCH = "inverse_switch_command"
 
 CONF_PRESETS = {
     p: f"{p}_temp"
@@ -196,7 +197,7 @@ ALL_CONF = (
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
-        CONF_INVERSE_SWITCH
+        CONF_INVERSE_SWITCH,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -208,9 +209,19 @@ CONF_FUNCTIONS = [
     PROPORTIONAL_FUNCTION_TPI,
 ]
 
-CONF_AUTO_REGULATION_MODES = [CONF_AUTO_REGULATION_NONE, CONF_AUTO_REGULATION_LIGHT, CONF_AUTO_REGULATION_MEDIUM, CONF_AUTO_REGULATION_STRONG, CONF_AUTO_REGULATION_SLOW]
+CONF_AUTO_REGULATION_MODES = [
+    CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_LIGHT,
+    CONF_AUTO_REGULATION_MEDIUM,
+    CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_SLOW,
+]
 
-CONF_THERMOSTAT_TYPES = [CONF_THERMOSTAT_SWITCH, CONF_THERMOSTAT_CLIMATE, CONF_THERMOSTAT_VALVE]
+CONF_THERMOSTAT_TYPES = [
+    CONF_THERMOSTAT_SWITCH,
+    CONF_THERMOSTAT_CLIMATE,
+    CONF_THERMOSTAT_VALVE,
+]
 
 SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 
@@ -226,54 +237,73 @@ DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
+
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
-    """ Light parameters for slow latency regulation"""
-    kp:float = 0.2 # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
-    ki:float = 0.8 / 288.0 # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
-    k_ext:float = 1.0 / 25.0 # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
-    offset_max:float = 2.0 # limit to a final offset of -2°C to +2°C
-    stabilization_threshold:float = 0.0 # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
-    accumulated_error_threshold:float = 2.0 * 288 # this allows up to 2°C long term offset in both directions
+    """Light parameters for slow latency regulation"""
+
+    kp: float = 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki: float = (
+        0.8 / 288.0
+    )  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext: float = (
+        1.0 / 25.0
+    )  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    offset_max: float = 2.0  # limit to a final offset of -2°C to +2°C
+    stabilization_threshold: float = 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    accumulated_error_threshold: float = (
+        2.0 * 288
+    )  # this allows up to 2°C long term offset in both directions
+
 
 class RegulationParamLight:
-    """ Light parameters for regulation"""
-    kp:float = 0.2
-    ki:float = 0.05
-    k_ext:float = 0.05
-    offset_max:float = 1.5
-    stabilization_threshold:float = 0.1
-    accumulated_error_threshold:float = 10
+    """Light parameters for regulation"""
+
+    kp: float = 0.2
+    ki: float = 0.05
+    k_ext: float = 0.05
+    offset_max: float = 1.5
+    stabilization_threshold: float = 0.1
+    accumulated_error_threshold: float = 10
 
 
 class RegulationParamMedium:
-    """ Light parameters for regulation"""
-    kp:float = 0.3
-    ki:float = 0.05
-    k_ext:float = 0.1
-    offset_max:float = 2
-    stabilization_threshold:float = 0.1
-    accumulated_error_threshold:float = 20
+    """Light parameters for regulation"""
+
+    kp: float = 0.3
+    ki: float = 0.05
+    k_ext: float = 0.1
+    offset_max: float = 2
+    stabilization_threshold: float = 0.1
+    accumulated_error_threshold: float = 20
 
 
 class RegulationParamStrong:
-    """ Medium parameters for regulation"""
-    kp:float = 0.4
-    ki:float = 0.08
-    k_ext:float = 0.1
-    offset_max:float = 3
-    stabilization_threshold:float = 0.1
-    accumulated_error_threshold:float = 25
+    """Strong parameters for regulation
+    A set of parameters which doesn't take into account the external temp
+    and concentrate to internal temp error + accumulated error.
+    This should work for cold external conditions which else generates
+    high external_offset"""
+
+    kp: float = 0.4
+    ki: float = 0.08
+    k_ext: float = 0.0
+    offset_max: float = 5
+    stabilization_threshold: float = 0.1
+    accumulated_error_threshold: float = 50
+
 
 # Not used now
 class RegulationParamVeryStrong:
-    """ Strong parameters for regulation"""
-    kp:float = 0.6
-    ki:float = 0.1
-    k_ext:float = 0.2
-    offset_max:float = 4
-    stabilization_threshold:float = 0.1
-    accumulated_error_threshold:float = 30
+    """Strong parameters for regulation"""
+
+    kp: float = 0.6
+    ki: float = 0.1
+    k_ext: float = 0.2
+    offset_max: float = 4
+    stabilization_threshold: float = 0.1
+    accumulated_error_threshold: float = 30
+
 
 class EventType(Enum):
     """The event type that can be sent"""
@@ -293,8 +323,10 @@ class UnknownEntity(HomeAssistantError):
 class WindowOpenDetectionMethod(HomeAssistantError):
     """Error to indicate there is an error in the window open detection method given."""
 
-class overrides: # pylint: disable=invalid-name
-    """ An annotation to inform overrides """
+
+class overrides:  # pylint: disable=invalid-name
+    """An annotation to inform overrides"""
+
     def __init__(self, func):
         self.func = func
 
