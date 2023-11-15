@@ -248,24 +248,26 @@ class ThermostatOverClimate(BaseThermostat):
             api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
                 self._hass
             )
-            if api:
-                if expert_param := api.self_regulation_expert:
+            if api is not None:
+                if (expert_param := api.self_regulation_expert) is not None:
                     self._regulation_algo = PITemperatureRegulator(
                         self.target_temperature,
-                        expert_param.kp,
-                        expert_param.ki,
-                        expert_param.k_ext,
-                        expert_param.offset_max,
-                        expert_param.stabilization_threshold,
-                        expert_param.accumulated_error_threshold,
+                        expert_param.get("kp"),
+                        expert_param.get("ki"),
+                        expert_param.get("k_ext"),
+                        expert_param.get("offset_max"),
+                        expert_param.get("stabilization_threshold"),
+                        expert_param.get("accumulated_error_threshold"),
                     )
                 else:
-                    _LOGGER.ERROR(
-                        "Cannot initialize Expert self-regulation mode due to VTherm API doesn't exists. Please contact the publisher of the integration"
+                    _LOGGER.error(
+                        "%s - Cannot initialize Expert self-regulation mode due to VTherm API doesn't exists. Please contact the publisher of the integration",
+                        self,
                     )
             else:
-                _LOGGER.ERROR(
-                    "Cannot initialize Expert self-regulation mode cause the configuration in configuration.yaml have not been found. Please see readme documentation for %s",
+                _LOGGER.error(
+                    "%s - Cannot initialize Expert self-regulation mode cause the configuration in configuration.yaml have not been found. Please see readme documentation for %s",
+                    self,
                     DOMAIN,
                 )
 
@@ -776,6 +778,8 @@ class ThermostatOverClimate(BaseThermostat):
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_STRONG)
         elif auto_regulation_mode == "Slow":
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_SLOW)
+        elif auto_regulation_mode == "Expert":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_EXPERT)
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()

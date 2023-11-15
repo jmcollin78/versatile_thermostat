@@ -110,7 +110,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    api: VersatileThermostatAPI = hass.data.get(DOMAIN)
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         if api:

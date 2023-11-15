@@ -352,6 +352,7 @@
         "auto_regulation_strong": "Strong",
         "auto_regulation_medium": "Medium",
         "auto_regulation_light": "Light",
+        "auto_regulation_expert": "Expert",
         "auto_regulation_none": "No auto-regulation"
       }
     }
