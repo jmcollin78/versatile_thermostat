@@ -1,3 +1,4 @@
+# pylint: disable=unused-argument, line-too-long
 """ Test the Versatile Thermostat config flow """
 
 from homeassistant import data_entry_flow
@@ -29,7 +30,9 @@ async def test_show_form(hass: HomeAssistant) -> None:
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_user_config_flow_over_switch(hass: HomeAssistant, skip_hass_states_get):  # pylint: disable=unused-argument
+async def test_user_config_flow_over_switch(
+    hass: HomeAssistant, skip_hass_states_get
+):  # pylint: disable=unused-argument
     """Test the config flow with all thermostat_over_switch features"""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
@@ -128,7 +131,9 @@ async def test_user_config_flow_over_switch(hass: HomeAssistant, skip_hass_state
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_states_get):  # pylint: disable=unused-argument
+async def test_user_config_flow_over_climate(
+    hass: HomeAssistant, skip_hass_states_get
+):  # pylint: disable=unused-argument
     """Test the config flow with all thermostat_over_climate features and no additional features"""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
@@ -184,7 +189,9 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_window_auto_ok(
-    hass: HomeAssistant, skip_hass_states_get, skip_control_heating  # pylint: disable=unused-argument
+    hass: HomeAssistant,
+    skip_hass_states_get,
+    skip_control_heating,  # pylint: disable=unused-argument
 ):
     """Test the config flow with only window auto feature"""
     result = await hass.config_entries.flow.async_init(
@@ -353,7 +360,9 @@ async def test_user_config_flow_window_auto_ko(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_over_4_switches(
-    hass: HomeAssistant, skip_hass_states_get, skip_control_heating  # pylint: disable=unused-argument
+    hass: HomeAssistant,
+    skip_hass_states_get,
+    skip_control_heating,  # pylint: disable=unused-argument
 ):
     """Test the config flow with 4 switchs thermostat_over_switch features"""
 
@@ -369,7 +378,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USE_WINDOW_FEATURE: False,
         CONF_USE_MOTION_FEATURE: False,
         CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False
+        CONF_USE_PRESENCE_FEATURE: False,
     }
 
     TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
@@ -427,15 +436,11 @@ async def test_user_config_flow_over_4_switches(
     )
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert (
-        result["data"]
-        == SOURCE_CONFIG
-        | TYPE_CONFIG
-        | MOCK_TH_OVER_SWITCH_TPI_CONFIG
-        | MOCK_PRESETS_CONFIG
-        | MOCK_ADVANCED_CONFIG
-        | { CONF_INVERSE_SWITCH: False }
-    )
+    assert result[
+        "data"
+    ] == SOURCE_CONFIG | TYPE_CONFIG | MOCK_TH_OVER_SWITCH_TPI_CONFIG | MOCK_PRESETS_CONFIG | MOCK_ADVANCED_CONFIG | {
+        CONF_INVERSE_SWITCH: False
+    }
     assert result["result"]
     assert result["result"].domain == DOMAIN
     assert result["result"].version == 1

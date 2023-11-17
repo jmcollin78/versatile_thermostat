@@ -40,6 +40,10 @@ class PITemperatureRegulator:
         """Reset the accumulated error"""
         self.accumulated_error = 0
 
+    def set_accumulated_error(self, accumulated_error):
+        """Allow to persist and restore the accumulated_error"""
+        self.accumulated_error = accumulated_error
+
     def set_target_temp(self, target_temp):
         """Set the new target_temp"""
         self.target_temp = target_temp
@@ -85,9 +89,10 @@ class PITemperatureRegulator:
         total_offset = min(self.offset_max, max(-self.offset_max, total_offset))
 
         # If temperature is near the target_temp, reset the accumulated_error
-        if abs(error) < self.stabilization_threshold:
-            _LOGGER.debug("Stabilisation")
-            self.accumulated_error = 0
+        # Issue #199 - don't reset the accumulation error
+        # if abs(error) < self.stabilization_threshold:
+        #     _LOGGER.debug("Stabilisation")
+        #     self.accumulated_error = 0
 
         result = round(self.target_temp + total_offset, 1)
 

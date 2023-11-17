@@ -303,6 +303,18 @@ class ThermostatOverClimate(BaseThermostat):
         )
 
     @overrides
+    def restore_specific_previous_state(self, old_state):
+        """Restore my specific attributes from previous state"""
+        old_error = old_state.attributes.get("regulation_accumulated_error")
+        if old_error:
+            self._regulation_algo.set_accumulated_error(old_error)
+            _LOGGER.debug(
+                "%s - Old regulation accumulated_error have been restored to %f",
+                self,
+                old_error,
+            )
+
+    @overrides
     def update_custom_attributes(self):
         """Custom attributes"""
         super().update_custom_attributes()

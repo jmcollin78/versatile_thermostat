@@ -693,6 +693,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 EVENT_HOMEASSISTANT_START, _async_startup_internal
             )
 
+    def restore_specific_previous_state(self, old_state):
+        """Should be overriden in each specific thermostat
+        if a specific previous state or attribute should be
+        restored
+        """
+
     async def get_my_previous_state(self):
         """Try to get my previou state"""
         # Check If we have an old state
@@ -738,6 +744,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             if old_total_energy:
                 self._total_energy = old_total_energy
+
+            self.restore_specific_previous_state(old_state)
         else:
             # No previous state, try and restore defaults
             if self._target_temp is None:
