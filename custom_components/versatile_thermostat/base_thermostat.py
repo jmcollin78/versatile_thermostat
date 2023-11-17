@@ -1578,7 +1578,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     async def _async_update_presence(self, new_state):
         _LOGGER.info("%s - Updating presence. New state is %s", self, new_state)
-        self._presence_state = new_state
+        self._presence_state = (
+            STATE_ON if new_state in (STATE_ON, STATE_HOME) else STATE_OFF
+        )
         if self._attr_preset_mode in HIDDEN_PRESETS or self._presence_on is False:
             _LOGGER.info(
                 "%s - Ignoring presence change cause in Power or Security preset or presence not configured",
