@@ -22,6 +22,7 @@
     - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
     - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
       - [L'auto-régulation](#lauto-régulation)
+      - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
     - [Pour un thermostat de type ```thermostat_over_valve```:](#pour-un-thermostat-de-type-thermostat_over_valve)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
   - [Configurer la température préréglée](#configurer-la-température-préréglée)
@@ -63,13 +64,14 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
 > * **Release 3.7**: Ajout du type de **Versatile Thermostat `over valve`** pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
-> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 <details>
 <summary>Autres versions</summary>
 
+> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
 > * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
@@ -204,8 +206,8 @@ Il est possible de choisir un thermostat over climate qui commande une climatisa
 #### L'auto-régulation
 Depuis la release 3.8, vous avez la possibilité d'activer la fonction d'auto-régulation. Cette fonction autorise VersatileThermostat à adapter la consigne de température donnée au climate sous-jacent afin que la température de la pièce atteigne réellement la consigne.
 Pour faire ça, le VersatileThermostat calcule un décalage basé sur les informations suivantes :
-1. la différence actuelle entre la température réelle et la température de consigne,
-2. l'accumulation des différences passées,
+1. la différence actuelle entre la température réelle et la température de consigne, appelé erreur brute,
+2. l'accumulation des erreurs passées,
 3. la différence entre la température extérieure et la consigne
 
 Ces trois informations sont combinées pour calculer le décalage qui sera ajouté à la consigne courante et envoyé au climate sous-jacent.
@@ -224,9 +226,88 @@ Ces trois paramètres permettent de moduler la régulation et éviter de multipl
 > 1. Ne démarrez pas tout de suite l'auto-régulation. Regardez comment se passe la régulation naturelle de votre équipement. Si vous constatez que la température de consigne n'est pas atteinte ou qu'elle met trop de temps à être atteinte, démarrez la régulation,
 > 2. D'abord commencez par une légère auto-régulation et gardez les deux paramètres avec leur valeurs par défaut. Attendez quelques jours et vérifiez si la situation s'est améliorée,
 > 3. Si ce n'est pas suffisant, passez en auto-régulation Medium, attendez une stabilisation,
-> 4. Si ce n'est toujours pas suffisant, passez en auto-régulation Forte.
+> 4. Si ce n'est toujours pas suffisant, passez en auto-régulation Forte,
+> 5. Si ce n'est toujours pas bon, il faudra passer en mode expert pour pouvoir régler les paramètres de régulation de façon fine. Voir en-dessous
 
 L'auto-régulation consiste à forcer l'équipement a aller plus loin en lui forçant sa température de consigne régulièrement. Sa consommation peut donc être augmentée, ainsi que son usure.
+
+#### L'auto-régulation en mode Expert
+
+En mode **Expert** pouvez régler finement les paramètres de l'auto-régulation pour atteindre vos objeetifs et optimiser au mieux. L'algorithme calcule l'écart entre la consigne et la température réelle de la pièce. Cet écard est appelé erreur.
+Les paramètres réglables sont les suivants :
+1. `kp` : le facteur appliqué à l'erreur brute,
+2. `ki` : le facteur appliqué à l'accumulation des erreurs,
+3. `k_ext` : le facteur appliqué à la différence entre la température intérieure et la température externe,
+4. `offset_max` : le maximum de correction (offset) que la régulation peut appliquer,
+5. `stabilization_threshold` : un seuil de stabilisation qui lorsqu'il est atteint par l'erreur remet à 0, l'accumulation des erreurs,
+6. `accumulated_error_threshold` : le maximum pour l'accumulation d'erreur.
+
+Pour le tuning il faut tenir compte de ces observations :
+1. `kp * erreur` va donner l'offset lié à l'erreur brute. Cet offset est directement proportionnel à l'erreur et sera à 0 lorsque la target sera atteinte,
+2. l'accumulation de l'erreur permet de corriger le stabilisation de la courbe alors qu'il reste une erreur. L'erreur s'accumule et l'offset augmente donc progressivement ce qui devrait finir par stabiliser sur la température cible. Pour que ce paramètre fondamental est un effet il faut qu'il soit pas trop petit. Une valeur moyenne est 30
+3. `ki * accumulated_error_threshold` va donner l'offset maximal lié à l'accumulation de l'erreur,
+4. `k_ext` permet d'appliquer tout de suite (sans attendre une accumulation des erreurs) une correction lorsque la température extérieure est très différente de la température cible. Si la stabilisation se fait trop haut lorsqu'il les écarts de température sont importants, c'est que ce paramètre est trop fort. Il devrait pouvoir être annulé totalement pour laisser faire les 2 premiers offset
+
+Les valeurs préprogrammées sont les suivantes :
+
+Slow régulation :
+
+    kp: 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki: 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext: 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    offset_max: 2.0  # limit to a final offset of -2°C to +2°C
+    stabilization_threshold: 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    accumulated_error_threshold: 2.0 * 288  # this allows up to 2°C long term offset in both directions
+
+Light régulation :
+
+    kp: 0.2
+    ki: 0.05
+    k_ext: 0.05
+    offset_max: 1.5
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 10
+
+
+Medium régulation :
+
+    kp: 0.3
+    ki: 0.05
+    k_ext: 0.1
+    offset_max: 2
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 20
+
+
+Strong régulation :
+
+    """Strong parameters for regulation
+    A set of parameters which doesn't take into account the external temp
+    and concentrate to internal temp error + accumulated error.
+    This should work for cold external conditions which else generates
+    high external_offset"""
+
+    kp: 0.4
+    ki: 0.08
+    k_ext: 0.0
+    offset_max: 5
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 50
+
+Pour utiliser le mode Expert il vous faut déclarer les valeurs que vous souhaitez utiliser pour chacun de ces paramètres dans votre `configuration.yaml` sous la forme suivante :
+```
+versatile_thermostat:
+    auto_regulation_expert:
+        kp: 0.4
+        ki: 0.08
+        k_ext: 0.0
+        offset_max: 5
+        stabilization_threshold: 0.1
+        accumulated_error_threshold: 50
+```
+et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les VTherm en mode **Expert** utiliseront ces mêmes paramètres.
+
+Pour que les modifications soient prises en compte, il faut soit **relancer totalement Home Assistant** soit juste l'intégration Versatile Thermostat (Outils de dev / Yaml / rechargement de la configuration / Versatile Thermostat).
 
 ### Pour un thermostat de type ```thermostat_over_valve```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)

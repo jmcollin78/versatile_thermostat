@@ -160,3 +160,4 @@ set_auto_regulation_mode:
                         - "Medium"
                         - "Strong"
                         - "Slow"
+                        - "Expert"

@@ -353,6 +353,7 @@
         "auto_regulation_strong": "Forte",
         "auto_regulation_medium": "Moyenne",
         "auto_regulation_light": "Légère",
+        "auto_regulation_expert": "Expert",
         "auto_regulation_none": "Aucune"
       }
     }

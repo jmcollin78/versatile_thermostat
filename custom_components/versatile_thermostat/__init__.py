@@ -4,15 +4,83 @@ from __future__ import annotations
 from typing import Dict
 
 import logging
+import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant
 
 from .base_thermostat import BaseThermostat
 
-from .const import DOMAIN, PLATFORMS
+from .const import (
+    DOMAIN,
+    PLATFORMS,
+    CONF_AUTO_REGULATION_LIGHT,
+    CONF_AUTO_REGULATION_MEDIUM,
+    CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_SLOW,
+    CONF_AUTO_REGULATION_EXPERT,
+)
+
+from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
+
+SELF_REGULATION_PARAM_SCHEMA = (
+    vol.Schema(
+        {
+            vol.Required("kp"): vol.Coerce(float),
+            vol.Required("ki"): vol.Coerce(float),
+            vol.Required("k_ext"): vol.Coerce(float),
+            vol.Required("offset_max"): vol.Coerce(float),
+            vol.Required("stabilization_threshold"): vol.Coerce(float),
+            vol.Required("accumulated_error_threshold"): vol.Coerce(float),
+        }
+    ),
+)
+
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                CONF_AUTO_REGULATION_EXPERT: vol.Schema(
+                    {
+                        vol.Required("kp"): vol.Coerce(float),
+                        vol.Required("ki"): vol.Coerce(float),
+                        vol.Required("k_ext"): vol.Coerce(float),
+                        vol.Required("offset_max"): vol.Coerce(float),
+                        vol.Required("stabilization_threshold"): vol.Coerce(float),
+                        vol.Required("accumulated_error_threshold"): vol.Coerce(float),
+                    }
+                ),
+            }
+        ),
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+
+async def async_setup(
+    hass: HomeAssistant, config: ConfigType
+):  # pylint: disable=unused-argument
+    """Initialisation de l'intégration"""
+    _LOGGER.info(
+        "Initializing %s integration with config: %s",
+        DOMAIN,
+        config.get(DOMAIN),
+    )
+
+    hass.data.setdefault(DOMAIN, {})
+
+    # L'argument config contient votre fichier configuration.yaml
+    vtherm_config = config.get(DOMAIN)
+
+    if vtherm_config is not None:
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+        api.set_global_config(vtherm_config)
+    else:
+        _LOGGER.info("No global config from configuration.yaml available")
+
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -24,11 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data,
     )
 
-    # hass.data.setdefault(DOMAIN, {})
-
-    api: VersatileThermostatAPI = hass.data.get(DOMAIN)
-    if api is None:
-        api = VersatileThermostatAPI(hass)
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
     api.add_entry(entry)
 
@@ -46,50 +110,13 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    api: VersatileThermostatAPI = hass.data.get(DOMAIN)
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         if api:
             api.remove_entry(entry)
 
     return unload_ok
-
-
-class VersatileThermostatAPI(dict):
-    """The VersatileThermostatAPI"""
-
-    _hass: HomeAssistant
-    # _entries: Dict(str, ConfigEntry)
-
-    def __init__(self, hass: HomeAssistant) -> None:
-        _LOGGER.debug("building a VersatileThermostatAPI")
-        super().__init__()
-        self._hass = hass
-        # self._entries = dict()
-        # Add the API in hass.data
-        self._hass.data[DOMAIN] = self
-
-    def add_entry(self, entry: ConfigEntry):
-        """Add a new entry"""
-        _LOGGER.debug("Add the entry %s", entry.entry_id)
-        # self._entries[entry.entry_id] = entry
-        # Add the entry in hass.data
-        self._hass.data[DOMAIN][entry.entry_id] = entry
-
-    def remove_entry(self, entry: ConfigEntry):
-        """Remove an entry"""
-        _LOGGER.debug("Remove the entry %s", entry.entry_id)
-        # self._entries.pop(entry.entry_id)
-        self._hass.data[DOMAIN].pop(entry.entry_id)
-        # If not more entries are preset, remove the API
-        if len(self) == 0:
-            _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
-            self._hass.data.pop(DOMAIN)
-
-    @property
-    def hass(self):
-        """Get the HomeAssistant object"""
-        return self._hass
 
 
 # Example migration function

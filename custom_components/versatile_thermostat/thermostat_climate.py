@@ -17,6 +17,7 @@ from .pi_algorithm import PITemperatureRegulator
 
 from .const import (
     overrides,
+    DOMAIN,
     CONF_CLIMATE,
     CONF_CLIMATE_2,
     CONF_CLIMATE_3,
@@ -27,6 +28,7 @@ from .const import (
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
+    CONF_AUTO_REGULATION_EXPERT,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
     RegulationParamSlow,
@@ -35,6 +37,7 @@ from .const import (
     RegulationParamStrong,
 )
 
+from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingClimate
 
 _LOGGER = logging.getLogger(__name__)
@@ -241,7 +244,34 @@ class ThermostatOverClimate(BaseThermostat):
                 RegulationParamSlow.stabilization_threshold,
                 RegulationParamSlow.accumulated_error_threshold,
             )
-        else:
+        elif self._auto_regulation_mode == CONF_AUTO_REGULATION_EXPERT:
+            api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
+                self._hass
+            )
+            if api is not None:
+                if (expert_param := api.self_regulation_expert) is not None:
+                    self._regulation_algo = PITemperatureRegulator(
+                        self.target_temperature,
+                        expert_param.get("kp"),
+                        expert_param.get("ki"),
+                        expert_param.get("k_ext"),
+                        expert_param.get("offset_max"),
+                        expert_param.get("stabilization_threshold"),
+                        expert_param.get("accumulated_error_threshold"),
+                    )
+                else:
+                    _LOGGER.error(
+                        "%s - Cannot initialize Expert self-regulation mode due to VTherm API doesn't exists. Please contact the publisher of the integration",
+                        self,
+                    )
+            else:
+                _LOGGER.error(
+                    "%s - Cannot initialize Expert self-regulation mode cause the configuration in configuration.yaml have not been found. Please see readme documentation for %s",
+                    self,
+                    DOMAIN,
+                )
+
+        if not self._regulation_algo:
             # A default empty algo (which does nothing)
             self._regulation_algo = PITemperatureRegulator(
                 self.target_temperature, 0, 0, 0, 0, 0.1, 0
@@ -748,6 +778,8 @@ class ThermostatOverClimate(BaseThermostat):
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_STRONG)
         elif auto_regulation_mode == "Slow":
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_SLOW)
+        elif auto_regulation_mode == "Expert":
+            self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_EXPERT)
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()
