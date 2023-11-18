@@ -253,7 +253,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._underlyings = []
 
-        self._smooth_temp = None
+        self._ema_temp = None
         self._ema_algo = None
         self.post_init(entry_infos)
 
