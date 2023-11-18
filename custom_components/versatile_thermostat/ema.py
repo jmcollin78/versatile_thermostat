@@ -8,7 +8,7 @@ from datetime import datetime, tzinfo
 
 _LOGGER = logging.getLogger(__name__)
 
-MIN_TIME_DECAY_SEC = 5
+MIN_TIME_DECAY_SEC = 0
 # As for the EMA calculation of irregular time series, I've seen that it might be useful to
 # have an upper limit for alpha in case the last measurement was too long ago.
 # For example when using a half life of 10 minutes a measurement that is 60 minutes ago
@@ -17,16 +17,19 @@ MIN_TIME_DECAY_SEC = 5
 MAX_ALPHA = 0.9375
 
 
-class EstimatedMobileAverage:
+class ExponentialMovingAverage:
     """A class that will do the Estimated Mobile Average calculation"""
 
-    def __init__(self, vterm_name: str, halflife: float, timezone: tzinfo):
+    def __init__(
+        self, vterm_name: str, halflife: float, timezone: tzinfo, precision: int = 3
+    ):
         """The halflife is the duration in secondes of a normal cycle"""
         self._halflife: float = halflife
         self._timezone = timezone
         self._current_ema: float = None
         self._last_timestamp: datetime = datetime.now(self._timezone)
         self._name = vterm_name
+        self._precision = precision
 
     def __str__(self) -> str:
         return f"EMA-{self._name}"
@@ -64,8 +67,8 @@ class EstimatedMobileAverage:
 
         alpha = 1 - math.exp(math.log(0.5) * time_decay / self._halflife)
         # capping alpha to avoid gap if last measurement was long time ago
-        alpha = min(alpha, 0.9375)
-        new_ema = round(alpha * measurement + (1 - alpha) * self._current_ema, 1)
+        alpha = min(alpha, MAX_ALPHA)
+        new_ema = alpha * measurement + (1 - alpha) * self._current_ema
 
         self._last_timestamp = timestamp
         self._current_ema = new_ema
@@ -77,4 +80,4 @@ class EstimatedMobileAverage:
             self._last_timestamp,
         )
 
-        return self._current_ema
+        return round(self._current_ema, self._precision)
