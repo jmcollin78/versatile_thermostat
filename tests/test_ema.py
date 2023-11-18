@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.versatile_thermostat.ema import EstimatedMobileAverage
+from custom_components.versatile_thermostat.ema import ExponentialMovingAverage
 
 from .commons import get_tz
 
@@ -15,12 +15,13 @@ def test_ema_basics(hass: HomeAssistant):
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    the_ema = EstimatedMobileAverage(
+    the_ema = ExponentialMovingAverage(
         "test",
         # 5 minutes
         300,
         # Needed for time calculation
         get_tz(hass),
+        1,
     )
 
     assert the_ema

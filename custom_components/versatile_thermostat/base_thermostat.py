@@ -113,7 +113,7 @@ from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
-from .ema import EstimatedMobileAverage
+from .ema import ExponentialMovingAverage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -459,11 +459,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._total_energy = 0
 
-        self._ema_algo = EstimatedMobileAverage(
+        self._ema_algo = ExponentialMovingAverage(
             self.name,
             self._cycle_min * 60,
             # Needed for time calculation
             get_tz(self._hass),
+            # one digit after the coma for temperature
+            1,
         )
 
         _LOGGER.debug(
