@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """ This file implements the Open Window by temperature algorithm
     This algo works the following way:
     - each time a new temperature is measured
@@ -71,10 +72,10 @@ class WindowOpenDetectionAlgorithm:
             )
             return lspe
 
-        if self._last_slope is None:
-            self._last_slope = new_slope
-        else:
-            self._last_slope = (0.5 * self._last_slope) + (0.5 * new_slope)
+        # if self._last_slope is None:
+        self._last_slope = round(new_slope, 4)
+        # else:
+        #    self._last_slope = (0.5 * self._last_slope) + (0.5 * new_slope)
 
         self._last_datetime = datetime_measure
         self._last_temperature = temperature
