@@ -23,7 +23,9 @@
 				"ryanluker.vscode-coverage-gutters",
 				"ms-python.black-formatter",
 				"ms-python.pylint",
-				"ferrierbenjamin.fold-unfold-all-icone"
+				"ferrierbenjamin.fold-unfold-all-icone",
+				"ms-python.isort",
+				"LittleFoxTeam.vscode-python-test-adapter"
 			],
 			// "mounts": [
 			//	"source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=${localWorkspaceFolder}/config/www/community/,type=bind,consistency=cached",
