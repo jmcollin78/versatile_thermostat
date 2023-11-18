@@ -88,6 +88,10 @@ from .const import (
     CONF_CLIMATE_2,
     CONF_CLIMATE_3,
     CONF_CLIMATE_4,
+    CONF_CLIMATE_OFF_SWITCH,
+    CONF_CLIMATE_OFF_SWITCH_2,
+    CONF_CLIMATE_OFF_SWITCH_3,
+    CONF_CLIMATE_OFF_SWITCH_4,
     CONF_USE_WINDOW_FEATURE,
     CONF_USE_MOTION_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
@@ -259,6 +263,18 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 ),
                 vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+                ),
+                vol.Optional(CONF_CLIMATE_OFF_SWITCH): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=SWITCH_DOMAIN)
+                ),
+                vol.Optional(CONF_CLIMATE_OFF_SWITCH_2): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=SWITCH_DOMAIN)
+                ),
+                vol.Optional(CONF_CLIMATE_OFF_SWITCH_3): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=SWITCH_DOMAIN)
+                ),
+                vol.Optional(CONF_CLIMATE_OFF_SWITCH_4): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=SWITCH_DOMAIN)
                 ),
                 vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
                 vol.Optional(

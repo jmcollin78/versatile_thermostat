@@ -72,6 +72,10 @@ CONF_CLIMATE = "climate_entity_id"
 CONF_CLIMATE_2 = "climate_entity2_id"
 CONF_CLIMATE_3 = "climate_entity3_id"
 CONF_CLIMATE_4 = "climate_entity4_id"
+CONF_CLIMATE_OFF_SWITCH = "climate_off_switch_entity_id"
+CONF_CLIMATE_OFF_SWITCH_2 = "climate_off_switch_entity2_id"
+CONF_CLIMATE_OFF_SWITCH_3 = "climate_off_switch_entity3_id"
+CONF_CLIMATE_OFF_SWITCH_4 = "climate_off_switch_entity2_id"
 CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
@@ -186,6 +190,10 @@ ALL_CONF = (
         CONF_CLIMATE_2,
         CONF_CLIMATE_3,
         CONF_CLIMATE_4,
+        CONF_CLIMATE_OFF_SWITCH,
+        CONF_CLIMATE_OFF_SWITCH_2,
+        CONF_CLIMATE_OFF_SWITCH_3,
+        CONF_CLIMATE_OFF_SWITCH_4,
         CONF_USE_WINDOW_FEATURE,
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,

@@ -22,6 +22,10 @@ from .const import (
     CONF_CLIMATE_2,
     CONF_CLIMATE_3,
     CONF_CLIMATE_4,
+    CONF_CLIMATE_OFF_SWITCH,
+    CONF_CLIMATE_OFF_SWITCH_2,
+    CONF_CLIMATE_OFF_SWITCH_3,
+    CONF_CLIMATE_OFF_SWITCH_4,
     CONF_AUTO_REGULATION_MODE,
     CONF_AUTO_REGULATION_NONE,
     CONF_AUTO_REGULATION_SLOW,
@@ -63,6 +67,10 @@ class ThermostatOverClimate(BaseThermostat):
                     "underlying_climate_1",
                     "underlying_climate_2",
                     "underlying_climate_3",
+                    "underlying_climate_heatstop_switch_0",
+                    "underlying_climate_heatstop_switch_1",
+                    "underlying_climate_heatstop_switch_2",
+                    "underlying_climate_heatstop_switch_3",
                     "regulation_accumulated_error",
                     "auto_regulation_mode",
                 }
@@ -169,6 +177,14 @@ class ThermostatOverClimate(BaseThermostat):
         """Initialize the Thermostat"""
 
         super().post_init(entry_infos)
+        
+        HEATSTOP_SWITCH_MAPPING = {
+            CONF_CLIMATE : CONF_CLIMATE_OFF_SWITCH,
+            CONF_CLIMATE_2 : CONF_CLIMATE_OFF_SWITCH_2,
+            CONF_CLIMATE_3 : CONF_CLIMATE_OFF_SWITCH_3,
+            CONF_CLIMATE_4 : CONF_CLIMATE_OFF_SWITCH_4
+        }
+
         for climate in [
             CONF_CLIMATE,
             CONF_CLIMATE_2,
@@ -176,11 +192,18 @@ class ThermostatOverClimate(BaseThermostat):
             CONF_CLIMATE_4,
         ]:
             if entry_infos.get(climate):
+                climate_heating_stop_entity_id = None
+                
+                # Try to get the heatstop switch
+                if entity_id := entry_infos.get(HEATSTOP_SWITCH_MAPPING.get(climate)):
+                    climate_heating_stop_entity_id = entity_id
+
                 self._underlyings.append(
                     UnderlyingClimate(
                         hass=self._hass,
                         thermostat=self,
                         climate_entity_id=entry_infos.get(climate),
+                        climate_heating_stop_entity_id=climate_heating_stop_entity_id,
                     )
                 )
 
@@ -334,6 +357,19 @@ class ThermostatOverClimate(BaseThermostat):
         )
         self._attr_extra_state_attributes["underlying_climate_3"] = (
             self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+        )
+
+        self._attr_extra_state_attributes["underlying_climate_heatstop_switch_0"] = self._underlyings[
+            0
+        ].heatstop_switch_entity_id
+        self._attr_extra_state_attributes["underlying_climate_heatstop_switch_1"] = (
+            self._underlyings[1].heatstop_switch_entity_id if len(self._underlyings) > 1 else None
+        )
+        self._attr_extra_state_attributes["underlying_climate_heatstop_switch_2"] = (
+            self._underlyings[2].heatstop_switch_entity_id if len(self._underlyings) > 2 else None
+        )
+        self._attr_extra_state_attributes["underlying_climate_heatstop_switch_3"] = (
+            self._underlyings[3].heatstop_switch_entity_id if len(self._underlyings) > 3 else None
         )
 
         if self.is_regulated:
@@ -545,6 +581,18 @@ class ThermostatOverClimate(BaseThermostat):
                 for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
 
+                    if new_hvac_mode == HVACMode.OFF:
+                        await unter.set_heatstop(True)
+                    if (
+                        new_hvac_mode
+                        in [
+                            HVACMode.HEAT,
+                            HVACMode.HEAT_COOL,
+                            HVACMode.DRY,
+                            HVACMode.AUTO,
+                        ]
+                    ):
+                        await unter.set_heatstop(False)
         if not changes:
             # try to manage new target temperature set if state
             _LOGGER.debug(

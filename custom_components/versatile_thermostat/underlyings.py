@@ -25,6 +25,11 @@ from homeassistant.components.climate import (
     SERVICE_SET_TEMPERATURE,
 )
 
+from homeassistant.components.switch import (
+    SwitchEntity,
+    DOMAIN as SWITCH_DOMAIN,
+)
+
 from homeassistant.components.number import SERVICE_SET_VALUE
 
 from homeassistant.helpers.entity_component import EntityComponent
@@ -106,6 +111,10 @@ class UnderlyingEntity:
 
     async def set_temperature(self, temperature, max_temp, min_temp):
         """Set the target temperature"""
+        return
+
+    async def set_heatstop(self, state: bool):
+        """ Enable/disable heatstop on the underlying equipement."""
         return
 
     # This should be the correct way to handle turn_off and turn_on but this breaks the unit test
@@ -421,12 +430,14 @@ class UnderlyingClimate(UnderlyingEntity):
     """Represent a underlying climate"""
 
     _underlying_climate: ClimateEntity
+    _underlying_climate_heating_stop: SwitchEntity
 
     def __init__(
         self,
         hass: HomeAssistant,
         thermostat: Any,
         climate_entity_id: str,
+        climate_heating_stop_entity_id: str | None
     ) -> None:
         """Initialize the underlying climate"""
 
@@ -437,12 +448,29 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_id=climate_entity_id,
         )
         self._underlying_climate = None
+        self._underlying_climate_heating_stop = None
+
+        self.climate_heating_stop_entity_id = climate_heating_stop_entity_id
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
         component: EntityComponent[ClimateEntity] = self._hass.data[CLIMATE_DOMAIN]
         for entity in component.entities:
             if self.entity_id == entity.entity_id:
+                return entity
+        return None
+
+    def find_underlying_climate_heatstop_switch(self) -> SwitchEntity:
+        """Find the underlying climate entity heatstop switch"""
+        component: EntityComponent[ClimateEntity] = self._hass.data[SWITCH_DOMAIN]
+        for entity in component.entities:
+            entity_id = self.climate_heating_stop_entity_id
+
+            if not entity_id:
+                entity_name = self.entity_id.split('.', 1)[1]
+                entity_id = '{0}_heating_stop'.format(entity_name)
+            
+            if entity_id == entity.entity_id:
                 return entity
         return None
 
@@ -465,12 +493,26 @@ class UnderlyingClimate(UnderlyingEntity):
             # #56 keep the over_climate and try periodically to find the underlying climate
             # self._is_over_climate = False
             raise UnknownEntity(f"Underlying entity {self.entity_id} not found")
+        
+        self._underlying_climate_heating_stop = self.find_underlying_climate_heatstop_switch()
+        if self._underlying_climate_heating_stop:
+            _LOGGER.info(
+                "%s - The heating stop switch entity: %s for the underlying climate entity: %s have been succesfully found",
+                self,
+                self._underlying_climate_heating_stop,
+                self._underlying_climate,
+            )
         return
 
     @property
     def is_initialized(self) -> bool:
         """True if the underlying climate was found"""
         return self._underlying_climate is not None
+
+    @property
+    def heatstop_switch_entity_id(self):
+        """The heating stop switch entiy id"""
+        return self._underlying_climate_heating_stop
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode of the underlying climate. Returns true if something have change"""
@@ -561,12 +603,53 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
+    @overrides
+    async def set_heatstop(self, state: bool):
+        """ Enable/disable heatstop on the underlying equipement."""
+        if not self.is_initialized:
+            return
+
+        _LOGGER.debug("%s - %s heatstop switch entity %s", self, 'Enabling' if state else 'Disabling', self._underlying_climate_heating_stop)
+        command = SERVICE_TURN_OFF if not state else SERVICE_TURN_ON
+        domain = self._underlying_climate_heating_stop.split('.')[0]
+        # This may fails if called after shutdown
+        try:
+            data = {ATTR_ENTITY_ID: self._underlying_climate_heating_stop}
+            await self._hass.services.async_call(
+                domain,
+                command,
+                data,
+            )
+            
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+
     @property
     def hvac_action(self) -> HVACAction | None:
         """Get the hvac action of the underlying"""
         if not self.is_initialized:
             return None
-        return self._underlying_climate.hvac_action
+
+        if (action := self._underlying_climate.hvac_action):
+            return action
+
+        if self.hvac_mode == HVACMode.OFF:
+            return HVACAction.OFF
+
+        # Check if we have a underlying and the current and target temperature attributes are not none (happens when reconfiguring)
+        if self._underlying_climate and None not in [self._underlying_climate.target_temperature, self._underlying_climate.current_temperature]:
+            # Support for climates which not exposing the hvac_action like tv02-zigbee
+            if (self._underlying_climate.target_temperature > self._underlying_climate.current_temperature):
+                return HVACAction.HEATING
+            else:
+                if (
+                    (self._underlying_climate.hvac_mode == HVACMode.COOL or self._underlying_climate.hvac_mode == HVACMode.HEAT_COOL) and
+                    (self._underlying_climate.target_temperature < self._underlying_climate.current_temperature)
+                ):
+                    return HVACAction.COOLING
+                else:
+                    return HVACAction.IDLE
+        return None
 
     @property
     def hvac_mode(self) -> HVACMode | None:
