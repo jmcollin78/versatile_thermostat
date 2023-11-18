@@ -109,10 +109,13 @@ from .const import (
     PRESET_AC_SUFFIX,
 )
 
+from .commons import get_tz
+
 from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
+from .ema import EstimatedMobileAverage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -246,6 +249,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._underlyings = []
 
+        self._smooth_temp = None
+        self._ema_algo = None
         self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
@@ -449,6 +454,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_modes.append(PRESET_ACTIVITY)
 
         self._total_energy = 0
+
+        self._ema_algo = EstimatedMobileAverage(
+            self.name,
+            self._cycle_min * 60,
+            # Needed for time calculation
+            get_tz(self._hass),
+        )
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
@@ -1476,6 +1488,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             self._last_temperature_mesure = self.get_state_date_or_now(state)
 
+            # calculate the smooth_temperature with EMA calculation
+            self._ema_temp = self._ema_algo.calculate_ema(
+                self._cur_temp, self._last_temperature_mesure
+            )
+
             _LOGGER.debug(
                 "%s - After setting _last_temperature_mesure %s , state.last_changed.replace=%s",
                 self,
@@ -1679,7 +1696,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return
 
         slope = self._window_auto_algo.add_temp_measurement(
-            temperature=self._cur_temp, datetime_measure=self._last_temperature_mesure
+            temperature=self._ema_temp, datetime_measure=self._last_temperature_mesure
         )
         _LOGGER.debug(
             "%s - Window auto is on, check the alert. last slope is %.3f",
@@ -2155,6 +2172,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,
+            "ema_temp": self._ema_temp,
         }
 
     @callback

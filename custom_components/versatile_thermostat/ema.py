@@ -1,0 +1,80 @@
+# pylint: disable=line-too-long
+"""The Estimated Mobile Average calculation used for temperature slope
+and maybe some others feature"""
+
+import logging
+import math
+from datetime import datetime, tzinfo
+
+_LOGGER = logging.getLogger(__name__)
+
+MIN_TIME_DECAY_SEC = 5
+# As for the EMA calculation of irregular time series, I've seen that it might be useful to
+# have an upper limit for alpha in case the last measurement was too long ago.
+# For example when using a half life of 10 minutes a measurement that is 60 minutes ago
+# (if there's nothing inbetween) would contribute to the smoothed value with 1,5%,
+# giving the current measurement 98,5% relevance. It could be wise to limit the alpha to e.g. 4x the half life (=0.9375).
+MAX_ALPHA = 0.9375
+
+
+class EstimatedMobileAverage:
+    """A class that will do the Estimated Mobile Average calculation"""
+
+    def __init__(self, vterm_name: str, halflife: float, timezone: tzinfo):
+        """The halflife is the duration in secondes of a normal cycle"""
+        self._halflife: float = halflife
+        self._timezone = timezone
+        self._current_ema: float = None
+        self._last_timestamp: datetime = datetime.now(self._timezone)
+        self._name = vterm_name
+
+    def __str__(self) -> str:
+        return f"EMA-{self._name}"
+
+    def calculate_ema(self, measurement: float, timestamp: datetime) -> float | None:
+        """Calculate the new EMA from a new measurement measured at timestamp
+        Return the EMA or None if all parameters are not initialized now
+        """
+
+        if measurement is None or timestamp is None:
+            _LOGGER.warning(
+                "%s - Cannot calculate EMA: measurement and timestamp are mandatory. This message can be normal at startup but should not persist",
+                self,
+            )
+            return measurement
+
+        if self._current_ema is None:
+            _LOGGER.debug(
+                "%s - First init of the EMA",
+                self,
+            )
+            self._current_ema = measurement
+            self._last_timestamp = timestamp
+            return self._current_ema
+
+        time_decay = (timestamp - self._last_timestamp).total_seconds()
+        if time_decay < MIN_TIME_DECAY_SEC:
+            _LOGGER.debug(
+                "%s - time_decay %s is too small (< %s). Forget the measurement",
+                self,
+                time_decay,
+                MIN_TIME_DECAY_SEC,
+            )
+            return self._current_ema
+
+        alpha = 1 - math.exp(math.log(0.5) * time_decay / self._halflife)
+        # capping alpha to avoid gap if last measurement was long time ago
+        alpha = min(alpha, 0.9375)
+        new_ema = round(alpha * measurement + (1 - alpha) * self._current_ema, 1)
+
+        self._last_timestamp = timestamp
+        self._current_ema = new_ema
+        _LOGGER.debug(
+            "%s - alpha=%.2f new_ema=%.2f last_timestamp=%s",
+            self,
+            alpha,
+            self._current_ema,
+            self._last_timestamp,
+        )
+
+        return self._current_ema
