@@ -13,7 +13,7 @@ from datetime import datetime
 _LOGGER = logging.getLogger(__name__)
 
 # To filter bad values
-MIN_DELTA_T_SEC = 30  # two temp mesure should be > 10 sec
+MIN_DELTA_T_SEC = 15  # two temp mesure should be > 10 sec
 MAX_SLOPE_VALUE = 2  # slope cannot be > 2 or < -2 -> else this is an aberrant point
 
 
