@@ -109,8 +109,6 @@ from .const import (
     PRESET_AC_SUFFIX,
 )
 
-from .commons import get_tz
-
 from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
@@ -118,6 +116,12 @@ from .open_window_algorithm import WindowOpenDetectionAlgorithm
 from .ema import EstimatedMobileAverage
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def get_tz(hass: HomeAssistant):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)
 
 
 class BaseThermostat(ClimateEntity, RestoreEntity):
