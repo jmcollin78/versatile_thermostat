@@ -464,8 +464,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._cycle_min * 60,
             # Needed for time calculation
             get_tz(self._hass),
-            # one digit after the coma for temperature
-            1,
+            # two digits after the coma for temperature slope calculation
+            2,
         )
 
         _LOGGER.debug(
@@ -2094,6 +2094,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 self._prop_algorithm.on_percent if self._prop_algorithm else None,
                 force,
             )
+
+        # calculate the smooth_temperature with EMA calculation
+        await self._async_manage_window_auto()
 
         self.update_custom_attributes()
         return True
