@@ -14,7 +14,7 @@ MIN_TIME_DECAY_SEC = 0
 # For example when using a half life of 10 minutes a measurement that is 60 minutes ago
 # (if there's nothing inbetween) would contribute to the smoothed value with 1,5%,
 # giving the current measurement 98,5% relevance. It could be wise to limit the alpha to e.g. 4x the half life (=0.9375).
-MAX_ALPHA = 0.9375
+MAX_ALPHA = 0.5
 
 
 class ExponentialMovingAverage:
@@ -73,11 +73,13 @@ class ExponentialMovingAverage:
         self._last_timestamp = timestamp
         self._current_ema = new_ema
         _LOGGER.debug(
-            "%s - alpha=%.2f new_ema=%.2f last_timestamp=%s",
+            "%s - timestamp=%s alpha=%.2f measurement=%.2f current_ema=%.2f new_ema=%.2f",
             self,
+            timestamp,
             alpha,
+            measurement,
             self._current_ema,
-            self._last_timestamp,
+            new_ema,
         )
 
         return round(self._current_ema, self._precision)
