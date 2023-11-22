@@ -13,8 +13,12 @@ from datetime import datetime
 _LOGGER = logging.getLogger(__name__)
 
 # To filter bad values
-MIN_DELTA_T_SEC = 15  # two temp mesure should be > 10 sec
+MIN_DELTA_T_SEC = 0  # two temp mesure should be > 0 sec
 MAX_SLOPE_VALUE = 2  # slope cannot be > 2 or < -2 -> else this is an aberrant point
+
+MAX_DURATION_SEC = 600  # a fake data point is added in the cycle if last measurement was older than 600 sec (10 min)
+
+MIN_NB_POINT = 4  # do not calculate slope until we have enough point
 
 
 class WindowOpenDetectionAlgorithm:
@@ -25,6 +29,7 @@ class WindowOpenDetectionAlgorithm:
     _last_slope: float
     _last_datetime: datetime
     _last_temperature: float
+    _nb_point: int
 
     def __init__(self, alert_threshold, end_alert_threshold) -> None:
         """Initalize a new algorithm with the both threshold"""
@@ -32,6 +37,21 @@ class WindowOpenDetectionAlgorithm:
         self._end_alert_threshold = end_alert_threshold
         self._last_slope = None
         self._last_datetime = None
+        self._nb_point = 0
+
+    def check_age_last_measurement(self, temperature, datetime_now) -> float:
+        """ " Check if last measurement is old and add
+        a fake measurement point if this is the case
+        """
+        if self._last_datetime is None:
+            return self.add_temp_measurement(temperature, datetime_now)
+
+        delta_t_sec = float((datetime_now - self._last_datetime).total_seconds())
+        if delta_t_sec >= MAX_DURATION_SEC:
+            return self.add_temp_measurement(temperature, datetime_now)
+        else:
+            # do nothing
+            return self._last_slope
 
     def add_temp_measurement(
         self, temperature: float, datetime_measure: datetime
@@ -43,6 +63,7 @@ class WindowOpenDetectionAlgorithm:
             _LOGGER.debug("First initialisation")
             self._last_datetime = datetime_measure
             self._last_temperature = temperature
+            self._nb_point = self._nb_point + 1
             return None
 
         _LOGGER.debug(
@@ -72,22 +93,25 @@ class WindowOpenDetectionAlgorithm:
             )
             return lspe
 
-        # if self._last_slope is None:
-        self._last_slope = round(new_slope, 4)
-        # else:
-        #    self._last_slope = (0.5 * self._last_slope) + (0.5 * new_slope)
+        if self._last_slope is None:
+            self._last_slope = round(new_slope, 4)
+        else:
+            self._last_slope = round((0.2 * self._last_slope) + (0.8 * new_slope), 4)
 
         self._last_datetime = datetime_measure
         self._last_temperature = temperature
 
+        self._nb_point = self._nb_point + 1
         _LOGGER.debug(
-            "delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f",
+            "delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f nb_point=%s",
             delta_t,
             delta_temp,
             new_slope,
             lspe,
             self._last_slope,
+            self._nb_point,
         )
+
         return self._last_slope
 
     def is_window_open_detected(self) -> bool:
@@ -95,22 +119,20 @@ class WindowOpenDetectionAlgorithm:
         if self._alert_threshold is None:
             return False
 
-        return (
-            self._last_slope < -self._alert_threshold
-            if self._last_slope is not None
-            else False
-        )
+        if self._nb_point < MIN_NB_POINT or self._last_slope is None:
+            return False
+
+        return self._last_slope < -self._alert_threshold
 
     def is_window_close_detected(self) -> bool:
         """True if the last calculated slope is above (cause negative) the _end_alert_threshold"""
         if self._end_alert_threshold is None:
             return False
 
-        return (
-            self._last_slope >= self._end_alert_threshold
-            if self._last_slope is not None
-            else False
-        )
+        if self._nb_point < MIN_NB_POINT or self._last_slope is None:
+            return False
+
+        return self._last_slope >= self._end_alert_threshold
 
     @property
     def last_slope(self) -> float:

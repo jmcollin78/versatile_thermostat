@@ -881,6 +881,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return self._unit
 
     @property
+    def ema_temperature(self) -> str:
+        """Return the EMA temperature."""
+        return self._ema_temp
+
+    @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
         # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
@@ -1671,7 +1676,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         for under in self._underlyings:
             await under.turn_off()
 
-    async def _async_manage_window_auto(self):
+    async def _async_manage_window_auto(self, in_cycle=False):
         """The management of the window auto feature"""
 
         async def dearm_window_auto(_):
@@ -1701,9 +1706,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if not self._window_auto_algo:
             return
 
-        slope = self._window_auto_algo.add_temp_measurement(
-            temperature=self._ema_temp, datetime_measure=self._last_temperature_mesure
-        )
+        if in_cycle:
+            slope = self._window_auto_algo.check_age_last_measurement(
+                temperature=self._ema_temp,
+                datetime_now=datetime.now(get_tz(self._hass)),
+            )
+        else:
+            slope = self._window_auto_algo.add_temp_measurement(
+                temperature=self._ema_temp,
+                datetime_measure=self._last_temperature_mesure,
+            )
+
         _LOGGER.debug(
             "%s - Window auto is on, check the alert. last slope is %.3f",
             self,
@@ -2052,6 +2065,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_mode,
         )
 
+        # check auto_window conditions
+        await self._async_manage_window_auto(in_cycle=True)
+
         # Issue 56 in over_climate mode, if the underlying climate is not initialized, try to initialize it
         for under in self._underlyings:
             if not under.is_initialized:
@@ -2094,9 +2110,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 self._prop_algorithm.on_percent if self._prop_algorithm else None,
                 force,
             )
-
-        # calculate the smooth_temperature with EMA calculation
-        await self._async_manage_window_auto()
 
         self.update_custom_attributes()
         return True
