@@ -92,7 +92,7 @@ This thermostat can control 3 types of equipment:
 1. a radiator that only operates in on/off mode (called ``thermostat_over_switch```). The minimum configuration necessary to use this type thermostat is:
    1. equipment such as a radiator (a ``switch``` or equivalent),
    2. a temperature probe for the room (or an input_number),
-   3. an external temperature sensor (consider weather integration if you don't have one)
+   3. an outdoor temperature sensor (consider weather integration if you don't have one)
 2. another thermostat which has its own operating modes (named ``thermostat_over_climate```). For this type of thermostat the minimum configuration requires:
    1. equipment - such as air conditioning, a thermostatic valve - which is controlled by its own ``climate'' type entity,
 3. equipment which can take a value from 0 to 100% (called `thermostat_over_valve`). At 0 the heating is cut off, 100% it is fully opened. This type allows you to control a thermostatic valve (see Shelly valve) which exposes an entity of type `number.` allowing you to directly control the opening of the valve. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using the interior and exterior temperature sensors using the TPI algorithm described below.
@@ -466,8 +466,8 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ----------| --------| --- | --- | -- |
 | ``name`` | Name | X | X | X |
 | ``thermostat_type`` | Thermostat type | X | X | X |
-| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | - | X |
-| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id | X | - | X |
+| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | X (self-regulation) | X |
+| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id | X | X (self-regulation) | X |
 | ``cycle_min`` | Cycle duration (minutes) | X | X | X |
 | ``temp_min`` | Minimal temperature allowed | X | X | X |
 | ``temp_max`` | Maximal temperature allowed | X | X | X |
