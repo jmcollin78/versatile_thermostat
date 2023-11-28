@@ -2,7 +2,9 @@
 """ Test the OpenWindow algorithm """
 
 from datetime import datetime, timedelta
-from custom_components.versatile_thermostat.open_window_algorithm import WindowOpenDetectionAlgorithm
+from custom_components.versatile_thermostat.open_window_algorithm import (
+    WindowOpenDetectionAlgorithm,
+)
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -19,18 +21,28 @@ async def test_open_window_algo(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    event_timestamp = now - timedelta(minutes=5)
+    event_timestamp = now - timedelta(minutes=10)
     last_slope = the_algo.add_temp_measurement(
         temperature=10, datetime_measure=event_timestamp
     )
 
-    # We need at least 2 measurement
+    # We need at least 4 measurement
     assert last_slope is None
     assert the_algo.last_slope is None
     assert the_algo.is_window_close_detected() is False
     assert the_algo.is_window_open_detected() is False
 
-    event_timestamp = now - timedelta(minutes=4)
+    event_timestamp = now - timedelta(minutes=9)
+    last_slope = the_algo.add_temp_measurement(
+        temperature=10, datetime_measure=event_timestamp
+    )
+
+    event_timestamp = now - timedelta(minutes=8)
+    last_slope = the_algo.add_temp_measurement(
+        temperature=10, datetime_measure=event_timestamp
+    )
+
+    event_timestamp = now - timedelta(minutes=7)
     last_slope = the_algo.add_temp_measurement(
         temperature=10, datetime_measure=event_timestamp
     )
@@ -41,19 +53,19 @@ async def test_open_window_algo(
     assert the_algo.is_window_close_detected() is True
     assert the_algo.is_window_open_detected() is False
 
-    event_timestamp = now - timedelta(minutes=3)
+    event_timestamp = now - timedelta(minutes=6)
     last_slope = the_algo.add_temp_measurement(
         temperature=9, datetime_measure=event_timestamp
     )
 
     # A slope is calculated
-    assert last_slope == -0.5
-    assert the_algo.last_slope == -0.5
+    assert last_slope == -0.8
+    assert the_algo.last_slope == -0.8
     assert the_algo.is_window_close_detected() is False
     assert the_algo.is_window_open_detected() is False
 
     # A new temperature with 2 degre less in one minute (value will be rejected)
-    event_timestamp = now - timedelta(minutes=2)
+    event_timestamp = now - timedelta(minutes=5)
     last_slope = the_algo.add_temp_measurement(
         temperature=7, datetime_measure=event_timestamp
     )
@@ -65,7 +77,7 @@ async def test_open_window_algo(
     assert the_algo.is_window_open_detected() is True
 
     # A new temperature with 1 degre less
-    event_timestamp = now - timedelta(minutes=1)
+    event_timestamp = now - timedelta(minutes=4)
     last_slope = the_algo.add_temp_measurement(
         temperature=6, datetime_measure=event_timestamp
     )
@@ -77,7 +89,7 @@ async def test_open_window_algo(
     assert the_algo.is_window_open_detected() is True
 
     # A new temperature with 0 degre less
-    event_timestamp = now - timedelta(minutes=0)
+    event_timestamp = now - timedelta(minutes=3)
     last_slope = the_algo.add_temp_measurement(
         temperature=6, datetime_measure=event_timestamp
     )
@@ -89,7 +101,7 @@ async def test_open_window_algo(
     assert the_algo.is_window_open_detected() is False
 
     # A new temperature with 1 degre more
-    event_timestamp = now + timedelta(minutes=1)
+    event_timestamp = now + timedelta(minutes=2)
     last_slope = the_algo.add_temp_measurement(
         temperature=7, datetime_measure=event_timestamp
     )

@@ -477,6 +477,14 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
 
     assert entity.window_state is STATE_OFF
 
+    # Initialize the slope algo with 2 measurements
+    # event_timestamp = now - timedelta(minutes=9)
+    # await send_temperature_change_event(entity, 19, event_timestamp)
+    # event_timestamp = now - timedelta(minutes=8)
+    # await send_temperature_change_event(entity, 19, event_timestamp)
+    # event_timestamp = now - timedelta(minutes=7)
+    # await send_temperature_change_event(entity, 19, event_timestamp)
+
     # Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -486,6 +494,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.is_device_active",
         return_value=True,
     ):
+        # This is the 3rd measurment. Slope is not ready
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -531,7 +540,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.window_auto_state == STATE_ON
         assert entity.hvac_mode is HVACMode.OFF
 
-        # Waits for automatic disable
+    # Waits for automatic disable
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(

@@ -506,17 +506,15 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        if math.isnan(self.my_climate.regulated_target_temp) or math.isinf(
-            self.my_climate.regulated_target_temp
-        ):
-            raise ValueError(
-                f"Sensor has illegal state {self.my_climate.regulated_target_temp}"
-            )
+        new_temp = self.my_climate.regulated_target_temp
+        if new_temp is None:
+            return
+
+        if math.isnan(new_temp) or math.isinf(new_temp):
+            raise ValueError(f"Sensor has illegal state {new_temp}")
 
         old_state = self._attr_native_value
-        self._attr_native_value = round(
-            self.my_climate.regulated_target_temp, self.suggested_display_precision
-        )
+        self._attr_native_value = round(new_temp, self.suggested_display_precision)
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
@@ -559,15 +557,15 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        if math.isnan(self.my_climate.ema_temperature) or math.isinf(
-            self.my_climate.ema_temperature
-        ):
-            raise ValueError(
-                f"Sensor has illegal state {self.my_climate.ema_temperature}"
-            )
+        new_ema = self.my_climate.ema_temperature
+        if new_ema is None:
+            return
+
+        if math.isnan(new_ema) or math.isinf(new_ema):
+            raise ValueError(f"Sensor has illegal state {new_ema}")
 
         old_state = self._attr_native_value
-        self._attr_native_value = self.my_climate.ema_temperature
+        self._attr_native_value = new_ema
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
