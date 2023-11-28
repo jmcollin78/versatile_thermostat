@@ -107,7 +107,7 @@ Les installations avec fil pilote et diode d'activation bénéficie d'une option
 ## Incompatibilités
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
 1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le VTherm,
-2. les vannes thermstatiques "Homematic radio". Elles ont un cycle de service incompatible avec une commande par le Versatile Thermostat,
+2. Les thermostats « Homematic » (et éventuellement Homematic IP) sont connus pour rencontrer des problèmes avec le Versatile Thermostat en raison des limitations du protocole RF sous-jacent. Ce problème se produit particulièrement lorsque vous essayez de contrôler plusieurs thermostats Homematic à la fois dans une seule instance de VTherm. Afin de réduire la charge du cycle de service, vous pouvez par ex. regroupez les thermostats avec des procédures spécifiques à Homematic (par exemple en utilisant un thermostat mural) et laissez Versatile Thermostat contrôler uniquement le thermostat mural directement. Une autre option consiste à contrôler un seul thermostat et à propager les changements de mode CVC et de température par un automatisme,
 3. les thermostats de type Heatzy qui ne supportent pas les commandes de type set_temperature
 4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
 
@@ -1036,6 +1036,64 @@ max: 30
 # Les contributions sont les bienvenues !
 
 Si vous souhaitez contribuer, veuillez lire les [directives de contribution](CONTRIBUTING.md)
+
+# Dépannages
+
+## Utilisation d'un Heatzy
+L'utilisation d'un Heatzy est possible à la condition d'utiliser un switch virtuel sur ce modèle :
+```
+- platform: template
+  switches:
+    chauffage_sdb:
+      unique_id: chauffage_sdb
+      friendly_name: Chauffage salle de bain
+      value_template: "{{ is_state_attr('climate.salle_de_bain', 'preset_mode', 'comfort') }}"
+      icon_template: >-
+        {% if is_state_attr('climate.salle_de_bain', 'preset_mode', 'comfort') %}
+          mdi:radiator
+        {% elif is_state_attr('climate.salle_de_bain', 'preset_mode', 'away') %}
+          mdi:snowflake
+        {% else %}
+          mdi:radiator-disabled
+        {% endif %}
+      turn_on:
+        service: climate.set_preset_mode
+        entity_id: climate.salle_de_bain
+        data:
+          preset_mode: "comfort"
+      turn_off:
+        service: climate.set_preset_mode
+        entity_id: climate.salle_de_bain
+        data:
+          preset_mode: "eco"
+```
+Merci à @gael pour cet exemple.
+
+## Utilisation d'un radiateur avec un fil pilote
+Comme pour le Heatzy ci-dessus vous pouvez utiliser un switch virtuel qui va changer le preset de votre radiateur en fonction de l'état d'allumage du VTherm.
+Exemple :
+```
+- platform: template
+  switches:
+    radiateur_soan:
+        friendly_name: radiateur_soan_inv
+        value_template: "{{ is_state('switch.radiateur_soan', 'off') }}"
+        turn_on:
+          service: switch.turn_off
+          data:
+            entity_id: switch.radiateur_soan
+        turn_off:
+          service: switch.turn_on
+          data:
+            entity_id: switch.radiateur_soan
+        icon_template: "{% if is_state('switch.radiateur_soan', 'on') %}mdi:radiator-disabled{% else %}mdi:radiator{% endif %}"
+```
+
+## Seul le premier radiateur chauffe
+En mode `over_switch` si plusieurs radiateurs sont configurés pour un même VTherm, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
+Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
+
+
 
 ***
 

@@ -105,7 +105,7 @@ Installations with pilot wire and activation diode benefit from an option which 
 
 Some TRV type thermostats are known to be incompatible with the Versatile Thermostat. This is the case for the following valves:
 1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve and it self-regulates, causing conflicts with the VTherm,
-2. “Homematic radio” thermostatic valves. They have a duty cycle incompatible with control by the Versatile Thermostat,
+2. "Homematic" (and possible Homematic IP) thermostats are known to have problems with Versatile Thermostats because of limitations of the underlying RF protocol. This problem especially occurs when trying to control several Homematic thermostats at once in one Versatile Thermostat instance. In order to reduce duty cycle load, you may e.g. group thermostats with Homematic-specific procedures (e.g. using a wall thermostat) and let Versatile Thermostat only control the wall thermostat directly. Another option is to control only one thermostat and propagate the changes in HVAC mode and temperature by an automation.
 3. Thermostat of type Heatzy which doesn't supports the set_temperature command.
 4. Thermostats of type Rointe tends to awake alone even if VTherm turns it off. Others functions works fine.
 
@@ -1016,6 +1016,63 @@ max: 30
 # Contributions are welcome!
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
+
+# Troubleshooting
+
+## Using a Heatzy
+The use of a Heatzy is possible provided you use a virtual switch on this model:
+```
+- platform:template
+   switches:
+     bathroom_heating:
+       unique_id: heating_bathroom
+       friendly_name: Bathroom heating
+       value_template: "{{ is_state_attr('climate.bathroom', 'preset_mode', 'comfort') }}"
+       icon_template: >-
+         {% if is_state_attr('climate.bathroom', 'preset_mode', 'comfort') %}
+           mdi:radiator
+         {% elif is_state_attr('climate.bathroom', 'preset_mode', 'away') %}
+           mdi:snowflake
+         {% else %}
+           mdi:radiator-disabled
+         {% endif %}
+       turn on:
+         service: climate.set_preset_mode
+         entity_id: climate.bathroom
+         data:
+           preset_mode: "comfort"
+       turn_off:
+         service: climate.set_preset_mode
+         entity_id: climate.bathroom
+         data:
+           preset_mode: "eco"
+```
+Thanks to @gael for this example.
+
+## Using a Heatsink with a Pilot Wire
+As with the Heatzy above you can use a virtual switch which will change the preset of your radiator depending on the ignition state of the VTherm.
+Example :
+```
+- platform:template
+   switches:
+     radiator_soan:
+         friendly_name: radiator_soan_inv
+         value_template: "{{ is_state('switch.radiateur_soan', 'off') }}"
+         turn on:
+           service: switch.turn_off
+           data:
+             entity_id: switch.radiateur_soan
+         turn_off:
+           service: switch.turn_on
+           data:
+             entity_id: switch.radiateur_soan
+         icon_template: "{% if is_state('switch.radiateur_soan', 'on') %}mdi:radiator-disabled{% else %}mdi:radiator{% endif %}"
+```
+
+## Only the first radiator heats
+In `over_switch` mode if several radiators are configured for the same VTherm, switching on will be done sequentially to smooth out consumption peaks as much as possible.
+This is completely normal and desired. It is described here: [For a thermostat of type ``thermostat_over_switch```](#for-a-thermostat-of-type-thermostat_over_switch)
+
 
 ***
 
