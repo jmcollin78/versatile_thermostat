@@ -48,13 +48,13 @@ class WindowOpenDetectionAlgorithm:
 
         delta_t_sec = float((datetime_now - self._last_datetime).total_seconds()) / 60.0
         if delta_t_sec >= MAX_DURATION_MIN:
-            return self.add_temp_measurement(temperature, datetime_now)
+            return self.add_temp_measurement(temperature, datetime_now, False)
         else:
             # do nothing
             return self._last_slope
 
     def add_temp_measurement(
-        self, temperature: float, datetime_measure: datetime
+        self, temperature: float, datetime_measure: datetime, store_date: bool = True
     ) -> float:
         """Add a new temperature measurement
         returns the last slope
@@ -98,7 +98,11 @@ class WindowOpenDetectionAlgorithm:
         else:
             self._last_slope = round((0.2 * self._last_slope) + (0.8 * new_slope), 4)
 
-        self._last_datetime = datetime_measure
+        # if we are in cycle check and so adding a fake datapoint, we don't store the event datetime
+        # so that, when we will receive a real temperature point we will not calculate a wrong slope
+        if store_date:
+            self._last_datetime = datetime_measure
+
         self._last_temperature = temperature
 
         self._nb_point = self._nb_point + 1
