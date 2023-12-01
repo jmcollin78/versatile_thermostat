@@ -87,14 +87,14 @@
         "data": {
           "window_sensor_entity_id": "Entity id sensore finestra",
           "window_delay": "Ritardo sensore finestra (secondi)",
-          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/min)",
-          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/min)",
+          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/ora)",
+          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/ora)",
           "window_auto_max_duration": "Durata massima del rilevamento automatico della finestra aperta (in min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Lasciare vuoto se non deve essere utilizzato alcun sensore finestra",
           "window_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
-          "window_auto_open_threshold": "Valore consigliato: tra 0.05 e 0.1. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
           "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
           "window_auto_max_duration": "Valore consigliato: 60 (un'ora). Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato"
         }
@@ -245,16 +245,16 @@
         "data": {
           "window_sensor_entity_id": "Entity id sensore finestra",
           "window_delay": "Ritardo sensore finestra (secondi)",
-          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/min)",
-          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/min)",
+          "window_auto_open_threshold": "Soglia di diminuzione della temperatura per il rilevamento automatico della finestra aperta (in °/ora)",
+          "window_auto_close_threshold": "Soglia di aumento della temperatura per la fine del rilevamento automatico (in °/ora)",
           "window_auto_max_duration": "Durata massima del rilevamento automatico della finestra aperta (in min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Lasciare vuoto se non deve essere utilizzato alcun sensore finestra",
           "window_delay": "Ritardo in secondi prima che il rilevamento del sensore sia preso in considerazione",
-          "window_auto_open_threshold": "Valore consigliato: tra 0.05 e 0.1 - Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
-          "window_auto_close_threshold": "Valore consigliato: 0 - Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
-          "window_auto_max_duration": "Valore consigliato: 60 minuti. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato"
+          "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato",
+          "window_auto_max_duration": "Valore consigliato: 60 (un'ora). Lasciare vuoto se il rilevamento automatico della finestra aperta non è utilizzato"
         }
       },
       "motion": {

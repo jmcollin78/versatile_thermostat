@@ -113,8 +113,15 @@ from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
+from .ema import ExponentialMovingAverage
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def get_tz(hass: HomeAssistant):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)
 
 
 class BaseThermostat(ClimateEntity, RestoreEntity):
@@ -246,6 +253,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._underlyings = []
 
+        self._ema_temp = None
+        self._ema_algo = None
         self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
@@ -449,6 +458,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_modes.append(PRESET_ACTIVITY)
 
         self._total_energy = 0
+
+        self._ema_algo = ExponentialMovingAverage(
+            self.name,
+            self._cycle_min * 60,
+            # Needed for time calculation
+            get_tz(self._hass),
+            # two digits after the coma for temperature slope calculation
+            2,
+        )
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
@@ -861,6 +879,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self._unit
+
+    @property
+    def ema_temperature(self) -> str:
+        """Return the EMA temperature."""
+        return self._ema_temp
 
     @property
     def hvac_mode(self) -> HVACMode | None:
@@ -1476,6 +1499,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             self._last_temperature_mesure = self.get_state_date_or_now(state)
 
+            # calculate the smooth_temperature with EMA calculation
+            self._ema_temp = self._ema_algo.calculate_ema(
+                self._cur_temp, self._last_temperature_mesure
+            )
+
             _LOGGER.debug(
                 "%s - After setting _last_temperature_mesure %s , state.last_changed.replace=%s",
                 self,
@@ -1648,7 +1676,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         for under in self._underlyings:
             await under.turn_off()
 
-    async def _async_manage_window_auto(self):
+    async def _async_manage_window_auto(self, in_cycle=False):
         """The management of the window auto feature"""
 
         async def dearm_window_auto(_):
@@ -1678,9 +1706,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if not self._window_auto_algo:
             return
 
-        slope = self._window_auto_algo.add_temp_measurement(
-            temperature=self._cur_temp, datetime_measure=self._last_temperature_mesure
-        )
+        if in_cycle:
+            slope = self._window_auto_algo.check_age_last_measurement(
+                temperature=self._ema_temp,
+                datetime_now=datetime.now(get_tz(self._hass)),
+            )
+        else:
+            slope = self._window_auto_algo.add_temp_measurement(
+                temperature=self._ema_temp,
+                datetime_measure=self._last_temperature_mesure,
+            )
+
         _LOGGER.debug(
             "%s - Window auto is on, check the alert. last slope is %.3f",
             self,
@@ -2029,6 +2065,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_mode,
         )
 
+        # check auto_window conditions
+        await self._async_manage_window_auto(in_cycle=True)
+
         # Issue 56 in over_climate mode, if the underlying climate is not initialized, try to initialize it
         for under in self._underlyings:
             if not under.is_initialized:
@@ -2155,6 +2194,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,
+            "ema_temp": self._ema_temp,
         }
 
     @callback

@@ -363,12 +363,12 @@ async def test_over_climate_regulation_limitations(
             "custom_components.versatile_thermostat.commons.NowClass.get_now",
             return_value=event_timestamp,
         ):
-            await send_temperature_change_event(entity, 16, event_timestamp)
+            await send_temperature_change_event(entity, 15, event_timestamp)
             await send_ext_temperature_change_event(entity, 12, event_timestamp)
 
             # the regulated should have been done
             assert entity.regulated_target_temp != old_regulated_temp
             assert entity.regulated_target_temp >= entity.target_temperature
             assert (
-                entity.regulated_target_temp == 17 + 0.5
+                entity.regulated_target_temp == 17 + 1.5
             )  # 0.7 without round_to_nearest

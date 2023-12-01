@@ -51,6 +51,7 @@ async def async_setup_entry(
         LastTemperatureSensor(hass, unique_id, name, entry.data),
         LastExtTemperatureSensor(hass, unique_id, name, entry.data),
         TemperatureSlopeSensor(hass, unique_id, name, entry.data),
+        EMATemperatureSensor(hass, unique_id, name, entry.data),
     ]
     if entry.data.get(CONF_DEVICE_POWER):
         entities.append(EnergySensor(hass, unique_id, name, entry.data))
@@ -483,7 +484,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         if not self.my_climate:
             return None
 
-        return self.my_climate.temperature_unit + "/min"
+        return self.my_climate.temperature_unit + "/hour"
 
     @property
     def suggested_display_precision(self) -> int | None:
@@ -505,17 +506,15 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        if math.isnan(self.my_climate.regulated_target_temp) or math.isinf(
-            self.my_climate.regulated_target_temp
-        ):
-            raise ValueError(
-                f"Sensor has illegal state {self.my_climate.regulated_target_temp}"
-            )
+        new_temp = self.my_climate.regulated_target_temp
+        if new_temp is None:
+            return
+
+        if math.isnan(new_temp) or math.isinf(new_temp):
+            raise ValueError(f"Sensor has illegal state {new_temp}")
 
         old_state = self._attr_native_value
-        self._attr_native_value = round(
-            self.my_climate.regulated_target_temp, self.suggested_display_precision
-        )
+        self._attr_native_value = round(new_temp, self.suggested_display_precision)
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
@@ -542,3 +541,54 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 1
+
+
+class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Representation of a Exponential Moving Average temp"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the regulated temperature sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_name = "EMA temperature"
+        self._attr_unique_id = f"{self._device_name}_ema_temperature"
+
+    @callback
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate have change"""
+        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+
+        new_ema = self.my_climate.ema_temperature
+        if new_ema is None:
+            return
+
+        if math.isnan(new_ema) or math.isinf(new_ema):
+            raise ValueError(f"Sensor has illegal state {new_ema}")
+
+        old_state = self._attr_native_value
+        self._attr_native_value = new_ema
+        if old_state != self._attr_native_value:
+            self.async_write_ha_state()
+        return
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:thermometer-lines"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.TEMPERATURE
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if not self.my_climate:
+            return UnitOfTemperature.CELSIUS
+        return self.my_climate.temperature_unit
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Return the suggested number of decimal digits for display."""
+        return 2
