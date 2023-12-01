@@ -296,6 +296,14 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
 
     assert entity.window_state is STATE_OFF
 
+    # Initialize the slope algo with 2 measurements
+    event_timestamp = now + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+
     # Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -307,13 +315,13 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=4)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
         # The heater turns on
         assert mock_send_event.call_count == 0
-        assert mock_heater_on.call_count == 1
-        assert entity.last_temperature_slope is None
+        assert entity.is_device_active is True
+        assert entity.last_temperature_slope == 0.0
         assert entity._window_auto_algo.is_window_open_detected() is False
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.hvac_mode is HVACMode.HEAT
@@ -329,14 +337,14 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp)
 
         # The heater turns on
         assert mock_send_event.call_count == 2
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count >= 1
-        assert entity.last_temperature_slope == -1
+        assert entity.last_temperature_slope == -6.24
         assert entity._window_auto_algo.is_window_open_detected() is True
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.window_auto_state == STATE_ON
@@ -347,7 +355,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
                 call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
                 call.send_event(
                     EventType.WINDOW_AUTO_EVENT,
-                    {"type": "start", "cause": "slope alert", "curve_slope": -1.0},
+                    {"type": "start", "cause": "slope alert", "curve_slope": -6.24},
                 ),
             ],
             any_order=True,
@@ -365,14 +373,14 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         new_callable=PropertyMock,
         return_value=False,
     ):
-        event_timestamp = now - timedelta(minutes=2)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 17.9, event_timestamp)
 
         # The heater turns on
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
-        assert round(entity.last_temperature_slope, 3) == -0.1 * 0.5 - 1 * 0.5
+        assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity._window_auto_algo.is_window_open_detected() is True
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.window_auto_state == STATE_ON
@@ -390,7 +398,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         new_callable=PropertyMock,
         return_value=False,
     ):
-        event_timestamp = now - timedelta(minutes=1)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
         # The heater turns on
@@ -405,7 +413,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
                     {
                         "type": "end",
                         "cause": "end of slope alert",
-                        "curve_slope": 0.27500000000000036,
+                        "curve_slope": 0.42,
                     },
                 ),
             ],
@@ -413,7 +421,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         )
         assert mock_heater_on.call_count == 1
         assert mock_heater_off.call_count == 0
-        assert round(entity.last_temperature_slope, 3) == 0.275
+        assert entity.last_temperature_slope == 0.42
         assert entity._window_auto_algo.is_window_open_detected() is False
         assert entity._window_auto_algo.is_window_close_detected() is True
         assert entity.window_auto_state == STATE_OFF
@@ -451,8 +459,8 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
-            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
+            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 6,
+            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 6,
             CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
         },
     )
@@ -478,12 +486,12 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     assert entity.window_state is STATE_OFF
 
     # Initialize the slope algo with 2 measurements
-    # event_timestamp = now - timedelta(minutes=9)
-    # await send_temperature_change_event(entity, 19, event_timestamp)
-    # event_timestamp = now - timedelta(minutes=8)
-    # await send_temperature_change_event(entity, 19, event_timestamp)
-    # event_timestamp = now - timedelta(minutes=7)
-    # await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = now + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
 
     # Make the temperature down
     with patch(
@@ -495,12 +503,12 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         return_value=True,
     ):
         # This is the 3rd measurment. Slope is not ready
-        event_timestamp = now - timedelta(minutes=4)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
         # The climate turns on but was alredy on
         assert mock_set_hvac_mode.call_count == 0
-        assert entity.last_temperature_slope is None
+        assert entity.last_temperature_slope == 0.0
         assert entity._window_auto_algo.is_window_open_detected() is False
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.hvac_mode is HVACMode.HEAT
@@ -514,8 +522,12 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp, sleep=False)
+
+        assert entity.last_temperature_slope == -6.24
+        assert entity._window_auto_algo.is_window_open_detected() is True
+        assert entity._window_auto_algo.is_window_close_detected() is False
 
         assert mock_send_event.call_count == 2
         # The heater turns off
@@ -527,18 +539,20 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
                     {
                         "type": "start",
                         "cause": "slope alert",
-                        "curve_slope": -1.0,
+                        "curve_slope": -6.24,
                     },
                 ),
             ],
             any_order=True,
         )
         assert mock_set_hvac_mode.call_count >= 1
-        assert entity.last_temperature_slope == -1
-        assert entity._window_auto_algo.is_window_open_detected() is True
-        assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.window_auto_state == STATE_ON
         assert entity.hvac_mode is HVACMode.OFF
+
+    # This is to avoid that the slope stayx under 6, else we will reactivate the window immediatly
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp, sleep=False)
+    assert entity.last_temperature_slope > -6.0
 
     # Waits for automatic disable
     with patch(
@@ -551,14 +565,14 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     ):
         await asyncio.sleep(0.3)
 
-        assert mock_set_hvac_mode.call_count == 1
-        assert round(entity.last_temperature_slope, 3) == -1
-        # Because the algorithm is not aware of the expiration, for the algo we are still in alert
-        assert entity._window_auto_algo.is_window_open_detected() is True
-        assert entity._window_auto_algo.is_window_close_detected() is False
-        assert entity.window_auto_state == STATE_OFF
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
+        assert entity.window_auto_state == STATE_OFF
+
+        assert mock_set_hvac_mode.call_count == 1
+        assert round(entity.last_temperature_slope, 3) == -0.29
+        assert entity._window_auto_algo.is_window_open_detected() is False
+        assert entity._window_auto_algo.is_window_close_detected() is False
 
     # Clean the entity
     entity.remove_thermostat()
@@ -585,7 +599,7 @@ async def test_window_auto_no_on_percent(
             CONF_TEMP_MAX: 30,
             "eco_temp": 17,
             "comfort_temp": 18,
-            "boost_temp": 21,
+            "boost_temp": 20,
             CONF_USE_WINDOW_FEATURE: True,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
@@ -597,8 +611,8 @@ async def test_window_auto_no_on_percent(
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
-            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
+            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 6,
+            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 6,
             CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
         },
     )
@@ -619,9 +633,17 @@ async def test_window_auto_no_on_percent(
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
     assert entity.overpowering_state is None
-    assert entity.target_temperature == 21
+    assert entity.target_temperature == 20
 
     assert entity.window_state is STATE_OFF
+
+    # Initialize the slope algo with 2 measurements
+    event_timestamp = now + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 21, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 21, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 21, event_timestamp)
 
     # Make the temperature down
     with patch(
@@ -634,12 +656,12 @@ async def test_window_auto_no_on_percent(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=4)
-        await send_temperature_change_event(entity, 21.5, event_timestamp)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
+        await send_temperature_change_event(entity, 21, event_timestamp)
 
-        # The heater turns on
+        # The heater don't turns on
         assert mock_heater_on.call_count == 0
-        assert entity.last_temperature_slope is None
+        assert entity.last_temperature_slope == 0.0
         assert entity._window_auto_algo.is_window_open_detected() is False
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.hvac_mode is HVACMode.HEAT
@@ -656,16 +678,19 @@ async def test_window_auto_no_on_percent(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 20, event_timestamp)
 
         # The heater turns on but no alert because the heater was not heating
+        assert entity.proportional_algorithm.on_percent == 0.0
         assert mock_send_event.call_count == 0
-        assert mock_heater_on.call_count == 1
-        assert mock_heater_off.call_count == 0
-        assert entity.last_temperature_slope == -1.5
+        assert mock_heater_on.call_count == 0
+        assert mock_heater_off.call_count == 1
+        assert entity.last_temperature_slope == -6.24
+        # The algo calculate open ...
         assert entity._window_auto_algo.is_window_open_detected() is True
         assert entity._window_auto_algo.is_window_close_detected() is False
+        # But the entity is still on
         assert entity.window_auto_state == STATE_OFF
         assert entity.hvac_mode is HVACMode.HEAT
 
@@ -840,8 +865,8 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
-            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
+            CONF_WINDOW_AUTO_OPEN_THRESHOLD: 6,
+            CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 6,
             CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
         },
     )
@@ -866,6 +891,14 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
 
     assert entity.window_state is STATE_OFF
 
+    # Initialize the slope algo with 2 measurements
+    event_timestamp = now + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+    event_timestamp = event_timestamp + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 19, event_timestamp)
+
     # Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -877,12 +910,12 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=4)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
         # The heater turns on
-        assert mock_heater_on.call_count == 1
-        assert entity.last_temperature_slope is None
+        assert entity.is_device_active is True
+        assert entity.last_temperature_slope == 0.0
         assert entity._window_auto_algo.is_window_open_detected() is False
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.hvac_mode is HVACMode.HEAT
@@ -890,7 +923,6 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
     # send one degre down in one minute with window bypass on
     await entity.service_set_window_bypass_state(True)
     assert entity.window_bypass_state is True
-    # entity._window_bypass_state = True
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -902,7 +934,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp, sleep=False)
 
         # No change should have been done
@@ -910,7 +942,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
 
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
-        assert entity.last_temperature_slope == -1
+        assert entity.last_temperature_slope == -6.24
         assert entity._window_auto_algo.is_window_open_detected() is True
         assert entity._window_auto_algo.is_window_close_detected() is False
         assert entity.window_auto_state == STATE_OFF

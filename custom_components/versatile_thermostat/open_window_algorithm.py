@@ -14,7 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 
 # To filter bad values
 MIN_DELTA_T_SEC = 0  # two temp mesure should be > 0 sec
-MAX_SLOPE_VALUE = 2  # slope cannot be > 2 or < -2 -> else this is an aberrant point
+MAX_SLOPE_VALUE = (
+    120  # slope cannot be > 2°/min or < -2°/min -> else this is an aberrant point
+)
 
 MAX_DURATION_MIN = 30  # a fake data point is added in the cycle if last measurement was older than 30 min
 
@@ -83,8 +85,10 @@ class WindowOpenDetectionAlgorithm:
             )
             return lspe
 
+        delta_t_hour = delta_t / 60.0
+
         delta_temp = float(temperature - self._last_temperature)
-        new_slope = delta_temp / delta_t
+        new_slope = delta_temp / delta_t_hour
         if new_slope > MAX_SLOPE_VALUE or new_slope < -MAX_SLOPE_VALUE:
             _LOGGER.debug(
                 "New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
@@ -94,9 +98,9 @@ class WindowOpenDetectionAlgorithm:
             return lspe
 
         if self._last_slope is None:
-            self._last_slope = round(new_slope, 4)
+            self._last_slope = round(new_slope, 2)
         else:
-            self._last_slope = round((0.2 * self._last_slope) + (0.8 * new_slope), 4)
+            self._last_slope = round((0.2 * self._last_slope) + (0.8 * new_slope), 2)
 
         # if we are in cycle check and so adding a fake datapoint, we don't store the event datetime
         # so that, when we will receive a real temperature point we will not calculate a wrong slope

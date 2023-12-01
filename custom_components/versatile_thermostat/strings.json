@@ -91,14 +91,14 @@
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
           "window_delay": "Window sensor delay (seconds)",
-          "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/min)",
-          "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/min)",
+          "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
+          "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be use",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
-          "window_auto_open_threshold": "Recommended value: between 0.05 and 0.1. Leave empty if automatic window open detection is not use",
+          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not use",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
         }
@@ -260,14 +260,14 @@
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
           "window_delay": "Window sensor delay (seconds)",
-          "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/min)",
-          "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/min)",
+          "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
+          "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be use",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
-          "window_auto_open_threshold": "Recommended value: between 0.05 and 0.1. Leave empty if automatic window open detection is not use",
+          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not use",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
         }

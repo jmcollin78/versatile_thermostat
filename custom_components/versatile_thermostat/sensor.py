@@ -484,7 +484,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         if not self.my_climate:
             return None
 
-        return self.my_climate.temperature_unit + "/min"
+        return self.my_climate.temperature_unit + "/hour"
 
     @property
     def suggested_display_precision(self) -> int | None:

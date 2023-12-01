@@ -91,14 +91,14 @@
         "data": {
           "window_sensor_entity_id": "ID entity snímača okna",
           "window_delay": "Oneskorenie snímača okna (sekundy)",
-          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/min)",
-          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/min)",
+          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
+          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
           "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
           "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
-          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 0,05 a 0,1. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
         }
@@ -260,14 +260,14 @@
         "data": {
           "window_sensor_entity_id": "ID entity snímača okna",
           "window_delay": "Oneskorenie snímača okna (sekundy)",
-          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/min)",
-          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/min)",
+          "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
+          "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
           "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
         },
         "data_description": {
           "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
           "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
-          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 0,05 a 0,1. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
+          "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
         }
