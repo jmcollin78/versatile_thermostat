@@ -21,6 +21,10 @@ versatile_thermostat:
         offset_max: 5
         stabilization_threshold: 0.1
         accumulated_error_threshold: 50
+    short_ema_params:
+        max_alpha: 0.6
+        halflife_sec: 301
+        precision: 3
 
 input_number:
     fake_temperature_sensor1:

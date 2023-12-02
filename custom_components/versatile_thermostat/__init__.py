@@ -5,6 +5,7 @@ from typing import Dict
 
 import logging
 import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant
@@ -19,39 +20,34 @@ from .const import (
     CONF_AUTO_REGULATION_STRONG,
     CONF_AUTO_REGULATION_SLOW,
     CONF_AUTO_REGULATION_EXPERT,
+    CONF_SHORT_EMA_PARAMS,
 )
 
 from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
-SELF_REGULATION_PARAM_SCHEMA = (
-    vol.Schema(
-        {
-            vol.Required("kp"): vol.Coerce(float),
-            vol.Required("ki"): vol.Coerce(float),
-            vol.Required("k_ext"): vol.Coerce(float),
-            vol.Required("offset_max"): vol.Coerce(float),
-            vol.Required("stabilization_threshold"): vol.Coerce(float),
-            vol.Required("accumulated_error_threshold"): vol.Coerce(float),
-        }
-    ),
-)
+SELF_REGULATION_PARAM_SCHEMA = {
+    vol.Required("kp"): vol.Coerce(float),
+    vol.Required("ki"): vol.Coerce(float),
+    vol.Required("k_ext"): vol.Coerce(float),
+    vol.Required("offset_max"): vol.Coerce(float),
+    vol.Required("stabilization_threshold"): vol.Coerce(float),
+    vol.Required("accumulated_error_threshold"): vol.Coerce(float),
+}
+
+EMA_PARAM_SCHEMA = {
+    vol.Required("max_alpha"): vol.Coerce(float),
+    vol.Required("halflife_sec"): vol.Coerce(float),
+    vol.Required("precision"): cv.positive_int,
+}
 
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                CONF_AUTO_REGULATION_EXPERT: vol.Schema(
-                    {
-                        vol.Required("kp"): vol.Coerce(float),
-                        vol.Required("ki"): vol.Coerce(float),
-                        vol.Required("k_ext"): vol.Coerce(float),
-                        vol.Required("offset_max"): vol.Coerce(float),
-                        vol.Required("stabilization_threshold"): vol.Coerce(float),
-                        vol.Required("accumulated_error_threshold"): vol.Coerce(float),
-                    }
-                ),
+                CONF_AUTO_REGULATION_EXPERT: vol.Schema(SELF_REGULATION_PARAM_SCHEMA),
+                CONF_SHORT_EMA_PARAMS: vol.Schema(EMA_PARAM_SCHEMA),
             }
         ),
     },

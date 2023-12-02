@@ -58,19 +58,24 @@
   - [Toujours mieux avec Apex-chart pour régler votre thermostat](#toujours-mieux-avec-apex-chart-pour-régler-votre-thermostat)
   - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
 - [Les contributions sont les bienvenues !](#les-contributions-sont-les-bienvenues)
-
+- [Dépannages](#dépannages)
+  - [Utilisation d'un Heatzy](#utilisation-dun-heatzy)
+  - [Utilisation d'un radiateur avec un fil pilote](#utilisation-dun-radiateur-avec-un-fil-pilote)
+  - [Seul le premier radiateur chauffe](#seul-le-premier-radiateur-chauffe)
+  - [Régler les paramètres de détection d'ouverture de fenêtre en mode auto](#régler-les-paramètres-de-détection-douverture-de-fenêtre-en-mode-auto)
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
 > * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
-> * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
-> * **Release 3.7**: Ajout du type de **Versatile Thermostat `over valve`** pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
 <details>
 <summary>Autres versions</summary>
 
+> * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
+> * **Release 3.7**: Ajout du type de **Versatile Thermostat `over valve`** pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
 > * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
 > * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
 > * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
@@ -84,10 +89,11 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 </details>
 
 # Changements majeurs dans la version 4.0.0
-La puissance de l'appareil doit maintenant être la puissance totale de tous les appareils controlée par le VTherm. Cela permet d'avoir des équipements hétérogènes de puissance différente. Dans le cas de plusieurs appareils contrôlés par un seul VTherm, vous devrez éditer et changer la valeur `device_power`. Vous devez configurer la puissance totale de tous les appareils.
+1. La puissance de l'appareil doit maintenant être la puissance totale de tous les appareils controlée par le VTherm. Cela permet d'avoir des équipements hétérogènes de puissance différente. Dans le cas de plusieurs appareils contrôlés par un seul VTherm, vous devrez éditer et changer la valeur `device_power`. Vous devez configurer la puissance totale de tous les appareils.
+2. Le seuil de détection automatique des ouvertures doit être spécifié en °/heure et pas plus en °/min. Pour conserver les mêmes paramètres il faut multiplier la valeur configurée par 60.
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -1093,7 +1099,25 @@ Exemple :
 En mode `over_switch` si plusieurs radiateurs sont configurés pour un même VTherm, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
 Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
 
+## Régler les paramètres de détection d'ouverture de fenêtre en mode auto
 
+Si vous n'arrivez pas à régler la fonction de détection des ouvertures en mode auto (cf. [auto](#le-mode-auto)), vous pouvez essayer de modifier les paramètres de l'algorithme de lissage de la température.
+En effet, la détection automatique d'ouverture est basée sur le calcul de la pente de la température (slope). Pour éviter les artefacts due à un capteur de température imprécis, cette pente est calculée sur une température lissée avec un algorithme de lissage nommée Exponential Moving Average (Moyenne mobile exponentielle).
+Cet algorithm possède 3 paramètres :
+1. `lifecycle_sec` : la durée en secondes prise en compte pour le lissage. Plus elle est forte et plus le lissage sera important mais plus il y aura de délai de détection,
+2. `max_alpha` : si deux mesures de température sont éloignées dans le temps, la deuxième aura un poid beaucoup fort. Le paramètre permet de limiter le poid d'une mesure qui arrive bien après la précédente. Cette valeur doit être comprise entre 0 et 1. Plus elle est faible et moins les valeurs éloignées sont prises en compte. La valeur par défaut est de 0,5. Cela fait que lorsqu'une nouvelle valeur de température ne pèsera jamais plus que la moitié de la moyenne mobile,
+3. `precision` : le nombre de chiffre après la virgule conservée pour le calcul de la moyenne mobile.
+
+Pour changer ses paramètres, il faut modifier le fichier `configuration.yaml` et ajouter la section suivante (les valeurs sont les valeurs par défaut):
+```
+versatile_thermostat:
+  short_ema_params:
+    max_alpha: 0.5
+    halflife_sec: 300
+    precision: 2
+```
+
+Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les utiliser que si vous savez ce que vous faites et que vos mesures de température ne sont pas déjà lisses.
 
 ***
 

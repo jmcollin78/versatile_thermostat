@@ -94,6 +94,14 @@ CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
+CONF_SHORT_EMA_PARAMS = "short_ema_params"
+
+DEFAULT_SHORT_EMA_PARAMS = {
+    "max_alpha": 0.5,
+    # In sec
+    "halflife_sec": 300,
+    "precision": 2,
+}
 
 CONF_PRESETS = {
     p: f"{p}_temp"

@@ -107,8 +107,10 @@ from .const import (
     ATTR_MEAN_POWER_CYCLE,
     ATTR_TOTAL_ENERGY,
     PRESET_AC_SUFFIX,
+    DEFAULT_SHORT_EMA_PARAMS,
 )
 
+from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingEntity
 
 from .prop_algorithm import PropAlgorithm
@@ -255,6 +257,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._ema_temp = None
         self._ema_algo = None
+        self._now = None
         self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
@@ -459,13 +462,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._total_energy = 0
 
+        # Read the parameter from configuration.yaml if it exists
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+
+        short_ema_params = DEFAULT_SHORT_EMA_PARAMS
+        if api is not None and api.short_ema_params:
+            short_ema_params = api.short_ema_params
+
         self._ema_algo = ExponentialMovingAverage(
             self.name,
-            self._cycle_min * 60,
+            short_ema_params.get("halflife_sec"),
             # Needed for time calculation
             get_tz(self._hass),
             # two digits after the coma for temperature slope calculation
-            2,
+            short_ema_params.get("precision"),
+            short_ema_params.get("max_alpha"),
         )
 
         _LOGGER.debug(
@@ -1905,9 +1916,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         return self._overpowering_state
 
+    def _set_now(self, now: datetime):
+        """Set the now timestamp. This is only for tests purpose"""
+        self._now = now
+
+    @property
+    def now(self) -> datetime:
+        """Get now. The local datetime or the overloaded _set_now date"""
+        return self._now if self._now is not None else datetime.now(self._current_tz)
+
     async def check_security(self) -> bool:
         """Check if last temperature date is too long"""
-        now = datetime.now(self._current_tz)
+        now = self.now
         delta_temp = (
             now - self._last_temperature_mesure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
@@ -1995,6 +2015,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
+        # Start security mode
         if shouldStartSecurity:
             self._security_state = True
             self.save_hvac_mode()
@@ -2022,6 +2043,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
+        # Stop security mode
         if shouldStopSecurity:
             _LOGGER.warning(
                 "%s - End of security mode. restoring hvac_mode to %s and preset_mode to %s",

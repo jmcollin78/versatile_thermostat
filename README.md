@@ -57,11 +57,17 @@
   - [Even better with Apex-chart to tune your Thermostat](#even-better-with-apex-chart-to-tune-your-thermostat)
   - [And always better and better with the NOTIFIER daemon app to notify events](#and-always-better-and-better-with-the-notifier-daemon-app-to-notify-events)
 - [Contributions are welcome!](#contributions-are-welcome)
+- [Troubleshooting](#troubleshooting)
+  - [Using a Heatzy](#using-a-heatzy)
+  - [Using a Heatsink with a Pilot Wire](#using-a-heatsink-with-a-pilot-wire)
+  - [Only the first radiator heats](#only-the-first-radiator-heats)
+  - [Adjust window opening detection parameters in auto mode](#adjust-window-opening-detection-parameters-in-auto-mode)
 
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/ issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
 > * **Release 4.1**: Added an **Expert** regulation mode in which the user can specify their own auto-regulation parameters instead of using the pre-programmed ones [#194]( https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0**: Added the support of **Versatile Thermostat UI Card**. See [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Added a **Slow** regulation mode for slow latency heating devices [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Change the way **the power is calculated** in case of VTherm with multi-underlying equipements [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Added the support of AC and Heat for VTherm over switch alse [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Added a **self-regulation function** for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of **inverting the command** for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
@@ -82,10 +88,11 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 </details>
 
 # Breaking changes in 4.0.0
-The power of the device should now be the total power of all controler devices by the VTherm. This allow to have eterogeneous equipment with different power. In case of multi-devices controlled by a single VTherm you will have to edit and change the `device_power` value. Set the total power of all devices.
+1. The power of the device should now be the total power of all controler devices by the VTherm. This allow to have eterogeneous equipment with different power. In case of multi-devices controlled by a single VTherm you will have to edit and change the `device_power` value. Set the total power of all devices.
+2. The threshold for auto window auto detection should be specified in °/hour and no more in °/min. To keep the same parameters you have to multiply the configured value by 60.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M for the beers. It's very nice and encourages me to continue!
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
@@ -1073,6 +1080,25 @@ Example :
 In `over_switch` mode if several radiators are configured for the same VTherm, switching on will be done sequentially to smooth out consumption peaks as much as possible.
 This is completely normal and desired. It is described here: [For a thermostat of type ``thermostat_over_switch```](#for-a-thermostat-of-type-thermostat_over_switch)
 
+## Adjust window opening detection parameters in auto mode
+
+If you cannot set the opening detection function in auto mode (see [auto](#auto-mode)), you can try modifying the parameters of the temperature smoothing algorithm.
+In fact, automatic opening detection is based on the calculation of the temperature slope. To avoid artifacts due to an imprecise temperature sensor, this slope is calculated on a smoothed temperature with a smoothing algorithm called Exponential Moving Average.
+This algorithm has 3 parameters:
+1. `lifecycle_sec`: the duration in seconds taken into account for smoothing. The stronger it is, the greater the smoothing will be, but the longer there will be a detection delay,
+2. `max_alpha`: if two temperature measurements are separated in time, the second will have a very strong weight. The parameter makes it possible to limit the weight of a measurement which arrives well after the previous one. This value must be between 0 and 1. The lower it is, the less distant values are taken into account. The default is 0.5. This means that when a new temperature value will never weigh more than half of the moving average,
+3. `precision`: the number of digits after the decimal point retained for calculating the moving average.
+
+To change its parameters, you must modify the `configuration.yaml` file and add the following section (the values are the default values):
+```
+versatile_thermostat:
+  short_ema_params:
+    max_alpha: 0.5
+    halflife_sec: 300
+    accuracy: 2
+```
+
+These parameters are sensitive and quite difficult to adjust. Please only use them if you know what you are doing and your temperature measurements are not already smooth.
 
 ***
 

@@ -3,10 +3,7 @@ import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
-from .const import (
-    DOMAIN,
-    CONF_AUTO_REGULATION_EXPERT,
-)
+from .const import DOMAIN, CONF_AUTO_REGULATION_EXPERT, CONF_SHORT_EMA_PARAMS
 
 VTHERM_API_NAME = "vtherm_api"
 
@@ -33,6 +30,7 @@ class VersatileThermostatAPI(dict):
         super().__init__()
         self._hass = hass
         self._expert_params = None
+        self._short_ema_params = None
 
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
@@ -59,10 +57,19 @@ class VersatileThermostatAPI(dict):
         if self._expert_params:
             _LOGGER.debug("We have found expert params %s", self._expert_params)
 
+        self._short_ema_params = config.get(CONF_SHORT_EMA_PARAMS)
+        if self._short_ema_params:
+            _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
+
     @property
     def self_regulation_expert(self):
         """Get the self regulation params"""
         return self._expert_params
+
+    @property
+    def short_ema_params(self):
+        """Get the self regulation params"""
+        return self._short_ema_params
 
     @property
     def hass(self):
