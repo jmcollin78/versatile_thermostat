@@ -265,12 +265,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=CONF_AUTO_REGULATION_MODES, translation_key="auto_regulation_mode"
+                        options=CONF_AUTO_REGULATION_MODES,
+                        translation_key="auto_regulation_mode",
                     )
                 ),
-                vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
-                vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int
-
+                vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(
+                    float
+                ),
+                vol.Optional(
+                    CONF_AUTO_REGULATION_PERIOD_MIN, default=5
+                ): cv.positive_int,
             }
         )
 
@@ -862,6 +866,9 @@ class VersatileThermostatOptionsFlowHandler(
         """Finalization of the ConfigEntry creation"""
         if not self._infos[CONF_USE_WINDOW_FEATURE]:
             self._infos[CONF_WINDOW_SENSOR] = None
+            self._infos[CONF_WINDOW_AUTO_CLOSE_THRESHOLD] = None
+            self._infos[CONF_WINDOW_AUTO_OPEN_THRESHOLD] = None
+            self._infos[CONF_WINDOW_AUTO_MAX_DURATION] = None
         if not self._infos[CONF_USE_MOTION_FEATURE]:
             self._infos[CONF_MOTION_SENSOR] = None
         if not self._infos[CONF_USE_POWER_FEATURE]:
