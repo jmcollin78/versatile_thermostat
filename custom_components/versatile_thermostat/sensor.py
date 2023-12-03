@@ -396,7 +396,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
-        self._attr_native_value = self.my_climate.last_temperature_mesure
+        self._attr_native_value = self.my_climate.last_temperature_measure
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
@@ -425,7 +425,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
-        self._attr_native_value = self.my_climate.last_ext_temperature_mesure
+        self._attr_native_value = self.my_climate.last_ext_temperature_measure
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return

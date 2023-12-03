@@ -76,11 +76,11 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         PRESET_COMFORT,
         PRESET_BOOST,
     ]
-    assert entity._last_ext_temperature_mesure is not None
-    assert entity._last_temperature_mesure is not None
-    assert (entity._last_temperature_mesure.astimezone(tz) - now).total_seconds() < 1
+    assert entity._last_ext_temperature_measure is not None
+    assert entity._last_temperature_measure is not None
+    assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
     assert (
-        entity._last_ext_temperature_mesure.astimezone(tz) - now
+        entity._last_ext_temperature_measure.astimezone(tz) - now
     ).total_seconds() < 1
 
     # set a preset
@@ -116,8 +116,8 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_measure": event_timestamp.isoformat(),
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.isoformat(),
                         "current_temp": 15,
                         "current_ext_temp": None,
                         "target_temp": 18,
@@ -127,8 +127,8 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                     EventType.SECURITY_EVENT,
                     {
                         "type": "start",
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_measure": event_timestamp.isoformat(),
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.isoformat(),
                         "current_temp": 15,
                         "current_ext_temp": None,
                         "target_temp": 18,
@@ -180,10 +180,10 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                     EventType.SECURITY_EVENT,
                     {
                         "type": "end",
-                        "last_temperature_mesure": event_timestamp.astimezone(
+                        "last_temperature_measure": event_timestamp.astimezone(
                             tz
                         ).isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.astimezone(
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.astimezone(
                             tz
                         ).isoformat(),
                         "current_temp": 15.2,
@@ -253,11 +253,11 @@ async def test_security_feature_back_on_percent(
 
     assert entity._security_state is False
     assert entity.preset_mode is not PRESET_SECURITY
-    assert entity._last_ext_temperature_mesure is not None
-    assert entity._last_temperature_mesure is not None
-    assert (entity._last_temperature_mesure.astimezone(tz) - now).total_seconds() < 1
+    assert entity._last_ext_temperature_measure is not None
+    assert entity._last_temperature_measure is not None
+    assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
     assert (
-        entity._last_ext_temperature_mesure.astimezone(tz) - now
+        entity._last_ext_temperature_measure.astimezone(tz) - now
     ).total_seconds() < 1
 
     # set a preset
@@ -311,8 +311,8 @@ async def test_security_feature_back_on_percent(
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_measure": event_timestamp.isoformat(),
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.isoformat(),
                         "current_temp": 17,
                         "current_ext_temp": None,
                         "target_temp": 19,
@@ -322,8 +322,8 @@ async def test_security_feature_back_on_percent(
                     EventType.SECURITY_EVENT,
                     {
                         "type": "start",
-                        "last_temperature_mesure": event_timestamp.isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.isoformat(),
+                        "last_temperature_measure": event_timestamp.isoformat(),
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.isoformat(),
                         "current_temp": 17,
                         "current_ext_temp": None,
                         "target_temp": 19,
@@ -371,10 +371,10 @@ async def test_security_feature_back_on_percent(
                     EventType.SECURITY_EVENT,
                     {
                         "type": "end",
-                        "last_temperature_mesure": event_timestamp.astimezone(
+                        "last_temperature_measure": event_timestamp.astimezone(
                             tz
                         ).isoformat(),
-                        "last_ext_temperature_mesure": entity._last_ext_temperature_mesure.astimezone(
+                        "last_ext_temperature_measure": entity._last_ext_temperature_measure.astimezone(
                             tz
                         ).isoformat(),
                         "current_temp": 18.92,
@@ -469,13 +469,13 @@ async def test_security_over_climate(
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
         # Force security mode
-        assert entity._last_ext_temperature_mesure is not None
-        assert entity._last_temperature_mesure is not None
+        assert entity._last_ext_temperature_measure is not None
+        assert entity._last_temperature_measure is not None
         assert (
-            entity._last_temperature_mesure.astimezone(tz) - now
+            entity._last_temperature_measure.astimezone(tz) - now
         ).total_seconds() < 1
         assert (
-            entity._last_ext_temperature_mesure.astimezone(tz) - now
+            entity._last_ext_temperature_measure.astimezone(tz) - now
         ).total_seconds() < 1
 
         # Tries to turns on the Thermostat

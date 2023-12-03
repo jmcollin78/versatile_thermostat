@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import logging
 
 from .commons import *
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 
@@ -362,10 +363,12 @@ async def test_bug_82(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
-        data=PARTIAL_CLIMATE_CONFIG, # 5 minutes security delay
+        data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockUnavailableClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = MockUnavailableClimate(
+        hass, "mockUniqueId", "MockClimateName", {}
+    )
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -420,11 +423,13 @@ async def test_bug_82(
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
         # Force security mode
-        assert entity._last_ext_temperature_mesure is not None
-        assert entity._last_temperature_mesure is not None
-        assert (entity._last_temperature_mesure.astimezone(tz) - now).total_seconds() < 1
+        assert entity._last_ext_temperature_measure is not None
+        assert entity._last_temperature_measure is not None
         assert (
-            entity._last_ext_temperature_mesure.astimezone(tz) - now
+            entity._last_temperature_measure.astimezone(tz) - now
+        ).total_seconds() < 1
+        assert (
+            entity._last_ext_temperature_measure.astimezone(tz) - now
         ).total_seconds() < 1
 
         # Tries to turns on the Thermostat
@@ -443,8 +448,9 @@ async def test_bug_82(
             await send_temperature_change_event(entity, 15, event_timestamp)
             # Should stay False
             assert entity.security_state is False
-            assert entity.preset_mode == 'none'
-            assert entity._saved_preset_mode == 'none'
+            assert entity.preset_mode == "none"
+            assert entity._saved_preset_mode == "none"
+
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -463,11 +469,13 @@ async def test_bug_101(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
-        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG, # 5 minutes security delay
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,  # 5 minutes security delay
     )
 
     # Underlying is in HEAT mode but should be shutdown at startup
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING)
+    fake_underlying_climate = MockClimate(
+        hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING
+    )
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -531,7 +539,15 @@ async def test_bug_101(
         assert entity.preset_mode == PRESET_COMFORT
 
         # 2. Change the target temp of underlying thermostat at now -> the event will be disgarded because to fast (to avoid loop cf issue 121)
-        await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, now, 12.75)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            now,
+            12.75,
+        )
         # Should NOT have been switched to Manual preset
         assert entity.target_temperature == 17
         assert entity.preset_mode is PRESET_COMFORT
@@ -540,6 +556,14 @@ async def test_bug_101(
         # Wait 11 sec
         event_timestamp = now + timedelta(seconds=11)
         assert entity.is_regulated is False
-        await send_climate_change_event_with_temperature(entity, HVACMode.HEAT, HVACMode.HEAT, HVACAction.OFF, HVACAction.OFF, event_timestamp, 12.75)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            event_timestamp,
+            12.75,
+        )
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE

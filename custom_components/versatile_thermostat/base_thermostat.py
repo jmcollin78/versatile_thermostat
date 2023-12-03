@@ -131,8 +131,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     # The list of VersatileThermostat entities
     _hass: HomeAssistant
-    _last_temperature_mesure: datetime
-    _last_ext_temperature_mesure: datetime
+    _last_temperature_measure: datetime
+    _last_ext_temperature_measure: datetime
     _total_energy: float
     _overpowering_state: bool
     _window_state: bool
@@ -217,8 +217,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._motion_call_cancel = None
         self._cur_temp = None
         self._ac_mode = None
-        self._last_ext_temperature_mesure = None
-        self._last_temperature_mesure = None
+        self._last_ext_temperature_measure = None
+        self._last_temperature_measure = None
         self._cur_ext_temp = None
         self._presence_state = None
         self._overpowering_state = None
@@ -429,8 +429,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             else DEFAULT_SECURITY_DEFAULT_ON_PERCENT
         )
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
-        self._last_temperature_mesure = datetime.now(tz=self._current_tz)
-        self._last_ext_temperature_mesure = datetime.now(tz=self._current_tz)
+        self._last_temperature_measure = datetime.now(tz=self._current_tz)
+        self._last_ext_temperature_measure = datetime.now(tz=self._current_tz)
         self._security_state = False
 
         # Initiate the ProportionalAlgorithm
@@ -1017,14 +1017,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return self._prop_algorithm
 
     @property
-    def last_temperature_mesure(self) -> datetime | None:
+    def last_temperature_measure(self) -> datetime | None:
         """Get the last temperature datetime"""
-        return self._last_temperature_mesure
+        return self._last_temperature_measure
 
     @property
-    def last_ext_temperature_mesure(self) -> datetime | None:
+    def last_ext_temperature_measure(self) -> datetime | None:
         """Get the last external temperature datetime"""
-        return self._last_ext_temperature_mesure
+        return self._last_ext_temperature_measure
 
     @property
     def preset_mode(self) -> str | None:
@@ -1191,8 +1191,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_mode not in HIDDEN_PRESETS
             and old_preset_mode not in HIDDEN_PRESETS
         ):
-            self._last_temperature_mesure = (
-                self._last_ext_temperature_mesure
+            self._last_temperature_measure = (
+                self._last_ext_temperature_measure
             ) = datetime.now(tz=self._current_tz)
 
     def find_preset_temp(self, preset_mode):
@@ -1509,17 +1509,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_temp = cur_temp
 
-            self._last_temperature_mesure = self.get_state_date_or_now(state)
+            self._last_temperature_measure = self.get_state_date_or_now(state)
 
             # calculate the smooth_temperature with EMA calculation
             self._ema_temp = self._ema_algo.calculate_ema(
-                self._cur_temp, self._last_temperature_mesure
+                self._cur_temp, self._last_temperature_measure
             )
 
             _LOGGER.debug(
-                "%s - After setting _last_temperature_mesure %s , state.last_changed.replace=%s",
+                "%s - After setting _last_temperature_measure %s , state.last_changed.replace=%s",
                 self,
-                self._last_temperature_mesure,
+                self._last_temperature_measure,
                 state.last_changed.astimezone(self._current_tz),
             )
 
@@ -1541,12 +1541,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
                 raise ValueError(f"Sensor has illegal state {state.state}")
             self._cur_ext_temp = cur_ext_temp
-            self._last_ext_temperature_mesure = self.get_state_date_or_now(state)
+            self._last_ext_temperature_measure = self.get_state_date_or_now(state)
 
             _LOGGER.debug(
-                "%s - After setting _last_ext_temperature_mesure %s , state.last_changed.replace=%s",
+                "%s - After setting _last_ext_temperature_measure %s , state.last_changed.replace=%s",
                 self,
-                self._last_ext_temperature_mesure,
+                self._last_ext_temperature_measure,
                 state.last_changed.astimezone(self._current_tz),
             )
 
@@ -1726,7 +1726,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         else:
             slope = self._window_auto_algo.add_temp_measurement(
                 temperature=self._ema_temp,
-                datetime_measure=self._last_temperature_mesure,
+                datetime_measure=self._last_temperature_measure,
             )
 
         _LOGGER.debug(
@@ -1930,10 +1930,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Check if last temperature date is too long"""
         now = self.now
         delta_temp = (
-            now - self._last_temperature_mesure.replace(tzinfo=self._current_tz)
+            now - self._last_temperature_measure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
         delta_ext_temp = (
-            now - self._last_ext_temperature_mesure.replace(tzinfo=self._current_tz)
+            now - self._last_ext_temperature_measure.replace(tzinfo=self._current_tz)
         ).total_seconds() / 60.0
 
         mode_cond = self._hvac_mode != HVACMode.OFF
@@ -2004,10 +2004,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self.send_event(
                 EventType.TEMPERATURE_EVENT,
                 {
-                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                    "last_temperature_measure": self._last_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                    "last_ext_temperature_measure": self._last_ext_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
                     "current_temp": self._cur_temp,
@@ -2032,10 +2032,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 EventType.SECURITY_EVENT,
                 {
                     "type": "start",
-                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                    "last_temperature_measure": self._last_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                    "last_ext_temperature_measure": self._last_ext_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
                     "current_temp": self._cur_temp,
@@ -2063,10 +2063,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 EventType.SECURITY_EVENT,
                 {
                     "type": "end",
-                    "last_temperature_mesure": self._last_temperature_mesure.replace(
+                    "last_temperature_measure": self._last_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
-                    "last_ext_temperature_mesure": self._last_ext_temperature_mesure.replace(
+                    "last_ext_temperature_measure": self._last_ext_temperature_measure.replace(
                         tzinfo=self._current_tz
                     ).isoformat(),
                     "current_temp": self._cur_temp,
@@ -2191,10 +2191,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
-            "last_temperature_datetime": self._last_temperature_mesure.astimezone(
+            "last_temperature_datetime": self._last_temperature_measure.astimezone(
                 self._current_tz
             ).isoformat(),
-            "last_ext_temperature_datetime": self._last_ext_temperature_mesure.astimezone(
+            "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(
                 self._current_tz
             ).isoformat(),
             "security_state": self._security_state,
