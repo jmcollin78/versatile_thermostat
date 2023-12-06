@@ -13,8 +13,12 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.thermostat_climate import ThermostatOverClimate
-from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_climate import (
+    ThermostatOverClimate,
+)
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -224,3 +228,63 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
                 ),
             ]
         )
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_switch_deactivate_preset(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test the normal full start of a thermostat in thermostat_over_switch type"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 8,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 0,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_HEATER: "switch.mock_switch1",
+            CONF_HEATER_2: None,
+            CONF_HEATER_3: None,
+            CONF_HEATER_4: None,
+            CONF_SECURITY_DELAY_MIN: 10,
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theoverswitchmockname"
+    )
+    assert entity
+    assert isinstance(entity, ThermostatOverSwitch)
+
+    assert entity.preset_modes == [
+        PRESET_NONE,
+        PRESET_ECO,
+        # PRESET_COMFORT,
+        PRESET_BOOST,
+    ]
+    assert entity.preset_mode is PRESET_NONE
+
+    # try to set the COMFORT Preset which is absent
+    try:
+        await entity.async_set_preset_mode(PRESET_COMFORT)
+    except ValueError as err:
+        print(err)
+    else:
+        assert False
+    finally:
+        assert entity.preset_mode is PRESET_NONE

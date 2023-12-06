@@ -448,8 +448,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if len(presets):
             self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
 
-            for key, val in CONF_PRESETS.items():
-                if val != 0.0:
+            for key, _ in CONF_PRESETS.items():
+                if self.find_preset_temp(key) > 0:
                     self._attr_preset_modes.append(key)
 
             _LOGGER.debug(
@@ -1037,7 +1037,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     @property
     def preset_modes(self) -> list[str] | None:
         """Return a list of available preset modes.
-
         Requires ClimateEntityFeature.PRESET_MODE.
         """
         return self._attr_preset_modes
@@ -1197,12 +1196,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     def find_preset_temp(self, preset_mode):
         """Find the right temperature of a preset considering the presence if configured"""
+        if preset_mode is None or preset_mode == "none":
+            return (
+                self._attr_max_temp
+                if self._ac_mode and self._hvac_mode == HVACMode.COOL
+                else self._attr_min_temp
+            )
+
         if preset_mode == PRESET_SECURITY:
             return (
                 self._target_temp
             )  # in security just keep the current target temperature, the thermostat should be off
         if preset_mode == PRESET_POWER:
             return self._power_temp
+        if preset_mode == PRESET_ACTIVITY:
+            return self._presets[
+                self._motion_preset
+                if self._motion_state == STATE_ON
+                else self._no_motion_preset
+            ]
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
             if self._ac_mode and self._hvac_mode == HVACMode.COOL:
@@ -1210,7 +1222,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             _LOGGER.info("%s - find preset temp: %s", self, preset_mode)
 
-            if self._presence_on is False or self._presence_state in [
+            if not self._presence_on or self._presence_state in [
                 STATE_ON,
                 STATE_HOME,
             ]:
