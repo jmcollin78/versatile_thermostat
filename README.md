@@ -92,7 +92,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 2. The threshold for auto window auto detection should be specified in °/hour and no more in °/min. To keep the same parameters you have to multiply the configured value by 60.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess for the beers. It's very nice and encourages me to continue!
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
