@@ -263,7 +263,7 @@ ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
 AUTO_FAN_DTEMP_THRESHOLD = 2
-AUTO_FAN_DEACTIVATED_MODES = ["mute", "silent", "auto", "low"]
+AUTO_FAN_DEACTIVATED_MODES = ["mute", "auto", "low"]
 
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
