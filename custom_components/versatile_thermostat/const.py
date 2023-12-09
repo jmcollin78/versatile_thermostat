@@ -95,6 +95,12 @@ CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
 CONF_SHORT_EMA_PARAMS = "short_ema_params"
+CONF_AUTO_FAN_MODE = "auto_fan_mode"
+CONF_AUTO_FAN_NONE = "auto_fan_none"
+CONF_AUTO_FAN_LOW = "auto_fan_low"
+CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
+CONF_AUTO_FAN_HIGH = "auto_fan_high"
+CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
@@ -233,6 +239,14 @@ CONF_THERMOSTAT_TYPES = [
     CONF_THERMOSTAT_VALVE,
 ]
 
+CONF_AUTO_FAN_MODES = [
+    CONF_AUTO_FAN_NONE,
+    CONF_AUTO_FAN_LOW,
+    CONF_AUTO_FAN_MEDIUM,
+    CONF_AUTO_FAN_HIGH,
+    CONF_AUTO_FAN_TURBO,
+]
+
 SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
 
 SERVICE_SET_PRESENCE = "set_presence"
@@ -240,12 +254,16 @@ SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
 SERVICE_SET_SECURITY = "set_security"
 SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
 SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
+SERVICE_SET_AUTO_FAN_MODE = "set_auto_fan_mode"
 
 DEFAULT_SECURITY_MIN_ON_PERCENT = 0.5
 DEFAULT_SECURITY_DEFAULT_ON_PERCENT = 0.1
 
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
+
+AUTO_FAN_DTEMP_THRESHOLD = 2
+AUTO_FAN_DEACTIVATED_MODES = ["mute", "silent", "auto", "low"]
 
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154

@@ -9,7 +9,7 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
 )
 
-from homeassistant.components.climate import HVACAction, HVACMode
+from homeassistant.components.climate import HVACAction, HVACMode, ClimateEntityFeature
 
 from .commons import NowClass, round_to_nearest
 from .base_thermostat import BaseThermostat
@@ -31,10 +31,19 @@ from .const import (
     CONF_AUTO_REGULATION_EXPERT,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
+    CONF_AUTO_FAN_MODE,
+    CONF_AUTO_FAN_NONE,
+    CONF_AUTO_FAN_LOW,
+    CONF_AUTO_FAN_MEDIUM,
+    CONF_AUTO_FAN_HIGH,
+    CONF_AUTO_FAN_TURBO,
     RegulationParamSlow,
     RegulationParamLight,
     RegulationParamMedium,
     RegulationParamStrong,
+    AUTO_FAN_DTEMP_THRESHOLD,
+    AUTO_FAN_DEACTIVATED_MODES,
+    UnknownEntity,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -52,6 +61,9 @@ class ThermostatOverClimate(BaseThermostat):
     _auto_regulation_dtemp: float = None
     _auto_regulation_period_min: int = None
     _last_regulation_change: datetime = None
+    _auto_fan_mode: str = None
+    _auto_activated_fan_mode: str = None
+    _auto_deactivated_fan_mode: str = None
 
     _entity_component_unrecorded_attributes = (
         BaseThermostat._entity_component_unrecorded_attributes.union(
@@ -65,6 +77,9 @@ class ThermostatOverClimate(BaseThermostat):
                     "underlying_climate_3",
                     "regulation_accumulated_error",
                     "auto_regulation_mode",
+                    "auto_fan_mode",
+                    "auto_activated_fan_mode",
+                    "auto_deactivated_fan_mode",
                 }
             )
         )
@@ -164,6 +179,41 @@ class ThermostatOverClimate(BaseThermostat):
                 self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
             )
 
+    async def _send_auto_fan_mode(self):
+        """Send the fan mode if auto_fan_mode and temperature gap is > threshold"""
+        if not self._auto_fan_mode or not self._auto_activated_fan_mode:
+            return
+
+        dtemp = (
+            self.regulated_target_temp if self.is_regulated else self.target_temperature
+        )
+        if dtemp is None or self.current_temperature is None:
+            return
+
+        dtemp = dtemp - self.current_temperature
+        should_activate_auto_fan = (
+            dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
+        )
+        if should_activate_auto_fan and self.fan_mode != self._auto_activated_fan_mode:
+            _LOGGER.info(
+                "%s - Activate the auto fan mode with %s because delta temp is %.2f",
+                self,
+                self._auto_fan_mode,
+                dtemp,
+            )
+            await self.async_set_fan_mode(self._auto_activated_fan_mode)
+        if (
+            not should_activate_auto_fan
+            and self.fan_mode not in AUTO_FAN_DEACTIVATED_MODES
+        ):
+            _LOGGER.info(
+                "%s - DeActivate the auto fan mode with %s because delta temp is %.2f",
+                self,
+                self._auto_deactivated_fan_mode,
+                dtemp,
+            )
+            await self.async_set_fan_mode(self._auto_deactivated_fan_mode)
+
     @overrides
     def post_init(self, entry_infos):
         """Initialize the Thermostat"""
@@ -199,6 +249,12 @@ class ThermostatOverClimate(BaseThermostat):
             entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN)
             if entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
             else 5
+        )
+
+        self._auto_fan_mode = (
+            entry_infos.get(CONF_AUTO_FAN_MODE)
+            if entry_infos.get(CONF_AUTO_FAN_MODE) is not None
+            else CONF_AUTO_FAN_NONE
         )
 
     def choose_auto_regulation_mode(self, auto_regulation_mode):
@@ -277,6 +333,47 @@ class ThermostatOverClimate(BaseThermostat):
                 self.target_temperature, 0, 0, 0, 0, 0.1, 0
             )
 
+    def choose_auto_fan_mode(self, auto_fan_mode):
+        """Choose the correct fan mode depending of the underlying capacities and the configuration"""
+
+        # Get the supported feature of the first underlying. We suppose each underlying have the same fan attributes
+        fan_supported = self.supported_features & ClimateEntityFeature.FAN_MODE > 0
+
+        if auto_fan_mode == CONF_AUTO_FAN_NONE or not fan_supported:
+            self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
+            return
+
+        def find_fan_mode(fan_modes, fan_mode) -> str:
+            """Return the fan_mode if it exist of None if not"""
+            try:
+                return fan_mode if fan_modes.index(fan_mode) >= 0 else None
+            except ValueError:
+                return None
+
+        fan_modes = self.fan_modes
+        if auto_fan_mode == CONF_AUTO_FAN_LOW:
+            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "low")
+        elif auto_fan_mode == CONF_AUTO_FAN_MEDIUM:
+            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "mid")
+        elif auto_fan_mode == CONF_AUTO_FAN_HIGH:
+            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "high")
+        elif auto_fan_mode == CONF_AUTO_FAN_TURBO:
+            self._auto_activated_fan_mode = find_fan_mode(
+                fan_modes, "turbo"
+            ) or find_fan_mode(fan_modes, "high")
+
+        for val in AUTO_FAN_DEACTIVATED_MODES:
+            if find_fan_mode(fan_modes, val):
+                self._auto_deactivated_fan_mode = val
+                break
+
+        _LOGGER.info(
+            "%s - choose_auto_fan_mode founds auto_activated_fan_mode=%s and auto_deactivated_fan_mode=%s",
+            self,
+            self._auto_activated_fan_mode,
+            self._auto_deactivated_fan_mode,
+        )
+
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -301,6 +398,9 @@ class ThermostatOverClimate(BaseThermostat):
                 interval=timedelta(minutes=self._cycle_min),
             )
         )
+
+        # init auto_regulation_mode
+        self.choose_auto_regulation_mode(self._auto_regulation_mode)
 
     @overrides
     def restore_specific_previous_state(self, old_state):
@@ -347,6 +447,14 @@ class ThermostatOverClimate(BaseThermostat):
             self._attr_extra_state_attributes[
                 "regulation_accumulated_error"
             ] = self._regulation_algo.accumulated_error
+
+        self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
+        self._attr_extra_state_attributes[
+            "auto_activated_fan_mode"
+        ] = self._auto_activated_fan_mode
+        self._attr_extra_state_attributes[
+            "auto_deactivated_fan_mode"
+        ] = self._auto_deactivated_fan_mode
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -431,6 +539,12 @@ class ThermostatOverClimate(BaseThermostat):
         )
         new_hvac_action = (
             new_state.attributes.get("hvac_action")
+            if new_state and new_state.attributes
+            else None
+        )
+
+        new_fan_mode = (
+            new_state.attributes.get("fan_mode")
             if new_state and new_state.attributes
             else None
         )
@@ -545,6 +659,11 @@ class ThermostatOverClimate(BaseThermostat):
                 for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
 
+        # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
+        if new_fan_mode != self._attr_fan_mode:
+            self._attr_fan_mode = new_fan_mode
+            changes = True
+
         if not changes:
             # try to manage new target temperature set if state
             _LOGGER.debug(
@@ -576,12 +695,20 @@ class ThermostatOverClimate(BaseThermostat):
 
         await self._send_regulated_temperature()
 
+        if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
+            await self._send_auto_fan_mode()
+
         return ret
 
     @property
     def auto_regulation_mode(self):
         """Get the regulation mode"""
         return self._auto_regulation_mode
+
+    @property
+    def auto_fan_mode(self):
+        """Get the auto fan mode"""
+        return self._auto_fan_mode
 
     @property
     def regulated_target_temp(self):
@@ -613,7 +740,8 @@ class ThermostatOverClimate(BaseThermostat):
         Requires ClimateEntityFeature.FAN_MODE.
         """
         if self.underlying_entity(0):
-            return self.underlying_entity(0).fan_mode
+            self._attr_fan_mode = self.underlying_entity(0).fan_mode
+            return self._attr_fan_mode
 
         return None
 
@@ -707,6 +835,31 @@ class ThermostatOverClimate(BaseThermostat):
 
         return None
 
+    @property
+    def is_initialized(self) -> bool:
+        """Check if all underlyings are initialized"""
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
+        return True
+
+    @overrides
+    def init_underlyings(self):
+        """Init the underlyings if not already done"""
+        for under in self._underlyings:
+            if not under.is_initialized:
+                _LOGGER.info(
+                    "%s - Underlying %s is not initialized. Try to initialize it",
+                    self,
+                    under.entity_id,
+                )
+                try:
+                    under.startup()
+                except UnknownEntity:
+                    # still not found, we an stop here
+                    return False
+        self.choose_auto_fan_mode(self._auto_fan_mode)
+
     @overrides
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -792,6 +945,33 @@ class ThermostatOverClimate(BaseThermostat):
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_SLOW)
         elif auto_regulation_mode == "Expert":
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_EXPERT)
+
+        await self._send_regulated_temperature()
+        self.update_custom_attributes()
+
+    async def service_set_auto_fan_mode(self, auto_fan_mode):
+        """Called by a service call:
+        service: versatile_thermostat.set_auto_fan_mode
+        data:
+            auto_fan_mode: [None | Low | Medium | High | Turbo]
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info(
+            "%s - Calling service_set_auto_fan_mode, auto_fan_mode: %s",
+            self,
+            auto_fan_mode,
+        )
+        if auto_fan_mode == "None":
+            self.choose_auto_fan_mode(CONF_AUTO_FAN_NONE)
+        elif auto_fan_mode == "Low":
+            self.choose_auto_fan_mode(CONF_AUTO_FAN_LOW)
+        elif auto_fan_mode == "Medium":
+            self.choose_auto_fan_mode(CONF_AUTO_FAN_MEDIUM)
+        elif auto_fan_mode == "High":
+            self.choose_auto_fan_mode(CONF_AUTO_FAN_HIGH)
+        elif auto_fan_mode == "Turbo":
+            self.choose_auto_fan_mode(CONF_AUTO_FAN_TURBO)
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()

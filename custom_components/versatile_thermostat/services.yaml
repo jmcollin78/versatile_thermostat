@@ -161,3 +161,25 @@ set_auto_regulation_mode:
                         - "Strong"
                         - "Slow"
                         - "Expert"
+
+set_auto_fan_mode:
+    name: Set Auto Fan mode
+    description: Change the mode of auto-fan (only for VTherm over climate)
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        auto_fan_mode:
+            name: Auto fan mode
+            description: Possible values
+            required: true
+            advanced: false
+            default: true
+            selector:
+                select:
+                    options:
+                        - "None"
+                        - "Low"
+                        - "Medium"
+                        - "High"
+                        - "Turbo"

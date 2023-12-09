@@ -40,7 +40,8 @@
           "valve_entity3_id": "Terza valvola",
           "valve_entity4_id": "Quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
-          "inverse_switch_command": "Comando inverso"
+          "inverse_switch_command": "Comando inverso",
+          "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -58,7 +59,8 @@
           "valve_entity3_id": "Entity id della terza valvola",
           "valve_entity4_id": "Entity id della quarta valvola",
           "auto_regulation_mode": "Regolazione automatica della temperatura target",
-          "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo"
+          "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo",
+          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -198,7 +200,8 @@
           "valve_entity3_id": "Terza valvola",
           "valve_entity4_id": "Quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
-          "inverse_switch_command": "Comando inverso"
+          "inverse_switch_command": "Comando inverso",
+          "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -216,7 +219,8 @@
           "valve_entity3_id": "Entity id della terza valvola",
           "valve_entity4_id": "Entity id della quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
-          "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo"
+          "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo",
+          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -332,6 +336,15 @@
         "auto_regulation_light": "Leggera",
         "auto_regulation_expert": "Esperto",
         "auto_regulation_none": "Nessuna autoregolamentazione"
+      }
+    },
+    "auto_fan_mode": {
+      "options": {
+        "auto_fan_none": "Nessune autofan",
+        "auto_fan_low": "Leggera",
+        "auto_fan_medium": "Media",
+        "auto_fan_high": "Forte",
+        "auto_fan_turbo": "Turbo"
       }
     }
   },

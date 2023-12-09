@@ -25,24 +25,25 @@
         "title": "Linked entities",
         "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "1rst heater switch",
+          "heater_entity_id": "1st heater switch",
           "heater_entity2_id": "2nd heater switch",
           "heater_entity3_id": "3rd heater switch",
           "heater_entity4_id": "4th heater switch",
           "proportional_function": "Algorithm",
-          "climate_entity_id": "1rst underlying climate",
+          "climate_entity_id": "1st underlying climate",
           "climate_entity2_id": "2nd underlying climate",
           "climate_entity3_id": "3rd underlying climate",
           "climate_entity4_id": "4th underlying climate",
           "ac_mode": "AC mode",
-          "valve_entity_id": "1rst valve number",
+          "valve_entity_id": "1st valve number",
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
           "valve_entity4_id": "4th valve number",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimal period",
-          "inverse_switch_command": "Inverse switch command"
+          "inverse_switch_command": "Inverse switch command",
+          "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -55,14 +56,15 @@
           "climate_entity3_id": "3rd underlying climate entity id",
           "climate_entity4_id": "4th underlying climate entity id",
           "ac_mode": "Use the Air Conditioning (AC) mode",
-          "valve_entity_id": "1rst valve number entity id",
+          "valve_entity_id": "1st valve number entity id",
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command"
+          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
+          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -75,7 +77,7 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "For each presets, give the target temperature (0 to ignore preset)",
+        "description": "For each preset set the target temperature (0 to ignore preset)",
         "data": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",
@@ -96,16 +98,16 @@
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
         },
         "data_description": {
-          "window_sensor_entity_id": "Leave empty if no window sensor should be use",
+          "window_sensor_entity_id": "Leave empty if no window sensor should be used",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
-          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not use",
-          "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
-          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
+          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
+          "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
+          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used"
         }
       },
       "motion": {
         "title": "Motion management",
-        "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "description": "Motion sensor management. Preset can switch automatically depending on motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
           "motion_delay": "Activation delay",
@@ -115,7 +117,7 @@
         },
         "data_description": {
           "motion_sensor_entity_id": "The entity id of the motion sensor",
-          "motion_delay": "Motion activation activation delay (seconds)",
+          "motion_delay": "Motion activation delay (seconds)",
           "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
           "no_motion_preset": "Preset to use when no motion is detected"
@@ -145,7 +147,7 @@
       },
       "advanced": {
         "title": "Advanced parameters",
-        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
+        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
         "data": {
           "minimal_activation_delay": "Minimal activation delay",
           "security_delay_min": "Security delay (in minutes)",
@@ -154,16 +156,16 @@
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
-          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a security off state",
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a security off state",
           "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security present"
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset"
         }
       }
     },
     "error": {
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
-      "window_open_detection_method": "Only one window open detection method should be used. Use sensor or automatic detection through temperature threshold but not both"
+      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -194,24 +196,25 @@
         "title": "Linked entities",
         "description": "Linked entities attributes",
         "data": {
-          "heater_entity_id": "1rst heater switch",
+          "heater_entity_id": "1st heater switch",
           "heater_entity2_id": "2nd heater switch",
           "heater_entity3_id": "3rd heater switch",
           "heater_entity4_id": "4th heater switch",
           "proportional_function": "Algorithm",
-          "climate_entity_id": "1rst underlying climate",
+          "climate_entity_id": "1st underlying climate",
           "climate_entity2_id": "2nd underlying climate",
           "climate_entity3_id": "3rd underlying climate",
           "climate_entity4_id": "4th underlying climate",
           "ac_mode": "AC mode",
-          "valve_entity_id": "1rst valve number",
+          "valve_entity_id": "1st valve number",
           "valve_entity2_id": "2nd valve number",
           "valve_entity3_id": "3rd valve number",
           "valve_entity4_id": "4th valve number",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimal period",
-          "inverse_switch_command": "Inverse switch command"
+          "inverse_switch_command": "Inverse switch command",
+          "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
@@ -224,14 +227,15 @@
           "climate_entity3_id": "3rd underlying climate entity id",
           "climate_entity4_id": "4th underlying climate entity id",
           "ac_mode": "Use the Air Conditioning (AC) mode",
-          "valve_entity_id": "1rst valve number entity id",
+          "valve_entity_id": "1st valve number entity id",
           "valve_entity2_id": "2nd valve number entity id",
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
+          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command"
+          "inverse_switch_command": "For switch with pilot wire and diode you may need to invert the command",
+          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -244,7 +248,7 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "For each presets, give the target temperature (0 to ignore preset)",
+        "description": "For each preset set the target temperature (0 to ignore preset)",
         "data": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",
@@ -265,11 +269,11 @@
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
         },
         "data_description": {
-          "window_sensor_entity_id": "Leave empty if no window sensor should be use",
+          "window_sensor_entity_id": "Leave empty if no window sensor should be used",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
-          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not use",
-          "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not use",
-          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not use"
+          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
+          "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
+          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used"
         }
       },
       "motion": {
@@ -284,7 +288,7 @@
         },
         "data_description": {
           "motion_sensor_entity_id": "The entity id of the motion sensor",
-          "motion_delay": "Motion activation activation delay (seconds)",
+          "motion_delay": "Motion activation delay (seconds)",
           "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
           "no_motion_preset": "Preset to use when no motion is detected"
@@ -303,7 +307,7 @@
         "title": "Presence management",
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
-          "presence_sensor_entity_id": "Presence sensor entity id (true is present)",
+          "presence_sensor_entity_id": "Presence sensor entity id",
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence",
@@ -314,25 +318,25 @@
       },
       "advanced": {
         "title": "Advanced parameters",
-        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThis parameters can lead to a very bad temperature or power regulation.",
+        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
         "data": {
           "minimal_activation_delay": "Minimal activation delay",
           "security_delay_min": "Security delay (in minutes)",
-          "security_min_on_percent": "Minimal power percent for security mode",
+          "security_min_on_percent": "Minimal power percent to enable security mode",
           "security_default_on_percent": "Power percent to use in security mode"
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
-          "security_delay_min": "Maximum allowed delay in minutes between two temperature mesures. Above this delay, the thermostat will turn to a security off state",
+          "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a security off state",
           "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security present"
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset"
         }
       }
     },
     "error": {
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
-      "window_open_detection_method": "Only one window open detection method should be used. Use sensor or automatic detection through temperature threshold but not both"
+      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -354,6 +358,15 @@
         "auto_regulation_light": "Light",
         "auto_regulation_expert": "Expert",
         "auto_regulation_none": "No auto-regulation"
+      }
+    },
+    "auto_fan_mode": {
+      "options": {
+        "auto_fan_none": "No auto fan",
+        "auto_fan_low": "Low",
+        "auto_fan_medium": "Medium",
+        "auto_fan_high": "High",
+        "auto_fan_turbo": "Turbo"
       }
     }
   },

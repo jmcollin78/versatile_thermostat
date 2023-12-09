@@ -42,7 +42,8 @@
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "inverse_switch_command": "Inverser la commande"
+          "inverse_switch_command": "Inverser la commande",
+          "auto_fan_mode": " Auto ventilation mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -62,7 +63,8 @@
           "auto_regulation_mode": "Ajustement automatique de la température cible",
           "auto_regulation_dtemp": "Le seuil en ° au-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode"
+          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
       },
       "tpi": {
@@ -212,7 +214,8 @@
           "auto_regulation_mode": "Auto-regulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "inverse_switch_command": "Inverser la commande"
+          "inverse_switch_command": "Inverser la commande",
+          "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",
@@ -232,7 +235,8 @@
           "auto_regulation_mode": "Ajustement automatique de la consigne",
           "auto_regulation_dtemp": "Le seuil en ° au-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode"
+          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
       },
       "tpi": {
@@ -355,6 +359,15 @@
         "auto_regulation_light": "Légère",
         "auto_regulation_expert": "Expert",
         "auto_regulation_none": "Aucune"
+      }
+    },
+    "auto_fan_mode": {
+      "options": {
+        "auto_fan_none": "Pas d'auto fan",
+        "auto_fan_low": "Faible",
+        "auto_fan_medium": "Moyenne",
+        "auto_fan_high": "Forte",
+        "auto_fan_turbo": "Turbo"
       }
     }
   },

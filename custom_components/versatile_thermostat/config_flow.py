@@ -107,6 +107,9 @@ from .const import (
     CONF_INVERSE_SWITCH,
     UnknownEntity,
     WindowOpenDetectionMethod,
+    CONF_AUTO_FAN_MODES,
+    CONF_AUTO_FAN_MODE,
+    CONF_AUTO_FAN_HIGH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -275,6 +278,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 vol.Optional(
                     CONF_AUTO_REGULATION_PERIOD_MIN, default=5
                 ): cv.positive_int,
+                vol.Optional(
+                    CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=CONF_AUTO_FAN_MODES,
+                        translation_key="auto_fan_mode",
+                    )
+                ),
             }
         )
 

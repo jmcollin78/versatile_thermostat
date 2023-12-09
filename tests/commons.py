@@ -24,7 +24,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from custom_components.versatile_thermostat.commons import get_tz, NowClass # pylint: disable=unused-import
+from custom_components.versatile_thermostat.commons import (  # pylint: disable=unused-import
+    get_tz,
+    NowClass,
+)
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
@@ -117,47 +120,80 @@ _LOGGER = logging.getLogger(__name__)
 class MockClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, hvac_mode:HVACMode = HVACMode.OFF, hvac_action:HVACAction = HVACAction.OFF) -> None:   # pylint: disable=unused-argument
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,
+        entry_infos={},
+        hvac_mode: HVACMode = HVACMode.OFF,
+        hvac_action: HVACAction = HVACAction.OFF,
+        fan_modes: list[str] = None,
+    ) -> None:
         """Initialize the thermostat."""
 
         super().__init__()
 
         self.hass = hass
-        self.platform = 'climate'
-        self.entity_id= self.platform+'.'+unique_id
+        self.platform = "climate"
+        self.entity_id = self.platform + "." + unique_id
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
-        self._attr_hvac_action = HVACAction.OFF if hvac_mode == HVACMode.OFF else HVACAction.HEATING
+        self._attr_hvac_action = (
+            HVACAction.OFF if hvac_mode == HVACMode.OFF else HVACAction.HEATING
+        )
         self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
         self._attr_hvac_action = hvac_action
+        self._fan_modes = fan_modes if fan_modes else None
+        self._attr_fan_mode = None
+
+    @property
+    def hvac_action(self):
+        """The hvac action of the mock climate"""
+        return self._attr_hvac_action
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        """The list of fan_modes"""
+        return self._fan_modes
+
+    def set_fan_mode(self, fan_mode):
+        """Set the fan mode"""
+        self._attr_fan_mode = fan_mode
+
+    @property
+    def supported_features(self) -> int:
+        """The supported feature of this climate entity"""
+        ret = ClimateEntityFeature.TARGET_TEMPERATURE
+        if self._fan_modes:
+            ret = ret | ClimateEntityFeature.FAN_MODE
+        return ret
 
     def set_temperature(self, **kwargs):
-        """ Set the target temperature"""
+        """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
 
     async def async_set_hvac_mode(self, hvac_mode):
-        """ The hvac mode"""
+        """The hvac mode"""
         self._attr_hvac_mode = hvac_mode
 
-    @property
-    def hvac_action(self):
-        """ The hvac action of the mock climate"""
-        return self._attr_hvac_action
-
     def set_hvac_action(self, hvac_action: HVACAction):
-        """ Set the HVACaction """
+        """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
+
 
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:   # pylint: disable=unused-argument
+    def __init__(
+        self, hass: HomeAssistant, unique_id, name, entry_infos
+    ) -> None:  # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()
@@ -170,6 +206,8 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_hvac_mode = None
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_fan_mode = None
+
 
 class MagicMockClimate(MagicMock):
     """A Magic Mock class for a underlying climate entity"""
@@ -325,9 +363,7 @@ async def send_ext_temperature_change_event(
         await asyncio.sleep(0.1)
 
 
-async def send_power_change_event(
-    entity: BaseThermostat, new_power, date, sleep=True
-):
+async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep=True):
     """Sending a new power event simulating a change on power sensor"""
     _LOGGER.info(
         "------- Testu: sending send_temperature_change_event, new_power=%.2f date=%s on %s",
@@ -478,6 +514,7 @@ async def send_presence_change_event(
         await asyncio.sleep(0.1)
     return ret
 
+
 async def send_climate_change_event(
     entity: BaseThermostat,
     new_hvac_mode: HVACMode,
@@ -520,6 +557,7 @@ async def send_climate_change_event(
     if sleep:
         await asyncio.sleep(0.1)
     return ret
+
 
 async def send_climate_change_event_with_temperature(
     entity: BaseThermostat,
