@@ -29,7 +29,8 @@
 				"donjayamanne.githistory",
 				"waderyan.gitblame",
 				"keesschollaart.vscode-home-assistant",
-				"vscode.markdown-math"
+				"vscode.markdown-math",
+				"yzhang.markdown-all-in-one"
 			],
 			// "mounts": [
 			//	"source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=${localWorkspaceFolder}/config/www/community/,type=bind,consistency=cached",

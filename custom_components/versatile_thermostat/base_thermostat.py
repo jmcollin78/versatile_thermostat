@@ -102,7 +102,6 @@ from .const import (
     CONF_TEMP_MIN,
     HIDDEN_PRESETS,
     CONF_AC_MODE,
-    UnknownEntity,
     EventType,
     ATTR_MEAN_POWER_CYCLE,
     ATTR_TOTAL_ENERGY,
@@ -259,6 +258,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._ema_temp = None
         self._ema_algo = None
         self._now = None
+
+        self._attr_fan_mode = None
         self.post_init(entry_infos)
 
     def post_init(self, entry_infos):
@@ -555,11 +556,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self.async_on_remove(self.remove_thermostat)
 
-        try:
-            await self.async_startup()
-        except UnknownEntity:
-            # Ingore this error which is possible if underlying climate is not found temporary
-            pass
+        await self.async_startup()
 
     def remove_thermostat(self):
         """Called when the thermostat will be removed"""
@@ -577,12 +574,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             need_write_state = False
 
             # Initialize all UnderlyingEntities
-            for under in self._underlyings:
-                try:
-                    under.startup()
-                except UnknownEntity:
-                    # Not found, we will try later
-                    pass
+            self.init_underlyings()
 
             temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
             if temperature_state and temperature_state.state not in (
@@ -722,6 +714,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self.hass.bus.async_listen_once(
                 EVENT_HOMEASSISTANT_START, _async_startup_internal
             )
+
+    def init_underlyings(self):
+        """Initialize all underlyings. Should be overriden if necessary"""
 
     def restore_specific_previous_state(self, old_state):
         """Should be overriden in each specific thermostat
@@ -2089,6 +2084,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         return shouldBeInSecurity
 
+    @property
+    def is_initialized(self) -> bool:
+        """Check if all underlyings are initialized
+        This is usefull only for over_climate in which we
+        should have found the underlying climate to be operational"""
+        return True
+
     async def async_control_heating(self, force=False, _=None):
         """The main function used to run the calculation at each cycle"""
 
@@ -2104,18 +2106,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         await self._async_manage_window_auto(in_cycle=True)
 
         # Issue 56 in over_climate mode, if the underlying climate is not initialized, try to initialize it
-        for under in self._underlyings:
-            if not under.is_initialized:
-                _LOGGER.info(
-                    "%s - Underlying %s is not initialized. Try to initialize it",
-                    self,
-                    under.entity_id,
-                )
-                try:
-                    under.startup()
-                except UnknownEntity:
-                    # still not found, we an stop here
-                    return False
+        if not self.is_initialized:
+            if not self.init_underlyings():
+                # still not found, we an stop here
+                return False
 
         # Check overpowering condition
         # Not necessary for switch because each switch is checking at startup

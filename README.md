@@ -23,6 +23,7 @@
     - [For a thermostat of type ```thermostat_over_climate```:](#for-a-thermostat-of-type-thermostat_over_climate)
       - [Self-regulation](#self-regulation)
       - [Self-regulation in Expert mode](#self-regulation-in-expert-mode)
+      - [Auto-fan mode](#auto-fan-mode)
     - [For a thermostat of type ```thermostat_over_valve```:](#for-a-thermostat-of-type-thermostat_over_valve)
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
   - [Configure the preset temperature](#configure-the-preset-temperature)
@@ -54,7 +55,7 @@
   - [Much better with the Veersatile Thermostat UI Card](#much-better-with-the-veersatile-thermostat-ui-card)
   - [Even Better with Scheduler Component !](#even-better-with-scheduler-component-)
   - [Even-even better with custom:simple-thermostat front integration](#even-even-better-with-customsimple-thermostat-front-integration)
-  - [Even better with Apex-chart to tune your Thermostat](#even-better-with-apex-chart-to-tune-your-thermostat)
+  - [Even better with Plotly to tune your Thermostat](#even-better-with-plotly-to-tune-your-thermostat)
   - [And always better and better with the NOTIFIER daemon app to notify events](#and-always-better-and-better-with-the-notifier-daemon-app-to-notify-events)
 - [Contributions are welcome!](#contributions-are-welcome)
 - [Troubleshooting](#troubleshooting)
@@ -67,7 +68,8 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/ issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
+> * **Release 4.3**: Added an auto-fan mode for the `over_climate` type allowing ventilation to be activated if the temperature difference is significant [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
+> * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
 > * **Release 4.1**: Added an **Expert** regulation mode in which the user can specify their own auto-regulation parameters instead of using the pre-programmed ones [#194]( https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0**: Added the support of **Versatile Thermostat UI Card**. See [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Added a **Slow** regulation mode for slow latency heating devices [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Change the way **the power is calculated** in case of VTherm with multi-underlying equipements [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Added the support of AC and Heat for VTherm over switch alse [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Added a **self-regulation function** for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of **inverting the command** for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
@@ -310,6 +312,14 @@ versatile_thermostat:
 and of course, configure the VTherm's self-regulation mode in **Expert** mode. All VTherms in Expert mode will use these same settings.
 
 For the changes to be taken into account, you must either **completely restart Home Assistant** or just the **Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat).
+
+#### Auto-fan mode
+This mode introduced in 4.3 makes it possible to force the use of ventilation if the temperature difference is significant. In fact, by activating ventilation, distribution occurs more quickly, which saves time in reaching the target temperature.
+You can choose which ventilation you want to activate between the following settings: Low, Medium, High, Turbo.
+
+Obviously your underlying equipment must be equipped with ventilation and be controllable for this to work.
+If your equipment does not include Turbo mode, Forte` mode will be used as a replacement.
+Once the temperature difference becomes low again, the ventilation will go into a "normal" mode which depends on your equipment, namely (in order): `Silence (mute)`, `Auto (auto)`, `Low (low)`. The first value that is possible for your equipment will be chosen.
 
 ### For a thermostat of type ```thermostat_over_valve```:
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
@@ -884,53 +894,73 @@ You can customize this component using the HACS card-mod component to adjust the
 ```
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/custom-css-thermostat.png?raw=true)
 
-## Even better with Apex-chart to tune your Thermostat
-You can get curve like presented in [some results](#some-results) with kind of Apex-chart configuration only using the custom attributes of the thermostat described [here](#custom-attributes):
+## Even better with Plotly to tune your Thermostat
+You can get curve like presented in [some results](#some-results) with kind of Plotly configuration only using the custom attributes of the thermostat described [here](#custom-attributes):
 
+Replace values in [[ ]] by yours.
 ```
-type: custom:apexcharts-card
-header:
-  show: true
-  title: Tuning chauffage
-  show_states: true
-  colorize_states: true
-update_interval: 60sec
-graph_span: 4h
-yaxis:
-  - id: left
-    show: true
-    decimals: 2
-  - id: right
-    decimals: 2
-    show: true
-    opposite: true
-series:
-  - entity: climate.thermostat_mythermostat
-    attribute: temperature
-    type: line
-    name: Target temp
-    curve: smooth
-    yaxis_id: left
-  - entity: climate.thermostat_mythermostat
-    attribute: current_temperature
-    name: Current temp
-    curve: smooth
-    yaxis_id: left
-  - entity: climate.thermostat_mythermostat    <--- for over_switch
-    attribute: on_percent
-    name: Power percent
-    curve: stepline
-    yaxis_id: right
-  - entity: climate.thermostat_mythermostat    <--- for over_thermostast
-    attribute: regulated_target_temperature
-    name: Regulated temperature
-    curve: stepline
-    yaxis_id: left
-  - entity: climate.thermostat_mythermostat    <--- for over_valve
-    attribute: valve_open_percent
-    name: Valve open percent
-    curve: stepline
-    yaxis_id: right
+- type: custom:plotly-graph
+  entities:
+    - entity: '[[climate]]'
+      attribute: temperature
+      yaxis: y1
+      name: Consigne
+    - entity: '[[climate]]'
+      attribute: current_temperature
+      yaxis: y1
+      name: T°
+    - entity: '[[climate]]'
+      attribute: ema_temp
+      yaxis: y1
+      name: Ema
+    - entity: '[[climate]]'
+      attribute: regulated_target_temperature
+      yaxis: y1
+      name: Regulated T°
+    - entity: '[[slope]]'
+      name: Slope
+      fill: tozeroy
+      yaxis: y9
+      fillcolor: rgba(100, 100, 100, 0.3)
+      line:
+        color: rgba(100, 100, 100, 0.9)
+  hours_to_show: 4
+  refresh_interval: 10
+  height: 800
+  config:
+    scrollZoom: true
+  layout:
+    margin:
+      r: 50
+    legend:
+      x: 0
+      'y': 1.2
+      groupclick: togglegroup
+      title:
+        side: top right
+    yaxis:
+      visible: true
+      position: 0
+    yaxis9:
+      visible: true
+      fixedrange: false
+      range:
+        - -0.5
+        - 0.5
+      position: 1
+    xaxis:
+      rangeselector:
+        'y': 1.1
+        x: 0.7
+        buttons:
+          - count: 1
+            step: hour
+          - count: 12
+            step: hour
+          - count: 1
+            step: day
+          - count: 7
+            step: day
 ```
 
 ## And always better and better with the NOTIFIER daemon app to notify events

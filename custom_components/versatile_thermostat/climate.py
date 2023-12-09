@@ -15,7 +15,13 @@ from homeassistant.helpers.reload import async_setup_reload_service
 
 from homeassistant.helpers import entity_platform
 
-from homeassistant.const import CONF_NAME, STATE_ON, STATE_OFF, STATE_HOME, STATE_NOT_HOME
+from homeassistant.const import (
+    CONF_NAME,
+    STATE_ON,
+    STATE_OFF,
+    STATE_HOME,
+    STATE_NOT_HOME,
+)
 
 from .const import (
     DOMAIN,
@@ -26,10 +32,11 @@ from .const import (
     SERVICE_SET_SECURITY,
     SERVICE_SET_WINDOW_BYPASS,
     SERVICE_SET_AUTO_REGULATION_MODE,
+    SERVICE_SET_AUTO_FAN_MODE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
-    CONF_THERMOSTAT_VALVE
+    CONF_THERMOSTAT_VALVE,
 )
 
 from .thermostat_switch import ThermostatOverSwitch
@@ -102,8 +109,7 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         SERVICE_SET_WINDOW_BYPASS,
         {
-            vol.Required("window_bypass"): vol.In([True, False]
-            ),
+            vol.Required("window_bypass"): vol.In([True, False]),
         },
         "service_set_window_bypass_state",
     )
@@ -111,7 +117,19 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         SERVICE_SET_AUTO_REGULATION_MODE,
         {
-            vol.Required("auto_regulation_mode"): vol.In(["None", "Light", "Medium", "Strong", "Slow"]),
+            vol.Required("auto_regulation_mode"): vol.In(
+                ["None", "Light", "Medium", "Strong", "Slow"]
+            ),
         },
         "service_set_auto_regulation_mode",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_AUTO_FAN_MODE,
+        {
+            vol.Required("auto_fan_mode"): vol.In(
+                ["None", "Low", "Medium", "High", "Turbo"]
+            ),
+        },
+        "service_set_auto_fan_mode",
     )
