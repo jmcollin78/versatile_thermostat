@@ -17,8 +17,11 @@ from custom_components.versatile_thermostat.thermostat_valve import ThermostatOv
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_state):   # pylint: disable=unused-argument
+async def test_over_valve_full_start(
+    hass: HomeAssistant, skip_hass_states_is_state
+):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -34,6 +37,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
+            PRESET_FROST_PROTECTION + "_temp": 7,
             PRESET_ECO + "_temp": 17,
             PRESET_COMFORT + "_temp": 19,
             PRESET_BOOST + "_temp": 21,
@@ -54,6 +58,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             CONF_POWER_SENSOR: "sensor.power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
+            PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX + "_temp": 7,
             PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 17.1,
             PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17.2,
             PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 17.3,
@@ -62,7 +67,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
-            CONF_AC_MODE: False
+            CONF_AC_MODE: False,
         },
     )
 
@@ -100,17 +105,18 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False             # pylint: disable=protected-access
-        assert entity._window_state is None       # pylint: disable=protected-access
-        assert entity._motion_state is None       # pylint: disable=protected-access
-        assert entity._presence_state is None       # pylint: disable=protected-access
-        assert entity._prop_algorithm is not None       # pylint: disable=protected-access
+        assert entity._security_state is False  # pylint: disable=protected-access
+        assert entity._window_state is None  # pylint: disable=protected-access
+        assert entity._motion_state is None  # pylint: disable=protected-access
+        assert entity._presence_state is None  # pylint: disable=protected-access
+        assert entity._prop_algorithm is not None  # pylint: disable=protected-access
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -147,11 +153,10 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
 
         # set manual target temp
         await entity.async_set_temperature(temperature=18)
-        assert entity.preset_mode == PRESET_NONE # Manual mode
+        assert entity.preset_mode == PRESET_NONE  # Manual mode
         assert entity.target_temperature == 18
         # Nothing have changed cause we don't have room and external temperature
         assert mock_send_event.call_count == 1
-
 
     # Set temperature and external temperature
     with patch(
@@ -159,7 +164,8 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
     ) as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.get", return_value=State(entity_id="number.mock_valve", state="90")
+        "homeassistant.core.StateMachine.get",
+        return_value=State(entity_id="number.mock_valve", state="90"),
     ):
         # Change temperature
         event_timestamp = now - timedelta(minutes=10)
@@ -172,10 +178,20 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.hvac_action == HVACAction.HEATING
 
         assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls([
-            call.async_call('number', 'set_value', {'entity_id': 'number.mock_valve', 'value': 90}),
-            call.async_call('number', 'set_value', {'entity_id': 'number.mock_valve', 'value': 98})
-        ])
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "number",
+                    "set_value",
+                    {"entity_id": "number.mock_valve", "value": 90},
+                ),
+                call.async_call(
+                    "number",
+                    "set_value",
+                    {"entity_id": "number.mock_valve", "value": 98},
+                ),
+            ]
+        )
 
         assert mock_send_event.call_count == 0
 
@@ -190,10 +206,10 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         # Change presence to on
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)
-        assert entity.presence_state == STATE_ON   # pylint: disable=protected-access
+        assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
         assert entity.preset_mode is PRESET_COMFORT
         assert entity.target_temperature == 19
-        assert entity.valve_open_percent == 100 # Full heating
+        assert entity.valve_open_percent == 100  # Full heating
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
@@ -211,7 +227,6 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.is_device_active is False
         assert entity.hvac_action == HVACAction.IDLE
 
-
         await send_temperature_change_event(entity, 17, datetime.now())
         # switch to Eco
         await entity.async_set_preset_mode(PRESET_ECO)
@@ -222,38 +237,41 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         # Unset the presence
         event_timestamp = now - timedelta(minutes=2)
         await send_presence_change_event(entity, False, True, event_timestamp)
-        assert entity.presence_state == STATE_OFF   # pylint: disable=protected-access
+        assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.valve_open_percent == 10
-        assert entity.target_temperature == 17.1 # eco_away
+        assert entity.target_temperature == 17.1  # eco_away
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
         # Open a window
-        with patch(
-            "homeassistant.helpers.condition.state", return_value=True
-        ):
+        with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=1)
-            try_condition = await send_window_change_event(entity, True, False, event_timestamp)
+            try_condition = await send_window_change_event(
+                entity, True, False, event_timestamp
+            )
 
             # Confirme the window event
             await try_condition(None)
 
             assert entity.hvac_mode is HVACMode.OFF
             assert entity.hvac_action is HVACAction.OFF
-            assert entity.target_temperature == 17.1 # eco
+            assert entity.target_temperature == 17.1  # eco
             assert entity.valve_open_percent == 0
 
         # Close a window
-        with patch(
-            "homeassistant.helpers.condition.state", return_value=True
-        ):
+        with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=0)
-            try_condition = await send_window_change_event(entity, False, True, event_timestamp)
+            try_condition = await send_window_change_event(
+                entity, False, True, event_timestamp
+            )
 
             # Confirme the window event
             await try_condition(None)
 
             assert entity.hvac_mode is HVACMode.HEAT
-            assert (entity.hvac_action is HVACAction.OFF or entity.hvac_action is HVACAction.IDLE)
-            assert entity.target_temperature == 17.1 # eco
+            assert (
+                entity.hvac_action is HVACAction.OFF
+                or entity.hvac_action is HVACAction.IDLE
+            )
+            assert entity.target_temperature == 17.1  # eco
             assert entity.valve_open_percent == 10

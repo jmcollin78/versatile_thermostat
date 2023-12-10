@@ -61,6 +61,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,
@@ -130,6 +131,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,
@@ -194,6 +196,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,
@@ -249,6 +252,7 @@ async def test_over_switch_deactivate_preset(
             CONF_CYCLE_MIN: 8,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
+            "frost_temp": 0,
             "eco_temp": 17,
             "comfort_temp": 0,
             "boost_temp": 19,
@@ -273,6 +277,7 @@ async def test_over_switch_deactivate_preset(
 
     assert entity.preset_modes == [
         PRESET_NONE,
+        # PRESET_FROST_PROTECTION,
         PRESET_ECO,
         # PRESET_COMFORT,
         PRESET_BOOST,

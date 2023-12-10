@@ -272,6 +272,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         )
 
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
+        self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
+        self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
+
         # convert entry_infos into usable attributes
         presets = {}
         items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
@@ -281,6 +284,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 presets[key] = entry_infos.get(value)
             else:
                 _LOGGER.debug("value %s not found in Entry", value)
+                presets[key] = (
+                    self._attr_max_temp if self._ac_mode else self._attr_min_temp
+                )
 
         presets_away = {}
         items = (
@@ -294,6 +300,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 presets_away[key] = entry_infos.get(value)
             else:
                 _LOGGER.debug("value %s not found in Entry", value)
+                presets_away[key] = (
+                    self._attr_max_temp if self._ac_mode else self._attr_min_temp
+                )
 
         if self._window_call_cancel is not None:
             self._window_call_cancel()
@@ -310,8 +319,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
-        self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
-        self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
         # Default value not configurable
         self._attr_target_temperature_step = 0.1
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)

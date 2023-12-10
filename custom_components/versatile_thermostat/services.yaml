@@ -43,6 +43,7 @@ set_preset_temperature:
                         - "eco"
                         - "comfort"
                         - "boost"
+                        - "frost"
                         - "eco_ac"
                         - "comfort_ac"
                         - "boost_ac"

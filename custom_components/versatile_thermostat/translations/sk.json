@@ -82,6 +82,7 @@
           "eco_temp": "Teplota v predvoľbe Eco",
           "comfort_temp": "Prednastavená teplota v komfortnom režime",
           "boost_temp": "Teplota v prednastavení Boost",
+          "frost_temp": "Teplota v prednastavení Frost protection",
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
           "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
@@ -140,6 +141,7 @@
           "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
           "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
           "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "frost_away_temp": "Prednastavená teplota v režime Frost protection, keď nie je prítomný",
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
           "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
@@ -253,6 +255,7 @@
           "eco_temp": "Teplota v predvoľbe Eco",
           "comfort_temp": "Prednastavená teplota v komfortnom režime",
           "boost_temp": "Teplota v prednastavení Boost",
+          "frost_temp": "Teplota v prednastavení Frost protection",
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
           "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
@@ -311,6 +314,7 @@
           "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
           "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
           "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "frost_away_temp": "Prednastavená teplota v režime Frost protection, keď nie je prítomný",
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
           "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"

@@ -79,9 +79,19 @@
         "title": "Presets",
         "description": "For each preset set the target temperature (0 to ignore preset)",
         "data": {
+          "eco_temp": "Eco preset",
+          "comfort_temp": "Comfort preset",
+          "boost_temp": "Boost preset",
+          "frost_temp": "Frost protection preset",
+          "eco_ac_temp": "Eco preset for AC mode",
+          "comfort_ac_temp": "Comfort preset for AC mode",
+          "boost_ac_temp": "Boost preset for AC mode"
+        },
+        "data_description": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",
           "boost_temp": "Temperature in Boost preset",
+          "frost_temp": "Temperature in Frost protection preset",
           "eco_ac_temp": "Temperature in Eco preset for AC mode",
           "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
           "boost_ac_temp": "Temperature in Boost preset for AC mode"
@@ -136,10 +146,21 @@
         "title": "Presence management",
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
+          "presence_sensor_entity_id": "Presence sensor",
+          "eco_away_temp": "Eco preset",
+          "comfort_away_temp": "Comfort preset",
+          "boost_away_temp": "Boost preset",
+          "frost_away_temp": "Frost protection preset",
+          "eco_ac_away_temp": "Eco preset in AC mode",
+          "comfort_ac_away_temp": "Comfort preset in AC mode",
+          "boost_ac_away_temp": "Boost pres et in AC mode"
+        },
+        "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id",
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence",
+          "frost_away_temp": "Temperature in Frost protection preset when no presence",
           "eco_ac_away_temp": "Temperature in Eco preset when no presence in AC mode",
           "comfort_ac_away_temp": "Temperature in Comfort preset when no presence in AC mode",
           "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode"
@@ -250,9 +271,19 @@
         "title": "Presets",
         "description": "For each preset set the target temperature (0 to ignore preset)",
         "data": {
+          "eco_temp": "Eco preset",
+          "comfort_temp": "Comfort preset",
+          "boost_temp": "Boost preset",
+          "frost_temp": "Frost protection preset",
+          "eco_ac_temp": "Eco preset for AC mode",
+          "comfort_ac_temp": "Comfort preset for AC mode",
+          "boost_ac_temp": "Boost preset for AC mode"
+        },
+        "data_description": {
           "eco_temp": "Temperature in Eco preset",
           "comfort_temp": "Temperature in Comfort preset",
           "boost_temp": "Temperature in Boost preset",
+          "frost_temp": "Temperature in Frost protection preset",
           "eco_ac_temp": "Temperature in Eco preset for AC mode",
           "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
           "boost_ac_temp": "Temperature in Boost preset for AC mode"

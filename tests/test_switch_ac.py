@@ -12,13 +12,18 @@ from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DO
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_is_state):   # pylint: disable=unused-argument
+async def test_over_switch_ac_full_start(
+    hass: HomeAssistant, skip_hass_states_is_state
+):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -52,7 +57,7 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         assert isinstance(entity, ThermostatOverSwitch)
 
         assert entity.name == "TheOverSwitchMockName"
-        assert entity.is_over_climate is False     # pylint: disable=protected-access
+        assert entity.is_over_climate is False  # pylint: disable=protected-access
         assert entity.ac_mode is True
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
@@ -60,17 +65,18 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False             # pylint: disable=protected-access
-        assert entity._window_state is None       # pylint: disable=protected-access
-        assert entity._motion_state is None       # pylint: disable=protected-access
-        assert entity._presence_state is None       # pylint: disable=protected-access
-        assert entity._prop_algorithm is not None       # pylint: disable=protected-access
+        assert entity._security_state is False  # pylint: disable=protected-access
+        assert entity._window_state is None  # pylint: disable=protected-access
+        assert entity._motion_state is None  # pylint: disable=protected-access
+        assert entity._presence_state is None  # pylint: disable=protected-access
+        assert entity._prop_algorithm is not None  # pylint: disable=protected-access
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -91,7 +97,7 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
 
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)
-        assert entity._presence_state == STATE_ON   # pylint: disable=protected-access
+        assert entity._presence_state == STATE_ON  # pylint: disable=protected-access
 
         await entity.async_set_hvac_mode(HVACMode.COOL)
         assert entity.hvac_mode is HVACMode.COOL
@@ -108,36 +114,39 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         # Unset the presence
         event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, False, True, event_timestamp)
-        assert entity._presence_state == STATE_OFF   # pylint: disable=protected-access
-        assert entity.target_temperature == 27 # eco_ac_away
+        assert entity._presence_state == STATE_OFF  # pylint: disable=protected-access
+        assert entity.target_temperature == 27  # eco_ac_away
 
         # Open a window
-        with patch(
-            "homeassistant.helpers.condition.state", return_value=True
-        ):
+        with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=2)
-            try_condition = await send_window_change_event(entity, True, False, event_timestamp)
+            try_condition = await send_window_change_event(
+                entity, True, False, event_timestamp
+            )
 
             # Confirme the window event
             await try_condition(None)
 
             assert entity.hvac_mode is HVACMode.OFF
             assert entity.hvac_action is HVACAction.OFF
-            assert entity.target_temperature == 16 # eco_ac_away
+            assert entity.target_temperature == 16  # eco_ac_away
 
         # Close a window
-        with patch(
-            "homeassistant.helpers.condition.state", return_value=True
-        ):
+        with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=2)
-            try_condition = await send_window_change_event(entity, False, True, event_timestamp)
+            try_condition = await send_window_change_event(
+                entity, False, True, event_timestamp
+            )
 
             # Confirme the window event
             await try_condition(None)
 
             assert entity.hvac_mode is HVACMode.COOL
-            assert (entity.hvac_action is HVACAction.OFF or entity.hvac_action is HVACAction.IDLE)
-            assert entity.target_temperature == 27 # eco_ac_away
+            assert (
+                entity.hvac_action is HVACAction.OFF
+                or entity.hvac_action is HVACAction.IDLE
+            )
+            assert entity.target_temperature == 27  # eco_ac_away
 
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode is HVACMode.HEAT
@@ -156,4 +165,3 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         await entity.async_set_preset_mode(PRESET_BOOST)
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 18
-
