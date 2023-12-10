@@ -180,6 +180,9 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
             "eco_temp": 17,
             "comfort_temp": 18,
             "boost_temp": 19,
+            "eco_ac_temp": 25,
+            "comfort_ac_temp": 23,
+            "boost_ac_temp": 21,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
@@ -189,6 +192,7 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
         },
     )
 
@@ -235,6 +239,7 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         assert entity.hvac_mode == HVACMode.HEAT
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.preset_mode == PRESET_COMFORT
+        assert entity.target_temperature == 18
 
         # Change the current temperature to 16 which is 2° under
         await send_temperature_change_event(entity, 16, now, True)
@@ -283,3 +288,59 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
 
         assert mock_send_fan_mode.call_count == 0
         assert entity.fan_mode == "mute"
+
+    # 6. Set temperature very high above the target
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        fake_underlying_climate.set_fan_mode("mute")
+
+        # Change the current temperature to 17 which is 1° under
+        await send_temperature_change_event(entity, 21, now, True)
+
+        assert mock_send_fan_mode.call_count == 0
+        assert entity.fan_mode == "mute"
+
+    # 7. In AC mode, set temperature very high under the target
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.async_set_hvac_mode(HVACMode.COOL)
+        assert entity.hvac_mode == HVACMode.COOL
+        assert entity.preset_mode == PRESET_COMFORT
+        assert entity.target_temperature == 23
+
+        assert entity.current_temperature == 21
+
+        fake_underlying_climate.set_fan_mode("mute")
+
+        # Change the current temperature to 17 which is 1° under
+        await send_temperature_change_event(entity, 20, now, True)
+
+        assert mock_send_fan_mode.call_count == 0
+        assert entity.fan_mode == "mute"
+
+    # 8. In AC mode, set temperature not so high above the target
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        assert entity.target_temperature == 23
+        await send_temperature_change_event(entity, 24, now, True)
+        assert entity.current_temperature == 24
+        fake_underlying_climate.set_fan_mode("mute")
+
+        assert mock_send_fan_mode.call_count == 0
+        assert entity.fan_mode == "mute"
+
+    # 8. In AC mode, set temperature high above the target
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        assert entity.target_temperature == 23
+        await send_temperature_change_event(entity, 25.1, now, True)
+        assert entity.current_temperature == 25.1
+        fake_underlying_climate.set_fan_mode("turbo")
+
+        assert mock_send_fan_mode.call_count == 1
+        mock_send_fan_mode.assert_has_calls([call.set_fan_mode("turbo")])
+        assert entity.fan_mode == "turbo"

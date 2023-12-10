@@ -9,7 +9,11 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
 )
 
-from homeassistant.components.climate import HVACAction, HVACMode, ClimateEntityFeature
+from homeassistant.components.climate import (
+    HVACAction,
+    HVACMode,
+    ClimateEntityFeature,
+)
 
 from .commons import NowClass, round_to_nearest
 from .base_thermostat import BaseThermostat
@@ -194,6 +198,16 @@ class ThermostatOverClimate(BaseThermostat):
         should_activate_auto_fan = (
             dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
         )
+
+        # deal with ac / non ac mode
+        hvac_mode = self.hvac_mode
+        if (
+            (hvac_mode == HVACMode.COOL and dtemp > 0)
+            or (hvac_mode == HVACMode.HEAT and dtemp < 0)
+            or (hvac_mode == HVACMode.OFF)
+        ):
+            should_activate_auto_fan = False
+
         if should_activate_auto_fan and self.fan_mode != self._auto_activated_fan_mode:
             _LOGGER.info(
                 "%s - Activate the auto fan mode with %s because delta temp is %.2f",
