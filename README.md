@@ -48,7 +48,7 @@
   - [Change the temperature of presets](#change-the-temperature-of-presets)
   - [Change security settings](#change-security-settings)
   - [ByPass Window Check](#bypass-window-check)
-- [Notifications](#notifications)
+- [Events](#events)
 - [Custom attributes](#custom-attributes)
 - [Some results](#some-results)
 - [Even better](#even-better)
@@ -63,6 +63,10 @@
   - [Using a Heatsink with a Pilot Wire](#using-a-heatsink-with-a-pilot-wire)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
   - [Adjust window opening detection parameters in auto mode](#adjust-window-opening-detection-parameters-in-auto-mode)
+  - [Why does my Versatile Thermostat go into Safety?](#why-does-my-versatile-thermostat-go-into-safety)
+    - [How to detect security mode?](#how-to-detect-security-mode)
+    - [How can I be notified when this happens?](#how-can-i-be-notified-when-this-happens)
+    - [How to repair?](#how-to-repair)
 
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
@@ -479,70 +483,70 @@ See [example tuning](#examples-tuning) for common tuning examples
 
 ## Parameters synthesis
 
-| Paramètre | Libellé | "over switch" | "over climate" | "over valve" |
-| ----------| --------| --- | --- | -- |
-| ``name`` | Name | X | X | X |
-| ``thermostat_type`` | Thermostat type | X | X | X |
-| ``temperature_sensor_entity_id`` | Temperature sensor entity id | X | X (self-regulation) | X |
-| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id | X | X (self-regulation) | X |
-| ``cycle_min`` | Cycle duration (minutes) | X | X | X |
-| ``temp_min`` | Minimal temperature allowed | X | X | X |
-| ``temp_max`` | Maximal temperature allowed | X | X | X |
-| ``device_power`` | Device power | X | X | X |
-| ``use_window_feature`` | Use window detection | X | X | X |
-| ``use_motion_feature`` | Use motion detection | X | X | X |
-| ``use_power_feature`` | Use power management | X | X | X |
-| ``use_presence_feature`` | Use presence detection | X | X | X |
-| ``heater_entity1_id`` | 1rst heater switch | X | - | - |
-| ``heater_entity2_id`` | 2nd heater switch | X | - | - |
-| ``heater_entity3_id`` | 3rd heater switch | X | - | - |
-| ``heater_entity4_id`` | 4th heater switch | X | - | - |
-| ``proportional_function`` | Algorithm | X | - | X |
-| ``climate_entity1_id`` | 1rst underlying climate | - | X | - |
-| ``climate_entity2_id`` | 2nd underlying climate | - | X | - |
-| ``climate_entity3_id`` | 3rd underlying climate | - | X | - |
-| ``climate_entity4_id`` | 4th underlying climate | - | X | - |
-| ``valve_entity1_id`` | 1rst underlying valve | - | - | X |
-| ``valve_entity2_id`` | 2nd underlying valve | - | - | X |
-| ``valve_entity3_id`` | 3rd underlying valve | - | - | X |
-| ``valve_entity4_id`` | 4th underlying valve | - | - | X |
-| ``ac_mode`` | Use the Air Conditioning (AC) mode | X | X | X |
-| ``tpi_coef_int`` | Coefficient to use for internal temperature delta | X | - | X |
-| ``tpi_coef_ext`` | Coefficient to use for external temperature delta | X | - | X |
-| ``eco_temp`` | Temperature in Eco preset | X | X | X |
-| ``comfort_temp`` | Temperature in Comfort preset | X | X | X |
-| ``boost_temp`` | Temperature in Boost preset | X | X | X |
-| ``eco_ac_temp`` | Temperature in Eco preset for AC mode | X | X | X |
-| ``comfort_ac_temp`` | Temperature in Comfort preset for AC mode | X | X | X |
-| ``boost_ac_temp`` | Temperature in Boost preset for AC mode | X | X | X |
-| ``window_sensor_entity_id`` | Window sensor entity id |  X | X | X |
-| ``window_delay`` | Window sensor delay (seconds) | X | X | X |
-| ``window_auto_open_threshold`` | Temperature decrease threshold for automatic window open detection (in °/min) | X | X | X |
-| ``window_auto_close_threshold`` | Temperature increase threshold for end of automatic detection (in °/min) | X | X | X |
-| ``window_auto_max_duration`` | Maximum duration of automatic window open detection (in min) | X | X | X |
-| ``motion_sensor_entity_id`` | Motion sensor entity id | X | X | X |
-| ``motion_delay`` | Delay before considering the motion (seconds) | X | X | X |
-| ``motion_off_delay`` | Delay before considering the end of motion (seconds) | X | X | X |
-| ``motion_preset`` | Preset to use when motion is detected | X | X | X |
-| ``no_motion_preset`` | Preset to use when no motion is detected | X | X | X |
-| ``power_sensor_entity_id`` | Power sensor entity id | X | X | X |
-| ``max_power_sensor_entity_id`` | Max power sensor entity id | X | X | X |
-| ``power_temp`` | Temperature for Power shedding | X | X | X |
-| ``presence_sensor_entity_id`` | Presence sensor entity id | X | X | X |
-| ``eco_away_temp`` | Temperature in Eco preset when no presence | X | X | X |
-| ``comfort_away_temp`` | Temperature in Comfort preset when no presence | X | X | X |
-| ``boost_away_temp`` | Temperature in Boost preset when no presence | X | X | X |
-| ``eco_ac_away_temp`` | Temperature in Eco preset when no presence in AC mode | X | X | X |
-| ``comfort_ac_away_temp`` | Temperature in Comfort preset when no presence in AC mode | X | X | X |
-| ``boost_ac_away_temp`` | Temperature in Boost preset when no presence in AC mode | X | X | X |
-| ``minimal_activation_delay`` | Minimal activation delay | X | - | X |
-| ``security_delay_min`` | Security delay (in minutes) | X | - | X |
-| ``security_min_on_percent`` | Minimal power percent to enable security mode | X | - | X |
-| ``security_default_on_percent`` | Power percent to use in security mode | X | - | X |
-| ``auto_regulation_mode`` | Le mode d'auto-régulation | - | X | - |
-| ``auto_regulation_dtemp`` | La seuil d'auto-régulation | - | X | - |
-| ``auto_regulation_period_min`` | La période minimale d'auto-régulation | - | X | - |
-| ``inverse_switch_command`` | Inverse the switch command (for pilot wire switch) | X | - | - |
+| Paramètre                                 | Libellé                                                                       | "over switch" | "over climate"      | "over valve" |
+| ----------------------------------------- | ----------------------------------------------------------------------------- | ------------- | ------------------- | ------------ |
+| ``name``                                  | Name                                                                          | X             | X                   | X            |
+| ``thermostat_type``                       | Thermostat type                                                               | X             | X                   | X            |
+| ``temperature_sensor_entity_id``          | Temperature sensor entity id                                                  | X             | X (self-regulation) | X            |
+| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id                                         | X             | X (self-regulation) | X            |
+| ``cycle_min``                             | Cycle duration (minutes)                                                      | X             | X                   | X            |
+| ``temp_min``                              | Minimal temperature allowed                                                   | X             | X                   | X            |
+| ``temp_max``                              | Maximal temperature allowed                                                   | X             | X                   | X            |
+| ``device_power``                          | Device power                                                                  | X             | X                   | X            |
+| ``use_window_feature``                    | Use window detection                                                          | X             | X                   | X            |
+| ``use_motion_feature``                    | Use motion detection                                                          | X             | X                   | X            |
+| ``use_power_feature``                     | Use power management                                                          | X             | X                   | X            |
+| ``use_presence_feature``                  | Use presence detection                                                        | X             | X                   | X            |
+| ``heater_entity1_id``                     | 1rst heater switch                                                            | X             | -                   | -            |
+| ``heater_entity2_id``                     | 2nd heater switch                                                             | X             | -                   | -            |
+| ``heater_entity3_id``                     | 3rd heater switch                                                             | X             | -                   | -            |
+| ``heater_entity4_id``                     | 4th heater switch                                                             | X             | -                   | -            |
+| ``proportional_function``                 | Algorithm                                                                     | X             | -                   | X            |
+| ``climate_entity1_id``                    | 1rst underlying climate                                                       | -             | X                   | -            |
+| ``climate_entity2_id``                    | 2nd underlying climate                                                        | -             | X                   | -            |
+| ``climate_entity3_id``                    | 3rd underlying climate                                                        | -             | X                   | -            |
+| ``climate_entity4_id``                    | 4th underlying climate                                                        | -             | X                   | -            |
+| ``valve_entity1_id``                      | 1rst underlying valve                                                         | -             | -                   | X            |
+| ``valve_entity2_id``                      | 2nd underlying valve                                                          | -             | -                   | X            |
+| ``valve_entity3_id``                      | 3rd underlying valve                                                          | -             | -                   | X            |
+| ``valve_entity4_id``                      | 4th underlying valve                                                          | -             | -                   | X            |
+| ``ac_mode``                               | Use the Air Conditioning (AC) mode                                            | X             | X                   | X            |
+| ``tpi_coef_int``                          | Coefficient to use for internal temperature delta                             | X             | -                   | X            |
+| ``tpi_coef_ext``                          | Coefficient to use for external temperature delta                             | X             | -                   | X            |
+| ``eco_temp``                              | Temperature in Eco preset                                                     | X             | X                   | X            |
+| ``comfort_temp``                          | Temperature in Comfort preset                                                 | X             | X                   | X            |
+| ``boost_temp``                            | Temperature in Boost preset                                                   | X             | X                   | X            |
+| ``eco_ac_temp``                           | Temperature in Eco preset for AC mode                                         | X             | X                   | X            |
+| ``comfort_ac_temp``                       | Temperature in Comfort preset for AC mode                                     | X             | X                   | X            |
+| ``boost_ac_temp``                         | Temperature in Boost preset for AC mode                                       | X             | X                   | X            |
+| ``window_sensor_entity_id``               | Window sensor entity id                                                       | X             | X                   | X            |
+| ``window_delay``                          | Window sensor delay (seconds)                                                 | X             | X                   | X            |
+| ``window_auto_open_threshold``            | Temperature decrease threshold for automatic window open detection (in °/min) | X             | X                   | X            |
+| ``window_auto_close_threshold``           | Temperature increase threshold for end of automatic detection (in °/min)      | X             | X                   | X            |
+| ``window_auto_max_duration``              | Maximum duration of automatic window open detection (in min)                  | X             | X                   | X            |
+| ``motion_sensor_entity_id``               | Motion sensor entity id                                                       | X             | X                   | X            |
+| ``motion_delay``                          | Delay before considering the motion (seconds)                                 | X             | X                   | X            |
+| ``motion_off_delay``                      | Delay before considering the end of motion (seconds)                          | X             | X                   | X            |
+| ``motion_preset``                         | Preset to use when motion is detected                                         | X             | X                   | X            |
+| ``no_motion_preset``                      | Preset to use when no motion is detected                                      | X             | X                   | X            |
+| ``power_sensor_entity_id``                | Power sensor entity id                                                        | X             | X                   | X            |
+| ``max_power_sensor_entity_id``            | Max power sensor entity id                                                    | X             | X                   | X            |
+| ``power_temp``                            | Temperature for Power shedding                                                | X             | X                   | X            |
+| ``presence_sensor_entity_id``             | Presence sensor entity id                                                     | X             | X                   | X            |
+| ``eco_away_temp``                         | Temperature in Eco preset when no presence                                    | X             | X                   | X            |
+| ``comfort_away_temp``                     | Temperature in Comfort preset when no presence                                | X             | X                   | X            |
+| ``boost_away_temp``                       | Temperature in Boost preset when no presence                                  | X             | X                   | X            |
+| ``eco_ac_away_temp``                      | Temperature in Eco preset when no presence in AC mode                         | X             | X                   | X            |
+| ``comfort_ac_away_temp``                  | Temperature in Comfort preset when no presence in AC mode                     | X             | X                   | X            |
+| ``boost_ac_away_temp``                    | Temperature in Boost preset when no presence in AC mode                       | X             | X                   | X            |
+| ``minimal_activation_delay``              | Minimal activation delay                                                      | X             | -                   | X            |
+| ``security_delay_min``                    | Security delay (in minutes)                                                   | X             | -                   | X            |
+| ``security_min_on_percent``               | Minimal power percent to enable security mode                                 | X             | -                   | X            |
+| ``security_default_on_percent``           | Power percent to use in security mode                                         | X             | -                   | X            |
+| ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                     | -             | X                   | -            |
+| ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                    | -             | X                   | -            |
+| ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                         | -             | X                   | -            |
+| ``inverse_switch_command``                | Inverse the switch command (for pilot wire switch)                            | X             | -                   | -            |
 
 # Examples tuning
 
@@ -725,7 +729,7 @@ target:
     entity_id : climate.my_thermostat
 ```
 
-# Notifications
+# Events
 Significant thermostat events are notified via the message bus.
 The notified events are as follows:
 
@@ -751,46 +755,46 @@ To tune the algorithm you have access to all context seen and calculted by the t
 
 Custom attributes are the following:
 
-| Attribute | Meaning |
-| ----------| --------|
-| ``hvac_modes`` | The list of modes supported by the thermostat |
-| ``min_temp`` | The minimal temperature |
-| ``max_temp`` | The maximal temperature |
-| ``preset_modes`` | The presets visible for this thermostat. Hidden presets are not showed here |
-| ``current_temperature`` | The current temperature as reported by the sensor |
-| ``temperature`` | The target temperature |
-| ``hvac_action`` | The action currently running by the heater. Can be idle, heating |
-| ``preset_mode`` | The currently selected preset. Can be one of the 'preset_modes' or a hidden preset like power |
-| ``[eco/comfort/boost]_temp`` | The temperature configured for the preset xxx |
-| ``[eco/comfort/boost]_away_temp`` | The temperature configured for the preset xxx when presence is off or not_home |
-| ``power_temp`` | The temperature used when shedding is detected |
-| ``on_percent`` | The percentage on calculated by the TPI algorithm |
-| ``on_time_sec`` | The On period in sec. Should be ```on_percent * cycle_min``` |
-| ``off_time_sec`` | The Off period in sec. Should be ```(1 - on_percent) * cycle_min``` |
-| ``cycle_min`` | The calculation cycle in minutes |
-| ``function`` | The algorithm used for cycle calculation |
-| ``tpi_coef_int`` | The ``coef_int`` of the TPI algorithm |
-| ``tpi_coef_ext`` | The ``coef_ext`` of the TPI algorithm |
-| ``saved_preset_mode`` | The last preset used before automatic switch of the preset |
-| ``saved_target_temp`` | The last temperature used before automatic switching |
-| ``window_state`` | The last known state of the window sensor. None if window is not configured |
-| ``window_bypass_state`` | True if the bypass of the window detection is activated |
-| ``motion_state`` | The last known state of the motion sensor. None if motion is not configured |
-| ``overpowering_state`` | The last known state of the overpowering sensor. None if power management is not configured |
-| ``presence_state`` | The last known state of the presence sensor. None if presence management is not configured |
-| ``security_delay_min`` | The delay before setting the security mode when temperature sensor are off |
-| ``security_min_on_percent`` | The minimal on_percent below which security preset won't be trigger |
-| ``security_default_on_percent`` | The on_percent used when thermostat is in ``security`` |
-| ``last_temperature_datetime`` | The date and time in ISO8866 format of the last internal temperature reception |
-| ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception |
-| ``security_state`` | The security state. true or false |
-| ``minimal_activation_delay_sec`` | The minimal activation delay in seconds |
-| ``last_update_datetime`` | The date and time in ISO8866 format of this state |
-| ``friendly_name`` | The name of the thermostat |
-| ``supported_features`` | A combination of all features supported by this thermostat. See official climate integration documentation for more informations |
-| ``valve_open_percent`` | The opening percentage of the valve |
-| ``regulated_target_temperature`` | The self-regulated target temperature calculated |
-| ``is_inversed`` | True if the command is inversed (pilot wire with diode) |
+| Attribute                         | Meaning                                                                                                                          |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| ``hvac_modes``                    | The list of modes supported by the thermostat                                                                                    |
+| ``min_temp``                      | The minimal temperature                                                                                                          |
+| ``max_temp``                      | The maximal temperature                                                                                                          |
+| ``preset_modes``                  | The presets visible for this thermostat. Hidden presets are not showed here                                                      |
+| ``current_temperature``           | The current temperature as reported by the sensor                                                                                |
+| ``temperature``                   | The target temperature                                                                                                           |
+| ``hvac_action``                   | The action currently running by the heater. Can be idle, heating                                                                 |
+| ``preset_mode``                   | The currently selected preset. Can be one of the 'preset_modes' or a hidden preset like power                                    |
+| ``[eco/comfort/boost]_temp``      | The temperature configured for the preset xxx                                                                                    |
+| ``[eco/comfort/boost]_away_temp`` | The temperature configured for the preset xxx when presence is off or not_home                                                   |
+| ``power_temp``                    | The temperature used when shedding is detected                                                                                   |
+| ``on_percent``                    | The percentage on calculated by the TPI algorithm                                                                                |
+| ``on_time_sec``                   | The On period in sec. Should be ```on_percent * cycle_min```                                                                     |
+| ``off_time_sec``                  | The Off period in sec. Should be ```(1 - on_percent) * cycle_min```                                                              |
+| ``cycle_min``                     | The calculation cycle in minutes                                                                                                 |
+| ``function``                      | The algorithm used for cycle calculation                                                                                         |
+| ``tpi_coef_int``                  | The ``coef_int`` of the TPI algorithm                                                                                            |
+| ``tpi_coef_ext``                  | The ``coef_ext`` of the TPI algorithm                                                                                            |
+| ``saved_preset_mode``             | The last preset used before automatic switch of the preset                                                                       |
+| ``saved_target_temp``             | The last temperature used before automatic switching                                                                             |
+| ``window_state``                  | The last known state of the window sensor. None if window is not configured                                                      |
+| ``window_bypass_state``           | True if the bypass of the window detection is activated                                                                          |
+| ``motion_state``                  | The last known state of the motion sensor. None if motion is not configured                                                      |
+| ``overpowering_state``            | The last known state of the overpowering sensor. None if power management is not configured                                      |
+| ``presence_state``                | The last known state of the presence sensor. None if presence management is not configured                                       |
+| ``security_delay_min``            | The delay before setting the security mode when temperature sensor are off                                                       |
+| ``security_min_on_percent``       | The minimal on_percent below which security preset won't be trigger                                                              |
+| ``security_default_on_percent``   | The on_percent used when thermostat is in ``security``                                                                           |
+| ``last_temperature_datetime``     | The date and time in ISO8866 format of the last internal temperature reception                                                   |
+| ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception                                                   |
+| ``security_state``                | The security state. true or false                                                                                                |
+| ``minimal_activation_delay_sec``  | The minimal activation delay in seconds                                                                                          |
+| ``last_update_datetime``          | The date and time in ISO8866 format of this state                                                                                |
+| ``friendly_name``                 | The name of the thermostat                                                                                                       |
+| ``supported_features``            | A combination of all features supported by this thermostat. See official climate integration documentation for more informations |
+| ``valve_open_percent``            | The opening percentage of the valve                                                                                              |
+| ``regulated_target_temperature``  | The self-regulated target temperature calculated                                                                                 |
+| ``is_inversed``                   | True if the command is inversed (pilot wire with diode)                                                                          |
 
 # Some results
 
@@ -1129,6 +1133,54 @@ versatile_thermostat:
 ```
 
 These parameters are sensitive and quite difficult to adjust. Please only use them if you know what you are doing and your temperature measurements are not already smooth.
+
+## Why does my Versatile Thermostat go into Safety?
+Safety mode is only possible on VTherm `over_switch` and `over_valve`. It occurs when one of the 2 thermometers which gives the room temperature or the outside temperature has not sent a value for more than `security_delay_min` minutes and the radiator was heating at least `security_min_on_percent`.
+
+As the algorithm is based on temperature measurements, if they are no longer received by the VTherm, there is a risk of overheating and fire. To avoid this, when the conditions mentioned above are detected, heating is limited to the `security_default_on_percent` parameter. This value must therefore be reasonably low. It helps prevent a fire while avoiding completely cutting off the radiator (risk of freezing).
+
+All these parameters are adjusted on the last page of the VTherm configuration: “Advanced parameters”.
+
+### How to detect security mode?
+The first symptom is an abnormally low temperature with a slow and regular heating time in each cycle.
+Example:
+
+[security mode](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome1.png?raw=true)
+
+If you installed the [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), the VTherm in question will have this shape:
+
+[security mode UI Card](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome2.png?raw=true)
+
+You can also check in the VTherm attributes the dates of receipt of the different dates. Attributes are available in Development Tools / Reports.
+
+Example :
+```
+security_state: true
+last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
+last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
+last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
+...
+security_delay_min: 60
+```
+
+We see that :
+1. the VTherm is in security mode (`security_state: true`),
+2. the current time is 06/12/2023 at 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
+3. the last received time of indoor temperature is 06/12/2023 at 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). So she's on time,
+4. the last reception time of the outdoor temperature is 06/12/2023 at 1:04:35 p.m. (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). external time which is more than 5 hours late and which caused the switch to security mode, because the threshold is limited to 60 min (`security_delay_min: 60`)
+
+### How can I be notified when this happens?
+To be notified, the VTherm sends an event as soon as it happens and one at the end of the security alert. You can capture these events in an automation and send a notification for example, flash a light, trigger a siren, etc. It's up to you.
+
+To manipulate the events generated by VTherm, cf. [Events](#events).
+
+### How to repair?
+This will depend on the cause of the problem:
+1. If a sensor is faulty, it must be repaired (replace batteries, change it, check the Weather integration which gives the outside temperature, etc.),
+2. If the `security_delay_min` parameter is too small, it risks generating a lot of false alerts. A correct value is around 60 min, especially if you have battery-powered temperature sensors.
+3. Some temperature sensors do not send a measurement if the temperature has not changed. So in the event of a very stable temperature for a long time, the safety mode may be triggered. This is not very serious since it is removed as soon as the VTherm receives a temperature again. On certain thermometers (TuYA for example), you can force the maximum delay between 2 measurements. It will be appropriate to set a max delay < `security_delay_min`,
+4. As soon as the temperature is received again the security mode will be removed and the previous values of preset, target temperature and mode will be restored.
+
 
 ***
 
