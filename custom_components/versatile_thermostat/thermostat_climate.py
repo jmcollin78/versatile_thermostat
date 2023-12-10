@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, too-many-lines
 """ A climate over switch classe """
 import logging
 from datetime import timedelta, datetime
@@ -65,7 +65,11 @@ class ThermostatOverClimate(BaseThermostat):
     _auto_regulation_dtemp: float = None
     _auto_regulation_period_min: int = None
     _last_regulation_change: datetime = None
+    # The fan mode configured in configEntry
     _auto_fan_mode: str = None
+    # The current fan mode (could be change by service call)
+    _current_auto_fan_mode: str = None
+    # The fan_mode name depending of the current_mode
     _auto_activated_fan_mode: str = None
     _auto_deactivated_fan_mode: str = None
 
@@ -82,6 +86,7 @@ class ThermostatOverClimate(BaseThermostat):
                     "regulation_accumulated_error",
                     "auto_regulation_mode",
                     "auto_fan_mode",
+                    "current_auto_fan_mode",
                     "auto_activated_fan_mode",
                     "auto_deactivated_fan_mode",
                 }
@@ -350,6 +355,8 @@ class ThermostatOverClimate(BaseThermostat):
     def choose_auto_fan_mode(self, auto_fan_mode):
         """Choose the correct fan mode depending of the underlying capacities and the configuration"""
 
+        self._current_auto_fan_mode = auto_fan_mode
+
         # Get the supported feature of the first underlying. We suppose each underlying have the same fan attributes
         fan_supported = self.supported_features & ClimateEntityFeature.FAN_MODE > 0
 
@@ -382,8 +389,9 @@ class ThermostatOverClimate(BaseThermostat):
                 break
 
         _LOGGER.info(
-            "%s - choose_auto_fan_mode founds auto_activated_fan_mode=%s and auto_deactivated_fan_mode=%s",
+            "%s - choose_auto_fan_mode founds current_auto_fan_mode=%s auto_activated_fan_mode=%s and auto_deactivated_fan_mode=%s",
             self,
+            self._current_auto_fan_mode,
             self._auto_activated_fan_mode,
             self._auto_deactivated_fan_mode,
         )
@@ -464,8 +472,13 @@ class ThermostatOverClimate(BaseThermostat):
 
         self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
         self._attr_extra_state_attributes[
+            "current_auto_fan_mode"
+        ] = self._current_auto_fan_mode
+
+        self._attr_extra_state_attributes[
             "auto_activated_fan_mode"
         ] = self._auto_activated_fan_mode
+
         self._attr_extra_state_attributes[
             "auto_deactivated_fan_mode"
         ] = self._auto_deactivated_fan_mode
@@ -987,5 +1000,4 @@ class ThermostatOverClimate(BaseThermostat):
         elif auto_fan_mode == "Turbo":
             self.choose_auto_fan_mode(CONF_AUTO_FAN_TURBO)
 
-        await self._send_regulated_temperature()
         self.update_custom_attributes()

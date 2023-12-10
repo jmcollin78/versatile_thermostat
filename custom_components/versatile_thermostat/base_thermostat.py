@@ -88,6 +88,7 @@ from .const import (
     CONF_PRESENCE_SENSOR,
     CONF_PRESET_POWER,
     SUPPORT_FLAGS,
+    PRESET_FROST_PROTECTION,
     PRESET_POWER,
     PRESET_SECURITY,
     PROPORTIONAL_FUNCTION_TPI,
@@ -148,9 +149,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 {
                     "is_on",
                     "type",
+                    "frost_temp",
                     "eco_temp",
                     "boost_temp",
                     "comfort_temp",
+                    "frost_away_temp",
                     "eco_away_temp",
                     "boost_away_temp",
                     "comfort_away_temp",
@@ -1112,9 +1115,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 await under.set_hvac_mode(hvac_mode) or need_control_heating
             )
 
-        # If AC is on maybe we have to change the temperature in force mode
+        # If AC is on maybe we have to change the temperature in force mode, but not in frost mode (there is no Frost protection possible in AC mode)
         if self._ac_mode:
-            await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
+            if self.preset_mode != PRESET_FROST_PROTECTION:
+                await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
+            else:
+                await self._async_set_preset_mode_internal(PRESET_ECO, True)
 
         if need_control_heating and sub_need_control_heating:
             await self.async_control_heating(force=True)
@@ -2172,9 +2178,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
+            "frost_temp": self._presets[PRESET_FROST_PROTECTION],
             "eco_temp": self._presets[PRESET_ECO],
             "boost_temp": self._presets[PRESET_BOOST],
             "comfort_temp": self._presets[PRESET_COMFORT],
+            "frost_away_temp": self._presets_away.get(
+                self.get_preset_away_name(PRESET_FROST_PROTECTION)
+            ),
             "eco_away_temp": self._presets_away.get(
                 self.get_preset_away_name(PRESET_ECO)
             ),
