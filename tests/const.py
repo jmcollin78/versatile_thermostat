@@ -58,6 +58,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_INVERSE_SWITCH,
     CONF_AUTO_FAN_HIGH,
     CONF_AUTO_FAN_MODE,
+    PRESET_FROST_PROTECTION,
 )
 
 MOCK_TH_OVER_SWITCH_USER_CONFIG = {
@@ -155,12 +156,14 @@ MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG = {
 }
 
 MOCK_PRESETS_CONFIG = {
+    PRESET_FROST_PROTECTION + "_temp": 7,
     PRESET_ECO + "_temp": 16,
     PRESET_COMFORT + "_temp": 17,
     PRESET_BOOST + "_temp": 18,
 }
 
 MOCK_PRESETS_AC_CONFIG = {
+    PRESET_FROST_PROTECTION + "_temp": 7,
     PRESET_ECO + "_temp": 17,
     PRESET_COMFORT + "_temp": 19,
     PRESET_BOOST + "_temp": 20,
@@ -203,6 +206,7 @@ MOCK_PRESENCE_CONFIG = {
 
 MOCK_PRESENCE_AC_CONFIG = {
     CONF_PRESENCE_SENSOR: "person.presence_sensor",
+    PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX + "_temp": 7,
     PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 16,
     PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17,
     PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 18,

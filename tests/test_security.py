@@ -43,6 +43,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
             "cycle_min": 5,
             "temp_min": 15,
             "temp_max": 30,
+            "frost_temp": 7,
             "eco_temp": 17,
             "comfort_temp": 18,
             "boost_temp": 19,
@@ -72,6 +73,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     assert entity.preset_mode is not PRESET_SECURITY
     assert entity.preset_modes == [
         PRESET_NONE,
+        PRESET_FROST_PROTECTION,
         PRESET_ECO,
         PRESET_COMFORT,
         PRESET_BOOST,
@@ -444,6 +446,7 @@ async def test_security_over_climate(
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,

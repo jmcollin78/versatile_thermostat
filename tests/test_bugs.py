@@ -399,6 +399,7 @@ async def test_bug_82(
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,
+            PRESET_FROST_PROTECTION,
             PRESET_ECO,
             PRESET_COMFORT,
             PRESET_BOOST,

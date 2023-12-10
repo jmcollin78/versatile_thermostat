@@ -331,7 +331,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self.STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             {
-                vol.Optional(v, default=0.0): vol.Coerce(float)
+                vol.Optional(v, default=0): vol.Coerce(float)
                 for (k, v) in CONF_PRESETS.items()
             }
         )
@@ -339,7 +339,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         self.STEP_PRESETS_WITH_AC_DATA_SCHEMA = (  # pylint: disable=invalid-name
             vol.Schema(  # pylint: disable=invalid-name
                 {
-                    vol.Optional(v, default=0.0): vol.Coerce(float)
+                    vol.Optional(v, default=0): vol.Coerce(float)
                     for (k, v) in CONF_PRESETS_WITH_AC.items()
                 }
             )

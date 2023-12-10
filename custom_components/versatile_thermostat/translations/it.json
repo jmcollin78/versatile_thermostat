@@ -78,6 +78,7 @@
           "eco_temp": "Temperatura nel preset Eco",
           "comfort_temp": "Temperatura nel preset Comfort",
           "boost_temp": "Temperatura nel preset Boost",
+          "frost_temp": "Temperatura nel preset Frost protection",
           "eco_ac_temp": "Temperatura nel preset Eco (AC mode)",
           "comfort_ac_temp": "Temperatura nel preset Comfort (AC mode)",
           "boost_ac_temp": "Temperatura nel preset Boost (AC mode)"
@@ -129,6 +130,7 @@
           "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
           "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
           "boost_away_temp": "Temperatura al preset Boost in caso d'assenza",
+          "frost_away_temp": "Temperatura al preset Frost protection in caso d'assenza",
           "eco_ac_away_temp": "Temperatura al preset Eco in caso d'assenza (AC mode)",
           "comfort_ac_away_temp": "Temperatura al preset Comfort in caso d'assenza (AC mode)",
           "boost_ac_away_temp": "Temperatura al preset Boost in caso d'assenza (AC mode)"
@@ -238,6 +240,7 @@
           "eco_temp": "Temperatura nel preset Eco",
           "comfort_temp": "Temperatura nel preset Comfort",
           "boost_temp": "Temperatura nel preset Boost",
+          "frost_temp": "Temperatura nel preset Frost protection",
           "eco_ac_temp": "Temperatura nel preset Eco (AC mode)",
           "comfort_ac_temp": "Temperatura nel preset Comfort (AC mode)",
           "boost_ac_temp": "Temperatura nel preset Boost (AC mode)"
@@ -289,6 +292,7 @@
           "eco_away_temp": "Temperatura al preset Eco in caso d'assenza",
           "comfort_away_temp": "Temperatura al preset Comfort in caso d'assenza",
           "boost_away_temp": "Temperatura al preset Boost in caso d'assenza",
+          "frost_away_temp": "Temperatura al preset Frost protection in caso d'assenza",
           "eco_ac_away_temp": "Temperatura al preset Eco in caso d'assenza (AC mode)",
           "comfort_ac_away_temp": "Temperatura al preset Comfort in caso d'assenza (AC mode)",
           "boost_ac_away_temp": "Temperatura al preset Boost in caso d'assenza (AC mode)"

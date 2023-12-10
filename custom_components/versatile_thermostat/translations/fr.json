@@ -79,9 +79,19 @@
         "title": "Presets",
         "description": "Pour chaque preset, donnez la température cible (0 pour ignorer le preset)",
         "data": {
+          "eco_temp": "Preset Eco",
+          "comfort_temp": "Preset Comfort",
+          "boost_temp": "Preset Boost",
+          "frost_temp": "Preset Hors-gel",
+          "eco_ac_temp": "Preset Eco en mode AC",
+          "comfort_ac_temp": "Preset Comfort en mode AC",
+          "boost_ac_temp": "Preset Boost en mode AC"
+        },
+        "data_description": {
           "eco_temp": "Température en preset Eco",
           "comfort_temp": "Température en preset Comfort",
           "boost_temp": "Température en preset Boost",
+          "frost_temp": "Température en preset Hors-gel",
           "eco_ac_temp": "Température en preset Eco en mode AC",
           "comfort_ac_temp": "Température en preset Comfort en mode AC",
           "boost_ac_temp": "Température en preset Boost en mode AC"
@@ -136,10 +146,21 @@
         "title": "Gestion de la présence",
         "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
         "data": {
+          "presence_sensor_entity_id": "Capteur de présence",
+          "eco_away_temp": "preset Eco",
+          "comfort_away_temp": "preset Comfort",
+          "boost_away_temp": "preset Boost",
+          "frost_away_temp": "preset Hors-gel",
+          "eco_ac_away_temp": "preset Eco en mode AC",
+          "comfort_ac_away_temp": "preset Comfort en mode AC",
+          "boost_ac_away_temp": "preset Boost en mode AC"
+        },
+        "data_description": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
           "eco_away_temp": "Température en preset Eco en cas d'absence",
           "comfort_away_temp": "Température en preset Comfort en cas d'absence",
           "boost_away_temp": "Température en preset Boost en cas d'absence",
+          "frost_away_temp": "Température en preset Hors-gel en cas d'absence",
           "eco_ac_away_temp": "Température en preset Eco en cas d'absence en mode AC",
           "comfort_ac_away_temp": "Température en preset Comfort en cas d'absence en mode AC",
           "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC"
@@ -251,9 +272,19 @@
         "title": "Presets",
         "description": "Pour chaque preset, donnez la température cible (0 pour ignorer le preset)",
         "data": {
+          "eco_temp": "Preset Eco",
+          "comfort_temp": "Preset Comfort",
+          "boost_temp": "Preset Boost",
+          "frost_temp": "Preset Hors-gel",
+          "eco_ac_temp": "Preset Eco en mode AC",
+          "comfort_ac_temp": "Preset Comfort en mode AC",
+          "boost_ac_temp": "Preset Boost en mode AC"
+        },
+        "data_description": {
           "eco_temp": "Température en preset Eco",
           "comfort_temp": "Température en preset Comfort",
           "boost_temp": "Température en preset Boost",
+          "frost_temp": "Température en preset Hors-gel",
           "eco_ac_temp": "Température en preset Eco en mode AC",
           "comfort_ac_temp": "Température en preset Comfort en mode AC",
           "boost_ac_temp": "Température en preset Boost en mode AC"
@@ -308,10 +339,21 @@
         "title": "Gestion de la présence",
         "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
         "data": {
+          "presence_sensor_entity_id": "Capteur de présence",
+          "eco_away_temp": "preset Eco",
+          "comfort_away_temp": "preset Comfort",
+          "boost_away_temp": "preset Boost",
+          "frost_away_temp": "preset Hors-gel",
+          "eco_ac_away_temp": "preset Eco en mode AC",
+          "comfort_ac_away_temp": "preset Comfort en mode AC",
+          "boost_ac_away_temp": "preset Boost en mode AC"
+        },
+        "data_description": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
           "eco_away_temp": "Température en preset Eco en cas d'absence",
           "comfort_away_temp": "Température en preset Comfort en cas d'absence",
           "boost_away_temp": "Température en preset Boost en cas d'absence",
+          "frost_away_temp": "Température en preset Hors-gel en cas d'absence",
           "eco_ac_away_temp": "Température en preset Eco en cas d'absence en mode AC",
           "comfort_ac_away_temp": "Température en preset Comfort en cas d'absence en mode AC",
           "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC"
