@@ -68,6 +68,7 @@
     - [Comment détecter le mode sécurité ?](#comment-détecter-le-mode-sécurité-)
     - [Comment être averti lorsque cela se produit ?](#comment-être-averti-lorsque-cela-se-produit-)
     - [Comment réparer ?](#comment-réparer-)
+  - [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence)
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
@@ -99,7 +100,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 2. Le seuil de détection automatique des ouvertures doit être spécifié en °/heure et pas plus en °/min. Pour conserver les mêmes paramètres il faut multiplier la valeur configurée par 60.
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -469,6 +470,8 @@ Pour cela, vous devez configurer :
 4. La **température utilisée en Boost** préréglée en cas d'absence
 
 Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
+
+ATTENTION : les groupes de personnes ne fonctionnent pas en tant que capteur de présence. Ils ne sont pas reconnus comme un capteur de présence. Vous devez utiliser, un template comme décrit ici [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence).
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
 > 1. le changement de température est immédiat et se répercute sur le volet avant. Le calcul prendra en compte la nouvelle température cible au prochain calcul du cycle,
@@ -1201,6 +1204,27 @@ Cela va dépendre de la cause du problème :
 3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `security_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
 
+## Utilisation d'un groupe de personnes comme capteur de présence
+Malheureusement, les groupes de personnes ne sont pas reconnus comme des capteurs de présence. On ne peut donc pas les utiliser directement dans VTherm.
+Le contournement est de créer un template de binary_sensor avec le code suivant :
+
+Fichier `template.yaml` :
+```
+- binary_sensor:
+    - name: maison_occupee
+      unique_id: maison_occupee
+      state: "{{is_state('person.person1', 'home') or is_state('person.person2', 'home') or is_state('input_boolean.force_presence', 'on')}}"
+      device_class: occupancy
+```
+
+Vous noterez dans cet exemple, l'utilisation d'un input_boolean nommé force_presence qui permet de forcer le capteur à `True` et ainsi de forcer les VTherm qui l'utilise avec présence active. Ca permet par exemple, de forcer un pré-chauffage du logement lors du départ du travail, ou lorsqu'une personne non reconnue nativement dans HA est présente.
+
+Fichier `configuration.yaml`:
+```
+...
+template: !include templates.yaml
+...
+```
 
 ***
 

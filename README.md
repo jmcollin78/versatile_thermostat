@@ -32,6 +32,7 @@
     - [Auto mode](#auto-mode)
   - [Configure the activity mode or motion detection](#configure-the-activity-mode-or-motion-detection)
   - [Configure the power management](#configure-the-power-management)
+  - [Configure presence or occupancy](#configure-presence-or-occupancy)
   - [Advanced configuration](#advanced-configuration)
   - [Parameters synthesis](#parameters-synthesis)
 - [Examples tuning](#examples-tuning)
@@ -67,6 +68,7 @@
     - [How to detect security mode?](#how-to-detect-security-mode)
     - [How can I be notified when this happens?](#how-can-i-be-notified-when-this-happens)
     - [How to repair?](#how-to-repair)
+  - [Using a group of people as a presence sensor](#using-a-group-of-people-as-a-presence-sensor)
 
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
@@ -98,7 +100,7 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 2. The threshold for auto window auto detection should be specified in °/hour and no more in °/min. To keep the same parameters you have to multiply the configured value by 60.
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal for the beers. It's very nice and encourages me to continue!
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
@@ -440,22 +442,25 @@ This allows you to change the max power along time using a Scheduler or whatever
 > 4. If you don't want to use this feature, just leave the entities id empty
 > 5. If you control several heaters, the **power consumption of your heater** setup should be the sum of the power.
 
-If you choose the ```Presence management``` feature, this feature allows you to dynamically changes the temperature of all configured Versatile thermostat's presets when nobody is at home or when someone comes back home. For this, you have to configure the temperature that will be used for each preset when presence is off. When the occupancy sensor turns to off, those tempoeratures will be used. When it turns on again the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
-To configure presence fills this form:
+## Configure presence or occupancy
+If selected on the first page, this feature allows you to dynamically change the temperature of all configured thermostat presets when no one is home or when someone comes home. To do this, you must configure the temperature that will be used for each preset when presence is disabled. When the presence sensor turns off, these temperatures will be used. When it turns back on, the "normal" temperature configured for the preset is used. See [preset management](#configure-the-preset-temperature).
+To configure presence, complete this form:
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presence.png?raw=true)
 
-For this you need to configure:
-1. A **occupancy sensor** which state should be 'on' or 'home' if someone is present or 'off' or 'not_home' else,
-2. The **temperature used in Eco** preset when absent,
-3. The **temperature used in Comfort** preset when absent,
-4. The **temperature used in Boost** preset when absent
+To do this, you must configure:
+1. An **occupancy sensor** whose state must be 'on' or 'home' if someone is present or 'off' or 'not_home' otherwise,
+2. The **temperature used in Eco** predefined in the event of absence,
+3. The **temperature used in Comfort** preset in case of absence,
+4. The **temperature used in Boost** preset in case of absence
 
-Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
+If AC mode is used, you will also be able to configure temperatures when the equipment is in cooling mode.
 
-> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
-> 1. the switch of temperature is immediate and is reflected on the front component. The calculation will take the new target temperature into account at the next cycle calculation,
-> 2. you can use direct person.xxxx sensor or group of sensors of Home Assistant. The presence sensor handles ``on`` or ``home`` states as present and ``off`` or ``not_home`` state as absent.
+ATTENTION: groups of people do not function as a presence sensor. They are not recognized as a presence sensor. You must use a template as described here [Using a group of people as a presence sensor](#using-a-group-of-people-as-a-presence-sensor).
+
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> 1. the change in temperature is immediate and is reflected on the front shutter. The calculation will take into account the new target temperature at the next calculation of the cycle,
+> 2. you can use the person.xxxx direct sensor or a group of Home Assistant sensors. The presence sensor manages the ``on`` or ``home`` states as present and the ``off`` or ``not_home`` states as absent.
 
 ## Advanced configuration
 Those parameters allows to fine tune the thermostat.
@@ -1181,6 +1186,27 @@ This will depend on the cause of the problem:
 3. Some temperature sensors do not send a measurement if the temperature has not changed. So in the event of a very stable temperature for a long time, the safety mode may be triggered. This is not very serious since it is removed as soon as the VTherm receives a temperature again. On certain thermometers (TuYA for example), you can force the maximum delay between 2 measurements. It will be appropriate to set a max delay < `security_delay_min`,
 4. As soon as the temperature is received again the security mode will be removed and the previous values of preset, target temperature and mode will be restored.
 
+## Using a group of people as a presence sensor
+Unfortunately, groups of people are not recognized as presence sensors. We cannot therefore use them directly in VTherm.
+The workaround is to create a binary_sensor template with the following code:
+
+`template.yaml` file:
+```
+- binary_sensor:
+     - name: occupied_house
+       unique_id: occupied_house
+       state: "{{is_state('person.person1', 'home') or is_state('person.person2', 'home') or is_state('input_boolean.force_presence', 'on')}}"
+       device_class: occupancy
+```
+
+You will note in this example, the use of an input_boolean named force_presence which allows you to force the sensor to `True` and thus force the VTherm which uses it with active presence. This allows, for example, to force pre-heating of the home when leaving work, or when a person not natively recognized in HA is present.
+
+`configuration.yaml` file:
+```
+...
+template: !include templates.yaml
+...
+```
 
 ***
 
