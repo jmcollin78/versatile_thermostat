@@ -330,7 +330,7 @@
           "eco_ac_temp": "Preset Eco en mode AC",
           "comfort_ac_temp": "Preset Comfort en mode AC",
           "boost_ac_temp": "Preset Boost en mode AC",
-          "use_presets_central_config": "Utiliser la configuration des presets centrale"
+          "use_presets_central_config": "Utiliser la configuration centrale des presets"
         },
         "data_description": {
           "eco_temp": "Température en preset Eco",
@@ -340,7 +340,7 @@
           "eco_ac_temp": "Température en preset Eco en mode AC",
           "comfort_ac_temp": "Température en preset Comfort en mode AC",
           "boost_ac_temp": "Température en preset Boost en mode AC",
-          "use_presets_central_config": "Cochez pour utiliser la configuration des presets centrale. Décochez et saisissez les attributs pour utiliser une configuration des presets spécifique"
+          "use_presets_central_config": "Cochez pour utiliser la configuration centrale des presets. Décochez et saisissez les attributs pour utiliser une configuration des presets spécifique"
         }
       },
       "window": {

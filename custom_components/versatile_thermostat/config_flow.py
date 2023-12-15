@@ -224,9 +224,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_PRESENCE_CENTRAL_CONFIG,
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
         ):
-            self._infos[config] = self._central_config is not None and (
-                is_empty or self._infos.get(config) is None
-            )
+            if not is_empty:
+                self._infos[config] = self._infos.get(config) is True
+            else:
+                self._infos[config] = self._central_config is not None
+
+        self._infos[COMES_FROM] = None
 
     def _init_schemas(self):
         """Init the schemas"""
@@ -1065,6 +1068,8 @@ class VersatileThermostatConfigFlow(
     async def async_finalize(self):
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug("ConfigFlow.async_finalize")
+        # Removes temporary value
+        self._infos[COMES_FROM] = None
         return self.async_create_entry(title=self._infos[CONF_NAME], data=self._infos)
 
 
@@ -1094,7 +1099,7 @@ class VersatileThermostatOptionsFlowHandler(
             CONF_NAME: self._infos[CONF_NAME],
         }
 
-        return await self.async_step_main()
+        return await self.async_step_main(user_input)
 
     # async def async_step_main(self, user_input: dict | None = None) -> FlowResult:
     #     """Handle the flow steps"""
@@ -1245,16 +1250,20 @@ class VersatileThermostatOptionsFlowHandler(
     async def async_finalize(self):
         """Finalization of the ConfigEntry creation"""
         if not self._infos[CONF_USE_WINDOW_FEATURE]:
+            self._infos[CONF_USE_WINDOW_CENTRAL_CONFIG] = False
             self._infos[CONF_WINDOW_SENSOR] = None
             self._infos[CONF_WINDOW_AUTO_CLOSE_THRESHOLD] = None
             self._infos[CONF_WINDOW_AUTO_OPEN_THRESHOLD] = None
             self._infos[CONF_WINDOW_AUTO_MAX_DURATION] = None
         if not self._infos[CONF_USE_MOTION_FEATURE]:
+            self._infos[CONF_USE_MOTION_CENTRAL_CONFIG] = False
             self._infos[CONF_MOTION_SENSOR] = None
         if not self._infos[CONF_USE_POWER_FEATURE]:
+            self._infos[CONF_USE_POWER_CENTRAL_CONFIG] = False
             self._infos[CONF_POWER_SENSOR] = None
             self._infos[CONF_MAX_POWER_SENSOR] = None
         if not self._infos[CONF_USE_PRESENCE_FEATURE]:
+            self._infos[CONF_USE_PRESENCE_CENTRAL_CONFIG] = False
             self._infos[CONF_PRESENCE_SENSOR] = None
 
         _LOGGER.info(
@@ -1262,5 +1271,9 @@ class VersatileThermostatOptionsFlowHandler(
             self.config_entry.entry_id,
             self._infos,
         )
+
+        # Removes temporary value
+        self._infos[COMES_FROM] = None
+
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)
