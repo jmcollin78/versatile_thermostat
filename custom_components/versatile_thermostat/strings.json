@@ -4,13 +4,22 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
+        "title": "Type of Versatile Thermostat",
+        "data": {
+          "thermostat_type": "Thermostat type"
+        },
+        "data_description": {
+          "thermostat_type": "Only one central configuration type is possible"
+        }
+      },
+      "main": {
         "title": "Add new Versatile Thermostat",
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostat type",
           "temperature_sensor_entity_id": "Temperature sensor entity id",
-          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
@@ -18,7 +27,12 @@
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection"
+          "use_presence_feature": "Use presence detection",
+          "use_main_central_config": "Use central main configuration"
+        },
+        "data_description": {
+          "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "type": {
@@ -71,8 +85,14 @@
         "title": "TPI",
         "description": "Time Proportional Integral attributes",
         "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "use_tpi_central_config": "Use central TPI configuration"
+        },
+        "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
-          "tpi_coef_ext": "Coefficient to use for external temperature delta"
+          "tpi_coef_ext": "Coefficient to use for external temperature delta",
+          "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm"
         }
       },
       "presets": {
@@ -85,7 +105,8 @@
           "frost_temp": "Frost protection preset",
           "eco_ac_temp": "Eco preset for AC mode",
           "comfort_ac_temp": "Comfort preset for AC mode",
-          "boost_ac_temp": "Boost preset for AC mode"
+          "boost_ac_temp": "Boost preset for AC mode",
+          "use_presets_central_config": "Use central presets configuration"
         },
         "data_description": {
           "eco_temp": "Temperature in Eco preset",
@@ -94,7 +115,8 @@
           "frost_temp": "Temperature in Frost protection preset",
           "eco_ac_temp": "Temperature in Eco preset for AC mode",
           "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
-          "boost_ac_temp": "Temperature in Boost preset for AC mode"
+          "boost_ac_temp": "Temperature in Boost preset for AC mode",
+          "use_presets_central_config": "Check to use the central presets configuration. Uncheck to use a specific presets configuration for this VTherm"
         }
       },
       "window": {
@@ -105,14 +127,16 @@
           "window_delay": "Window sensor delay (seconds)",
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
-          "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
+          "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
+          "use_window_central_config": "Use central window configuration"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
-          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used"
+          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
+          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm"
         }
       },
       "motion": {
@@ -123,23 +147,32 @@
           "motion_delay": "Activation delay",
           "motion_off_delay": "Deactivation delay",
           "motion_preset": "Motion preset",
-          "no_motion_preset": "No motion preset"
+          "no_motion_preset": "No motion preset",
+          "use_motion_central_config": "Use central motion configuration"
         },
         "data_description": {
           "motion_sensor_entity_id": "The entity id of the motion sensor",
           "motion_delay": "Motion activation delay (seconds)",
           "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
-          "no_motion_preset": "Preset to use when no motion is detected"
+          "no_motion_preset": "Preset to use when no motion is detected",
+          "use_motion_central_config": "Check to use the central motion configuration. Uncheck to use a specific motion configuration for this VTherm"
         }
       },
       "power": {
         "title": "Power management",
         "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
         "data": {
+          "power_sensor_entity_id": "Power",
+          "max_power_sensor_entity_id": "Max power",
+          "power_temp": "Shedding temperature",
+          "use_power_central_config": "Use central power configuration"
+        },
+        "data_description": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
-          "power_temp": "Temperature for Power shedding"
+          "power_temp": "Temperature for Power shedding",
+          "use_power_central_config": "Check to use the central power configuration. Uncheck to use a specific power configuration for this VTherm"
         }
       },
       "presence": {
@@ -153,7 +186,8 @@
           "frost_away_temp": "Frost protection preset",
           "eco_ac_away_temp": "Eco preset in AC mode",
           "comfort_ac_away_temp": "Comfort preset in AC mode",
-          "boost_ac_away_temp": "Boost pres et in AC mode"
+          "boost_ac_away_temp": "Boost pres et in AC mode",
+          "use_presence_central_config": "Use central presence configuration"
         },
         "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id",
@@ -163,7 +197,8 @@
           "frost_away_temp": "Temperature in Frost protection preset when no presence",
           "eco_ac_away_temp": "Temperature in Eco preset when no presence in AC mode",
           "comfort_ac_away_temp": "Temperature in Comfort preset when no presence in AC mode",
-          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode"
+          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode",
+          "use_presence_central_config": "Check to use the central presence configuration. Uncheck to use a specific presence configuration for this VTherm"
         }
       },
       "advanced": {
@@ -173,20 +208,23 @@
           "minimal_activation_delay": "Minimal activation delay",
           "security_delay_min": "Security delay (in minutes)",
           "security_min_on_percent": "Minimal power percent to enable security mode",
-          "security_default_on_percent": "Power percent to use in security mode"
+          "security_default_on_percent": "Power percent to use in security mode",
+          "use_advanced_central_config": "Use central advanced configuration"
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a security off state",
           "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset"
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset",
+          "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
       }
     },
     "error": {
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
-      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both"
+      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -196,25 +234,39 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
-        "title": "Add new Versatile Thermostat",
+        "title": "Type - {name}",
+        "data": {
+          "thermostat_type": "Thermostat type"
+        },
+        "data_description": {
+          "thermostat_type": "Only one central configuration type is possible"
+        }
+      },
+      "main": {
+        "title": "{name}",
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostat type",
-          "temperature_sensor_entity_id": "Temperature sensor entity id",
-          "external_temperature_sensor_entity_id": "External temperature sensor entity id",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
-          "device_power": "Device power (kW)",
+          "device_power": "Device power",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection"
+          "use_presence_feature": "Use presence detection",
+          "use_main_central_config": "Use central main configuration"
+        },
+        "data_description": {
+          "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific configuration for this VTherm",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "type": {
-        "title": "Linked entities",
+        "title": "{name}",
         "description": "Linked entities attributes",
         "data": {
           "heater_entity_id": "1st heater switch",
@@ -260,11 +312,17 @@
         }
       },
       "tpi": {
-        "title": "TPI",
+        "title": "{name}",
         "description": "Time Proportional Integral attributes",
         "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "use_tpi_central_config": "Use central TPI configuration"
+        },
+        "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
-          "tpi_coef_ext": "Coefficient to use for external temperature delta"
+          "tpi_coef_ext": "Coefficient to use for external temperature delta",
+          "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm"
         }
       },
       "presets": {
@@ -277,7 +335,8 @@
           "frost_temp": "Frost protection preset",
           "eco_ac_temp": "Eco preset for AC mode",
           "comfort_ac_temp": "Comfort preset for AC mode",
-          "boost_ac_temp": "Boost preset for AC mode"
+          "boost_ac_temp": "Boost preset for AC mode",
+          "use_presets_central_config": "Use central presets configuration"
         },
         "data_description": {
           "eco_temp": "Temperature in Eco preset",
@@ -286,88 +345,115 @@
           "frost_temp": "Temperature in Frost protection preset",
           "eco_ac_temp": "Temperature in Eco preset for AC mode",
           "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
-          "boost_ac_temp": "Temperature in Boost preset for AC mode"
+          "boost_ac_temp": "Temperature in Boost preset for AC mode",
+          "use_presets_central_config": "Check to use the central presets configuration. Uncheck to use a specific presets configuration for this VTherm"
         }
       },
       "window": {
-        "title": "Window management",
-        "description": "Open window management.\nLeave corresponding entity_id empty if not used\nYou can also configure automatic window open detection based on temperature decrease",
+        "title": "{name}",
+        "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
           "window_delay": "Window sensor delay (seconds)",
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
-          "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)"
+          "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
+          "use_window_central_config": "Use central window configuration"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
-          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used"
+          "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
+          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm"
         }
       },
       "motion": {
-        "title": "Motion management",
-        "description": "Motion sensor management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "title": "{name}",
+        "description": "Motion management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
           "motion_delay": "Activation delay",
           "motion_off_delay": "Deactivation delay",
           "motion_preset": "Motion preset",
-          "no_motion_preset": "No motion preset"
+          "no_motion_preset": "No motion preset",
+          "use_motion_central_config": "Use central motion configuration"
         },
         "data_description": {
           "motion_sensor_entity_id": "The entity id of the motion sensor",
           "motion_delay": "Motion activation delay (seconds)",
           "motion_off_delay": "Motion deactivation delay (seconds)",
           "motion_preset": "Preset to use when motion is detected",
-          "no_motion_preset": "Preset to use when no motion is detected"
+          "no_motion_preset": "Preset to use when no motion is detected",
+          "use_motion_central_config": "Check to use the central motion configuration. Uncheck to use a specific motion configuration for this VTherm"
         }
       },
       "power": {
-        "title": "Power management",
+        "title": "{name}",
         "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
         "data": {
+          "power_sensor_entity_id": "Power",
+          "max_power_sensor_entity_id": "Max power",
+          "power_temp": "Shedding temperature",
+          "use_power_central_config": "Use central power configuration"
+        },
+        "data_description": {
           "power_sensor_entity_id": "Power sensor entity id",
           "max_power_sensor_entity_id": "Max power sensor entity id",
-          "power_temp": "Temperature for Power shedding"
+          "power_temp": "Temperature for Power shedding",
+          "use_power_central_config": "Check to use the central power configuration. Uncheck to use a specific power configuration for this VTherm"
         }
       },
       "presence": {
-        "title": "Presence management",
+        "title": "{name}",
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
         "data": {
+          "presence_sensor_entity_id": "Presence sensor",
+          "eco_away_temp": "Eco away preset",
+          "comfort_away_temp": "Comfort away preset",
+          "boost_away_temp": "Boost away preset",
+          "eco_ac_away_temp": "Eco away preset in AC mode",
+          "comfort_ac_away_temp": "Comfort away preset in AC mode",
+          "boost_ac_away_temp": "Boost away preset in AC mode",
+          "use_presence_central_config": "Use central presence configuration"
+        },
+        "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id",
           "eco_away_temp": "Temperature in Eco preset when no presence",
           "comfort_away_temp": "Temperature in Comfort preset when no presence",
           "boost_away_temp": "Temperature in Boost preset when no presence",
+          "frost_away_temp": "Temperature in Frost protection preset when no presence",
           "eco_ac_away_temp": "Temperature in Eco preset when no presence in AC mode",
           "comfort_ac_away_temp": "Temperature in Comfort preset when no presence in AC mode",
-          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode"
+          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode",
+          "use_presence_central_config": "Check to use the central presence configuration. Uncheck to use a specific presence configuration for this VTherm"
         }
       },
       "advanced": {
-        "title": "Advanced parameters",
-        "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
+        "title": "{name}",
+        "description": "Advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
         "data": {
           "minimal_activation_delay": "Minimal activation delay",
           "security_delay_min": "Security delay (in minutes)",
           "security_min_on_percent": "Minimal power percent to enable security mode",
-          "security_default_on_percent": "Power percent to use in security mode"
+          "security_default_on_percent": "Power percent to use in security mode",
+          "use_advanced_central_config": "Use central advanced configuration"
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a security off state",
           "security_min_on_percent": "Minimal heating percent value for security preset activation. Below this amount of power percent the thermostat won't go into security preset",
-          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset"
+          "security_default_on_percent": "The default heating power percent value in security preset. Set to 0 to switch off heater in security preset",
+          "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
       }
     },
     "error": {
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
-      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both"
+      "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -376,6 +462,7 @@
   "selector": {
     "thermostat_type": {
       "options": {
+        "thermostat_central_config": "Central configuration",
         "thermostat_over_switch": "Thermostat over a switch",
         "thermostat_over_climate": "Thermostat over a climate",
         "thermostat_over_valve": "Thermostat over a valve"

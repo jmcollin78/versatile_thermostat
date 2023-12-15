@@ -3,7 +3,13 @@ import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN, CONF_AUTO_REGULATION_EXPERT, CONF_SHORT_EMA_PARAMS
+from .const import (
+    DOMAIN,
+    CONF_AUTO_REGULATION_EXPERT,
+    CONF_SHORT_EMA_PARAMS,
+    CONF_THERMOSTAT_TYPE,
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
+)
 
 VTHERM_API_NAME = "vtherm_api"
 
@@ -17,37 +23,56 @@ class VersatileThermostatAPI(dict):
     # _entries: Dict(str, ConfigEntry)
 
     @classmethod
-    def get_vtherm_api(cls, hass: HomeAssistant):
+    def get_vtherm_api(cls, hass=None):
         """Get the eventual VTherm API class instance"""
-        ret = hass.data.get(DOMAIN).get(VTHERM_API_NAME)
+        if hass is not None:
+            VersatileThermostatAPI._hass = hass
+        else:
+            if VersatileThermostatAPI._hass is None:
+                return None
+
+        ret = VersatileThermostatAPI._hass.data.get(DOMAIN).get(VTHERM_API_NAME)
         if ret is None:
-            ret = VersatileThermostatAPI(hass)
+            ret = VersatileThermostatAPI()
             hass.data[DOMAIN][VTHERM_API_NAME] = ret
         return ret
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self) -> None:
         _LOGGER.debug("building a VersatileThermostatAPI")
         super().__init__()
-        self._hass = hass
         self._expert_params = None
         self._short_ema_params = None
+        self._central_config = None
+
+    def find_central_configuration(self):
+        """Search for a central configuration"""
+        for config_entry in VersatileThermostatAPI._hass.config_entries.async_entries(
+            DOMAIN
+        ):
+            if (
+                config_entry.data.get(CONF_THERMOSTAT_TYPE)
+                == CONF_THERMOSTAT_CENTRAL_CONFIG
+            ):
+                self._central_config = config_entry
+                return self._central_config
+        return None
 
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
         _LOGGER.debug("Add the entry %s", entry.entry_id)
         # self._entries[entry.entry_id] = entry
         # Add the entry in hass.data
-        self._hass.data[DOMAIN][entry.entry_id] = entry
+        VersatileThermostatAPI._hass.data[DOMAIN][entry.entry_id] = entry
 
     def remove_entry(self, entry: ConfigEntry):
         """Remove an entry"""
         _LOGGER.debug("Remove the entry %s", entry.entry_id)
         # self._entries.pop(entry.entry_id)
-        self._hass.data[DOMAIN].pop(entry.entry_id)
+        VersatileThermostatAPI._hass.data[DOMAIN].pop(entry.entry_id)
         # If not more entries are preset, remove the API
         if len(self) == 0:
             _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
-            self._hass.data.pop(DOMAIN)
+            VersatileThermostatAPI._hass.data.pop(DOMAIN)
 
     def set_global_config(self, config):
         """Read the global configuration from configuration.yaml file"""
@@ -74,4 +99,4 @@ class VersatileThermostatAPI(dict):
     @property
     def hass(self):
         """Get the HomeAssistant object"""
-        return self._hass
+        return VersatileThermostatAPI._hass
