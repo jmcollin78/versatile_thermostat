@@ -20,6 +20,8 @@ from .const import (
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_MOTION_FEATURE,
     CONF_USE_WINDOW_FEATURE,
+    CONF_THERMOSTAT_TYPE,
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,8 +39,15 @@ async def async_setup_entry(
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
 
-    entities = [SecurityBinarySensor(hass, unique_id, name, entry.data),WindowByPassBinarySensor(hass, unique_id, name, entry.data)]
+    if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        return
+
+    entities = [
+        SecurityBinarySensor(hass, unique_id, name, entry.data),
+        WindowByPassBinarySensor(hass, unique_id, name, entry.data),
+    ]
     if entry.data.get(CONF_USE_MOTION_FEATURE):
         entities.append(MotionBinarySensor(hass, unique_id, name, entry.data))
     if entry.data.get(CONF_USE_WINDOW_FEATURE):
@@ -55,8 +64,12 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the security state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the SecurityState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Security state"
@@ -90,8 +103,12 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     """Representation of a BinarySensor which exposes the overpowering state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the OverpoweringState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Overpowering state"
@@ -125,8 +142,12 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the window state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the WindowState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window state"
@@ -171,8 +192,12 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the motion state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the MotionState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Motion state"
@@ -207,8 +232,12 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the presence state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the PresenceState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Presence state"
@@ -239,13 +268,18 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         else:
             return "mdi:nature-people"
 
-#PR - Adding Window ByPass
+
+# PR - Adding Window ByPass
 class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the Window ByPass state"""
 
     def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
         """Initialize the WindowByPass Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window bypass"
