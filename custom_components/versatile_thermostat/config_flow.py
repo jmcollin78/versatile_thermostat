@@ -20,109 +20,8 @@ from homeassistant.config_entries import (
 
 from homeassistant.data_entry_flow import FlowHandler, FlowResult
 
-import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_component import EntityComponent
-
-from homeassistant.helpers import selector
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
-from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.input_boolean import (
-    DOMAIN as INPUT_BOOLEAN_DOMAIN,
-)
-
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.components.input_number import (
-    DOMAIN as INPUT_NUMBER_DOMAIN,
-)
-
-from homeassistant.components.person import DOMAIN as PERSON_DOMAIN
-from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
-
-
-from .const import (
-    DOMAIN,
-    CONF_NAME,
-    CONF_HEATER,
-    CONF_HEATER_2,
-    CONF_HEATER_3,
-    CONF_HEATER_4,
-    CONF_TEMP_SENSOR,
-    CONF_EXTERNAL_TEMP_SENSOR,
-    CONF_POWER_SENSOR,
-    CONF_MAX_POWER_SENSOR,
-    CONF_WINDOW_SENSOR,
-    CONF_WINDOW_DELAY,
-    CONF_WINDOW_AUTO_MAX_DURATION,
-    CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
-    CONF_WINDOW_AUTO_OPEN_THRESHOLD,
-    CONF_MOTION_SENSOR,
-    CONF_MOTION_DELAY,
-    CONF_MOTION_OFF_DELAY,
-    CONF_MOTION_PRESET,
-    CONF_NO_MOTION_PRESET,
-    CONF_DEVICE_POWER,
-    CONF_CYCLE_MIN,
-    CONF_PRESET_POWER,
-    CONF_PRESETS,
-    CONF_PRESETS_WITH_AC,
-    CONF_PRESETS_AWAY,
-    CONF_PRESETS_AWAY_WITH_AC,
-    CONF_PRESETS_SELECTIONABLE,
-    CONF_PROP_FUNCTION,
-    CONF_TPI_COEF_EXT,
-    CONF_TPI_COEF_INT,
-    CONF_PRESENCE_SENSOR,
-    PROPORTIONAL_FUNCTION_TPI,
-    CONF_SECURITY_DELAY_MIN,
-    CONF_SECURITY_MIN_ON_PERCENT,
-    CONF_SECURITY_DEFAULT_ON_PERCENT,
-    DEFAULT_SECURITY_MIN_ON_PERCENT,
-    DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
-    CONF_MINIMAL_ACTIVATION_DELAY,
-    CONF_TEMP_MAX,
-    CONF_TEMP_MIN,
-    CONF_THERMOSTAT_TYPE,
-    CONF_THERMOSTAT_SWITCH,
-    CONF_THERMOSTAT_CENTRAL_CONFIG,
-    CONF_CLIMATE,
-    CONF_CLIMATE_2,
-    CONF_CLIMATE_3,
-    CONF_CLIMATE_4,
-    CONF_USE_WINDOW_FEATURE,
-    CONF_USE_MOTION_FEATURE,
-    CONF_USE_PRESENCE_FEATURE,
-    CONF_USE_POWER_FEATURE,
-    CONF_AC_MODE,
-    CONF_THERMOSTAT_TYPES,
-    CONF_THERMOSTAT_VALVE,
-    CONF_VALVE,
-    CONF_VALVE_2,
-    CONF_VALVE_3,
-    CONF_VALVE_4,
-    CONF_AUTO_REGULATION_MODES,
-    CONF_AUTO_REGULATION_MODE,
-    CONF_AUTO_REGULATION_NONE,
-    CONF_AUTO_REGULATION_DTEMP,
-    CONF_AUTO_REGULATION_PERIOD_MIN,
-    CONF_INVERSE_SWITCH,
-    UnknownEntity,
-    WindowOpenDetectionMethod,
-    NoCentralConfig,
-    CONF_AUTO_FAN_MODES,
-    CONF_AUTO_FAN_MODE,
-    CONF_AUTO_FAN_HIGH,
-    CENTRAL_CONFIG_NAME,
-    CONF_USE_MAIN_CENTRAL_CONFIG,
-    CONF_USE_TPI_CENTRAL_CONFIG,
-    CONF_USE_WINDOW_CENTRAL_CONFIG,
-    CONF_USE_MOTION_CENTRAL_CONFIG,
-    CONF_USE_POWER_CENTRAL_CONFIG,
-    CONF_USE_PRESENCE_CENTRAL_CONFIG,
-    CONF_USE_PRESETS_CENTRAL_CONFIG,
-    CONF_USE_ADVANCED_CENTRAL_CONFIG,
-)
-
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_api import VersatileThermostatAPI
 
 COMES_FROM = "comes_from"
@@ -191,7 +90,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._init_feature_flags(infos)
         self._init_central_config_flags(infos)
-        self._init_schemas()
 
     def _init_feature_flags(self, infos):
         """Fix features selection depending to infos"""
@@ -230,367 +128,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 self._infos[config] = self._central_config is not None
 
         self._infos[COMES_FROM] = None
-
-    def _init_schemas(self):
-        """Init the schemas"""
-
-        # TODO those constants are instanciated each time a VTherm is created.
-        # This is not necessary and should be real constants or static members
-        self.STEP_USER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(
-                    CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=CONF_THERMOSTAT_TYPES, translation_key="thermostat_type"
-                    )
-                )
-            }
-        )
-
-        self.STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
-                vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
-            }
-        )
-
-        self.STEP_CENTRAL_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_TPI_COEF_INT, default=0.6): vol.Coerce(float),
-                vol.Required(CONF_TPI_COEF_EXT, default=0.01): vol.Coerce(float),
-            }
-        )
-
-        self.STEP_CENTRAL_WINDOW_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_OPEN_THRESHOLD, default=3
-                    ): vol.Coerce(float),
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_CLOSE_THRESHOLD, default=0
-                    ): vol.Coerce(float),
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_MAX_DURATION, default=30
-                    ): cv.positive_int,
-                }
-            )
-        )
-
-        self.STEP_CENTRAL_MOTION_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
-                    vol.Optional(CONF_MOTION_OFF_DELAY, default=300): cv.positive_int,
-                    vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
-                        CONF_PRESETS_SELECTIONABLE
-                    ),
-                    vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): vol.In(
-                        CONF_PRESETS_SELECTIONABLE
-                    ),
-                }
-            )
-        )
-
-        self.STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_NAME): cv.string,
-                vol.Required(CONF_TEMP_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
-                vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
-                vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
-                vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
-                vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
-                vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
-                vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_HEATER): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_HEATER_2): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_HEATER_3): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_HEATER_4): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Required(
-                    CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
-                ): vol.In(
-                    [
-                        PROPORTIONAL_FUNCTION_TPI,
-                    ]
-                ),
-                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
-                vol.Optional(CONF_INVERSE_SWITCH, default=False): cv.boolean,
-            }
-        )
-
-        self.STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_CLIMATE): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-                ),
-                vol.Optional(CONF_CLIMATE_2): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-                ),
-                vol.Optional(CONF_CLIMATE_3): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-                ),
-                vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-                ),
-                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
-                vol.Optional(
-                    CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=CONF_AUTO_REGULATION_MODES,
-                        translation_key="auto_regulation_mode",
-                    )
-                ),
-                vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(
-                    float
-                ),
-                vol.Optional(
-                    CONF_AUTO_REGULATION_PERIOD_MIN, default=5
-                ): cv.positive_int,
-                vol.Optional(
-                    CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=CONF_AUTO_FAN_MODES,
-                        translation_key="auto_fan_mode",
-                    )
-                ),
-            }
-        )
-
-        self.STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_VALVE): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_VALVE_2): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_VALVE_3): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Optional(CONF_VALVE_4): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
-                    ),
-                ),
-                vol.Required(
-                    CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI
-                ): vol.In(
-                    [
-                        PROPORTIONAL_FUNCTION_TPI,
-                    ]
-                ),
-                vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
-            }
-        )
-
-        self.STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_USE_TPI_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_USE_PRESETS_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_CENTRAL_PRESETS_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(v, default=0): vol.Coerce(float)
-                    for (k, v) in CONF_PRESETS.items()
-                }
-            )
-        )
-
-        self.STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name  # pylint: disable=invalid-name
-                {
-                    vol.Optional(v, default=0): vol.Coerce(float)
-                    for (k, v) in CONF_PRESETS_WITH_AC.items()
-                }
-            )
-        )
-
-        self.STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Optional(CONF_WINDOW_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Required(CONF_USE_WINDOW_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_CENTRAL_WINDOW_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_OPEN_THRESHOLD, default=3
-                    ): vol.Coerce(float),
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_CLOSE_THRESHOLD, default=0
-                    ): vol.Coerce(float),
-                    vol.Optional(
-                        CONF_WINDOW_AUTO_MAX_DURATION, default=30
-                    ): cv.positive_int,
-                }
-            )
-        )
-
-        self.STEP_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Optional(CONF_MOTION_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-                    ),
-                ),
-                vol.Required(CONF_USE_MOTION_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_CENTRAL_MOTION_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
-                    vol.Optional(CONF_MOTION_OFF_DELAY, default=300): cv.positive_int,
-                    vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
-                        CONF_PRESETS_SELECTIONABLE
-                    ),
-                    vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): vol.In(
-                        CONF_PRESETS_SELECTIONABLE
-                    ),
-                }
-            )
-        )
-
-        self.STEP_CENTRAL_POWER_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(CONF_POWER_SENSOR): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
-                        ),
-                    ),
-                    vol.Optional(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]
-                        ),
-                    ),
-                    vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
-                }
-            )
-        )
-
-        self.STEP_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(CONF_USE_POWER_CENTRAL_CONFIG, default=True): cv.boolean,
-            }
-        )
-
-        self.STEP_CENTRAL_PRESENCE_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Optional(v, default=17): vol.Coerce(float)
-                    for (k, v) in CONF_PRESETS_AWAY.items()
-                }
-            )
-        )
-
-        self.STEP_CENTRAL_PRESENCE_WITH_AC_DATA_SCHEMA = (
-            {  # pylint: disable=invalid-name
-                vol.Optional(v, default=17): vol.Coerce(float)
-                for (k, v) in CONF_PRESETS_AWAY_WITH_AC.items()
-            }
-        )
-
-        self.STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Optional(CONF_PRESENCE_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=[
-                            PERSON_DOMAIN,
-                            BINARY_SENSOR_DOMAIN,
-                            INPUT_BOOLEAN_DOMAIN,
-                        ]
-                    ),
-                ),
-                vol.Required(
-                    CONF_USE_PRESENCE_CENTRAL_CONFIG, default=True
-                ): cv.boolean,
-            }
-        )
-
-        self.STEP_CENTRAL_ADVANCED_DATA_SCHEMA = (
-            vol.Schema(  # pylint: disable=invalid-name
-                {
-                    vol.Required(
-                        CONF_MINIMAL_ACTIVATION_DELAY, default=10
-                    ): cv.positive_int,
-                    vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
-                    vol.Required(
-                        CONF_SECURITY_MIN_ON_PERCENT,
-                        default=DEFAULT_SECURITY_MIN_ON_PERCENT,
-                    ): vol.Coerce(float),
-                    vol.Required(
-                        CONF_SECURITY_DEFAULT_ON_PERCENT,
-                        default=DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
-                    ): vol.Coerce(float),
-                }
-            )
-        )
-
-        self.STEP_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-            {
-                vol.Required(
-                    CONF_USE_ADVANCED_CENTRAL_CONFIG, default=True
-                ): cv.boolean,
-            }
-        )
 
     async def validate_input(self, data: dict) -> None:
         """Validate the user input allows us to connect.
@@ -708,27 +245,27 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_user user_input=%s", user_input)
 
         return await self.generic_step(
-            "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_main
+            "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_main
         )
 
     async def async_step_main(self, user_input: dict | None = None) -> FlowResult:
         """Handle the flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_main user_input=%s", user_input)
 
-        schema = self.STEP_MAIN_DATA_SCHEMA
+        schema = STEP_MAIN_DATA_SCHEMA
         next_step = self.async_step_type
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             self._infos[CONF_NAME] = CENTRAL_CONFIG_NAME
-            schema = self.STEP_CENTRAL_MAIN_DATA_SCHEMA
+            schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
             next_step = self.async_step_tpi
         elif user_input and user_input.get(CONF_USE_MAIN_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_main
-            schema = self.STEP_MAIN_DATA_SCHEMA
+            schema = STEP_MAIN_DATA_SCHEMA
         # If we come from async_step_spec_main
         elif self._infos.get(COMES_FROM) == "async_step_spec_main":
             next_step = self.async_step_type
-            schema = self.STEP_CENTRAL_MAIN_DATA_SCHEMA
+            schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
 
         return await self.generic_step("main", schema, user_input, next_step)
 
@@ -736,7 +273,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific main flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_main user_input=%s", user_input)
 
-        schema = self.STEP_CENTRAL_MAIN_DATA_SCHEMA
+        schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
         next_step = self.async_step_type
 
         self._infos[COMES_FROM] = "async_step_spec_main"
@@ -750,16 +287,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
             return await self.generic_step(
-                "type", self.STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
+                "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
             )
         elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
             return await self.generic_step(
-                "type", self.STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
+                "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
             )
         else:
             return await self.generic_step(
                 "type",
-                self.STEP_THERMOSTAT_CLIMATE,
+                STEP_THERMOSTAT_CLIMATE,
                 user_input,
                 self.async_step_presets,
             )
@@ -768,7 +305,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the TPI flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_tpi user_input=%s", user_input)
 
-        schema = self.STEP_TPI_DATA_SCHEMA
+        schema = STEP_TPI_DATA_SCHEMA
         next_step = (
             self.async_step_spec_tpi
             if user_input and user_input.get(CONF_USE_TPI_CENTRAL_CONFIG) is False
@@ -776,7 +313,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_TPI_DATA_SCHEMA
+            schema = STEP_CENTRAL_TPI_DATA_SCHEMA
             next_step = self.async_step_presets
 
         return await self.generic_step("tpi", schema, user_input, next_step)
@@ -785,7 +322,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific TPI flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_tpi user_input=%s", user_input)
 
-        schema = self.STEP_CENTRAL_TPI_DATA_SCHEMA
+        schema = STEP_CENTRAL_TPI_DATA_SCHEMA
         next_step = self.async_step_presets
 
         return await self.generic_step("tpi", schema, user_input, next_step)
@@ -795,12 +332,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_presets user_input=%s", user_input)
 
         if self._infos.get(CONF_AC_MODE) is True:
-            schema_ac_or_not = self.STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
+            schema_ac_or_not = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
         else:
-            schema_ac_or_not = self.STEP_CENTRAL_PRESETS_DATA_SCHEMA
+            schema_ac_or_not = STEP_CENTRAL_PRESETS_DATA_SCHEMA
 
         next_step = self.async_step_advanced
-        schema = self.STEP_PRESETS_DATA_SCHEMA
+        schema = STEP_PRESETS_DATA_SCHEMA
         if self._infos[CONF_USE_WINDOW_FEATURE]:
             next_step = self.async_step_window
         elif self._infos[CONF_USE_MOTION_FEATURE]:
@@ -812,7 +349,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
+            schema = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
             next_step = self.async_step_window
         # If comes from async_step_spec_presets
         elif self._infos.get(COMES_FROM) == "async_step_spec_presets":
@@ -832,9 +369,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         if self._infos.get(CONF_AC_MODE) is True:
-            schema = self.STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
+            schema = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
         else:
-            schema = self.STEP_CENTRAL_PRESETS_DATA_SCHEMA
+            schema = STEP_CENTRAL_PRESETS_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_presets"
 
@@ -847,7 +384,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the window  sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_window user_input=%s", user_input)
 
-        schema = self.STEP_WINDOW_DATA_SCHEMA
+        schema = STEP_WINDOW_DATA_SCHEMA
         next_step = self.async_step_advanced
 
         if self._infos[CONF_USE_MOTION_FEATURE]:
@@ -859,11 +396,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_WINDOW_DATA_SCHEMA
+            schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
             next_step = self.async_step_motion
         # If comes from async_step_spec_window
         elif self._infos.get(COMES_FROM) == "async_step_spec_window":
-            schema = self.STEP_CENTRAL_WINDOW_DATA_SCHEMA
+            schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_window
 
@@ -877,7 +414,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_spec_window user_input=%s", user_input
         )
 
-        schema = self.STEP_CENTRAL_WINDOW_DATA_SCHEMA
+        schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_window"
 
@@ -890,7 +427,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the window and motion sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_motion user_input=%s", user_input)
 
-        schema = self.STEP_MOTION_DATA_SCHEMA
+        schema = STEP_MOTION_DATA_SCHEMA
         next_step = self.async_step_advanced
 
         if self._infos[CONF_USE_POWER_FEATURE]:
@@ -900,11 +437,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_MOTION_DATA_SCHEMA
+            schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
             next_step = self.async_step_power
         # If comes from async_step_spec_motion
         elif self._infos.get(COMES_FROM) == "async_step_spec_motion":
-            schema = self.STEP_CENTRAL_MOTION_DATA_SCHEMA
+            schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_MOTION_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_motion
 
@@ -918,7 +455,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_spec_motion user_input=%s", user_input
         )
 
-        schema = self.STEP_CENTRAL_MOTION_DATA_SCHEMA
+        schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_motion"
 
@@ -931,7 +468,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the power management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_power user_input=%s", user_input)
 
-        schema = self.STEP_POWER_DATA_SCHEMA
+        schema = STEP_POWER_DATA_SCHEMA
         next_step = self.async_step_advanced
 
         if self._infos[CONF_USE_PRESENCE_FEATURE]:
@@ -939,11 +476,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_POWER_DATA_SCHEMA
+            schema = STEP_CENTRAL_POWER_DATA_SCHEMA
             next_step = self.async_step_presence
         # If comes from async_step_spec_motion
         elif self._infos.get(COMES_FROM) == "async_step_spec_power":
-            schema = self.STEP_CENTRAL_POWER_DATA_SCHEMA
+            schema = STEP_CENTRAL_POWER_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_POWER_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_power
 
@@ -953,7 +490,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific power flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_power user_input=%s", user_input)
 
-        schema = self.STEP_CENTRAL_POWER_DATA_SCHEMA
+        schema = STEP_CENTRAL_POWER_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_power"
 
@@ -966,16 +503,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
-        schema = self.STEP_PRESENCE_DATA_SCHEMA
+        schema = STEP_PRESENCE_DATA_SCHEMA
         next_step = self.async_step_advanced
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_PRESENCE_DATA_SCHEMA
+            schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
             next_step = self.async_step_advanced
         # If comes from async_step_spec_presence
         elif self._infos.get(COMES_FROM) == "async_step_spec_presence":
-            schema = self.STEP_CENTRAL_PRESENCE_DATA_SCHEMA
+            schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_PRESENCE_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_presence
 
@@ -989,7 +526,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_spec_presence user_input=%s", user_input
         )
 
-        schema = self.STEP_CENTRAL_PRESENCE_DATA_SCHEMA
+        schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_presence"
 
@@ -1002,15 +539,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the advanced parameter flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_advanced user_input=%s", user_input)
 
-        schema = self.STEP_ADVANCED_DATA_SCHEMA
+        schema = STEP_ADVANCED_DATA_SCHEMA
         next_step = self.async_finalize
 
         # In Central config -> display the presets_with_ac and goto windows
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = self.STEP_CENTRAL_ADVANCED_DATA_SCHEMA
+            schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
         # If comes from async_step_spec_presence
         elif self._infos.get(COMES_FROM) == "async_step_spec_advanced":
-            schema = self.STEP_CENTRAL_ADVANCED_DATA_SCHEMA
+            schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_ADVANCED_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_advanced
 
@@ -1024,7 +561,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_spec_advanced user_input=%s", user_input
         )
 
-        schema = self.STEP_CENTRAL_ADVANCED_DATA_SCHEMA
+        schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_presence"
 
@@ -1039,14 +576,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "async_finalize not implemented on VersatileThermostat sub-class"
         )
 
-    def find_all_climates(self) -> list(str):
-        """Find all climate known by HA"""
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        ret: list(str) = list()
-        for entity in component.entities:
-            ret.append(entity.entity_id)
-        _LOGGER.debug("Found all climate entities: %s", ret)
-        return ret
+    # Not used but can be useful in the future
+    # def find_all_climates(self) -> list(str):
+    #     """Find all climate known by HA"""
+    #     component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+    #     ret: list(str) = list()
+    #     for entity in component.entities:
+    #         ret.append(entity.entity_id)
+    #     _LOGGER.debug("Found all climate entities: %s", ret)
+    #     return ret
 
 
 class VersatileThermostatConfigFlow(
@@ -1108,7 +646,7 @@ class VersatileThermostatOptionsFlowHandler(
     #     )
 
     #     return await self.generic_step(
-    #         "user", self.STEP_USER_DATA_SCHEMA, user_input, self.async_step_type
+    #         "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_type
     #     )
 
     # async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
@@ -1119,16 +657,16 @@ class VersatileThermostatOptionsFlowHandler(
 
     #     if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
     #         return await self.generic_step(
-    #             "type", self.STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
+    #             "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
     #         )
     #     elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
     #         return await self.generic_step(
-    #             "type", self.STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
+    #             "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
     #         )
     #     else:
     #         return await self.generic_step(
     #             "type",
-    #             self.STEP_THERMOSTAT_CLIMATE,
+    #             STEP_THERMOSTAT_CLIMATE,
     #             user_input,
     #             self.async_step_presets,
     #         )
@@ -1140,7 +678,7 @@ class VersatileThermostatOptionsFlowHandler(
     #     )
 
     #     return await self.generic_step(
-    #         "tpi", self.STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
+    #         "tpi", STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
     #     )
 
     # async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
@@ -1160,9 +698,9 @@ class VersatileThermostatOptionsFlowHandler(
     #         next_step = self.async_step_presence
 
     #     if self._infos.get(CONF_AC_MODE) is True:
-    #         schema = self.STEP_PRESETS_WITH_AC_DATA_SCHEMA
+    #         schema = STEP_PRESETS_WITH_AC_DATA_SCHEMA
     #     else:
-    #         schema = self.STEP_PRESETS_DATA_SCHEMA
+    #         schema = STEP_PRESETS_DATA_SCHEMA
 
     #     return await self.generic_step("presets", schema, user_input, next_step)
 
@@ -1180,7 +718,7 @@ class VersatileThermostatOptionsFlowHandler(
     #     elif self._infos[CONF_USE_PRESENCE_FEATURE]:
     #         next_step = self.async_step_presence
     #     return await self.generic_step(
-    #         "window", self.STEP_WINDOW_DATA_SCHEMA, user_input, next_step
+    #         "window", STEP_WINDOW_DATA_SCHEMA, user_input, next_step
     #     )
 
     # async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
@@ -1196,7 +734,7 @@ class VersatileThermostatOptionsFlowHandler(
     #         next_step = self.async_step_presence
 
     #     return await self.generic_step(
-    #         "motion", self.STEP_MOTION_DATA_SCHEMA, user_input, next_step
+    #         "motion", STEP_MOTION_DATA_SCHEMA, user_input, next_step
     #     )
 
     # async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
@@ -1211,7 +749,7 @@ class VersatileThermostatOptionsFlowHandler(
 
     #     return await self.generic_step(
     #         "power",
-    #         self.STEP_POWER_DATA_SCHEMA,
+    #         STEP_POWER_DATA_SCHEMA,
     #         user_input,
     #         next_step,
     #     )
@@ -1223,9 +761,9 @@ class VersatileThermostatOptionsFlowHandler(
     #     )
 
     #     if self._infos.get(CONF_AC_MODE) is True:
-    #         schema = self.STEP_PRESENCE_WITH_AC_DATA_SCHEMA
+    #         schema = STEP_PRESENCE_WITH_AC_DATA_SCHEMA
     #     else:
-    #         schema = self.STEP_PRESENCE_DATA_SCHEMA
+    #         schema = STEP_PRESENCE_DATA_SCHEMA
 
     #     return await self.generic_step(
     #         "presence",
@@ -1242,7 +780,7 @@ class VersatileThermostatOptionsFlowHandler(
 
     #     return await self.generic_step(
     #         "advanced",
-    #         self.STEP_ADVANCED_DATA_SCHEMA,
+    #         STEP_ADVANCED_DATA_SCHEMA,
     #         user_input,
     #         self.async_end,
     #     )

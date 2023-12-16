@@ -99,6 +99,14 @@ from .const import (
     DEFAULT_SECURITY_MIN_ON_PERCENT,
     DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
     CONF_MINIMAL_ACTIVATION_DELAY,
+    CONF_USE_MAIN_CENTRAL_CONFIG,
+    CONF_USE_TPI_CENTRAL_CONFIG,
+    CONF_USE_PRESETS_CENTRAL_CONFIG,
+    CONF_USE_WINDOW_CENTRAL_CONFIG,
+    CONF_USE_MOTION_CENTRAL_CONFIG,
+    CONF_USE_POWER_CENTRAL_CONFIG,
+    CONF_USE_PRESENCE_CENTRAL_CONFIG,
+    CONF_USE_ADVANCED_CENTRAL_CONFIG,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     HIDDEN_PRESETS,
@@ -109,6 +117,8 @@ from .const import (
     PRESET_AC_SUFFIX,
     DEFAULT_SHORT_EMA_PARAMS,
 )
+
+from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingEntity
@@ -265,14 +275,67 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._attr_fan_mode = None
         self.post_init(entry_infos)
 
-    def post_init(self, entry_infos):
+    def clean_central_config_doublon(self, config_entry, central_config) -> dict:
+        """Removes all values from config with are concerned by central_config"""
+
+        def clean_one(cfg, schema: vol.Schema):
+            """Clean one schema"""
+            for key, _ in schema.schema.items():
+                if key in cfg is not None:
+                    del cfg[key]
+
+        cfg = config_entry.copy()
+        if central_config and central_config.data:
+            # Removes config if central is used
+            if cfg.get(CONF_USE_MAIN_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_MAIN_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_TPI_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_TPI_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_PRESETS_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_PRESETS_DATA_SCHEMA)
+                clean_one(cfg, STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_MOTION_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_POWER_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_POWER_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_PRESENCE_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_PRESENCE_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_ADVANCED_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_ADVANCED_DATA_SCHEMA)
+
+            # take all central config
+            entry_infos = central_config.data.copy()
+            # and merge with cleaned config_entry
+            entry_infos.update(cfg)
+        else:
+            entry_infos = cfg
+
+        return entry_infos
+
+    def post_init(self, config_entry):
         """Finish the initialization of the thermostast"""
 
         _LOGGER.info(
             "%s - Updating VersatileThermostat with infos %s",
             self,
-            entry_infos,
+            config_entry,
         )
+
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        central_config = api.find_central_configuration()
+
+        entry_infos = self.clean_central_config_doublon(config_entry, central_config)
+
+        _LOGGER.info("%s - The merged configuration is %s", self, entry_infos)
 
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
@@ -475,8 +538,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._total_energy = 0
 
         # Read the parameter from configuration.yaml if it exists
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-
         short_ema_params = DEFAULT_SHORT_EMA_PARAMS
         if api is not None and api.short_ema_params:
             short_ema_params = api.short_ema_params
