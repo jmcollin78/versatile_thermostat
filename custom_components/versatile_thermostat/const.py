@@ -66,6 +66,7 @@ CONF_SECURITY_DELAY_MIN = "security_delay_min"
 CONF_SECURITY_MIN_ON_PERCENT = "security_min_on_percent"
 CONF_SECURITY_DEFAULT_ON_PERCENT = "security_default_on_percent"
 CONF_THERMOSTAT_TYPE = "thermostat_type"
+CONF_THERMOSTAT_CENTRAL_CONFIG = "thermostat_central_config"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
 CONF_THERMOSTAT_CLIMATE = "thermostat_over_climate"
 CONF_THERMOSTAT_VALVE = "thermostat_over_valve"
@@ -102,6 +103,15 @@ CONF_AUTO_FAN_LOW = "auto_fan_low"
 CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
+
+CONF_USE_MAIN_CENTRAL_CONFIG = "use_main_central_config"
+CONF_USE_TPI_CENTRAL_CONFIG = "use_tpi_central_config"
+CONF_USE_WINDOW_CENTRAL_CONFIG = "use_window_central_config"
+CONF_USE_MOTION_CENTRAL_CONFIG = "use_motion_central_config"
+CONF_USE_POWER_CENTRAL_CONFIG = "use_power_central_config"
+CONF_USE_PRESENCE_CENTRAL_CONFIG = "use_presence_central_config"
+CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
+CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
@@ -224,6 +234,14 @@ ALL_CONF = (
         CONF_AUTO_REGULATION_PERIOD_MIN,
         CONF_INVERSE_SWITCH,
         CONF_AUTO_FAN_MODE,
+        CONF_USE_MAIN_CENTRAL_CONFIG,
+        CONF_USE_TPI_CENTRAL_CONFIG,
+        CONF_USE_PRESETS_CENTRAL_CONFIG,
+        CONF_USE_WINDOW_CENTRAL_CONFIG,
+        CONF_USE_MOTION_CENTRAL_CONFIG,
+        CONF_USE_POWER_CENTRAL_CONFIG,
+        CONF_USE_PRESENCE_CENTRAL_CONFIG,
+        CONF_USE_ADVANCED_CENTRAL_CONFIG,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -245,6 +263,7 @@ CONF_AUTO_REGULATION_MODES = [
 ]
 
 CONF_THERMOSTAT_TYPES = [
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
@@ -275,6 +294,8 @@ ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
 AUTO_FAN_DTEMP_THRESHOLD = 2
 AUTO_FAN_DEACTIVATED_MODES = ["mute", "auto", "low"]
+
+CENTRAL_CONFIG_NAME = "Central configuration"
 
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
@@ -361,6 +382,10 @@ class UnknownEntity(HomeAssistantError):
 
 class WindowOpenDetectionMethod(HomeAssistantError):
     """Error to indicate there is an error in the window open detection method given."""
+
+
+class NoCentralConfig(HomeAssistantError):
+    """Error to indicate that we try to use a central configuration but no VTherm of type CENTRAL CONFIGURATION has been found"""
 
 
 class overrides:  # pylint: disable=invalid-name

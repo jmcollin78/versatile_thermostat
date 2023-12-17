@@ -71,8 +71,8 @@ async def test_over_climate_regulation(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.is_regulated is True
-        assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_action is HVACAction.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             PRESET_NONE,

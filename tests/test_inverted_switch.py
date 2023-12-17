@@ -1,14 +1,17 @@
 # pylint: disable=unused-argument, line-too-long, protected-access
 """ Test the Window management """
-import asyncio
+# import asyncio
 import logging
 from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
-from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
+
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -44,14 +47,14 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
             CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
             CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
-            CONF_INVERSE_SWITCH: True
+            CONF_INVERSE_SWITCH: True,
         },
     )
 
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=True # switch is On
+        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is On
     ):
         entity: ThermostatOverSwitch = await create_thermostat(
             hass, entry, "climate.theoverswitchmockname"
@@ -80,7 +83,7 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     ), patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=True # switch is Off
+        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is Off
     ):
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 19, event_timestamp)
@@ -90,9 +93,13 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         # not updated cause mocked assert entity.is_device_active is True
 
         assert mock_service_call.call_count == 1
-        mock_service_call.assert_has_calls([
-            call.async_call('switch', SERVICE_TURN_OFF, {'entity_id': 'switch.mock_switch'}),
-        ])
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"}
+                ),
+            ]
+        )
 
     # 2. Make the temperature up to deactivate the switch
     with patch(
@@ -100,7 +107,8 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     ), patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=False # switch is On -> it should turned off
+        "homeassistant.core.StateMachine.is_state",
+        return_value=False,  # switch is On -> it should turned off
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_temperature_change_event(entity, 25, event_timestamp)
@@ -114,11 +122,13 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         await entity._underlyings[0].turn_off()
 
         assert mock_service_call.call_count == 1
-        mock_service_call.assert_has_calls([
-            call.async_call('switch', SERVICE_TURN_ON, {'entity_id': 'switch.mock_switch'}),
-        ])
-
-
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"}
+                ),
+            ]
+        )
 
     # Clean the entity
     entity.remove_thermostat()

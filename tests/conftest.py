@@ -26,7 +26,10 @@ from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 
+from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+
+from .commons import create_central_config
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
@@ -34,7 +37,9 @@ pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=inva
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):  # pylint: disable=unused-argument
+def auto_enable_custom_integrations(
+    enable_custom_integrations,
+):  # pylint: disable=unused-argument
     """Enable all integration in tests"""
     yield
 
@@ -108,3 +113,20 @@ def skip_send_event_fixture():
     """Skip the send_event in BaseThermostat"""
     with patch.object(BaseThermostat, "send_event"):
         yield
+
+
+@pytest.fixture(name="init_vtherm_api")
+def init_vtherm_api_fixture(hass):
+    """Initialize the VTherm API"""
+    VersatileThermostatAPI.get_vtherm_api(hass)
+    yield
+
+
+@pytest.fixture(name="init_central_config")
+async def init_central_config_fixture(
+    hass, init_vtherm_api
+):  # pylint: disable=unused-argument
+    """Initialize the VTherm API"""
+    await create_central_config(hass)
+
+    yield

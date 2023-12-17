@@ -27,6 +27,7 @@ from .const import (
     CONF_THERMOSTAT_VALVE,
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_TYPE,
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
 )
 
 THRESHOLD_WATT_KILO = 100
@@ -46,6 +47,10 @@ async def async_setup_entry(
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+
+    if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        return
 
     entities = [
         LastTemperatureSensor(hass, unique_id, name, entry.data),

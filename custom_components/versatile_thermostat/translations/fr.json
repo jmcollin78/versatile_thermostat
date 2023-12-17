@@ -4,6 +4,15 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
+        "title": "Type du nouveau Versatile Thermostat",
+        "data": {
+          "thermostat_type": "Type de thermostat"
+        },
+        "data_description": {
+          "thermostat_type": "Un seul thermostat de type Configuration centrale est possible."
+        }
+      },
+      "main": {
         "title": "Ajout d'un nouveau thermostat",
         "description": "Principaux attributs obligatoires",
         "data": {
@@ -18,7 +27,12 @@
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
-          "use_presence_feature": "Avec détection de présence"
+          "use_presence_feature": "Avec détection de présence",
+          "use_main_central_config": "Utiliser la configuration centrale principale"
+        },
+        "data_description": {
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée",
+          "use_main_central_config": "Cochez pour utiliser la configuration centrale principale. Décochez et saisissez les attributs pour utiliser une configuration spécifique principale"
         }
       },
       "type": {
@@ -71,8 +85,14 @@
         "title": "TPI",
         "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
-          "tpi_coef_int": "coeff_int : Coefficient à utiliser pour le delta de température interne",
-          "tpi_coef_ext": "coeff_ext : Coefficient à utiliser pour le delta de température externe"
+          "tpi_coef_int": "coeff_int",
+          "tpi_coef_ext": "coeff_ext",
+          "use_tpi_central_config": "Utiliser la configuration TPI centrale"
+        },
+        "data_description": {
+          "tpi_coef_int": "Coefficient à utiliser pour le delta de température interne",
+          "tpi_coef_ext": "Coefficient à utiliser pour le delta de température externe",
+          "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique"
         }
       },
       "presets": {
@@ -85,7 +105,8 @@
           "frost_temp": "Preset Hors-gel",
           "eco_ac_temp": "Preset Eco en mode AC",
           "comfort_ac_temp": "Preset Comfort en mode AC",
-          "boost_ac_temp": "Preset Boost en mode AC"
+          "boost_ac_temp": "Preset Boost en mode AC",
+          "use_presets_central_config": "Utiliser la configuration des presets centrale"
         },
         "data_description": {
           "eco_temp": "Température en preset Eco",
@@ -94,7 +115,8 @@
           "frost_temp": "Température en preset Hors-gel",
           "eco_ac_temp": "Température en preset Eco en mode AC",
           "comfort_ac_temp": "Température en preset Comfort en mode AC",
-          "boost_ac_temp": "Température en preset Boost en mode AC"
+          "boost_ac_temp": "Température en preset Boost en mode AC",
+          "use_presets_central_config": "Cochez pour utiliser la configuration des presets centrale. Décochez et saisissez les attributs pour utiliser une configuration des presets spécifique"
         }
       },
       "window": {
@@ -105,14 +127,16 @@
           "window_delay": "Délai avant extinction (secondes)",
           "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/heure)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/heure)",
-          "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)"
+          "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)",
+          "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
         },
         "data_description": {
           "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur",
           "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte",
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
-          "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique"
+          "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique",
+          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures"
         }
       },
       "motion": {
@@ -123,23 +147,32 @@
           "motion_delay": "Délai d'activation",
           "motion_off_delay": "Délai de désactivation",
           "motion_preset": "Preset si mouvement",
-          "no_motion_preset": "Preset si pas de mouvement"
+          "no_motion_preset": "Preset si pas de mouvement",
+          "use_motion_central_config": "Utiliser la condfiguration centrale du mouvement"
         },
         "data_description": {
           "motion_sensor_entity_id": "Détecteur de mouvement entity id",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
           "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
-          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
+          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
+          "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
         }
       },
       "power": {
-        "title": "Gestion de l'énergie",
+        "title": "Gestion de la puissance",
         "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "power_temp": "Température si délestaqe"
+          "power_temp": "Température si délestaqe",
+          "use_power_central_config": "Utiliser la configuration centrale de la puissance"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "Entity id du capteur de puissance totale du logement",
+          "max_power_sensor_entity_id": "Entity id du capteur de puissance Max autorisée avant délestage",
+          "power_temp": "Température cible si délestaqe",
+          "use_power_central_config": "Cochez pour utiliser la configuration centrale de la puissance. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la puissance"
         }
       },
       "presence": {
@@ -153,7 +186,8 @@
           "frost_away_temp": "preset Hors-gel",
           "eco_ac_away_temp": "preset Eco en mode AC",
           "comfort_ac_away_temp": "preset Comfort en mode AC",
-          "boost_ac_away_temp": "preset Boost en mode AC"
+          "boost_ac_away_temp": "preset Boost en mode AC",
+          "use_presence_central_config": "Utiliser la configuration centrale de la présence"
         },
         "data_description": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
@@ -163,7 +197,8 @@
           "frost_away_temp": "Température en preset Hors-gel en cas d'absence",
           "eco_ac_away_temp": "Température en preset Eco en cas d'absence en mode AC",
           "comfort_ac_away_temp": "Température en preset Comfort en cas d'absence en mode AC",
-          "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC"
+          "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC",
+          "use_presence_central_config": "Cochez pour utiliser la configuration centrale de la présence. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la présence"
         }
       },
       "advanced": {
@@ -173,20 +208,23 @@
           "minimal_activation_delay": "Délai minimal d'activation",
           "security_delay_min": "Délai maximal entre 2 mesures de températures",
           "security_min_on_percent": "Pourcentage minimal de puissance",
-          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité"
+          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
           "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "security_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
-          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité"
+          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       }
     },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu",
-      "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux."
+      "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
+      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -196,14 +234,22 @@
     "flow_title": "Versatile Thermostat configuration",
     "step": {
       "user": {
-        "title": "Ajout d'un nouveau thermostat",
+        "title": "Type - {name}",
+        "data": {
+          "thermostat_type": "Type de thermostat"
+        },
+        "data_description": {
+          "thermostat_type": "Un seul thermostat de type Configuration centrale est possible."
+        }
+      },
+      "main": {
+        "title": "Attributs - {name}",
         "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
-          "thermostat_over_switch": "Thermostat sur un switch",
-          "thermostat_over_climate": "Thermostat sur un autre thermostat",
+          "thermostat_type": "Type de thermostat",
           "temperature_sensor_entity_id": "Température sensor entity id",
-          "external_temperature_sensor_entity_id": "Temperature exterieure sensor entity id",
+          "external_temperature_sensor_entity_id": "Température exterieure sensor entity id",
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
@@ -211,11 +257,16 @@
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
-          "use_presence_feature": "Avec détection de présence"
+          "use_presence_feature": "Avec détection de présence",
+          "use_main_central_config": "Utiliser la configuration centrale"
+        },
+        "data_description": {
+          "use_main_central_config": "Cochez pour utiliser la configuration centrale. Décochez et saisissez les attributs pour utiliser une configuration spécifique",
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée"
         }
       },
       "type": {
-        "title": "Entité(s) liée(s)",
+        "title": "Entités - {name}",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
           "heater_entity_id": "1er radiateur",
@@ -261,7 +312,7 @@
         }
       },
       "tpi": {
-        "title": "TPI",
+        "title": "TPI - {name}",
         "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int : Coefficient à utiliser pour le delta de température interne",
@@ -269,8 +320,8 @@
         }
       },
       "presets": {
-        "title": "Presets",
-        "description": "Pour chaque preset, donnez la température cible (0 pour ignorer le preset)",
+        "title": "Pre-réglages - {name}",
+        "description": "Réglage des presets. Donnez la température cible (0 pour ignorer le preset)",
         "data": {
           "eco_temp": "Preset Eco",
           "comfort_temp": "Preset Comfort",
@@ -278,7 +329,8 @@
           "frost_temp": "Preset Hors-gel",
           "eco_ac_temp": "Preset Eco en mode AC",
           "comfort_ac_temp": "Preset Comfort en mode AC",
-          "boost_ac_temp": "Preset Boost en mode AC"
+          "boost_ac_temp": "Preset Boost en mode AC",
+          "use_presets_central_config": "Utiliser la configuration centrale des presets"
         },
         "data_description": {
           "eco_temp": "Température en preset Eco",
@@ -287,57 +339,69 @@
           "frost_temp": "Température en preset Hors-gel",
           "eco_ac_temp": "Température en preset Eco en mode AC",
           "comfort_ac_temp": "Température en preset Comfort en mode AC",
-          "boost_ac_temp": "Température en preset Boost en mode AC"
+          "boost_ac_temp": "Température en preset Boost en mode AC",
+          "use_presets_central_config": "Cochez pour utiliser la configuration centrale des presets. Décochez et saisissez les attributs pour utiliser une configuration des presets spécifique"
         }
       },
       "window": {
-        "title": "Gestion d'une ouverture",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
+        "title": "Ouverture - {name}",
+        "description": "Gestion des ouvertures. Coupe le radiateur si l'ouverture est ouverte.",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
           "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/heure)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/heure)",
-          "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)"
+          "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)",
+          "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
         },
         "data_description": {
           "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur",
           "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte",
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
-          "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique"
+          "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique",
+          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures"
         }
       },
       "motion": {
-        "title": "Gestion de la détection de mouvement",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
+        "title": "Mouvement - {name}",
+        "description": "Gestion du mouvement. Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
           "motion_off_delay": "Délai de désactivation",
           "motion_preset": "Preset si mouvement",
-          "no_motion_preset": "Preset si pas de mouvement"
+          "no_motion_preset": "Preset si pas de mouvement",
+          "use_motion_central_config": "Utiliser la condfiguration centrale du mouvement"
         },
         "data_description": {
           "motion_sensor_entity_id": "Détecteur de mouvement entity id",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
           "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
-          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté"
+          "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
+          "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
         }
       },
       "power": {
-        "title": "Gestion de l'énergie",
-        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
+        "title": "Puissance - {name}",
+        "description": "Gestion de la puissance. Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum. Tous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
         "data": {
-          "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
+          "power_sensor_entity_id": "Puissance totale",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
-          "power_temp": "Température si délestaqe"
+          "power_temp": "Température si délestaqe",
+          "use_power_central_config": "Utiliser la configuration centrale de la puissance"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "Entity id du capteur de puissance totale du logement",
+          "max_power_sensor_entity_id": "Entity id du capteur de puissance Max autorisée avant délestage",
+          "power_temp": "Température cible si délestaqe",
+          "use_power_central_config": "Cochez pour utiliser la configuration centrale de la puissance. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la puissance"
         }
       },
       "presence": {
-        "title": "Gestion de la présence",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
+        "title": "Présence - {name}",
+        "description": "Gestion de la présence. Le capteur de présence doit être true ou home si quelqu'un est présent.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "eco_away_temp": "preset Eco",
@@ -346,7 +410,8 @@
           "frost_away_temp": "preset Hors-gel",
           "eco_ac_away_temp": "preset Eco en mode AC",
           "comfort_ac_away_temp": "preset Comfort en mode AC",
-          "boost_ac_away_temp": "preset Boost en mode AC"
+          "boost_ac_away_temp": "preset Boost en mode AC",
+          "use_presence_central_config": "Utiliser la configuration centrale de la présence"
         },
         "data_description": {
           "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
@@ -356,30 +421,34 @@
           "frost_away_temp": "Température en preset Hors-gel en cas d'absence",
           "eco_ac_away_temp": "Température en preset Eco en cas d'absence en mode AC",
           "comfort_ac_away_temp": "Température en preset Comfort en cas d'absence en mode AC",
-          "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC"
+          "boost_ac_away_temp": "Température en preset Boost en cas d'absence en mode AC",
+          "use_presence_central_config": "Cochez pour utiliser la configuration centrale de la présence. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la présence"
         }
       },
       "advanced": {
-        "title": "Parameters avancés",
-        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
+        "title": "Avancés - {name}",
+        "description": "Paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
           "security_delay_min": "Délai maximal entre 2 mesures de températures",
           "security_min_on_percent": "Pourcentage minimal de puissance",
-          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité"
+          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
           "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "security_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
-          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité"
+          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       }
     },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu",
-      "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux."
+      "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
+      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -388,6 +457,7 @@
   "selector": {
     "thermostat_type": {
       "options": {
+        "thermostat_central_config": "Configuration centrale",
         "thermostat_over_switch": "Thermostat sur un switch",
         "thermostat_over_climate": "Thermostat sur un autre thermostat",
         "thermostat_over_valve": "Thermostat sur une valve"

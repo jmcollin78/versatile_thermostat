@@ -29,13 +29,19 @@ from custom_components.versatile_thermostat.commons import (  # pylint: disable=
     NowClass,
 )
 
+from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
     MOCK_TH_OVER_4SWITCH_USER_CONFIG,
     MOCK_TH_OVER_CLIMATE_USER_CONFIG,
+    MOCK_TH_OVER_SWITCH_MAIN_CONFIG,
+    MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG,
     MOCK_TH_OVER_SWITCH_TYPE_CONFIG,
     MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG,
     MOCK_TH_OVER_4SWITCH_TYPE_CONFIG,
+    MOCK_TH_OVER_CLIMATE_MAIN_CONFIG,
+    MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG,
@@ -56,8 +62,11 @@ from .const import (  # pylint: disable=unused-import
     PRESET_ACTIVITY,
 )
 
+
 FULL_SWITCH_CONFIG = (
     MOCK_TH_OVER_SWITCH_USER_CONFIG
+    | MOCK_TH_OVER_SWITCH_MAIN_CONFIG
+    | MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_SWITCH_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
     | MOCK_PRESETS_CONFIG
@@ -70,6 +79,8 @@ FULL_SWITCH_CONFIG = (
 
 FULL_SWITCH_AC_CONFIG = (
     MOCK_TH_OVER_SWITCH_USER_CONFIG
+    | MOCK_TH_OVER_SWITCH_MAIN_CONFIG
+    | MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
     | MOCK_PRESETS_AC_CONFIG
@@ -83,6 +94,8 @@ FULL_SWITCH_AC_CONFIG = (
 
 PARTIAL_CLIMATE_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
+    | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
+    | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG
     | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
@@ -90,6 +103,8 @@ PARTIAL_CLIMATE_CONFIG = (
 
 PARTIAL_CLIMATE_NOT_REGULATED_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
+    | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
+    | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG
     | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
@@ -98,6 +113,8 @@ PARTIAL_CLIMATE_NOT_REGULATED_CONFIG = (
 PARTIAL_CLIMATE_AC_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG
+    | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
+    | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
@@ -113,6 +130,45 @@ FULL_4SWITCH_CONFIG = (
     | MOCK_PRESENCE_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
+
+FULL_CENTRAL_CONFIG = {
+    CONF_NAME: CENTRAL_CONFIG_NAME,
+    CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    CONF_TEMP_MIN: 15,
+    CONF_TEMP_MAX: 30,
+    CONF_TPI_COEF_INT: 0.5,
+    CONF_TPI_COEF_EXT: 0.02,
+    "frost_temp": 10,
+    "eco_temp": 17.1,
+    "comfort_temp": 0,
+    "boost_temp": 19.1,
+    "eco_ac_temp": 25.1,
+    "comfort_ac_temp": 23.1,
+    "boost_ac_temp": 21.1,
+    "frost_away_temp": 15.1,
+    "eco_away_temp": 15.2,
+    "comfort_away_temp": 0,
+    "boost_away_temp": 15.4,
+    "eco_ac_away_temp": 30.5,
+    "comfort_ac_away_temp": 0,
+    "boost_ac_away_temp": 30.7,
+    CONF_WINDOW_DELAY: 15,
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD: 4,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 1,
+    CONF_WINDOW_AUTO_MAX_DURATION: 31,
+    CONF_MOTION_DELAY: 31,
+    CONF_MOTION_OFF_DELAY: 301,
+    CONF_MOTION_PRESET: "boost",
+    CONF_NO_MOTION_PRESET: "frost",
+    CONF_POWER_SENSOR: "sensor.mock_power_sensor",
+    CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
+    CONF_PRESET_POWER: 14,
+    CONF_MINIMAL_ACTIVATION_DELAY: 11,
+    CONF_SECURITY_DELAY_MIN: 61,
+    CONF_SECURITY_MIN_ON_PERCENT: 0.5,
+    CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -302,6 +358,27 @@ async def create_thermostat(
         return search_entity(hass, entity_id, CLIMATE_DOMAIN)
 
 
+async def create_central_config(  # pylint: disable=dangerous-default-value
+    hass: HomeAssistant, entry: MockConfigEntry = FULL_CENTRAL_CONFIG
+):
+    """Creates a Central Configuration from entry given in argument"""
+    central_config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data=entry,
+    )
+
+    central_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(central_config_entry.entry_id)
+    assert central_config_entry.state is ConfigEntryState.LOADED
+
+    # Test that VTherm API find the CentralConfig
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    central_configuration = api.find_central_configuration()
+    assert central_configuration is not None
+
+
 def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
@@ -309,6 +386,12 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
         if entity.entity_id == entity_id:
             return entity
     return None
+
+
+def count_entities(hass: HomeAssistant, entity_id, domain) -> Entity:
+    """Search and return the entity in the domain"""
+    component = hass.data[domain]
+    return len(list(component.entities)) if component.entities else 0
 
 
 async def send_temperature_change_event(

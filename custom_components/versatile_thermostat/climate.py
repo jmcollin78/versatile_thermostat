@@ -1,5 +1,3 @@
-# pylint: disable=line-too-long
-# pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
 import logging
 
@@ -37,6 +35,7 @@ from .const import (
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
 )
 
 from .thermostat_switch import ThermostatOverSwitch
@@ -64,7 +63,11 @@ async def async_setup_entry(
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
 
+    if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        return
+
     # Instantiate the right base class
+    entity = None
     if vt_type == CONF_THERMOSTAT_SWITCH:
         entity = ThermostatOverSwitch(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_CLIMATE:
