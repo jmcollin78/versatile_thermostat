@@ -281,7 +281,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         def clean_one(cfg, schema: vol.Schema):
             """Clean one schema"""
             for key, _ in schema.schema.items():
-                if key in cfg is not None:
+                if key in cfg:
                     del cfg[key]
 
         cfg = config_entry.copy()
@@ -301,7 +301,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
 
             if cfg.get(CONF_USE_MOTION_CENTRAL_CONFIG) is True:
-                clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
+                clean_one(cfg, STEP_CENTRAL_MOTION_DATA_SCHEMA)
 
             if cfg.get(CONF_USE_POWER_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_POWER_DATA_SCHEMA)

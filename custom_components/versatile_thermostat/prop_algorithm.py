@@ -25,7 +25,7 @@ class PropAlgorithm:
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",
+            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",  # pylint: disable=line-too-long
             function_type,
             tpi_coef_int,
             tpi_coef_ext,

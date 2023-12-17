@@ -80,6 +80,7 @@ async def async_setup_entry(
     async_add_entities([entity], True)
 
     # Add services
+    # TODO move this to async_setup ?
     platform = entity_platform.async_get_current_platform()
     platform.async_register_entity_service(
         SERVICE_SET_PRESENCE,

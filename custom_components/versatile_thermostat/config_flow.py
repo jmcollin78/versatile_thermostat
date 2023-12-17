@@ -127,7 +127,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             else:
                 self._infos[config] = self._central_config is not None
 
-        self._infos[COMES_FROM] = None
+        if COMES_FROM in self._infos:
+            del self._infos[COMES_FROM]
 
     async def validate_input(self, data: dict) -> None:
         """Validate the user input allows us to connect.
@@ -156,7 +157,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 raise UnknownEntity(conf)
 
         # Check that only one window feature is used
-        ws = data.get(CONF_WINDOW_SENSOR)  # pylint: disable=invalid-name
+        ws = self._infos.get(CONF_WINDOW_SENSOR)  # pylint: disable=invalid-name
         waot = data.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD)
         wact = data.get(CONF_WINDOW_AUTO_CLOSE_THRESHOLD)
         wamd = data.get(CONF_WINDOW_AUTO_MAX_DURATION)
@@ -315,6 +316,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_TPI_DATA_SCHEMA
             next_step = self.async_step_presets
+        elif self._infos.get(COMES_FROM) == "async_step_spec_tpi":
+            schema = STEP_CENTRAL_TPI_DATA_SCHEMA
 
         return await self.generic_step("tpi", schema, user_input, next_step)
 
@@ -323,6 +326,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_spec_tpi user_input=%s", user_input)
 
         schema = STEP_CENTRAL_TPI_DATA_SCHEMA
+        self._infos[COMES_FROM] = "async_step_spec_tpi"
         next_step = self.async_step_presets
 
         return await self.generic_step("tpi", schema, user_input, next_step)
@@ -563,7 +567,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
 
-        self._infos[COMES_FROM] = "async_step_spec_presence"
+        self._infos[COMES_FROM] = "async_step_spec_advanced"
 
         next_step = self.async_step_advanced
 
@@ -607,7 +611,8 @@ class VersatileThermostatConfigFlow(
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug("ConfigFlow.async_finalize")
         # Removes temporary value
-        self._infos[COMES_FROM] = None
+        if COMES_FROM in self._infos:
+            del self._infos[COMES_FROM]
         return self.async_create_entry(title=self._infos[CONF_NAME], data=self._infos)
 
 
@@ -811,7 +816,8 @@ class VersatileThermostatOptionsFlowHandler(
         )
 
         # Removes temporary value
-        self._infos[COMES_FROM] = None
+        if COMES_FROM in self._infos:
+            del self._infos[COMES_FROM]
 
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)
