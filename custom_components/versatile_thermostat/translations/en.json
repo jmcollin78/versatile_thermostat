@@ -413,6 +413,7 @@
           "eco_away_temp": "Eco away preset",
           "comfort_away_temp": "Comfort away preset",
           "boost_away_temp": "Boost away preset",
+          "frost_away_temp": "Frost protection preset",
           "eco_ac_away_temp": "Eco away preset in AC mode",
           "comfort_ac_away_temp": "Comfort away preset in AC mode",
           "boost_ac_away_temp": "Boost away preset in AC mode",
