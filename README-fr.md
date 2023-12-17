@@ -8,7 +8,7 @@
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
 
-- [Changements majeurs dans la version 4.0.0](#changements-majeurs-dans-la-version-400)
+- [Changements majeurs dans la version 5.0](#changements-majeurs-dans-la-version-50)
 - [Merci pour la bière buymecoffee](#merci-pour-la-bière-buymecoffee)
 - [Quand l'utiliser et ne pas l'utiliser](#quand-lutiliser-et-ne-pas-lutiliser)
   - [Incompatibilités](#incompatibilités)
@@ -74,6 +74,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
 > * **Release 4.3** : Ajout d'un mode auto-fan pour le type `over_climate` permettant d'activer la ventilation si l'écart de température est important [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
 > * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
 > * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
@@ -95,9 +96,22 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 </details>
 
-# Changements majeurs dans la version 4.0.0
-1. La puissance de l'appareil doit maintenant être la puissance totale de tous les appareils controlée par le VTherm. Cela permet d'avoir des équipements hétérogènes de puissance différente. Dans le cas de plusieurs appareils contrôlés par un seul VTherm, vous devrez éditer et changer la valeur `device_power`. Vous devez configurer la puissance totale de tous les appareils.
-2. Le seuil de détection automatique des ouvertures doit être spécifié en °/heure et pas plus en °/min. Pour conserver les mêmes paramètres il faut multiplier la valeur configurée par 60.
+# Changements majeurs dans la version 5.0
+![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true)
+
+Vous pouvez maintenant définir une configuration centrale qui va vous permettre de mettre en commun sur tous vos VTherms (ou seulement une partie), certains attributs. Pour utiliser cette possibilité, vous devez :
+1. Créer un VTherm de type "Configuration Centrale",
+2. Saisir les attributs de cette configuration centrale
+
+Pour l'utiliser ensuite dans les autres VTherms, vous devez les reconfigurer et à chaque fois que c'est possible cocher la case "Utiliser la configuration centrale". Cette case à cocher apparait dans tous les groupes d'attributs qui peuvent avoir recours à la configuration centrale : attributs principaux, TPI, ouvertures, mouvement, puissance, présence et paramètres avancés.
+
+Les attributs configurable dans la configuration centrale est listée ici : [Synthèse des paramètres](#synthèse-des-paramètres).
+
+Lors d'un changement sur la configuration centrale, tous les VTherms seront rechargés pour tenir compte de ces changements.
+
+En conséquence toute la phase de paramètrage d'un VTherm a été profondemment modifiée pour pouvoir utiliser la configuration centrale ou surcharger les valeurs de la configuration centrale par des valeurs propre au VTherm en cours de configuration.
+
+**Note :** les copies d'écran de la configuration d'un VTherm n'ont pas été mises à jour.
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
 Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
@@ -445,7 +459,7 @@ Si vous avez choisi la fonctionnalité ```Avec détection de la puissance```, cl
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
 
-Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique de votre chauffage** (en étape 1 de la configuration) et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
+Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique totale des équipements du VTherm** (en étape 1 de la configuration) et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
 
 Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW ou W par exemple).
 Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou de ce que vous voulez.
@@ -503,69 +517,72 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 
 ## Synthèse des paramètres
 
-| Paramètre                                 | Libellé                                                                           | "over switch" | "over climate"      | over valve |
-| ----------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------- | ---------- |
-| ``name``                                  | Nom                                                                               | X             | X                   | X          |
-| ``thermostat_type``                       | Type de thermostat                                                                | X             | X                   | X          |
-| ``temperature_sensor_entity_id``          | Temperature sensor entity id                                                      | X             | X (auto-regulation) | X          |
-| ``external_temperature_sensor_entity_id`` | Température de l'exterieur sensor entity id                                       | X             | X (auto-regulation) | X          |
-| ``cycle_min``                             | Durée du cycle (minutes)                                                          | X             | X                   | X          |
-| ``temp_min``                              | Température minimale permise                                                      | X             | X                   | X          |
-| ``temp_max``                              | Température maximale permise                                                      | X             | X                   | X          |
-| ``device_power``                          | Puissance de l'équipement                                                         | X             | X                   | X          |
-| ``use_window_feature``                    | Avec détection des ouvertures                                                     | X             | X                   | X          |
-| ``use_motion_feature``                    | Avec détection de mouvement                                                       | X             | X                   | X          |
-| ``use_power_feature``                     | Avec gestion de la puissance                                                      | X             | X                   | X          |
-| ``use_presence_feature``                  | Avec détection de présence                                                        | X             | X                   | X          |
-| ``heater_entity1_id``                     | 1er radiateur                                                                     | X             | -                   | -          |
-| ``heater_entity2_id``                     | 2ème radiateur                                                                    | X             | -                   | -          |
-| ``heater_entity3_id``                     | 3ème radiateur                                                                    | X             | -                   | -          |
-| ``heater_entity4_id``                     | 4ème radiateur                                                                    | X             | -                   | -          |
-| ``proportional_function``                 | Algorithme                                                                        | X             | -                   | -          |
-| ``climate_entity1_id``                    | Thermostat sous-jacent                                                            | -             | X                   | -          |
-| ``climate_entity2_id``                    | 2ème thermostat sous-jacent                                                       | -             | X                   | -          |
-| ``climate_entity3_id``                    | 3ème thermostat sous-jacent                                                       | -             | X                   | -          |
-| ``climate_entity4_id``                    | 4ème thermostat sous-jacent                                                       | -             | X                   | -          |
-| ``valve_entity1_id``                      | Vanne sous-jacente                                                                | -             | -                   | X          |
-| ``valve_entity2_id``                      | 2ème vanne sous-jacente                                                           | -             | -                   | X          |
-| ``valve_entity3_id``                      | 3ème vanne sous-jacente                                                           | -             | -                   | X          |
-| ``valve_entity4_id``                      | 4ème vanne sous-jacente                                                           | -             | -                   | X          |
-| ``ac_mode``                               | utilisation de l'air conditionné (AC) ?                                           | X             | X                   | X          |
-| ``tpi_coef_int``                          | Coefficient à utiliser pour le delta de température interne                       | X             | -                   | X          |
-| ``tpi_coef_ext``                          | Coefficient à utiliser pour le delta de température externe                       | X             | -                   | X          |
-| ``eco_temp``                              | Température en preset Eco                                                         | X             | X                   | X          |
-| ``comfort_temp``                          | Température en preset Confort                                                     | X             | X                   | X          |
-| ``boost_temp``                            | Température en preset Boost                                                       | X             | X                   | X          |
-| ``eco_ac_temp``                           | Température en preset Eco en mode AC                                              | X             | X                   | X          |
-| ``comfort_ac_temp``                       | Température en preset Confort en mode AC                                          | X             | X                   | X          |
-| ``boost_ac_temp``                         | Température en preset Boost en mode AC                                            | X             | X                   | X          |
-| ``window_sensor_entity_id``               | Détecteur d'ouverture (entity id)                                                 | X             | X                   | X          |
-| ``window_delay``                          | Délai avant extinction (secondes)                                                 | X             | X                   | X          |
-| ``window_auto_open_threshold``            | Seuil haut de chute de température pour la détection automatique (en °/min)       | X             | X                   | X          |
-| ``window_auto_close_threshold``           | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X             | X                   | X          |
-| ``window_auto_max_duration``              | Durée maximum d'une extinction automatique (en min)                               | X             | X                   | X          |
-| ``motion_sensor_entity_id``               | Détecteur de mouvement entity id                                                  | X             | X                   | X          |
-| ``motion_delay``                          | Délai avant prise en compte du mouvement (seconds)                                | X             | X                   | X          |
-| ``motion_off_delay``                      | Délai avant prise en compte de la fin de mouvement (seconds)                      | X             | X                   | X          |
-| ``motion_preset``                         | Preset à utiliser si mouvement détecté                                            | X             | X                   | X          |
-| ``no_motion_preset``                      | Preset à utiliser si pas de mouvement détecté                                     | X             | X                   | X          |
-| ``power_sensor_entity_id``                | Capteur de puissance totale (entity id)                                           | X             | X                   | X          |
-| ``max_power_sensor_entity_id``            | Capteur de puissance Max (entity id)                                              | X             | X                   | X          |
-| ``power_temp``                            | Température si délestaqe                                                          | X             | X                   | X          |
-| ``presence_sensor_entity_id``             | Capteur de présence entity id (true si quelqu'un est présent)                     | X             | X                   | X          |
-| ``eco_away_temp``                         | Température en preset Eco en cas d'absence                                        | X             | X                   | X          |
-| ``comfort_away_temp``                     | Température en preset Comfort en cas d'absence                                    | X             | X                   | X          |
-| ``boost_away_temp``                       | Température en preset Boost en cas d'absence                                      | X             | X                   | X          |
-| ``eco_ac_away_temp``                      | Température en preset Eco en cas d'absence en mode AC                             | X             | X                   | X          |
-| ``comfort_ac_away_temp``                  | Température en preset Comfort en cas d'absence en mode AC                         | X             | X                   | X          |
-| ``boost_ac_away_temp``                    | Température en preset Boost en cas d'absence en mode AC                           | X             | X                   | X          |
-| ``minimal_activation_delay``              | Délai minimal d'activation                                                        | X             | -                   | -          |
-| ``security_delay_min``                    | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X          |
-| ``security_min_on_percent``               | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X          |
-| ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                         | -             | X                   | -          |
-| ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                        | -             | X                   | -          |
-| ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -          |
-| ``inverse_switch_command``                | Inverse la commande du switch (pour switch avec fil pilote)                       | X             | -                   | -          |
+| Paramètre                                 | Libellé                                                                           | "over switch" | "over climate"      | "over valve" | "configuration centrale" |
+| ----------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------- | ------------ | ------------------------ |
+| ``name``                                  | Nom                                                                               | X             | X                   | X            | -                        |
+| ``thermostat_type``                       | Type de thermostat                                                                | X             | X                   | X            | -                        |
+| ``temperature_sensor_entity_id``          | Temperature sensor entity id                                                      | X             | X (auto-regulation) | X            | -                        |
+| ``external_temperature_sensor_entity_id`` | Température de l'exterieur sensor entity id                                       | X             | X (auto-regulation) | X            | X                        |
+| ``cycle_min``                             | Durée du cycle (minutes)                                                          | X             | X                   | X            | -                        |
+| ``temp_min``                              | Température minimale permise                                                      | X             | X                   | X            | X                        |
+| ``temp_max``                              | Température maximale permise                                                      | X             | X                   | X            | X                        |
+| ``device_power``                          | Puissance de l'équipement                                                         | X             | X                   | X            | -                        |
+| ``use_window_feature``                    | Avec détection des ouvertures                                                     | X             | X                   | X            | -                        |
+| ``use_motion_feature``                    | Avec détection de mouvement                                                       | X             | X                   | X            | -                        |
+| ``use_power_feature``                     | Avec gestion de la puissance                                                      | X             | X                   | X            | -                        |
+| ``use_presence_feature``                  | Avec détection de présence                                                        | X             | X                   | X            | -                        |
+| ``heater_entity1_id``                     | 1er radiateur                                                                     | X             | -                   | -            | -                        |
+| ``heater_entity2_id``                     | 2ème radiateur                                                                    | X             | -                   | -            | -                        |
+| ``heater_entity3_id``                     | 3ème radiateur                                                                    | X             | -                   | -            | -                        |
+| ``heater_entity4_id``                     | 4ème radiateur                                                                    | X             | -                   | -            | -                        |
+| ``proportional_function``                 | Algorithme                                                                        | X             | -                   | -            | -                        |
+| ``climate_entity1_id``                    | Thermostat sous-jacent                                                            | -             | X                   | -            | -                        |
+| ``climate_entity2_id``                    | 2ème thermostat sous-jacent                                                       | -             | X                   | -            | -                        |
+| ``climate_entity3_id``                    | 3ème thermostat sous-jacent                                                       | -             | X                   | -            | -                        |
+| ``climate_entity4_id``                    | 4ème thermostat sous-jacent                                                       | -             | X                   | -            | -                        |
+| ``valve_entity1_id``                      | Vanne sous-jacente                                                                | -             | -                   | X            | -                        |
+| ``valve_entity2_id``                      | 2ème vanne sous-jacente                                                           | -             | -                   | X            | -                        |
+| ``valve_entity3_id``                      | 3ème vanne sous-jacente                                                           | -             | -                   | X            | -                        |
+| ``valve_entity4_id``                      | 4ème vanne sous-jacente                                                           | -             | -                   | X            | -                        |
+| ``ac_mode``                               | utilisation de l'air conditionné (AC) ?                                           | X             | X                   | X            | -                        |
+| ``tpi_coef_int``                          | Coefficient à utiliser pour le delta de température interne                       | X             | -                   | X            | X                        |
+| ``tpi_coef_ext``                          | Coefficient à utiliser pour le delta de température externe                       | X             | -                   | X            | X                        |
+| ``frost_tp``                              | Température en preset Hors-gel                                                    | X             | X                   | X            | X                        |
+| ``eco_temp``                              | Température en preset Eco                                                         | X             | X                   | X            | X                        |
+| ``comfort_temp``                          | Température en preset Confort                                                     | X             | X                   | X            | X                        |
+| ``boost_temp``                            | Température en preset Boost                                                       | X             | X                   | X            | X                        |
+| ``eco_ac_temp``                           | Température en preset Eco en mode AC                                              | X             | X                   | X            | X                        |
+| ``comfort_ac_temp``                       | Température en preset Confort en mode AC                                          | X             | X                   | X            | X                        |
+| ``boost_ac_temp``                         | Température en preset Boost en mode AC                                            | X             | X                   | X            | X                        |
+| ``window_sensor_entity_id``               | Détecteur d'ouverture (entity id)                                                 | X             | X                   | X            | -                        |
+| ``window_delay``                          | Délai avant extinction (secondes)                                                 | X             | X                   | X            | X                        |
+| ``window_auto_open_threshold``            | Seuil haut de chute de température pour la détection automatique (en °/min)       | X             | X                   | X            | X                        |
+| ``window_auto_close_threshold``           | Seuil bas de chute de température pour la fin de détection automatique (en °/min) | X             | X                   | X            | X                        |
+| ``window_auto_max_duration``              | Durée maximum d'une extinction automatique (en min)                               | X             | X                   | X            | X                        |
+| ``motion_sensor_entity_id``               | Détecteur de mouvement entity id                                                  | X             | X                   | X            | -                        |
+| ``motion_delay``                          | Délai avant prise en compte du mouvement (seconds)                                | X             | X                   | X            | -                        |
+| ``motion_off_delay``                      | Délai avant prise en compte de la fin de mouvement (seconds)                      | X             | X                   | X            | X                        |
+| ``motion_preset``                         | Preset à utiliser si mouvement détecté                                            | X             | X                   | X            | X                        |
+| ``no_motion_preset``                      | Preset à utiliser si pas de mouvement détecté                                     | X             | X                   | X            | X                        |
+| ``power_sensor_entity_id``                | Capteur de puissance totale (entity id)                                           | X             | X                   | X            | X                        |
+| ``max_power_sensor_entity_id``            | Capteur de puissance Max (entity id)                                              | X             | X                   | X            | X                        |
+| ``power_temp``                            | Température si délestaqe                                                          | X             | X                   | X            | X                        |
+| ``presence_sensor_entity_id``             | Capteur de présence entity id (true si quelqu'un est présent)                     | X             | X                   | X            | -                        |
+| ``frost_ay_temp``                         | Température en preset Hors-gel en cas d'absence                                   | X             | X                   | X            | X                        |
+| ``eco_away_temp``                         | Température en preset Eco en cas d'absence                                        | X             | X                   | X            | X                        |
+| ``comfort_away_temp``                     | Température en preset Comfort en cas d'absence                                    | X             | X                   | X            | X                        |
+| ``boost_away_temp``                       | Température en preset Boost en cas d'absence                                      | X             | X                   | X            | X                        |
+| ``eco_ac_away_temp``                      | Température en preset Eco en cas d'absence en mode AC                             | X             | X                   | X            | X                        |
+| ``comfort_ac_away_temp``                  | Température en preset Comfort en cas d'absence en mode AC                         | X             | X                   | X            | X                        |
+| ``boost_ac_away_temp``                    | Température en preset Boost en cas d'absence en mode AC                           | X             | X                   | X            | X                        |
+| ``minimal_activation_delay``              | Délai minimal d'activation                                                        | X             | -                   | -            | X                        |
+| ``security_delay_min``                    | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
+| ``security_min_on_percent``               | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
+| ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                         | -             | X                   | -            | -                        |
+| ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                        | -             | X                   | -            | -                        |
+| ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -            | -                        |
+| ``inverse_switch_command``                | Inverse la commande du switch (pour switch avec fil pilote)                       | X             | -                   | -            | -                        |
+| ``auto_fan_mode`                          | Mode de ventilation automatique                                                   | -             | X                   | -            | -                        |
 
 # Exemples de réglage
 
@@ -599,11 +616,13 @@ Versatile Thermostat vous permet d'être notifié lorsqu'un évènement de ce ty
 
 ## Mes presets
 Ceci est juste un exemple de la façon dont j'utilise le préréglage. A vous de vous adapter à votre configuration mais cela peut être utile pour comprendre son fonctionnement.
+``Hors gel`` : 10 °C
 ``Éco`` : 17 °C
 ``Confort`` : 19 °C
 ``Boost`` : 20 °C
 
 Lorsque la présence est désactivée :
+``Hors gel`` : 10 °C
 ``Éco`` : 16,5 °C
 ``Confort`` : 17 °C
 ``Boost`` : 18 °C
