@@ -119,6 +119,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_WINDOW_CENTRAL_CONFIG,
             CONF_USE_MOTION_CENTRAL_CONFIG,
             CONF_USE_POWER_CENTRAL_CONFIG,
+            CONF_USE_PRESETS_CENTRAL_CONFIG,
             CONF_USE_PRESENCE_CENTRAL_CONFIG,
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
         ):
