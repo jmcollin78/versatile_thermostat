@@ -13,14 +13,8 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_show_form(hass: HomeAssistant) -> None:
+async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
     """Test that the form is served with no input"""
-    # Init the API
-    # hass.data["custom_components"] = None
-    # loader.async_get_custom_components(hass)
-    # BaseThermostatAPI(hass)
-    await create_central_config(hass)
-
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
@@ -34,10 +28,9 @@ async def test_show_form(hass: HomeAssistant) -> None:
 # Disable this test which don't work anymore (kill the pytest !)
 @pytest.mark.skip
 async def test_user_config_flow_over_switch(
-    hass: HomeAssistant, skip_hass_states_get
+    hass: HomeAssistant, skip_hass_states_get, init_central_config
 ):  # pylint: disable=unused-argument
     """Test the config flow with all thermostat_over_switch features and central config on"""
-    await create_central_config(hass)
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )

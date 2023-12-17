@@ -31,6 +31,10 @@ class VersatileThermostatAPI(dict):
             if VersatileThermostatAPI._hass is None:
                 return None
 
+        domain = VersatileThermostatAPI._hass.data.get(DOMAIN)
+        if not domain:
+            hass.data.setdefault(DOMAIN, {})
+
         ret = VersatileThermostatAPI._hass.data.get(DOMAIN).get(VTHERM_API_NAME)
         if ret is None:
             ret = VersatileThermostatAPI()
