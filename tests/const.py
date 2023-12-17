@@ -61,6 +61,13 @@ MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG = {
     # Keep default values which are False
 }
 
+MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG = {
+    CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    CONF_TEMP_MIN: 15,
+    CONF_TEMP_MAX: 30,
+    # Keep default values which are False
+}
+
 MOCK_TH_OVER_SWITCH_TYPE_CONFIG = {
     CONF_HEATER: "switch.mock_switch",
     CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
