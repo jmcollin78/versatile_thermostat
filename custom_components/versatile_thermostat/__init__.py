@@ -3,9 +3,12 @@ from __future__ import annotations
 
 from typing import Dict
 
+import asyncio
 import logging
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
+
+from homeassistant.const import SERVICE_RELOAD
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant
@@ -21,6 +24,8 @@ from .const import (
     CONF_AUTO_REGULATION_SLOW,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
+    CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_THERMOSTAT_TYPE,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -65,6 +70,10 @@ async def async_setup(
         config.get(DOMAIN),
     )
 
+    async def _handle_reload(_):
+        """The reload callback"""
+        await reload_all_vtherm(hass)
+
     hass.data.setdefault(DOMAIN, {})
 
     # L'argument config contient votre fichier configuration.yaml
@@ -76,7 +85,26 @@ async def async_setup(
     else:
         _LOGGER.info("No global config from configuration.yaml available")
 
+    hass.helpers.service.async_register_admin_service(
+        DOMAIN,
+        SERVICE_RELOAD,
+        _handle_reload,
+    )
+
     return True
+
+
+async def reload_all_vtherm(hass):
+    """Handle reload service call."""
+    _LOGGER.info("Service %s.reload called: reloading integration", DOMAIN)
+
+    current_entries = hass.config_entries.async_entries(DOMAIN)
+
+    reload_tasks = [
+        hass.config_entries.async_reload(entry.entry_id) for entry in current_entries
+    ]
+
+    await asyncio.gather(*reload_tasks)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -101,7 +129,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update listener."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        await reload_all_vtherm(hass)
+    else:
+        await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
