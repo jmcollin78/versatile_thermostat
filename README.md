@@ -47,7 +47,7 @@
 - [Services](#services)
   - [Force the presence / occupancy](#force-the-presence--occupancy)
   - [Change the temperature of presets](#change-the-temperature-of-presets)
-  - [Change security settings](#change-security-settings)
+  - [Change safety settings](#change-safety-settings)
   - [ByPass Window Check](#bypass-window-check)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
@@ -65,7 +65,7 @@
   - [Only the first radiator heats](#only-the-first-radiator-heats)
   - [Adjust window opening detection parameters in auto mode](#adjust-window-opening-detection-parameters-in-auto-mode)
   - [Why does my Versatile Thermostat go into Safety?](#why-does-my-versatile-thermostat-go-into-safety)
-    - [How to detect security mode?](#how-to-detect-security-mode)
+    - [How to detect safety mode?](#how-to-detect-safety-mode)
     - [How can I be notified when this happens?](#how-can-i-be-notified-when-this-happens)
     - [How to repair?](#how-to-repair)
   - [Using a group of people as a presence sensor](#using-a-group-of-people-as-a-presence-sensor)
@@ -135,7 +135,7 @@ This component named __Versatile thermostat__ manage the following use cases :
 - Use a **TPI (Time Proportional Interval) algorithm** thank's to [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] algorithm ,
 - Add **power shedding management** or regulation to avoid exceeding a defined total power. When max power is exceeded, a hidden 'power' preset is set on the climate entity. When power goes below the max, the previous preset is restored.
 - Add **home presence management**. This feature allows you to dynamically change the temperature of preset considering a occupancy sensor of your home.
-- Add **services to interact with the thermostat** from others integration: you can force the presence / un-presence using a service, and you can dynamically change the temperature of the presets and change dynamically the security parameters.
+- Add **services to interact with the thermostat** from others integration: you can force the presence / un-presence using a service, and you can dynamically change the temperature of the presets and change dynamically the safety parameters.
 - Add sensors to see the internal states of the thermostat
 
 # How to install this incredible Versatile Thermostat ?
@@ -357,7 +357,7 @@ The preset mode allows you to pre-configurate targeted temperature. Used in conj
 >  1. Changing manually the target temperature, set the preset to None (no preset). This way you can always set a target temperature even if no preset are available.
 >  2. standard ``Away`` preset is a hidden preset which is not directly selectable. Versatile Thermostat uses the presence management or movement management to set automatically and dynamically the target temperature depending on a presence in the home or an activity in the room. See [presence management](#configure-the-presence-management).
 >  3. if you uses the power shedding management, you will see a hidden preset named ``power``. The heater preset is set to ``power`` when overpowering conditions are encountered and shedding is active for this heater. See [power management](#configure-the-power-management).
->  4. if you uses the advanced configuration you will see the preset set to ``security`` if the temperature could not be retrieved after a certain delay
+>  4. if you uses the advanced configuration you will see the preset set to ``safety`` if the temperature could not be retrieved after a certain delay
 >  5. ff you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
 
 ## Configure the doors/windows turning on/off the thermostats
@@ -470,21 +470,21 @@ The advanced configuration form is the following:
 
 The first delay (minimal_activation_delay_sec) in sec in the minimum delay acceptable for turning on the heater. When calculation gives a power on delay below this value, the heater will stays off.
 
-The second delay (security_delay_min) is the maximal delay between two temperature measure before setting the preset to ``security`` and turning off the thermostat. If the temperature sensor is no more giving temperature measures, the thermostat and heater will turns off after this delay and the preset of the thermostat will be set to ``security``. This is useful to avoid overheating is the battery of your temperature sensor is too low.
+The second delay (security_delay_min) is the maximal delay between two temperature measure before setting the preset to ``safety`` and turning off the thermostat. If the temperature sensor is no more giving temperature measures, the thermostat and heater will turns off after this delay and the preset of the thermostat will be set to ``safety``. This is useful to avoid overheating is the battery of your temperature sensor is too low.
 
-The third parameter (``security_min_on_percent``) is the minimum value of ``on_percent`` below which the security preset will not be activated. This parameter makes it possible not to put a thermostat in safety, if the controlled radiator does not heat sufficiently.
-Setting this parameter to ``0.00`` will trigger the security preset regardless of the last heating setpoint, conversely ``1.00`` will never trigger the security preset (which amounts to disabling the function).
+The third parameter (``security_min_on_percent``) is the minimum value of ``on_percent`` below which the safety preset will not be activated. This parameter makes it possible not to put a thermostat in safety, if the controlled radiator does not heat sufficiently.
+Setting this parameter to ``0.00`` will trigger the safety preset regardless of the last heating setpoint, conversely ``1.00`` will never trigger the safety preset (which amounts to disabling the function).
 
-The fourth parameter (``security_default_on_percent``) is the ``on_percent`` value that will be used when the thermostat enters ``security`` mode. If you put ``0`` then the thermostat will be cut off when it goes into ``security`` mode, putting 0.2% for example allows you to keep a little heating (20% in this case), even in mode ``security``. It avoids finding your home totally frozen during a thermometer failure.
+The fourth parameter (``security_default_on_percent``) is the ``on_percent`` value that will be used when the thermostat enters ``safety`` mode. If you put ``0`` then the thermostat will be cut off when it goes into ``safety`` mode, putting 0.2% for example allows you to keep a little heating (20% in this case), even in mode ``safety``. It avoids finding your home totally frozen during a thermometer failure.
 
 See [example tuning](#examples-tuning) for common tuning examples
 
 >![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
 > 1. When the temperature sensor comes to life and returns the temperatures, the preset will be restored to its previous value,
-> 2. Attention, two temperatures are needed: internal temperature and external temperature and each must give the temperature, otherwise the thermostat will be in "security" preset,
-> 3. A service is available that allows you to set the 3 security parameters. This can be used to adapt the security function to your use.
+> 2. Attention, two temperatures are needed: internal temperature and external temperature and each must give the temperature, otherwise the thermostat will be in "safety" preset,
+> 3. A service is available that allows you to set the 3 safety parameters. This can be used to adapt the safety function to your use.
 > 4. For natural usage, the ``security_default_on_percent`` should be less than ``security_min_on_percent``,
-> 5. Thermostat of type ``thermostat_over_climate`` are not concerned by the security feature.
+> 5. Thermostat of type ``thermostat_over_climate`` are not concerned by the safety feature.
 
 ## Parameters synthesis
 
@@ -545,9 +545,9 @@ See [example tuning](#examples-tuning) for common tuning examples
 | ``comfort_ac_away_temp``                  | Temperature in Comfort preset when no presence in AC mode                     | X             | X                   | X            |
 | ``boost_ac_away_temp``                    | Temperature in Boost preset when no presence in AC mode                       | X             | X                   | X            |
 | ``minimal_activation_delay``              | Minimal activation delay                                                      | X             | -                   | X            |
-| ``security_delay_min``                    | Security delay (in minutes)                                                   | X             | -                   | X            |
-| ``security_min_on_percent``               | Minimal power percent to enable security mode                                 | X             | -                   | X            |
-| ``security_default_on_percent``           | Power percent to use in security mode                                         | X             | -                   | X            |
+| ``security_delay_min``                    | Safety delay (in minutes)                                                     | X             | -                   | X            |
+| ``security_min_on_percent``               | Minimal power percent to enable safety mode                                   | X             | -                   | X            |
+| ``security_default_on_percent``           | Power percent to use in safety mode                                           | X             | -                   | X            |
 | ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                     | -             | X                   | -            |
 | ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                    | -             | X                   | -            |
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                         | -             | X                   | -            |
@@ -565,8 +565,8 @@ See [example tuning](#examples-tuning) for common tuning examples
 
 ## Temperature sensor will battery
 - security_delay_min: 60 min (because these sensors are lazy)
-- security_min_on_percent: 0.5 (50% - we go to the ``security`` preset if the radiator was heating more than 50% of the time)
-- security_default_on_percent: 0.1 (10% - in preset ``security``, we keep a heating background 20% of the time)
+- security_min_on_percent: 0.5 (50% - we go to the ``safety`` preset if the radiator was heating more than 50% of the time)
+- security_default_on_percent: 0.1 (10% - in preset ``safety``, we keep a heating background 20% of the time)
 
 These settings should be understood as follows:
 
@@ -580,8 +580,8 @@ Versatile Thermostat allows you to be notified when an event of this type occurs
 
 ## Reactive temperature sensor (on mains)
 - security_delay_min: 15min
-- security_min_on_percent: 0.7 (70% - we go to the ``security`` preset if the radiator was heating more than 70% of the time)
-- security_default_on_percent: 0.25 (25% - in preset ``security``, we keep a heating background 25% of the time)
+- security_min_on_percent: 0.7 (70% - we go to the ``safety`` preset if the radiator was heating more than 70% of the time)
+- security_default_on_percent: 0.25 (25% - in preset ``safety``, we keep a heating background 25% of the time)
 
 ## My preset configuration
 This is just an example of how I use the preset. It up to you to adapt to your configuration but it can be useful to understand how it works.
@@ -638,7 +638,7 @@ In order, there are:
 8. load shedding status,
 9. cycle power percentage (TPI only),
 10. presence status (if presence management is configured),
-11. security status,
+11. safety status,
 12. opening status (if opening management is configured),
 13. motion status (if motion management is configured),
 14. the valve opening percentage (for the `over_valve` type)
@@ -707,11 +707,11 @@ target:
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true)  _*Notes*_
     - after a restart the preset are resetted to the configured temperature. If you want your change to be permanent you should modify the temperature preset into the confguration of the integration.
 
-## Change security settings
-This service is used to dynamically modify the security parameters described here [Advanced configuration](#configuration-avanced).
-If the thermostat is in ``security`` mode the new settings are applied immediately.
+## Change safety settings
+This service is used to dynamically modify the safety parameters described here [Advanced configuration](#configuration-avanced).
+If the thermostat is in ``safety`` mode the new settings are applied immediately.
 
-To change the security settings use the following code:
+To change the safety settings use the following code:
 ```
 service : thermostat_polyvalent.set_security
 data:
@@ -738,7 +738,7 @@ target:
 Significant thermostat events are notified via the message bus.
 The notified events are as follows:
 
-- ``versatile_thermostat_security_event``: a thermostat enters or exits the ``security`` preset
+- ``versatile_thermostat_security_event``: a thermostat enters or exits the ``safety`` preset
 - ``versatile_thermostat_power_event``: a thermostat enters or exits the ``power`` preset
 - ``versatile_thermostat_temperature_event``: one or both temperature measurements of a thermostat have not been updated for more than ``security_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event``: the thermostat is on or off. This event is also broadcast when the thermostat starts up
@@ -746,7 +746,7 @@ The notified events are as follows:
 
 If you have followed correctly, when a thermostat goes into safety mode, 3 events are triggered:
 1. ``versatile_thermostat_temperature_event`` to indicate that a thermometer has become unresponsive,
-2. ``versatile_thermostat_preset_event`` to indicate the switch to ```security``` preset,
+2. ``versatile_thermostat_preset_event`` to indicate the switch to ```safety``` preset,
 3. ``versatile_thermostat_hvac_mode_event`` to indicate the possible extinction of the thermostat
 
 Each event carries the key values ​​of the event (temperatures, current preset, current power, etc.) as well as the states of the thermostat.
@@ -787,12 +787,12 @@ Custom attributes are the following:
 | ``motion_state``                  | The last known state of the motion sensor. None if motion is not configured                                                      |
 | ``overpowering_state``            | The last known state of the overpowering sensor. None if power management is not configured                                      |
 | ``presence_state``                | The last known state of the presence sensor. None if presence management is not configured                                       |
-| ``security_delay_min``            | The delay before setting the security mode when temperature sensor are off                                                       |
-| ``security_min_on_percent``       | The minimal on_percent below which security preset won't be trigger                                                              |
-| ``security_default_on_percent``   | The on_percent used when thermostat is in ``security``                                                                           |
+| ``security_delay_min``            | The delay before setting the safety mode when temperature sensor are off                                                         |
+| ``security_min_on_percent``       | The minimal on_percent below which safety preset won't be trigger                                                                |
+| ``security_default_on_percent``   | The on_percent used when thermostat is in ``safety``                                                                             |
 | ``last_temperature_datetime``     | The date and time in ISO8866 format of the last internal temperature reception                                                   |
 | ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception                                                   |
-| ``security_state``                | The security state. true or false                                                                                                |
+| ``security_state``                | The safety state. true or false                                                                                                  |
 | ``minimal_activation_delay_sec``  | The minimal activation delay in seconds                                                                                          |
 | ``last_update_datetime``          | The date and time in ISO8866 format of this state                                                                                |
 | ``friendly_name``                 | The name of the thermostat                                                                                                       |
@@ -1146,15 +1146,15 @@ As the algorithm is based on temperature measurements, if they are no longer rec
 
 All these parameters are adjusted on the last page of the VTherm configuration: “Advanced parameters”.
 
-### How to detect security mode?
+### How to detect safety mode?
 The first symptom is an abnormally low temperature with a slow and regular heating time in each cycle.
 Example:
 
-[security mode](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome1.png?raw=true)
+[safety mode](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome1.png?raw=true)
 
 If you installed the [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), the VTherm in question will have this shape:
 
-[security mode UI Card](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome2.png?raw=true)
+[safety mode UI Card](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome2.png?raw=true)
 
 You can also check in the VTherm attributes the dates of receipt of the different dates. Attributes are available in Development Tools / Reports.
 
@@ -1169,13 +1169,13 @@ security_delay_min: 60
 ```
 
 We see that :
-1. the VTherm is in security mode (`security_state: true`),
+1. the VTherm is in safety mode (`security_state: true`),
 2. the current time is 06/12/2023 at 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. the last received time of indoor temperature is 06/12/2023 at 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). So she's on time,
-4. the last reception time of the outdoor temperature is 06/12/2023 at 1:04:35 p.m. (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). external time which is more than 5 hours late and which caused the switch to security mode, because the threshold is limited to 60 min (`security_delay_min: 60`)
+4. the last reception time of the outdoor temperature is 06/12/2023 at 1:04:35 p.m. (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). external time which is more than 5 hours late and which caused the switch to safety mode, because the threshold is limited to 60 min (`security_delay_min: 60`)
 
 ### How can I be notified when this happens?
-To be notified, the VTherm sends an event as soon as it happens and one at the end of the security alert. You can capture these events in an automation and send a notification for example, flash a light, trigger a siren, etc. It's up to you.
+To be notified, the VTherm sends an event as soon as it happens and one at the end of the safety alert. You can capture these events in an automation and send a notification for example, flash a light, trigger a siren, etc. It's up to you.
 
 To manipulate the events generated by VTherm, cf. [Events](#events).
 
@@ -1184,7 +1184,7 @@ This will depend on the cause of the problem:
 1. If a sensor is faulty, it must be repaired (replace batteries, change it, check the Weather integration which gives the outside temperature, etc.),
 2. If the `security_delay_min` parameter is too small, it risks generating a lot of false alerts. A correct value is around 60 min, especially if you have battery-powered temperature sensors.
 3. Some temperature sensors do not send a measurement if the temperature has not changed. So in the event of a very stable temperature for a long time, the safety mode may be triggered. This is not very serious since it is removed as soon as the VTherm receives a temperature again. On certain thermometers (TuYA for example), you can force the maximum delay between 2 measurements. It will be appropriate to set a max delay < `security_delay_min`,
-4. As soon as the temperature is received again the security mode will be removed and the previous values of preset, target temperature and mode will be restored.
+4. As soon as the temperature is received again the safety mode will be removed and the previous values of preset, target temperature and mode will be restored.
 
 ## Using a group of people as a presence sensor
 Unfortunately, groups of people are not recognized as presence sensors. We cannot therefore use them directly in VTherm.

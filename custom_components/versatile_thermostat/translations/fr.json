@@ -243,7 +243,7 @@
         }
       },
       "main": {
-        "title": "{name}",
+        "title": "Attributs - {name}",
         "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
@@ -266,7 +266,7 @@
         }
       },
       "type": {
-        "title": "{name}",
+        "title": "Entités - {name}",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
           "heater_entity_id": "1er radiateur",
@@ -312,7 +312,7 @@
         }
       },
       "tpi": {
-        "title": "{name}",
+        "title": "TPI - {name}",
         "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int : Coefficient à utiliser pour le delta de température interne",
@@ -320,7 +320,7 @@
         }
       },
       "presets": {
-        "title": "{name}",
+        "title": "Pre-réglages - {name}",
         "description": "Réglage des presets. Donnez la température cible (0 pour ignorer le preset)",
         "data": {
           "eco_temp": "Preset Eco",
@@ -344,7 +344,7 @@
         }
       },
       "window": {
-        "title": "{name}",
+        "title": "Ouverture - {name}",
         "description": "Gestion des ouvertures. Coupe le radiateur si l'ouverture est ouverte.",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
@@ -364,7 +364,7 @@
         }
       },
       "motion": {
-        "title": "{name}",
+        "title": "Mouvement - {name}",
         "description": "Gestion du mouvement. Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
@@ -384,7 +384,7 @@
         }
       },
       "power": {
-        "title": "{name}",
+        "title": "Puissance - {name}",
         "description": "Gestion de la puissance. Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum. Tous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W).",
         "data": {
           "power_sensor_entity_id": "Puissance totale",
@@ -400,7 +400,7 @@
         }
       },
       "presence": {
-        "title": "{name}",
+        "title": "Présence - {name}",
         "description": "Gestion de la présence. Le capteur de présence doit être true ou home si quelqu'un est présent.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
@@ -426,7 +426,7 @@
         }
       },
       "advanced": {
-        "title": "{name}",
+        "title": "Avancés - {name}",
         "description": "Paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",

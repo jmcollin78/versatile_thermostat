@@ -77,8 +77,8 @@ set_preset_temperature:
                     mode: slider
 
 set_security:
-    name: Set security
-    description: Change the security parameters
+    name: Set safety
+    description: Change the safety parameters
     target:
         entity:
             integration: versatile_thermostat
@@ -97,7 +97,7 @@ set_security:
                     mode: box
         min_on_percent:
             name: Minimal on_percent
-            description: Minimal heating percent value for security preset activation
+            description: Minimal heating percent value for safety preset activation
             required: false
             advanced: false
             example: "0.5"
@@ -110,8 +110,8 @@ set_security:
                     unit_of_measurement: "%"
                     mode: slider
         default_on_percent:
-            name: on_percent used in security mode
-            description: The default heating percent value in security preset
+            name: on_percent used in safety mode
+            description: The default heating percent value in safety preset
             required: false
             advanced: false
             example: "0.1"
