@@ -86,7 +86,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # VTherm API should have been initialized before arriving here
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
-        self._central_config = vtherm_api.find_central_configuration()
+        if vtherm_api is not None:
+            self._central_config = vtherm_api.find_central_configuration()
+        else:
+            self._central_config = None
 
         self._init_feature_flags(infos)
         self._init_central_config_flags(infos)

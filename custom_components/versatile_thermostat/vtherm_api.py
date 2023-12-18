@@ -19,26 +19,27 @@ _LOGGER = logging.getLogger(__name__)
 class VersatileThermostatAPI(dict):
     """The VersatileThermostatAPI"""
 
-    _hass: HomeAssistant
+    _hass: HomeAssistant = None
     # _entries: Dict(str, ConfigEntry)
 
     @classmethod
     def get_vtherm_api(cls, hass=None):
-        """Get the eventual VTherm API class instance"""
+        """Get the eventual VTherm API class instance or
+        instantiate it if it doesn't exists"""
         if hass is not None:
             VersatileThermostatAPI._hass = hass
-        else:
-            if VersatileThermostatAPI._hass is None:
-                return None
+
+        if VersatileThermostatAPI._hass is None:
+            return None
 
         domain = VersatileThermostatAPI._hass.data.get(DOMAIN)
         if not domain:
-            hass.data.setdefault(DOMAIN, {})
+            VersatileThermostatAPI._hass.data.setdefault(DOMAIN, {})
 
         ret = VersatileThermostatAPI._hass.data.get(DOMAIN).get(VTHERM_API_NAME)
         if ret is None:
             ret = VersatileThermostatAPI()
-            hass.data[DOMAIN][VTHERM_API_NAME] = ret
+            VersatileThermostatAPI._hass.data[DOMAIN][VTHERM_API_NAME] = ret
         return ret
 
     def __init__(self) -> None:
@@ -46,7 +47,6 @@ class VersatileThermostatAPI(dict):
         super().__init__()
         self._expert_params = None
         self._short_ema_params = None
-        self._central_config = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -57,8 +57,8 @@ class VersatileThermostatAPI(dict):
                 config_entry.data.get(CONF_THERMOSTAT_TYPE)
                 == CONF_THERMOSTAT_CENTRAL_CONFIG
             ):
-                self._central_config = config_entry
-                return self._central_config
+                central_config = config_entry
+                return central_config
         return None
 
     def add_entry(self, entry: ConfigEntry):
