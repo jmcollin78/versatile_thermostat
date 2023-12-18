@@ -195,6 +195,12 @@ STEP_CENTRAL_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
+    }
+)
+
 STEP_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_MOTION_SENSOR): selector.EntitySelector(

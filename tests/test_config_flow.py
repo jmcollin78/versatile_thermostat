@@ -472,15 +472,17 @@ async def test_user_config_flow_window_auto_ko(
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input=MOCK_WINDOW_AUTO_CONFIG,
+        user_input=MOCK_WINDOW_DELAY_CONFIG,
     )
 
+    # Since issue #280 we cannot have the error because we only display the
+    # MOCK_WINDOW_DELAY_CONFIG form if we have a sensor configured
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     # We should stay on window with an error
-    assert result["errors"] == {
-        "window_sensor_entity_id": "window_open_detection_method"
-    }
-    assert result["step_id"] == "window"
+    assert result["errors"] == {}
+    #    "window_sensor_entity_id": "window_open_detection_method"
+    # }
+    assert result["step_id"] == "advanced"
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

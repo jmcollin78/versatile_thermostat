@@ -139,6 +139,11 @@ MOCK_PRESETS_AC_CONFIG = {
 
 MOCK_WINDOW_CONFIG = {
     CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+    # Not used normally only for tests to avoid rewrite all tests
+    CONF_WINDOW_DELAY: 10,
+}
+
+MOCK_WINDOW_DELAY_CONFIG = {
     CONF_WINDOW_DELAY: 10,
 }
 

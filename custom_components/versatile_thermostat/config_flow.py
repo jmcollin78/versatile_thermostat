@@ -171,7 +171,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             _LOGGER.error(
                 "Only one window detection method should be used. Use window_sensor or auto window open detection but not both"
             )
-            raise WindowOpenDetectionMethod(CONF_WINDOW_SENSOR)
+            raise WindowOpenDetectionMethod(CONF_WINDOW_AUTO_OPEN_THRESHOLD)
 
         # Check that is USE_CENTRAL config is used, that a central config exists
         if self._central_config is None:
@@ -408,7 +408,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             next_step = self.async_step_motion
         # If comes from async_step_spec_window
         elif self._infos.get(COMES_FROM) == "async_step_spec_window":
-            schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
+            # If we have a window sensor don't display the auto window parameters
+            if self._infos.get(CONF_WINDOW_SENSOR) is not None:
+                schema = STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA
+            else:
+                schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
         elif user_input and user_input.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_window
 
@@ -423,6 +427,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
+        if self._infos.get(CONF_WINDOW_SENSOR) is not None:
+            schema = STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_window"
 
