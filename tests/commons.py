@@ -336,6 +336,14 @@ class MagicMockClimate(MagicMock):
     def supported_features(self):  # pylint: disable=missing-function-docstring
         return ClimateEntityFeature.TARGET_TEMPERATURE
 
+    @property
+    def min_temp(self):  # pylint: disable=missing-function-docstring
+        return 15
+
+    @property
+    def max_temp(self):  # pylint: disable=missing-function-docstring
+        return 19
+
 
 async def create_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, entity_id: str

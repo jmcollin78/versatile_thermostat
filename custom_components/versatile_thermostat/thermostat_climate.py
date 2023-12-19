@@ -234,45 +234,45 @@ class ThermostatOverClimate(BaseThermostat):
             await self.async_set_fan_mode(self._auto_deactivated_fan_mode)
 
     @overrides
-    def post_init(self, entry_infos):
+    def post_init(self, config_entry):
         """Initialize the Thermostat"""
 
-        super().post_init(entry_infos)
+        super().post_init(config_entry)
         for climate in [
             CONF_CLIMATE,
             CONF_CLIMATE_2,
             CONF_CLIMATE_3,
             CONF_CLIMATE_4,
         ]:
-            if entry_infos.get(climate):
+            if config_entry.get(climate):
                 self._underlyings.append(
                     UnderlyingClimate(
                         hass=self._hass,
                         thermostat=self,
-                        climate_entity_id=entry_infos.get(climate),
+                        climate_entity_id=config_entry.get(climate),
                     )
                 )
 
         self.choose_auto_regulation_mode(
-            entry_infos.get(CONF_AUTO_REGULATION_MODE)
-            if entry_infos.get(CONF_AUTO_REGULATION_MODE) is not None
+            config_entry.get(CONF_AUTO_REGULATION_MODE)
+            if config_entry.get(CONF_AUTO_REGULATION_MODE) is not None
             else CONF_AUTO_REGULATION_NONE
         )
 
         self._auto_regulation_dtemp = (
-            entry_infos.get(CONF_AUTO_REGULATION_DTEMP)
-            if entry_infos.get(CONF_AUTO_REGULATION_DTEMP) is not None
+            config_entry.get(CONF_AUTO_REGULATION_DTEMP)
+            if config_entry.get(CONF_AUTO_REGULATION_DTEMP) is not None
             else 0.5
         )
         self._auto_regulation_period_min = (
-            entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN)
-            if entry_infos.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
+            config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN)
+            if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
             else 5
         )
 
         self._auto_fan_mode = (
-            entry_infos.get(CONF_AUTO_FAN_MODE)
-            if entry_infos.get(CONF_AUTO_FAN_MODE) is not None
+            config_entry.get(CONF_AUTO_FAN_MODE)
+            if config_entry.get(CONF_AUTO_FAN_MODE) is not None
             else CONF_AUTO_FAN_NONE
         )
 

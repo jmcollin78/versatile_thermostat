@@ -30,13 +30,8 @@
 				"waderyan.gitblame",
 				"keesschollaart.vscode-home-assistant",
 				"vscode.markdown-math",
-				"yzhang.markdown-all-in-one",
-				"ms-python.vscode-pylance"
+				"yzhang.markdown-all-in-one"
 			],
-			// "mounts": [
-			//	"source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=${localWorkspaceFolder}/config/www/community/,type=bind,consistency=cached",
-			//	"source=${localWorkspaceFolder}/custom_components,target=/home/vscode/core/config/custom_components,type=bind,consistency=cached"
-			// ],
 			"settings": {
 				"files.eol": "\n",
 				"editor.tabSize": 4,

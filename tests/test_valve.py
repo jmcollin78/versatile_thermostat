@@ -4,7 +4,7 @@
 from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACAction, HVACMode
 from homeassistant.config_entries import ConfigEntryState
 
@@ -214,20 +214,60 @@ async def test_over_valve_full_start(
         assert entity.hvac_action == HVACAction.HEATING
 
     # Change internal temperature
+    expected_state = State(
+        entity_id="number.mock_valve", state="0", attributes={"min": 10, "max": 50}
+    )
+
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.get", return_value=0
+        "homeassistant.core.StateMachine.get", return_value=expected_state
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_temperature_change_event(entity, 20, datetime.now())
         assert entity.valve_open_percent == 0
-        assert entity.is_device_active is False
-        assert entity.hvac_action == HVACAction.IDLE
+        assert entity.is_device_active is True  # Should be 0 but in fact 10 is send
+        assert (
+            entity.hvac_action == HVACAction.HEATING
+        )  # Should be IDLE but heating due to 10
+
+        assert mock_service_call.call_count == 1
+        # The VTherm valve is 0, but the underlying have received 10 which is the min
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "number",
+                    "set_value",
+                    {"entity_id": "number.mock_valve", "value": 10},
+                )
+            ]
+        )
 
         await send_temperature_change_event(entity, 17, datetime.now())
+        assert mock_service_call.call_count == 2
+        # The VTherm valve is 0, but the underlying have received 10 which is the min
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "number",
+                    "set_value",
+                    {
+                        "entity_id": "number.mock_valve",
+                        "value": 10,
+                    },  # the min allowed value
+                ),
+                call.async_call(
+                    "number",
+                    "set_value",
+                    {
+                        "entity_id": "number.mock_valve",
+                        "value": 50,
+                    },  # the max allowed value
+                ),
+            ]
+        )
         # switch to Eco
         await entity.async_set_preset_mode(PRESET_ECO)
         assert entity.preset_mode is PRESET_ECO

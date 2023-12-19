@@ -48,9 +48,9 @@ class ThermostatOverSwitch(BaseThermostat):
     )
 
     # useless for now
-    # def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    # def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
     #    """Initialize the thermostat over switch."""
-    #    super().__init__(hass, unique_id, name, entry_infos)
+    #    super().__init__(hass, unique_id, name, config_entry)
     _is_inversed: bool = None
 
     @property
@@ -72,10 +72,10 @@ class ThermostatOverSwitch(BaseThermostat):
             return None
 
     @overrides
-    def post_init(self, entry_infos):
+    def post_init(self, config_entry):
         """Initialize the Thermostat"""
 
-        super().post_init(entry_infos)
+        super().post_init(config_entry)
 
         self._prop_algorithm = PropAlgorithm(
             self._proportional_function,
@@ -85,13 +85,13 @@ class ThermostatOverSwitch(BaseThermostat):
             self._minimal_activation_delay,
         )
 
-        lst_switches = [entry_infos.get(CONF_HEATER)]
-        if entry_infos.get(CONF_HEATER_2):
-            lst_switches.append(entry_infos.get(CONF_HEATER_2))
-        if entry_infos.get(CONF_HEATER_3):
-            lst_switches.append(entry_infos.get(CONF_HEATER_3))
-        if entry_infos.get(CONF_HEATER_4):
-            lst_switches.append(entry_infos.get(CONF_HEATER_4))
+        lst_switches = [config_entry.get(CONF_HEATER)]
+        if config_entry.get(CONF_HEATER_2):
+            lst_switches.append(config_entry.get(CONF_HEATER_2))
+        if config_entry.get(CONF_HEATER_3):
+            lst_switches.append(config_entry.get(CONF_HEATER_3))
+        if config_entry.get(CONF_HEATER_4):
+            lst_switches.append(config_entry.get(CONF_HEATER_4))
 
         delta_cycle = self._cycle_min * 60 / len(lst_switches)
         for idx, switch in enumerate(lst_switches):
@@ -104,7 +104,7 @@ class ThermostatOverSwitch(BaseThermostat):
                 )
             )
 
-        self._is_inversed = entry_infos.get(CONF_INVERSE_SWITCH) is True
+        self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
         self._should_relaunch_control_heating = False
 
     @overrides

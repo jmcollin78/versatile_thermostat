@@ -59,8 +59,8 @@ input_number:
         unit_of_measurement: kW
     fake_valve1:
         name: The valve 1
-        min: 0
-        max: 100
+        min: 10
+        max: 90
         icon: mdi:pipe-valve
         unit_of_measurement: percentage
 
