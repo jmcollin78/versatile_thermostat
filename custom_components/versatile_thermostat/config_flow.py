@@ -364,7 +364,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             schema = schema_ac_or_not
         elif user_input and user_input.get(CONF_USE_PRESETS_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_presets
-            schema = schema_ac_or_not
+            schema = STEP_PRESETS_DATA_SCHEMA
 
         return await self.generic_step("presets", schema, user_input, next_step)
 
