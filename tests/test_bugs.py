@@ -629,13 +629,18 @@ async def test_bug_272(
         assert mock_service_call.call_count == 0
 
         # Set the hvac_mode to HEAT
-        entity.async_set_hvac_mode(HVACMode.HEAT)
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
 
         # In the accepted interval
         await entity.async_set_temperature(temperature=17)
-        assert mock_service_call.call_count == 1
+        assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls(
             [
+                call.async_call(
+                    "climate",
+                    SERVICE_SET_HVAC_MODE,
+                    {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT},
+                ),
                 call.async_call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,
