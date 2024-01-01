@@ -690,7 +690,7 @@ class UnderlyingClimate(UnderlyingEntity):
             min_val = self._underlying_climate.min_temp
             max_val = self._underlying_climate.max_temp
 
-            new_value = round(max(min_val, min(value, max_val)))
+            new_value = max(min_val, min(value, max_val))
         else:
             _LOGGER.debug("%s - no min and max attributes on underlying", self)
             new_value = value

@@ -632,7 +632,7 @@ async def test_bug_272(
         await entity.async_set_hvac_mode(HVACMode.HEAT)
 
         # In the accepted interval
-        await entity.async_set_temperature(temperature=17)
+        await entity.async_set_temperature(temperature=17.5)
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls(
             [
@@ -646,7 +646,7 @@ async def test_bug_272(
                     SERVICE_SET_TEMPERATURE,
                     {
                         "entity_id": "climate.mock_climate",
-                        "temperature": 17,
+                        "temperature": 17.5,
                         "target_temp_high": 30,
                         "target_temp_low": 15,
                     },
@@ -666,7 +666,7 @@ async def test_bug_272(
         await send_temperature_change_event(entity, 13, event_timestamp)
         await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
-        # In the accepted interval
+        # Not in the accepted interval (15-19)
         await entity.async_set_temperature(temperature=10)
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
@@ -694,7 +694,7 @@ async def test_bug_272(
         await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
         # In the accepted interval
-        await entity.async_set_temperature(temperature=20)
+        await entity.async_set_temperature(temperature=20.8)
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
