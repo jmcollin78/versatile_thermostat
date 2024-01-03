@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument, line-too-long, protected-access
+# pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
 """ Test the Window management """
 import asyncio
 import logging
