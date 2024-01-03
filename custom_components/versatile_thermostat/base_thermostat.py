@@ -2170,13 +2170,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 )
             elif shouldSwitchBeInSecurity:
                 _LOGGER.warning(
-                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into safety mode",
+                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f %%) is over defined value (%.2f %%). Set it into safety mode",
                     self,
                     self._security_delay_min,
                     delta_temp,
                     delta_ext_temp,
-                    self._prop_algorithm.on_percent,
-                    self._security_min_on_percent,
+                    self._prop_algorithm.on_percent * 100,
+                    self._security_min_on_percent * 100,
                 )
 
             self.send_event(
@@ -2473,11 +2473,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             entity_id: climate.thermostat_2
         """
         _LOGGER.info(
-            "%s - Calling service_set_security, delay_min: %s, min_on_percent: %s, default_on_percent: %s",
+            "%s - Calling service_set_security, delay_min: %s, min_on_percent: %s %%, default_on_percent: %s %%",
             self,
             delay_min,
-            min_on_percent,
-            default_on_percent,
+            min_on_percent*100,
+            default_on_percent*100,
         )
         if delay_min:
             self._security_delay_min = delay_min
