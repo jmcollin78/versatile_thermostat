@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the central_configuration """
 from unittest.mock import patch, call
@@ -781,7 +781,7 @@ async def test_switch_change_central_mode_true_with_window(
     )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
-    event_timestamp = now = datetime.now(tz)
+    event_timestamp = datetime.now(tz)
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
@@ -936,7 +936,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
     )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
-    event_timestamp = now = datetime.now(tz)
+    event_timestamp = datetime.now(tz)
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
