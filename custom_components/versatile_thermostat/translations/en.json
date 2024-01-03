@@ -24,6 +24,7 @@
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
           "device_power": "Device power",
+          "use_central_mode": "Enable the control by central mode ('central_mode')",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
@@ -31,6 +32,7 @@
           "use_main_central_config": "Use central main configuration"
         },
         "data_description": {
+          "use_central_mode": "Check to enable the control of the VTherm with the select central_mode entities",
           "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
@@ -254,6 +256,7 @@
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
           "device_power": "Device power",
+          "use_central_mode": "Enable the control by central mode ('central_mode')",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
@@ -261,6 +264,7 @@
           "use_main_central_config": "Use central main configuration"
         },
         "data_description": {
+          "use_central_mode": "Check to enable the control of the VTherm with the select central_mode entities",
           "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific configuration for this VTherm",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }

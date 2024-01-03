@@ -288,7 +288,7 @@ async def test_security_feature_back_on_percent(
         assert entity.security_state is False
         assert mock_send_event.call_count == 0
 
-    # 3. Set security mode with a preset change
+    # 3. Set safety mode with a preset change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -400,7 +400,7 @@ async def test_security_over_climate(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that when a underlying climate is not available the VTherm doesn't go into security mode"""
+    """Test that when a underlying climate is not available the VTherm doesn't go into safety mode"""
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -471,7 +471,7 @@ async def test_security_over_climate(
         assert mock_find_climate.mock_calls[0] == call()
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
-        # Force security mode
+        # Force safety mode
         assert entity._last_ext_temperature_measure is not None
         assert entity._last_temperature_measure is not None
         assert (
@@ -505,7 +505,7 @@ async def test_security_over_climate(
             event_timestamp = now - timedelta(minutes=6)
 
             await send_temperature_change_event(entity, 15, event_timestamp)
-            # Should stay False because a climate is never in security mode
+            # Should stay False because a climate is never in safety mode
             assert entity.security_state is False
             assert entity.preset_mode == "none"
             assert entity._saved_preset_mode == "none"

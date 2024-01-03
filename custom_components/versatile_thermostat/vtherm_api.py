@@ -20,7 +20,6 @@ class VersatileThermostatAPI(dict):
     """The VersatileThermostatAPI"""
 
     _hass: HomeAssistant = None
-    # _entries: Dict(str, ConfigEntry)
 
     @classmethod
     def get_vtherm_api(cls, hass=None):
@@ -64,14 +63,12 @@ class VersatileThermostatAPI(dict):
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
         _LOGGER.debug("Add the entry %s", entry.entry_id)
-        # self._entries[entry.entry_id] = entry
         # Add the entry in hass.data
         VersatileThermostatAPI._hass.data[DOMAIN][entry.entry_id] = entry
 
     def remove_entry(self, entry: ConfigEntry):
         """Remove an entry"""
         _LOGGER.debug("Remove the entry %s", entry.entry_id)
-        # self._entries.pop(entry.entry_id)
         VersatileThermostatAPI._hass.data[DOMAIN].pop(entry.entry_id)
         # If not more entries are preset, remove the API
         if len(self) == 0:

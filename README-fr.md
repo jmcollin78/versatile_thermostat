@@ -34,6 +34,7 @@
   - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
   - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
   - [Configuration avancée](#configuration-avancée)
+  - [Le contrôle centralisé](#le-contrôle-centralisé)
   - [Synthèse des paramètres](#synthèse-des-paramètres)
 - [Exemples de réglage](#exemples-de-réglage)
   - [Chauffage électrique](#chauffage-électrique)
@@ -74,14 +75,16 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
+> * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
 > * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
 > * **Release 4.3** : Ajout d'un mode auto-fan pour le type `over_climate` permettant d'activer la ventilation si l'écart de température est important [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
 > * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
-> * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
-> * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 <details>
 <summary>Autres versions</summary>
 
+> * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
+> * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
 > * **Release 3.7**: Ajout du type de **Versatile Thermostat `over valve`** pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
 > * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
@@ -150,7 +153,8 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Ajouter une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
 - La **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
 - Des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
-- Ajouter des capteurs pour voir les états internes du thermostat.
+- Ajouter des capteurs pour voir les états internes du thermostat,
+- Contrôle centralisé de tous les Versatile Thermostat pour les stopper tous, les passer tous en hors-gel, les forcer en mode Chauffage (l'hiver), les forcer en mode Climatisation (l'été).
 
 # Comment installer cet incroyable Thermostat Versatile ?
 
@@ -187,7 +191,9 @@ Suivez ensuite les étapes de configuration comme suit :
 
 ## Choix des attributs de base
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-main.png?raw=true)
+![image](/images/config-main0.png?raw=true)
+
+![image](/images/config-main.png?raw=true)
 
 Donnez les principaux attributs obligatoires :
 1. un nom (sera le nom de l'intégration et aussi le nom de l'entité climate)
@@ -197,7 +203,8 @@ Donnez les principaux attributs obligatoires :
 6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous). En mode ```over_climate```, le cycle ne sert qu'à faire des controles de base mais ne régule pas directement la température. C'est le ```climate``` sous-jacent qui le fait,
 7. les températures minimales et maximales du thermostat,
 8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil,
-9. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
+9. la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
+10. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
 >  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
@@ -515,6 +522,21 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 > 4. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
 > 5. Les thermostats de type ``thermostat_over_climate`` ne sont pas concernés par le mode security.
 
+## Le contrôle centralisé
+Depuis la release 5.2, si vous avez défini une configuration centralisée, vous avez une nouvelle entité nommée `select.central_mode` qui permet de piloter tous les VTherms avec une seule action. Pour qu'un VTherm soit contrôlable de façon centralisée, il faut que son attribut de configuration nommé `use_central_mode` soit vrai.
+
+Cette entité se présente sous la forme d'une liste de choix qui contient les choix suivants :
+1. `Auto` : le mode 'normal' dans lequel chaque VTherm se comporte comme dans les versions précédentes,
+2. `Stooped` : tous les VTherms sont mis à l'arrêt (`hvac_off`),
+3. `Heat only` : tous les VTherms sont mis en mode chauffage lorsque ce mode est supporté par le VTherm, sinon il est stoppé,
+3. `Cool only` : tous les VTherms sont mis en mode climatisation lorsque ce mode est supporté par le VTherm, sinon il est stoppé,
+4. `Frost protection` : tous les VTherms sont mis en preset hors-gel lorsque ce preset est supporté par le VTherm, sinon il est stoppé.
+
+Il est donc possible de contrôler tous les VTherms (que ceux que l'on désigne explicitement) avec un seul contrôle.
+Exemple de rendu :
+
+![central_mode](/images/central_mode.png?raw=true)
+
 ## Synthèse des paramètres
 
 | Paramètre                                 | Libellé                                                                           | "over switch" | "over climate"      | "over valve" | "configuration centrale" |
@@ -527,6 +549,7 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 | ``temp_min``                              | Température minimale permise                                                      | X             | X                   | X            | X                        |
 | ``temp_max``                              | Température maximale permise                                                      | X             | X                   | X            | X                        |
 | ``device_power``                          | Puissance de l'équipement                                                         | X             | X                   | X            | -                        |
+| ``use_central_mode``                      | Autorisation du contrôle centralisé                                               | X             | X                   | X            | -                        |
 | ``use_window_feature``                    | Avec détection des ouvertures                                                     | X             | X                   | X            | -                        |
 | ``use_motion_feature``                    | Avec détection de mouvement                                                       | X             | X                   | X            | -                        |
 | ``use_power_feature``                     | Avec gestion de la puissance                                                      | X             | X                   | X            | -                        |
@@ -835,6 +858,8 @@ Les attributs personnalisés sont les suivants :
 | ``valve_open_percent``            | Le pourcentage d'ouverture de la vanne                                                                                                                                   |
 | ``regulated_target_temperature``  | La température de consigne calculée par l'auto-régulation                                                                                                                |
 | ``is_inversed``                   | True si la commande est inversée (fil pilote avec diode)                                                                                                                 |
+| ``is_controlled_by_central_mode`` | True si le VTherm peut être controlé de façon centrale                                                                                                                   |
+| ``last_central_mode``             | Le dernier mode central utilisé (None si le VTherm n'est pas controlé en central)                                                                                        |
 
 # Quelques résultats
 
@@ -1007,6 +1032,10 @@ Remplacez les valeurs entre [[ ]] par les votres.
           - count: 7
             step: day
 ```
+
+Exemple de courbes obtenues avec Plotly :
+
+![image](/images/plotly-curves.png?raw=true)
 
 ## Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.

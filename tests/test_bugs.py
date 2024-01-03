@@ -358,7 +358,7 @@ async def test_bug_82(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that when a underlying climate is not available the VTherm doesn't go into security mode"""
+    """Test that when a underlying climate is not available the VTherm doesn't go into safety mode"""
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -427,7 +427,7 @@ async def test_bug_82(
         assert mock_find_climate.mock_calls[0] == call()
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
-        # Force security mode
+        # Force safety mode
         assert entity._last_ext_temperature_measure is not None
         assert entity._last_temperature_measure is not None
         assert (

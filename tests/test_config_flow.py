@@ -363,6 +363,7 @@ async def test_user_config_flow_window_auto_ok(
         CONF_USE_POWER_FEATURE: False,
         CONF_USE_PRESENCE_FEATURE: False,
         CONF_WINDOW_DELAY: 30,  # the default value is added
+        CONF_USE_CENTRAL_MODE: True,  # True is the defaulf value
     } | MOCK_TH_OVER_SWITCH_TYPE_CONFIG | MOCK_TH_OVER_SWITCH_TPI_CONFIG | MOCK_WINDOW_AUTO_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: True,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
@@ -510,6 +511,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USE_POWER_FEATURE: False,
         CONF_USE_PRESENCE_FEATURE: False,
         CONF_USE_MAIN_CENTRAL_CONFIG: True,
+        CONF_USE_CENTRAL_MODE: False,
     }
 
     TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name

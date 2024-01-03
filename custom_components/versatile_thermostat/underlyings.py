@@ -141,8 +141,9 @@ class UnderlyingEntity:
             await self.set_hvac_mode(hvac_mode)
         elif hvac_mode != HVACMode.OFF and not self.is_device_active:
             _LOGGER.warning(
-                "%s - The hvac mode is ON, but the underlying device is not ON. Turning on device %s",
+                "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
                 self,
+                hvac_mode,
                 self._entity_id,
             )
             await self.set_hvac_mode(hvac_mode)
@@ -354,7 +355,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if await self._thermostat.check_overpowering():
             _LOGGER.debug("%s - End of cycle (3)", self)
             return
-        # Security mode could have change the on_time percent
+        # safety mode could have change the on_time percent
         await self._thermostat.check_security()
         time = self._on_time_sec
 
@@ -790,6 +791,7 @@ class UnderlyingValve(UnderlyingEntity):
     ):
         """We use this function to change the on_percent"""
         if force:
+            self._percent_open = self.cap_sent_value(self._percent_open)
             await self.send_percent_open()
 
     @overrides
