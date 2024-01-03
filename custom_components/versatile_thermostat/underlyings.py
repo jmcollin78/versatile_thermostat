@@ -790,6 +790,7 @@ class UnderlyingValve(UnderlyingEntity):
     ):
         """We use this function to change the on_percent"""
         if force:
+            self._percent_open = self.cap_sent_value(self._percent_open)
             await self.send_percent_open()
 
     @overrides

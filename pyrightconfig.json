@@ -1,0 +1,7 @@
+{
+    "include": [
+        "custom_components/versatile_thermostat/**",
+        "homeassistant/**"
+    ],
+    "reportShadowedImports": false
+}

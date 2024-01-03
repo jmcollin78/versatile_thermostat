@@ -42,6 +42,7 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
+        vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
         vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,

@@ -24,6 +24,7 @@
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
           "device_power": "Puissance de l'équipement",
+          "use_central_mode": "Autoriser le controle par le mode central ('central_mode`)",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
@@ -31,6 +32,7 @@
           "use_main_central_config": "Utiliser la configuration centrale principale"
         },
         "data_description": {
+          "use_central_mode": "Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale",
           "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée",
           "use_main_central_config": "Cochez pour utiliser la configuration centrale principale. Décochez et saisissez les attributs pour utiliser une configuration spécifique principale"
         }
@@ -254,6 +256,7 @@
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
           "device_power": "Puissance de l'équipement",
+          "use_central_mode": "Autoriser le controle par le mode central ('central_mode`)",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
@@ -261,6 +264,7 @@
           "use_main_central_config": "Utiliser la configuration centrale"
         },
         "data_description": {
+          "use_central_mode": "Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale",
           "use_main_central_config": "Cochez pour utiliser la configuration centrale. Décochez et saisissez les attributs pour utiliser une configuration spécifique",
           "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée"
         }

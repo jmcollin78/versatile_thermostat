@@ -185,6 +185,7 @@ class MockClimate(ClimateEntity):
         hvac_mode: HVACMode = HVACMode.OFF,
         hvac_action: HVACAction = HVACAction.OFF,
         fan_modes: list[str] = None,
+        hvac_modes: list[str] = None,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -200,7 +201,11 @@ class MockClimate(ClimateEntity):
             HVACAction.OFF if hvac_mode == HVACMode.OFF else HVACAction.HEATING
         )
         self._attr_hvac_mode = hvac_mode
-        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
+        self._attr_hvac_modes = (
+            hvac_modes
+            if hvac_modes is not None
+            else [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
+        )
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15

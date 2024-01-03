@@ -35,7 +35,12 @@ HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 
 DOMAIN = "versatile_thermostat"
 
-PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.CLIMATE,
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.SELECT,
+]
 
 CONF_HEATER = "heater_entity_id"
 CONF_HEATER_2 = "heater_entity2_id"
@@ -112,6 +117,8 @@ CONF_USE_POWER_CENTRAL_CONFIG = "use_power_central_config"
 CONF_USE_PRESENCE_CENTRAL_CONFIG = "use_presence_central_config"
 CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
 CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
+
+CONF_USE_CENTRAL_MODE = "use_central_mode"
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
@@ -242,6 +249,7 @@ ALL_CONF = (
         CONF_USE_POWER_CENTRAL_CONFIG,
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
+        CONF_USE_CENTRAL_MODE,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -296,6 +304,19 @@ AUTO_FAN_DTEMP_THRESHOLD = 2
 AUTO_FAN_DEACTIVATED_MODES = ["mute", "auto", "low"]
 
 CENTRAL_CONFIG_NAME = "Central configuration"
+
+CENTRAL_MODE_AUTO = "Auto"
+CENTRAL_MODE_STOPPED = "Stopped"
+CENTRAL_MODE_HEAT_ONLY = "Heat only"
+CENTRAL_MODE_COOL_ONLY = "Cool only"
+CENTRAL_MODE_FROST_PROTECTION = "Frost protection"
+CENTRAL_MODES = [
+    CENTRAL_MODE_AUTO,
+    CENTRAL_MODE_STOPPED,
+    CENTRAL_MODE_HEAT_ONLY,
+    CENTRAL_MODE_COOL_ONLY,
+    CENTRAL_MODE_FROST_PROTECTION,
+]
 
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154

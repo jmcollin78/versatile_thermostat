@@ -283,6 +283,18 @@ async def test_over_valve_full_start(
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
+    # Test window open/close (with a normal min/max so that is_device_active is False when open_percent is 0)
+    expected_state = State(
+        entity_id="number.mock_valve", state="0", attributes={"min": 0, "max": 99}
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "homeassistant.core.ServiceRegistry.async_call"
+    ) as mock_service_call, patch(
+        "homeassistant.core.StateMachine.get", return_value=expected_state
+    ):
         # Open a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=1)

@@ -116,6 +116,11 @@ from .const import (
     ATTR_TOTAL_ENERGY,
     PRESET_AC_SUFFIX,
     DEFAULT_SHORT_EMA_PARAMS,
+    CENTRAL_MODE_AUTO,
+    CENTRAL_MODE_STOPPED,
+    CENTRAL_MODE_HEAT_ONLY,
+    CENTRAL_MODE_COOL_ONLY,
+    CENTRAL_MODE_FROST_PROTECTION,
 )
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -158,6 +163,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             frozenset(
                 {
                     "is_on",
+                    "is_controlled_by_central_mode",
+                    "last_central_mode",
                     "type",
                     "frost_temp",
                     "eco_temp",
@@ -273,6 +280,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._now = None
 
         self._attr_fan_mode = None
+
+        self._is_central_mode = None
+        self._last_central_mode = None
         self.post_init(entry_infos)
 
     def clean_central_config_doublon(self, config_entry, central_config) -> dict:
@@ -434,6 +444,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._presence_on = self._presence_sensor_entity_id is not None
 
         if self._ac_mode:
+            # Added by https://github.com/jmcollin78/versatile_thermostat/pull/144
+            # Some over_switch can do both heating and cooling
             self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
         else:
             self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
@@ -551,6 +563,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             short_ema_params.get("precision"),
             short_ema_params.get("max_alpha"),
         )
+
+        self._is_central_mode = not (
+            entry_infos.get(CONF_USE_CENTRAL_MODE) is False
+        )  # Default value (None) is True
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
@@ -1130,6 +1146,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """True if the VTherm is on (! HVAC_OFF)"""
         return self.hvac_mode and self.hvac_mode != HVACMode.OFF
 
+    @property
+    def is_controlled_by_central_mode(self) -> bool:
+        """Returns True if this VTherm can be controlled by the central_mode"""
+        return self._is_central_mode
+
+    @property
+    def last_central_mode(self) -> str | None:
+        """Returns the last central_mode taken into account.
+        Is None if the VTherm is not controlled by central_mode"""
+        return self._last_central_mode
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1177,11 +1204,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
 
         # If AC is on maybe we have to change the temperature in force mode, but not in frost mode (there is no Frost protection possible in AC mode)
-        if self._ac_mode:
+        if self._hvac_mode == HVACMode.COOL:
             if self.preset_mode != PRESET_FROST_PROTECTION:
                 await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
             else:
-                await self._async_set_preset_mode_internal(PRESET_ECO, True)
+                await self._async_set_preset_mode_internal(PRESET_ECO, True, False)
 
         if need_control_heating and sub_need_control_heating:
             await self.async_control_heating(force=True)
@@ -1195,12 +1222,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self.async_write_ha_state()
         self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
 
-    async def async_set_preset_mode(self, preset_mode):
+    @overrides
+    async def async_set_preset_mode(self, preset_mode, overwrite_saved_preset=True):
         """Set new preset mode."""
-        await self._async_set_preset_mode_internal(preset_mode)
+        await self._async_set_preset_mode_internal(
+            preset_mode, force=False, overwrite_saved_preset=overwrite_saved_preset
+        )
         await self.async_control_heating(force=True)
 
-    async def _async_set_preset_mode_internal(self, preset_mode, force=False):
+    async def _async_set_preset_mode_internal(
+        self, preset_mode, force=False, overwrite_saved_preset=True
+    ):
         """Set new preset mode."""
         _LOGGER.info("%s - Set preset_mode: %s force=%s", self, preset_mode, force)
         if (
@@ -1242,7 +1274,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self.reset_last_temperature_time(old_preset_mode)
 
-        self.save_preset_mode()
+        if overwrite_saved_preset:
+            self.save_preset_mode()
         self.recalculate()
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
@@ -1998,6 +2031,66 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         return self._overpowering_state
 
+    async def check_central_mode(self, new_central_mode, old_central_mode) -> None:
+        """Take into account a central mode change"""
+        if not self.is_controlled_by_central_mode:
+            self._last_central_mode = None
+            return
+
+        _LOGGER.info(
+            "%s - Central mode have change from %s to %s",
+            self,
+            old_central_mode,
+            new_central_mode,
+        )
+
+        self._last_central_mode = new_central_mode
+
+        def save_all():
+            """save preset and hvac_mode"""
+            self.save_preset_mode()
+            self.save_hvac_mode()
+
+        if new_central_mode == CENTRAL_MODE_AUTO:
+            await self.restore_hvac_mode()
+            await self.restore_preset_mode()
+
+            return
+
+        if old_central_mode == CENTRAL_MODE_AUTO:
+            save_all()
+
+        if new_central_mode == CENTRAL_MODE_STOPPED:
+            await self.async_set_hvac_mode(HVACMode.OFF)
+            return
+
+        if new_central_mode == CENTRAL_MODE_COOL_ONLY:
+            if HVACMode.COOL in self.hvac_modes:
+                await self.async_set_hvac_mode(HVACMode.COOL)
+            else:
+                await self.async_set_hvac_mode(HVACMode.OFF)
+            return
+
+        if new_central_mode == CENTRAL_MODE_HEAT_ONLY:
+            if HVACMode.HEAT in self.hvac_modes:
+                await self.async_set_hvac_mode(HVACMode.HEAT)
+            else:
+                await self.async_set_hvac_mode(HVACMode.OFF)
+            return
+
+        if new_central_mode == CENTRAL_MODE_FROST_PROTECTION:
+            if (
+                PRESET_FROST_PROTECTION in self.preset_modes
+                and HVACMode.HEAT in self.hvac_modes
+            ):
+                await self.async_set_hvac_mode(HVACMode.HEAT)
+                await self.async_set_preset_mode(
+                    PRESET_FROST_PROTECTION, overwrite_saved_preset=False
+                )
+            else:
+                await self.async_set_hvac_mode(HVACMode.OFF)
+            return
+
     def _set_now(self, now: datetime):
         """Set the now timestamp. This is only for tests purpose"""
         self._now = now
@@ -2239,6 +2332,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
+            "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
+            "last_central_mode": self.last_central_mode,
             "frost_temp": self._presets[PRESET_FROST_PROTECTION],
             "eco_temp": self._presets[PRESET_ECO],
             "boost_temp": self._presets[PRESET_BOOST],

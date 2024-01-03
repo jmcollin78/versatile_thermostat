@@ -129,7 +129,7 @@ async def test_over_switch_ac_full_start(
 
             assert entity.hvac_mode is HVACMode.OFF
             assert entity.hvac_action is HVACAction.OFF
-            assert entity.target_temperature == 16  # eco_ac_away
+            assert entity.target_temperature == 27  # eco_ac_away (no change)
 
         # Close a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
