@@ -355,7 +355,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if await self._thermostat.check_overpowering():
             _LOGGER.debug("%s - End of cycle (3)", self)
             return
-        # Security mode could have change the on_time percent
+        # safety mode could have change the on_time percent
         await self._thermostat.check_security()
         time = self._on_time_sec
 

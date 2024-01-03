@@ -140,27 +140,27 @@ class PropAlgorithm:
         self._off_time_sec = self._cycle_min * 60 - self._on_time_sec
 
     def set_security(self, default_on_percent: float):
-        """Set a default value for on_percent (used for security mode)"""
+        """Set a default value for on_percent (used for safety mode)"""
         self._security = True
         self._default_on_percent = default_on_percent
         self._calculate_internal()
 
     def unset_security(self):
-        """Unset the security mode"""
+        """Unset the safety mode"""
         self._security = False
         self._calculate_internal()
 
     @property
     def on_percent(self) -> float:
         """Returns the percentage the heater must be ON
-        In security mode this value is overriden with the _default_on_percent
+        In safety mode this value is overriden with the _default_on_percent
         (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
         return round(self._on_percent, 2)
 
     @property
     def calculated_on_percent(self) -> float:
         """Returns the calculated percentage the heater must be ON
-        Calculated means NOT overriden even in security mode
+        Calculated means NOT overriden even in safety mode
         (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
         return round(self._calculated_on_percent, 2)
 

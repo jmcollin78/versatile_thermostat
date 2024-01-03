@@ -1247,10 +1247,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             # I don't think we need to call async_write_ha_state if we didn't change the state
             return
 
-        # In security mode don't change preset but memorise the new expected preset when security will be off
+        # In safety mode don't change preset but memorise the new expected preset when security will be off
         if preset_mode != PRESET_SECURITY and self._security_state:
             _LOGGER.debug(
-                "%s - is in security mode. Just memorise the new expected ", self
+                "%s - is in safety mode. Just memorise the new expected ", self
             )
             if preset_mode not in HIDDEN_PRESETS:
                 self._saved_preset_mode = preset_mode
@@ -1640,7 +1640,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 state.last_changed.astimezone(self._current_tz),
             )
 
-            # try to restart if we were in security mode
+            # try to restart if we were in safety mode
             if self._security_state:
                 await self.check_security()
 
@@ -1667,7 +1667,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 state.last_changed.astimezone(self._current_tz),
             )
 
-            # try to restart if we were in security mode
+            # try to restart if we were in safety mode
             if self._security_state:
                 await self.check_security()
         except ValueError as ex:
@@ -2161,7 +2161,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if shouldStartSecurity:
             if shouldClimateBeInSecurity:
                 _LOGGER.warning(
-                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and underlying climate is %s. Set it into security mode",
+                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and underlying climate is %s. Setting it into safety mode",
                     self,
                     self._security_delay_min,
                     delta_temp,
@@ -2170,7 +2170,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 )
             elif shouldSwitchBeInSecurity:
                 _LOGGER.warning(
-                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into security mode",
+                    "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f) is over defined value (%.2f). Set it into safety mode",
                     self,
                     self._security_delay_min,
                     delta_temp,
@@ -2194,7 +2194,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        # Start security mode
+        # Start safety mode
         if shouldStartSecurity:
             self._security_state = True
             self.save_hvac_mode()
@@ -2222,10 +2222,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 },
             )
 
-        # Stop security mode
+        # Stop safety mode
         if shouldStopSecurity:
             _LOGGER.warning(
-                "%s - End of security mode. restoring hvac_mode to %s and preset_mode to %s",
+                "%s - End of safety mode. restoring hvac_mode to %s and preset_mode to %s",
                 self,
                 self._saved_hvac_mode,
                 self._saved_preset_mode,
