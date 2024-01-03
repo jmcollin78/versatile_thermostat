@@ -90,7 +90,7 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
             "%s - Calling async_added_to_hass old_state is %s", self, old_state
         )
         if old_state is not None:
-            self.async_select_option = old_state.state
+            self._attr_current_option = old_state.state
 
         @callback
         async def _async_startup_internal(*_):

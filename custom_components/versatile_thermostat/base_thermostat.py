@@ -1485,7 +1485,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     _LOGGER.info(
                         "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
                     )
-                    self.save_hvac_mode()
+                    if self.last_central_mode in [CENTRAL_MODE_AUTO, None]:
+                        self.save_hvac_mode()
+
                     await self.async_set_hvac_mode(HVACMode.OFF)
             self.update_custom_attributes()
 
@@ -2053,8 +2055,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self.save_hvac_mode()
 
         if new_central_mode == CENTRAL_MODE_AUTO:
-            await self.restore_hvac_mode()
-            await self.restore_preset_mode()
+            if self.window_state is not STATE_ON:
+                await self.restore_hvac_mode()
+                await self.restore_preset_mode()
 
             return
 
