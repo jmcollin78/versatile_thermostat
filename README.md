@@ -17,6 +17,7 @@
   - [HACS installation (recommended)](#hacs-installation-recommended)
   - [Manual installation](#manual-installation)
 - [Configuration](#configuration)
+  - [Creation of a new Versatile Thermostat](#creation-of-a-new-versatile-thermostat)
   - [Minimal configuration update](#minimal-configuration-update)
   - [Select the driven entity](#select-the-driven-entity)
     - [For a ```thermostat_over_switch``` type thermostat](#for-a-thermostat_over_switch-type-thermostat)
@@ -179,8 +180,17 @@ This component named __Versatile thermostat__ manage the following use cases :
 
 # Configuration
 
-Note: no configuration in configuration.yaml is needed because all configuration is done through the standard GUI when adding the integration.
+-- VTherm = Versatile Thermostat in the remainder of this document --
 
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+>
+> Three ways to configure VTherms are available:
+> 1. Each Versatile Thermostat is completely independently configured. Choose this option if you do not want to have any central configuration or management.
+> 2. Some aspects are configured centrally. This allows e.g. define the min/max temperature, open window detection, etc. at the level of a single central instance. For each VTherm you configure, you can then choose to use the central configuration or override it with custom settings.
+> 3. In addition to this centralized configuration, all VTherms can be controlled by a single entity of type `select`. This function is named `central_mode`. This allows you to stop / start / freeze / etc. all VTherms at once. For each VTherm, the user indicates whether he is affected by this `central_mode`.
+
+
+## Creation of a new Versatile Thermostat
 Click on Add integration button in the integration page
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/add-an-integration.png?raw=true)
 

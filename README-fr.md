@@ -17,6 +17,7 @@
   - [HACS installation (recommendé)](#hacs-installation-recommendé)
   - [Installation manuelle](#installation-manuelle)
 - [Configuration](#configuration)
+  - [Création d'un nouveau Versatile Thermostat](#création-dun-nouveau-versatile-thermostat)
   - [Choix des attributs de base](#choix-des-attributs-de-base)
   - [Sélectionnez des entités pilotées](#sélectionnez-des-entités-pilotées)
     - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
@@ -179,8 +180,17 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 
 # Configuration
 
-Note: aucune configuration dans configuration.yaml n'est nécessaire car toute la configuration est effectuée via l'interface graphique standard lors de l'ajout de l'intégration.
+-- VTherm = Versatile Thermostat dans la suite de ce document --
 
+> ![Astuce](/images/tips.png?raw=true) _*Notes*_
+>
+> Trois façons de configurer les VTherms sont disponibles :
+> 1. Chaque Versatile Thermostat est entièrement configurée de manière indépendante. Choisissez cette option si vous ne souhaitez avoir aucune configuration ou gestion centrale.
+> 2. Certains aspects sont configurés de manière centralisée. Cela permet par ex. définir la température min/max, la détection de fenêtre ouverte,… au niveau d'une instance centrale et unique. Pour chaque VTherm que vous configurez, vous pouvez alors choisir d'utiliser la configuration centrale ou de la remplacer par des paramètres personnalisés.
+> 3. En plus de cette configuration centralisée, tous les VTherm peuvent être contrôlées par une seule entité de type `select`. Cette fonction est nommé `central_mode`. Cela permet de stopper / démarrer / mettre en hors gel / etc tous les VTherms en une seule fois. Pour chaque VTherm, l'utilisateur indique si il est concerné par ce `central_mode`.
+
+
+## Création d'un nouveau Versatile Thermostat
 Cliquez sur le bouton Ajouter une intégration dans la page d'intégration
 
 ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/add-an-integration.png?raw=true)
