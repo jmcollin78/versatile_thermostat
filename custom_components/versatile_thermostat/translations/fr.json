@@ -33,7 +33,7 @@
         },
         "data_description": {
           "use_central_mode": "Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale",
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée",
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure.",
           "use_main_central_config": "Cochez pour utiliser la configuration centrale principale. Décochez et saisissez les attributs pour utiliser une configuration spécifique principale"
         }
       },
@@ -123,7 +123,7 @@
       },
       "window": {
         "title": "Gestion d'une ouverture",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'entity id vide si non utilisé.",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique.",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
@@ -133,7 +133,7 @@
           "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
         },
         "data_description": {
-          "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur",
+          "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
           "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte",
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
@@ -143,17 +143,17 @@
       },
       "motion": {
         "title": "Gestion de la détection de mouvement",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\nLaissez l'entity id vide si non utilisé.\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser.",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
           "motion_off_delay": "Délai de désactivation",
           "motion_preset": "Preset si mouvement",
-          "no_motion_preset": "Preset si pas de mouvement",
+          "no_motion_preset": "Preset sans mouvement",
           "use_motion_central_config": "Utiliser la condfiguration centrale du mouvement"
         },
         "data_description": {
-          "motion_sensor_entity_id": "Détecteur de mouvement entity id",
+          "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
           "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
@@ -179,7 +179,7 @@
       },
       "presence": {
         "title": "Gestion de la présence",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent).\nEnsuite spécifiez soit un preset à utiliser, soit un offset de température à appliquer lorsque personne n'est présent.\nSi le préset est utilisé, l'offset ne sera pas pris en compte.\nLaissez l'entity id vide si la gestion de la présence est non utilisée.",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "eco_away_temp": "preset Eco",
@@ -192,7 +192,7 @@
           "use_presence_central_config": "Utiliser la configuration centrale de la présence"
         },
         "data_description": {
-          "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
+          "presence_sensor_entity_id": "Id d'entité du capteur de présence",
           "eco_away_temp": "Température en preset Eco en cas d'absence",
           "comfort_away_temp": "Température en preset Comfort en cas d'absence",
           "boost_away_temp": "Température en preset Boost en cas d'absence",
@@ -349,7 +349,7 @@
       },
       "window": {
         "title": "Ouverture - {name}",
-        "description": "Gestion des ouvertures. Coupe le radiateur si l'ouverture est ouverte.",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique.",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
@@ -359,7 +359,7 @@
           "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
         },
         "data_description": {
-          "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur",
+          "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
           "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte",
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
@@ -375,11 +375,11 @@
           "motion_delay": "Délai d'activation",
           "motion_off_delay": "Délai de désactivation",
           "motion_preset": "Preset si mouvement",
-          "no_motion_preset": "Preset si pas de mouvement",
+          "no_motion_preset": "Preset sans mouvement",
           "use_motion_central_config": "Utiliser la condfiguration centrale du mouvement"
         },
         "data_description": {
-          "motion_sensor_entity_id": "Détecteur de mouvement entity id",
+          "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
           "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
@@ -405,7 +405,7 @@
       },
       "presence": {
         "title": "Présence - {name}",
-        "description": "Gestion de la présence. Le capteur de présence doit être true ou home si quelqu'un est présent.",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence.",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "eco_away_temp": "preset Eco",
@@ -418,7 +418,7 @@
           "use_presence_central_config": "Utiliser la configuration centrale de la présence"
         },
         "data_description": {
-          "presence_sensor_entity_id": "Capteur de présence entity id (true si quelqu'un est présent)",
+          "presence_sensor_entity_id": "Id d'entité du capteur de présence",
           "eco_away_temp": "Température en preset Eco en cas d'absence",
           "comfort_away_temp": "Température en preset Comfort en cas d'absence",
           "boost_away_temp": "Température en preset Boost en cas d'absence",

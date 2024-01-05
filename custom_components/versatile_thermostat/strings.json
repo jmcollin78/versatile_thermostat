@@ -123,7 +123,7 @@
       },
       "window": {
         "title": "Window management",
-        "description": "Open window management.\nLeave corresponding entity_id empty if not used\nYou can also configure automatic window open detection based on temperature decrease",
+        "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
           "window_delay": "Window sensor delay (seconds)",
@@ -133,7 +133,7 @@
           "use_window_central_config": "Use central window configuration"
         },
         "data_description": {
-          "window_sensor_entity_id": "Leave empty if no window sensor should be used",
+          "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
@@ -143,7 +143,7 @@
       },
       "motion": {
         "title": "Motion management",
-        "description": "Motion sensor management. Preset can switch automatically depending on motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "description": "Motion sensor management. Preset can switch automatically depending on motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
           "motion_delay": "Activation delay",
@@ -163,7 +163,7 @@
       },
       "power": {
         "title": "Power management",
-        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).",
         "data": {
           "power_sensor_entity_id": "Power",
           "max_power_sensor_entity_id": "Max power",
@@ -179,7 +179,7 @@
       },
       "presence": {
         "title": "Presence management",
-        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
+        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor",
           "eco_away_temp": "Eco preset",
@@ -365,7 +365,7 @@
           "use_window_central_config": "Use central window configuration"
         },
         "data_description": {
-          "window_sensor_entity_id": "Leave empty if no window sensor should be used",
+          "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
           "window_delay": "The delay in seconds before sensor detection is taken into account",
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
@@ -375,7 +375,7 @@
       },
       "motion": {
         "title": "Motion - {name}",
-        "description": "Motion management. Preset can switch automatically depending of a motion detection\nLeave corresponding entity_id empty if not used.\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+        "description": "Motion management. Preset can switch automatically depending of a motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
         "data": {
           "motion_sensor_entity_id": "Motion sensor entity id",
           "motion_delay": "Activation delay",
@@ -395,7 +395,7 @@
       },
       "power": {
         "title": "Power - {name}",
-        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).\nLeave corresponding entity_id empty if not used.",
+        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).",
         "data": {
           "power_sensor_entity_id": "Power",
           "max_power_sensor_entity_id": "Max power",
@@ -411,7 +411,7 @@
       },
       "presence": {
         "title": "Presence - {name}",
-        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present).\nThen specify either the preset to use when presence sensor is false or the offset in temperature to apply.\nIf preset is given, the offset will not be used.\nLeave corresponding entity_id empty if not used.",
+        "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor",
           "eco_away_temp": "Eco away preset",
