@@ -65,6 +65,9 @@
   - [Using a Heatzy](#using-a-heatzy)
   - [Using a Heatsink with a Pilot Wire](#using-a-heatsink-with-a-pilot-wire)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
+  - [The radiator heats up even though the setpoint temperature is exceeded or does not heat up even though the room temperature is well below the setpoint](#the-radiator-heats-up-even-though-the-setpoint-temperature-is-exceeded-or-does-not-heat-up-even-though-the-room-temperature-is-well-below-the-setpoint)
+    - [Type `over_switch` or `over_valve`](#type-over_switch-or-over_valve)
+    - [Type `over_climate`](#type-over_climate)
   - [Adjust window opening detection parameters in auto mode](#adjust-window-opening-detection-parameters-in-auto-mode)
   - [Why does my Versatile Thermostat go into Safety?](#why-does-my-versatile-thermostat-go-into-safety)
     - [How to detect safety mode?](#how-to-detect-safety-mode)
@@ -1177,7 +1180,19 @@ Example :
 
 ## Only the first radiator heats
 In `over_switch` mode if several radiators are configured for the same VTherm, switching on will be done sequentially to smooth out consumption peaks as much as possible.
-This is completely normal and desired. It is described here: [For a thermostat of type ``thermostat_over_switch```](#for-a-thermostat-of-type-thermostat_over_switch)
+This is completely normal and desired. It is described here: [For a thermostat of type ``thermostat_over_switch```](#for-a-thermostat-of-type-thermostat_over_switch)v
+
+## The radiator heats up even though the setpoint temperature is exceeded or does not heat up even though the room temperature is well below the setpoint
+
+### Type `over_switch` or `over_valve`
+With a VTherm of type `over_switch` or `over_valve`, this fault just shows that the parameters of the TPI algorithm are incorrectly set. See [TPI Algorithm](#tpi-algorithm) to optimize the settings.
+
+### Type `over_climate`
+With an `over_climate` type VTherm, the regulation is done by the underlying `climate` directly and VTherm simply transmits the instructions to it. So if the radiator heats up when the set temperature is exceeded, it is certainly because its internal temperature measurement is biased. This happens very often with TRVs and reversible air conditioning units which have an internal temperature sensor, or too close to the heating element (therefore too cold in winter).
+
+Example of discussion around these topics: [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312 ), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
+
+To get around this, VTherm is equipped with a function called self-regulation which allows the instruction sent to the underlying to be adapted until the target temperature is respected. This function compensates for the measurement bias of internal thermometers. If the bias is important the regulation must be important. See [Self-regulation](#self-regulation) to configure self-regulation.
 
 ## Adjust window opening detection parameters in auto mode
 

@@ -1195,6 +1195,19 @@ Exemple :
 En mode `over_switch` si plusieurs radiateurs sont configurés pour un même VTherm, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
 Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
 
+## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
+
+### Type `over_switch` ou `over_valve`
+Avec un VTherm de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](#algorithme-tpi) pour optimiser les réglages.
+
+### Type `over_climate`
+Avec un VTherm de type `over_climate`, la régulation est faite par le `climate` sous-jacent directement et VTherm se contente de lui transmettre les consignes. Donc si le radiateur chauffe alors que la température de consigne est dépassée, c'est certainement que sa mesure de température interne est biaisée. Ca arrive très souvent avec les TRV et les clims réversibles qui ont un capteur de température interne, soit trop près de l'élément de chauffe (donc trop froid l'hiver).
+
+Exemple de discussion autour de ces sujets: [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
+
+Pour s'en sortir, VTherm est équipé d'une fonction nommée auto-régulation qui permet d'adapter la consigne envoyée au sous-jacent jusqu'à ce que la consigne soit respectée. Cette fonction permet de compenser le biais de mesure des thermomètres internes. Si le biais est important la régulation doit être importante. Voir [L'auto-régulation](#lauto-régulation) pour configurer l'auto-régulation.
+
+
 ## Régler les paramètres de détection d'ouverture de fenêtre en mode auto
 
 Si vous n'arrivez pas à régler la fonction de détection des ouvertures en mode auto (cf. [auto](#le-mode-auto)), vous pouvez essayer de modifier les paramètres de l'algorithme de lissage de la température.
