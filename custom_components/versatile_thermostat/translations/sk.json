@@ -4,6 +4,15 @@
     "flow_title": "Všestranná konfigurácia termostatu",
     "step": {
       "user": {
+        "title": "Typ všestranného termostatu",
+        "data": {
+          "thermostat_type": "Typ termostatu"
+        },
+        "data_description": {
+          "thermostat_type": "Len jeden centrálny typ konfigurácie je možný"
+        }
+      },
+      "main": {
         "title": "Pridajte nový všestranný termostat",
         "description": "Hlavné povinné atribúty",
         "data": {
@@ -15,10 +24,17 @@
           "temp_min": "Minimálna povolená teplota",
           "temp_max": "Maximálna povolená teplota",
           "device_power": "Napájanie zariadenia",
+          "use_central_mode": "Povoliť ovládanie centrálnou entitou (potrebná centrálna konfigurácia)",
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
           "use_power_feature": "Použite správu napájania",
           "use_presence_feature": "Použite detekciu prítomnosti"
+          "use_main_central_config": "Použite centrálnu hlavnú konfiguráciu"
+        },
+        "data_description": {
+          "use_central_mode": "Zaškrtnutím povolíte ovládanie VTherm pomocou vybraných entít central_mode",
+          "use_main_central_config": "Začiarknite, ak chcete použiť centrálnu hlavnú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú hlavnú konfiguráciu pre tento VTherm",
+          "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia"
         }
       },
       "type": {
@@ -39,11 +55,11 @@
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
           "valve_entity4_id": "4. ventil číslo",
-          "auto_regulation_mode": "Self-regulation",
-          "auto_regulation_dtemp": "Regulation threshold",
-          "auto_regulation_periode_min": "Regulation minimal period",
-          "inverse_switch_command": "Inverse switch command",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_regulation_mode": "Samoregulácia",
+          "auto_regulation_dtemp": "Regulačný prah",
+          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
+          "inverse_switch_command": "Inverzný prepínací príkaz",
+          "auto_fan_mode": "Režim automatického ventilátora"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -60,11 +76,11 @@
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
           "valve_entity4_id": "4. ventil číslo entity id",
-          "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
-          "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
+          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
+          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
+          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie"
         }
       },
       "tpi": {
@@ -73,6 +89,12 @@
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
           "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty"
+          "use_tpi_central_config": "Použite centrálnu konfiguráciu TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
+          "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty",
+          "use_tpi_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu TPI. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu TPI pre tento VTherm"
         }
       },
       "presets": {
@@ -86,6 +108,17 @@
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
           "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+          "use_presets_central_config": "Použite konfiguráciu centrálnych predvolieb"
+        },
+        "data_description": {
+          "eco_temp": "Teplota v predvoľbe Eco",
+          "comfort_temp": "Prednastavená teplota v komfortnom režime",
+          "boost_temp": "Teplota v prednastavení Boost",
+          "frost_temp": "Teplota v prednastavenej ochrane proti mrazu",
+          "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
+          "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC",
+          "use_presets_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálnych predvolieb. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu predvolieb pre tento VTherm"
         }
       },
       "window": {
@@ -97,6 +130,7 @@
           "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
           "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
           "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+          "use_window_central_config": "Použite centrálnu konfiguráciu okna"
         },
         "data_description": {
           "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
@@ -104,6 +138,7 @@
           "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+          "use_window_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho okna. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu okna pre tento VTherm"
         }
       },
       "motion": {
@@ -115,6 +150,7 @@
           "motion_off_delay": "Oneskorenie deaktivácie",
           "motion_preset": "Prednastavený pohyb",
           "no_motion_preset": "Žiadna predvoľba pohybu"
+          "use_motion_central_config": "Použite centrálnu konfiguráciu pohybu"
         },
         "data_description": {
           "motion_sensor_entity_id": "ID entity snímača pohybu",
@@ -122,6 +158,7 @@
           "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
           "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
           "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+          "use_motion_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho pohybu. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu pohybu pre tento VTherm"
         }
       },
       "power": {
@@ -131,6 +168,13 @@
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
           "power_temp": "Teplota pre zníženie výkonu"
+          "use_power_central_config": "Použite centrálnu konfiguráciu napájania"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID entity snímača výkonu",
+          "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_temp": "Teplota pre zníženie výkonu",
+          "use_power_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho napájania. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu napájania pre tento VTherm"
         }
       },
       "presence": {
@@ -145,6 +189,18 @@
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
           "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+          "use_presence_central_config": "Použite centrálnu konfiguráciu prítomnosti"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID entity senzora prítomnosti",
+          "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
+          "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
+          "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "frost_away_temp": "Teplota v Prednastavená ochrana pred mrazom, keď nie je prítomný",
+          "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
+          "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC",
+          "use_presence_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálnej prítomnosti. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu prítomnosti pre tento VTherm"
         }
       },
       "advanced": {
@@ -155,12 +211,14 @@
           "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
           "security_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
           "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+          "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
           "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
           "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
           "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+          "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }
     },
@@ -168,6 +226,7 @@
       "unknown": "Neočakávaná chyba",
       "unknown_entity": "Neznáme ID entity",
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+      "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“."
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -177,7 +236,16 @@
     "flow_title": "Všestranná konfigurácia termostatu",
     "step": {
       "user": {
-        "title": "Pridajte nový všestranný termostat",
+        "title": "Typ - {name}",
+        "data": {
+          "thermostat_type": "Typ termostatu"
+        },
+        "data_description": {
+          "thermostat_type": "Je možný len jeden centrálny typ konfigurácie"
+        }
+      },
+      "main": {
+        "title": "Hlavný - {name}",
         "description": "Hlavné povinné atribúty",
         "data": {
           "name": "Názov",
@@ -188,14 +256,21 @@
           "temp_min": "Minimálna povolená teplota",
           "temp_max": "Maximálna povolená teplota",
           "device_power": "Výkon zariadenia (kW)",
+          "use_central_mode": "Povoliť ovládanie centrálnou entitou (potrebná centrálna konfigurácia)",
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
           "use_power_feature": "Použite správu napájania",
           "use_presence_feature": "Použite detekciu prítomnosti"
+          "use_main_central_config": "Použite centrálnu hlavnú konfiguráciu"
+        },
+        "data_description": {
+          "use_central_mode": "Zaškrtnutím povolíte ovládanie VTherm pomocou vybraných entít central_mode",
+          "use_main_central_config": "Začiarknite, ak chcete použiť centrálnu hlavnú konfiguráciu. Ak chcete použiť špecifickú konfiguráciu pre tento VTherm, zrušte začiarknutie",
+          "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia"
         }
       },
       "type": {
-        "title": "Prepojené entity",
+        "title": "Prepojené entity - {name}",
         "description": "Atribúty prepojených entít",
         "data": {
           "heater_entity_id": "Spínač ohrievača",
@@ -212,11 +287,11 @@
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
           "valve_entity4_id": "4. ventil číslo",
-          "auto_regulation_mode": "Self-regulation",
-          "auto_regulation_dtemp": "Regulation threshold",
-          "auto_regulation_periode_min": "Regulation minimal period",
-          "inverse_switch_command": "Inverse switch command",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_regulation_mode": "Samoregulácia",
+          "auto_regulation_dtemp": "Regulačný prah",
+          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
+          "inverse_switch_command": "Inverzný prepínací príkaz",
+          "auto_fan_mode": "Režim automatického ventilátora"
         },
         "data_description": {
           "heater_entity_id": "ID entity povinného ohrievača",
@@ -233,23 +308,29 @@
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
           "valve_entity4_id": "4. ventil číslo entity id",
-          "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be send",
-          "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
+          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
+          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
+          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie"
         }
       },
       "tpi": {
-        "title": "TPI",
+        "title": "TPI - {name}",
         "description": "Časovo proporcionálne integrálne atribúty",
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
           "tpi_coef_ext": "Koeficient na použitie pre vonkajšiu teplotnú deltu"
+          "use_tpi_central_config": "Použite centrálnu konfiguráciu TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
+          "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty",
+          "use_tpi_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu TPI. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu TPI pre tento VTherm"
         }
       },
       "presets": {
-        "title": "Predvoľby",
+        "title": "Predvoľby - {name}",
         "description": "Pre každú predvoľbu zadajte cieľovú teplotu (0, ak chcete predvoľbu ignorovať)",
         "data": {
           "eco_temp": "Teplota v predvoľbe Eco",
@@ -259,10 +340,21 @@
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
           "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+          "use_presets_central_config": "Použite konfiguráciu centrálnych predvolieb"
+        },
+        "data_description": {
+          "eco_temp": "Teplota v predvoľbe Eco",
+          "comfort_temp": "Prednastavená teplota v komfortnom režime",
+          "boost_temp": "Teplota v prednastavení Boost",
+          "frost_temp": "Teplota v prednastavenej ochrane proti mrazu",
+          "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
+          "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC",
+          "use_presets_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálnych predvolieb. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu predvolieb pre tento VTherm"
         }
       },
       "window": {
-        "title": "Správa okien",
+        "title": "Správa okien - {name}",
         "description": "Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
         "data": {
           "window_sensor_entity_id": "ID entity snímača okna",
@@ -270,6 +362,7 @@
           "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
           "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
           "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+          "use_window_central_config": "Použite centrálnu konfiguráciu okna"
         },
         "data_description": {
           "window_sensor_entity_id": "Nechajte prázdne, ak nemáte použiť žiadny okenný senzor",
@@ -277,10 +370,11 @@
           "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+          "use_window_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho okna. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu okna pre tento VTherm"
         }
       },
       "motion": {
-        "title": "Riadenie pohybu",
+        "title": "Riadenie pohybu - {name}",
         "description": "Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
         "data": {
           "motion_sensor_entity_id": "ID entity snímača pohybu",
@@ -288,6 +382,7 @@
           "motion_off_delay": "Oneskorenie deaktivácie",
           "motion_preset": "Prednastavený pohyb",
           "no_motion_preset": "Žiadna predvoľba pohybu"
+          "use_motion_central_config": "Použite centrálnu konfiguráciu pohybu"
         },
         "data_description": {
           "motion_sensor_entity_id": "ID entity snímača pohybu",
@@ -295,15 +390,23 @@
           "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
           "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
           "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+          "use_motion_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho pohybu. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu pohybu pre tento VTherm"
         }
       },
       "power": {
-        "title": "Správa napájania",
+        "title": "Správa napájania - {name}",
         "description": "Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
           "power_temp": "Teplota pre zníženie výkonu"
+          "use_power_central_config": "Použite centrálnu konfiguráciu napájania"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID entity snímača výkonu",
+          "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_temp": "Teplota pre zníženie výkonu",
+          "use_power_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho napájania. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu napájania pre tento VTherm"
         }
       },
       "presence": {
@@ -318,22 +421,36 @@
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
           "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+          "use_presence_central_config": "Použite centrálnu konfiguráciu prítomnosti"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID entity senzora prítomnosti",
+          "eco_away_temp": "Teplota v prednastavenej Eco, keď nie je žiadna prítomnosť",
+          "comfort_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný",
+          "boost_away_temp": "Prednastavená teplota v režime Boost, keď nie je prítomný",
+          "frost_away_temp": "Teplota v Prednastavená ochrana pred mrazom, keď nie je prítomný",
+          "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
+          "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC",
+          "use_presence_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálnej prítomnosti. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu prítomnosti pre tento VTherm"
         }
       },
       "advanced": {
-        "title": "Pokročilé parametre",
+        "title": "Pokročilé parametre - {name}",
         "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
         "data": {
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
           "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
           "security_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
           "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+          "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
           "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
           "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
           "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+          "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }
     },
@@ -341,6 +458,7 @@
       "unknown": "Neočakávaná chyba",
       "unknown_entity": "Neznáme ID entity",
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+      "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“."
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -349,27 +467,28 @@
   "selector": {
     "thermostat_type": {
       "options": {
+        "thermostat_central_config": "Centrálna konfigurácia",
         "thermostat_over_switch": "Termostat nad spínačom",
         "thermostat_over_climate": "Termostat nad iným termostatom",
-        "thermostat_over_valve": "Thermostat over a valve"
+        "thermostat_over_valve": "Termostat nad ventilom"
       }
     },
     "auto_regulation_mode": {
       "options": {
-        "auto_regulation_slow": "Slow",
-        "auto_regulation_strong": "Strong",
-        "auto_regulation_medium": "Medium",
-        "auto_regulation_light": "Light",
-        "auto_regulation_expert": "Expert",
-        "auto_regulation_none": "No auto-regulation"
+        "auto_regulation_slow": "Pomalé",
+        "auto_regulation_strong": "Silné",
+        "auto_regulation_medium": "Stredné",
+        "auto_regulation_light": "Jemné",
+        "auto_regulation_expert": "Expertné",
+        "auto_regulation_none": "Nie auto-regulácia"
       }
     },
     "auto_fan_mode": {
       "options": {
-        "auto_fan_none": "No auto-fan",
-        "auto_fan_low": "Low",
-        "auto_fan_medium": "Medium",
-        "auto_fan_high": "High",
+        "auto_fan_none": "Žiadny automatický ventilátor",
+        "auto_fan_low": "Nízky",
+        "auto_fan_medium": "Stredný",
+        "auto_fan_high": "Vysoký",
         "auto_fan_turbo": "Turbo"
       }
     }
