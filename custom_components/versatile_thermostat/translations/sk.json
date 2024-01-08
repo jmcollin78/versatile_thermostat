@@ -28,7 +28,7 @@
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
           "use_power_feature": "Použite správu napájania",
-          "use_presence_feature": "Použite detekciu prítomnosti"
+          "use_presence_feature": "Použite detekciu prítomnosti",
           "use_main_central_config": "Použite centrálnu hlavnú konfiguráciu"
         },
         "data_description": {
@@ -88,7 +88,7 @@
         "description": "Časovo proporcionálne integrálne atribúty",
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
-          "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty"
+          "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty",
           "use_tpi_central_config": "Použite centrálnu konfiguráciu TPI"
         },
         "data_description": {
@@ -107,7 +107,7 @@
           "frost_temp": "Teplota v prednastavení Frost protection",
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
-          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC",
           "use_presets_central_config": "Použite konfiguráciu centrálnych predvolieb"
         },
         "data_description": {
@@ -129,7 +129,7 @@
           "window_delay": "Oneskorenie snímača okna (sekundy)",
           "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
           "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
-          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)",
           "use_window_central_config": "Použite centrálnu konfiguráciu okna"
         },
         "data_description": {
@@ -137,7 +137,7 @@
           "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
           "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
-          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "use_window_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho okna. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu okna pre tento VTherm"
         }
       },
@@ -149,7 +149,7 @@
           "motion_delay": "Oneskorenie aktivácie",
           "motion_off_delay": "Oneskorenie deaktivácie",
           "motion_preset": "Prednastavený pohyb",
-          "no_motion_preset": "Žiadna predvoľba pohybu"
+          "no_motion_preset": "Žiadna predvoľba pohybu",
           "use_motion_central_config": "Použite centrálnu konfiguráciu pohybu"
         },
         "data_description": {
@@ -157,7 +157,7 @@
           "motion_delay": "Oneskorenie aktivácie pohybu (sekundy)",
           "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
           "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
-          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb",
           "use_motion_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho pohybu. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu pohybu pre tento VTherm"
         }
       },
@@ -167,7 +167,7 @@
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
-          "power_temp": "Teplota pre zníženie výkonu"
+          "power_temp": "Teplota pre zníženie výkonu",
           "use_power_central_config": "Použite centrálnu konfiguráciu napájania"
         },
         "data_description": {
@@ -188,7 +188,7 @@
           "frost_away_temp": "Prednastavená teplota v režime Frost protection, keď nie je prítomný",
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
-          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC",
           "use_presence_central_config": "Použite centrálnu konfiguráciu prítomnosti"
         },
         "data_description": {
@@ -210,14 +210,14 @@
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
           "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
           "security_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
-          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
           "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
           "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
-          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }
@@ -225,7 +225,7 @@
     "error": {
       "unknown": "Neočakávaná chyba",
       "unknown_entity": "Neznáme ID entity",
-      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
       "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“."
     },
     "abort": {
@@ -260,7 +260,7 @@
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
           "use_power_feature": "Použite správu napájania",
-          "use_presence_feature": "Použite detekciu prítomnosti"
+          "use_presence_feature": "Použite detekciu prítomnosti",
           "use_main_central_config": "Použite centrálnu hlavnú konfiguráciu"
         },
         "data_description": {
@@ -320,7 +320,7 @@
         "description": "Časovo proporcionálne integrálne atribúty",
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
-          "tpi_coef_ext": "Koeficient na použitie pre vonkajšiu teplotnú deltu"
+          "tpi_coef_ext": "Koeficient na použitie pre vonkajšiu teplotnú deltu",
           "use_tpi_central_config": "Použite centrálnu konfiguráciu TPI"
         },
         "data_description": {
@@ -339,7 +339,7 @@
           "frost_temp": "Teplota v prednastavení Frost protection",
           "eco_ac_temp": "Teplota v režime Eco prednastavená pre režim AC",
           "comfort_ac_temp": "Teplota v režime Comfort je prednastavená pre režim AC",
-          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC"
+          "boost_ac_temp": "Prednastavená teplota v režime Boost pre režim AC",
           "use_presets_central_config": "Použite konfiguráciu centrálnych predvolieb"
         },
         "data_description": {
@@ -361,7 +361,7 @@
           "window_delay": "Oneskorenie snímača okna (sekundy)",
           "window_auto_open_threshold": "Prah poklesu teploty pre automatickú detekciu otvoreného okna (v °/hodina)",
           "window_auto_close_threshold": "Prahová hodnota zvýšenia teploty pre koniec automatickej detekcie (v °/hodina)",
-          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)"
+          "window_auto_max_duration": "Maximálne trvanie automatickej detekcie otvoreného okna (v min)",
           "use_window_central_config": "Použite centrálnu konfiguráciu okna"
         },
         "data_description": {
@@ -369,7 +369,7 @@
           "window_delay": "Zohľadňuje sa oneskorenie v sekundách pred detekciou snímača",
           "window_auto_open_threshold": "Odporúčaná hodnota: medzi 3 a 10. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "window_auto_close_threshold": "Odporúčaná hodnota: 0. Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
-          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne"
+          "window_auto_max_duration": "Odporúčaná hodnota: 60 (jedna hodina). Ak sa nepoužíva automatická detekcia otvoreného okna, nechajte prázdne",
           "use_window_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho okna. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu okna pre tento VTherm"
         }
       },
@@ -381,7 +381,7 @@
           "motion_delay": "Oneskorenie aktivácie",
           "motion_off_delay": "Oneskorenie deaktivácie",
           "motion_preset": "Prednastavený pohyb",
-          "no_motion_preset": "Žiadna predvoľba pohybu"
+          "no_motion_preset": "Žiadna predvoľba pohybu",
           "use_motion_central_config": "Použite centrálnu konfiguráciu pohybu"
         },
         "data_description": {
@@ -389,7 +389,7 @@
           "motion_delay": "Oneskorenie aktivácie pohybu (sekundy)",
           "motion_off_delay": "Oneskorenie deaktivácie pohybu (sekundy)",
           "motion_preset": "Prednastavené na použitie pri detekcii pohybu",
-          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb"
+          "no_motion_preset": "Prednastavené na použitie, keď nie je detekovaný žiadny pohyb",
           "use_motion_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho pohybu. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu pohybu pre tento VTherm"
         }
       },
@@ -399,7 +399,7 @@
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
-          "power_temp": "Teplota pre zníženie výkonu"
+          "power_temp": "Teplota pre zníženie výkonu",
           "use_power_central_config": "Použite centrálnu konfiguráciu napájania"
         },
         "data_description": {
@@ -420,7 +420,7 @@
           "frost_away_temp": "Prednastavená teplota v režime Frost protection, keď nie je prítomný",
           "eco_ac_away_temp": "Teplota v prednastavenej Eco, keď nie je prítomná v režime AC",
           "comfort_ac_away_temp": "Teplota v režime Comfort je prednastavená, keď nie je prítomný v režime AC",
-          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC"
+          "boost_ac_away_temp": "Teplota v prednastavenom Boost, keď nie je prítomný v režime AC",
           "use_presence_central_config": "Použite centrálnu konfiguráciu prítomnosti"
         },
         "data_description": {
@@ -442,14 +442,14 @@
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
           "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
           "security_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
-          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime"
+          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
           "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
           "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
-          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave"
+          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }
@@ -457,7 +457,7 @@
     "error": {
       "unknown": "Neočakávaná chyba",
       "unknown_entity": "Neznáme ID entity",
-      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje"
+      "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
       "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“."
     },
     "abort": {
