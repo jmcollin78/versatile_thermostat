@@ -410,7 +410,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         )
         self._window_auto_max_duration = entry_infos.get(CONF_WINDOW_AUTO_MAX_DURATION)
         self._window_auto_on = (
-            self._window_auto_open_threshold is not None
+            self._window_sensor_entity_id is None
+            and self._window_auto_open_threshold is not None
             and self._window_auto_open_threshold > 0.0
             and self._window_auto_close_threshold is not None
             and self._window_auto_max_duration is not None
@@ -1852,8 +1853,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             slope if slope is not None else 0.0,
         )
 
-        if self.window_bypass_state:
-            _LOGGER.info("%s - Window auto event is ignored because bypass is ON", self)
+        if self.window_bypass_state or not self.is_window_auto_enabled:
+            _LOGGER.info("%s - Window auto event is ignored because bypass is ON or window auto detection is disabled", self)
             return
 
         if (
@@ -2476,8 +2477,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "%s - Calling service_set_security, delay_min: %s, min_on_percent: %s %%, default_on_percent: %s %%",
             self,
             delay_min,
-            min_on_percent*100,
-            default_on_percent*100,
+            min_on_percent * 100,
+            default_on_percent * 100,
         )
         if delay_min:
             self._security_delay_min = delay_min
