@@ -484,6 +484,14 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return False
 
+        if self._underlying_climate.hvac_mode == hvac_mode:
+            _LOGGER.debug(
+                "%s - hvac_mode is already is requested state %s. Do not send any command",
+                self,
+                self._underlying_climate.hvac_mode,
+            )
+            return False
+
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": hvac_mode}
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,

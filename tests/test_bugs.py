@@ -633,14 +633,16 @@ async def test_bug_272(
 
         # In the accepted interval
         await entity.async_set_temperature(temperature=17.5)
-        assert mock_service_call.call_count == 2
+
+        # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
+        assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
-                    "climate",
-                    SERVICE_SET_HVAC_MODE,
-                    {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT},
-                ),
+                # call.async_call(
+                #     "climate",
+                #     SERVICE_SET_HVAC_MODE,
+                #     {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT},
+                # ),
                 call.async_call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,

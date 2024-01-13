@@ -268,7 +268,7 @@ async def test_full_over_switch_wo_central_config(
         assert entity._security_default_on_percent == 0.1
         assert entity.is_inversed is False
 
-        assert entity.is_window_auto_enabled is True
+        assert entity.is_window_auto_enabled is False  # we have an entity_id
         assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
         assert entity._window_delay_sec == 30
         assert entity._window_auto_close_threshold == 0.1
@@ -377,7 +377,8 @@ async def test_full_over_switch_with_central_config(
         assert entity._security_default_on_percent == 0.2
         assert entity.is_inversed is False
 
-        assert entity.is_window_auto_enabled is True
+        # We have an entity so window auto is not enabled
+        assert entity.is_window_auto_enabled is False
         assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
         assert entity._window_delay_sec == 15
         assert entity._window_auto_close_threshold == 1

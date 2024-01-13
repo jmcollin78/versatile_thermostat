@@ -428,9 +428,11 @@ async def send_temperature_change_event(
             )
         },
     )
-    await entity._async_temperature_changed(temp_event)
+    dearm_window_auto = await entity._async_temperature_changed(temp_event)
     if sleep:
         await asyncio.sleep(0.1)
+
+    return dearm_window_auto
 
 
 async def send_ext_temperature_change_event(
@@ -619,6 +621,7 @@ async def send_climate_change_event(
     old_hvac_action: HVACAction,
     date,
     sleep=True,
+    underlying_entity_id: str = None,
 ):
     """Sending a new climate event simulating a change on the underlying climate state"""
     _LOGGER.info(
@@ -630,18 +633,23 @@ async def send_climate_change_event(
         date,
         entity,
     )
+
+    send_from_entity_id = (
+        underlying_entity_id if underlying_entity_id is not None else entity.entity_id
+    )
+
     climate_event = Event(
         EVENT_STATE_CHANGED,
         {
             "new_state": State(
-                entity_id=entity.entity_id,
+                entity_id=send_from_entity_id,
                 state=new_hvac_mode,
                 attributes={"hvac_action": new_hvac_action},
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
-                entity_id=entity.entity_id,
+                entity_id=send_from_entity_id,
                 state=old_hvac_mode,
                 attributes={"hvac_action": old_hvac_action},
                 last_changed=date,

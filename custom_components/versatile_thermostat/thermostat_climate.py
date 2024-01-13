@@ -601,8 +601,9 @@ class ThermostatOverClimate(BaseThermostat):
         #    new_hvac_mode = HVACMode.OFF
 
         _LOGGER.info(
-            "%s - Underlying climate changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
+            "%s - Underlying climate %s changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
             self,
+            new_state.entity_id,
             new_hvac_mode,
             self._hvac_mode,
             new_hvac_action,
@@ -658,7 +659,7 @@ class ThermostatOverClimate(BaseThermostat):
             )
             changes = True
 
-        # Issue #120 - Some TRV are chaning target temperature a very long time (6 sec) after the change.
+        # Issue #120 - Some TRV are changing target temperature a very long time (6 sec) after the change.
         # In that case a loop is possible if a user change multiple times during this 6 sec.
         if new_state_date_updated and self._last_change_time:
             delta = (new_state_date_updated - self._last_change_time).total_seconds()
@@ -684,12 +685,31 @@ class ThermostatOverClimate(BaseThermostat):
             ]
             and self._hvac_mode != new_hvac_mode
         ):
-            changes = True
-            self._hvac_mode = new_hvac_mode
             # Update all underlyings state
+            # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
+                    if (
+                        under.entity_id != new_state.entity_id
+                        and under.hvac_mode != self._hvac_mode
+                    ):
+                        _LOGGER.info(
+                            "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
+                            under,
+                            under.hvac_mode,
+                            self._hvac_mode,
+                        )
+                        return
+
+                _LOGGER.debug(
+                    "%s - All underlyings have the same hvac_mode, so VTherm will send the new hvac mode %s",
+                    self,
+                    new_hvac_mode,
+                )
+                for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
+            changes = True
+            self._hvac_mode = new_hvac_mode
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode != self._attr_fan_mode:

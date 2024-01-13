@@ -1406,9 +1406,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        await self._async_update_temp(new_state)
+        dearm_window_auto = await self._async_update_temp(new_state)
         self.recalculate()
         await self.async_control_heating(force=False)
+        return dearm_window_auto
 
     async def _async_ext_temperature_changed(self, event: Event):
         """Handle external temperature opf the sensor changes."""
@@ -1646,7 +1647,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 await self.check_security()
 
             # check window_auto
-            await self._async_manage_window_auto()
+            return await self._async_manage_window_auto()
 
         except ValueError as ex:
             _LOGGER.error("Unable to update temperature from sensor: %s", ex)

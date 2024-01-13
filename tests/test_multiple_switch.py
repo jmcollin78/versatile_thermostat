@@ -472,7 +472,7 @@ async def test_multiple_climates_underlying_changes(
     skip_hass_states_is_state,
     skip_send_event,
 ):  # pylint: disable=unused-argument
-    """Test that when multiple switch are configured the activation of one underlying
+    """Test that when multiple climate are configured the activation of one underlying
     climate activate the others"""
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -541,11 +541,15 @@ async def test_multiple_climates_underlying_changes(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Stop heating on one underlying climate
+    # All underlying supposed to be aligned with the hvac_mode now
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
-    ) as mock_underlying_set_hvac_mode:
+    ) as mock_underlying_set_hvac_mode, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
+        HVACMode.HEAT,
+    ):
         # Wait 11 sec so that the event will not be discarded
         event_timestamp = now + timedelta(seconds=11)
         await send_climate_change_event(
@@ -555,6 +559,7 @@ async def test_multiple_climates_underlying_changes(
             HVACAction.OFF,
             HVACAction.HEATING,
             event_timestamp,
+            underlying_entity_id="switch.mock_climate3",
         )
 
         # Should be call for all Switch
@@ -577,6 +582,9 @@ async def test_multiple_climates_underlying_changes(
         # a function but a property
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_action",
         HVACAction.IDLE,
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
+        HVACMode.OFF,
     ):
         # Wait 11 sec so that the event will not be discarded
         event_timestamp = now + timedelta(seconds=11)
@@ -599,6 +607,113 @@ async def test_multiple_climates_underlying_changes(
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.hvac_action == HVACAction.IDLE
         assert entity.is_device_active is False  # pylint: disable=protected-access
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_multiple_climates_underlying_changes_not_aligned(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_send_event,
+):  # pylint: disable=unused-argument
+    """Test that when multiple climate are configured the activation of one underlying
+    climate don't activate the others if their havc_mode are not aligned"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOver4ClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOver4ClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 8,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_CLIMATE: "switch.mock_climate1",
+            CONF_CLIMATE_2: "switch.mock_climate2",
+            CONF_CLIMATE_3: "switch.mock_climate3",
+            CONF_CLIMATE_4: "switch.mock_climate4",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theover4climatemockname"
+    )
+    assert entity
+    assert entity.is_over_climate is True
+    assert entity.nb_underlying_entities == 4
+
+    # start heating, in boost mode. We block the control_heating to avoid running a cycle
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode:
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        await entity.async_set_preset_mode(PRESET_BOOST)
+
+        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.preset_mode is PRESET_BOOST
+        assert entity.target_temperature == 19
+        assert entity.window_state is STATE_OFF
+
+        event_timestamp = now - timedelta(minutes=4)
+        await send_temperature_change_event(entity, 15, event_timestamp)
+
+        # Should be call for all Switch
+        assert mock_underlying_set_hvac_mode.call_count == 4
+        mock_underlying_set_hvac_mode.assert_has_calls(
+            [
+                call.set_hvac_mode(HVACMode.HEAT),
+            ]
+        )
+
+    # Stop heating on one underlying climate
+    # All underlying supposed to be aligned with the hvac_mode now
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
+        HVACMode.COOL,
+    ):
+        # Wait 11 sec so that the event will not be discarded
+        event_timestamp = now + timedelta(seconds=11)
+        await send_climate_change_event(
+            entity,
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.HEATING,
+            event_timestamp,
+            underlying_entity_id="switch.mock_climate3",
+        )
+
+        # Should be call for all Switch
+        assert mock_underlying_set_hvac_mode.call_count == 0
+        # mock_underlying_set_hvac_mode.assert_has_calls(
+        #     [
+        #         call.set_hvac_mode(HVACMode.OFF),
+        #     ]
+        # )
+        # No change
+        assert entity.hvac_mode == HVACMode.HEAT
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
