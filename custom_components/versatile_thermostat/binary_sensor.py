@@ -1,9 +1,13 @@
 """ Implements the VersatileThermostat binary sensors component """
+# pylint: disable=unused-argument
+
 import logging
 
 from homeassistant.core import HomeAssistant, callback, Event
 
 from homeassistant.const import STATE_ON, STATE_OFF
+
+from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -15,6 +19,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .commons import VersatileThermostatBaseEntity
 from .const import (
+    DOMAIN,
+    DEVICE_MANUFACTURER,
     CONF_NAME,
     CONF_USE_POWER_FEATURE,
     CONF_USE_PRESENCE_FEATURE,
@@ -42,20 +48,22 @@ async def async_setup_entry(
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
-        return
-
-    entities = [
-        SecurityBinarySensor(hass, unique_id, name, entry.data),
-        WindowByPassBinarySensor(hass, unique_id, name, entry.data),
-    ]
-    if entry.data.get(CONF_USE_MOTION_FEATURE):
-        entities.append(MotionBinarySensor(hass, unique_id, name, entry.data))
-    if entry.data.get(CONF_USE_WINDOW_FEATURE):
-        entities.append(WindowBinarySensor(hass, unique_id, name, entry.data))
-    if entry.data.get(CONF_USE_PRESENCE_FEATURE):
-        entities.append(PresenceBinarySensor(hass, unique_id, name, entry.data))
-    if entry.data.get(CONF_USE_POWER_FEATURE):
-        entities.append(OverpoweringBinarySensor(hass, unique_id, name, entry.data))
+        entities = [
+            CentralBoilerBinarySensor(hass, unique_id, name, entry.data),
+        ]
+    else:
+        entities = [
+            SecurityBinarySensor(hass, unique_id, name, entry.data),
+            WindowByPassBinarySensor(hass, unique_id, name, entry.data),
+        ]
+        if entry.data.get(CONF_USE_MOTION_FEATURE):
+            entities.append(MotionBinarySensor(hass, unique_id, name, entry.data))
+        if entry.data.get(CONF_USE_WINDOW_FEATURE):
+            entities.append(WindowBinarySensor(hass, unique_id, name, entry.data))
+        if entry.data.get(CONF_USE_PRESENCE_FEATURE):
+            entities.append(PresenceBinarySensor(hass, unique_id, name, entry.data))
+        if entry.data.get(CONF_USE_POWER_FEATURE):
+            entities.append(OverpoweringBinarySensor(hass, unique_id, name, entry.data))
 
     async_add_entities(entities, True)
 
@@ -269,7 +277,6 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
             return "mdi:nature-people"
 
 
-# PR - Adding Window ByPass
 class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the Window ByPass state"""
 
@@ -307,3 +314,43 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
             return "mdi:window-shutter-cog"
         else:
             return "mdi:window-shutter-auto"
+
+
+class CentralBoilerBinarySensor(BinarySensorEntity):
+    """Representation of a BinarySensor which exposes the Central Boiler state"""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,  # pylint: disable=unused-argument
+        entry_infos,
+    ) -> None:
+        """Initialize the CentralBoiler Binary sensor"""
+        self._config_id = unique_id
+        self._attr_name = "Central boiler"
+        self._attr_unique_id = "central_boiler_state"
+        self._attr_is_on = False
+        self._device_name = entry_infos.get(CONF_NAME)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self._config_id)},
+            name=self._device_name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass | None:
+        return BinarySensorDeviceClass.RUNNING
+
+    @property
+    def icon(self) -> str | None:
+        if self._attr_is_on:
+            return "mdi:water-boiler"
+        else:
+            return "mdi:water-boiler-off"

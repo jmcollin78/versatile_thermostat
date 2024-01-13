@@ -43,11 +43,12 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
         vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
+        vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
         vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
-        vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
+        vol.Required(CONF_USED_BY_CENTRAL_BOILER, default=False): cv.boolean,
     }
 )
 
@@ -58,6 +59,14 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+        vol.Required(CONF_ADD_CENTRAL_BOILER_CONTROL, default=False): cv.boolean,
+    }
+)
+
+STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
+    {
+        vol.Optional(CONF_CENTRAL_BOILER_ACTIVATION_SRV, default=""): str,
+        vol.Optional(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, default=""): str,
     }
 )
 

@@ -120,6 +120,12 @@ CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
 
+CONF_ADD_CENTRAL_BOILER_CONTROL = "add_central_boiler_control"
+CONF_CENTRAL_BOILER_ACTIVATION_SRV = "central_boiler_activation_service"
+CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
+
+CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
+
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
     # In sec
@@ -250,6 +256,10 @@ ALL_CONF = (
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
         CONF_USE_CENTRAL_MODE,
+        CONF_ADD_CENTRAL_BOILER_CONTROL,
+        CONF_USED_BY_CENTRAL_BOILER,
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV,
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES

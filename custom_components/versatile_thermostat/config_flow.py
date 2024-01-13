@@ -263,7 +263,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             self._infos[CONF_NAME] = CENTRAL_CONFIG_NAME
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
-            next_step = self.async_step_tpi
+            if user_input and user_input.get(CONF_ADD_CENTRAL_BOILER_CONTROL) is True:
+                next_step = self.async_step_central_boiler
+            else:
+                next_step = self.async_step_tpi
         elif user_input and user_input.get(CONF_USE_MAIN_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_main
             schema = STEP_MAIN_DATA_SCHEMA
@@ -285,6 +288,19 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # This will return to async_step_main (to keep the "main" step)
         return await self.generic_step("main", schema, user_input, next_step)
+
+    async def async_step_central_boiler(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle the central boiler flow steps"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_central_boiler user_input=%s", user_input
+        )
+
+        schema = STEP_CENTRAL_BOILER_SCHEMA
+        next_step = self.async_step_tpi
+
+        return await self.generic_step("central_boiler", schema, user_input, next_step)
 
     async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
         """Handle the Type flow steps"""

@@ -143,6 +143,8 @@ async def test_user_config_flow_over_switch(
             CONF_USE_POWER_CENTRAL_CONFIG: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USE_CENTRAL_MODE: True,
+            CONF_USED_BY_CENTRAL_BOILER: False,
         }
     )
     assert result["result"]
@@ -239,6 +241,8 @@ async def test_user_config_flow_over_climate(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+        CONF_USED_BY_CENTRAL_BOILER: False,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -287,6 +291,7 @@ async def test_user_config_flow_window_auto_ok(
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USED_BY_CENTRAL_BOILER: True,
         },
     )
 
@@ -373,6 +378,7 @@ async def test_user_config_flow_window_auto_ok(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+        CONF_USED_BY_CENTRAL_BOILER: True,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -512,6 +518,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USE_PRESENCE_FEATURE: False,
         CONF_USE_MAIN_CENTRAL_CONFIG: True,
         CONF_USE_CENTRAL_MODE: False,
+        CONF_USED_BY_CENTRAL_BOILER: False,
     }
 
     TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
