@@ -283,6 +283,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._is_central_mode = None
         self._last_central_mode = None
+        self._is_used_by_central_boiler = False
         self.post_init(entry_infos)
 
     def clean_central_config_doublon(self, config_entry, central_config) -> dict:
@@ -568,6 +569,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._is_central_mode = not (
             entry_infos.get(CONF_USE_CENTRAL_MODE) is False
         )  # Default value (None) is True
+
+        self._is_used_by_central_boiler = (
+            entry_infos.get(CONF_USED_BY_CENTRAL_BOILER) is True
+        )
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
@@ -878,6 +883,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
         self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
+        self.send_event(EventType.HVAC_ACTION_EVENT, {"hvac_action": self.hvac_action})
 
         _LOGGER.info(
             "%s - restored state is target_temp=%.1f, preset_mode=%s, hvac_mode=%s",
@@ -1009,6 +1015,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         else:
             action = HVACAction.HEATING
         return action
+
+    @property
+    def is_used_by_central_boiler(self) -> HVACAction | None:
+        """Return true is the VTherm is configured to be used by
+        central boiler"""
+        return self._is_used_by_central_boiler
 
     @property
     def target_temperature(self):
@@ -1855,7 +1867,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         )
 
         if self.window_bypass_state or not self.is_window_auto_enabled:
-            _LOGGER.info("%s - Window auto event is ignored because bypass is ON or window auto detection is disabled", self)
+            _LOGGER.info(
+                "%s - Window auto event is ignored because bypass is ON or window auto detection is disabled",
+                self,
+            )
             return
 
         if (

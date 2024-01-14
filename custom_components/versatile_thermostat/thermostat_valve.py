@@ -13,7 +13,14 @@ from homeassistant.components.climate import HVACMode
 from .base_thermostat import BaseThermostat
 from .prop_algorithm import PropAlgorithm
 
-from .const import CONF_VALVE, CONF_VALVE_2, CONF_VALVE_3, CONF_VALVE_4, overrides
+from .const import (
+    CONF_VALVE,
+    CONF_VALVE_2,
+    CONF_VALVE_3,
+    CONF_VALVE_4,
+    overrides,
+    EventType,
+)
 
 from .underlyings import UnderlyingValve
 
@@ -123,6 +130,7 @@ class ThermostatOverValve(BaseThermostat):
         _LOGGER.debug(
             "%s - _async_valve_changed new_state is %s", self, new_state.state
         )
+        self.send_event(EventType.HVAC_ACTION_EVENT, {"hvac_action": self.hvac_action})
 
     @overrides
     def update_custom_attributes(self):

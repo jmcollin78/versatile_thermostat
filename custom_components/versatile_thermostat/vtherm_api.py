@@ -46,6 +46,7 @@ class VersatileThermostatAPI(dict):
         super().__init__()
         self._expert_params = None
         self._short_ema_params = None
+        self._central_boiler_entity = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -86,6 +87,16 @@ class VersatileThermostatAPI(dict):
         self._short_ema_params = config.get(CONF_SHORT_EMA_PARAMS)
         if self._short_ema_params:
             _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
+
+    def register_central_boiler(self, central_boiler_entity):
+        """Register the central boiler entity. This is used by the CentralBoilerBinarySensor
+        class to register itself at creation"""
+        self._central_boiler_entity = central_boiler_entity
+
+    async def reload_central_boiler_entities_list(self):
+        """Reload the central boiler list of entities if a central boiler is used"""
+        if self._central_boiler_entity is not None:
+            await self._central_boiler_entity.listen_vtherms_entities()
 
     @property
     def self_regulation_expert(self):

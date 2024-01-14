@@ -13,6 +13,7 @@ from .const import (
     CONF_HEATER_4,
     CONF_INVERSE_SWITCH,
     overrides,
+    EventType,
 )
 
 from .base_thermostat import BaseThermostat
@@ -208,5 +209,7 @@ class ThermostatOverSwitch(BaseThermostat):
             return
         if old_state is None:
             self.hass.create_task(self._check_initial_state())
+
+        self.send_event(EventType.HVAC_ACTION_EVENT, {"hvac_action": self.hvac_action})
         self.async_write_ha_state()
         self.update_custom_attributes()

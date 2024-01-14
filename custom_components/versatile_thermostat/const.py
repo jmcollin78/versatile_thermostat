@@ -403,6 +403,7 @@ class EventType(Enum):
     POWER_EVENT: str = "versatile_thermostat_power_event"
     TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
     HVAC_MODE_EVENT: str = "versatile_thermostat_hvac_mode_event"
+    HVAC_ACTION_EVENT: str = "versatile_thermostat_hvac_action_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
     WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
 

@@ -281,7 +281,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific main flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_main user_input=%s", user_input)
 
-        schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+        else:
+            schema = STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA
         next_step = self.async_step_type
 
         self._infos[COMES_FROM] = "async_step_spec_main"

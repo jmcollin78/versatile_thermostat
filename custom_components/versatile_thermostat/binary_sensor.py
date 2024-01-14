@@ -3,11 +3,13 @@
 
 import logging
 
-from homeassistant.core import HomeAssistant, callback, Event
+from homeassistant.core import HomeAssistant, callback, Event, CoreState
 
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.const import STATE_ON, STATE_OFF, EVENT_HOMEASSISTANT_START
 
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.event import async_track_state_change_event
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -17,6 +19,15 @@ from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from homeassistant.components.climate import (
+    ClimateEntity,
+    HVACMode,
+    HVACAction,
+    DOMAIN as CLIMATE_DOMAIN,
+)
+
+from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from .vtherm_api import VersatileThermostatAPI
 from .commons import VersatileThermostatBaseEntity
 from .const import (
     DOMAIN,
@@ -28,6 +39,7 @@ from .const import (
     CONF_USE_WINDOW_FEATURE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    overrides,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -332,6 +344,8 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         self._attr_unique_id = "central_boiler_state"
         self._attr_is_on = False
         self._device_name = entry_infos.get(CONF_NAME)
+        self._entities = []
+        self._hass = hass
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -354,3 +368,82 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             return "mdi:water-boiler"
         else:
             return "mdi:water-boiler-off"
+
+    @overrides
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        @callback
+        async def _async_startup_internal(*_):
+            _LOGGER.debug("%s - Calling async_startup_internal", self)
+            api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
+                self._hass
+            )
+            api.register_central_boiler(self)
+            await self.listen_vtherms_entities()
+
+        if self.hass.state == CoreState.running:
+            await _async_startup_internal()
+        else:
+            self.hass.bus.async_listen_once(
+                EVENT_HOMEASSISTANT_START, _async_startup_internal
+            )
+
+    async def listen_vtherms_entities(self):
+        """Initialize the listening of state change of VTherms"""
+
+        # Listen to all VTherm state change
+        self._entities = []
+        entities_id = []
+
+        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+        for entity in component.entities:
+            if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
+                self._entities.append(entity)
+                entities_id.append(entity.entity_id)
+        if len(self._entities) > 0:
+            # Arme l'écoute de la première entité
+            listener_cancel = async_track_state_change_event(
+                self._hass,
+                entities_id,
+                self.calculate_central_boiler_state,
+            )
+            _LOGGER.info(
+                "%s - VTherm that could controls the central boiler are %s",
+                self,
+                entities_id,
+            )
+            self.async_on_remove(listener_cancel)
+        else:
+            _LOGGER.debug("%s - no VTherm could controls the central boiler", self)
+
+        await self.calculate_central_boiler_state(None)
+
+    async def calculate_central_boiler_state(self, _):
+        """Calculate the central boiler state depending on all VTherm that
+        controls this central boiler"""
+
+        _LOGGER.debug("%s - calculating the new central boiler state", self)
+        active = False
+        for entity in self._entities:
+            _LOGGER.debug(
+                "Examining the hvac_action of %s",
+                entity.name,
+            )
+            if (
+                entity.hvac_mode == HVACMode.HEAT
+                and entity.hvac_action == HVACAction.HEATING
+            ):
+                active = True
+                break
+
+        if self._attr_is_on != active:
+            if active:
+                _LOGGER.info("%s - turning on the central boiler", self)
+            else:
+                _LOGGER.info("%s - turning off the central boiler", self)
+            self._attr_is_on = active
+            self.async_write_ha_state()
+
+    def __str__(self):
+        return f"VersatileThermostat-{self.name}"

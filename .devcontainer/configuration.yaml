@@ -168,6 +168,7 @@ recorder:
             - switch
             - climate
             - sensor
+            - binary_sensor
 
 template:
     - binary_sensor:

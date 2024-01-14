@@ -48,6 +48,7 @@ from .const import (
     AUTO_FAN_DTEMP_THRESHOLD,
     AUTO_FAN_DEACTIVATED_MODES,
     UnknownEntity,
+    EventType,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -551,6 +552,9 @@ class ThermostatOverClimate(BaseThermostat):
         async def end_climate_changed(changes):
             """To end the event management"""
             if changes:
+                self.send_event(
+                    EventType.HVAC_ACTION_EVENT, {"hvac_action": self.hvac_action}
+                )
                 self.async_write_ha_state()
                 self.update_custom_attributes()
                 await self.async_control_heating()
