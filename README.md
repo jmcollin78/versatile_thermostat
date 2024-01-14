@@ -39,6 +39,7 @@
   - [Control of a central boiler](#control-of-a-central-boiler)
     - [Setup](#setup)
     - [How to find the right service?](#how-to-find-the-right-service)
+    - [The events](#the-events)
     - [Warning](#warning)
   - [Parameters synthesis](#parameters-synthesis)
 - [Examples tuning](#examples-tuning)
@@ -594,6 +595,43 @@ The service to configure is then the following: `climate.empty_thermostast/clima
 
 Then do the same for the extinguishing service and you are all set.
 
+### The events
+
+Each time the boiler is successfully switched on or off, an event is sent by Versatile Thermostat. It can advantageously be captured by automation, for example to notify a change.
+The events look like this:
+
+An ignition event:
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+   central_boiler: true
+   entity_id: binary_sensor.central_boiler
+   name: Central boiler
+   state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:33:52.342026+00:00"
+context:
+   id: 01HM3VZRJP3WYYWPNSDAFARW1T
+   parent_id: null
+   user_id: null
+```
+
+An extinction event:
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+   central_boiler: false
+   entity_id: binary_sensor.central_boiler
+   name: Central boiler
+   state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:43:52.342026+00:00"
+context:
+   id: 01HM3VZRJP3WYYWPNSDAFBRW1T
+   parent_id: null
+   user_id: null
+```
+
 ### Warning
 
 > ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
@@ -867,6 +905,7 @@ The notified events are as follows:
 - ``versatile_thermostat_temperature_event``: one or both temperature measurements of a thermostat have not been updated for more than ``security_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event``: the thermostat is on or off. This event is also broadcast when the thermostat starts up
 - ``versatile_thermostat_preset_event``: a new preset is selected on the thermostat. This event is also broadcast when the thermostat starts up
+- ``versatile_thermostat_central_boiler_event``: an event indicating a change in the state of the central boiler.
 
 If you have followed correctly, when a thermostat goes into safety mode, 3 events are triggered:
 1. ``versatile_thermostat_temperature_event`` to indicate that a thermometer has become unresponsive,

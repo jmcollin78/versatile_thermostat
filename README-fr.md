@@ -39,6 +39,7 @@
   - [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale)
     - [Configuration](#configuration-1)
     - [Comment trouver le bon service ?](#comment-trouver-le-bon-service-)
+    - [Les évènements](#les-évènements)
     - [Avertissement](#avertissement)
   - [Synthèse des paramètres](#synthèse-des-paramètres)
 - [Exemples de réglage](#exemples-de-réglage)
@@ -608,6 +609,43 @@ Le service à configurer est alors le suivant: `climate.empty_thermostast/climat
 
 Faite alors de même pour le service d'extinction et vous êtes parés.
 
+### Les évènements
+
+A chaque allumage ou extinction réussie de la chaudière un évènement est envoyé par Versatile Thermostat. Il peut avantageusement être capté par une automatisation, par exemple pour notifier un changement.
+Les évènements ressemblent à ça :
+
+Un évènement d'allumage :
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+  central_boiler: true
+  entity_id: binary_sensor.central_boiler
+  name: Central boiler
+  state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:33:52.342026+00:00"
+context:
+  id: 01HM3VZRJP3WYYWPNSDAFARW1T
+  parent_id: null
+  user_id: null
+```
+
+Un évènement d'extinction :
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+  central_boiler: false
+  entity_id: binary_sensor.central_boiler
+  name: Central boiler
+  state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:43:52.342026+00:00"
+context:
+  id: 01HM3VZRJP3WYYWPNSDAFBRW1T
+  parent_id: null
+  user_id: null
+```
+
 ### Avertissement
 
 > ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
@@ -881,6 +919,7 @@ Les évènements notifiés sont les suivants:
 - ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `security_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
+- ``versatile_thermostat_central_boiler_event`` : un évènement indiquant un changement dans l'état de la chaudière.
 
 Si vous avez bien suivi, lorsqu'un thermostat passe en mode sécurité, 3 évènements sont déclenchés :
 1. ``versatile_thermostat_temperature_event`` pour indiquer qu'un thermomètre ne répond plus,
