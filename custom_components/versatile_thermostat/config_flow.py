@@ -23,6 +23,7 @@ from homeassistant.data_entry_flow import FlowHandler, FlowResult
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_api import VersatileThermostatAPI
+from .commons import check_and_extract_service_configuration
 
 COMES_FROM = "comes_from"
 
@@ -191,6 +192,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     )
                     raise NoCentralConfig(conf)
 
+        # Check the service for central boiler format
+        if self._infos.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+            for conf in [
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV,
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
+            ]:
+                try:
+                    check_and_extract_service_configuration(data.get(conf))
+                except ServiceConfigurationError as err:
+                    raise ServiceConfigurationError(conf) from err
+
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
         self._infos.update(user_input)
@@ -225,6 +237,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "window_open_detection_method"
             except NoCentralConfig as err:
                 errors[str(err)] = "no_central_config"
+            except ServiceConfigurationError as err:
+                errors[str(err)] = "service_configuration_format"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"

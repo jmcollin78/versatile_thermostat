@@ -1,6 +1,8 @@
 # pylint: disable=line-too-long
 """Constants for the Versatile Thermostat integration."""
 
+import logging
+
 from enum import Enum
 from homeassistant.const import CONF_NAME, Platform
 
@@ -17,6 +19,8 @@ from homeassistant.exceptions import HomeAssistantError
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
@@ -403,9 +407,18 @@ class EventType(Enum):
     POWER_EVENT: str = "versatile_thermostat_power_event"
     TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
     HVAC_MODE_EVENT: str = "versatile_thermostat_hvac_mode_event"
-    HVAC_ACTION_EVENT: str = "versatile_thermostat_hvac_action_event"
+    CENTRAL_BOILER_EVENT: str = "versatile_thermostat_central_boiler_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
     WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
+
+
+def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
+    """Send an event"""
+    _LOGGER.info("%s - Sending event %s with data: %s", entity, event_type, data)
+    data["entity_id"] = entity.entity_id
+    data["name"] = entity.name
+    data["state_attributes"] = entity.state_attributes
+    hass.bus.fire(event_type.value, data)
 
 
 class UnknownEntity(HomeAssistantError):
@@ -418,6 +431,10 @@ class WindowOpenDetectionMethod(HomeAssistantError):
 
 class NoCentralConfig(HomeAssistantError):
     """Error to indicate that we try to use a central configuration but no VTherm of type CENTRAL CONFIGURATION has been found"""
+
+
+class ServiceConfigurationError(HomeAssistantError):
+    """Error in the service configuration to control the central boiler"""
 
 
 class overrides:  # pylint: disable=invalid-name

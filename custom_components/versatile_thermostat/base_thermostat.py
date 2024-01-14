@@ -121,6 +121,7 @@ from .const import (
     CENTRAL_MODE_HEAT_ONLY,
     CENTRAL_MODE_COOL_ONLY,
     CENTRAL_MODE_FROST_PROTECTION,
+    send_vtherm_event,
 )
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -203,6 +204,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "temperature_unit",
                     "is_device_active",
                     "target_temperature_step",
+                    "is_used_by_central_boiler",
                 }
             )
         )
@@ -883,7 +885,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
         self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
-        self.send_event(EventType.HVAC_ACTION_EVENT, {"hvac_action": self.hvac_action})
 
         _LOGGER.info(
             "%s - restored state is target_temp=%.1f, preset_mode=%s, hvac_mode=%s",
@@ -2419,6 +2420,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,
             "ema_temp": self._ema_temp,
+            "is_used_by_central_boiler": self.is_used_by_central_boiler,
         }
 
     @callback
@@ -2541,8 +2543,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""
-        _LOGGER.info("%s - Sending event %s with data: %s", self, event_type, data)
-        data["entity_id"] = self.entity_id
-        data["name"] = self.name
-        data["state_attributes"] = self.state_attributes
-        self._hass.bus.fire(event_type.value, data)
+        send_vtherm_event(self._hass, event_type=event_type, entity=self, data=data)
+        # _LOGGER.info("%s - Sending event %s with data: %s", self, event_type, data)
+        # data["entity_id"] = self.entity_id
+        # data["name"] = self.name
+        # data["state_attributes"] = self.state_attributes
+        # self._hass.bus.fire(event_type.value, data)

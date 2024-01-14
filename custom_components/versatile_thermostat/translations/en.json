@@ -24,16 +24,16 @@
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
           "device_power": "Device power",
-          "use_central_mode": "Enable the control by central entity (need central config)",
+          "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_main_central_config": "Use central main configuration"
+          "use_main_central_config": "Use central main configuration. Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
+          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
+          "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
-          "use_central_mode": "Check to enable the control of the VTherm with the select central_mode entities",
-          "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
@@ -256,16 +256,16 @@
           "temp_min": "Minimal temperature allowed",
           "temp_max": "Maximal temperature allowed",
           "device_power": "Device power",
-          "use_central_mode": "Enable the control by central entity (need central config)",
+          "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_main_central_config": "Use central main configuration"
+          "use_main_central_config": "Use central main configuration. Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
+          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
+          "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
-          "use_central_mode": "Check to enable the control of the VTherm with the select central_mode entities",
-          "use_main_central_config": "Check to use the central main configuration. Uncheck to use a specific configuration for this VTherm",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
@@ -458,7 +458,8 @@
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
-      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
+      "service_configuration_format": "The format of the service configuration is wrong"
     },
     "abort": {
       "already_configured": "Device is already configured"

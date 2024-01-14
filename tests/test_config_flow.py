@@ -241,7 +241,6 @@ async def test_user_config_flow_over_climate(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
-        CONF_ADD_CENTRAL_BOILER_CONTROL: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
     }
     assert result["result"]

@@ -66,6 +66,13 @@ input_number:
         max: 90
         icon: mdi:pipe-valve
         unit_of_measurement: percentage
+    fake_boiler_temperature:
+        name: Boiler temperature
+        min: 0
+        max: 30
+        icon: mdi:water-boiler
+        unit_of_measurement: °C
+        mode: box
 
 input_boolean:
     # input_boolean to simulate the windows entity. Only for development environment.

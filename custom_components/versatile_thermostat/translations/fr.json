@@ -476,7 +476,8 @@
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu",
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
-      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
+      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
+      "service_configuration_format": "Mauvais format de la configuration du service"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"

@@ -3,7 +3,13 @@
 
 import logging
 
-from homeassistant.core import HomeAssistant, callback, Event, CoreState
+from homeassistant.core import (
+    HomeAssistant,
+    callback,
+    Event,
+    CoreState,
+    HomeAssistantError,
+)
 
 from homeassistant.const import STATE_ON, STATE_OFF, EVENT_HOMEASSISTANT_START
 
@@ -28,7 +34,10 @@ from homeassistant.components.climate import (
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from .vtherm_api import VersatileThermostatAPI
-from .commons import VersatileThermostatBaseEntity
+from .commons import (
+    VersatileThermostatBaseEntity,
+    check_and_extract_service_configuration,
+)
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -39,7 +48,11 @@ from .const import (
     CONF_USE_WINDOW_FEATURE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_CENTRAL_BOILER_ACTIVATION_SRV,
+    CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
     overrides,
+    EventType,
+    send_vtherm_event,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -346,6 +359,12 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         self._device_name = entry_infos.get(CONF_NAME)
         self._entities = []
         self._hass = hass
+        self._service_activate = check_and_extract_service_configuration(
+            entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)
+        )
+        self._service_deactivate = check_and_extract_service_configuration(
+            entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -438,12 +457,43 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
                 break
 
         if self._attr_is_on != active:
-            if active:
-                _LOGGER.info("%s - turning on the central boiler", self)
-            else:
-                _LOGGER.info("%s - turning off the central boiler", self)
-            self._attr_is_on = active
-            self.async_write_ha_state()
+            try:
+                if active:
+                    await self.call_service(self._service_activate)
+                    _LOGGER.info("%s - central boiler have been turned on", self)
+                else:
+                    await self.call_service(self._service_deactivate)
+                    _LOGGER.info("%s - central boiler have been turned off", self)
+                self._attr_is_on = active
+                send_vtherm_event(
+                    hass=self._hass,
+                    event_type=EventType.CENTRAL_BOILER_EVENT,
+                    entity=self,
+                    data={"central_boiler": active},
+                )
+                self.async_write_ha_state()
+            except HomeAssistantError as err:
+                _LOGGER.error(
+                    "%s - Impossible to activate/deactivat boiler due to error %s."
+                    "Central boiler will not being controled by VTherm."
+                    "Please check your service configuration. Cf. README.",
+                    self,
+                    err,
+                )
+
+    async def call_service(self, service_config: dict):
+        """Make a call to a service if correctly configured"""
+        if not service_config:
+            return
+
+        await self._hass.services.async_call(
+            service_config["service_domain"],
+            service_config["service_name"],
+            service_data=service_config["data"],
+            target={
+                "entity_id": service_config["entity_id"],
+            },
+        )
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
