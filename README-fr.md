@@ -36,6 +36,10 @@
   - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
   - [Configuration avancée](#configuration-avancée)
   - [Le contrôle centralisé](#le-contrôle-centralisé)
+  - [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale)
+    - [Configuration](#configuration-1)
+    - [Comment trouver le bon service ?](#comment-trouver-le-bon-service-)
+    - [Avertissement](#avertissement)
   - [Synthèse des paramètres](#synthèse-des-paramètres)
 - [Exemples de réglage](#exemples-de-réglage)
   - [Chauffage électrique](#chauffage-électrique)
@@ -79,14 +83,15 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234). Plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale),
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
 > * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
 > * **Release 4.3** : Ajout d'un mode auto-fan pour le type `over_climate` permettant d'activer la ventilation si l'écart de température est important [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
-> * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
 <details>
 <summary>Autres versions</summary>
 
+> * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
 > * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
@@ -159,6 +164,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
 - Ajouter des capteurs pour voir les états internes du thermostat,
 - Contrôle centralisé de tous les Versatile Thermostat pour les stopper tous, les passer tous en hors-gel, les forcer en mode Chauffage (l'hiver), les forcer en mode Climatisation (l'été).
+- Contrôle d'une chaudière centrale et des VTherm qui doivent contrôler cette chaudière.
 
 # Comment installer cet incroyable Thermostat Versatile ?
 
@@ -550,6 +556,63 @@ Exemple de rendu :
 
 ![central_mode](/images/central_mode.png?raw=true)
 
+## Le contrôle d'une chaudière centrale
+Depuis la release 5.3, vous avez la possibilité de contrôler une chaudière centralisée. A partir du moment où il est possible de déclencher ou stopper cette chaudière depuis Home Assistant, alors Versatile Thermostat va pouvoir la commander directement.
+
+Le principe mis en place est globalement le suivant :
+1. une nouvelle entité de type `binary_sensor` et nommée par défaut `binary_sensor.central_boiler` est ajoutée,
+2. dans la configuration des VTherms vous indiqué si le VTherm doit contrôler la chaudière. En effet, dans une installation hétérogène, certains VTherm doivent commander la chaudière et d'autres non. Vous devez donc indiqué dans chaque configuration de VTherm si il contrôle la chaudière ou pas,
+3. le `binary_sensor.central_boiler` écoute les changements d'états des VTherm marqués comme contrôlant la chaudière,
+4. si l'un des VTherm écoutés demande du chauffage (ie son `hvac_action` passe à `Heating`), alors le `binary_sensor.central_boiler` passe à `on` et si un service d'activation a été configuré, alors ce service est appelé,
+5. si plus aucun VTherm écoutés ne demande du chauffage (ie aucun `hvac_action` n'est `Heating`), alors le `binary_sensor.central_boiler` passe à `off` et si un service de désactivation a été configuré, alors ce service est appelé.
+
+Vous avez donc en permanence, un indicateur qui donne l'info que au moins un des radiateurs est à besoin de chauffer.
+
+### Configuration
+Pour configurer cette fonction, vous devez avoir une configuration centralisée (cf. [Configuration](#configuration)) et cochez la case 'Ajouter une chuadière centrale' :
+
+![Ajout d'une chaudière centrale](/images/config-central-boiler-1.png?raw=true)
+
+Sur la page suivante vous pouvez donner la configuration des services à appeler lors de l'allumage / extinction de la chaudière :
+
+![Ajout d'une chaudière centrale](/images/config-central-boiler-2.png?raw=true)
+
+Les services se configurent comme indiqués dans la page :
+1. le format général est `entity_id/service_id[/attribut:valeur]` (où `/attribut:valeur` est facultatif),
+2. `entity_id` est le nom de l'entité qui commande la chaudière sous la forme `domain.entity_name`. Par exemple: `switch.chaudiere` pour les chaudière commandée par un switch ou `climate.chaudière` pour une chaudière commandée par un thermostat ou tout autre entité qui permet le contrôle de la chaudière (il n'y a pas de limitation).  On peut aussi commuter des entrées (`helpers`) comme des `input_boolean` ou `input_number`.
+3. `service_id` est le nom du service à appeler sous la forme `domain.service_name`. Par exemple: `switch.turn_on`, `switch.turn_off`, `climate.set_temperature`, `climate.set_hvac_mode` sont des exemples valides.
+4. pour certain service vous aurez besoin d'un paramètre. Cela peut être le 'Mode CVC' `climate.set_hvac_mode` ou la température cible pour `climate.set_temperature`. Ce paramètre doit être configuré sous la forme `attribut:valeur` en fin de chaine.
+
+Exemples (à ajuster à votre cas) :
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat` : pour allumer le thermostat de la chaudière en mode chauffage,
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:off` : pour stopper le thermostat de la chaudière,
+- `switch.pompe_chaudiere/switch.turn_on` : pour allumer le swicth qui alimente la pompe de la chaudière,
+- `switch.pompe_chaudiere/switch.turn_off` : pour allumer le swicth qui alimente la pompe de la chaudière,
+- ...
+
+### Comment trouver le bon service ?
+Pour trouver le services a utiliser, le mieux est d'aller dans "Outils de développement / Services", chercher le service a appelé, l'entité à commander et l'éventuel paramètre à donner.
+Cliquez sur 'Appeler le service'. Si votre chaudière s'allume vous avez la bonne configuration. Passez alors en mode Yaml et recopiez les paramètres.
+
+Exemple:
+
+Sous "Outils de développement / Service" :
+
+![Configuration du service](/images/dev-tools-turnon-boiler-1.png?raw=true)
+
+En mode yaml :
+
+![Configuration du service](/images/dev-tools-turnon-boiler-2.png?raw=true)
+
+Le service à configurer est alors le suivant: `climate.empty_thermostast/climate.set_hvac_mode/hvac_mode:heat` (notez la suppression du blanc dans `hvac_mode:heat`)
+
+Faite alors de même pour le service d'extinction et vous êtes parés.
+
+### Avertissement
+
+> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> Le contrôle par du logiciel ou du matériel de type domotique d'une chaudière centrale peut induire des risques pour son bon fonctionnement. Assurez-vous avant d'utiliser ces fonctions, que votre chaudière possède bien des fonctions de sécurité et que celles-ci fonctionnent. Allumer une chaudière si tous les robinets sont fermés peut générer de la sur-pression par exemple.
+
 ## Synthèse des paramètres
 
 | Paramètre                                 | Libellé                                                                           | "over switch" | "over climate"      | "over valve" | "configuration centrale" |
@@ -618,7 +681,11 @@ Exemple de rendu :
 | ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                        | -             | X                   | -            | -                        |
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -            | -                        |
 | ``inverse_switch_command``                | Inverse la commande du switch (pour switch avec fil pilote)                       | X             | -                   | -            | -                        |
-| ``auto_fan_mode`                          | Mode de ventilation automatique                                                   | -             | X                   | -            | -                        |
+| ``auto_fan_mode``                         | Mode de ventilation automatique                                                   | -             | X                   | -            | -                        |
+| ``add_central_boiler_control``            | Ajout du controle d'une chaudière centrale                                        | -             | -                   | -            | X                        |
+| ``central_boiler_activation_service``     | Service d'activation de la chaudière                                              | -             | -                   | -            | X                        |
+| ``central_boiler_deactivation_service``   | Service de desactivation de la chaudière                                          | -             | -                   | -            | X                        |
+| ``used_by_controls_central_boiler``       | Indique si le VTherm contrôle la chaudière centrale                               | X             | X                   | X            | -                        |
 
 # Exemples de réglage
 
@@ -873,6 +940,7 @@ Les attributs personnalisés sont les suivants :
 | ``is_inversed``                   | True si la commande est inversée (fil pilote avec diode)                                                                                                                 |
 | ``is_controlled_by_central_mode`` | True si le VTherm peut être controlé de façon centrale                                                                                                                   |
 | ``last_central_mode``             | Le dernier mode central utilisé (None si le VTherm n'est pas controlé en central)                                                                                        |
+| ``is_used_by_central_boiler``     | Indique si le VTherm peut contrôler la chaudière centrale                                                                                                                |
 
 # Quelques résultats
 
