@@ -168,6 +168,7 @@ climate:
       target_sensor: input_number.fake_temperature_sensor1
 
 recorder:
+    commit_interval: 1
     include:
         domains:
             - input_boolean

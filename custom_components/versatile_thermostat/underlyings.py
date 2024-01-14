@@ -758,21 +758,25 @@ class UnderlyingValve(UnderlyingEntity):
     async def turn_off(self):
         """Turn heater toggleable device off."""
         _LOGGER.debug("%s - Stopping underlying valve entity %s", self, self._entity_id)
-        self._percent_open = 0
-        if self.is_device_active:
+        # Issue 341
+        is_active = self.is_device_active
+        self._percent_open = self.cap_sent_value(0)
+        if is_active:
             await self.send_percent_open()
 
     async def turn_on(self):
         """Nothing to do for Valve because it cannot be turned off"""
+        self.set_valve_open_percent()
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
-        if hvac_mode == HVACMode.OFF:
-            await self.turn_off()
-
         if self._hvac_mode != hvac_mode:
             self._hvac_mode = hvac_mode
+            if hvac_mode == HVACMode.OFF:
+                await self.turn_off()
+            else:
+                await self.turn_on()
             return True
         else:
             return False

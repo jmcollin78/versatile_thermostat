@@ -321,9 +321,6 @@ async def test_over_valve_full_start(
             await try_condition(None)
 
             assert entity.hvac_mode is HVACMode.HEAT
-            assert (
-                entity.hvac_action is HVACAction.OFF
-                or entity.hvac_action is HVACAction.IDLE
-            )
+            assert entity.hvac_action is HVACAction.HEATING
             assert entity.target_temperature == 17.1  # eco
             assert entity.valve_open_percent == 10
