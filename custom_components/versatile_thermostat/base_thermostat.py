@@ -1657,7 +1657,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             # try to restart if we were in safety mode
             if self._security_state:
-                await self.check_security()
+                await self.check_safety()
 
             # check window_auto
             return await self._async_manage_window_auto()
@@ -1684,7 +1684,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             # try to restart if we were in safety mode
             if self._security_state:
-                await self.check_security()
+                await self.check_safety()
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
@@ -2122,7 +2122,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Get now. The local datetime or the overloaded _set_now date"""
         return self._now if self._now is not None else datetime.now(self._current_tz)
 
-    async def check_security(self) -> bool:
+    async def check_safety(self) -> bool:
         """Check if last temperature date is too long"""
         now = self.now
         delta_temp = (
@@ -2134,9 +2134,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         mode_cond = self._hvac_mode != HVACMode.OFF
 
+        api:VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+        is_outdoor_checked = not api.safety_mode or api.safety_mode.get('check_outdoor_sensor') != False
+
         temp_cond: bool = (
             delta_temp > self._security_delay_min
-            or delta_ext_temp > self._security_delay_min
+            or (is_outdoor_checked and delta_ext_temp > self._security_delay_min)
         )
         climate_cond: bool = self.is_over_climate and self.hvac_action not in [
             HVACAction.COOLING,
@@ -2307,7 +2310,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             _LOGGER.debug("%s - End of cycle (overpowering)", self)
             return True
 
-        security: bool = await self.check_security()
+        security: bool = await self.check_safety()
         if security and self.is_over_climate:
             _LOGGER.debug("%s - End of cycle (security and over climate)", self)
             return True

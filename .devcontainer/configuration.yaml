@@ -28,6 +28,8 @@ versatile_thermostat:
         max_alpha: 0.6
         halflife_sec: 301
         precision: 3
+    safety_mode:
+        check_outdoor_sensor: false
 
 input_number:
     fake_temperature_sensor1:

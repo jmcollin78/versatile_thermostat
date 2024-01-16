@@ -84,7 +84,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234). More information here: [Controlling a central boiler](#controlling-a-central-boiler),
+> * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - more information here: [Controlling a central boiler](#controlling-a-central-boiler). Added the ability to disable security mode for outdoor thermometer [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2**: Added a `central_mode` allowing all VTherms to be controlled centrally [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1**: Limitation of the values sent to the valves and the temperature sent to the underlying climate.
 > * **Release 5.0**: Added a central configuration allowing the sharing of attributes that can be shared [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
@@ -518,6 +518,15 @@ The third parameter (``security_min_on_percent``) is the minimum value of ``on_p
 Setting this parameter to ``0.00`` will trigger the safety preset regardless of the last heating setpoint, conversely ``1.00`` will never trigger the safety preset (which amounts to disabling the function).
 
 The fourth parameter (``security_default_on_percent``) is the ``on_percent`` value that will be used when the thermostat enters ``safety`` mode. If you put ``0`` then the thermostat will be cut off when it goes into ``safety`` mode, putting 0.2% for example allows you to keep a little heating (20% in this case), even in mode ``safety``. It avoids finding your home totally frozen during a thermometer failure.
+
+Since version 5.3 it is possible to deactivate the safety device following a lack of data from the outdoor thermometer. Indeed, this most of the time having a low impact on regulation (depending on your settings), it is possible that it is absent without endangering the home. To do this, you must add the following lines to your `configuration.yaml`:
+```
+versatile_thermostat:
+...
+     safety_mode:
+         check_outdoor_sensor: false
+```
+By default, the outdoor thermometer can trigger a trip if it no longer sends a value.
 
 See [example tuning](#examples-tuning) for common tuning examples
 

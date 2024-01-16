@@ -105,13 +105,16 @@ CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
-CONF_SHORT_EMA_PARAMS = "short_ema_params"
 CONF_AUTO_FAN_MODE = "auto_fan_mode"
 CONF_AUTO_FAN_NONE = "auto_fan_none"
 CONF_AUTO_FAN_LOW = "auto_fan_low"
 CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
+
+# Global params into configuration.yaml
+CONF_SHORT_EMA_PARAMS = "short_ema_params"
+CONF_SAFETY_MODE = "safety_mode"
 
 CONF_USE_MAIN_CENTRAL_CONFIG = "use_main_central_config"
 CONF_USE_TPI_CENTRAL_CONFIG = "use_tpi_central_config"

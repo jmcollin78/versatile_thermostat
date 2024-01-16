@@ -24,6 +24,7 @@ from .const import (
     CONF_AUTO_REGULATION_SLOW,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
+    CONF_SAFETY_MODE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_TYPE,
 )
@@ -47,12 +48,17 @@ EMA_PARAM_SCHEMA = {
     vol.Required("precision"): cv.positive_int,
 }
 
+SAFETY_MODE_PARAM_SCHEMA = {
+    vol.Required("check_outdoor_sensor"): bool,
+}
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
                 CONF_AUTO_REGULATION_EXPERT: vol.Schema(SELF_REGULATION_PARAM_SCHEMA),
                 CONF_SHORT_EMA_PARAMS: vol.Schema(EMA_PARAM_SCHEMA),
+                CONF_SAFETY_MODE: vol.Schema(SAFETY_MODE_PARAM_SCHEMA),
             }
         ),
     },

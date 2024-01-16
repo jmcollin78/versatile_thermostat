@@ -7,6 +7,7 @@ from .const import (
     DOMAIN,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
+    CONF_SAFETY_MODE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
 )
@@ -46,6 +47,7 @@ class VersatileThermostatAPI(dict):
         super().__init__()
         self._expert_params = None
         self._short_ema_params = None
+        self._safety_mode = None
         self._central_boiler_entity = None
 
     def find_central_configuration(self):
@@ -88,6 +90,10 @@ class VersatileThermostatAPI(dict):
         if self._short_ema_params:
             _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
 
+        self._safety_mode = config.get(CONF_SAFETY_MODE)
+        if self._safety_mode:
+            _LOGGER.debug("We have found safet_mode params %s", self._safety_mode)
+
     def register_central_boiler(self, central_boiler_entity):
         """Register the central boiler entity. This is used by the CentralBoilerBinarySensor
         class to register itself at creation"""
@@ -105,8 +111,13 @@ class VersatileThermostatAPI(dict):
 
     @property
     def short_ema_params(self):
-        """Get the self regulation params"""
+        """Get the short EMA params in expert mode"""
         return self._short_ema_params
+
+    @property
+    def safety_mode(self):
+        """Get the safety_mode params"""
+        return self._safety_mode
 
     @property
     def hass(self):

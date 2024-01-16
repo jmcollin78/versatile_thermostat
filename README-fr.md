@@ -84,7 +84,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
-> * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234). Plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale),
+> * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale). Ajout de la possibilité de désactiver le mode sécurité pour le thermomètre extérieur [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
 > * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
@@ -532,6 +532,15 @@ Le troisième paramétre (``security_min_on_percent``) est la valeur minimal de 
 Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité ( ce qui revient à désactiver la fonction).
 
 Le quatrième param§tre (``security_default_on_percent``) est la valeur de ``on_percent`` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez ``0`` alors le thermostat sera coupé lorsqu'il passe en mode ``security``, mettre 0,2% par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
+
+Depuis la version 5.3 il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
+```
+versatile_thermostat:
+...
+    safety_mode:
+        check_outdoor_sensor: false
+```
+Par défaut, le thermomètre extérieur peut déclencher une mise en sécurité si il n'envoit plus de valeur.
 
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 

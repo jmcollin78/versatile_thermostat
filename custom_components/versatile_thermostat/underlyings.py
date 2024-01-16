@@ -356,7 +356,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             _LOGGER.debug("%s - End of cycle (3)", self)
             return
         # safety mode could have change the on_time percent
-        await self._thermostat.check_security()
+        await self._thermostat.check_safety()
         time = self._on_time_sec
 
         action_label = "start"
