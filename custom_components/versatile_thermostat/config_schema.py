@@ -98,6 +98,7 @@ STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_HEATER_4): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
         ),
+        vol.Optional(CONF_HEATER_KEEP_ALIVE): cv.positive_int,
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
             [
                 PROPORTIONAL_FUNCTION_TPI,

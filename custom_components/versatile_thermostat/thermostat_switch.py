@@ -15,6 +15,7 @@ from .const import (
     CONF_HEATER_2,
     CONF_HEATER_3,
     CONF_HEATER_4,
+    CONF_HEATER_KEEP_ALIVE,
     CONF_INVERSE_SWITCH,
     overrides,
 )
@@ -105,6 +106,7 @@ class ThermostatOverSwitch(BaseThermostat):
                     thermostat=self,
                     switch_entity_id=switch,
                     initial_delay_sec=idx * delta_cycle,
+                    keep_alive_sec=config_entry.get(CONF_HEATER_KEEP_ALIVE, 0),
                 )
             )
 
@@ -125,6 +127,7 @@ class ThermostatOverSwitch(BaseThermostat):
                     self.hass, [switch.entity_id], self._async_switch_changed
                 )
             )
+            switch.startup()
 
         self.hass.create_task(self.async_control_heating())
 
