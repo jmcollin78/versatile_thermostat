@@ -197,6 +197,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                     "window_auto_open_threshold",
                     "window_auto_close_threshold",
                     "window_auto_max_duration",
+                    "window_action",
                     "motion_sensor_entity_id",
                     "presence_sensor_entity_id",
                     "power_sensor_entity_id",
@@ -268,8 +269,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._window_auto_state = False
         self._window_auto_on = False
         self._window_auto_algo = None
-        # PR - Adding Window ByPass
         self._window_bypass_state = False
+        self._window_action = None
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
@@ -286,6 +287,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._is_central_mode = None
         self._last_central_mode = None
         self._is_used_by_central_boiler = False
+
         self.post_init(entry_infos)
 
     def clean_central_config_doublon(self, config_entry, central_config) -> dict:
@@ -574,6 +576,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._is_used_by_central_boiler = (
             entry_infos.get(CONF_USED_BY_CENTRAL_BOILER) is True
+        )
+
+        self._window_action = (
+            entry_infos.get(CONF_WINDOW_ACTION) or CONF_WINDOW_TURN_OFF
         )
 
         _LOGGER.debug(
@@ -1093,6 +1099,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return self._window_bypass_state
 
     @property
+    def window_action(self) -> bool | None:
+        """Get the Window Action"""
+        return self._window_action
+
+    @property
     def security_state(self) -> bool | None:
         """Get the security_state"""
         return self._security_state
@@ -1481,29 +1492,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             self._window_state = new_state.state == STATE_ON
 
-            # PR - Adding Window ByPass
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._window_bypass_state)
             if self._window_bypass_state:
                 _LOGGER.info(
                     "%s - Window ByPass is activated. Ignore window event", self
                 )
             else:
-                if not self._window_state:
-                    _LOGGER.info(
-                        "%s - Window is closed. Restoring hvac_mode '%s' if central_mode is not STOPPED",
-                        self,
-                        self._saved_hvac_mode,
-                    )
-                    if self.last_central_mode != CENTRAL_MODE_STOPPED:
-                        await self.restore_hvac_mode(True)
-                elif self._window_state:
-                    _LOGGER.info(
-                        "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
-                    )
-                    if self.last_central_mode in [CENTRAL_MODE_AUTO, None]:
-                        self.save_hvac_mode()
+                await self.change_window_detection_state(self._window_state)
 
-                    await self.async_set_hvac_mode(HVACMode.OFF)
             self.update_custom_attributes()
 
         if new_state is None or old_state is None or new_state.state == old_state.state:
@@ -1841,7 +1837,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
             # Set attributes
             self._window_auto_state = False
-            await self.restore_hvac_mode(True)
+            await self.change_window_detection_state(self._window_auto_state)
+            # await self.restore_hvac_mode(True)
 
             if self._window_call_cancel:
                 self._window_call_cancel()
@@ -1901,8 +1898,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
             # Set attributes
             self._window_auto_state = True
-            self.save_hvac_mode()
-            await self.async_set_hvac_mode(HVACMode.OFF)
+            await self.change_window_detection_state(self._window_auto_state)
+            # self.save_hvac_mode()
+            # await self.async_set_hvac_mode(HVACMode.OFF)
 
             # Arm the end trigger
             if self._window_call_cancel:
@@ -2134,12 +2132,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         mode_cond = self._hvac_mode != HVACMode.OFF
 
-        api:VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-        is_outdoor_checked = not api.safety_mode or api.safety_mode.get('check_outdoor_sensor') != False
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+        is_outdoor_checked = (
+            not api.safety_mode
+            or api.safety_mode.get("check_outdoor_sensor") is not False
+        )
 
-        temp_cond: bool = (
-            delta_temp > self._security_delay_min
-            or (is_outdoor_checked and delta_ext_temp > self._security_delay_min)
+        temp_cond: bool = delta_temp > self._security_delay_min or (
+            is_outdoor_checked and delta_ext_temp > self._security_delay_min
         )
         climate_cond: bool = self.is_over_climate and self.hvac_action not in [
             HVACAction.COOLING,
@@ -2283,6 +2283,63 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         should have found the underlying climate to be operational"""
         return True
 
+    async def change_window_detection_state(self, new_state):
+        """Change the window detection state.
+        new_state is on if an open window have been detected or off else
+        """
+        if not new_state:
+            _LOGGER.info(
+                "%s - Window is closed. Restoring hvac_mode '%s' if central_mode is not STOPPED",
+                self,
+                self._saved_hvac_mode,
+            )
+            if self._window_action in [CONF_WINDOW_FROST_TEMP, CONF_WINDOW_ECO_TEMP]:
+                await self._async_internal_set_temperature(self._saved_target_temp)
+            # default to TURN_OFF
+            elif self._window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
+                if self.last_central_mode != CENTRAL_MODE_STOPPED:
+                    await self.restore_hvac_mode(True)
+            else:
+                _LOGGER.error(
+                    "%s - undefined window_action %s. Please open a bug in the github of this project with this log",
+                    self,
+                    self._window_action,
+                )
+        else:
+            _LOGGER.info(
+                "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
+            )
+            if self.last_central_mode in [CENTRAL_MODE_AUTO, None]:
+                if self._window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
+                    self.save_hvac_mode()
+                elif self._window_action in [
+                    CONF_WINDOW_FROST_TEMP,
+                    CONF_WINDOW_ECO_TEMP,
+                ]:
+                    self._saved_target_temp = self._target_temp
+
+            if (
+                self._window_action == CONF_WINDOW_FAN_ONLY
+                and HVACMode.FAN_ONLY in self.hvac_modes
+            ):
+                await self.async_set_hvac_mode(HVACMode.FAN_ONLY)
+            elif (
+                self._window_action == CONF_WINDOW_FROST_TEMP
+                and self._presets.get(PRESET_FROST_PROTECTION) is not None
+            ):
+                await self._async_internal_set_temperature(
+                    self.find_preset_temp(PRESET_FROST_PROTECTION)
+                )
+            elif (
+                self._window_action == CONF_WINDOW_ECO_TEMP
+                and self._presets.get(PRESET_ECO) is not None
+            ):
+                await self._async_internal_set_temperature(
+                    self.find_preset_temp(PRESET_ECO)
+                )
+            else:  # default is to turn_off
+                await self.async_set_hvac_mode(HVACMode.OFF)
+
     async def async_control_heating(self, force=False, _=None):
         """The main function used to run the calculation at each cycle"""
 
@@ -2376,8 +2433,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 self.get_preset_away_name(PRESET_COMFORT)
             ),
             "power_temp": self._power_temp,
-            # Already in super class - "target_temp": self.target_temperature,
-            # Already in super class - "current_temp": self._cur_temp,
             "target_temperature_step": self.target_temperature_step,
             "ext_current_temperature": self._cur_ext_temp,
             "ac_mode": self._ac_mode,
@@ -2386,12 +2441,23 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "saved_preset_mode": self._saved_preset_mode,
             "saved_target_temp": self._saved_target_temp,
             "saved_hvac_mode": self._saved_hvac_mode,
-            "window_state": self.window_state,
+            "motion_sensor_entity_id": self._motion_sensor_entity_id,
             "motion_state": self._motion_state,
+            "power_sensor_entity_id": self._power_sensor_entity_id,
+            "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
             "overpowering_state": self.overpowering_state,
+            "presence_sensor_entity_id": self._presence_sensor_entity_id,
             "presence_state": self._presence_state,
+            "window_state": self.window_state,
             "window_auto_state": self.window_auto_state,
             "window_bypass_state": self._window_bypass_state,
+            "window_sensor_entity_id": self._window_sensor_entity_id,
+            "window_delay_sec": self._window_delay_sec,
+            "window_auto_enabled": self.is_window_auto_enabled,
+            "window_auto_open_threshold": self._window_auto_open_threshold,
+            "window_auto_close_threshold": self._window_auto_close_threshold,
+            "window_auto_max_duration": self._window_auto_max_duration,
+            "window_action": self.window_action,
             "security_delay_min": self._security_delay_min,
             "security_min_on_percent": self._security_min_on_percent,
             "security_default_on_percent": self._security_default_on_percent,
@@ -2410,16 +2476,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             .astimezone(self._current_tz)
             .isoformat(),
             "timezone": str(self._current_tz),
-            "window_sensor_entity_id": self._window_sensor_entity_id,
-            "window_delay_sec": self._window_delay_sec,
-            "window_auto_enabled": self.is_window_auto_enabled,
-            "window_auto_open_threshold": self._window_auto_open_threshold,
-            "window_auto_close_threshold": self._window_auto_close_threshold,
-            "window_auto_max_duration": self._window_auto_max_duration,
-            "motion_sensor_entity_id": self._motion_sensor_entity_id,
-            "presence_sensor_entity_id": self._presence_sensor_entity_id,
-            "power_sensor_entity_id": self._power_sensor_entity_id,
-            "max_power_sensor_entity_id": self._max_power_sensor_entity_id,
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,
             "ema_temp": self._ema_temp,

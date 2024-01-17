@@ -28,7 +28,9 @@ STEP_USER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=CONF_THERMOSTAT_TYPES, translation_key="thermostat_type"
+                options=CONF_THERMOSTAT_TYPES,
+                translation_key="thermostat_type",
+                mode="list",
             )
         )
     }
@@ -125,6 +127,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_REGULATION_MODES,
                 translation_key="auto_regulation_mode",
+                mode="dropdown",
             )
         ),
         vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
@@ -135,6 +138,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_FAN_MODES,
                 translation_key="auto_fan_mode",
+                mode="dropdown",
             )
         ),
     }
@@ -212,12 +216,30 @@ STEP_CENTRAL_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_WINDOW_AUTO_OPEN_THRESHOLD, default=3): vol.Coerce(float),
         vol.Optional(CONF_WINDOW_AUTO_CLOSE_THRESHOLD, default=0): vol.Coerce(float),
         vol.Optional(CONF_WINDOW_AUTO_MAX_DURATION, default=30): cv.positive_int,
+        vol.Optional(
+            CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_WINDOW_ACTIONS,
+                translation_key="window_action",
+                mode="dropdown",
+            )
+        ),
     }
 )
 
 STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
+        vol.Optional(
+            CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_WINDOW_ACTIONS,
+                translation_key="window_action",
+                mode="dropdown",
+            )
+        ),
     }
 )
 
@@ -236,11 +258,19 @@ STEP_CENTRAL_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_MOTION_DELAY, default=30): cv.positive_int,
         vol.Optional(CONF_MOTION_OFF_DELAY, default=300): cv.positive_int,
-        vol.Optional(CONF_MOTION_PRESET, default="comfort"): vol.In(
-            CONF_PRESETS_SELECTIONABLE
+        vol.Optional(CONF_MOTION_PRESET, default="comfort"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_PRESETS_SELECTIONABLE,
+                translation_key="presets",
+                mode="dropdown",
+            )
         ),
-        vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): vol.In(
-            CONF_PRESETS_SELECTIONABLE
+        vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_PRESETS_SELECTIONABLE,
+                translation_key="presets",
+                mode="dropdown",
+            )
         ),
     }
 )
