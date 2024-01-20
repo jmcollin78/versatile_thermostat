@@ -23,6 +23,7 @@ from homeassistant.data_entry_flow import FlowHandler, FlowResult
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_api import VersatileThermostatAPI
+from .commons import check_and_extract_service_configuration
 
 COMES_FROM = "comes_from"
 
@@ -191,6 +192,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     )
                     raise NoCentralConfig(conf)
 
+        # Check the service for central boiler format
+        if self._infos.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+            for conf in [
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV,
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
+            ]:
+                try:
+                    check_and_extract_service_configuration(data.get(conf))
+                except ServiceConfigurationError as err:
+                    raise ServiceConfigurationError(conf) from err
+
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
         self._infos.update(user_input)
@@ -225,6 +237,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "window_open_detection_method"
             except NoCentralConfig as err:
                 errors[str(err)] = "no_central_config"
+            except ServiceConfigurationError as err:
+                errors[str(err)] = "service_configuration_format"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -263,7 +277,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             self._infos[CONF_NAME] = CENTRAL_CONFIG_NAME
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
-            next_step = self.async_step_tpi
+            if user_input and user_input.get(CONF_ADD_CENTRAL_BOILER_CONTROL) is True:
+                next_step = self.async_step_central_boiler
+            else:
+                next_step = self.async_step_tpi
         elif user_input and user_input.get(CONF_USE_MAIN_CENTRAL_CONFIG) is False:
             next_step = self.async_step_spec_main
             schema = STEP_MAIN_DATA_SCHEMA
@@ -278,13 +295,29 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific main flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_main user_input=%s", user_input)
 
-        schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+        else:
+            schema = STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA
         next_step = self.async_step_type
 
         self._infos[COMES_FROM] = "async_step_spec_main"
 
         # This will return to async_step_main (to keep the "main" step)
         return await self.generic_step("main", schema, user_input, next_step)
+
+    async def async_step_central_boiler(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle the central boiler flow steps"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_central_boiler user_input=%s", user_input
+        )
+
+        schema = STEP_CENTRAL_BOILER_SCHEMA
+        next_step = self.async_step_tpi
+
+        return await self.generic_step("central_boiler", schema, user_input, next_step)
 
     async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
         """Handle the Type flow steps"""

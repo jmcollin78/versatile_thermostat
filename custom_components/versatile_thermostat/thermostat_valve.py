@@ -13,7 +13,13 @@ from homeassistant.components.climate import HVACMode
 from .base_thermostat import BaseThermostat
 from .prop_algorithm import PropAlgorithm
 
-from .const import CONF_VALVE, CONF_VALVE_2, CONF_VALVE_3, CONF_VALVE_4, overrides
+from .const import (
+    CONF_VALVE,
+    CONF_VALVE_2,
+    CONF_VALVE_3,
+    CONF_VALVE_4,
+    overrides,
+)
 
 from .underlyings import UnderlyingValve
 

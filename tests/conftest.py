@@ -29,7 +29,11 @@ from custom_components.versatile_thermostat.config_flow import (
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
-from .commons import create_central_config
+from .commons import (
+    create_central_config,
+    FULL_CENTRAL_CONFIG,
+    FULL_CENTRAL_CONFIG_WITH_BOILER,
+)
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
@@ -127,6 +131,16 @@ async def init_central_config_fixture(
     hass, init_vtherm_api
 ):  # pylint: disable=unused-argument
     """Initialize the VTherm API"""
-    await create_central_config(hass)
+    await create_central_config(hass, FULL_CENTRAL_CONFIG)
+
+    yield
+
+
+@pytest.fixture(name="init_central_config_with_boiler_fixture")
+async def init_central_config_with_boiler_fixture(
+    hass, init_vtherm_api
+):  # pylint: disable=unused-argument
+    """Initialize the VTherm API"""
+    await create_central_config(hass, FULL_CENTRAL_CONFIG_WITH_BOILER)
 
     yield

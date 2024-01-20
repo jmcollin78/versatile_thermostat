@@ -36,6 +36,11 @@
   - [Configure presence or occupancy](#configure-presence-or-occupancy)
   - [Advanced configuration](#advanced-configuration)
   - [Centralized control](#centralized-control)
+  - [Control of a central boiler](#control-of-a-central-boiler)
+    - [Setup](#setup)
+    - [How to find the right service?](#how-to-find-the-right-service)
+    - [The events](#the-events)
+    - [Warning](#warning)
   - [Parameters synthesis](#parameters-synthesis)
 - [Examples tuning](#examples-tuning)
   - [Electrical heater](#electrical-heater)
@@ -79,14 +84,15 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
+> * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - more information here: [Controlling a central boiler](#controlling-a-central-boiler). Added the ability to disable security mode for outdoor thermometer [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2**: Added a `central_mode` allowing all VTherms to be controlled centrally [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1**: Limitation of the values sent to the valves and the temperature sent to the underlying climate.
 > * **Release 5.0**: Added a central configuration allowing the sharing of attributes that can be shared [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
 > * **Release 4.3**: Added an auto-fan mode for the `over_climate` type allowing ventilation to be activated if the temperature difference is significant [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
-> * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
 <details>
 <summary>Others releases</summary>
 
+> * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
 > * **Release 4.1**: Added an **Expert** regulation mode in which the user can specify their own auto-regulation parameters instead of using the pre-programmed ones [#194]( https://github.com/jmcollin78/versatile_thermostat/issues/194).
 > * **Release 4.0**: Added the support of **Versatile Thermostat UI Card**. See [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Added a **Slow** regulation mode for slow latency heating devices [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Change the way **the power is calculated** in case of VTherm with multi-underlying equipements [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Added the support of AC and Heat for VTherm over switch alse [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
 > * **Release 3.8**: Added a **self-regulation function** for `over climate` thermostats whose regulation is done by the underlying climate. See [Self-regulation](#self-regulation) and [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Added the possibility of **inverting the command** for an `over switch` thermostat to address installations with pilot wire and diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
@@ -159,6 +165,7 @@ This component named __Versatile thermostat__ manage the following use cases :
 - Add **services to interact with the thermostat** from others integration: you can force the presence / un-presence using a service, and you can dynamically change the temperature of the presets and change dynamically the safety parameters.
 - Add sensors to see the internal states of the thermostat,
 - Centralized control of all Versatile Thermostats to stop them all, switch them all to frost protection, force them into Heating mode (winter), force them into Cooling mode (summer).
+- Control of a central boiler and the VTherms which must control this boiler.
 
 # How to install this incredible Versatile Thermostat ?
 
@@ -512,6 +519,15 @@ Setting this parameter to ``0.00`` will trigger the safety preset regardless of 
 
 The fourth parameter (``security_default_on_percent``) is the ``on_percent`` value that will be used when the thermostat enters ``safety`` mode. If you put ``0`` then the thermostat will be cut off when it goes into ``safety`` mode, putting 0.2% for example allows you to keep a little heating (20% in this case), even in mode ``safety``. It avoids finding your home totally frozen during a thermometer failure.
 
+Since version 5.3 it is possible to deactivate the safety device following a lack of data from the outdoor thermometer. Indeed, this most of the time having a low impact on regulation (depending on your settings), it is possible that it is absent without endangering the home. To do this, you must add the following lines to your `configuration.yaml`:
+```
+versatile_thermostat:
+...
+     safety_mode:
+         check_outdoor_sensor: false
+```
+By default, the outdoor thermometer can trigger a trip if it no longer sends a value.
+
 See [example tuning](#examples-tuning) for common tuning examples
 
 >![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
@@ -535,6 +551,106 @@ It is therefore possible to control all VTherms (only those explicitly designate
 Example rendering:
 
 ![central_mode](/images/central_mode.png?raw=true)
+
+## Control of a central boiler
+Since release 5.3, you have the possibility of controlling a centralized boiler. From the moment it is possible to start or stop this boiler from Home Assistant, then Versatile Thermostat will be able to control it directly.
+
+The principle put in place is generally as follows:
+1. a new entity of type `binary_sensor` and named by default `binary_sensor.central_boiler` is added,
+2. in the VTherms configuration you indicate whether the VTherm should control the boiler. Indeed, in a heterogeneous installation, some VTherm must control the boiler and others not. You must therefore indicate in each VTherm configuration whether it controls the boiler or not,
+3. the `binary_sensor.central_boiler` listens for changes in state of VTherm equipment marked as controlling the boiler,
+4. as soon as the number of devices controlled by the VTherm requesting heating (ie its `hvac_action` goes to `Heating`) exceeds a configurable threshold, then the `binary_sensor.central_boiler` goes to `on` and **if a activation service has been configured, then this service is called**,
+5. if the number of devices requiring heating falls below the threshold again, then the `binary_sensor.central_boiler` goes to `off` and if **a deactivation service has been configured, then this service is called**,
+6. you have access to two entities:
+    - one of type `number` named by default `number.boiler_activation_threshold`, gives the trigger threshold. This threshold is in number of equipment (radiators) which requires heating.
+    - one of type `sensor` named by default `sensor.nb_device_active_for_boiler`, gives the number of devices requiring heating. For example, a VTherm having 4 valves including 3 heating requests will increase this sensor to 3. Only VTherm equipment that is marked to control the central boiler is counted.
+
+You therefore always have the information which allows you to control and adjust the activation of the boiler.
+
+All these entities are attached to the central configuration service:
+![The entities controlling the boiler](/images/entitites-central-boiler.png?raw=true)
+
+### Setup
+To configure this function, you must have a centralized configuration (see [Configuration](#configuration)) and check the 'Add a central boiler' box:
+
+![Adding a central boiler](/images/config-central-boiler-1.png?raw=true)
+
+On the following page you can configure the services to be called when switching the boiler on/off:
+
+![Adding a central boiler](/images/config-central-boiler-2.png?raw=true)
+
+The services are configured as indicated on the page:
+1. the general format is `entity_id/service_id[/attribute:value]` (where `/attribute:value` is optional),
+2. `entity_id` is the name of the entity that controls the boiler in the form `domain.entity_name`. For example: `switch.boiler` for boilers controlled by a switch or `climate.boiler` for a boiler controlled by a thermostat or any other entity which allows control of the boiler (there is no limitation). We can also switch inputs (`helpers`) like `input_boolean` or `input_number`.
+3. `service_id` is the name of the service to call in the form `domain.service_name`. For example: `switch.turn_on`, `switch.turn_off`, `climate.set_temperature`, `climate.set_hvac_mode` are valid examples.
+4. For some service you will need a parameter. This can be the 'HVAC Mode' `climate.set_hvac_mode` or the target temperature for `climate.set_temperature`. This parameter must be configured in the form `attribute:value` at the end of the string.
+
+Examples (to be adjusted to your case):
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat`: to turn on the boiler thermostat in heating mode,
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:off`: to stop the boiler thermostat,
+- `switch.pompe_chaudiere/switch.turn_on`: to turn on the switch which powers the boiler pump,
+- `switch.pompe_chaudiere/switch.turn_off`: to turn on the switch which powers the boiler pump,
+- ...
+
+### How to find the right service?
+To find the service to use, the best is to go to "Development tools / Services", look for the service called, the entity to order and the possible parameter to give.
+Click on 'Call Service'. If your boiler lights up you have the correct configuration. Then switch to Yaml mode and copy the parameters.
+
+Example:
+
+Under "Development Tools / Service":
+
+![Service configuration](/images/dev-tools-turnon-boiler-1.png?raw=true)
+
+In yaml mode:
+
+![Service configuration](/images/dev-tools-turnon-boiler-2.png?raw=true)
+
+The service to configure is then the following: `climate.empty_thermostast/climate.set_hvac_mode/hvac_mode:heat` (note the removal of the blank in `hvac_mode:heat`)
+
+Then do the same for the extinguishing service and you are all set.
+
+### The events
+
+Each time the boiler is successfully switched on or off, an event is sent by Versatile Thermostat. It can advantageously be captured by automation, for example to notify a change.
+The events look like this:
+
+An ignition event:
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+   central_boiler: true
+   entity_id: binary_sensor.central_boiler
+   name: Central boiler
+   state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:33:52.342026+00:00"
+context:
+   id: 01HM3VZRJP3WYYWPNSDAFARW1T
+   parent_id: null
+   user_id: null
+```
+
+An extinction event:
+```
+event_type: versatile_thermostat_central_boiler_event
+data:
+   central_boiler: false
+   entity_id: binary_sensor.central_boiler
+   name: Central boiler
+   state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:43:52.342026+00:00"
+context:
+   id: 01HM3VZRJP3WYYWPNSDAFBRW1T
+   parent_id: null
+   user_id: null
+```
+
+### Warning
+
+> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> Controlling a central boiler using software or hardware such as home automation can pose risks to its proper functioning. Before using these functions, make sure that your boiler has safety functions and that they are working. Turning on a boiler if all the taps are closed can generate excess pressure, for example.
 
 ## Parameters synthesis
 
@@ -605,7 +721,12 @@ Example rendering:
 | ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                    | -             | X                   | -            | -                       |
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                         | -             | X                   | -            | -                       |
 | ``inverse_switch_command``                | Inverse the switch command (for pilot wire switch)                            | X             | -                   | -            | -                       |
-| ``auto_fan_mode`                          | Auto fan mode                                                                 | -             | X                   | -            | -                       |
+| ``auto_fan_mode``                         | Auto fan mode                                                                 | -             | X                   | -            | -                       |
+| ``add_central_boiler_control``            | Add the control of a central boiler                                           | -             | -                   | -            | X                       |
+| ``central_boiler_activation_service``     | Activation service of the boiler                                              | -             | -                   | -            | X                       |
+| ``central_boiler_deactivation_service``   | Deactivaiton service of the boiler                                            | -             | -                   | -            | X                       |
+| ``used_by_controls_central_boiler``       | Indicate if the VTherm control the central boiler                             | X             | X                   | X            | -                       |
+
 
 # Examples tuning
 
@@ -799,6 +920,7 @@ The notified events are as follows:
 - ``versatile_thermostat_temperature_event``: one or both temperature measurements of a thermostat have not been updated for more than ``security_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event``: the thermostat is on or off. This event is also broadcast when the thermostat starts up
 - ``versatile_thermostat_preset_event``: a new preset is selected on the thermostat. This event is also broadcast when the thermostat starts up
+- ``versatile_thermostat_central_boiler_event``: an event indicating a change in the state of the central boiler.
 
 If you have followed correctly, when a thermostat goes into safety mode, 3 events are triggered:
 1. ``versatile_thermostat_temperature_event`` to indicate that a thermometer has become unresponsive,
@@ -858,6 +980,7 @@ Custom attributes are the following:
 | ``is_inversed``                   | True if the command is inversed (pilot wire with diode)                                                                          |
 | ``is_controlled_by_central_mode`` | True if the VTherm can be centrally controlled                                                                                   |
 | ``last_central_mode``             | The last central mode used (None if the VTherm is not centrally controlled)                                                      |
+| ``is_used_by_central_boiler``     | Indicate if the VTherm can control the central boiler                                                                            |
 
 # Some results
 
@@ -1190,7 +1313,7 @@ With a VTherm of type `over_switch` or `over_valve`, this fault just shows that 
 ### Type `over_climate`
 With an `over_climate` type VTherm, the regulation is done by the underlying `climate` directly and VTherm simply transmits the instructions to it. So if the radiator heats up when the set temperature is exceeded, it is certainly because its internal temperature measurement is biased. This happens very often with TRVs and reversible air conditioning units which have an internal temperature sensor, or too close to the heating element (therefore too cold in winter).
 
-Example of discussion around these topics: [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312 ), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
+Example of discussion around these topics: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312 ), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
 
 To get around this, VTherm is equipped with a function called self-regulation which allows the instruction sent to the underlying to be adapted until the target temperature is respected. This function compensates for the measurement bias of internal thermometers. If the bias is important the regulation must be important. See [Self-regulation](#self-regulation) to configure self-regulation.
 

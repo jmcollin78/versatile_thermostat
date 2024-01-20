@@ -31,8 +31,8 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_state):
     """Tests the clean_central_config_doubon of base_thermostat"""
     central_config_entry = MockConfigEntry(
@@ -76,6 +76,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
         },
     )
 
@@ -96,9 +97,16 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
     central_configuration = api.find_central_configuration()
     assert central_configuration is not None
 
+    # Test that VTherm API doesn't have any central boiler entities
+    assert api.nb_active_device_for_boiler_entity is None
+    assert api.nb_active_device_for_boiler is None
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+    assert api.nb_active_device_for_boiler_threshold_entity is None
+    assert api.nb_active_device_for_boiler_threshold is None
+
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_minimal_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):
@@ -172,9 +180,11 @@ async def test_minimal_over_switch_wo_central_config(
         assert entity._security_default_on_percent == 0.1
         assert entity.is_inversed
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):
@@ -286,9 +296,11 @@ async def test_full_over_switch_wo_central_config(
 
         assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_with_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -396,9 +408,11 @@ async def test_full_over_switch_with_central_config(
 
         assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_switch_with_central_config_but_no_central_config(
     hass: HomeAssistant, skip_hass_states_get, init_vtherm_api
 ):

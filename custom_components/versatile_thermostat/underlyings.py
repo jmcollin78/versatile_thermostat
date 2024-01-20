@@ -133,14 +133,14 @@ class UnderlyingEntity:
     async def check_initial_state(self, hvac_mode: HVACMode):
         """Prevent the underlying to be on but thermostat is off"""
         if hvac_mode == HVACMode.OFF and self.is_device_active:
-            _LOGGER.warning(
+            _LOGGER.info(
                 "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
                 self,
                 self._entity_id,
             )
             await self.set_hvac_mode(hvac_mode)
         elif hvac_mode != HVACMode.OFF and not self.is_device_active:
-            _LOGGER.warning(
+            _LOGGER.info(
                 "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
                 self,
                 hvac_mode,
@@ -356,7 +356,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             _LOGGER.debug("%s - End of cycle (3)", self)
             return
         # safety mode could have change the on_time percent
-        await self._thermostat.check_security()
+        await self._thermostat.check_safety()
         time = self._on_time_sec
 
         action_label = "start"
@@ -758,18 +758,24 @@ class UnderlyingValve(UnderlyingEntity):
     async def turn_off(self):
         """Turn heater toggleable device off."""
         _LOGGER.debug("%s - Stopping underlying valve entity %s", self, self._entity_id)
-        self._percent_open = 0
-        if self.is_device_active:
+        # Issue 341
+        is_active = self.is_device_active
+        self._percent_open = self.cap_sent_value(0)
+        if is_active:
             await self.send_percent_open()
 
     async def turn_on(self):
         """Nothing to do for Valve because it cannot be turned off"""
+        self.set_valve_open_percent()
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
-        if hvac_mode == HVACMode.OFF:
+        if hvac_mode == HVACMode.OFF and self.is_device_active:
             await self.turn_off()
+
+        if hvac_mode != HVACMode.OFF and not self.is_device_active:
+            await self.turn_on()
 
         if self._hvac_mode != hvac_mode:
             self._hvac_mode = hvac_mode

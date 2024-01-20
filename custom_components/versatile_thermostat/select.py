@@ -55,7 +55,7 @@ async def async_setup_entry(
 
 
 class CentralModeSelect(SelectEntity, RestoreEntity):
-    """Representation of a Energy sensor which exposes the energy"""
+    """Representation of the central mode choice"""
 
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""

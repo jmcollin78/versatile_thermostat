@@ -7,6 +7,7 @@ from .const import (
     DOMAIN,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
+    CONF_SAFETY_MODE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
 )
@@ -46,6 +47,10 @@ class VersatileThermostatAPI(dict):
         super().__init__()
         self._expert_params = None
         self._short_ema_params = None
+        self._safety_mode = None
+        self._central_boiler_entity = None
+        self._threshold_number_entity = None
+        self._nb_active_number_entity = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -87,6 +92,30 @@ class VersatileThermostatAPI(dict):
         if self._short_ema_params:
             _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
 
+        self._safety_mode = config.get(CONF_SAFETY_MODE)
+        if self._safety_mode:
+            _LOGGER.debug("We have found safet_mode params %s", self._safety_mode)
+
+    def register_central_boiler(self, central_boiler_entity):
+        """Register the central boiler entity. This is used by the CentralBoilerBinarySensor
+        class to register itself at creation"""
+        self._central_boiler_entity = central_boiler_entity
+
+    def register_central_boiler_activation_number_threshold(
+        self, threshold_number_entity
+    ):
+        """register the two number entities needed for boiler activation"""
+        self._threshold_number_entity = threshold_number_entity
+
+    def register_nb_device_active_boiler(self, nb_active_number_entity):
+        """register the two number entities needed for boiler activation"""
+        self._nb_active_number_entity = nb_active_number_entity
+
+    async def reload_central_boiler_entities_list(self):
+        """Reload the central boiler list of entities if a central boiler is used"""
+        if self._nb_active_number_entity is not None:
+            await self._nb_active_number_entity.listen_vtherms_entities()
+
     @property
     def self_regulation_expert(self):
         """Get the self regulation params"""
@@ -94,8 +123,47 @@ class VersatileThermostatAPI(dict):
 
     @property
     def short_ema_params(self):
-        """Get the self regulation params"""
+        """Get the short EMA params in expert mode"""
         return self._short_ema_params
+
+    @property
+    def safety_mode(self):
+        """Get the safety_mode params"""
+        return self._safety_mode
+
+    @property
+    def central_boiler_entity(self):
+        """Get the central boiler binary_sensor entity"""
+        return self._central_boiler_entity
+
+    @property
+    def nb_active_device_for_boiler(self):
+        """Returns the number of active VTherm which have an
+        influence on boiler"""
+        if self._nb_active_number_entity is None:
+            return None
+        else:
+            return self._nb_active_number_entity.native_value
+
+    @property
+    def nb_active_device_for_boiler_entity(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        return self._nb_active_number_entity
+
+    @property
+    def nb_active_device_for_boiler_threshold_entity(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        return self._threshold_number_entity
+
+    @property
+    def nb_active_device_for_boiler_threshold(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        if self._threshold_number_entity is None:
+            return None
+        return int(self._threshold_number_entity.native_value)
 
     @property
     def hass(self):

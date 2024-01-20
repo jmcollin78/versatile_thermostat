@@ -1,6 +1,8 @@
 # pylint: disable=line-too-long
 """Constants for the Versatile Thermostat integration."""
 
+import logging
+
 from enum import Enum
 from homeassistant.const import CONF_NAME, Platform
 
@@ -17,6 +19,8 @@ from homeassistant.exceptions import HomeAssistantError
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
@@ -36,10 +40,11 @@ HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 DOMAIN = "versatile_thermostat"
 
 PLATFORMS: list[Platform] = [
-    Platform.CLIMATE,
-    Platform.BINARY_SENSOR,
-    Platform.SENSOR,
+    Platform.NUMBER,
     Platform.SELECT,
+    Platform.CLIMATE,
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
 ]
 
 CONF_HEATER = "heater_entity_id"
@@ -101,13 +106,16 @@ CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
-CONF_SHORT_EMA_PARAMS = "short_ema_params"
 CONF_AUTO_FAN_MODE = "auto_fan_mode"
 CONF_AUTO_FAN_NONE = "auto_fan_none"
 CONF_AUTO_FAN_LOW = "auto_fan_low"
 CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
+
+# Global params into configuration.yaml
+CONF_SHORT_EMA_PARAMS = "short_ema_params"
+CONF_SAFETY_MODE = "safety_mode"
 
 CONF_USE_MAIN_CENTRAL_CONFIG = "use_main_central_config"
 CONF_USE_TPI_CENTRAL_CONFIG = "use_tpi_central_config"
@@ -119,6 +127,13 @@ CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
 CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
+
+CONF_ADD_CENTRAL_BOILER_CONTROL = "add_central_boiler_control"
+CONF_CENTRAL_BOILER_ACTIVATION_SRV = "central_boiler_activation_service"
+CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
+
+CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
+CONF_WINDOW_ACTION = "window_action"
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
@@ -250,6 +265,11 @@ ALL_CONF = (
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
         CONF_USE_CENTRAL_MODE,
+        CONF_ADD_CENTRAL_BOILER_CONTROL,
+        CONF_USED_BY_CENTRAL_BOILER,
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV,
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
+        CONF_WINDOW_ACTION,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -283,6 +303,18 @@ CONF_AUTO_FAN_MODES = [
     CONF_AUTO_FAN_MEDIUM,
     CONF_AUTO_FAN_HIGH,
     CONF_AUTO_FAN_TURBO,
+]
+
+CONF_WINDOW_TURN_OFF = "window_turn_off"
+CONF_WINDOW_FAN_ONLY = "window_fan_only"
+CONF_WINDOW_FROST_TEMP = "window_frost_temp"
+CONF_WINDOW_ECO_TEMP = "window_eco_temp"
+
+CONF_WINDOW_ACTIONS = [
+    CONF_WINDOW_TURN_OFF,
+    CONF_WINDOW_FAN_ONLY,
+    CONF_WINDOW_FROST_TEMP,
+    CONF_WINDOW_ECO_TEMP,
 ]
 
 SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
@@ -393,8 +425,18 @@ class EventType(Enum):
     POWER_EVENT: str = "versatile_thermostat_power_event"
     TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
     HVAC_MODE_EVENT: str = "versatile_thermostat_hvac_mode_event"
+    CENTRAL_BOILER_EVENT: str = "versatile_thermostat_central_boiler_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
     WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
+
+
+def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
+    """Send an event"""
+    _LOGGER.info("%s - Sending event %s with data: %s", entity, event_type, data)
+    data["entity_id"] = entity.entity_id
+    data["name"] = entity.name
+    data["state_attributes"] = entity.state_attributes
+    hass.bus.fire(event_type.value, data)
 
 
 class UnknownEntity(HomeAssistantError):
@@ -407,6 +449,10 @@ class WindowOpenDetectionMethod(HomeAssistantError):
 
 class NoCentralConfig(HomeAssistantError):
     """Error to indicate that we try to use a central configuration but no VTherm of type CENTRAL CONFIGURATION has been found"""
+
+
+class ServiceConfigurationError(HomeAssistantError):
+    """Error in the service configuration to control the central boiler"""
 
 
 class overrides:  # pylint: disable=invalid-name

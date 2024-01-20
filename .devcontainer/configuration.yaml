@@ -28,6 +28,8 @@ versatile_thermostat:
         max_alpha: 0.6
         halflife_sec: 301
         precision: 3
+    safety_mode:
+        check_outdoor_sensor: false
 
 input_number:
     fake_temperature_sensor1:
@@ -66,6 +68,13 @@ input_number:
         max: 90
         icon: mdi:pipe-valve
         unit_of_measurement: percentage
+    fake_boiler_temperature:
+        name: Central thermostat temp
+        min: 0
+        max: 30
+        icon: mdi:thermostat
+        unit_of_measurement: °C
+        mode: box
 
 input_boolean:
     # input_boolean to simulate the windows entity. Only for development environment.
@@ -161,6 +170,7 @@ climate:
       target_sensor: input_number.fake_temperature_sensor1
 
 recorder:
+    commit_interval: 1
     include:
         domains:
             - input_boolean
@@ -168,6 +178,7 @@ recorder:
             - switch
             - climate
             - sensor
+            - binary_sensor
 
 template:
     - binary_sensor:

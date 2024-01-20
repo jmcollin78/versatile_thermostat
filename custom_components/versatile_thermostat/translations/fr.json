@@ -24,17 +24,17 @@
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
           "device_power": "Puissance de l'équipement",
-          "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`)",
+          "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
-          "use_main_central_config": "Utiliser la configuration centrale principale"
+          "use_main_central_config": "Utiliser la configuration centrale. Cochez pour utiliser la configuration centrale. Décochez et saisissez les attributs pour utiliser une configuration spécifique.",
+          "add_central_boiler_control": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
+          "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
-          "use_central_mode": "Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale",
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure.",
-          "use_main_central_config": "Cochez pour utiliser la configuration centrale principale. Décochez et saisissez les attributs pour utiliser une configuration spécifique principale"
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure."
         }
       },
       "type": {
@@ -130,7 +130,8 @@
           "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/heure)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/heure)",
           "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)",
-          "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
+          "use_window_central_config": "Utiliser la configuration centrale des ouvertures",
+          "window_action": "Action"
         },
         "data_description": {
           "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
@@ -138,7 +139,8 @@
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique",
-          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures"
+          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures",
+          "window_action": "Action a effectuer si la fenêtre est détectée comme ouverte"
         }
       },
       "motion": {
@@ -220,6 +222,18 @@
           "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
+      },
+      "central_boiler": {
+        "title": "Contrôle de la chaudière centrale",
+        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Laissez vide, si aucun appel de service ne doit être effectué (dans ce cas, vous devrez gérer vous même l'allumage/extinction de votre chaudière centrale). Le service a appelé doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Commande pour allumer",
+          "central_boiler_deactivation_service": "Commande pour éteindre"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+        }
       }
     },
     "error": {
@@ -256,17 +270,17 @@
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
           "device_power": "Puissance de l'équipement",
-          "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`)",
+          "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
-          "use_main_central_config": "Utiliser la configuration centrale"
+          "use_main_central_config": "Utiliser la configuration centrale. Cochez pour utiliser la configuration centrale. Décochez et saisissez les attributs pour utiliser une configuration spécifique.",
+          "add_central_boiler_control": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
+          "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
-          "use_central_mode": "Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale",
-          "use_main_central_config": "Cochez pour utiliser la configuration centrale. Décochez et saisissez les attributs pour utiliser une configuration spécifique",
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée"
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée."
         }
       },
       "type": {
@@ -356,7 +370,8 @@
           "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/heure)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/heure)",
           "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)",
-          "use_window_central_config": "Utiliser la configuration centrale des ouvertures"
+          "use_window_central_config": "Utiliser la configuration centrale des ouvertures",
+          "window_action": "Action"
         },
         "data_description": {
           "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
@@ -364,7 +379,8 @@
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique",
-          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures"
+          "use_window_central_config": "Cochez pour utiliser la configuration centrale des ouvertures. Décochez et saisissez les attributs pour utiliser une configuration spécifique des ouvertures",
+          "window_action": "Action a effectuer si la fenêtre est détectée comme ouverte"
         }
       },
       "motion": {
@@ -446,13 +462,26 @@
           "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
+      },
+      "central_boiler": {
+        "title": "Contrôle de la chaudière centrale - {name}",
+        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Laissez vide, si aucun appel de service ne doit être effectué (dans ce cas, vous devrez gérer vous même l'allumage/extinction de votre chaudière centrale). Le service a appelé doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Commande pour allumer",
+          "central_boiler_deactivation_service": "Commande pour éteindre"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+        }
       }
     },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu",
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
-      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
+      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
+      "service_configuration_format": "Mauvais format de la configuration du service"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -484,6 +513,22 @@
         "auto_fan_medium": "Moyenne",
         "auto_fan_high": "Forte",
         "auto_fan_turbo": "Turbo"
+      }
+    },
+    "window_action": {
+      "options": {
+        "window_turn_off": "Eteindre",
+        "window_fan_only": "Ventilateur seul",
+        "window_frost_temp": "Hors gel",
+        "window_eco_temp": "Eco"
+      }
+    },
+    "presets": {
+      "options": {
+        "frost": "Hors-gel",
+        "eco": "Eco",
+        "comfort": "Confort",
+        "boost": "Renforcé (boost)"
       }
     }
   },

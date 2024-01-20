@@ -24,6 +24,7 @@ from .const import (
     CONF_AUTO_REGULATION_SLOW,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
+    CONF_SAFETY_MODE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_TYPE,
 )
@@ -47,12 +48,17 @@ EMA_PARAM_SCHEMA = {
     vol.Required("precision"): cv.positive_int,
 }
 
+SAFETY_MODE_PARAM_SCHEMA = {
+    vol.Required("check_outdoor_sensor"): bool,
+}
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
                 CONF_AUTO_REGULATION_EXPERT: vol.Schema(SELF_REGULATION_PARAM_SCHEMA),
                 CONF_SHORT_EMA_PARAMS: vol.Schema(EMA_PARAM_SCHEMA),
+                CONF_SAFETY_MODE: vol.Schema(SAFETY_MODE_PARAM_SCHEMA),
             }
         ),
     },
@@ -105,6 +111,9 @@ async def reload_all_vtherm(hass):
     ]
 
     await asyncio.gather(*reload_tasks)
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    if api:
+        await api.reload_central_boiler_entities_list()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -124,6 +133,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    await api.reload_central_boiler_entities_list()
+
     return True
 
 
@@ -133,6 +144,10 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         await reload_all_vtherm(hass)
     else:
         await hass.config_entries.async_reload(entry.entry_id)
+        # Reload the central boiler list of entities
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+        if api is not None:
+            await api.reload_central_boiler_entities_list()
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -142,6 +157,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         if api:
             api.remove_entry(entry)
+            await api.reload_central_boiler_entities_list()
 
     return unload_ok
 

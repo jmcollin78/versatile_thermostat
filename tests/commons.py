@@ -19,6 +19,14 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
+from homeassistant.components.switch import (
+    SwitchEntity,
+)
+
+from homeassistant.components.number import (
+    NumberEntity,
+)
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
@@ -60,6 +68,7 @@ from .const import (  # pylint: disable=unused-import
     PRESET_NONE,
     PRESET_ECO,
     PRESET_ACTIVITY,
+    overrides,
 )
 
 
@@ -168,7 +177,51 @@ FULL_CENTRAL_CONFIG = {
     CONF_SECURITY_DELAY_MIN: 61,
     CONF_SECURITY_MIN_ON_PERCENT: 0.5,
     CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+    CONF_ADD_CENTRAL_BOILER_CONTROL: False,
 }
+
+FULL_CENTRAL_CONFIG_WITH_BOILER = {
+    CONF_NAME: CENTRAL_CONFIG_NAME,
+    CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    CONF_TEMP_MIN: 15,
+    CONF_TEMP_MAX: 30,
+    CONF_TPI_COEF_INT: 0.5,
+    CONF_TPI_COEF_EXT: 0.02,
+    "frost_temp": 10,
+    "eco_temp": 17.1,
+    "comfort_temp": 0,
+    "boost_temp": 19.1,
+    "eco_ac_temp": 25.1,
+    "comfort_ac_temp": 23.1,
+    "boost_ac_temp": 21.1,
+    "frost_away_temp": 15.1,
+    "eco_away_temp": 15.2,
+    "comfort_away_temp": 0,
+    "boost_away_temp": 15.4,
+    "eco_ac_away_temp": 30.5,
+    "comfort_ac_away_temp": 0,
+    "boost_ac_away_temp": 30.7,
+    CONF_WINDOW_DELAY: 15,
+    CONF_WINDOW_AUTO_OPEN_THRESHOLD: 4,
+    CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 1,
+    CONF_WINDOW_AUTO_MAX_DURATION: 31,
+    CONF_MOTION_DELAY: 31,
+    CONF_MOTION_OFF_DELAY: 301,
+    CONF_MOTION_PRESET: "boost",
+    CONF_NO_MOTION_PRESET: "frost",
+    CONF_POWER_SENSOR: "sensor.mock_power_sensor",
+    CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
+    CONF_PRESET_POWER: 14,
+    CONF_MINIMAL_ACTIVATION_DELAY: 11,
+    CONF_SECURITY_DELAY_MIN: 61,
+    CONF_SECURITY_MIN_ON_PERCENT: 0.5,
+    CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+    CONF_ADD_CENTRAL_BOILER_CONTROL: True,
+    CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
+    CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+}
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -214,6 +267,11 @@ class MockClimate(ClimateEntity):
         self._attr_fan_mode = None
 
     @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @property
     def hvac_action(self):
         """The hvac action of the mock climate"""
         return self._attr_hvac_action
@@ -241,6 +299,10 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature = temperature
 
     async def async_set_hvac_mode(self, hvac_mode):
+        """The hvac mode"""
+        self._attr_hvac_mode = hvac_mode
+
+    def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
         self._attr_hvac_mode = hvac_mode
 
@@ -350,6 +412,66 @@ class MagicMockClimate(MagicMock):
         return 19
 
 
+class MockSwitch(SwitchEntity):
+    """A fake switch to be used instead real switch"""
+
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self, hass: HomeAssistant, unique_id, name, entry_infos={}
+    ):
+        """Init the switch"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = "switch"
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_is_on = False
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @overrides
+    def turn_on(self, **kwargs: Any):
+        """Turns the switch on and notify the state change"""
+        self._attr_is_on = True
+        # self.async_write_ha_state()
+
+    @overrides
+    def turn_off(self, **kwargs: Any):
+        """Turns the switch on and notify the state change"""
+        self._attr_is_on = False
+        # self.async_write_ha_state()
+
+
+class MockNumber(NumberEntity):
+    """A fake switch to be used instead real switch"""
+
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self, hass: HomeAssistant, unique_id, name, entry_infos={}
+    ):
+        """Init the switch"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = "number"
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_native_value = 0
+        self._attr_native_min_value = 0
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @overrides
+    def set_native_value(self, value: float):
+        """Change the value"""
+        self._attr_native_value = value
+
+
 async def create_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
 ) -> BaseThermostat:
@@ -360,13 +482,6 @@ async def create_thermostat(
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
-
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
 
         return search_entity(hass, entity_id, CLIMATE_DOMAIN)
 
