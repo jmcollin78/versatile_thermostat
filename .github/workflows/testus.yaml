@@ -39,4 +39,12 @@ jobs:
         run: |
           coverage run -m pytest tests/
           coverage report
-          coverage html
+
+      - name: Generate HTML Coverage Report
+        run: coverage html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./htmlcov
