@@ -130,7 +130,8 @@
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
-          "use_window_central_config": "Use central window configuration"
+          "use_window_central_config": "Use central window configuration",
+          "window_action": "Action"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
@@ -138,7 +139,8 @@
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
-          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm"
+          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm",
+          "window_action": "Action to do if window is deteted as open"
         }
       },
       "motion": {
@@ -362,7 +364,8 @@
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
-          "use_window_central_config": "Use central window configuration"
+          "use_window_central_config": "Use central window configuration",
+          "window_action": "Action"
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
@@ -370,7 +373,8 @@
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
-          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm"
+          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm",
+          "window_action": "Action to do if window is deteted as open"
         }
       },
       "motion": {
@@ -491,6 +495,22 @@
         "auto_fan_medium": "Medium",
         "auto_fan_high": "High",
         "auto_fan_turbo": "Turbo"
+      }
+    },
+    "window_action": {
+      "options": {
+        "window_turn_off": "Turn off",
+        "window_fan_only": "Fan only",
+        "window_frost_temp": "Frost protect",
+        "window_eco_temp": "Eco"
+      }
+    },
+    "presets": {
+      "options": {
+        "frost": "Frost protect",
+        "eco": "Eco",
+        "comfort": "Comfort",
+        "boost": "Boost"
       }
     }
   },

@@ -1307,7 +1307,7 @@ With a VTherm of type `over_switch` or `over_valve`, this fault just shows that 
 ### Type `over_climate`
 With an `over_climate` type VTherm, the regulation is done by the underlying `climate` directly and VTherm simply transmits the instructions to it. So if the radiator heats up when the set temperature is exceeded, it is certainly because its internal temperature measurement is biased. This happens very often with TRVs and reversible air conditioning units which have an internal temperature sensor, or too close to the heating element (therefore too cold in winter).
 
-Example of discussion around these topics: [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312 ), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
+Example of discussion around these topics: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312 ), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
 
 To get around this, VTherm is equipped with a function called self-regulation which allows the instruction sent to the underlying to be adapted until the target temperature is respected. This function compensates for the measurement bias of internal thermometers. If the bias is important the regulation must be important. See [Self-regulation](#self-regulation) to configure self-regulation.
 
