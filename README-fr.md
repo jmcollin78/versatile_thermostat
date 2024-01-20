@@ -544,7 +544,7 @@ Par défaut, le thermomètre extérieur peut déclencher une mise en sécurité 
 
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](/images/tips.png?raw=true) _*Notes*_
 > 1. Lorsque le capteur de température viendra à la vie et renverra les températures, le préréglage sera restauré à sa valeur précédente,
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
@@ -571,12 +571,18 @@ Depuis la release 5.3, vous avez la possibilité de contrôler une chaudière ce
 
 Le principe mis en place est globalement le suivant :
 1. une nouvelle entité de type `binary_sensor` et nommée par défaut `binary_sensor.central_boiler` est ajoutée,
-2. dans la configuration des VTherms vous indiqué si le VTherm doit contrôler la chaudière. En effet, dans une installation hétérogène, certains VTherm doivent commander la chaudière et d'autres non. Vous devez donc indiqué dans chaque configuration de VTherm si il contrôle la chaudière ou pas,
-3. le `binary_sensor.central_boiler` écoute les changements d'états des VTherm marqués comme contrôlant la chaudière,
-4. si l'un des VTherm écoutés demande du chauffage (ie son `hvac_action` passe à `Heating`), alors le `binary_sensor.central_boiler` passe à `on` et si un service d'activation a été configuré, alors ce service est appelé,
-5. si plus aucun VTherm écoutés ne demande du chauffage (ie aucun `hvac_action` n'est `Heating`), alors le `binary_sensor.central_boiler` passe à `off` et si un service de désactivation a été configuré, alors ce service est appelé.
+2. dans la configuration des VTherms vous indiquez si le VTherm doit contrôler la chaudière. En effet, dans une installation hétérogène, certains VTherm doivent commander la chaudière et d'autres non. Vous devez donc indiquer dans chaque configuration de VTherm si il contrôle la chaudière ou pas,
+3. le `binary_sensor.central_boiler` écoute les changements d'états des équipements des VTherm marqués comme contrôlant la chaudière,
+4. dès que le nombre d'équipements pilotés par le VTherm demandant du chauffage (ie son `hvac_action` passe à `Heating`) dépasse un seuil paramétrable, alors le `binary_sensor.central_boiler` passe à `on` et **si un service d'activation a été configuré, alors ce service est appelé**,
+5. si le nombre d'équipements nécessitant du chauffage repasse en dessous du seuil, alors le `binary_sensor.central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
+6. vous avez accès à deux entités :
+   - une de type `number` nommé par défaut `number.boiler_activation_threshold`, donne le seuil de déclenchement. Ce seuil est en nombre d'équipements (radiateurs) qui demande du chauffage.
+   - une de type `sensor` nommé par défaut `sensor.nb_device_active_for_boiler`, donne le nombre d'équipements qui demande du chauffage. Par exemple, un VTherm ayant 4 vannes dont 3 demandes du chauffage fera passé ce capteur à 3. Seuls les équipements des VTherms qui sont marqués pour contrôler la chaudière centrale sont comptabilisés.
 
-Vous avez donc en permanence, un indicateur qui donne l'info que au moins un des radiateurs est à besoin de chauffer.
+Vous avez donc en permanence, les informations qui permettent de piloter et régler le déclenchement de la chaudière.
+
+Toutes ces entités sont rattachés au service de configuration centrale :
+![Les entités pilotant la chaudière](/images/entitites-central-boiler.png?raw=true)
 
 ### Configuration
 Pour configurer cette fonction, vous devez avoir une configuration centralisée (cf. [Configuration](#configuration)) et cochez la case 'Ajouter une chuadière centrale' :

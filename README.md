@@ -558,11 +558,17 @@ Since release 5.3, you have the possibility of controlling a centralized boiler.
 The principle put in place is generally as follows:
 1. a new entity of type `binary_sensor` and named by default `binary_sensor.central_boiler` is added,
 2. in the VTherms configuration you indicate whether the VTherm should control the boiler. Indeed, in a heterogeneous installation, some VTherm must control the boiler and others not. You must therefore indicate in each VTherm configuration whether it controls the boiler or not,
-3. the `binary_sensor.central_boiler` listens for changes in state of the VTherms marked as controlling the boiler,
-4. if one of the listened VTherms requests heating (ie its `hvac_action` changes to `Heating`), then the `binary_sensor.central_boiler` changes to `on` and if an activation service has been configured, then this service is called,
-5. if no more listened VTherm requests heating (ie no `hvac_action` is `Heating`), then the `binary_sensor.central_boiler` goes to `off` and if a deactivation service has been configured, then this service is called.
+3. the `binary_sensor.central_boiler` listens for changes in state of VTherm equipment marked as controlling the boiler,
+4. as soon as the number of devices controlled by the VTherm requesting heating (ie its `hvac_action` goes to `Heating`) exceeds a configurable threshold, then the `binary_sensor.central_boiler` goes to `on` and **if a activation service has been configured, then this service is called**,
+5. if the number of devices requiring heating falls below the threshold again, then the `binary_sensor.central_boiler` goes to `off` and if **a deactivation service has been configured, then this service is called**,
+6. you have access to two entities:
+    - one of type `number` named by default `number.boiler_activation_threshold`, gives the trigger threshold. This threshold is in number of equipment (radiators) which requires heating.
+    - one of type `sensor` named by default `sensor.nb_device_active_for_boiler`, gives the number of devices requiring heating. For example, a VTherm having 4 valves including 3 heating requests will increase this sensor to 3. Only VTherm equipment that is marked to control the central boiler is counted.
 
-You therefore always have an indicator which gives information that at least one of the radiators needs to be heated.
+You therefore always have the information which allows you to control and adjust the activation of the boiler.
+
+All these entities are attached to the central configuration service:
+![The entities controlling the boiler](/images/entitites-central-boiler.png?raw=true)
 
 ### Setup
 To configure this function, you must have a centralized configuration (see [Configuration](#configuration)) and check the 'Add a central boiler' box:
