@@ -162,7 +162,6 @@ class ThermostatOverClimate(BaseThermostat):
             self._regulated_target_temp = self.target_temperature
 
         _LOGGER.info("%s - regulation calculation will be done", self)
-        self._last_regulation_change = now
 
         new_regulated_temp = round_to_nearest(
             self._regulation_algo.calculate_regulated_temperature(
@@ -188,6 +187,7 @@ class ThermostatOverClimate(BaseThermostat):
             new_regulated_temp,
         )
 
+        self._last_regulation_change = now
         for under in self._underlyings:
             await under.set_temperature(
                 self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
