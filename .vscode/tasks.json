@@ -14,6 +14,12 @@
             "problemMatcher": []
         },
         {
+            "label": "Start coverage",
+            "type": "shell",
+            "command": "./container coverage",
+            "problemMatcher": []
+        },
+        {
             "label": "Home Assistant translations update",
             "type": "shell",
             "command": "./container translations",

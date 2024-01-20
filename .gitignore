@@ -110,3 +110,6 @@ __pycache__
 config/**
 custom_components/hacs
 custom_components/localtuya
+
+.coverage
+htmlcov
