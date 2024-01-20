@@ -69,10 +69,10 @@ input_number:
         icon: mdi:pipe-valve
         unit_of_measurement: percentage
     fake_boiler_temperature:
-        name: Boiler temperature
+        name: Central thermostat temp
         min: 0
         max: 30
-        icon: mdi:water-boiler
+        icon: mdi:thermostat
         unit_of_measurement: °C
         mode: box
 

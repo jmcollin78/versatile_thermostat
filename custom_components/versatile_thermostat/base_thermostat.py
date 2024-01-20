@@ -1167,6 +1167,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         return len(self._underlyings)
 
     @property
+    def underlying_entities(self) -> int:
+        """Returns the underlying entities"""
+        return self._underlyings
+
+    @property
     def is_on(self) -> bool:
         """True if the VTherm is on (! HVAC_OFF)"""
         return self.hvac_mode and self.hvac_mode != HVACMode.OFF
@@ -1627,6 +1632,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         _LOGGER.debug("%s - Calling _check_initial_state", self)
         for under in self._underlyings:
             await under.check_initial_state(self._hvac_mode)
+
+        # Starts the initial control loop (don't wait for an update of temperature)
+        await self.async_control_heating(force=True)
 
     @callback
     async def _async_update_temp(self, state: State):

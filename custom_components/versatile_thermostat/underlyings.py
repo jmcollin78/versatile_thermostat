@@ -133,14 +133,14 @@ class UnderlyingEntity:
     async def check_initial_state(self, hvac_mode: HVACMode):
         """Prevent the underlying to be on but thermostat is off"""
         if hvac_mode == HVACMode.OFF and self.is_device_active:
-            _LOGGER.warning(
+            _LOGGER.info(
                 "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
                 self,
                 self._entity_id,
             )
             await self.set_hvac_mode(hvac_mode)
         elif hvac_mode != HVACMode.OFF and not self.is_device_active:
-            _LOGGER.warning(
+            _LOGGER.info(
                 "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
                 self,
                 hvac_mode,
@@ -771,12 +771,14 @@ class UnderlyingValve(UnderlyingEntity):
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
+        if hvac_mode == HVACMode.OFF and self.is_device_active:
+            await self.turn_off()
+
+        if hvac_mode != HVACMode.OFF and not self.is_device_active:
+            await self.turn_on()
+
         if self._hvac_mode != hvac_mode:
             self._hvac_mode = hvac_mode
-            if hvac_mode == HVACMode.OFF:
-                await self.turn_off()
-            else:
-                await self.turn_on()
             return True
         else:
             return False

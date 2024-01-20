@@ -1,5 +1,5 @@
 """ Implements the VersatileThermostat binary sensors component """
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument, line-too-long
 
 import logging
 
@@ -14,7 +14,6 @@ from homeassistant.core import (
 from homeassistant.const import STATE_ON, STATE_OFF, EVENT_HOMEASSISTANT_START
 
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
-from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_track_state_change_event
 
 from homeassistant.components.binary_sensor import (
@@ -25,14 +24,6 @@ from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from homeassistant.components.climate import (
-    ClimateEntity,
-    HVACMode,
-    HVACAction,
-    DOMAIN as CLIMATE_DOMAIN,
-)
-
-from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from .vtherm_api import VersatileThermostatAPI
 from .commons import (
     VersatileThermostatBaseEntity,
@@ -399,7 +390,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
                 self._hass
             )
             api.register_central_boiler(self)
-            await self.listen_vtherms_entities()
+            await self.listen_nb_active_vtherm_entity()
 
         if self.hass.state == CoreState.running:
             await _async_startup_internal()
@@ -408,29 +399,28 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
                 EVENT_HOMEASSISTANT_START, _async_startup_internal
             )
 
-    async def listen_vtherms_entities(self):
+    async def listen_nb_active_vtherm_entity(self):
         """Initialize the listening of state change of VTherms"""
 
         # Listen to all VTherm state change
-        self._entities = []
-        entities_id = []
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
 
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
-            if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
-                self._entities.append(entity)
-                entities_id.append(entity.entity_id)
-        if len(self._entities) > 0:
-            # Arme l'écoute de la première entité
+        if (
+            api.nb_active_vtherm_for_boiler_entity
+            and api.nb_active_device_for_boiler_threshold_entity
+        ):
             listener_cancel = async_track_state_change_event(
                 self._hass,
-                entities_id,
+                [
+                    api.nb_active_vtherm_for_boiler_entity.entity_id,
+                    api.nb_active_device_for_boiler_threshold_entity.entity_id,
+                ],
                 self.calculate_central_boiler_state,
             )
-            _LOGGER.info(
-                "%s - VTherm that could controls the central boiler are %s",
+            _LOGGER.debug(
+                "%s - entity to get the nb of active VTherm is %s",
                 self,
-                entities_id,
+                api.nb_active_vtherm_for_boiler_entity.entity_id,
             )
             self.async_on_remove(listener_cancel)
         else:
@@ -443,18 +433,20 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         controls this central boiler"""
 
         _LOGGER.debug("%s - calculating the new central boiler state", self)
-        active = False
-        for entity in self._entities:
-            _LOGGER.debug(
-                "Examining the hvac_action of %s",
-                entity.name,
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        if (
+            api.nb_active_vtherm_for_boiler is None
+            or api.nb_active_device_for_boiler_threshold is None
+        ):
+            _LOGGER.warning(
+                "%s - the entities to calculate the boiler state are not initialized. Boiler state cannot be calculated",
+                self,
             )
-            if (
-                entity.hvac_mode == HVACMode.HEAT
-                and entity.hvac_action == HVACAction.HEATING
-            ):
-                active = True
-                break
+            return False
+
+        active = (
+            api.nb_active_vtherm_for_boiler >= api.nb_active_device_for_boiler_threshold
+        )
 
         if self._attr_is_on != active:
             try:

@@ -1,6 +1,6 @@
 """ The API of Versatile Thermostat"""
 import logging
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, HassJob
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
@@ -49,6 +49,8 @@ class VersatileThermostatAPI(dict):
         self._short_ema_params = None
         self._safety_mode = None
         self._central_boiler_entity = None
+        self._threshold_number_entity = None
+        self._nb_active_number_entity = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -99,10 +101,26 @@ class VersatileThermostatAPI(dict):
         class to register itself at creation"""
         self._central_boiler_entity = central_boiler_entity
 
+    def register_central_boiler_activation_number_threshold(
+        self, threshold_number_entity
+    ):
+        """register the two number entities needed for boiler activation"""
+        self._threshold_number_entity = threshold_number_entity
+
+    def register_nb_vtherm_active_boiler(self, nb_active_number_entity):
+        """register the two number entities needed for boiler activation"""
+        self._nb_active_number_entity = nb_active_number_entity
+        if self._central_boiler_entity:
+            job = HassJob(
+                self._central_boiler_entity.listen_nb_active_vtherm_entity,
+                "init listen nb active VTherm",
+            )
+            self._hass.async_run_hass_job(job)
+
     async def reload_central_boiler_entities_list(self):
         """Reload the central boiler list of entities if a central boiler is used"""
-        if self._central_boiler_entity is not None:
-            await self._central_boiler_entity.listen_vtherms_entities()
+        if self._nb_active_number_entity is not None:
+            await self._nb_active_number_entity.listen_vtherms_entities()
 
     @property
     def self_regulation_expert(self):
@@ -118,6 +136,35 @@ class VersatileThermostatAPI(dict):
     def safety_mode(self):
         """Get the safety_mode params"""
         return self._safety_mode
+
+    @property
+    def nb_active_vtherm_for_boiler(self):
+        """Returns the number of active VTherm which have an
+        influence on boiler"""
+        if self._nb_active_number_entity is None:
+            return None
+        else:
+            return self._nb_active_number_entity.native_value
+
+    @property
+    def nb_active_vtherm_for_boiler_entity(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        return self._nb_active_number_entity
+
+    @property
+    def nb_active_device_for_boiler_threshold_entity(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        return self._threshold_number_entity
+
+    @property
+    def nb_active_device_for_boiler_threshold(self):
+        """Returns the number of active VTherm entity which have an
+        influence on boiler"""
+        if self._threshold_number_entity is None:
+            return None
+        return int(self._threshold_number_entity.native_value)
 
     @property
     def hass(self):
