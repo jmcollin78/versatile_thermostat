@@ -40,11 +40,11 @@ HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 DOMAIN = "versatile_thermostat"
 
 PLATFORMS: list[Platform] = [
-    Platform.CLIMATE,
-    Platform.BINARY_SENSOR,
-    Platform.SENSOR,
-    Platform.SELECT,
     Platform.NUMBER,
+    Platform.SELECT,
+    Platform.CLIMATE,
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
 ]
 
 CONF_HEATER = "heater_entity_id"

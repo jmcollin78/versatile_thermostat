@@ -49,6 +49,7 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_ADD_CENTRAL_BOILER_CONTROL,
     overrides,
 )
 
@@ -74,9 +75,11 @@ async def async_setup_entry(
     entities = None
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
-        entities = [NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data)]
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
-        api.register_nb_vtherm_active_boiler(entities[0])
+        if entry.data.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+            entities = [
+                NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data)
+            ]
+            async_add_entities(entities, True)
     else:
         entities = [
             LastTemperatureSensor(hass, unique_id, name, entry.data),
@@ -105,7 +108,7 @@ async def async_setup_entry(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )
 
-    async_add_entities(entities, True)
+        async_add_entities(entities, True)
 
 
 class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
@@ -669,6 +672,9 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        api.register_nb_device_active_boiler(self)
+
         @callback
         async def _async_startup_internal(*_):
             _LOGGER.debug("%s - Calling async_startup_internal", self)
@@ -686,24 +692,25 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
         # Listen to all VTherm state change
         self._entities = []
-        entities_id = []
+        underlying_entities_id = []
 
         component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
-                entities_id.append(entity.entity_id)
-        if len(self._entities) > 0:
+                for under in entity.underlying_entities:
+                    underlying_entities_id.append(under.entity_id)
+        if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
             listener_cancel = async_track_state_change_event(
                 self._hass,
-                entities_id,
+                underlying_entities_id,
                 self.calculate_nb_active_devices,
             )
             _LOGGER.info(
-                "%s - VTherm that could controls the central boiler are %s",
+                "%s - the underlyings that could controls the central boiler are %s",
                 self,
-                entities_id,
+                underlying_entities_id,
             )
             self.async_on_remove(listener_cancel)
         else:

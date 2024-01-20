@@ -383,13 +383,12 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        api.register_central_boiler(self)
+
         @callback
         async def _async_startup_internal(*_):
             _LOGGER.debug("%s - Calling async_startup_internal", self)
-            api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
-                self._hass
-            )
-            api.register_central_boiler(self)
             await self.listen_nb_active_vtherm_entity()
 
         if self.hass.state == CoreState.running:
@@ -406,13 +405,13 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
 
         if (
-            api.nb_active_vtherm_for_boiler_entity
+            api.nb_active_device_for_boiler_entity
             and api.nb_active_device_for_boiler_threshold_entity
         ):
             listener_cancel = async_track_state_change_event(
                 self._hass,
                 [
-                    api.nb_active_vtherm_for_boiler_entity.entity_id,
+                    api.nb_active_device_for_boiler_entity.entity_id,
                     api.nb_active_device_for_boiler_threshold_entity.entity_id,
                 ],
                 self.calculate_central_boiler_state,
@@ -420,7 +419,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             _LOGGER.debug(
                 "%s - entity to get the nb of active VTherm is %s",
                 self,
-                api.nb_active_vtherm_for_boiler_entity.entity_id,
+                api.nb_active_device_for_boiler_entity.entity_id,
             )
             self.async_on_remove(listener_cancel)
         else:
@@ -435,7 +434,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         _LOGGER.debug("%s - calculating the new central boiler state", self)
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         if (
-            api.nb_active_vtherm_for_boiler is None
+            api.nb_active_device_for_boiler is None
             or api.nb_active_device_for_boiler_threshold is None
         ):
             _LOGGER.warning(
@@ -445,7 +444,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             return False
 
         active = (
-            api.nb_active_vtherm_for_boiler >= api.nb_active_device_for_boiler_threshold
+            api.nb_active_device_for_boiler >= api.nb_active_device_for_boiler_threshold
         )
 
         if self._attr_is_on != active:

@@ -51,9 +51,6 @@ async def async_setup_entry(
 
     async_add_entities(entities, True)
 
-    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
-    api.register_central_boiler_activation_number_threshold(entities[0])
-
 
 class ActivateBoilerThresholdNumber(NumberEntity, RestoreEntity):
     """Representation of the threshold of the number of VTherm
@@ -94,6 +91,9 @@ class ActivateBoilerThresholdNumber(NumberEntity, RestoreEntity):
     @overrides
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
+
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        api.register_central_boiler_activation_number_threshold(self)
 
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug(
