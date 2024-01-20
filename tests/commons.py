@@ -23,6 +23,10 @@ from homeassistant.components.switch import (
     SwitchEntity,
 )
 
+from homeassistant.components.number import (
+    NumberEntity,
+)
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
@@ -263,6 +267,11 @@ class MockClimate(ClimateEntity):
         self._attr_fan_mode = None
 
     @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @property
     def hvac_action(self):
         """The hvac action of the mock climate"""
         return self._attr_hvac_action
@@ -290,6 +299,10 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature = temperature
 
     async def async_set_hvac_mode(self, hvac_mode):
+        """The hvac mode"""
+        self._attr_hvac_mode = hvac_mode
+
+    def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
         self._attr_hvac_mode = hvac_mode
 
@@ -430,6 +443,33 @@ class MockSwitch(SwitchEntity):
         """Turns the switch on and notify the state change"""
         self._attr_is_on = False
         # self.async_write_ha_state()
+
+
+class MockNumber(NumberEntity):
+    """A fake switch to be used instead real switch"""
+
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self, hass: HomeAssistant, unique_id, name, entry_infos={}
+    ):
+        """Init the switch"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = "number"
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_native_value = 0
+        self._attr_native_min_value = 0
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @overrides
+    def set_native_value(self, value: float):
+        """Change the value"""
+        self._attr_native_value = value
 
 
 async def create_thermostat(

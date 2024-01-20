@@ -526,7 +526,11 @@ class ThermostatOverClimate(BaseThermostat):
             return
 
         added_energy = 0
-        if self.is_over_climate and self._underlying_climate_delta_t is not None:
+        if (
+            self.is_over_climate
+            and self._underlying_climate_delta_t is not None
+            and self._device_power
+        ):
             added_energy = self._device_power * self._underlying_climate_delta_t
 
         self._total_energy += added_energy

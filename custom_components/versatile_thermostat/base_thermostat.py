@@ -477,7 +477,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._saved_preset_mode = PRESET_NONE
 
         # Power management
-        self._device_power = entry_infos.get(CONF_DEVICE_POWER)
+        self._device_power = entry_infos.get(CONF_DEVICE_POWER) or 0
         self._pmax_on = False
         self._current_power = None
         self._current_power_max = None
