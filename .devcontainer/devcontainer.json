@@ -30,7 +30,8 @@
 				"waderyan.gitblame",
 				"keesschollaart.vscode-home-assistant",
 				"vscode.markdown-math",
-				"yzhang.markdown-all-in-one"
+				"yzhang.markdown-all-in-one",
+				"github.vscode-github-actions"
 			],
 			"settings": {
 				"files.eol": "\n",
