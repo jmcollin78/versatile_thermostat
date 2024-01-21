@@ -166,6 +166,8 @@ STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
             ]
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
+        vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
+        vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int,
     }
 )
 

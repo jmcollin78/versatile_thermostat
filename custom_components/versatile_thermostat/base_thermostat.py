@@ -145,20 +145,6 @@ def get_tz(hass: HomeAssistant):
 class BaseThermostat(ClimateEntity, RestoreEntity):
     """Representation of a base class for all Versatile Thermostat device."""
 
-    # The list of VersatileThermostat entities
-    _hass: HomeAssistant
-    _last_temperature_measure: datetime
-    _last_ext_temperature_measure: datetime
-    _total_energy: float
-    _overpowering_state: bool
-    _window_state: bool
-    _motion_state: bool
-    _presence_state: bool
-    _window_auto_state: bool
-    _window_bypass_state: bool
-    _underlyings: list[UnderlyingEntity]
-    _last_change_time: datetime
-
     _entity_component_unrecorded_attributes = (
         ClimateEntity._entity_component_unrecorded_attributes.union(
             frozenset(
