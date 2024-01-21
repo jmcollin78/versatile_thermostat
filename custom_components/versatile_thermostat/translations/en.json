@@ -78,7 +78,7 @@
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be sent",
+          "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
           "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
@@ -313,7 +313,7 @@
           "valve_entity3_id": "3rd valve number entity id",
           "valve_entity4_id": "4th valve number entity id",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
-          "auto_regulation_dtemp": "The threshold in ° under which the temperature change will not be sent",
+          "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to invert the command",
           "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"

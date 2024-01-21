@@ -1,13 +1,13 @@
 # pylint: disable=line-too-long
 """ A climate over switch classe """
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
 )
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.climate import HVACMode
 
 from .base_thermostat import BaseThermostat
@@ -18,6 +18,9 @@ from .const import (
     CONF_VALVE_2,
     CONF_VALVE_3,
     CONF_VALVE_4,
+    # This is not really self-regulation but regulation here
+    CONF_AUTO_REGULATION_DTEMP,
+    CONF_AUTO_REGULATION_PERIOD_MIN,
     overrides,
 )
 
@@ -44,15 +47,23 @@ class ThermostatOverValve(BaseThermostat):
                     "function",
                     "tpi_coef_int",
                     "tpi_coef_ext",
+                    "auto_regulation_dpercent",
+                    "auto_regulation_period_min",
+                    "last_calculation_timestamp",
                 }
             )
         )
     )
 
-    # Useless for now
-    # def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
-    #    """Initialize the thermostat over switch."""
-    #    super().__init__(hass, unique_id, name, config_entry)
+    def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
+        """Initialize the thermostat over switch."""
+        self._valve_open_percent: int = 0
+        self._last_calculation_timestamp: datetime = None
+        self._auto_regulation_dpercent: float = None
+        self._auto_regulation_period_min: int = None
+
+        # Call to super must be done after initialization because it calls post_init at the end
+        super().__init__(hass, unique_id, name, config_entry)
 
     @property
     def is_over_valve(self) -> bool:
@@ -65,19 +76,33 @@ class ThermostatOverValve(BaseThermostat):
         if self._hvac_mode == HVACMode.OFF:
             return 0
         else:
-            return round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
+            return self._valve_open_percent
 
     @overrides
     def post_init(self, config_entry):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
+
+        self._auto_regulation_dpercent = (
+            config_entry.get(CONF_AUTO_REGULATION_DTEMP)
+            if config_entry.get(CONF_AUTO_REGULATION_DTEMP) is not None
+            else 0.0
+        )
+        self._auto_regulation_period_min = (
+            config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN)
+            if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
+            else 0
+        )
+
         self._prop_algorithm = PropAlgorithm(
             self._proportional_function,
             self._tpi_coef_int,
             self._tpi_coef_ext,
             self._cycle_min,
             self._minimal_activation_delay,
+            self._auto_regulation_dpercent,
+            self._auto_regulation_period_min,
         )
 
         lst_valves = [config_entry.get(CONF_VALVE)]
@@ -164,6 +189,17 @@ class ThermostatOverValve(BaseThermostat):
         self._attr_extra_state_attributes["function"] = self._proportional_function
         self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
         self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
+        self._attr_extra_state_attributes[
+            "auto_regulation_dpercent"
+        ] = self._auto_regulation_dpercent
+        self._attr_extra_state_attributes[
+            "auto_regulation_period_min"
+        ] = self._auto_regulation_period_min
+        self._attr_extra_state_attributes["last_calculation_timestamp"] = (
+            self._last_calculation_timestamp.astimezone(self._current_tz).isoformat()
+            if self._last_calculation_timestamp
+            else None
+        )
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -177,7 +213,21 @@ class ThermostatOverValve(BaseThermostat):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
-        _LOGGER.debug("%s - recalculate all", self)
+        _LOGGER.debug("%s - recalculate the open percent", self)
+
+        # For testing purpose. Should call _set_now() before
+        now = self.now
+
+        if self._last_calculation_timestamp is not None:
+            period = (now - self._last_calculation_timestamp).total_seconds() / 60
+            if period < self._auto_regulation_period_min:
+                _LOGGER.info(
+                    "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
+                    self,
+                    period,
+                )
+                return
+
         self._prop_algorithm.calculate(
             self._target_temp,
             self._cur_temp,
@@ -185,8 +235,33 @@ class ThermostatOverValve(BaseThermostat):
             self._hvac_mode == HVACMode.COOL,
         )
 
+        new_valve_percent = round(
+            max(0, min(self.proportional_algorithm.on_percent, 1)) * 100
+        )
+
+        dpercent = new_valve_percent - self.valve_open_percent
+        if (
+            dpercent >= -1 * self._auto_regulation_dpercent
+            and dpercent < self._auto_regulation_dpercent
+        ):
+            _LOGGER.debug(
+                "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
+                self,
+                dpercent,
+            )
+
+            return
+
+        if self._valve_open_percent == new_valve_percent:
+            _LOGGER.debug("%s - no change in valve_open_percent.", self)
+            return
+
+        self._valve_open_percent = new_valve_percent
+
         for under in self._underlyings:
             under.set_valve_open_percent()
+
+        self._last_calculation_timestamp = now
 
         self.update_custom_attributes()
         self.async_write_ha_state()

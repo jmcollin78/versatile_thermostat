@@ -765,7 +765,7 @@ class UnderlyingValve(UnderlyingEntity):
             await self.send_percent_open()
 
     async def turn_on(self):
-        """Nothing to do for Valve because it cannot be turned off"""
+        """Nothing to do for Valve because it cannot be turned on"""
         self.set_valve_open_percent()
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
