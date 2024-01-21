@@ -355,6 +355,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
         self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
+        if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
+            self._attr_target_temperature_step = step
 
         # convert entry_infos into usable attributes
         presets = {}
@@ -400,8 +402,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
-        # Default value not configurable
-        self._attr_target_temperature_step = 0.1
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._window_sensor_entity_id = entry_infos.get(CONF_WINDOW_SENSOR)

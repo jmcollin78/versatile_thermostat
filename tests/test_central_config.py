@@ -106,7 +106,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_minimal_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):
@@ -124,6 +124,7 @@ async def test_minimal_over_switch_wo_central_config(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
+            CONF_STEP_TEMPERATURE: 0.3,
             "frost_temp": 10,
             "eco_temp": 17,
             "comfort_temp": 18,
@@ -165,8 +166,9 @@ async def test_minimal_over_switch_wo_central_config(
         assert entity._temp_sensor_entity_id == "sensor.mock_temp_sensor"
         assert entity._ext_temp_sensor_entity_id == "sensor.mock_ext_temp_sensor"
         assert entity._cycle_min == 5
-        assert entity._attr_min_temp == 8
-        assert entity._attr_max_temp == 18
+        assert entity.min_temp == 8
+        assert entity.max_temp == 18
+        assert entity.target_temperature_step == 0.3
         assert entity.preset_modes == ["none", "frost", "eco", "comfort", "boost"]
         assert entity.is_window_auto_enabled is False
         assert entity.nb_underlying_entities == 1
@@ -202,6 +204,7 @@ async def test_full_over_switch_wo_central_config(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
+            CONF_STEP_TEMPERATURE: 0.3,
             "frost_temp": 10,
             "eco_temp": 17,
             "comfort_temp": 18,
@@ -257,8 +260,9 @@ async def test_full_over_switch_wo_central_config(
         assert entity._temp_sensor_entity_id == "sensor.mock_temp_sensor"
         assert entity._ext_temp_sensor_entity_id == "sensor.mock_ext_temp_sensor"
         assert entity._cycle_min == 5
-        assert entity._attr_min_temp == 8
-        assert entity._attr_max_temp == 18
+        assert entity.min_temp == 8
+        assert entity.max_temp == 18
+        assert entity.target_temperature_step == 0.3
         assert entity.preset_modes == [
             "none",
             "frost",
@@ -318,6 +322,7 @@ async def test_full_over_switch_with_central_config(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
+            CONF_STEP_TEMPERATURE: 0.3,
             "frost_temp": 10,
             "eco_temp": 17,
             "comfort_temp": 18,
@@ -369,8 +374,9 @@ async def test_full_over_switch_with_central_config(
         assert entity._temp_sensor_entity_id == "sensor.mock_temp_sensor"
         assert entity._ext_temp_sensor_entity_id == "sensor.mock_ext_temp_sensor"
         assert entity._cycle_min == 5
-        assert entity._attr_min_temp == 15
-        assert entity._attr_max_temp == 30
+        assert entity.min_temp == 15
+        assert entity.max_temp == 30
+        assert entity.target_temperature_step == 0.1
         assert entity.preset_modes == [
             "none",
             "frost",

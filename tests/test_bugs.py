@@ -591,6 +591,7 @@ async def test_bug_272(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        # default value are min 15°, max 30°, step 0.1
         data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
@@ -623,6 +624,7 @@ async def test_bug_272(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.hvac_mode is HVACMode.OFF
+        assert entity.target_temperature_step == 0.5
         assert entity.target_temperature == entity.min_temp
         assert entity.is_regulated is True
 

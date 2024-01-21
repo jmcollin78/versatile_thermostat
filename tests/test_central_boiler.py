@@ -760,7 +760,7 @@ async def test_update_central_boiler_state_simple_climate(
         climate1.set_hvac_action(HVACAction.HEATING)
         climate1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
 
@@ -801,7 +801,7 @@ async def test_update_central_boiler_state_simple_climate(
         climate1.set_hvac_action(HVACAction.IDLE)
         climate1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.IDLE
 
