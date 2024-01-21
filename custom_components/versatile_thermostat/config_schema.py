@@ -61,6 +61,7 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+        vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
         vol.Required(CONF_ADD_CENTRAL_BOILER_CONTROL, default=False): cv.boolean,
     }
 )
@@ -72,6 +73,7 @@ STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+        vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
     }
 )
 

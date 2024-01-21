@@ -33,6 +33,7 @@ MOCK_TH_OVER_4SWITCH_USER_CONFIG = {
     CONF_CYCLE_MIN: 8,
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_STEP_TEMPERATURE: 0.1,
     CONF_DEVICE_POWER: 1,
     CONF_USE_WINDOW_FEATURE: True,
     CONF_USE_MOTION_FEATURE: True,
@@ -59,6 +60,7 @@ MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_STEP_TEMPERATURE: 0.1,
     # Keep default values which are False
 }
 
@@ -66,6 +68,7 @@ MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_STEP_TEMPERATURE: 0.1,
     # Keep default values which are False
 }
 

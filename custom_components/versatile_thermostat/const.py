@@ -112,6 +112,7 @@ CONF_AUTO_FAN_LOW = "auto_fan_low"
 CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
+CONF_STEP_TEMPERATURE = "step_temperature"
 
 # Global params into configuration.yaml
 CONF_SHORT_EMA_PARAMS = "short_ema_params"
@@ -270,6 +271,7 @@ ALL_CONF = (
         CONF_CENTRAL_BOILER_ACTIVATION_SRV,
         CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
         CONF_WINDOW_ACTION,
+        CONF_STEP_TEMPERATURE,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
