@@ -84,7 +84,7 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*News*_
-> * **Release 5.4**: Added a temperature step [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311).
+> * **Release 5.4**: Added a temperature step [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311). Added some regulation thresholdfor `over_valve` VTherm in order to avoid drowing the battery of TRV devices [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338).
 > * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - more information here: [Controlling a central boiler](#controlling-a-central-boiler). Added the ability to disable security mode for outdoor thermometer [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2**: Added a `central_mode` allowing all VTherms to be controlled centrally [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1**: Limitation of the values sent to the valves and the temperature sent to the underlying climate.
