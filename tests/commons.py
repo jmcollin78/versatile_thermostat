@@ -146,6 +146,7 @@ FULL_CENTRAL_CONFIG = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_STEP_TEMPERATURE: 0.1,
     CONF_TPI_COEF_INT: 0.5,
     CONF_TPI_COEF_EXT: 0.02,
     "frost_temp": 10,
@@ -186,6 +187,7 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
     CONF_TEMP_MIN: 15,
     CONF_TEMP_MAX: 30,
+    CONF_STEP_TEMPERATURE: 0.1,
     CONF_TPI_COEF_INT: 0.5,
     CONF_TPI_COEF_EXT: 0.02,
     "frost_temp": 10,
@@ -263,6 +265,7 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
         self._attr_hvac_action = hvac_action
+        self._attr_target_temperature_step = 0.2
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
 
