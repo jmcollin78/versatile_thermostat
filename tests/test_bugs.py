@@ -624,7 +624,8 @@ async def test_bug_272(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.hvac_mode is HVACMode.OFF
-        assert entity.target_temperature_step == 0.5
+        # The VTherm value and not the underlying value
+        assert entity.target_temperature_step == 0.1
         assert entity.target_temperature == entity.min_temp
         assert entity.is_regulated is True
 

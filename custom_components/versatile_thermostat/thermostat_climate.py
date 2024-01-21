@@ -850,13 +850,14 @@ class ThermostatOverClimate(BaseThermostat):
 
         return self._support_flags
 
-    @property
-    def target_temperature_step(self) -> float | None:
-        """Return the supported step of target temperature."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).target_temperature_step
-
-        return None
+    # We keep the step configured for the VTherm and not the step of the underlying
+    # @property
+    # def target_temperature_step(self) -> float | None:
+    #     """Return the supported step of target temperature."""
+    #     if self.underlying_entity(0):
+    #         return self.underlying_entity(0).target_temperature_step
+    #
+    #     return None
 
     @property
     def target_temperature_high(self) -> float | None:
