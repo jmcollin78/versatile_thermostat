@@ -284,7 +284,7 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Vave open percent"
+        self._attr_name = "Valve open percent"
         self._attr_unique_id = f"{self._device_name}_valve_open_percent"
 
     @callback
