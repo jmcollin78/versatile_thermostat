@@ -151,7 +151,7 @@ Certains thermostat de type TRV sont réputés incompatibles avec le Versatile T
 2. Les thermostats « Homematic » (et éventuellement Homematic IP) sont connus pour rencontrer des problèmes avec le Versatile Thermostat en raison des limitations du protocole RF sous-jacent. Ce problème se produit particulièrement lorsque vous essayez de contrôler plusieurs thermostats Homematic à la fois dans une seule instance de VTherm. Afin de réduire la charge du cycle de service, vous pouvez par ex. regroupez les thermostats avec des procédures spécifiques à Homematic (par exemple en utilisant un thermostat mural) et laissez Versatile Thermostat contrôler uniquement le thermostat mural directement. Une autre option consiste à contrôler un seul thermostat et à propager les changements de mode CVC et de température par un automatisme,
 3. les thermostats de type Heatzy qui ne supportent pas les commandes de type set_temperature
 4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
-5. les TRV de type Sonoff TRVZB qui n'ont pas le retour d'état `hvac_action` permettant de savoir si elle chauffe ou pas. Donc les retours d'état sont faussés, le reste à l'air fonctionnel.
+5. les TRV de type Aqara SRTS-A01 qui n'ont pas le retour d'état `hvac_action` permettant de savoir si elle chauffe ou pas. Donc les retours d'état sont faussés, le reste à l'air fonctionnel.
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
