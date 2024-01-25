@@ -3,12 +3,13 @@
 import logging
 from datetime import timedelta, datetime
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
+    EventStateChangedData,
 )
-
+from homeassistant.helpers.typing import EventType as HASSEventType
 from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
@@ -16,7 +17,7 @@ from homeassistant.components.climate import (
 )
 
 from .commons import NowClass, round_to_nearest
-from .base_thermostat import BaseThermostat
+from .base_thermostat import BaseThermostat, ConfigData
 from .pi_algorithm import PITemperatureRegulator
 
 from .const import (
@@ -59,19 +60,19 @@ _LOGGER = logging.getLogger(__name__)
 class ThermostatOverClimate(BaseThermostat):
     """Representation of a base class for a Versatile Thermostat over a climate"""
 
-    _auto_regulation_mode: str = None
+    _auto_regulation_mode: str | None = None
     _regulation_algo = None
-    _regulated_target_temp: float = None
-    _auto_regulation_dtemp: float = None
-    _auto_regulation_period_min: int = None
-    _last_regulation_change: datetime = None
+    _regulated_target_temp: float | None = None
+    _auto_regulation_dtemp: float | None = None
+    _auto_regulation_period_min: int | None = None
+    _last_regulation_change: datetime | None = None
     # The fan mode configured in configEntry
-    _auto_fan_mode: str = None
+    _auto_fan_mode: str | None = None
     # The current fan mode (could be change by service call)
-    _current_auto_fan_mode: str = None
+    _current_auto_fan_mode: str | None = None
     # The fan_mode name depending of the current_mode
-    _auto_activated_fan_mode: str = None
-    _auto_deactivated_fan_mode: str = None
+    _auto_activated_fan_mode: str | None = None
+    _auto_deactivated_fan_mode: str | None = None
 
     _entity_component_unrecorded_attributes = (
         BaseThermostat._entity_component_unrecorded_attributes.union(
@@ -94,7 +95,9 @@ class ThermostatOverClimate(BaseThermostat):
         )
     )
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
+    ):
         """Initialize the thermostat over switch."""
         # super.__init__ calls post_init at the end. So it must be called after regulation initialization
         super().__init__(hass, unique_id, name, entry_infos)
@@ -127,7 +130,7 @@ class ThermostatOverClimate(BaseThermostat):
         return HVACAction.OFF
 
     @overrides
-    async def _async_internal_set_temperature(self, temperature):
+    async def _async_internal_set_temperature(self, temperature: float):
         """Set the target temperature and the target temperature of underlying climate if any"""
         await super()._async_internal_set_temperature(temperature)
 
@@ -239,7 +242,7 @@ class ThermostatOverClimate(BaseThermostat):
             await self.async_set_fan_mode(self._auto_deactivated_fan_mode)
 
     @overrides
-    def post_init(self, config_entry):
+    def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
@@ -281,7 +284,7 @@ class ThermostatOverClimate(BaseThermostat):
             else CONF_AUTO_FAN_NONE
         )
 
-    def choose_auto_regulation_mode(self, auto_regulation_mode):
+    def choose_auto_regulation_mode(self, auto_regulation_mode: str):
         """Choose or change the regulation mode"""
         self._auto_regulation_mode = auto_regulation_mode
         if self._auto_regulation_mode == CONF_AUTO_REGULATION_LIGHT:
@@ -357,7 +360,7 @@ class ThermostatOverClimate(BaseThermostat):
                 self.target_temperature, 0, 0, 0, 0, 0.1, 0
             )
 
-    def choose_auto_fan_mode(self, auto_fan_mode):
+    def choose_auto_fan_mode(self, auto_fan_mode: str):
         """Choose the correct fan mode depending of the underlying capacities and the configuration"""
 
         self._current_auto_fan_mode = auto_fan_mode
@@ -369,7 +372,7 @@ class ThermostatOverClimate(BaseThermostat):
             self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
             return
 
-        def find_fan_mode(fan_modes, fan_mode) -> str:
+        def find_fan_mode(fan_modes: list[str], fan_mode: str) -> str | None:
             """Return the fan_mode if it exist of None if not"""
             try:
                 return fan_mode if fan_modes.index(fan_mode) >= 0 else None
@@ -430,7 +433,7 @@ class ThermostatOverClimate(BaseThermostat):
         self.choose_auto_regulation_mode(self._auto_regulation_mode)
 
     @overrides
-    def restore_specific_previous_state(self, old_state):
+    def restore_specific_previous_state(self, old_state: State):
         """Restore my specific attributes from previous state"""
         old_error = old_state.attributes.get("regulation_accumulated_error")
         if old_error:
@@ -542,7 +545,7 @@ class ThermostatOverClimate(BaseThermostat):
         )
 
     @callback
-    async def _async_climate_changed(self, event):
+    async def _async_climate_changed(self, event: HASSEventType[EventStateChangedData]):
         """Handle unerdlying climate state changes.
         This method takes the underlying values and update the VTherm with them.
         To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
@@ -552,7 +555,7 @@ class ThermostatOverClimate(BaseThermostat):
         which is important for feedaback and which cannot generates loops.
         """
 
-        async def end_climate_changed(changes):
+        async def end_climate_changed(changes: bool):
             """To end the event management"""
             if changes:
                 self.async_write_ha_state()
@@ -745,7 +748,7 @@ class ThermostatOverClimate(BaseThermostat):
         await end_climate_changed(changes)
 
     @overrides
-    async def async_control_heating(self, force=False, _=None):
+    async def async_control_heating(self, force=False, _=None) -> bool:
         """The main function used to run the calculation at each cycle"""
         ret = await super().async_control_heating(force, _)
 
@@ -757,27 +760,27 @@ class ThermostatOverClimate(BaseThermostat):
         return ret
 
     @property
-    def auto_regulation_mode(self):
+    def auto_regulation_mode(self) -> str | None:
         """Get the regulation mode"""
         return self._auto_regulation_mode
 
     @property
-    def auto_fan_mode(self):
+    def auto_fan_mode(self) -> str | None:
         """Get the auto fan mode"""
         return self._auto_fan_mode
 
     @property
-    def regulated_target_temp(self):
+    def regulated_target_temp(self) -> float | None:
         """Get the regulated target temperature"""
         return self._regulated_target_temp
 
     @property
-    def is_regulated(self):
+    def is_regulated(self) -> bool:
         """Check if the ThermostatOverClimate is regulated"""
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
     @property
-    def hvac_modes(self):
+    def hvac_modes(self) -> list[HVACMode]:
         """List of available operation modes."""
         if self.underlying_entity(0):
             return self.underlying_entity(0).hvac_modes
@@ -944,7 +947,7 @@ class ThermostatOverClimate(BaseThermostat):
             await under.async_turn_aux_heat_off()
 
     @overrides
-    async def async_set_fan_mode(self, fan_mode):
+    async def async_set_fan_mode(self, fan_mode: str):
         """Set new target fan mode."""
         _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
         if fan_mode is None:
@@ -977,7 +980,7 @@ class ThermostatOverClimate(BaseThermostat):
         self._swing_mode = swing_mode
         self.async_write_ha_state()
 
-    async def service_set_auto_regulation_mode(self, auto_regulation_mode):
+    async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
         """Called by a service call:
         service: versatile_thermostat.set_auto_regulation_mode
         data:
@@ -1006,7 +1009,7 @@ class ThermostatOverClimate(BaseThermostat):
         await self._send_regulated_temperature()
         self.update_custom_attributes()
 
-    async def service_set_auto_fan_mode(self, auto_fan_mode):
+    async def service_set_auto_fan_mode(self, auto_fan_mode: str):
         """Called by a service call:
         service: versatile_thermostat.set_auto_fan_mode
         data:
