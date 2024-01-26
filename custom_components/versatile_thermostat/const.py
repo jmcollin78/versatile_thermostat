@@ -105,7 +105,7 @@ CONF_AUTO_REGULATION_STRONG = "auto_regulation_strong"
 CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
-CONF_AUTO_REGULATION_USE_INTERNAL_TEMP = "auto_regulation_use_internal_temp"
+CONF_AUTO_REGULATION_USE_DEVICE_TEMP = "auto_regulation_use_device_temp"
 CONF_INVERSE_SWITCH = "inverse_switch_command"
 CONF_AUTO_FAN_MODE = "auto_fan_mode"
 CONF_AUTO_FAN_NONE = "auto_fan_none"
@@ -256,7 +256,7 @@ ALL_CONF = (
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
-        CONF_AUTO_REGULATION_USE_INTERNAL_TEMP,
+        CONF_AUTO_REGULATION_USE_DEVICE_TEMP,
         CONF_INVERSE_SWITCH,
         CONF_AUTO_FAN_MODE,
         CONF_USE_MAIN_CENTRAL_CONFIG,

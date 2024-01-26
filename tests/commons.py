@@ -51,6 +51,7 @@ from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_CLIMATE_MAIN_CONFIG,
     MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_CONFIG,
+    MOCK_TH_OVER_CLIMATE_TYPE_USE_DEVICE_TEMP_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG,
     MOCK_TH_OVER_SWITCH_TPI_CONFIG,
@@ -106,6 +107,15 @@ PARTIAL_CLIMATE_CONFIG = (
     | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG
+    | MOCK_PRESETS_CONFIG
+    | MOCK_ADVANCED_CONFIG
+)
+
+PARTIAL_CLIMATE_CONFIG_USE_DEVICE_TEMP = (
+    MOCK_TH_OVER_CLIMATE_USER_CONFIG
+    | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
+    | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
+    | MOCK_TH_OVER_CLIMATE_TYPE_USE_DEVICE_TEMP_CONFIG
     | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
@@ -312,6 +322,10 @@ class MockClimate(ClimateEntity):
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
+
+    def set_current_temperature(self, current_temperature):
+        """Set the current_temperature"""
+        self._attr_current_temperature = current_temperature
 
 
 class MockUnavailableClimate(ClimateEntity):
