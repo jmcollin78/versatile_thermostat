@@ -1878,7 +1878,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         )
 
         if self.window_bypass_state or not self.is_window_auto_enabled:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "%s - Window auto event is ignored because bypass is ON or window auto detection is disabled",
                 self,
             )
