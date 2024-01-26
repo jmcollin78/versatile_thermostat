@@ -36,6 +36,7 @@ from .const import (
     CONF_AUTO_REGULATION_EXPERT,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
+    CONF_AUTO_REGULATION_USE_DEVICE_TEMP,
     CONF_AUTO_FAN_MODE,
     CONF_AUTO_FAN_NONE,
     CONF_AUTO_FAN_LOW,
@@ -90,6 +91,7 @@ class ThermostatOverClimate(BaseThermostat):
                     "current_auto_fan_mode",
                     "auto_activated_fan_mode",
                     "auto_deactivated_fan_mode",
+                    "auto_regulation_use_device_temp",
                 }
             )
         )
@@ -282,6 +284,10 @@ class ThermostatOverClimate(BaseThermostat):
             config_entry.get(CONF_AUTO_FAN_MODE)
             if config_entry.get(CONF_AUTO_FAN_MODE) is not None
             else CONF_AUTO_FAN_NONE
+        )
+
+        self._auto_regulation_use_device_temp = config_entry.get(
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP, False
         )
 
     def choose_auto_regulation_mode(self, auto_regulation_mode: str):
@@ -491,6 +497,10 @@ class ThermostatOverClimate(BaseThermostat):
         self._attr_extra_state_attributes[
             "auto_deactivated_fan_mode"
         ] = self._auto_deactivated_fan_mode
+
+        self._attr_extra_state_attributes[
+            "auto_regulation_use_device_temp"
+        ] = self.auto_regulation_use_device_temp
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -769,6 +779,11 @@ class ThermostatOverClimate(BaseThermostat):
     def auto_fan_mode(self) -> str | None:
         """Get the auto fan mode"""
         return self._auto_fan_mode
+
+    @property
+    def auto_regulation_use_device_temp(self) -> bool | None:
+        """Returns the value of parameter auto_regulation_use_device_temp"""
+        return self._auto_regulation_use_device_temp
 
     @property
     def regulated_target_temp(self) -> float | None:

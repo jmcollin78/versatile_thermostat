@@ -144,7 +144,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
                 mode="dropdown",
             )
         ),
-        vol.Optional(CONF_AUTO_REGULATION_USE_INTERNAL_TEMP, default=False): cv.boolean,
+        vol.Optional(CONF_AUTO_REGULATION_USE_DEVICE_TEMP, default=False): cv.boolean,
     }
 )
 
