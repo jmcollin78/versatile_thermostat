@@ -14,8 +14,10 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_component import EntityComponent
 
-
-from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.base_thermostat import (
+    BaseThermostat,
+    ConfigData,
+)
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -57,7 +59,9 @@ async def async_setup_entry(
 class CentralModeSelect(SelectEntity, RestoreEntity):
     """Representation of the central mode choice"""
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
+    ):
         """Initialize the energy sensor"""
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
@@ -67,7 +71,7 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
         self._attr_current_option = CENTRAL_MODE_AUTO
 
     @property
-    def icon(self) -> str | None:
+    def icon(self) -> str:
         return "mdi:form-select"
 
     @property
@@ -116,7 +120,7 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
             self._attr_current_option = option
             await self.notify_central_mode_change(old_central_mode=old_option)
 
-    async def notify_central_mode_change(self, old_central_mode=None):
+    async def notify_central_mode_change(self, old_central_mode: str | None = None):
         """Notify all VTherm that the central_mode have change"""
         # Update all VTherm states
         component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
@@ -130,5 +134,5 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
                     self._attr_current_option, old_central_mode
                 )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"

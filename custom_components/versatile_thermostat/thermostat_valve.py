@@ -6,11 +6,13 @@ from datetime import timedelta, datetime
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
+    EventStateChangedData,
 )
+from homeassistant.helpers.typing import EventType as HASSEventType
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.components.climate import HVACMode
 
-from .base_thermostat import BaseThermostat
+from .base_thermostat import BaseThermostat, ConfigData
 from .prop_algorithm import PropAlgorithm
 
 from .const import (
@@ -55,12 +57,14 @@ class ThermostatOverValve(BaseThermostat):
         )
     )
 
-    def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
+    def __init__(
+        self, hass: HomeAssistant, unique_id: str, name: str, config_entry: ConfigData
+    ):
         """Initialize the thermostat over switch."""
         self._valve_open_percent: int = 0
-        self._last_calculation_timestamp: datetime = None
-        self._auto_regulation_dpercent: float = None
-        self._auto_regulation_period_min: int = None
+        self._last_calculation_timestamp: datetime | None = None
+        self._auto_regulation_dpercent: float | None = None
+        self._auto_regulation_period_min: int | None = None
 
         # Call to super must be done after initialization because it calls post_init at the end
         super().__init__(hass, unique_id, name, config_entry)
@@ -79,7 +83,7 @@ class ThermostatOverValve(BaseThermostat):
             return self._valve_open_percent
 
     @overrides
-    def post_init(self, config_entry):
+    def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
@@ -144,7 +148,7 @@ class ThermostatOverValve(BaseThermostat):
         )
 
     @callback
-    async def _async_valve_changed(self, event):
+    async def _async_valve_changed(self, event: HASSEventType[EventStateChangedData]):
         """Handle unerdlying valve state changes.
         This method just log the change. It changes nothing to avoid loops.
         """

@@ -3,7 +3,11 @@
 """ A climate over switch classe """
 import logging
 from homeassistant.core import callback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import (
+    async_track_state_change_event,
+    EventStateChangedData,
+)
+from homeassistant.helpers.typing import EventType as HASSEventType
 from homeassistant.components.climate import HVACMode
 
 from .const import (
@@ -15,7 +19,7 @@ from .const import (
     overrides,
 )
 
-from .base_thermostat import BaseThermostat
+from .base_thermostat import BaseThermostat, ConfigData
 from .underlyings import UnderlyingSwitch
 from .prop_algorithm import PropAlgorithm
 
@@ -51,7 +55,7 @@ class ThermostatOverSwitch(BaseThermostat):
     # def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
     #    """Initialize the thermostat over switch."""
     #    super().__init__(hass, unique_id, name, config_entry)
-    _is_inversed: bool = None
+    _is_inversed: bool | None = None
 
     @property
     def is_over_switch(self) -> bool:
@@ -72,7 +76,7 @@ class ThermostatOverSwitch(BaseThermostat):
             return None
 
     @overrides
-    def post_init(self, config_entry):
+    def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
@@ -200,7 +204,7 @@ class ThermostatOverSwitch(BaseThermostat):
         )
 
     @callback
-    def _async_switch_changed(self, event):
+    def _async_switch_changed(self, event: HASSEventType[EventStateChangedData]):
         """Handle heater switch state changes."""
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
