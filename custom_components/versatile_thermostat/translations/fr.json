@@ -60,6 +60,7 @@
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
+          "auto_regulation_use_internal_temp": "Utiliser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
           "auto_fan_mode": " Auto ventilation mode"
         },
@@ -82,6 +83,7 @@
           "auto_regulation_mode": "Ajustement automatique de la température cible",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
+          "auto_regulation_use_internal_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
@@ -309,6 +311,7 @@
           "auto_regulation_mode": "Auto-regulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
+          "auto_regulation_use_internal_temp": "Utiliser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
           "auto_fan_mode": " Auto fan mode"
         },
@@ -331,6 +334,7 @@
           "auto_regulation_mode": "Ajustement automatique de la consigne",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
+          "auto_regulation_use_internal_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
