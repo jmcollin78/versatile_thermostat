@@ -430,7 +430,8 @@ class ThermostatOverClimate(BaseThermostat):
         )
 
         # init auto_regulation_mode
-        self.choose_auto_regulation_mode(self._auto_regulation_mode)
+        # Issue 325 - do only once (in post_init and not here)
+        # self.choose_auto_regulation_mode(self._auto_regulation_mode)
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):
