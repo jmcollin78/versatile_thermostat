@@ -91,8 +91,7 @@ class PITemperatureRegulator:
 
         result = round(self.target_temp + total_offset, 1)
 
-        # TODO Change to debug after experimental
-        _LOGGER.info(
+        _LOGGER.debug(
             "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
             error,
             self.accumulated_error,

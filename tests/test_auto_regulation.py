@@ -473,10 +473,11 @@ async def test_over_climate_regulation_use_device_temp(
             )
 
         # 3. change temperature so that the regulated temperature should slow down
+        # HVACMODE.HEAT
         # room temp is 15
         # target is 18
-        # internal heater temp is 13
-        fake_underlying_climate.set_current_temperature(13)
+        # internal heater temp is 20
+        fake_underlying_climate.set_current_temperature(20)
         await entity.async_set_temperature(temperature=18)
         await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
@@ -498,7 +499,7 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 21.4,  # 19.4 + 2
+                            "temperature": 24.4,  # 19.4 + 5
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },

@@ -214,15 +214,12 @@ class ThermostatOverClimate(BaseThermostat):
                     )
                 )
             ):
-                offset_temp = self.current_temperature - device_temp
+                offset_temp = device_temp - self.current_temperature
 
-            if self.hvac_mode == HVACMode.COOL:
-                target_temp = self.regulated_target_temp - offset_temp
-            else:
-                target_temp = self.regulated_target_temp + offset_temp
+            target_temp = self.regulated_target_temp + offset_temp
 
             _LOGGER.debug(
-                "%s - the device offset temp for regulation is %.2f - internal temp is %.2f. Nes target is %.2f",
+                "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
                 self,
                 offset_temp,
                 device_temp,
