@@ -4,9 +4,9 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png?raw=true)
+![Tip](images/icon.png)
 
-> ![Tip](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
+> ![Tip](images/tips.png) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
 
 - [Changements majeurs dans la version 5.0](#changements-majeurs-dans-la-version-50)
 - [Merci pour la bière buymecoffee](#merci-pour-la-bière-buymecoffee)
@@ -83,7 +83,7 @@
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 
-> ![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true) _*Nouveautés*_
+> ![Nouveau](images/new-icon.png) _*Nouveautés*_
 > * **Release 5.4** : Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311). Ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338)
 > * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale). Ajout de la possibilité de désactiver le mode sécurité pour le thermomètre extérieur [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
@@ -111,7 +111,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 </details>
 
 # Changements majeurs dans la version 5.0
-![Nouveau](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/new-icon.png?raw=true)
+![Nouveau](images/new-icon.png)
 
 Vous pouvez maintenant définir une configuration centrale qui va vous permettre de mettre en commun sur tous vos VTherms (ou seulement une partie), certains attributs. Pour utiliser cette possibilité, vous devez :
 1. Créer un VTherm de type "Configuration Centrale",
@@ -194,7 +194,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 
 -- VTherm = Versatile Thermostat dans la suite de ce document --
 
-> ![Astuce](/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 >
 > Trois façons de configurer les VTherms sont disponibles :
 > 1. Chaque Versatile Thermostat est entièrement configurée de manière indépendante. Choisissez cette option si vous ne souhaitez avoir aucune configuration ou gestion centrale.
@@ -205,7 +205,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 ## Création d'un nouveau Versatile Thermostat
 Cliquez sur le bouton Ajouter une intégration dans la page d'intégration
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/add-an-integration.png?raw=true)
+![image](images/add-an-integration.png)
 
 La configuration peut être modifiée via la même interface. Sélectionnez simplement le thermostat à modifier, appuyez sur "Configurer" et vous pourrez modifier certains paramètres ou la configuration.
 
@@ -213,9 +213,9 @@ Suivez ensuite les étapes de configuration comme suit :
 
 ## Choix des attributs de base
 
-![image](/images/config-main0.png?raw=true)
+![image](images/config-main0.png)
 
-![image](/images/config-main.png?raw=true)
+![image](images/config-main.png)
 
 Donnez les principaux attributs obligatoires :
 1. un nom (sera le nom de l'intégration et aussi le nom de l'entité climate)
@@ -228,14 +228,14 @@ Donnez les principaux attributs obligatoires :
 9. la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
 10. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 >  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
 >  2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
 
 ## Sélectionnez des entités pilotées
 En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type `switch`, `climate` ou `number`. Seules les entités compatibles avec le type sont présentées.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Comment choisir le type*_
+> ![Astuce](images/tips.png) _*Comment choisir le type*_
 > Le choix du type est important. Même si il toujours possible de le modifier ensuite via l'IHM de configuration, il est préférable de se poser les quelques questions suivantes :
 > 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire :
 >    1. si vous avez une vanne thermostatique (TRV) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
@@ -244,18 +244,18 @@ En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou
 > 2. **quelle type de régulation je veux ?** Si l'équipement piloté possède son propre mécanisme de régulation (clim, certaine vanne TRV) et que cette régulation fonctionne bien, optez pour un ```over_climate```
 
 ### Pour un thermostat de type ```thermostat_over_switch```
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity.png?raw=true)
+![image](images/config-linked-entity.png)
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 Exemple de déclenchement synchronisé :
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/multi-switch-activation.png?raw=true)
+![image](images/multi-switch-activation.png)
 
 Il est possible de choisir un thermostat over switch qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
 
 Si votre équipement est commandé par un fil pilote avec un diode, vous aurez certainement besoin de cocher la case "Inverser la case". Elle permet de mettre le switch à On lorsqu'on doit étiendre l'équipement et à Off lorsqu'on doit l'allumer.
 
 ### Pour un thermostat de type ```thermostat_over_climate```:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity2.png?raw=true)
+![image](images/config-linked-entity2.png)
 
 Il est possible de choisir un thermostat over climate qui commande une climatisation réversible en cochant la case "AC Mode". Dans ce cas, selon l'équipement commandé vous aurez accès au chauffage et/ou au réfroidissement.
 
@@ -278,7 +278,7 @@ La fonction d'auto-régulation se paramètre avec :
 
 Ces trois paramètres permettent de moduler la régulation et éviter de multiplier les envois de régulation. Certains équipements comme les TRV, les chaudières n'aiment pas qu'on change la consigne de température trop souvent.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Conseil de mise en place*_
+> ![Astuce](images/tips.png) _*Conseil de mise en place*_
 > 1. Ne démarrez pas tout de suite l'auto-régulation. Regardez comment se passe la régulation naturelle de votre équipement. Si vous constatez que la température de consigne n'est pas atteinte ou qu'elle met trop de temps à être atteinte, démarrez la régulation,
 > 2. D'abord commencez par une légère auto-régulation et gardez les deux paramètres avec leur valeurs par défaut. Attendez quelques jours et vérifiez si la situation s'est améliorée,
 > 3. Si ce n'est pas suffisant, passez en auto-régulation Medium, attendez une stabilisation,
@@ -375,7 +375,7 @@ Si votre équipement ne comprend pas le mode Turbo, le mode Forte` sera utilisé
 Une fois l'écart de température redevenu faible, la ventilation se mettra dans un mode "normal" qui dépend de votre équipement à savoir (dans l'ordre) : `Silence (mute)`, `Auto (auto)`, `Faible (low)`. La première valeur qui est possible pour votre équipement sera choisie.
 
 ### Pour un thermostat de type ```thermostat_over_valve```:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-linked-entity3.png?raw=true)
+![image](images/config-linked-entity3.png)
 Vous pouvez choisir jusqu'à entité du domaine ```number``` ou ```ìnput_number``` qui vont commander les vannes.
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
 
@@ -385,7 +385,7 @@ Il est possible de choisir un thermostat over valve qui commande une climatisati
 
 Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` vous arriverez sur cette page :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-tpi.png?raw=true)
+![image](images/config-tpi.png)
 
 Vous devez donner :
 1. le coefficient coef_int de l'algorithme TPI,
@@ -397,7 +397,7 @@ Pour plus d'informations sur l'algorithme TPI et son réglage, veuillez vous ré
 ## Configurer la température préréglée
 Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presets.png?raw=true)
+![image](images/config-presets.png)
 
 Le mode préréglé (preset) vous permet de préconfigurer la température ciblée. Utilisé en conjonction avec Scheduler (voir [scheduler](#even-better-with-scheduler-component) vous aurez un moyen puissant et simple d'optimiser la température par rapport à la consommation électrique de votre maison. Les préréglages gérés sont les suivants :
  - **Eco** : l'appareil est en mode d'économie d'énergie
@@ -408,7 +408,7 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
 
 **Aucun** est toujours ajouté dans la liste des modes, car c'est un moyen de ne pas utiliser les preset mais une **température manuelle** à la place.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 >  1. En modifiant manuellement la température cible, réglez le préréglage sur Aucun (pas de préréglage). De cette façon, vous pouvez toujours définir une température cible même si aucun préréglage n'est disponible.
 >  2. Le préréglage standard ``Away`` est un préréglage caché qui n'est pas directement sélectionnable. Versatile Thermostat utilise la gestion de présence ou la gestion de mouvement pour régler automatiquement et dynamiquement la température cible en fonction d'une présence dans le logement ou d'une activité dans la pièce. Voir [gestion de la présence](#configure-the-presence-management).
 >  3. Si vous utilisez la gestion du délestage, vous verrez un préréglage caché nommé ``power``. Le préréglage de l'élément chauffant est réglé sur « puissance » lorsque des conditions de surpuissance sont rencontrées et que le délestage est actif pour cet élément chauffant. Voir [gestion de l'alimentation](#configure-the-power-management).
@@ -423,7 +423,7 @@ La détecttion des ouvertures peut se faire de 2 manières:
 
 ### Le mode capteur
 En mode capteur, vous devez renseigner les informations suivantes:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-sensor.png?raw=true)
+![image](images/config-window-sensor.png)
 
 1. un identifiant d'entité d'un **capteur de fenêtre/porte**. Cela devrait être un binary_sensor ou un input_boolean. L'état de l'entité doit être 'on' lorsque la fenêtre est ouverte ou 'off' lorsqu'elle est fermée
 2. un **délai en secondes** avant tout changement. Cela permet d'ouvrir rapidement une fenêtre sans arrêter le chauffage.
@@ -431,7 +431,7 @@ En mode capteur, vous devez renseigner les informations suivantes:
 
 ### Le mode auto
 En mode auto, la configuration est la suivante:
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-window-auto.png?raw=true)
+![image](images/config-window-auto.png)
 
 1. un seuil de détection en degré par minute. Lorsque la température chute au delà de ce seuil, le thermostat s'éteindra. Plus cette valeur est faible et plus la détection sera rapide (en contre-partie d'un risque de faux positif),
 2. un seuil de fin de détection en degré par minute. Lorsque la chute de température repassera au-dessus cette valeur, le thermostat se remettra dans le mode précédent (mode et preset),
@@ -443,14 +443,14 @@ Pour régler les seuils il est conseillé de commencer avec les valeurs de réf�
 - durée max : 60 min.
 
 Un nouveau capteur "slope" a été ajouté pour tous les thermostats. Il donne la pente de la courbe de température en °C/min (ou °K/min). Cette pente est lissée et filtrée pour éviter les valeurs abérrantes des thermomètres qui viendraient pertuber la mesure.
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/temperature-slope.png?raw=true)
+![image](images/temperature-slope.png)
 
 Pour bien régler il est conseillé d'affocher sur un même graphique historique la courbe de température et la pente de la courbe (le "slope") :
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/window-auto-tuning.png?raw=true)
+![image](images/window-auto-tuning.png)
 
 Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvertes et se rallumera lorsqu'il sera fermé.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 >  1. Si vous souhaitez utiliser **plusieurs capteurs de porte/fenêtre** pour automatiser votre thermostat, créez simplement un groupe avec le comportement habituel (https://www.home-assistant.io/integrations/binary_sensor.group/)
 >  2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide,
 >  3. **Un seul mode est permis**. On ne peut pas configurer un thermostat avec un capteur et une détection automatique. Les 2 modes risquant de se contredire, il n'est pas possible d'avoir les 2 modes en même temps,
@@ -459,7 +459,7 @@ Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvert
 ## Configurer le mode d'activité ou la détection de mouvement
 Si vous avez choisi la fonctionnalité ```Avec détection de mouvement```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-motion.png?raw=true)
+![image](images/config-motion.png)
 
 Nous allons maintenant voir comment configurer le nouveau mode Activité.
 Ce dont nous avons besoin:
@@ -479,21 +479,21 @@ Alors imaginons que nous voulions avoir le comportement suivant :
 
 Pour que cela fonctionne, le thermostat doit être en mode préréglé « Activité ».
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
     1. Sachez que comme pour les autres modes prédéfinis, ``Activity`` ne sera proposé que s'il est correctement configuré. En d'autres termes, les 4 clés de configuration doivent être définies si vous souhaitez voir l'activité dans l'interface de l'assistant domestique
 
 ## Configurer la gestion de la puissance
 
 Si vous avez choisi la fonctionnalité ```Avec détection de la puissance```, cliquez sur 'Valider' sur la page précédente et vous arriverez ici :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-power.png?raw=true)
+![image](images/config-power.png)
 
 Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées. Donnez un **capteur à la consommation électrique actuelle de votre maison**, un **capteur à la puissance max** qu'il ne faut pas dépasser, la **consommation électrique totale des équipements du VTherm** (en étape 1 de la configuration) et l'algorithme ne démarrera pas un radiateur si la puissance maximale sera dépassée après le démarrage du radiateur.
 
 Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW ou W par exemple).
 Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou de ce que vous voulez.
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 > 1. En cas de délestage, le radiateur est réglé sur le préréglage nommé ```power```. Il s'agit d'un préréglage caché, vous ne pouvez pas le sélectionner manuellement.
 > 2. Je l'utilise pour éviter de dépasser la limite de mon contrat d'électricité lorsqu'un véhicule électrique est en charge. Cela crée une sorte d'autorégulation.
 > 3. Gardez toujours une marge, car la puissance max peut être brièvement dépassée en attendant le calcul du prochain cycle typiquement ou par des équipements non régulés.
@@ -504,7 +504,7 @@ Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'u
 Si sélectionnée en première page, cette fonction vous permet de modifier dynamiquement la température de tous les préréglages du thermostat configurés lorsque personne n'est à la maison ou lorsque quelqu'un rentre à la maison. Pour cela, vous devez configurer la température qui sera utilisée pour chaque préréglage lorsque la présence est désactivée. Lorsque le capteur de présence s'éteint, ces températures seront utilisées. Lorsqu'il se rallume, la température "normale" configurée pour le préréglage est utilisée. Voir [gestion des préréglages](#configure-the-preset-temperature).
 Pour configurer la présence remplissez ce formulaire :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-presence.png?raw=true)
+![image](images/config-presence.png)
 
 Pour cela, vous devez configurer :
 1. Un **capteur d'occupation** dont l'état doit être 'on' ou 'home' si quelqu'un est présent ou 'off' ou 'not_home' sinon,
@@ -516,7 +516,7 @@ Si le mode AC est utilisé, vous pourrez aussi configurer les températures lors
 
 ATTENTION : les groupes de personnes ne fonctionnent pas en tant que capteur de présence. Ils ne sont pas reconnus comme un capteur de présence. Vous devez utiliser, un template comme décrit ici [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence).
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 > 1. le changement de température est immédiat et se répercute sur le volet avant. Le calcul prendra en compte la nouvelle température cible au prochain calcul du cycle,
 > 2. vous pouvez utiliser le capteur direct person.xxxx ou un groupe de capteurs de Home Assistant. Le capteur de présence gère les états ``on`` ou ``home`` comme présents et les états ``off`` ou ``not_home`` comme absents.
 
@@ -524,7 +524,7 @@ ATTENTION : les groupes de personnes ne fonctionnent pas en tant que capteur de 
 Ces paramètres permettent d'affiner le réglage du thermostat.
 Le formulaire de configuration avancée est le suivant :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/config-advanced.png?raw=true)
+![image](images/config-advanced.png)
 
 Le premier délai (minimal_activation_delay_sec) en secondes est le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint.
 
@@ -546,7 +546,7 @@ Par défaut, le thermomètre extérieur peut déclencher une mise en sécurité 
 
 Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglage communs
 
-> ![Astuce](/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 > 1. Lorsque le capteur de température viendra à la vie et renverra les températures, le préréglage sera restauré à sa valeur précédente,
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
@@ -566,7 +566,7 @@ Cette entité se présente sous la forme d'une liste de choix qui contient les c
 Il est donc possible de contrôler tous les VTherms (que ceux que l'on désigne explicitement) avec un seul contrôle.
 Exemple de rendu :
 
-![central_mode](/images/central_mode.png?raw=true)
+![central_mode](images/central_mode.png)
 
 ## Le contrôle d'une chaudière centrale
 Depuis la release 5.3, vous avez la possibilité de contrôler une chaudière centralisée. A partir du moment où il est possible de déclencher ou stopper cette chaudière depuis Home Assistant, alors Versatile Thermostat va pouvoir la commander directement.
@@ -584,16 +584,16 @@ Le principe mis en place est globalement le suivant :
 Vous avez donc en permanence, les informations qui permettent de piloter et régler le déclenchement de la chaudière.
 
 Toutes ces entités sont rattachés au service de configuration centrale :
-![Les entités pilotant la chaudière](/images/entitites-central-boiler.png?raw=true)
+![Les entités pilotant la chaudière](images/entitites-central-boiler.png)
 
 ### Configuration
 Pour configurer cette fonction, vous devez avoir une configuration centralisée (cf. [Configuration](#configuration)) et cochez la case 'Ajouter une chuadière centrale' :
 
-![Ajout d'une chaudière centrale](/images/config-central-boiler-1.png?raw=true)
+![Ajout d'une chaudière centrale](images/config-central-boiler-1.png)
 
 Sur la page suivante vous pouvez donner la configuration des services à appeler lors de l'allumage / extinction de la chaudière :
 
-![Ajout d'une chaudière centrale](/images/config-central-boiler-2.png?raw=true)
+![Ajout d'une chaudière centrale](images/config-central-boiler-2.png)
 
 Les services se configurent comme indiqués dans la page :
 1. le format général est `entity_id/service_id[/attribut:valeur]` (où `/attribut:valeur` est facultatif),
@@ -616,11 +616,11 @@ Exemple:
 
 Sous "Outils de développement / Service" :
 
-![Configuration du service](/images/dev-tools-turnon-boiler-1.png?raw=true)
+![Configuration du service](images/dev-tools-turnon-boiler-1.png)
 
 En mode yaml :
 
-![Configuration du service](/images/dev-tools-turnon-boiler-2.png?raw=true)
+![Configuration du service](images/dev-tools-turnon-boiler-2.png)
 
 Le service à configurer est alors le suivant: `climate.empty_thermostast/climate.set_hvac_mode/hvac_mode:heat` (notez la suppression du blanc dans `hvac_mode:heat`)
 
@@ -665,7 +665,7 @@ context:
 
 ### Avertissement
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
 > Le contrôle par du logiciel ou du matériel de type domotique d'une chaudière centrale peut induire des risques pour son bon fonctionnement. Assurez-vous avant d'utiliser ces fonctions, que votre chaudière possède bien des fonctions de sécurité et que celles-ci fonctionnent. Allumer une chaudière si tous les robinets sont fermés peut générer de la sur-pression par exemple.
 
 ## Synthèse des paramètres
@@ -816,7 +816,7 @@ Voir quelques situations à [examples](#some-results).
 
 Avec le thermostat sont disponibles des capteurs qui permettent de visualiser les alertes et l'état interne du thermostat. Ils sont disponibles dans les entités de l'appareil associé au thermostat :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/thermostat-sensors.png?raw=true)
+![image](images/thermostat-sensors.png)
 
 Dans l'ordre, il y a :
 1. l'entité principale climate de commande du thermostat,
@@ -849,7 +849,7 @@ frontend:
 ```
 et choisissez le thème ```versatile_thermostat_theme``` dans la configuration du panel. Vous obtiendrez quelque-chose qui va ressembler à ça :
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/colored-thermostat-sensors.png?raw=true)
+![image](images/colored-thermostat-sensors.png)
 
 # Services
 
@@ -895,7 +895,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-> ![Astuce](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/tips.png?raw=true) _*Notes*_
+> ![Astuce](images/tips.png) _*Notes*_
     - après un redémarrage, les préréglages sont réinitialisés à la température configurée. Si vous souhaitez que votre changement soit permanent, vous devez modifier le préréglage de la température dans la configuration de l'intégration.
 
 ## Modifier les paramètres de sécurité
@@ -950,7 +950,7 @@ Vous pouvez très facilement capter ses évènements dans une automatisation par
 # Attributs personnalisés
 
 Pour régler l'algorithme, vous avez accès à tout le contexte vu et calculé par le thermostat via des attributs dédiés. Vous pouvez voir (et utiliser) ces attributs dans l'IHM "Outils de développement / états" de HA. Entrez votre thermostat et vous verrez quelque chose comme ceci :
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/dev-tools-climate.png?raw=true)
+![image](images/dev-tools-climate.png)
 
 Les attributs personnalisés sont les suivants :
 
@@ -1001,23 +1001,23 @@ Les attributs personnalisés sont les suivants :
 # Quelques résultats
 
 **Convergence de la température vers la cible configurée par preset:**
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-1.png?raw=true)
+![image](images/results-1.png)
 
 [Cycle de marche/arrêt calculé par l'intégration :](https://)
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-2.png?raw=true)
+![image](images/results-2.png)
 
 **Coef_int trop élevé (oscillations autour de la cible)**
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-3.png?raw=true)
+![image](images/results-3.png)
 
 **Évolution du calcul de l'algorithme**
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-4.png?raw=true)
+![image](images/results-4.png)
 Voir le code de ce composant [[ci-dessous](#even-better-with-apex-chart-to-tune-your-thermostat)]
 
 **Thermostat finement réglé**
 Merci [impuR_Shozz](https://forum.hacf.fr/u/impur_shozz/summary) !
 On peut voir une stabilité autour de la température cible (consigne) et lorsqu'à cible le on_percent (puissance) est proche de 0,3 ce qui semble une très bonne valeur.
 
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/results-fine-tuned.png?raw=true)
+![image](images/results-fine-tuned.png)
 
 Enjoy !
 
@@ -1056,7 +1056,7 @@ J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos re
 
 ## Encore bien mieux avec la custom:simple-thermostat front integration
 Le ``custom:simple-thermostat`` [ici](https://github.com/nervetattoo/simple-thermostat) est une excellente intégration qui permet une certaine personnalisation qui s'adapte bien à ce thermostat.
-Vous pouvez avoir quelque chose comme ça très facilement ![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/simple-thermostat.png?raw=true)
+Vous pouvez avoir quelque chose comme ça très facilement ![image](images/simple-thermostat.png)
 Exemple de configuration :
 
 ```
@@ -1099,7 +1099,7 @@ Vous pouvez personnaliser ce composant à l'aide du composant HACS card-mod pour
               }
               {% endif %}
 ```
-![image](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/custom-css-thermostat.png?raw=true)
+![image](images/custom-css-thermostat.png)
 
 ## Toujours mieux avec Plotly pour régler votre thermostat
 Vous pouvez obtenir une courbe comme celle présentée dans [some results](#some-results) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](#custom-attributes) :
@@ -1172,7 +1172,7 @@ Remplacez les valeurs entre [[ ]] par les votres.
 
 Exemple de courbes obtenues avec Plotly :
 
-![image](/images/plotly-curves.png?raw=true)
+![image](images/plotly-curves.png)
 
 ## Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.
@@ -1366,11 +1366,11 @@ Tous ces paramètres se règlent dans la dernière page de la configuration du V
 Le premier symptôme est une température anormalement basse avec un temps de chauffe faible à chaque cycle et régulier.
 Exemple:
 
-[security mode](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome1.png?raw=true)
+[security mode](images/security-mode-symptome1.png)
 
 Si vous avez installé la carte [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), le VTherm en question aura cette forme là :
 
-[security mode UI Card](https://github.com/jmcollin78/versatile_thermostat/blob/main/images/security-mode-symptome2.png?raw=true)
+[security mode UI Card](images/security-mode-symptome2.png)
 
 Vous pouvez aussi vérifier dans les attributs du VTherm les dates de réception des différentes dates. **Les attributs sont disponibles dans les Outils de développement / Etats**.
 
