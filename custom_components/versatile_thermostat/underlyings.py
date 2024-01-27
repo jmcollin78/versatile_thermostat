@@ -581,23 +581,9 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return
 
-        # issue 348 - use device temperature if configured as offset
-        offset_temp = 0
-        if self._thermostat.auto_regulation_use_device_temp and hasattr(
-            self._underlying_climate, "current_temperature"
-        ):
-            device_temp = self._underlying_climate.current_temperature
-            offset_temp = device_temp - self._thermostat.current_temperature
-            _LOGGER.debug(
-                "%s - the device offset temp for regulation is %.2f - internal temp is %.2f",
-                self,
-                offset_temp,
-                device_temp,
-            )
-
         data = {
             ATTR_ENTITY_ID: self._entity_id,
-            "temperature": self.cap_sent_value(temperature + offset_temp),
+            "temperature": self.cap_sent_value(temperature),
             "target_temp_high": max_temp,
             "target_temp_low": min_temp,
         }
@@ -698,6 +684,18 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return False
         return self._underlying_climate.is_aux_heat
+
+    @property
+    def underlying_current_temperature(self) -> float | None:
+        """Get the underlying current_temperature if it exists
+        and if initialized"""
+        if not self.is_initialized:
+            return None
+
+        if not hasattr(self._underlying_climate, "current_temperature"):
+            return None
+
+        return self._underlying_climate.current_temperature
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""

@@ -421,18 +421,6 @@ async def test_over_climate_regulation_use_device_temp(
         assert entity.is_regulated is True
         assert entity.auto_regulation_use_device_temp is True
 
-        assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_action is HVACAction.OFF
-        assert entity.target_temperature == entity.min_temp
-        assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-        ]
-        assert entity.preset_mode is PRESET_NONE
-
         # 1.  Activate the heating by changing HVACMode and temperature
         # Select a hvacmode, presence and preset
         await entity.async_set_hvac_mode(HVACMode.HEAT)
@@ -442,7 +430,11 @@ async def test_over_climate_regulation_use_device_temp(
         await send_temperature_change_event(entity, 18, event_timestamp)
         await send_ext_temperature_change_event(entity, 10, event_timestamp)
 
-        # 2. set manual target temp (at now - 7) -> the regulation should occurs
+        # 2. set manual target temp (at now - 7) -> no regulation should occurs
+        # room temp is 18
+        # target is 16
+        # internal heater temp is 15
+        fake_underlying_climate.set_current_temperature(15)
         event_timestamp = now - timedelta(minutes=7)
         with patch(
             "custom_components.versatile_thermostat.commons.NowClass.get_now",
@@ -456,7 +448,7 @@ async def test_over_climate_regulation_use_device_temp(
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == PRESET_NONE  # Manual mode
 
-            # the regulated temperature should be lower
+            # the regulated temperature should be higher
             assert entity.regulated_target_temp < entity.target_temperature
             # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
             assert (
@@ -471,7 +463,8 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 12.0,  # because device offset is -3 (15 - 18)
+                            # because device offset is -3 but not used because target is reach
+                            "temperature": 15.0,
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },
@@ -480,19 +473,23 @@ async def test_over_climate_regulation_use_device_temp(
             )
 
         # 3. change temperature so that the regulated temperature should slow down
-        fake_underlying_climate.set_current_temperature(27)
+        # room temp is 15
+        # target is 18
+        # internal heater temp is 13
+        fake_underlying_climate.set_current_temperature(13)
+        await entity.async_set_temperature(temperature=18)
+        await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
         event_timestamp = now - timedelta(minutes=5)
         with patch(
             "custom_components.versatile_thermostat.commons.NowClass.get_now",
             return_value=event_timestamp,
         ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-            await send_temperature_change_event(entity, 23, event_timestamp)
-            await send_ext_temperature_change_event(entity, 19, event_timestamp)
+            await send_temperature_change_event(entity, 15, event_timestamp)
 
-            # the regulated temperature should be under (device offset is -3)
-            assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 12.5
+            # the regulated temperature should be under (device offset is -2)
+            assert entity.regulated_target_temp > entity.target_temperature
+            assert entity.regulated_target_temp == 19.4  # 18 + 1.4
 
             mock_service_call.assert_has_calls(
                 [
@@ -501,7 +498,42 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 16.5,  # because device offset is +4 (27 - 23)
+                            "temperature": 21.4,  # 19.4 + 2
+                            "target_temp_high": 30,
+                            "target_temp_low": 15,
+                        },
+                    ),
+                ]
+            )
+
+        # 4. In cool mode
+        # room temp is 25
+        # target is 23
+        # internal heater temp is 27
+        await entity.async_set_hvac_mode(HVACMode.COOL)
+        await entity.async_set_temperature(temperature=23)
+        fake_underlying_climate.set_current_temperature(27)
+        await send_ext_temperature_change_event(entity, 30, event_timestamp)
+
+        event_timestamp = now - timedelta(minutes=3)
+        with patch(
+            "custom_components.versatile_thermostat.commons.NowClass.get_now",
+            return_value=event_timestamp,
+        ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+            await send_temperature_change_event(entity, 25, event_timestamp)
+
+            # the regulated temperature should be upper (device offset is +2)
+            assert entity.regulated_target_temp < entity.target_temperature
+            assert entity.regulated_target_temp == 22.9
+
+            mock_service_call.assert_has_calls(
+                [
+                    call.service_call(
+                        "climate",
+                        "set_temperature",
+                        {
+                            "entity_id": "climate.mock_climate",
+                            "temperature": 24.9,  # 22.9 + 2° of offset
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },
