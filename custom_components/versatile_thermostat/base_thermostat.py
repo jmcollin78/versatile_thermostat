@@ -1233,9 +1233,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
 
         # If AC is on maybe we have to change the temperature in force mode, but not in frost mode (there is no Frost protection possible in AC mode)
-        if self._hvac_mode == HVACMode.COOL:
+        if self._hvac_mode == HVACMode.COOL and self.preset_mode != PRESET_NONE:
             if self.preset_mode != PRESET_FROST_PROTECTION:
-                await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
+                await self._async_set_preset_mode_internal(self.preset_mode, True)
             else:
                 await self._async_set_preset_mode_internal(PRESET_ECO, True, False)
 
