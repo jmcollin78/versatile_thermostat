@@ -194,8 +194,45 @@ class ThermostatOverClimate(BaseThermostat):
 
         self._last_regulation_change = now
         for under in self._underlyings:
+            # issue 348 - use device temperature if configured as offset
+            offset_temp = 0
+            device_temp = 0
+            if (
+                # regulation can use the device_temp
+                self.auto_regulation_use_device_temp
+                # and we have access to the device temp
+                and (device_temp := under.underlying_current_temperature) is not None
+                # and target is not reach (ie we need regulation)
+                and (
+                    (
+                        self.hvac_mode == HVACMode.COOL
+                        and self.target_temperature < self.current_temperature
+                    )
+                    or (
+                        self.hvac_mode == HVACMode.HEAT
+                        and self.target_temperature > self.current_temperature
+                    )
+                )
+            ):
+                offset_temp = self.current_temperature - device_temp
+
+            if self.hvac_mode == HVACMode.COOL:
+                target_temp = self.regulated_target_temp - offset_temp
+            else:
+                target_temp = self.regulated_target_temp + offset_temp
+
+            _LOGGER.debug(
+                "%s - the device offset temp for regulation is %.2f - internal temp is %.2f. Nes target is %.2f",
+                self,
+                offset_temp,
+                device_temp,
+                target_temp,
+            )
+
             await under.set_temperature(
-                self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
+                target_temp,
+                self._attr_max_temp,
+                self._attr_min_temp,
             )
 
     async def _send_auto_fan_mode(self):

@@ -1,0 +1,7 @@
+Before copying to forum you need to replace relative images by this command into VSCode:
+
+Search :
+\(images/(.*).png\)
+
+Replace with:
+(https://github.com/jmcollin78/versatile_thermostat/blob/main/images/$1.png?raw=true)
