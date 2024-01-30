@@ -264,6 +264,7 @@ async def test_over_switch_deactivate_preset(
             CONF_HEATER_2: None,
             CONF_HEATER_3: None,
             CONF_HEATER_4: None,
+            CONF_HEATER_KEEP_ALIVE: 0,
             CONF_SECURITY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
         },

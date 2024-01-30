@@ -32,6 +32,7 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 
 from .const import UnknownEntity, overrides
+from .keep_alive import IntervalCaller
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -187,6 +188,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         thermostat: Any,
         switch_entity_id: str,
         initial_delay_sec: int,
+        keep_alive_sec: int,
     ) -> None:
         """Initialize the underlying switch"""
 
@@ -202,6 +204,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_time_sec = 0
         self._off_time_sec = 0
         self._hvac_mode = None
+        self._keep_alive = IntervalCaller(hass, keep_alive_sec)
 
     @property
     def initial_delay_sec(self):
@@ -213,6 +216,13 @@ class UnderlyingSwitch(UnderlyingEntity):
     def is_inversed(self):
         """Tells if the switch command should be inversed"""
         return self._thermostat.is_inversed
+
+    @overrides
+    def startup(self):
+        super().startup()
+        self._keep_alive.set_async_action(
+            self.turn_on if self.is_device_active else self.turn_off
+        )
 
     # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
@@ -245,12 +255,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         domain = self._entity_id.split(".")[0]
         # This may fails if called after shutdown
         try:
-            data = {ATTR_ENTITY_ID: self._entity_id}
-            await self._hass.services.async_call(
-                domain,
-                command,
-                data,
-            )
+            try:
+                data = {ATTR_ENTITY_ID: self._entity_id}
+                await self._hass.services.async_call(domain, command, data)
+                self._keep_alive.set_async_action(self.turn_off)
+            except Exception:
+                self._keep_alive.cancel()
+                raise
         except ServiceNotFound as err:
             _LOGGER.error(err)
 
@@ -260,12 +271,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         command = SERVICE_TURN_ON if not self.is_inversed else SERVICE_TURN_OFF
         domain = self._entity_id.split(".")[0]
         try:
-            data = {ATTR_ENTITY_ID: self._entity_id}
-            await self._hass.services.async_call(
-                domain,
-                command,
-                data,
-            )
+            try:
+                data = {ATTR_ENTITY_ID: self._entity_id}
+                await self._hass.services.async_call(domain, command, data)
+                self._keep_alive.set_async_action(self.turn_on)
+            except Exception:
+                self._keep_alive.cancel()
+                raise
         except ServiceNotFound as err:
             _LOGGER.error(err)
 
@@ -422,6 +434,7 @@ class UnderlyingSwitch(UnderlyingEntity):
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()
+        self._keep_alive.cancel()
 
 
 class UnderlyingClimate(UnderlyingEntity):

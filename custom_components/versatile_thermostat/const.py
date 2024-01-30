@@ -51,6 +51,7 @@ CONF_HEATER = "heater_entity_id"
 CONF_HEATER_2 = "heater_entity2_id"
 CONF_HEATER_3 = "heater_entity3_id"
 CONF_HEATER_4 = "heater_entity4_id"
+CONF_HEATER_KEEP_ALIVE = "heater_keep_alive"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"
 CONF_EXTERNAL_TEMP_SENSOR = "external_temperature_sensor_entity_id"
 CONF_POWER_SENSOR = "power_sensor_entity_id"
@@ -211,6 +212,7 @@ ALL_CONF = (
         CONF_HEATER_2,
         CONF_HEATER_3,
         CONF_HEATER_4,
+        CONF_HEATER_KEEP_ALIVE,
         CONF_TEMP_SENSOR,
         CONF_EXTERNAL_TEMP_SENSOR,
         CONF_POWER_SENSOR,

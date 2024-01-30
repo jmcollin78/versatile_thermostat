@@ -41,7 +41,7 @@
     - [How to find the right service?](#how-to-find-the-right-service)
     - [The events](#the-events)
     - [Warning](#warning)
-  - [Parameters synthesis](#parameters-synthesis)
+  - [Parameter summary](#parameter-summary)
 - [Examples tuning](#examples-tuning)
   - [Electrical heater](#electrical-heater)
   - [Central heating (gaz or fuel heating system)](#central-heating-gaz-or-fuel-heating-system)
@@ -244,7 +244,10 @@ Depending on your choice of thermostat type, you will need to choose one or more
 It is possible to choose an over switch thermostat which controls air conditioning by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
 
 ### For a ```thermostat_over_switch``` type thermostat
-![image](images/config-linked-entity.png)
+![image](images/en/config-linked-entity.png)
+
+Some heater switches require regular "keep-alive messages" to prevent them from triggering a failsafe switch off. This feature can be enabled through the switch keep-alive interval configuration field.
+
 The algorithm to use is currently limited to TPI is available. See [algorithm](#algorithm).
 If several type entities are configured, the thermostat shifts the activations in order to minimize the number of switches active at a time t. This allows for better power distribution since each radiator will turn on in turn.
 Example of synchronized triggering:
@@ -654,9 +657,9 @@ context:
 > ![Tip](images/tips.png) _*Notes*_
 > Controlling a central boiler using software or hardware such as home automation can pose risks to its proper functioning. Before using these functions, make sure that your boiler has safety functions and that they are working. Turning on a boiler if all the taps are closed can generate excess pressure, for example.
 
-## Parameters synthesis
+## Parameter summary
 
-| Paramètre                                 | Libellé                                                                       | "over switch" | "over climate"      | "over valve" | "central configuration" |
+| Parameter                                 | Description                                                                   | "over switch" | "over climate"      | "over valve" | "central configuration" |
 | ----------------------------------------- | ----------------------------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
 | ``name``                                  | Name                                                                          | X             | X                   | X            | -                       |
 | ``thermostat_type``                       | Thermostat type                                                               | X             | X                   | X            | -                       |
@@ -675,6 +678,7 @@ context:
 | ``heater_entity2_id``                     | 2nd heater switch                                                             | X             | -                   | -            | -                       |
 | ``heater_entity3_id``                     | 3rd heater switch                                                             | X             | -                   | -            | -                       |
 | ``heater_entity4_id``                     | 4th heater switch                                                             | X             | -                   | -            | -                       |
+| ``heater_keep_alive``                     | Switch keep-alive interval                                                    | X             | -                   | -            | -                       |
 | ``proportional_function``                 | Algorithm                                                                     | X             | -                   | X            | -                       |
 | ``climate_entity1_id``                    | 1rst underlying climate                                                       | -             | X                   | -            | -                       |
 | ``climate_entity2_id``                    | 2nd underlying climate                                                        | -             | X                   | -            | -                       |

@@ -245,6 +245,9 @@ En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou
 
 ### Pour un thermostat de type ```thermostat_over_switch```
 ![image](images/config-linked-entity.png)
+
+Certains équipements nécessitent d'être périodiquement sollicités pour empêcher un arrêt de sécurité. Connu sous le nom de "keep-alive" cette fonction est activable en entrant un nombre de secondes non nul dans le champ d'intervalle keep-alive du thermostat. Pour désactiver la fonction ou en cas de doute, laissez-le vide ou entrez zéro (valeur par défaut).
+
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 Exemple de déclenchement synchronisé :
@@ -689,6 +692,7 @@ context:
 | ``heater_entity2_id``                     | 2ème radiateur                                                                    | X             | -                   | -            | -                        |
 | ``heater_entity3_id``                     | 3ème radiateur                                                                    | X             | -                   | -            | -                        |
 | ``heater_entity4_id``                     | 4ème radiateur                                                                    | X             | -                   | -            | -                        |
+| ``heater_keep_alive``                     | Intervalle de rafraichissement du switch                                          | X             | -                   | -            | -                        |
 | ``proportional_function``                 | Algorithme                                                                        | X             | -                   | -            | -                        |
 | ``climate_entity1_id``                    | Thermostat sous-jacent                                                            | -             | X                   | -            | -                        |
 | ``climate_entity2_id``                    | 2ème thermostat sous-jacent                                                       | -             | X                   | -            | -                        |
