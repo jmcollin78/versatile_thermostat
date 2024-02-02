@@ -127,9 +127,7 @@ async def test_over_climate_regulation(
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 18 - 2
-            )  # normally 0.6 but round_to_nearest gives 0.5
+            assert entity.regulated_target_temp == 18 - 2.5
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -525,7 +523,7 @@ async def test_over_climate_regulation_use_device_temp(
 
             # the regulated temperature should be upper (device offset is +2)
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 22.9
+            assert entity.regulated_target_temp == 22.4
 
             mock_service_call.assert_has_calls(
                 [
@@ -534,7 +532,7 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 24.9,  # 22.9 + 2° of offset
+                            "temperature": 24.4,  # 22.4 + 2° of offset
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },

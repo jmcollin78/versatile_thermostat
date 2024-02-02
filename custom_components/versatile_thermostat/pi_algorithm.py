@@ -47,10 +47,10 @@ class PITemperatureRegulator:
     def set_target_temp(self, target_temp):
         """Set the new target_temp"""
         self.target_temp = target_temp
-        # Do not reset the accumulated error
         # Discussion #191. After a target change we should reset the accumulated error which is certainly wrong now.
-        if self.accumulated_error < 0:
-            self.accumulated_error = 0
+        # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
+        # if self.accumulated_error < 0:
+        #     self.accumulated_error = 0
 
     def calculate_regulated_temperature(
         self, room_temp: float, external_temp: float
@@ -71,6 +71,11 @@ class PITemperatureRegulator:
         error = self.target_temp - room_temp
 
         # Calculate the sum of error (I)
+        # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
+        # If the error have change its sign, reset smoothly the accumulated error
+        if error * self.accumulated_error < 0:
+            self.accumulated_error = self.accumulated_error / 2.0
+
         self.accumulated_error += error
 
         # Capping of the error
