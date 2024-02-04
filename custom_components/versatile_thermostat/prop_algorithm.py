@@ -1,6 +1,8 @@
 """ The TPI calculation module """
 import logging
 
+from homeassistant.components.climate import HVACMode
+
 _LOGGER = logging.getLogger(__name__)
 
 PROPORTIONAL_FUNCTION_ATAN = "atan"
@@ -46,19 +48,20 @@ class PropAlgorithm:
 
     def calculate(
         self,
-        target_temp: float,
-        current_temp: float,
-        ext_current_temp: float,
-        cooling=False,
+        target_temp: float | None,
+        current_temp: float | None,
+        ext_current_temp: float | None,
+        hvac_mode: HVACMode,
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
-            _LOGGER.warning(
+            log = _LOGGER.debug if hvac_mode == HVACMode.OFF else _LOGGER.warning
+            log(
                 "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating/cooling will be disabled"  # pylint: disable=line-too-long
             )
             self._calculated_on_percent = 0
         else:
-            if cooling:
+            if hvac_mode == HVACMode.COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = (
                     ext_current_temp

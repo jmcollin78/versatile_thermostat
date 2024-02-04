@@ -183,7 +183,7 @@ class ThermostatOverSwitch(BaseThermostat):
             self._target_temp,
             self._cur_temp,
             self._cur_ext_temp,
-            self._hvac_mode == HVACMode.COOL,
+            self._hvac_mode or HVACMode.OFF,
         )
         self.update_custom_attributes()
         self.async_write_ha_state()
