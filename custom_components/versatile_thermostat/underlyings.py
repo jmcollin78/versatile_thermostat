@@ -580,6 +580,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Set the target temperature"""
         if not self.is_initialized:
             return
+
         data = {
             ATTR_ENTITY_ID: self._entity_id,
             "temperature": self.cap_sent_value(temperature),
@@ -683,6 +684,18 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return False
         return self._underlying_climate.is_aux_heat
+
+    @property
+    def underlying_current_temperature(self) -> float | None:
+        """Get the underlying current_temperature if it exists
+        and if initialized"""
+        if not self.is_initialized:
+            return None
+
+        if not hasattr(self._underlying_climate, "current_temperature"):
+            return None
+
+        return self._underlying_climate.current_temperature
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""

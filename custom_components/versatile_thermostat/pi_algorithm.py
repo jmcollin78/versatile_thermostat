@@ -47,16 +47,16 @@ class PITemperatureRegulator:
     def set_target_temp(self, target_temp):
         """Set the new target_temp"""
         self.target_temp = target_temp
-        # Do not reset the accumulated error
         # Discussion #191. After a target change we should reset the accumulated error which is certainly wrong now.
-        if self.accumulated_error < 0:
-            self.accumulated_error = 0
+        # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
+        # if self.accumulated_error < 0:
+        #     self.accumulated_error = 0
 
     def calculate_regulated_temperature(
-        self, internal_temp: float, external_temp: float
+        self, room_temp: float, external_temp: float
     ):  # pylint: disable=unused-argument
         """Calculate a new target_temp given some temperature"""
-        if internal_temp is None:
+        if room_temp is None:
             _LOGGER.warning(
                 "Temporarily skipping the self-regulation algorithm while the configured sensor for room temperature is unavailable"
             )
@@ -68,9 +68,14 @@ class PITemperatureRegulator:
             return self.target_temp
 
         # Calculate the error factor (P)
-        error = self.target_temp - internal_temp
+        error = self.target_temp - room_temp
 
         # Calculate the sum of error (I)
+        # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
+        # If the error have change its sign, reset smoothly the accumulated error
+        if error * self.accumulated_error < 0:
+            self.accumulated_error = self.accumulated_error / 2.0
+
         self.accumulated_error += error
 
         # Capping of the error
@@ -83,18 +88,11 @@ class PITemperatureRegulator:
         offset = self.kp * error + self.ki * self.accumulated_error
 
         # Calculate the exterior offset
-        # For Maia tests - use the internal_temp vs external_temp and not target_temp - external_temp
-        offset_ext = self.k_ext * (internal_temp - external_temp)
+        offset_ext = self.k_ext * (room_temp - external_temp)
 
-        # Capping of offset_ext
+        # Capping of offset
         total_offset = offset + offset_ext
         total_offset = min(self.offset_max, max(-self.offset_max, total_offset))
-
-        # If temperature is near the target_temp, reset the accumulated_error
-        # Issue #199 - don't reset the accumulation error
-        # if abs(error) < self.stabilization_threshold:
-        #     _LOGGER.debug("Stabilisation")
-        #     self.accumulated_error = 0
 
         result = round(self.target_temp + total_offset, 1)
 

@@ -36,6 +36,7 @@ from .const import (
     CONF_AUTO_REGULATION_EXPERT,
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
+    CONF_AUTO_REGULATION_USE_DEVICE_TEMP,
     CONF_AUTO_FAN_MODE,
     CONF_AUTO_FAN_NONE,
     CONF_AUTO_FAN_LOW,
@@ -90,6 +91,7 @@ class ThermostatOverClimate(BaseThermostat):
                     "current_auto_fan_mode",
                     "auto_activated_fan_mode",
                     "auto_deactivated_fan_mode",
+                    "auto_regulation_use_device_temp",
                 }
             )
         )
@@ -192,8 +194,42 @@ class ThermostatOverClimate(BaseThermostat):
 
         self._last_regulation_change = now
         for under in self._underlyings:
+            # issue 348 - use device temperature if configured as offset
+            offset_temp = 0
+            device_temp = 0
+            if (
+                # regulation can use the device_temp
+                self.auto_regulation_use_device_temp
+                # and we have access to the device temp
+                and (device_temp := under.underlying_current_temperature) is not None
+                # and target is not reach (ie we need regulation)
+                and (
+                    (
+                        self.hvac_mode == HVACMode.COOL
+                        and self.target_temperature < self.current_temperature
+                    )
+                    or (
+                        self.hvac_mode == HVACMode.HEAT
+                        and self.target_temperature > self.current_temperature
+                    )
+                )
+            ):
+                offset_temp = device_temp - self.current_temperature
+
+            target_temp = self.regulated_target_temp + offset_temp
+
+            _LOGGER.debug(
+                "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
+                self,
+                offset_temp,
+                device_temp,
+                target_temp,
+            )
+
             await under.set_temperature(
-                self.regulated_target_temp, self._attr_max_temp, self._attr_min_temp
+                target_temp,
+                self._attr_max_temp,
+                self._attr_min_temp,
             )
 
     async def _send_auto_fan_mode(self):
@@ -282,6 +318,10 @@ class ThermostatOverClimate(BaseThermostat):
             config_entry.get(CONF_AUTO_FAN_MODE)
             if config_entry.get(CONF_AUTO_FAN_MODE) is not None
             else CONF_AUTO_FAN_NONE
+        )
+
+        self._auto_regulation_use_device_temp = config_entry.get(
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP, False
         )
 
     def choose_auto_regulation_mode(self, auto_regulation_mode: str):
@@ -491,6 +531,10 @@ class ThermostatOverClimate(BaseThermostat):
         self._attr_extra_state_attributes[
             "auto_deactivated_fan_mode"
         ] = self._auto_deactivated_fan_mode
+
+        self._attr_extra_state_attributes[
+            "auto_regulation_use_device_temp"
+        ] = self.auto_regulation_use_device_temp
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -769,6 +813,11 @@ class ThermostatOverClimate(BaseThermostat):
     def auto_fan_mode(self) -> str | None:
         """Get the auto fan mode"""
         return self._auto_fan_mode
+
+    @property
+    def auto_regulation_use_device_temp(self) -> bool | None:
+        """Returns the value of parameter auto_regulation_use_device_temp"""
+        return self._auto_regulation_use_device_temp
 
     @property
     def regulated_target_temp(self) -> float | None:
