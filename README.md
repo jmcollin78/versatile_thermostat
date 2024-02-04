@@ -24,6 +24,8 @@
     - [For a thermostat of type ```thermostat_over_climate```:](#for-a-thermostat-of-type-thermostat_over_climate)
       - [Self-regulation](#self-regulation)
       - [Self-regulation in Expert mode](#self-regulation-in-expert-mode)
+      - [Internal temperature compensation](#internal-temperature-compensation)
+      - [synthesis of the self-regulation algorithm](#synthesis-of-the-self-regulation-algorithm)
       - [Auto-fan mode](#auto-fan-mode)
     - [For a thermostat of type ```thermostat_over_valve```:](#for-a-thermostat-of-type-thermostat_over_valve)
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
@@ -84,7 +86,11 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](images/new-icon.png) _*News*_
-> * **Release 5.4**: Added a temperature step [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311). Added some regulation thresholdfor `over_valve` VTherm in order to avoid drowing the battery of TRV devices [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338).
+> * **Release 5.4**:
+>   - Added temperature step [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
+>   - addition of regulation thresholds for the `over_valve` to avoid draining the TRV battery too much [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
+>   - added an option allowing the internal temperature of a TRV to be used to force self-regulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
+>   - added a keep-alive function for VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
 > * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - more information here: [Controlling a central boiler](#controlling-a-central-boiler). Added the ability to disable security mode for outdoor thermometer [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2**: Added a `central_mode` allowing all VTherms to be controlled centrally [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1**: Limitation of the values sent to the valves and the temperature sent to the underlying climate.
@@ -365,6 +371,36 @@ versatile_thermostat:
 and of course, configure the VTherm's self-regulation mode in **Expert** mode. All VTherms in Expert mode will use these same settings.
 
 For the changes to be taken into account, you must either **completely restart Home Assistant** or just the **Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat).
+
+#### Internal temperature compensation
+Sometimes, it happens that the internal thermometer of the underlying (TRV, air conditioning, etc.) is so wrong that self-regulation is not enough to regulate.
+This happens when the internal thermometer is too close to the heat source. The internal temperature then rises much faster than the room temperature, which generates faults in the regulation.
+Example :
+1. the room temperature is 18°, the setpoint is 20°,
+2. the internal temperature of the equipment is 22°,
+3. if VTherm sends 21° as setpoint (= 20° + 1° auto-regulation), then the equipment will not heat because its internal temperature (22°) is above the setpoint (21°)
+
+To overcome this, a new optional option was added in version 5.4: ![Use of internal temperature](images/config-use-internal-temp.png)
+
+When enabled, this function will add the difference between the internal temperature and the room temperature to the setpoint to force heating.
+In the example above, the difference is +4° (22° - 18°), so VTherm will send 25° (21°+4°) to the equipment forcing it to heat up.
+
+This difference is calculated for each underlying because each has its own internal temperature. Think of a VTherm which would be connected to 3 TRVs each with its internal temperature for example.
+
+We then obtain much more effective self-regulation which avoids the pitfall of large variations in faulty internal temperature.
+
+#### synthesis of the self-regulation algorithm
+The self-regulation algorithm can be summarized as follows:
+
+1. initialize the target temperature as the VTherm setpoint,
+1. If self-regulation is activated,
+    1. calculates the regulated temperature (valid for a VTherm),
+    2. take this temperature as a target,
+2. For each underlying of the VTherm,
+      1. If "use internal temperature" is checked,
+           1. calculates the offset (trv internal temp - room temp),
+      2. Adding the offset to the target temperature,
+      3. sends the target temperature (= regulated temp + (internal temp - room temp)) to the underlying
 
 #### Auto-fan mode
 This mode introduced in 4.3 makes it possible to force the use of ventilation if the temperature difference is significant. In fact, by activating ventilation, distribution occurs more quickly, which saves time in reaching the target temperature.
@@ -728,6 +764,7 @@ context:
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                         | -             | X                   | -            | -                       |
 | ``inverse_switch_command``                | Inverse the switch command (for pilot wire switch)                            | X             | -                   | -            | -                       |
 | ``auto_fan_mode``                         | Auto fan mode                                                                 | -             | X                   | -            | -                       |
+| ``auto_regulation_use_device_temp``       | Use the internal temperature of the underlying device                         | -             | X                   | -            | -                       |
 | ``add_central_boiler_control``            | Add the control of a central boiler                                           | -             | -                   | -            | X                       |
 | ``central_boiler_activation_service``     | Activation service of the boiler                                              | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Deactivaiton service of the boiler                                            | -             | -                   | -            | X                       |

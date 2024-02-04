@@ -24,6 +24,8 @@
     - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
       - [L'auto-régulation](#lauto-régulation)
       - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
+      - [Compensation de la température interne](#compensation-de-la-température-interne)
+      - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
       - [Le mode auto-fan](#le-mode-auto-fan)
     - [Pour un thermostat de type ```thermostat_over_valve```:](#pour-un-thermostat-de-type-thermostat_over_valve)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
@@ -84,7 +86,11 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 
 
 > ![Nouveau](images/new-icon.png) _*Nouveautés*_
-> * **Release 5.4** : Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311). Ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338)
+> * **Release 5.4** :
+>   - Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
+>   - ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
+>   - ajout d'une option permettant d'utiliser la température interne d'un TRV pour forcer l' auto-régulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
+>   - ajout d'une fonction de keep-alive pour les VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
 > * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale). Ajout de la possibilité de désactiver le mode sécurité pour le thermomètre extérieur [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
@@ -367,6 +373,37 @@ versatile_thermostat:
 et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les VTherm en mode **Expert** utiliseront ces mêmes paramètres.
 
 Pour que les modifications soient prises en compte, il faut soit **relancer totalement Home Assistant** soit juste l'intégration Versatile Thermostat (Outils de dev / Yaml / rechargement de la configuration / Versatile Thermostat).
+
+#### Compensation de la température interne
+Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l' auto-régulation ne suffise pas à réguler.
+Cela arrive lorsque le thermomètre interne est trop près de la source de chaleur. La température interne monte alors beaucoup plus vite que la température de la pièce, ce qui génère des défauts dans la régulation.
+Exemple :
+1. la température de la pièce est 18°, la consigne est à 20°,
+2. la température interne de l'équipement est de 22°,
+3. si VTherm envoie 21° comme consigne (= 20° + 1° d'auto-regulation), alors l'équipement ne chauffera pas car sa température interne (22°) est au-dessus de la consigne (21°)
+
+Pour palier à ça, une nouvelle option facultative a été ajoutée en version 5.4 : ![Utilisation de la température interne](images/config-use-internal-temp.png)
+
+Lorsqu'elle est activée, cette fonction ajoutera l'écart entre la température interne et la température de la pièce à la consigne pour forcer le chauffage.
+Dans l'exemple ci-dessus, l'écart est de +4° (22° - 18°), donc VTherm enverra 25° (21°+4°) à l'équipement le forçant ainsi à chauffer.
+
+Cet écart est calculé pour chaque sous-jacent car chacun à sa propre température interne. Pensez à un VTherm qui serait relié à 3 TRV chacun avec sa température interne par exemple.
+
+On obtient alors une auto-régulation bien plus efficace qui évite l'eccueil des gros écarts de température interne défaillante.
+
+#### Synthèse de l'algorithme d'auto-régulation
+L'algorithme d'auto-régulation peut être synthétisé comme suit:
+
+1. initialiser la température cible comme la consigne du VTherm,
+1. Si l'auto-régulation est activée,
+   1. calcule de la température régulée (valable pour un VTherm),
+   2. prendre cette température comme cible,
+2. Pour chaque sous-jacent du VTherm,
+     1. Si "utiliser la température interne" est cochée,
+          1. calcule de l'écart (trv internal temp - room temp),
+     2. ajout de l'écart à la température cible,
+     3. envoie de la température cible ( = temp regulee + (temp interne - temp pièce)) au sous-jacent
+
 
 
 #### Le mode auto-fan
@@ -741,6 +778,7 @@ context:
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -            | -                        |
 | ``inverse_switch_command``                | Inverse la commande du switch (pour switch avec fil pilote)                       | X             | -                   | -            | -                        |
 | ``auto_fan_mode``                         | Mode de ventilation automatique                                                   | -             | X                   | -            | -                        |
+| ``auto_regulation_use_device_temp``       | Utilisation de la température interne du sous-jacent                              | -             | X                   | -            | -                        |
 | ``add_central_boiler_control``            | Ajout du controle d'une chaudière centrale                                        | -             | -                   | -            | X                        |
 | ``central_boiler_activation_service``     | Service d'activation de la chaudière                                              | -             | -                   | -            | X                        |
 | ``central_boiler_deactivation_service``   | Service de desactivation de la chaudière                                          | -             | -                   | -            | X                        |
