@@ -1,4 +1,5 @@
 """ Some usefull commons class """
+
 # pylint: disable=line-too-long
 
 import logging
@@ -182,6 +183,9 @@ class VersatileThermostatBaseEntity(Entity):
         """Returns my climate if found"""
         if not self._my_climate:
             self._my_climate = self.find_my_versatile_thermostat()
+            if self._my_climate:
+                # Only the first time
+                self.my_climate_is_initialized()
         return self._my_climate
 
     @property
@@ -237,6 +241,11 @@ class VersatileThermostatBaseEntity(Entity):
                 )
 
         await try_find_climate(None)
+
+    @callback
+    def my_climate_is_initialized(self):
+        """Called when the associated climate is initialized"""
+        return
 
     @callback
     async def async_my_climate_changed(
