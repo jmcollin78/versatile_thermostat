@@ -81,6 +81,7 @@
     - [Comment être averti lorsque cela se produit ?](#comment-être-averti-lorsque-cela-se-produit-)
     - [Comment réparer ?](#comment-réparer-)
   - [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence)
+  - [Activer les logs du Versatile Thermostat](#activer-les-logs-du-versatile-thermostat)
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
@@ -1465,6 +1466,15 @@ Fichier `configuration.yaml`:
 template: !include templates.yaml
 ...
 ```
+
+## Activer les logs du Versatile Thermostat
+Des fois, vous aurez besoin d'activer les logs pour afiner les analyses. Pour cela, éditer le fichier `logger.yaml` de votre configuration et configurer les logs comme suit :
+```
+default: xxxx
+logs:
+  custom_components.versatile_thermostat: info
+```
+Vous devez recharger la configuration yaml (Outils de dev / Yaml / Toute la configuration Yaml) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
 
 ***
 

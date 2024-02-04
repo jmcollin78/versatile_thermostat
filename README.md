@@ -81,6 +81,7 @@
     - [How can I be notified when this happens?](#how-can-i-be-notified-when-this-happens)
     - [How to repair?](#how-to-repair)
   - [Using a group of people as a presence sensor](#using-a-group-of-people-as-a-presence-sensor)
+  - [Enable Versatile Thermostat logs](#enable-versatile-thermostat-logs)
 
 
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
@@ -1448,6 +1449,15 @@ You will note in this example, the use of an input_boolean named force_presence 
 template: !include templates.yaml
 ...
 ```
+
+## Enable Versatile Thermostat logs
+Sometimes you will need to enable logs to refine the analyses. To do this, edit the `logger.yaml` file of your configuration and configure the logs as follows:
+```
+default: xxxx
+logs:
+   custom_components.versatile_thermostat: info
+```
+You must reload the yaml configuration (Dev Tools / Yaml / All Yaml configuration) or restart Home Assistant for this change to take effect.
 
 ***
 
