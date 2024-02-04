@@ -234,7 +234,7 @@ class ThermostatOverValve(BaseThermostat):
             self._target_temp,
             self._cur_temp,
             self._cur_ext_temp,
-            self._hvac_mode == HVACMode.COOL,
+            self._hvac_mode or HVACMode.OFF,
         )
 
         new_valve_percent = round(
