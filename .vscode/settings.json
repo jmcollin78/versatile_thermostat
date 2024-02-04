@@ -16,7 +16,7 @@
     "python.analysis.extraPaths": [
     //    "/home/vscode/core",
         "/workspaces/versatile_thermostat/custom_components/versatile_thermostat",
-        "/home/vscode/.local/lib/python3.11/site-packages/homeassistant"
+        "/home/vscode/.local/lib/python3.12/site-packages/homeassistant"
     ],
     "python.formatting.provider": "none"
 }

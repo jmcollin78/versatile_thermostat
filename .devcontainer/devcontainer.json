@@ -21,12 +21,15 @@
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
+				"ms-python.pylint",
+				"ms-python.vscode-pylance",
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"visualstudioexptteam.vscodeintellicode",
+				"redhat.vscode-yaml",
 				"github.vscode-pull-request-github",
 				"ryanluker.vscode-coverage-gutters",
-				"ms-python.black-formatter",
-				"ms-python.pylint",
 				"ferrierbenjamin.fold-unfold-all-icone",
-				"ms-python.isort",
 				"LittleFoxTeam.vscode-python-test-adapter",
 				"donjayamanne.githistory",
 				"waderyan.gitblame",
@@ -55,9 +58,9 @@
 				"editor.formatOnPaste": false,
 				"editor.formatOnSave": true,
 				"editor.formatOnType": true,
-				"files.trimTrailingWhitespace": true,
-				"python.experiments.optOutFrom": ["pythonTestAdapter"],
-    			"python.analysis.logLevel": "Trace"
+				"files.trimTrailingWhitespace": true
+				// "python.experiments.optOutFrom": ["pythonTestAdapter"],
+    			// "python.analysis.logLevel": "Trace"
 			}
 		}
 	}
