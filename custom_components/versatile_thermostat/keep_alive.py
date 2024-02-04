@@ -43,6 +43,7 @@ class IntervalCaller:
 
         async def callback(_time: datetime):
             try:
+                _LOGGER.debug("Calling keep-alive action")
                 await action()
             except Exception as e:  # pylint: disable=broad-exception-caught
                 _LOGGER.error(e)
