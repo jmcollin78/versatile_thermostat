@@ -217,6 +217,11 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Tells if the switch command should be inversed"""
         return self._thermostat.is_inversed
 
+    @property
+    def keep_alive_sec(self) -> float:
+        """Return the switch keep-alive interval in seconds."""
+        return self._keep_alive.interval_sec
+
     @overrides
     def startup(self):
         super().startup()
