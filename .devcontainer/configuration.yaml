@@ -1,8 +1,5 @@
 default_config:
 
-# ffmeg
-ffmpeg:
-
 logger:
     default: info
     logs:
