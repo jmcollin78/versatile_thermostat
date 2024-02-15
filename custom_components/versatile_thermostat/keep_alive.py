@@ -24,7 +24,7 @@ class IntervalCaller:
     Convenience wrapper around Home Assistant's `async_track_time_interval` function.
     """
 
-    def __init__(self, hass: HomeAssistant, interval_sec: int) -> None:
+    def __init__(self, hass: HomeAssistant, interval_sec: float) -> None:
         self._hass = hass
         self._interval_sec = interval_sec
         self._remove_handle: CALLBACK_TYPE | None = None

@@ -188,7 +188,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         thermostat: Any,
         switch_entity_id: str,
         initial_delay_sec: int,
-        keep_alive_sec: int,
+        keep_alive_sec: float,
     ) -> None:
         """Initialize the underlying switch"""
 
