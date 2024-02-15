@@ -58,7 +58,7 @@ from .underlyings import UnderlyingClimate
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverClimate(BaseThermostat):
+class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     """Representation of a base class for a Versatile Thermostat over a climate"""
 
     _auto_regulation_mode: str | None = None

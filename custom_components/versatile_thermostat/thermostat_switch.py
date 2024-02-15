@@ -27,7 +27,7 @@ from .prop_algorithm import PropAlgorithm
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverSwitch(BaseThermostat):
+class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
     _entity_component_unrecorded_attributes = (

@@ -31,7 +31,7 @@ from .underlyings import UnderlyingValve
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverValve(BaseThermostat):  # pylint: disable=abstract-method
+class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
     _entity_component_unrecorded_attributes = (

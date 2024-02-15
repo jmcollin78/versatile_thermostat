@@ -7,7 +7,7 @@ import logging
 
 from datetime import timedelta, datetime
 from types import MappingProxyType
-from typing import Any
+from typing import Any, TypeVar, Generic
 
 from homeassistant.util import dt as dt_util
 from homeassistant.core import (
@@ -140,6 +140,7 @@ from .ema import ExponentialMovingAverage
 
 _LOGGER = logging.getLogger(__name__)
 ConfigData = MappingProxyType[str, Any]
+T = TypeVar("T", bound=UnderlyingEntity)
 
 
 def get_tz(hass: HomeAssistant):
@@ -148,7 +149,7 @@ def get_tz(hass: HomeAssistant):
     return dt_util.get_time_zone(hass.config.time_zone)
 
 
-class BaseThermostat(ClimateEntity, RestoreEntity):
+class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
 
     _entity_component_unrecorded_attributes = (
@@ -275,7 +276,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._last_change_time = None
 
-        self._underlyings: list[UnderlyingEntity] = []
+        self._underlyings: list[T] = []
 
         self._ema_temp = None
         self._ema_algo = None
