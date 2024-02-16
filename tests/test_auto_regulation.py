@@ -387,7 +387,7 @@ async def test_over_climate_regulation_use_device_temp(
         title="TheOverClimateMockName",
         unique_id="uniqueId",
         # This is include a medium regulation
-        data=PARTIAL_CLIMATE_CONFIG_USE_DEVICE_TEMP,
+        data=PARTIAL_CLIMATE_CONFIG_USE_DEVICE_TEMP | {CONF_AUTO_REGULATION_DTEMP: 0.5},
     )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -475,7 +475,7 @@ async def test_over_climate_regulation_use_device_temp(
         # room temp is 15
         # target is 18
         # internal heater temp is 20
-        fake_underlying_climate.set_current_temperature(20)
+        fake_underlying_climate.set_current_temperature(20.1)
         await entity.async_set_temperature(temperature=18)
         await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
@@ -488,7 +488,7 @@ async def test_over_climate_regulation_use_device_temp(
 
             # the regulated temperature should be under (device offset is -2)
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 19.4  # 18 + 1.4
+            assert entity.regulated_target_temp == 19.5  # round(18 + 1.4, 0.5)
 
             mock_service_call.assert_has_calls(
                 [
@@ -497,7 +497,7 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 24.4,  # 19.4 + 5
+                            "temperature": 24.5,  # round(19.5 + 5, 0.5)
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },
@@ -511,7 +511,7 @@ async def test_over_climate_regulation_use_device_temp(
         # internal heater temp is 27
         await entity.async_set_hvac_mode(HVACMode.COOL)
         await entity.async_set_temperature(temperature=23)
-        fake_underlying_climate.set_current_temperature(27)
+        fake_underlying_climate.set_current_temperature(26.9)
         await send_ext_temperature_change_event(entity, 30, event_timestamp)
 
         event_timestamp = now - timedelta(minutes=3)
@@ -521,9 +521,9 @@ async def test_over_climate_regulation_use_device_temp(
         ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
             await send_temperature_change_event(entity, 25, event_timestamp)
 
-            # the regulated temperature should be upper (device offset is +2)
+            # the regulated temperature should be upper (device offset is +1.9)
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 22.4
+            assert entity.regulated_target_temp == 22.5
 
             mock_service_call.assert_has_calls(
                 [
@@ -532,7 +532,7 @@ async def test_over_climate_regulation_use_device_temp(
                         "set_temperature",
                         {
                             "entity_id": "climate.mock_climate",
-                            "temperature": 24.4,  # 22.4 + 2° of offset
+                            "temperature": 24.5,  # round(22.5 + 1.9° of offset)
                             "target_temp_high": 30,
                             "target_temp_low": 15,
                         },

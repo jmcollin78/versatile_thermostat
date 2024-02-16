@@ -216,7 +216,7 @@ class ThermostatOverClimate(BaseThermostat):
             ):
                 offset_temp = device_temp - self.current_temperature
 
-            target_temp = self.regulated_target_temp + offset_temp
+            target_temp = round_to_nearest(self.regulated_target_temp + offset_temp, self._auto_regulation_dtemp)
 
             _LOGGER.debug(
                 "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
@@ -491,9 +491,9 @@ class ThermostatOverClimate(BaseThermostat):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
-        self._attr_extra_state_attributes[
-            "start_hvac_action_date"
-        ] = self._underlying_climate_start_hvac_action_date
+        self._attr_extra_state_attributes["start_hvac_action_date"] = (
+            self._underlying_climate_start_hvac_action_date
+        )
         self._attr_extra_state_attributes["underlying_climate_0"] = self._underlyings[
             0
         ].entity_id
@@ -509,32 +509,32 @@ class ThermostatOverClimate(BaseThermostat):
 
         if self.is_regulated:
             self._attr_extra_state_attributes["is_regulated"] = self.is_regulated
-            self._attr_extra_state_attributes[
-                "regulated_target_temperature"
-            ] = self._regulated_target_temp
-            self._attr_extra_state_attributes[
-                "auto_regulation_mode"
-            ] = self.auto_regulation_mode
-            self._attr_extra_state_attributes[
-                "regulation_accumulated_error"
-            ] = self._regulation_algo.accumulated_error
+            self._attr_extra_state_attributes["regulated_target_temperature"] = (
+                self._regulated_target_temp
+            )
+            self._attr_extra_state_attributes["auto_regulation_mode"] = (
+                self.auto_regulation_mode
+            )
+            self._attr_extra_state_attributes["regulation_accumulated_error"] = (
+                self._regulation_algo.accumulated_error
+            )
 
         self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
-        self._attr_extra_state_attributes[
-            "current_auto_fan_mode"
-        ] = self._current_auto_fan_mode
+        self._attr_extra_state_attributes["current_auto_fan_mode"] = (
+            self._current_auto_fan_mode
+        )
 
-        self._attr_extra_state_attributes[
-            "auto_activated_fan_mode"
-        ] = self._auto_activated_fan_mode
+        self._attr_extra_state_attributes["auto_activated_fan_mode"] = (
+            self._auto_activated_fan_mode
+        )
 
-        self._attr_extra_state_attributes[
-            "auto_deactivated_fan_mode"
-        ] = self._auto_deactivated_fan_mode
+        self._attr_extra_state_attributes["auto_deactivated_fan_mode"] = (
+            self._auto_deactivated_fan_mode
+        )
 
-        self._attr_extra_state_attributes[
-            "auto_regulation_use_device_temp"
-        ] = self.auto_regulation_use_device_temp
+        self._attr_extra_state_attributes["auto_regulation_use_device_temp"] = (
+            self.auto_regulation_use_device_temp
+        )
 
         self.async_write_ha_state()
         _LOGGER.debug(
