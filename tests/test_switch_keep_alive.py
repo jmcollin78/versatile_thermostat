@@ -210,6 +210,7 @@ class TestKeepAlive:
             common_mocks,
             [call("switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"})],
         )
+        common_mocks.mock_is_state.return_value = True
 
         # Call the keep-alive callback a few times (as if `async_track_time_interval`
         # had done it) and assert that the callback function is replaced each time.
@@ -240,6 +241,7 @@ class TestKeepAlive:
             common_mocks,
             [call("switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"})],
         )
+        common_mocks.mock_is_state.return_value = False
 
         # Call the keep-alive callback a few times (as if `async_track_time_interval`
         # had done it) and assert that the callback function is replaced each time.
