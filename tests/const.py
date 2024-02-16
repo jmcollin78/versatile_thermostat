@@ -1,4 +1,5 @@
 """ The commons const for all tests """
+
 from homeassistant.components.climate.const import (  # pylint: disable=unused-import
     PRESET_BOOST,
     PRESET_COMFORT,
@@ -52,7 +53,7 @@ MOCK_TH_OVER_CLIMATE_MAIN_CONFIG = {
     CONF_CYCLE_MIN: 5,
     CONF_DEVICE_POWER: 1,
     CONF_USE_MAIN_CENTRAL_CONFIG: False,
-    CONF_USE_CENTRAL_MODE: True
+    CONF_USE_CENTRAL_MODE: True,
     # Keep default values which are False
 }
 
