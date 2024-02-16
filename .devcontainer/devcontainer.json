@@ -33,7 +33,8 @@
 				"keesschollaart.vscode-home-assistant",
 				"vscode.markdown-math",
 				"yzhang.markdown-all-in-one",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"azuretools.vscode-docker"
 			],
 			"settings": {
 				"files.eol": "\n",
