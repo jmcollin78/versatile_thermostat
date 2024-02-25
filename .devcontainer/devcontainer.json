@@ -22,7 +22,8 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.pylint",
-				"ms-python.vscode-pylance",
+				// already included into ms-python.python
+				// "ms-python.vscode-pylance",
 				"ms-python.isort",
 				"ms-python.black-formatter",
 				"visualstudioexptteam.vscodeintellicode",

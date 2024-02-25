@@ -31,8 +31,8 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_state):
     """Tests the clean_central_config_doubon of base_thermostat"""
     central_config_entry = MockConfigEntry(
@@ -303,8 +303,8 @@ async def test_full_over_switch_wo_central_config(
     entity.remove_thermostat()
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_with_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):

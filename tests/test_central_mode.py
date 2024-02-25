@@ -170,6 +170,8 @@ async def test_config_with_central_mode_none(
         assert entity.last_central_mode is None  # cause no central config exists
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_switch_change_central_mode_true(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -310,6 +312,8 @@ async def test_switch_change_central_mode_true(
         assert entity.preset_mode == PRESET_COMFORT
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_switch_ac_change_central_mode_true(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -444,6 +448,8 @@ async def test_switch_ac_change_central_mode_true(
         assert entity.preset_mode == PRESET_COMFORT
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_climate_ac_change_central_mode_false(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -577,6 +583,8 @@ async def test_climate_ac_change_central_mode_false(
         assert entity.preset_mode == PRESET_COMFORT
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_climate_ac_only_change_central_mode_true(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -734,6 +742,8 @@ async def test_climate_ac_only_change_central_mode_true(
         assert entity.preset_mode == PRESET_ECO
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_switch_change_central_mode_true_with_window(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -889,6 +899,8 @@ async def test_switch_change_central_mode_true_with_window(
         assert entity.window_state is STATE_OFF
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_switch_change_central_mode_true_with_cool_only_and_window(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):

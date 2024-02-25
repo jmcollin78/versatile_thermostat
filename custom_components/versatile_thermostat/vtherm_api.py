@@ -1,4 +1,5 @@
 """ The API of Versatile Thermostat"""
+
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -106,10 +107,21 @@ class VersatileThermostatAPI(dict):
     ):
         """register the two number entities needed for boiler activation"""
         self._threshold_number_entity = threshold_number_entity
+        # If sensor and threshold number are initialized, reload the listener
+        if self._nb_active_number_entity and self._central_boiler_entity:
+            self._hass.async_add_job(self.reload_central_boiler_binary_listener)
 
     def register_nb_device_active_boiler(self, nb_active_number_entity):
         """register the two number entities needed for boiler activation"""
         self._nb_active_number_entity = nb_active_number_entity
+        if self._threshold_number_entity and self._central_boiler_entity:
+            self._hass.async_add_job(self.reload_central_boiler_binary_listener)
+
+    async def reload_central_boiler_binary_listener(self):
+        """Reloads the BinarySensor entity which listen to the number of
+        active devices and the thresholds entities"""
+        if self._central_boiler_entity:
+            await self._central_boiler_entity.listen_nb_active_vtherm_entity()
 
     async def reload_central_boiler_entities_list(self):
         """Reload the central boiler list of entities if a central boiler is used"""

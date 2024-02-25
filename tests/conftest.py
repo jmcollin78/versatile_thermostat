@@ -35,6 +35,19 @@ from .commons import (
     FULL_CENTRAL_CONFIG_WITH_BOILER,
 )
 
+# https://github.com/miketheman/pytest-socket/pull/275
+from pytest_socket import socket_allow_hosts
+
+# ...
+
+
+# ...
+def pytest_runtest_setup():
+    socket_allow_hosts(
+        allowed=["localhost", "127.0.0.1", "::1"], allow_unix_socket=True
+    )
+
+
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
 

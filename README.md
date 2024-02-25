@@ -158,7 +158,7 @@ Some TRV type thermostats are known to be incompatible with the Versatile Thermo
 2. "Homematic" (and possible Homematic IP) thermostats are known to have problems with Versatile Thermostats because of limitations of the underlying RF protocol. This problem especially occurs when trying to control several Homematic thermostats at once in one Versatile Thermostat instance. In order to reduce duty cycle load, you may e.g. group thermostats with Homematic-specific procedures (e.g. using a wall thermostat) and let Versatile Thermostat only control the wall thermostat directly. Another option is to control only one thermostat and propagate the changes in HVAC mode and temperature by an automation.
 3. Thermostat of type Heatzy which doesn't supports the set_temperature command.
 4. Thermostats of type Rointe tends to awake alone even if VTherm turns it off. Others functions works fine.
-5. TRV of type Aqara SRTS-A01 which doesn't have the return state `hvac_action` allowing to know if it is heating or not. So return states are not available. Others features, seems to work normally.
+5. TRV of type Aqara SRTS-A01 and MOES TV01-ZB which doesn't have the return state `hvac_action` allowing to know if it is heating or not. So return states are not available. Others features, seems to work normally.
 
 # Why another thermostat implementation ?
 

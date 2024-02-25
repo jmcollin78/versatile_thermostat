@@ -156,23 +156,29 @@ async def test_update_central_boiler_state_simple(
         await switch1.async_turn_on()
         switch1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(1)
 
         assert entity.hvac_action == HVACAction.HEATING
 
-        assert mock_service_call.call_count >= 1
+        assert mock_service_call.call_count == 2
 
         # Sometimes this test fails
-        # mock_service_call.assert_has_calls(
-        #     [
-        #         call.service_call(
-        #             "switch",
-        #             "turn_on",
-        #             service_data={},
-        #             target={"entity_id": "switch.pompe_chaudiere"},
-        #         ),
-        #     ]
-        # )
+        mock_service_call.assert_has_calls(
+            [
+                call.service_call(
+                    "switch",
+                    "turn_on",
+                    {"entity_id": "switch.switch1"},
+                ),
+                call(
+                    "switch",
+                    "turn_on",
+                    service_data={},
+                    target={"entity_id": "switch.pompe_chaudiere"},
+                ),
+            ],
+            any_order=True,
+        )
 
         assert mock_send_event.call_count >= 1
         mock_send_event.assert_has_calls(

@@ -40,13 +40,13 @@ HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 DOMAIN = "versatile_thermostat"
 
 # The order is important.
-# NUMBER should be after CLIMATE,
 PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.CLIMATE,
     Platform.SENSOR,
-    Platform.BINARY_SENSOR,
+    # Number should be after CLIMATE
     Platform.NUMBER,
+    Platform.BINARY_SENSOR,
 ]
 
 CONF_HEATER = "heater_entity_id"
