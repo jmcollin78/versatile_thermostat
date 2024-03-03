@@ -82,9 +82,9 @@ from .const import (
     CONF_NO_MOTION_PRESET,
     CONF_DEVICE_POWER,
     CONF_PRESETS,
-    CONF_PRESETS_AWAY,
-    CONF_PRESETS_WITH_AC,
-    CONF_PRESETS_AWAY_WITH_AC,
+    # CONF_PRESETS_AWAY,
+    # CONF_PRESETS_WITH_AC,
+    # CONF_PRESETS_AWAY_WITH_AC,
     CONF_CYCLE_MIN,
     CONF_PROP_FUNCTION,
     CONF_TPI_COEF_INT,
@@ -136,6 +136,8 @@ from .underlyings import UnderlyingEntity
 from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
 from .ema import ExponentialMovingAverage
+
+from .temp_number import TemperatureNumber
 
 _LOGGER = logging.getLogger(__name__)
 ConfigData = MappingProxyType[str, Any]
@@ -285,6 +287,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._last_central_mode = None
         self._is_used_by_central_boiler = False
 
+        self._support_flags = None
+        self._attr_preset_modes: list[str] | None
+
         self.post_init(entry_infos)
 
     def clean_central_config_doublon(
@@ -358,33 +363,36 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_target_temperature_step = step
 
         # convert entry_infos into usable attributes
-        presets: dict[str, Any] = {}
-        items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
-        for key, value in items:
-            _LOGGER.debug("looking for key=%s, value=%s", key, value)
-            if value in entry_infos:
-                presets[key] = entry_infos.get(value)
-            else:
-                _LOGGER.debug("value %s not found in Entry", value)
-                presets[key] = (
-                    self._attr_max_temp if self._ac_mode else self._attr_min_temp
-                )
+        # 354 - presets are now initializesd by number entities
+        # presets: dict[str, Any] = {}
+        # items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
+        # for key, value in items:
+        #    _LOGGER.debug("looking for key=%s, value=%s", key, value)
+        #    if value in entry_infos:
+        #        presets[key] = entry_infos.get(value)
+        #    else:
+        #        _LOGGER.debug("value %s not found in Entry", value)
+        #        presets[key] = (
+        #            self._attr_max_temp if self._ac_mode else self._attr_min_temp
+        #        )
 
-        presets_away: dict[str, Any] = {}
-        items = (
-            CONF_PRESETS_AWAY_WITH_AC.items()
-            if self._ac_mode
-            else CONF_PRESETS_AWAY.items()
-        )
-        for key, value in items:
-            _LOGGER.debug("looking for key=%s, value=%s", key, value)
-            if value in entry_infos:
-                presets_away[key] = entry_infos.get(value)
-            else:
-                _LOGGER.debug("value %s not found in Entry", value)
-                presets_away[key] = (
-                    self._attr_max_temp if self._ac_mode else self._attr_min_temp
-                )
+        # presets_away: dict[str, Any] = {}
+        # items = (
+        #    CONF_PRESETS_AWAY_WITH_AC.items()
+        #    if self._ac_mode
+        #    else CONF_PRESETS_AWAY.items()
+        # )
+        # for key, value in items:
+        #    _LOGGER.debug("looking for key=%s, value=%s", key, value)
+        #    if value in entry_infos:
+        #        presets_away[key] = entry_infos.get(value)
+        #    else:
+        #        _LOGGER.debug("value %s not found in Entry", value)
+        #        presets_away[key] = (
+        #            self._attr_max_temp if self._ac_mode else self._attr_min_temp
+        #        )
+
+        self._attr_preset_modes: list[str] | None
 
         if self._window_call_cancel is not None:
             self._window_call_cancel()
@@ -462,15 +470,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._support_flags = SUPPORT_FLAGS
 
-        self._presets = presets
-        self._presets_away = presets_away
+        # Preset will be initialized from Number entities
+        self._presets: dict[str, Any] = {}  # presets
+        self._presets_away: dict[str, Any] = {}  # presets_away
 
-        _LOGGER.debug(
-            "%s - presets are set to: %s, away: %s",
-            self,
-            self._presets,
-            self._presets_away,
-        )
         # Will be restored if possible
         self._attr_preset_mode = PRESET_NONE
         self._saved_preset_mode = PRESET_NONE
@@ -533,24 +536,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._window_state = None
         self._overpowering_state = None
         self._presence_state = None
-
-        # Calculate all possible presets
-        self._attr_preset_modes = [PRESET_NONE]
-        if len(presets):
-            self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
-
-            for key, _ in CONF_PRESETS.items():
-                if self.find_preset_temp(key) > 0:
-                    self._attr_preset_modes.append(key)
-
-            _LOGGER.debug(
-                "After adding presets, preset_modes to %s", self._attr_preset_modes
-            )
-        else:
-            _LOGGER.debug("No preset_modes")
-
-        if self._motion_on:
-            self._attr_preset_modes.append(PRESET_ACTIVITY)
 
         self._total_energy = 0
 
@@ -657,6 +642,41 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self.async_on_remove(self.remove_thermostat)
 
         await self.async_startup()
+
+    # TODO remove this
+    def init_temperature_preset(self, preset, temperature, is_ac, is_away):
+        """Initialize the internal temperature preset
+        from the Number entity which holds the temperature"""
+
+        if temperature is None or preset is None:
+            return
+
+        if is_away:
+            self._presets_away[preset] = temperature
+        else:
+            self._presets[preset] = temperature
+
+        _LOGGER.debug(
+            "%s - presets are set to: %s, away: %s",
+            self,
+            self._presets,
+            self._presets_away,
+        )
+
+        # Calculate all possible presets
+        self._attr_preset_modes = [PRESET_NONE]
+        if len(self._presets):
+            self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
+
+            for key, _ in CONF_PRESETS.items():
+                if self.find_preset_temp(key) > 0:
+                    self._attr_preset_modes.append(key)
+
+            _LOGGER.debug(
+                "After adding presets, preset_modes to %s", self._attr_preset_modes
+            )
+        else:
+            _LOGGER.debug("No preset_modes")
 
     def remove_thermostat(self):
         """Called when the thermostat will be removed"""
@@ -852,10 +872,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             old_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
             # Never restore a Power or Security preset
-            if (
-                old_preset_mode in self._attr_preset_modes
-                and old_preset_mode not in HIDDEN_PRESETS
-            ):
+            if old_preset_mode not in HIDDEN_PRESETS:
+                # old_preset_mode in self._attr_preset_modes
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
                 self.save_preset_mode()
             else:
@@ -1323,9 +1341,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._attr_preset_mode not in HIDDEN_PRESETS
             and old_preset_mode not in HIDDEN_PRESETS
         ):
-            self._last_temperature_measure = (
-                self._last_ext_temperature_measure
-            ) = datetime.now(tz=self._current_tz)
+            self._last_temperature_measure = self._last_ext_temperature_measure = (
+                datetime.now(tz=self._current_tz)
+            )
 
     def find_preset_temp(self, preset_mode: str):
         """Find the right temperature of a preset considering the presence if configured"""
@@ -1344,9 +1362,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return self._power_temp
         if preset_mode == PRESET_ACTIVITY:
             return self._presets[
-                self._motion_preset
-                if self._motion_state == STATE_ON
-                else self._no_motion_preset
+                (
+                    self._motion_preset
+                    if self._motion_state == STATE_ON
+                    else self._no_motion_preset
+                )
             ]
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
@@ -1359,9 +1379,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 STATE_ON,
                 STATE_HOME,
             ]:
-                return self._presets[preset_mode]
+                return self._presets.get(preset_mode, 0)
             else:
-                return self._presets_away[self.get_preset_away_name(preset_mode)]
+                return self._presets_away.get(self.get_preset_away_name(preset_mode), 0)
 
     def get_preset_away_name(self, preset_mode: str) -> str:
         """Get the preset name in away mode (when presence is off)"""
@@ -1812,9 +1832,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         await self._async_internal_set_temperature(
             self._presets[
-                self._motion_preset
-                if self._motion_state == STATE_ON
-                else self._no_motion_preset
+                (
+                    self._motion_preset
+                    if self._motion_state == STATE_ON
+                    else self._no_motion_preset
+                )
             ]
         )
         _LOGGER.debug(
@@ -2431,21 +2453,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             "type": self._thermostat_type,
             "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
             "last_central_mode": self.last_central_mode,
-            "frost_temp": self._presets[PRESET_FROST_PROTECTION],
-            "eco_temp": self._presets[PRESET_ECO],
-            "boost_temp": self._presets[PRESET_BOOST],
-            "comfort_temp": self._presets[PRESET_COMFORT],
+            "frost_temp": self._presets.get(PRESET_FROST_PROTECTION, 0),
+            "eco_temp": self._presets.get(PRESET_ECO, 0),
+            "boost_temp": self._presets.get(PRESET_BOOST, 0),
+            "comfort_temp": self._presets.get(PRESET_COMFORT, 0),
             "frost_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_FROST_PROTECTION)
+                self.get_preset_away_name(PRESET_FROST_PROTECTION), 0
             ),
             "eco_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_ECO)
+                self.get_preset_away_name(PRESET_ECO), 0
             ),
             "boost_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_BOOST)
+                self.get_preset_away_name(PRESET_BOOST), 0
             ),
             "comfort_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_COMFORT)
+                self.get_preset_away_name(PRESET_COMFORT), 0
             ),
             "power_temp": self._power_temp,
             "target_temperature_step": self.target_temperature_step,
@@ -2626,8 +2648,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""
         send_vtherm_event(self._hass, event_type=event_type, entity=self, data=data)
-        # _LOGGER.info("%s - Sending event %s with data: %s", self, event_type, data)
-        # data["entity_id"] = self.entity_id
-        # data["name"] = self.name
-        # data["state_attributes"] = self.state_attributes
-        # self._hass.bus.fire(event_type.value, data)
+
+    def get_temperature_number_entities(self, config_entry: ConfigData):
+        """Creates all TemperatureNumber depending of the configuration of the Climate"""
+
+        # TODO add the list of preset we want to use in the VTherm. Here we will suppose all preset will be available
+        entity = TemperatureNumber(
+            self._hass,
+            unique_id=config_entry.entry_id,
+            name=config_entry.data.get(CONF_NAME),
+            preset_name="comfort",
+            is_ac=False,
+            is_away=False,
+            entry_infos=config_entry.data,
+        )
+
+        return entity

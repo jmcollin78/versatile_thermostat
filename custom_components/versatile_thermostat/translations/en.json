@@ -537,6 +537,56 @@
           }
         }
       }
+    },
+    "number": {
+      "temperature": {
+        "name": "{preset}{ac}-{away} [%key:component::sensor::entity_component::temperature::name%]"
+      },
+      "frost_temp": {
+        "name": "Frost"
+      },
+      "eco_temp": {
+        "name": "Eco"
+      },
+      "comfort_temp": {
+        "name": "Comfort"
+      },
+      "boost_temp": {
+        "name": "Boost"
+      },
+      "frost_ac_temp": {
+        "name": "Frost ac"
+      },
+      "eco_ac_temp": {
+        "name": "Eco ac"
+      },
+      "comfort_ac_temp": {
+        "name": "Comfort ac"
+      },
+      "boost_ac_temp": {
+        "name": "Boost ac"
+      },
+      "frost_away_temp": {
+        "name": "Frost away"
+      },
+      "eco_away_temp": {
+        "name": "Eco away"
+      },
+      "comfort_away_temp": {
+        "name": "Comfort away"
+      },
+      "boost_away_temp": {
+        "name": "Boost away"
+      },
+      "eco_ac_away_temp": {
+        "name": "Eco ac away"
+      },
+      "comfort_ac_away_temp": {
+        "name": "Comfort ac away"
+      },
+      "boost_ac_away_temp": {
+        "name": "Boost ac away"
+      }
     }
   }
 }

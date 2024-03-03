@@ -528,6 +528,7 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
     for entity in component.entities:
+        _LOGGER.debug("Found %s entity: %s", domain, entity.entity_id)
         if entity.entity_id == entity_id:
             return entity
     return None

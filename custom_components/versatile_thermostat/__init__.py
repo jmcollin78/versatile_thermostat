@@ -8,10 +8,10 @@ import logging
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.const import SERVICE_RELOAD
+from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, CoreState, callback
 
 from .base_thermostat import BaseThermostat
 
@@ -82,14 +82,26 @@ async def async_setup(
 
     hass.data.setdefault(DOMAIN, {})
 
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     # L'argument config contient votre fichier configuration.yaml
     vtherm_config = config.get(DOMAIN)
-
     if vtherm_config is not None:
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         api.set_global_config(vtherm_config)
     else:
         _LOGGER.info("No global config from configuration.yaml available")
+
+    # Listen HA starts to initialize all links between
+    @callback
+    async def _async_startup_internal(*_):
+        _LOGGER.info(
+            "VersatileThermostat - HA is started, initialize all links between VTherm entities"
+        )
+        await api.init_vtherm_links()
+
+    if hass.state == CoreState.running:
+        await _async_startup_internal()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _async_startup_internal)
 
     hass.helpers.service.async_register_admin_service(
         DOMAIN,

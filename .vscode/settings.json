@@ -15,7 +15,5 @@
     //    "/home/vscode/core",
         "/workspaces/versatile_thermostat/custom_components/versatile_thermostat",
         "/home/vscode/.local/lib/python3.12/site-packages/homeassistant"
-    ],
-    "python.experiments.optOutFrom": ["pythonTestAdapter"],
-    "python.formatting.provider": "none"
+    ]
 }
