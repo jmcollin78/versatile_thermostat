@@ -23,7 +23,7 @@ from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
+from homeassistant.util import ensure_unique_string, slugify
 
 from .vtherm_api import VersatileThermostatAPI
 from .commons import VersatileThermostatBaseEntity
@@ -48,6 +48,9 @@ from .const import (
     CONF_PRESETS_WITH_AC_VALUES,
     CONF_PRESETS_AWAY_VALUES,
     CONF_PRESETS_AWAY_WITH_AC_VALUES,
+    CONF_USE_PRESETS_CENTRAL_CONFIG,
+    CONF_USE_PRESENCE_CENTRAL_CONFIG,
+    CONF_USE_PRESENCE_FEATURE,
     overrides,
 )
 
@@ -84,28 +87,45 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
-    is_central_boiler = entry.data.get(CONF_ADD_CENTRAL_BOILER_CONTROL)
+    # is_central_boiler = entry.data.get(CONF_ADD_CENTRAL_BOILER_CONTROL)
 
     entities = []
 
     if vt_type != CONF_THERMOSTAT_CENTRAL_CONFIG:
-        if not is_central_boiler:
-            pass
-            # for preset in CONF_PRESETS_VALUES:
-            #     entities.append(
-            #         TemperatureNumber(
-            #             hass, unique_id, preset, preset, False, False, entry.data
-            #         )
-            #     )
+        # Creates non central temperature entities
+        if not entry.data.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False):
+            for preset in CONF_PRESETS_VALUES:
+                entities.append(
+                    TemperatureNumber(
+                        hass, unique_id, name, preset, False, False, entry.data
+                    )
+                )
+            if entry.data.get(CONF_AC_MODE, False):
+                for preset in CONF_PRESETS_WITH_AC_VALUES:
+                    entities.append(
+                        TemperatureNumber(
+                            hass, unique_id, name, preset, True, False, entry.data
+                        )
+                    )
 
-            # TODO
-            # if entry.data.get(CONF_AC_MODE, False):
-            #     for preset in CONF_PRESETS_WITH_AC_VALUES:
-            #         entities.append(
-            #             TemperatureNumber(
-            #                 hass, unique_id, preset, preset, True, False, entry.data
-            #             )
-            #         )
+        if entry.data.get(
+            CONF_USE_PRESENCE_FEATURE, False
+        ) is True and not entry.data.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False):
+            for preset in CONF_PRESETS_AWAY_VALUES:
+                entities.append(
+                    TemperatureNumber(
+                        hass, unique_id, name, preset, False, True, entry.data
+                    )
+                )
+
+            if entry.data.get(CONF_AC_MODE, False):
+                for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
+                    entities.append(
+                        TemperatureNumber(
+                            hass, unique_id, name, preset, True, True, entry.data
+                        )
+                    )
+    # For central config only
     else:
         entities.append(
             ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
@@ -113,27 +133,27 @@ async def async_setup_entry(
         for preset in CONF_PRESETS_VALUES:
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, preset, preset, False, False, entry.data
+                    hass, unique_id, name, preset, False, False, entry.data
                 )
             )
         for preset in CONF_PRESETS_WITH_AC_VALUES:
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, preset, preset, True, False, entry.data
+                    hass, unique_id, name, preset, True, False, entry.data
                 )
             )
 
         for preset in CONF_PRESETS_AWAY_VALUES:
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, preset, preset, False, True, entry.data
+                    hass, unique_id, name, preset, False, True, entry.data
                 )
             )
 
         for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, preset, preset, True, True, entry.data
+                    hass, unique_id, name, preset, True, True, entry.data
                 )
             )
 
@@ -211,7 +231,6 @@ class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
     """Representation of one temperature number"""
 
     _attr_has_entity_name = True
-    # _attr_translation_key = "temperature"
 
     def __init__(
         self,
@@ -227,7 +246,7 @@ class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
         the restoration will do the trick."""
 
         self._config_id = unique_id
-        self._device_name = entry_infos.get(CONF_NAME)
+        self._device_name = name
         # self._attr_name = name
 
         self._attr_translation_key = preset_name
@@ -236,7 +255,8 @@ class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
         #     "ac": "-AC" if is_ac else "",
         #     "away": "-AWAY" if is_away else "",
         # }
-        self.entity_id = f"{NUMBER_DOMAIN}.central_configuration_{preset_name}"
+        # self.entity_id = f"{NUMBER_DOMAIN}.central_configuration_{preset_name}"
+        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
         self._attr_unique_id = f"central_configuration_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
@@ -250,7 +270,7 @@ class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
         # previous value
         # TODO remove this after the next major release and just keep the init min/max
         temp = None
-        if temp := entry_infos.get(preset_name, None):
+        if (temp := entry_infos.get(preset_name, None)) is not None:
             self._attr_value = self._attr_native_value = temp
         else:
             if entry_infos.get(CONF_AC_MODE) is True:
@@ -346,7 +366,6 @@ class TemperatureNumber(  # pylint: disable=abstract-method
     """Representation of one temperature number"""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "temperature"
 
     def __init__(
         self,
@@ -360,39 +379,40 @@ class TemperatureNumber(  # pylint: disable=abstract-method
     ) -> None:
         """Initialize the temperature with entry_infos if available. Else
         the restoration will do the trick."""
-        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        super().__init__(hass, unique_id, name)
 
-        split = name.split("_")
-        # self._attr_name = split[0]
-        # if "_" + split[1] == PRESET_AC_SUFFIX:
-        #     self._attr_name = self._attr_name + " AC"
+        self._attr_translation_key = preset_name
+        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
 
-        # self._attr_name = self._attr_name + " temperature"
-
-        self._attr_translation_placeholders = {
-            "preset": preset_name,
-            "ac": "-AC" if is_ac else "",
-            "away": "-AWAY" if is_away else "",
-        }
-        self._attr_unique_id = f"{self._device_name}_{name}"
+        # self._attr_translation_placeholders = {
+        #     "preset": preset_name,
+        #     "ac": "-AC" if is_ac else "",
+        #     "away": "-AWAY" if is_away else "",
+        # }
+        self._attr_unique_id = f"{self._device_name}_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+
+        self._attr_native_step = entry_infos.get(CONF_STEP_TEMPERATURE, 0.5)
+        self._attr_native_min_value = entry_infos.get(CONF_TEMP_MIN)
+        self._attr_native_max_value = entry_infos.get(CONF_TEMP_MAX)
 
         # Initialize the values if included into the entry_infos. This will do
         # the temperature migration.
         # TODO see if this should be replace by the central config if any
         temp = None
-        if temp := entry_infos.get(preset_name, None):
+        if (temp := entry_infos.get(preset_name, None)) is not None:
             self._attr_value = self._attr_native_value = temp
+        else:
+            if entry_infos.get(CONF_AC_MODE) is True:
+                self._attr_native_value = self._attr_native_max_value
+            else:
+                self._attr_native_value = self._attr_native_min_value
 
         self._attr_mode = NumberMode.BOX
         self._preset_name = preset_name
         self._is_away = is_away
         self._is_ac = is_ac
-
-        self._attr_native_step = entry_infos.get(CONF_STEP_TEMPERATURE, 0.5)
-        self._attr_native_min_value = entry_infos.get(CONF_TEMP_MIN)
-        self._attr_native_max_value = entry_infos.get(CONF_TEMP_MAX)
 
     @property
     def icon(self) -> str | None:
@@ -402,12 +422,16 @@ class TemperatureNumber(  # pylint: disable=abstract-method
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
+        # register the temp entity for this device and preset
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        api.register_temperature_number(self._config_id, self._preset_name, self)
+
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug(
             "%s - Calling async_added_to_hass old_state is %s", self, old_state
         )
         try:
-            if old_state is not None and (value := float(old_state.state) > 0):
+            if old_state is not None and ((value := float(old_state.state)) > 0):
                 self._attr_value = self._attr_native_value = value
         except ValueError:
             pass
@@ -424,12 +448,6 @@ class TemperatureNumber(  # pylint: disable=abstract-method
             self._preset_name, self._attr_native_value, self._is_ac, self._is_away
         )
         return
-
-    # @overrides
-    # @property
-    # def native_step(self) -> float | None:
-    #     """The native step"""
-    #     return self.my_climate.target_temperature_step
 
     @overrides
     async def async_set_native_value(self, value: float) -> None:

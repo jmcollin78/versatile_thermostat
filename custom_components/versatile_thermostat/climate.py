@@ -76,7 +76,7 @@ async def async_setup_entry(
     elif vt_type == CONF_THERMOSTAT_VALVE:
         entity = ThermostatOverValve(hass, unique_id, name, entry.data)
 
-    async_add_entities([entity, entity.get_temperature_number_entities(entry)], True)
+    async_add_entities([entity], True)
 
     # Add services
     platform = entity_platform.async_get_current_platform()

@@ -137,8 +137,6 @@ from .prop_algorithm import PropAlgorithm
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
 from .ema import ExponentialMovingAverage
 
-from .temp_number import TemperatureNumber
-
 _LOGGER = logging.getLogger(__name__)
 ConfigData = MappingProxyType[str, Any]
 
@@ -216,6 +214,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         super().__init__()
 
         self._hass = hass
+        self._entry_infos = None
         self._attr_extra_state_attributes = {}
 
         self._unique_id = unique_id
@@ -288,6 +287,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._is_used_by_central_boiler = False
 
         self._support_flags = None
+        # Preset will be initialized from Number entities
+        self._presets: dict[str, Any] = {}  # presets
+        self._presets_away: dict[str, Any] = {}  # presets_away
+
         self._attr_preset_modes: list[str] | None
 
         self.post_init(entry_infos)
@@ -355,6 +358,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         entry_infos = self.clean_central_config_doublon(config_entry, central_config)
 
         _LOGGER.info("%s - The merged configuration is %s", self, entry_infos)
+
+        self._entry_infos = entry_infos
 
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
@@ -2649,18 +2654,68 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Send an event"""
         send_vtherm_event(self._hass, event_type=event_type, entity=self, data=data)
 
-    def get_temperature_number_entities(self, config_entry: ConfigData):
-        """Creates all TemperatureNumber depending of the configuration of the Climate"""
+    async def init_presets(self, central_config):
+        """Init all presets of the VTherm"""
+        # If preset central config is used and central config is set , take the presets from central config
+        vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
 
-        # TODO add the list of preset we want to use in the VTherm. Here we will suppose all preset will be available
-        entity = TemperatureNumber(
-            self._hass,
-            unique_id=config_entry.entry_id,
-            name=config_entry.data.get(CONF_NAME),
-            preset_name="comfort",
-            is_ac=False,
-            is_away=False,
-            entry_infos=config_entry.data,
+        presets: dict[str, Any] = {}
+        presets_away: dict[str, Any] = {}
+
+        def calculate_presets(items, use_central_conf_key):
+            presets: dict[str, Any] = {}
+            config_id = self._unique_id
+            if (
+                central_config
+                and self._entry_infos.get(use_central_conf_key, False) is True
+            ):
+                config_id = central_config.entry_id
+
+            for key, preset_name in items:
+                _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
+                value = vtherm_api.get_temperature_number_value(
+                    config_id=config_id, preset_name=preset_name
+                )
+                if value is not None:
+                    presets[key] = value
+                else:
+                    _LOGGER.debug("preset_name %s not found in VTherm API", preset_name)
+                    presets[key] = (
+                        self._attr_max_temp if self._ac_mode else self._attr_min_temp
+                    )
+            return presets
+
+        # Calculate all presets
+        presets = calculate_presets(
+            CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items(),
+            CONF_USE_PRESETS_CENTRAL_CONFIG,
         )
 
-        return entity
+        if self._entry_infos.get(CONF_USE_PRESENCE_FEATURE) is True:
+            presets_away = calculate_presets(
+                (
+                    CONF_PRESETS_AWAY_WITH_AC.items()
+                    if self._ac_mode
+                    else CONF_PRESETS_AWAY.items()
+                ),
+                CONF_USE_PRESENCE_CENTRAL_CONFIG,
+            )
+
+        # aggregate all available presets now
+        self._presets: dict[str, Any] = presets
+        self._presets_away: dict[str, Any] = presets_away
+
+        # Calculate all possible presets
+        self._attr_preset_modes = [PRESET_NONE]
+        if len(self._presets):
+            self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
+
+            for key, _ in CONF_PRESETS.items():
+                if self.find_preset_temp(key) > 0:
+                    self._attr_preset_modes.append(key)
+
+            _LOGGER.debug(
+                "After adding presets, preset_modes to %s", self._attr_preset_modes
+            )
+        else:
+            _LOGGER.debug("No preset_modes")

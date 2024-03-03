@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
-from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.number import NumberEntity
 
 from .const import (
     DOMAIN,
