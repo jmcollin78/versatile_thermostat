@@ -2719,3 +2719,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             )
         else:
             _LOGGER.debug("No preset_modes")
+
+        if self._motion_on:
+            self._attr_preset_modes.append(PRESET_ACTIVITY)

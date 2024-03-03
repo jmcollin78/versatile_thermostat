@@ -211,13 +211,14 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
-
-        entity: ThermostatOverClimate = search_entity(
-            hass, "climate.theoverclimatemockname", "climate"
-        )
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        # entry.add_to_hass(hass)
+        # await hass.config_entries.async_setup(entry.entry_id)
+        # assert entry.state is ConfigEntryState.LOADED
+        #
+        # entity: ThermostatOverClimate = search_entity(
+        #    hass, "climate.theoverclimatemockname", "climate"
+        # )
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)

@@ -38,18 +38,19 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
-
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
-                if entity.entity_id == entity_id:
-                    return entity
-
-        entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
+        entity = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+        # entry.add_to_hass(hass)
+        # await hass.config_entries.async_setup(entry.entry_id)
+        # assert entry.state is ConfigEntryState.LOADED
+        #
+        # def find_my_entity(entity_id) -> ClimateEntity:
+        #     """Find my new entity"""
+        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
+        #     for entity in component.entities:
+        #         if entity.entity_id == entity_id:
+        #             return entity
+        #
+        # entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverSwitch)
@@ -108,18 +109,19 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
-
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
-                if entity.entity_id == entity_id:
-                    return entity
-
-        entity = find_my_entity("climate.theoverclimatemockname")
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        # entry.add_to_hass(hass)
+        # await hass.config_entries.async_setup(entry.entry_id)
+        # assert entry.state is ConfigEntryState.LOADED
+        #
+        # def find_my_entity(entity_id) -> ClimateEntity:
+        #     """Find my new entity"""
+        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
+        #     for entity in component.entities:
+        #         if entity.entity_id == entity_id:
+        #             return entity
+        #
+        # entity = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
@@ -174,18 +176,19 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
-
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
-                if entity.entity_id == entity_id:
-                    return entity
-
-        entity: BaseThermostat = find_my_entity("climate.theover4switchmockname")
+        entity = await create_thermostat(hass, entry, "climate.theover4switchmockname")
+        # entry.add_to_hass(hass)
+        # await hass.config_entries.async_setup(entry.entry_id)
+        # assert entry.state is ConfigEntryState.LOADED
+        #
+        # def find_my_entity(entity_id) -> ClimateEntity:
+        #     """Find my new entity"""
+        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
+        #     for entity in component.entities:
+        #         if entity.entity_id == entity_id:
+        #             return entity
+        #
+        # entity: BaseThermostat = find_my_entity("climate.theover4switchmockname")
 
         assert entity
 

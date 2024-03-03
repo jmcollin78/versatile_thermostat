@@ -80,13 +80,16 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
         },
     )
 
-    central_config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(central_config_entry.entry_id)
-    assert central_config_entry.state is ConfigEntryState.LOADED
-
-    entity: ThermostatOverClimate = search_entity(
-        hass, "climate.thecentralconfigmockname", "climate"
+    entity = await create_thermostat(
+        hass, central_config_entry, "climate.thecentralconfigmockname"
     )
+    # central_config_entry.add_to_hass(hass)
+    # await hass.config_entries.async_setup(central_config_entry.entry_id)
+    # assert central_config_entry.state is ConfigEntryState.LOADED
+    #
+    # entity: ThermostatOverClimate = search_entity(
+    #    hass, "climate.thecentralconfigmockname", "climate"
+    # )
 
     assert entity is None
 
