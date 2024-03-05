@@ -227,7 +227,9 @@ class ActivateBoilerThresholdNumber(
         return f"VersatileThermostat-{self.name}"
 
 
-class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
+class CentralConfigTemperatureNumber(
+    NumberEntity, RestoreEntity
+):  # pylint: disable=abstract-method
     """Representation of one temperature number"""
 
     _attr_has_entity_name = True
@@ -318,35 +320,19 @@ class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):
             pass
 
     @overrides
-    async def async_set_native_value(self, value: float) -> None:
-        """Change the value"""
+    def set_native_value(self, value: float) -> None:
+        """The value have change from the Number Entity in UI"""
+        float_value = float(value)
+        old_value = float(self._attr_native_value)
+        if float_value == old_value:
+            return
 
-        # TODO implements the native value change -> reload values for all central config
-        # based VTherm
-        # if self.my_climate is None:
-        #     _LOGGER.warning(
-        #         "%s - cannot change temperature because VTherm is not initialized", self
-        #     )
-        #     return
+        self._attr_value = self._attr_native_value = float_value
 
-        #
-        # float_value = float(value)
-        # old_value = float(self._attr_native_value)
-        #
-        # if float_value == old_value:
-        #     return
-        #
-        # self._attr_value = self._attr_native_value = float_value
-        #
-        # self.async_write_ha_state()
-        #
-        # # Update the VTherm
-        # self.hass.create_task(
-        #     self.my_climate.service_set_preset_temperature(
-        #         self._preset_name.replace("_temp", ""), self._attr_native_value, None
-        #     )
-
-    # )
+        # We have to reload all VTherm for which uses the central configuration
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        # Update the VTherms
+        self.hass.create_task(api.init_vtherm_links())
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"

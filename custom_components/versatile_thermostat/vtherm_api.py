@@ -152,6 +152,7 @@ class VersatileThermostatAPI(dict):
     async def init_vtherm_links(self):
         """INitialize all VTherms entities links
         This method is called when HA is fully started (and all entities should be initialized)
+        Or when we need to reload all VTherm links (with Number temp entities, central boiler, ...)
         """
         await self.reload_central_boiler_binary_listener()
         await self.reload_central_boiler_entities_list()
@@ -161,7 +162,8 @@ class VersatileThermostatAPI(dict):
         )
         if component:
             for entity in component.entities:
-                await entity.init_presets(self.find_central_configuration())
+                if hasattr(entity, "init_presets"):
+                    await entity.init_presets(self.find_central_configuration())
 
     async def reload_central_boiler_binary_listener(self):
         """Reloads the BinarySensor entity which listen to the number of

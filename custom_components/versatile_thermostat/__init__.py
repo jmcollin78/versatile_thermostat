@@ -126,6 +126,7 @@ async def reload_all_vtherm(hass):
     api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     if api:
         await api.reload_central_boiler_entities_list()
+        await api.init_vtherm_links()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -146,6 +147,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     await api.reload_central_boiler_entities_list()
+    await api.init_vtherm_links()
 
     return True
 
@@ -160,6 +162,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         if api is not None:
             await api.reload_central_boiler_entities_list()
+            await api.init_vtherm_links()
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

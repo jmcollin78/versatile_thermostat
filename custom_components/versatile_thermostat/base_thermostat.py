@@ -2722,3 +2722,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         if self._motion_on:
             self._attr_preset_modes.append(PRESET_ACTIVITY)
+
+        # Re-applicate the last preset if any to take change into account
+        if self._attr_preset_mode:
+            await self._async_set_preset_mode_internal(self._attr_preset_mode, True)

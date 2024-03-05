@@ -22,7 +22,7 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.pylint",
-				// already included into ms-python.python
+				// Doesn't work (crash). Default in python is to use Jedi see Settings / Python / Default Language
 				// "ms-python.vscode-pylance",
 				"ms-python.isort",
 				"ms-python.black-formatter",
