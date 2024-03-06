@@ -104,8 +104,8 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
     assert api.nb_active_device_for_boiler_entity is None
     assert api.nb_active_device_for_boiler is None
 
-    assert api.nb_active_device_for_boiler_threshold_entity is None
-    assert api.nb_active_device_for_boiler_threshold is None
+    assert api.nb_active_device_for_boiler_threshold_entity is not None
+    assert api.nb_active_device_for_boiler_threshold == 1  # the default value
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])

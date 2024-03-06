@@ -493,21 +493,18 @@ async def create_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
 ) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
 
-        # We should reload the VTherm links
-        # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-        # central_config = vtherm_api.find_central_configuration()
-        entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
-        # if entity and hasattr(entity, "init_presets")::
-        #    await entity.init_presets(central_config)
+    # We should reload the VTherm links
+    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+    # central_config = vtherm_api.find_central_configuration()
+    entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
+    # if entity and hasattr(entity, "init_presets")::
+    #    await entity.init_presets(central_config)
 
-        return entity
+    return entity
 
 
 async def create_central_config(  # pylint: disable=dangerous-default-value

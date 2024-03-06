@@ -193,7 +193,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity
 
         assert entity.name == "TheOver4SwitchMockName"
-        assert entity.is_over_climate is False
+        assert entity.is_over_switch
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
