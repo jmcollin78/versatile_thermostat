@@ -657,6 +657,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
         data={
             CONF_NAME: "TheOverSwitchVTherm",
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_central_ext_temp_sensor",
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
@@ -687,8 +688,8 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
             hass, vtherm_entry, "climate.theoverswitchvtherm"
         )
 
-        # We should try to restore all 4 temp entities
-        assert mock_restore_state.call_count == 4
+        # We should try to restore all 4 temp entities and the VTherm itself
+        assert mock_restore_state.call_count == 4 + 1
 
     # 1. We search for NumberEntities
     for preset_name, value in temps.items():

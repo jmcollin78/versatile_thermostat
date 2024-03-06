@@ -332,6 +332,8 @@ class CentralConfigTemperatureNumber(
         # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
         # Update the VTherms
+        # TODO this reload all VTherms temp. This could be optimized by reloading only
+        # VTherm which have the USE_CENTRAL_CONFIG true for Preset and Presence
         self.hass.create_task(api.init_vtherm_links())
 
     def __str__(self):

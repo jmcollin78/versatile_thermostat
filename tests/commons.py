@@ -501,10 +501,12 @@ async def create_thermostat(
         assert entry.state is ConfigEntryState.LOADED
 
         # We should reload the VTherm links
-        vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+        # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+        # central_config = vtherm_api.find_central_configuration()
         entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
-        if entity:
-            await entity.init_presets(vtherm_api.find_central_configuration())
+        # if entity and hasattr(entity, "init_presets")::
+        #    await entity.init_presets(central_config)
+
         return entity
 
 

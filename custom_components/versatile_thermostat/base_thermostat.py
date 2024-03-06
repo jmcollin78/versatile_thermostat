@@ -877,14 +877,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             old_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
             # Never restore a Power or Security preset
-            if old_preset_mode not in HIDDEN_PRESETS:
+            if old_preset_mode is not None and old_preset_mode not in HIDDEN_PRESETS:
                 # old_preset_mode in self._attr_preset_modes
                 self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
                 self.save_preset_mode()
             else:
                 self._attr_preset_mode = PRESET_NONE
 
-            if not self._hvac_mode and old_state.state:
+            if not self._hvac_mode and old_state.state in [
+                HVACMode.OFF,
+                HVACMode.HEAT,
+                HVACMode.COOL,
+            ]:
                 self._hvac_mode = old_state.state
             else:
                 self._hvac_mode = HVACMode.OFF
@@ -1297,7 +1301,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                 f"Got unsupported preset_mode {preset_mode}. Must be one of {self._attr_preset_modes}"  # pylint: disable=line-too-long
             )
 
-        if preset_mode == self._attr_preset_mode and not force:
+        old_preset_mode = self._attr_preset_mode
+        if preset_mode == old_preset_mode and not force:
             # I don't think we need to call async_write_ha_state if we didn't change the state
             return
 
@@ -1330,8 +1335,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         if overwrite_saved_preset:
             self.save_preset_mode()
+
         self.recalculate()
-        self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
+        # Notify only if there was a real change
+        if self._attr_preset_mode != old_preset_mode:
+            self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
     def reset_last_change_time(
         self, old_preset_mode: str | None = None
