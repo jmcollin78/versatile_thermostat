@@ -869,7 +869,7 @@ async def test_change_central_config_temperature(
     assert temp_entity
     assert temp_entity.value == 19.1
 
-    temp_entity.set_native_value(20.3)
+    await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
     # Wait for async job to complete
@@ -985,7 +985,7 @@ async def test_change_vtherm_temperature(
     assert temp_entity
     assert temp_entity.value == 19.1
 
-    temp_entity.set_native_value(20.3)
+    await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
     # Wait for async job to complete
@@ -1106,7 +1106,7 @@ async def test_change_vtherm_temperature_with_presence(
     assert temp_entity
     assert temp_entity.value == 30
 
-    temp_entity.set_native_value(20.3)
+    await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
     # Wait for async job to complete
@@ -1131,7 +1131,7 @@ async def test_change_vtherm_temperature_with_presence(
     assert temp_entity
     assert temp_entity.value == 30
 
-    temp_entity.set_native_value(20.3)
+    await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
     # Wait for async job to complete

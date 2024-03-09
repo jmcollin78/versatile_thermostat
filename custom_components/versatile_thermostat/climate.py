@@ -45,9 +45,6 @@ from .thermostat_valve import ThermostatOverValve
 
 _LOGGER = logging.getLogger(__name__)
 
-# _LOGGER.setLevel(logging.DEBUG)
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,

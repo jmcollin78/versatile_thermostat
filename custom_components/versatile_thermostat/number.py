@@ -318,7 +318,7 @@ class CentralConfigTemperatureNumber(
             pass
 
     @overrides
-    def set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """The value have change from the Number Entity in UI"""
         float_value = float(value)
         old_value = float(self._attr_native_value)
@@ -326,6 +326,9 @@ class CentralConfigTemperatureNumber(
             return
 
         self._attr_value = self._attr_native_value = float_value
+
+        # persist the value
+        self.async_write_ha_state()
 
         # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
@@ -426,7 +429,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         return
 
     @overrides
-    def set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Change the value"""
 
         if self.my_climate is None:
@@ -442,6 +445,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
             return
 
         self._attr_value = self._attr_native_value = float_value
+        self.async_write_ha_state()
 
         # Update the VTherm temp
         self.hass.create_task(

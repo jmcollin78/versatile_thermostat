@@ -772,8 +772,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
                         self._hvac_mode or HVACMode.OFF,
                     )
 
-            self.hass.create_task(self._check_initial_state())
-
             self.reset_last_change_time()
 
         await self.get_my_previous_state()
@@ -2696,3 +2694,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         # Re-applicate the last preset if any to take change into account
         if self._attr_preset_mode:
             await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
+
+        self.hass.create_task(self._check_initial_state())
+
