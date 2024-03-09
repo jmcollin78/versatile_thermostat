@@ -111,6 +111,7 @@ from .const import (
     CONF_USE_POWER_CENTRAL_CONFIG,
     CONF_USE_PRESENCE_CENTRAL_CONFIG,
     CONF_USE_ADVANCED_CENTRAL_CONFIG,
+    CONF_USE_PRESENCE_FEATURE,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     HIDDEN_PRESETS,
@@ -293,6 +294,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._attr_preset_modes: list[str] | None
 
+        self._use_central_config_temperature = False
+
         self.post_init(entry_infos)
 
     def clean_central_config_doublon(
@@ -361,41 +364,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         self._entry_infos = entry_infos
 
+        self._use_central_config_temperature = entry_infos.get(
+            CONF_USE_PRESETS_CENTRAL_CONFIG
+        ) or (
+            entry_infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG)
+            and entry_infos.get(CONF_USE_PRESENCE_FEATURE)
+        )
+
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
         self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
         if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
             self._attr_target_temperature_step = step
-
-        # convert entry_infos into usable attributes
-        # 354 - presets are now initializesd by number entities
-        # presets: dict[str, Any] = {}
-        # items = CONF_PRESETS_WITH_AC.items() if self._ac_mode else CONF_PRESETS.items()
-        # for key, value in items:
-        #    _LOGGER.debug("looking for key=%s, value=%s", key, value)
-        #    if value in entry_infos:
-        #        presets[key] = entry_infos.get(value)
-        #    else:
-        #        _LOGGER.debug("value %s not found in Entry", value)
-        #        presets[key] = (
-        #            self._attr_max_temp if self._ac_mode else self._attr_min_temp
-        #        )
-
-        # presets_away: dict[str, Any] = {}
-        # items = (
-        #    CONF_PRESETS_AWAY_WITH_AC.items()
-        #    if self._ac_mode
-        #    else CONF_PRESETS_AWAY.items()
-        # )
-        # for key, value in items:
-        #    _LOGGER.debug("looking for key=%s, value=%s", key, value)
-        #    if value in entry_infos:
-        #        presets_away[key] = entry_infos.get(value)
-        #    else:
-        #        _LOGGER.debug("value %s not found in Entry", value)
-        #        presets_away[key] = (
-        #            self._attr_max_temp if self._ac_mode else self._attr_min_temp
-        #        )
 
         self._attr_preset_modes: list[str] | None
 
@@ -647,41 +627,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self.async_on_remove(self.remove_thermostat)
 
         await self.async_startup()
-
-    # TODO remove this
-    def init_temperature_preset(self, preset, temperature, is_ac, is_away):
-        """Initialize the internal temperature preset
-        from the Number entity which holds the temperature"""
-
-        if temperature is None or preset is None:
-            return
-
-        if is_away:
-            self._presets_away[preset] = temperature
-        else:
-            self._presets[preset] = temperature
-
-        _LOGGER.debug(
-            "%s - presets are set to: %s, away: %s",
-            self,
-            self._presets,
-            self._presets_away,
-        )
-
-        # Calculate all possible presets
-        self._attr_preset_modes = [PRESET_NONE]
-        if len(self._presets):
-            self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
-
-            for key, _ in CONF_PRESETS.items():
-                if self.find_preset_temp(key) > 0:
-                    self._attr_preset_modes.append(key)
-
-            _LOGGER.debug(
-                "After adding presets, preset_modes to %s", self._attr_preset_modes
-            )
-        else:
-            _LOGGER.debug("No preset_modes")
 
     def remove_thermostat(self):
         """Called when the thermostat will be removed"""
@@ -1213,6 +1158,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         Is None if the VTherm is not controlled by central_mode"""
         return self._last_central_mode
 
+    @property
+    def use_central_config_temperature(self):
+        """True if this VTHerm uses the central configuration temperature"""
+        return self._use_central_config_temperature
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1231,18 +1181,22 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Turn auxiliary heater on."""
         raise NotImplementedError()
 
+    @overrides
     async def async_turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
         raise NotImplementedError()
 
+    @overrides
     def turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
         raise NotImplementedError()
 
+    @overrides
     async def async_turn_aux_heat_off(self) -> None:
         """Turn auxiliary heater off."""
         raise NotImplementedError()
 
+    @overrides
     async def async_set_hvac_mode(self, hvac_mode: HVACMode, need_control_heating=True):
         """Set new target hvac mode."""
         _LOGGER.info("%s - Set hvac mode: %s", self, hvac_mode)
@@ -1388,13 +1342,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             _LOGGER.info("%s - find preset temp: %s", self, preset_mode)
 
+            temp_val = self._presets.get(preset_mode, 0)
             if not self._presence_on or self._presence_state in [
                 STATE_ON,
                 STATE_HOME,
             ]:
-                return self._presets.get(preset_mode, 0)
+                return temp_val
             else:
-                return self._presets_away.get(self.get_preset_away_name(preset_mode), 0)
+                # We should return the preset_away temp val but if
+                # preset temp is 0, that means the user don't want to use
+                # the preset so we return 0, even if there is a value is preset_away
+                return (
+                    self._presets_away.get(self.get_preset_away_name(preset_mode), 0)
+                    if temp_val > 0
+                    else temp_val
+                )
 
     def get_preset_away_name(self, preset_mode: str) -> str:
         """Get the preset name in away mode (when presence is off)"""

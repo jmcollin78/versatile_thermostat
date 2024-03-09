@@ -26,7 +26,7 @@ async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # Disable this test which don't work anymore (kill the pytest !)
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_user_config_flow_over_switch(
     hass: HomeAssistant, skip_hass_states_get, init_central_config
 ):  # pylint: disable=unused-argument

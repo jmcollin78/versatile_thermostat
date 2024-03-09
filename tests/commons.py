@@ -1,9 +1,9 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, abstract-method
 
 """ Some common resources """
 import asyncio
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State

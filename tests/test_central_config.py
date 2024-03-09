@@ -177,8 +177,8 @@ async def test_minimal_over_switch_wo_central_config(
     entity.remove_thermostat()
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):

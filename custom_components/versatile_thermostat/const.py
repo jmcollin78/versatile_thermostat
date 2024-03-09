@@ -22,6 +22,7 @@ from .prop_algorithm import (
 
 _LOGGER = logging.getLogger(__name__)
 
+PRESET_TEMP_SUFFIX = "_temp"
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
 PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
@@ -148,7 +149,7 @@ DEFAULT_SHORT_EMA_PARAMS = {
 }
 
 CONF_PRESETS = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION,
         PRESET_ECO,
@@ -158,7 +159,7 @@ CONF_PRESETS = {
 }
 
 CONF_PRESETS_WITH_AC = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION,
         PRESET_ECO,
@@ -174,7 +175,7 @@ CONF_PRESETS_WITH_AC = {
 PRESET_AWAY_SUFFIX = "_away"
 
 CONF_PRESETS_AWAY = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
         PRESET_ECO + PRESET_AWAY_SUFFIX,
@@ -184,7 +185,7 @@ CONF_PRESETS_AWAY = {
 }
 
 CONF_PRESETS_AWAY_WITH_AC = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
         PRESET_ECO + PRESET_AWAY_SUFFIX,

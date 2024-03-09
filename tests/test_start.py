@@ -5,10 +5,6 @@ from unittest.mock import patch, call
 
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import HVACAction, HVACMode
-from homeassistant.config_entries import ConfigEntryState
-
-from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 

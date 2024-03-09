@@ -23,7 +23,7 @@ from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import ensure_unique_string, slugify
+from homeassistant.util import slugify
 
 from .vtherm_api import VersatileThermostatAPI
 from .commons import VersatileThermostatBaseEntity
@@ -34,7 +34,6 @@ from .const import (
     CONF_NAME,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
-    CONF_ADD_CENTRAL_BOILER_CONTROL,
     CONF_TEMP_MIN,
     CONF_TEMP_MAX,
     CONF_STEP_TEMPERATURE,
@@ -43,7 +42,8 @@ from .const import (
     PRESET_ECO_AC,
     PRESET_COMFORT_AC,
     PRESET_BOOST_AC,
-    PRESET_AC_SUFFIX,
+    PRESET_AWAY_SUFFIX,
+    PRESET_TEMP_SUFFIX,
     CONF_PRESETS_VALUES,
     CONF_PRESETS_WITH_AC_VALUES,
     CONF_PRESETS_AWAY_VALUES,
@@ -55,20 +55,24 @@ from .const import (
 )
 
 PRESET_ICON_MAPPING = {
-    PRESET_FROST_PROTECTION + "_temp": "mdi:snowflake-thermometer",
-    PRESET_ECO + "_temp": "mdi:leaf",
-    PRESET_COMFORT + "_temp": "mdi:sofa",
-    PRESET_BOOST + "_temp": "mdi:rocket-launch",
-    PRESET_ECO_AC + "_temp": "mdi:leaf-circle-outline",
-    PRESET_COMFORT_AC + "_temp": "mdi:sofa-outline",
-    PRESET_BOOST_AC + "_temp": "mdi:rocket-launch-outline",
-    PRESET_FROST_PROTECTION + "_away_temp": "mdi:snowflake-thermometer",
-    PRESET_ECO + "_away_temp": "mdi:leaf",
-    PRESET_COMFORT + "_away_temp": "mdi:sofa",
-    PRESET_BOOST + "_away_temp": "mdi:rocket-launch",
-    PRESET_ECO_AC + "_away_temp": "mdi:leaf-circle-outline",
-    PRESET_COMFORT_AC + "_away_temp": "mdi:sofa-outline",
-    PRESET_BOOST_AC + "_away_temp": "mdi:rocket-launch-outline",
+    PRESET_FROST_PROTECTION + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
+    PRESET_ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
+    PRESET_COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
+    PRESET_BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
+    PRESET_ECO_AC + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    PRESET_COMFORT_AC + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    PRESET_BOOST_AC + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
+    PRESET_FROST_PROTECTION
+    + PRESET_AWAY_SUFFIX
+    + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
+    PRESET_ECO + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf",
+    PRESET_COMFORT + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa",
+    PRESET_BOOST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
+    PRESET_ECO_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    PRESET_BOOST_AC
+    + PRESET_AWAY_SUFFIX
+    + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -252,12 +256,6 @@ class CentralConfigTemperatureNumber(
         # self._attr_name = name
 
         self._attr_translation_key = preset_name
-        # self._attr_translation_placeholders = {
-        #     "preset": preset_name,
-        #     "ac": "-AC" if is_ac else "",
-        #     "away": "-AWAY" if is_away else "",
-        # }
-        # self.entity_id = f"{NUMBER_DOMAIN}.central_configuration_{preset_name}"
         self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
         self._attr_unique_id = f"central_configuration_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
@@ -331,10 +329,8 @@ class CentralConfigTemperatureNumber(
 
         # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
-        # Update the VTherms
-        # TODO this reload all VTherms temp. This could be optimized by reloading only
-        # VTherm which have the USE_CENTRAL_CONFIG true for Preset and Presence
-        self.hass.create_task(api.init_vtherm_links())
+        # Update the VTherms which have temperature in central config
+        self.hass.create_task(api.init_vtherm_links(only_use_central=True))
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
@@ -372,11 +368,6 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         self._attr_translation_key = preset_name
         self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
 
-        # self._attr_translation_placeholders = {
-        #     "preset": preset_name,
-        #     "ac": "-AC" if is_ac else "",
-        #     "away": "-AWAY" if is_away else "",
-        # }
         self._attr_unique_id = f"{self._device_name}_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
@@ -387,7 +378,6 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         # Initialize the values if included into the entry_infos. This will do
         # the temperature migration.
-        # TODO see if this should be replace by the central config if any
         temp = None
         if (temp := entry_infos.get(preset_name, None)) is not None:
             self._attr_value = self._attr_native_value = temp
@@ -399,6 +389,9 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         self._attr_mode = NumberMode.BOX
         self._preset_name = preset_name
+        self._canonical_preset_name = preset_name.replace(
+            PRESET_TEMP_SUFFIX, ""
+        ).replace(PRESET_AWAY_SUFFIX, "")
         self._is_away = is_away
         self._is_ac = is_ac
 
@@ -430,15 +423,10 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         self._attr_native_step = self.my_climate.target_temperature_step
         self._attr_native_min_value = self.my_climate.min_temp
         self._attr_native_max_value = self.my_climate.max_temp
-
-        # Initialize the internal temp value of VTherm
-        self.my_climate.init_temperature_preset(
-            self._preset_name, self._attr_native_value, self._is_ac, self._is_away
-        )
         return
 
     @overrides
-    async def async_set_native_value(self, value: float) -> None:
+    def set_native_value(self, value: float) -> None:
         """Change the value"""
 
         if self.my_climate is None:
@@ -455,12 +443,12 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         self._attr_value = self._attr_native_value = float_value
 
-        self.async_write_ha_state()
-
-        # Update the VTherm
+        # Update the VTherm temp
         self.hass.create_task(
             self.my_climate.service_set_preset_temperature(
-                self._preset_name.replace("_temp", ""), self._attr_native_value, None
+                self._canonical_preset_name,
+                self._attr_native_value if not self._is_away else None,
+                self._attr_native_value if self._is_away else None,
             )
         )
 
