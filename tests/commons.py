@@ -527,6 +527,8 @@ async def create_central_config(  # pylint: disable=dangerous-default-value
     central_configuration = api.find_central_configuration()
     assert central_configuration is not None
 
+    return central_configuration
+
 
 def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     """Search and return the entity in the domain"""

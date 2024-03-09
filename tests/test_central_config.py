@@ -4,22 +4,11 @@
 from unittest.mock import patch  # , call
 
 # from datetime import datetime  # , timedelta
-
 from homeassistant import data_entry_flow
 from homeassistant.core import HomeAssistant
 
-# from homeassistant.components.climate import HVACAction, HVACMode
-from homeassistant.config_entries import ConfigEntryState, SOURCE_USER
-
-# from homeassistant.helpers.entity_component import EntityComponent
-# from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
-
+from homeassistant.config_entries import SOURCE_USER
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-# from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.thermostat_climate import (
-    ThermostatOverClimate,
-)
 
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,

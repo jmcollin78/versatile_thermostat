@@ -4,13 +4,12 @@
 
 # from unittest.mock import patch, call
 # from datetime import datetime, timedelta
-
+import asyncio
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntryState
 
 # from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
-from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -465,7 +464,7 @@ async def test_add_number_for_over_switch_use_central(
     assert vtherm_entry.state is ConfigEntryState.LOADED
 
     # We search for NumberEntities
-    for preset_name, value in temps.items():
+    for preset_name, _ in temps.items():
         temp_entity = search_entity(
             hass,
             "number.central_configuration_" + preset_name,
@@ -679,7 +678,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
         | temps_missing,
     )
 
-    # The restore should not be used
+    # The restore should be used
     with patch(
         "homeassistant.helpers.restore_state.RestoreEntity.async_get_last_state",
         return_value=State(entity_id="number.mock_valve", state="23"),
@@ -757,3 +756,114 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
         PRESET_COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away_temp"],
         PRESET_BOOST + PRESET_AWAY_SUFFIX: temps["boost_away_temp"],
     }
+
+
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_change_central_config_temperature(
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
+):
+    """Test the construction of a over valve vtherm with
+    use central config for PRESET and PRESENCE.
+    When changing the central configuration temperature, the VTherm
+    target temperature should change also"""
+
+    vtherm_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheValveConfigMockName",
+        unique_id="valveConfigUniqueId",
+        data={
+            CONF_NAME: "TheOverValveVTherm",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_central_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.02,
+            CONF_CYCLE_MIN: 5,
+            CONF_VALVE: "switch.mock_valve",
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: True,
+            CONF_USE_WINDOW_CENTRAL_CONFIG: True,
+            CONF_USE_POWER_CENTRAL_CONFIG: True,
+            CONF_USE_MOTION_CENTRAL_CONFIG: True,
+        },
+    )
+
+    # Their is nothing to restore so temp values should be initialized with default values
+    vtherm: BaseThermostat = await create_thermostat(
+        hass, vtherm_entry, "climate.theovervalvevtherm"
+    )
+
+    # Creates another VTherm which is NOT binded to central configuration
+    vtherm2_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheValve2ConfigMockName",
+        unique_id="valve2ConfigUniqueId",
+        data={
+            CONF_NAME: "TheOverValveVTherm2",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_central_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.02,
+            CONF_CYCLE_MIN: 5,
+            CONF_VALVE: "switch.mock_valve",
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+            CONF_USE_WINDOW_CENTRAL_CONFIG: True,
+            CONF_USE_POWER_CENTRAL_CONFIG: True,
+            CONF_USE_MOTION_CENTRAL_CONFIG: True,
+        },
+    )
+
+    # Their is nothing to restore so temp values should be initialized with default values
+    vtherm2: BaseThermostat = await create_thermostat(
+        hass, vtherm2_entry, "climate.theovervalvevtherm2"
+    )
+
+    # 1. No temp Number should be present cause central config mode
+    preset_name = "boost"
+    temp_entity = search_entity(
+        hass,
+        "number.theovervalvevtherm_" + preset_name + "_temp",
+        NUMBER_DOMAIN,
+    )
+    assert not temp_entity
+    assert (
+        vtherm.find_preset_temp(preset_name) == 19.1
+    )  # 19.1 is the value of the central_config boost preset temp
+
+    assert (
+        vtherm2.find_preset_temp(preset_name) == 15
+    )  # 15 is the min temp which is the default
+
+    # 2. change the central_config temp Number entity value
+    temp_entity = search_entity(
+        hass,
+        "number.central_configuration_" + preset_name + "_temp",
+        NUMBER_DOMAIN,
+    )
+
+    assert temp_entity
+    assert temp_entity.value == 19.1
+
+    temp_entity.set_native_value(20.3)
+    assert temp_entity
+    assert temp_entity.value == 20.3
+    # Wait for async job to complete
+    await asyncio.sleep(0.1)
+
+    assert vtherm.find_preset_temp(preset_name) == 20.3
+    # No change for VTherm 2
+    assert (
+        vtherm2.find_preset_temp(preset_name) == 15
+    )  # 15 is the min temp which is the default
