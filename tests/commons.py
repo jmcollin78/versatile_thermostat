@@ -23,9 +23,7 @@ from homeassistant.components.switch import (
     SwitchEntity,
 )
 
-from homeassistant.components.number import (
-    NumberEntity,
-)
+from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -854,3 +852,25 @@ def cancel_switchs_cycles(entity: BaseThermostat):
         return
     for under in entity._underlyings:
         under._cancel_cycle()
+
+
+async def set_climate_preset_temp(
+    entity: BaseThermostat, temp_number_name: str, temp: float
+):
+    """Set a preset value in the temp Number entity"""
+    number_entity_id = (
+        NUMBER_DOMAIN
+        + "."
+        + entity.entity_id.split(".")[1]
+        + "_"
+        + temp_number_name
+        + PRESET_TEMP_SUFFIX
+    )
+
+    temp_entity = search_entity(
+        entity.hass,
+        number_entity_id,
+        NUMBER_DOMAIN,
+    )
+    if temp_entity:
+        await temp_entity.async_set_native_value(temp)

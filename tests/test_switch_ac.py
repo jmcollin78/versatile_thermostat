@@ -56,6 +56,23 @@ async def test_over_switch_ac_full_start(
         assert entity
         assert isinstance(entity, ThermostatOverSwitch)
 
+        # Initialise the preset temp
+        await set_climate_preset_temp(
+            entity, PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX, 7
+        )
+        await set_climate_preset_temp(entity, PRESET_ECO + PRESET_AWAY_SUFFIX, 16)
+        await set_climate_preset_temp(entity, PRESET_COMFORT + PRESET_AWAY_SUFFIX, 17)
+        await set_climate_preset_temp(entity, PRESET_BOOST + PRESET_AWAY_SUFFIX, 18)
+        await set_climate_preset_temp(
+            entity, PRESET_ECO + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 27
+        )
+        await set_climate_preset_temp(
+            entity, PRESET_COMFORT + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 26
+        )
+        await set_climate_preset_temp(
+            entity, PRESET_BOOST + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 25
+        )
+
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_climate is False  # pylint: disable=protected-access
         assert entity.ac_mode is True

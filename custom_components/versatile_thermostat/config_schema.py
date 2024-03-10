@@ -44,13 +44,18 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
-        vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
         vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
+        vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
+        vol.Required(CONF_USED_BY_CENTRAL_BOILER, default=False): cv.boolean,
+    }
+)
+
+STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
         vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
-        vol.Required(CONF_USED_BY_CENTRAL_BOILER, default=False): cv.boolean,
     }
 )
 
@@ -192,18 +197,6 @@ STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
-STEP_CENTRAL_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-    {vol.Optional(v, default=0): vol.Coerce(float) for (k, v) in CONF_PRESETS.items()}
-)
-
-STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA = (
-    vol.Schema(  # pylint: disable=invalid-name  # pylint: disable=invalid-name
-        {
-            vol.Optional(v, default=0): vol.Coerce(float)
-            for (k, v) in CONF_PRESETS_WITH_AC.items()
-        }
-    )
-)
 
 STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
@@ -251,7 +244,7 @@ STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
 
 STEP_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Optional(CONF_MOTION_SENSOR): selector.EntitySelector(
+        vol.Required(CONF_MOTION_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(
                 domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
             ),
@@ -283,10 +276,10 @@ STEP_CENTRAL_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Optional(CONF_POWER_SENSOR): selector.EntitySelector(
+        vol.Required(CONF_POWER_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
         ),
-        vol.Optional(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
+        vol.Required(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
         ),
         vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
@@ -301,19 +294,7 @@ STEP_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Optional(v, default=17): vol.Coerce(float)
-        for (k, v) in CONF_PRESETS_AWAY.items()
-    }
-)
-
-STEP_CENTRAL_PRESENCE_WITH_AC_DATA_SCHEMA = {  # pylint: disable=invalid-name
-    vol.Optional(v, default=17): vol.Coerce(float)
-    for (k, v) in CONF_PRESETS_AWAY_WITH_AC.items()
-}
-
-STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
-    {
-        vol.Optional(CONF_PRESENCE_SENSOR): selector.EntitySelector(
+        vol.Required(CONF_PRESENCE_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(
                 domain=[
                     PERSON_DOMAIN,
@@ -321,7 +302,12 @@ STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
                     INPUT_BOOLEAN_DOMAIN,
                 ]
             ),
-        ),
+        )
+    },
+)
+
+STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
         vol.Required(CONF_USE_PRESENCE_CENTRAL_CONFIG, default=True): cv.boolean,
     }
 )

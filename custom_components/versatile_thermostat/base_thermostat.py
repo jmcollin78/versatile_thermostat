@@ -318,9 +318,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             if cfg.get(CONF_USE_TPI_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_TPI_DATA_SCHEMA)
 
-            if cfg.get(CONF_USE_PRESETS_CENTRAL_CONFIG) is True:
-                clean_one(cfg, STEP_CENTRAL_PRESETS_DATA_SCHEMA)
-                clean_one(cfg, STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA)
 
             if cfg.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
@@ -2696,4 +2693,3 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
 
         self.hass.create_task(self._check_initial_state())
-

@@ -206,14 +206,6 @@ async def test_user_config_flow_over_climate(
     )
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    assert result["step_id"] == "presets"
-    assert result["errors"] == {}
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=MOCK_PRESETS_CONFIG
-    )
-
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "advanced"
     assert result["errors"] == {}
 
@@ -232,7 +224,7 @@ async def test_user_config_flow_over_climate(
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
     assert result[
         "data"
-    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | MOCK_PRESETS_CONFIG | MOCK_ADVANCED_CONFIG | MOCK_DEFAULT_FEATURE_CONFIG | {
+    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | MOCK_ADVANCED_CONFIG | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -502,11 +494,11 @@ async def test_user_config_flow_over_4_switches(
 
     await create_central_config(hass)
 
-    SOURCE_CONFIG = {
+    SOURCE_CONFIG = {  # pylint: disable=invalid-name
         CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
     }
 
-    MAIN_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
+    MAIN_CONFIG = {  # pylint: disable=invalid-name
         CONF_NAME: "TheOver4SwitchMockName",
         CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
         CONF_CYCLE_MIN: 5,
@@ -520,7 +512,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_USED_BY_CENTRAL_BOILER: False,
     }
 
-    TYPE_CONFIG = {  # pylint: disable=wildcard-import, invalid-name
+    TYPE_CONFIG = {  # pylint: disable=invalid-name
         CONF_HEATER: "switch.mock_switch1",
         CONF_HEATER_2: "switch.mock_switch2",
         CONF_HEATER_3: "switch.mock_switch3",
