@@ -129,7 +129,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             if not is_empty:
                 current_config = self._infos.get(config, None)
-                self._infos[config] = current_config is True or current_config is None
+                self._infos[config] = current_config is True or (
+                    current_config is None and self._central_config is not None
+                )
             else:
                 self._infos[config] = self._central_config is not None
 
@@ -257,6 +259,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
             and infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
             and infos.get(CONF_PRESENCE_SENSOR, None) is None
+        ):
+            return False
+
+        if (
+            infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
+            and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
         ):
             return False
 

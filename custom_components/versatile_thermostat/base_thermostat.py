@@ -318,7 +318,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             if cfg.get(CONF_USE_TPI_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_TPI_DATA_SCHEMA)
 
-
             if cfg.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_WINDOW_DATA_SCHEMA)
 
@@ -436,7 +435,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         self._presence_sensor_entity_id = entry_infos.get(CONF_PRESENCE_SENSOR)
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
-        self._presence_on = self._presence_sensor_entity_id is not None
+        self._presence_on = (
+            entry_infos.get(CONF_USE_PRESENCE_FEATURE, False)
+            and self._presence_sensor_entity_id is not None
+        )
 
         if self._ac_mode:
             # Added by https://github.com/jmcollin78/versatile_thermostat/pull/144
@@ -1339,6 +1341,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
             temp_val = self._presets.get(preset_mode, 0)
             if not self._presence_on or self._presence_state in [
+                None,
                 STATE_ON,
                 STATE_HOME,
             ]:

@@ -196,15 +196,18 @@ async def test_over_valve_full_start(
         assert mock_send_event.call_count == 0
 
         # Change to preset Comfort
+        # Change presence to off
+        event_timestamp = now - timedelta(minutes=4)
+        await send_presence_change_event(entity, False, True, event_timestamp)
         await entity.async_set_preset_mode(preset_mode=PRESET_COMFORT)
         assert entity.preset_mode == PRESET_COMFORT
-        assert entity.target_temperature == 17.2
+        assert entity.target_temperature == 17.2  # Comfort with presence off
         assert entity.valve_open_percent == 73
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
         # Change presence to on
-        event_timestamp = now - timedelta(minutes=4)
+        event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, True, False, event_timestamp)
         assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
         assert entity.preset_mode is PRESET_COMFORT
@@ -225,7 +228,7 @@ async def test_over_valve_full_start(
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get", return_value=expected_state
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = now - timedelta(minutes=2)
         await send_temperature_change_event(entity, 20, datetime.now())
         assert entity.valve_open_percent == 0
         assert entity.is_device_active is True  # Should be 0 but in fact 10 is send
@@ -275,7 +278,7 @@ async def test_over_valve_full_start(
         assert entity.valve_open_percent == 7
 
         # Unset the presence
-        event_timestamp = now - timedelta(minutes=2)
+        event_timestamp = now - timedelta(minutes=1)
         await send_presence_change_event(entity, False, True, event_timestamp)
         assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.valve_open_percent == 10

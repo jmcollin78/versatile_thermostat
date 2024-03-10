@@ -5,6 +5,7 @@ from unittest.mock import patch  # , call
 
 # from datetime import datetime  # , timedelta
 from homeassistant import data_entry_flow
+from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 
 from homeassistant.config_entries import SOURCE_USER
@@ -429,7 +430,13 @@ async def test_over_switch_with_central_config_but_no_central_config(
         },
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "main"}
+    )
+
+    assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "main"
     assert result["errors"] == {}
 
@@ -440,15 +447,11 @@ async def test_over_switch_with_central_config_but_no_central_config(
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_CYCLE_MIN: 5,
             CONF_DEVICE_POWER: 1,
-            CONF_USE_WINDOW_FEATURE: True,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
         },
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == FlowResultType.FORM
     # in case of error we stays in main
     assert result["step_id"] == "main"
     assert result["errors"] == {"use_main_central_config": "no_central_config"}

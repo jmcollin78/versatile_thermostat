@@ -35,18 +35,6 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity: BaseThermostat = find_my_entity("climate.theoverswitchmockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverSwitch)
