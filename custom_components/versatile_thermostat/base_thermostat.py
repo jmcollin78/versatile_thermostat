@@ -1325,13 +1325,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if preset_mode == PRESET_POWER:
             return self._power_temp
         if preset_mode == PRESET_ACTIVITY:
-            return self._presets[
-                (
-                    self._motion_preset
-                    if self._motion_state == STATE_ON
-                    else self._no_motion_preset
-                )
-            ]
+            motion_preset = (
+                self._motion_preset
+                if self._motion_state == STATE_ON
+                else self._no_motion_preset
+            )
+            if motion_preset in self._presets:
+                return self._presets[motion_preset]
+            else:
+                return None
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
             if self._ac_mode and self._hvac_mode == HVACMode.COOL:
@@ -1391,7 +1393,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         """Set the target temperature and the target temperature of underlying climate if any
         For testing purpose you can pass an event_timestamp.
         """
-        self._target_temp = temperature
+        if temperature:
+            self._target_temp = temperature
         return
 
     def get_state_date_or_now(self, state: State) -> datetime:
@@ -1804,13 +1807,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             return
 
         await self._async_internal_set_temperature(
-            self._presets[
+            self._presets.get(
                 (
                     self._motion_preset
                     if self._motion_state == STATE_ON
                     else self._no_motion_preset
-                )
-            ]
+                ),
+                None,
+            )
         )
         _LOGGER.debug(
             "%s - regarding motion, target_temp have been set to %.2f",

@@ -1,4 +1,5 @@
 """The Versatile Thermostat integration."""
+
 from __future__ import annotations
 
 from typing import Dict
@@ -18,6 +19,8 @@ from .base_thermostat import BaseThermostat
 from .const import (
     DOMAIN,
     PLATFORMS,
+    CONFIG_VERSION,
+    CONFIG_MINOR_VERSION,
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
@@ -27,6 +30,13 @@ from .const import (
     CONF_SAFETY_MODE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_TYPE,
+    CONF_USE_WINDOW_FEATURE,
+    CONF_USE_MOTION_FEATURE,
+    CONF_USE_PRESENCE_FEATURE,
+    CONF_USE_POWER_FEATURE,
+    CONF_USE_CENTRAL_BOILER_FEATURE,
+    CONF_POWER_SENSOR,
+    CONF_PRESENCE_SENSOR,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -182,12 +192,32 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate old entry."""
     _LOGGER.debug("Migrating from version %s", config_entry.version)
 
-    if config_entry.version == 1:
+    if (
+        config_entry.version != CONFIG_VERSION
+        or config_entry.minor_version != CONFIG_MINOR_VERSION
+    ):
         new = {**config_entry.data}
-        # TO DO: modify Config Entry data if there will be something to migrate
 
-        config_entry.version = 2
-        hass.config_entries.async_update_entry(config_entry, data=new)
+        if (
+            config_entry.data.get(CONF_THERMOSTAT_TYPE)
+            == CONF_THERMOSTAT_CENTRAL_CONFIG
+        ):
+            new[CONF_USE_WINDOW_FEATURE] = True
+            new[CONF_USE_MOTION_FEATURE] = True
+            new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
+            new[CONF_USE_PRESENCE_FEATURE] = (
+                new.get(CONF_PRESENCE_SENSOR, None) is not None
+            )
+
+            new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
+                "add_central_boiler_control", False
+            )
+        hass.config_entries.async_update_entry(
+            config_entry,
+            data=new,
+            version=CONFIG_VERSION,
+            minor_version=CONFIG_MINOR_VERSION,
+        )
 
     _LOGGER.info("Migration to version %s successful", config_entry.version)
 

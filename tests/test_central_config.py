@@ -66,7 +66,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
     )
 
@@ -455,3 +455,63 @@ async def test_over_switch_with_central_config_but_no_central_config(
     # in case of error we stays in main
     assert result["step_id"] == "main"
     assert result["errors"] == {"use_main_central_config": "no_central_config"}
+
+
+async def test_migration_of_central_config(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+):
+    """Tests the clean_central_config_doubon of base_thermostat"""
+    central_config_entry = MockConfigEntry(
+        version=CONFIG_VERSION,
+        # An old minor version
+        minor_version=1,
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data={
+            CONF_NAME: CENTRAL_CONFIG_NAME,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.02,
+            CONF_MINIMAL_ACTIVATION_DELAY: 11,
+            CONF_SECURITY_DELAY_MIN: 61,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+            # The old central_boiler parameter
+            "add_central_boiler_control": True,
+            CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
+            CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+        },
+    )
+
+    central_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(central_config_entry.entry_id)
+    assert central_config_entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(
+        hass, "climate.thecentralconfigmockname", "climate"
+    )
+
+    assert entity is None
+
+    assert count_entities(hass, "climate.thecentralconfigmockname", "climate") == 0
+
+    # Test that VTherm API find the CentralConfig
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    central_configuration = api.find_central_configuration()
+    assert central_configuration is not None
+
+    assert central_config_entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
+
+    # Test that VTherm API have any central boiler entities
+    # It should have been migrated and initialized
+    assert api.nb_active_device_for_boiler_entity is not None
+    assert api.nb_active_device_for_boiler == 0
+
+    assert api.nb_active_device_for_boiler_threshold_entity is not None
+    assert api.nb_active_device_for_boiler_threshold is 1  # the default value is 1

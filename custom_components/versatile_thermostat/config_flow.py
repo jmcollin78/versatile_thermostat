@@ -74,7 +74,9 @@ def add_suggested_values_to_schema(
 class VersatileThermostatBaseConfigFlow(FlowHandler):
     """The base Config flow class. Used to put some code in commons."""
 
-    VERSION = 1
+    VERSION = CONFIG_VERSION
+    MINOR_VERSION = CONFIG_MINOR_VERSION
+
     _infos: dict
     _placeholders = {
         CONF_NAME: "",
@@ -98,13 +100,19 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     def _init_feature_flags(self, _):
         """Fix features selection depending to infos"""
         is_empty: bool = False  # TODO remove this not bool(infos)
+        is_central_config = (
+            self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
+
         self._infos[CONF_USE_WINDOW_FEATURE] = (
             is_empty
             or self._infos.get(CONF_WINDOW_SENSOR) is not None
             or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
         self._infos[CONF_USE_MOTION_FEATURE] = (
-            is_empty or self._infos.get(CONF_MOTION_SENSOR) is not None
+            is_empty
+            or self._infos.get(CONF_MOTION_SENSOR) is not None
+            or is_central_config
         )
         self._infos[CONF_USE_POWER_FEATURE] = is_empty or (
             self._infos.get(CONF_POWER_SENSOR) is not None
@@ -112,6 +120,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
         self._infos[CONF_USE_PRESENCE_FEATURE] = (
             is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
+        )
+
+        self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] = is_empty or (
+            self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV) is not None
+            and self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV) is not None
         )
 
     def _init_central_config_flags(self, infos):
@@ -196,7 +209,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     raise NoCentralConfig(conf)
 
         # Check the service for central boiler format
-        if self._infos.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+        if self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE):
             for conf in [
                 CONF_CENTRAL_BOILER_ACTIVATION_SRV,
                 CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
@@ -208,65 +221,87 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
-        if (
-            infos.get(CONF_NAME) is None
-            or infos.get(CONF_TEMP_SENSOR) is None
-            or infos.get(CONF_CYCLE_MIN) is None
-        ):
-            return False
+        is_central_config = (
+            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
+        if is_central_config:
+            if (
+                infos.get(CONF_NAME) is None
+                or infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
+            ):
+                return False
 
-        if (
-            infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False
-            and infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
-        ):
-            return False
-
-        if (
-            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
-            and infos.get(CONF_HEATER, None) is None
-        ):
-            return False
-
-        if (
-            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
-            and infos.get(CONF_CLIMATE, None) is None
-        ):
-            return False
-
-        if (
-            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
-            and infos.get(CONF_VALVE, None) is None
-        ):
-            return False
-
-        if (
-            infos.get(CONF_USE_MOTION_FEATURE, False) is True
-            and infos.get(CONF_MOTION_SENSOR, None) is None
-        ):
-            return False
-
-        if (
-            infos.get(CONF_USE_POWER_FEATURE, False) is True
-            and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False
-            and (
+            if infos.get(CONF_USE_POWER_FEATURE, False) is True and (
                 infos.get(CONF_POWER_SENSOR, None) is None
                 or infos.get(CONF_MAX_POWER_SENSOR, None) is None
-            )
-        ):
-            return False
+            ):
+                return False
 
-        if (
-            infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
-            and infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
-            and infos.get(CONF_PRESENCE_SENSOR, None) is None
-        ):
-            return False
+            if (
+                infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
+                and infos.get(CONF_PRESENCE_SENSOR, None) is None
+            ):
+                return False
+        else:
+            if (
+                infos.get(CONF_NAME) is None
+                or infos.get(CONF_TEMP_SENSOR) is None
+                or infos.get(CONF_CYCLE_MIN) is None
+            ):
+                return False
 
-        if (
-            infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
-            and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
-        ):
-            return False
+            if (
+                infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
+                and infos.get(CONF_HEATER, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+                and infos.get(CONF_CLIMATE, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
+                and infos.get(CONF_VALVE, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_MOTION_FEATURE, False) is True
+                and infos.get(CONF_MOTION_SENSOR, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_POWER_FEATURE, False) is True
+                and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False
+                and (
+                    infos.get(CONF_POWER_SENSOR, None) is None
+                    or infos.get(CONF_MAX_POWER_SENSOR, None) is None
+                )
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
+                and infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_PRESENCE_SENSOR, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
+            ):
+                return False
 
         return True
 
@@ -306,6 +341,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "no_central_config"
             except ServiceConfigurationError as err:
                 errors[str(err)] = "service_configuration_format"
+            except ConfigurationNotCompleteError as err:
+                errors["base"] = "configuration_not_complete"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -336,17 +373,28 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_menu
         )
 
+    async def async_step_configuration_not_complete(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """A fake step to handle the incomplete configuration flow"""
+        return await self.async_step_menu(user_input)
+
     async def async_step_menu(self, user_input: dict | None = None) -> FlowResult:
         """Handle the flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_menu user_input=%s", user_input)
 
-        menu_options = ["main", "type"]
-        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            menu_options.append("central_boiler")
-        else:
-            menu_options.append("features")
+        is_central_config = (
+            self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
 
-        if self._infos.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
+        menu_options = ["main", "features"]
+        if not is_central_config:
+            menu_options.append("type")
+
+        if (
+            self._infos.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI
+            or is_central_config
+        ):
             menu_options.append("tpi")
 
         if self._infos[CONF_THERMOSTAT_TYPE] in [
@@ -355,6 +403,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_THERMOSTAT_CLIMATE,
         ]:
             menu_options.append("presets")
+
+        if (
+            is_central_config
+            and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
+        ):
+            menu_options.append("central_boiler")
 
         if self._infos[CONF_USE_WINDOW_FEATURE] is True:
             menu_options.append("window")
@@ -372,6 +426,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self.check_config_complete(self._infos):
             menu_options.append("finalize")
+        else:
+            _LOGGER.info("The configuration is not terminated")
+            menu_options.append("configuration_not_complete")
 
         return self.async_show_menu(
             step_id="menu",
@@ -456,7 +513,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step(
             "features",
-            STEP_FEATURES_DATA_SCHEMA,
+            (
+                STEP_CENTRAL_FEATURES_DATA_SCHEMA
+                if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
+                else STEP_FEATURES_DATA_SCHEMA
+            ),
             user_input,
             self.async_step_menu,
         )

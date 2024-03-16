@@ -194,7 +194,7 @@ FULL_CENTRAL_CONFIG = {
     CONF_SECURITY_DELAY_MIN: 61,
     CONF_SECURITY_MIN_ON_PERCENT: 0.5,
     CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-    CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+    CONF_USE_CENTRAL_BOILER_FEATURE: False,
 }
 
 FULL_CENTRAL_CONFIG_WITH_BOILER = {
@@ -235,7 +235,7 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_SECURITY_DELAY_MIN: 61,
     CONF_SECURITY_MIN_ON_PERCENT: 0.5,
     CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-    CONF_ADD_CENTRAL_BOILER_CONTROL: True,
+    CONF_USE_CENTRAL_BOILER_FEATURE: True,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
 }
@@ -870,7 +870,7 @@ async def set_climate_preset_temp(
         NUMBER_DOMAIN
         + "."
         + entity.entity_id.split(".")[1]
-        + "_"
+        + "_preset_"
         + temp_number_name
         + PRESET_TEMP_SUFFIX
     )

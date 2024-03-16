@@ -91,7 +91,7 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
-    # is_central_boiler = entry.data.get(CONF_ADD_CENTRAL_BOILER_CONTROL)
+    # is_central_boiler = entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE)
 
     entities = []
 
@@ -256,8 +256,8 @@ class CentralConfigTemperatureNumber(
         # self._attr_name = name
 
         self._attr_translation_key = preset_name
-        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
-        self._attr_unique_id = f"central_configuration_{preset_name}"
+        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_preset_{preset_name}"
+        self._attr_unique_id = f"central_configuration_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
@@ -369,9 +369,9 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         super().__init__(hass, unique_id, name)
 
         self._attr_translation_key = preset_name
-        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_{preset_name}"
+        self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_preset_{preset_name}"
 
-        self._attr_unique_id = f"{self._device_name}_{preset_name}"
+        self._attr_unique_id = f"{self._device_name}_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 

@@ -59,6 +59,16 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_CENTRAL_BOILER_FEATURE, default=False): cv.boolean,
+    }
+)
+
 STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
@@ -67,7 +77,6 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
         vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
-        vol.Required(CONF_ADD_CENTRAL_BOILER_CONTROL, default=False): cv.boolean,
     }
 )
 

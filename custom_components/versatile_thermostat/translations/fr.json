@@ -27,7 +27,8 @@
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
-          "finalize": "Finaliser la création"
+          "finalize": "Finaliser la création",
+          "configuration_not_complete": "Configuration incomplète"
         }
       },
       "main": {
@@ -45,7 +46,6 @@
           "device_power": "Puissance de l'équipement",
           "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
           "use_main_central_config": "Utiliser la configuration centrale supplémentaire. Cochez pour utiliser la configuration centrale supplémentaire (température externe, min, max, pas, ...)",
-          "add_central_boiler_control": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
@@ -59,7 +59,8 @@
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
-          "use_presence_feature": "Avec détection de présence"
+          "use_presence_feature": "Avec détection de présence",
+          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante."
         }
       },
       "type": {
@@ -270,7 +271,8 @@
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
-          "finalize": "Finaliser les modifications"
+          "finalize": "Finaliser les modifications",
+          "configuration_not_complete": "Configuration incomplète"
         }
       },
       "main": {
@@ -288,7 +290,6 @@
           "device_power": "Puissance de l'équipement",
           "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
           "use_main_central_config": "Utiliser la configuration centrale supplémentaire. Cochez pour utiliser la configuration centrale supplémentaire (température externe, min, max, pas, ...).",
-          "add_central_boiler_control": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
@@ -302,7 +303,8 @@
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
-          "use_presence_feature": "Avec détection de présence"
+          "use_presence_feature": "Avec détection de présence",
+          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante."
         }
       },
       "type": {

@@ -27,7 +27,8 @@
           "power": "Power management",
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
-          "finalize": "All done"
+          "finalize": "All done",
+          "configuration_not_complete": "Configuration not complete"
         }
       },
       "main": {
@@ -45,7 +46,6 @@
           "device_power": "Device power",
           "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
-          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
@@ -59,7 +59,8 @@
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection"
+          "use_presence_feature": "Use presence detection",
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {
@@ -258,7 +259,8 @@
           "power": "Power management",
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
-          "finalize": "All done"
+          "finalize": "All done",
+          "configuration_not_complete": "Configuration not complete"
         }
       },
       "main": {
@@ -276,7 +278,6 @@
           "device_power": "Device power",
           "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
-          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
@@ -290,7 +291,8 @@
           "use_window_feature": "Use window detection",
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection"
+          "use_presence_feature": "Use presence detection",
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {

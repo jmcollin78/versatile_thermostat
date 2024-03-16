@@ -48,10 +48,11 @@ async def test_user_config_flow_over_switch(
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "presets",
         "advanced",
+        "configuration_not_complete",
     ]
     assert result.get("errors") is None
 
@@ -97,8 +98,8 @@ async def test_user_config_flow_over_switch(
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "tpi",
         "presets",
         "advanced",
@@ -156,8 +157,8 @@ async def test_user_config_flow_over_switch(
     assert result.get("errors") is None
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "tpi",
         "presets",
         "window",
@@ -165,6 +166,7 @@ async def test_user_config_flow_over_switch(
         "power",
         "presence",
         "advanced",
+        "configuration_not_complete",
         # "finalize" : because for motion we need an motion sensor
     ]
 
@@ -215,8 +217,8 @@ async def test_user_config_flow_over_switch(
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "tpi",
         "presets",
         "window",
@@ -284,6 +286,7 @@ async def test_user_config_flow_over_switch(
             CONF_USE_MOTION_FEATURE: True,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: True,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         }
     )
     assert result["result"]
@@ -320,10 +323,11 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "presets",
         "advanced",
+        "configuration_not_complete",
     ]
     assert result.get("errors") is None
 
@@ -387,10 +391,11 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "presets",
         "advanced",
+        "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
     assert result.get("errors") is None
@@ -430,10 +435,11 @@ async def test_user_config_flow_over_climate(
     assert result.get("errors") is None
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "presets",
         "advanced",
+        "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
 
@@ -466,8 +472,8 @@ async def test_user_config_flow_over_climate(
     assert result.get("errors") is None
     assert result["menu_options"] == [
         "main",
-        "type",
         "features",
+        "type",
         "presets",
         "advanced",
         "finalize",  # Now finalize is present
@@ -493,6 +499,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_POWER_FEATURE: False,
         CONF_USE_PRESENCE_FEATURE: False,
         CONF_USE_WINDOW_FEATURE: False,
+        CONF_USE_CENTRAL_BOILER_FEATURE: False,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
         CONF_USE_WINDOW_CENTRAL_CONFIG: False,
         CONF_USE_MOTION_CENTRAL_CONFIG: False,

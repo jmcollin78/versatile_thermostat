@@ -78,7 +78,7 @@ async def test_add_number_for_central_config(
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         }
         | temps,
     )
@@ -91,7 +91,7 @@ async def test_add_number_for_central_config(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.central_configuration_" + preset_name,
+            "number.central_configuration_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -171,7 +171,7 @@ async def test_add_number_for_central_config_without_temp(
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
         # | temps,
     )
@@ -184,7 +184,7 @@ async def test_add_number_for_central_config_without_temp(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.central_configuration_" + preset_name,
+            "number.central_configuration_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -265,7 +265,7 @@ async def test_add_number_for_central_config_without_temp_ac_mode(
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
         # | temps,
     )
@@ -278,7 +278,7 @@ async def test_add_number_for_central_config_without_temp_ac_mode(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.central_configuration_" + preset_name,
+            "number.central_configuration_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -358,7 +358,7 @@ async def test_add_number_for_central_config_without_temp_restore(
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
         # | temps,
     )
@@ -376,7 +376,7 @@ async def test_add_number_for_central_config_without_temp_restore(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.central_configuration_" + preset_name,
+            "number.central_configuration_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -468,7 +468,7 @@ async def test_add_number_for_over_switch_use_central(
     for preset_name, _ in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.central_configuration_" + preset_name,
+            "number.central_configuration_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity is None
@@ -550,7 +550,7 @@ async def test_add_number_for_over_switch_use_central_presence(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_" + preset_name,
+            "number.theoverswitchvtherm_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -700,7 +700,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_" + preset_name,
+            "number.theoverswitchvtherm_preset_" + preset_name,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -862,7 +862,7 @@ async def test_change_central_config_temperature(
     # 2. change the central_config temp Number entity value
     temp_entity = search_entity(
         hass,
-        "number.central_configuration_" + preset_name + PRESET_TEMP_SUFFIX,
+        "number.central_configuration_preset_" + preset_name + PRESET_TEMP_SUFFIX,
         NUMBER_DOMAIN,
     )
 
@@ -978,7 +978,7 @@ async def test_change_vtherm_temperature(
     # 2. change the central_config temp Number entity value
     temp_entity = search_entity(
         hass,
-        "number.central_configuration_" + preset_name + PRESET_TEMP_SUFFIX,
+        "number.central_configuration_preset_" + preset_name + PRESET_TEMP_SUFFIX,
         NUMBER_DOMAIN,
     )
 
@@ -1086,7 +1086,7 @@ async def test_change_vtherm_temperature_with_presence(
     preset_name = "boost"
     temp_entity = search_entity(
         hass,
-        "number.theovervalvevtherm_" + preset_name + "_ac_away_temp",
+        "number.theovervalvevtherm_preset_" + preset_name + "_ac_away_temp",
         NUMBER_DOMAIN,
     )
     assert temp_entity
@@ -1099,7 +1099,7 @@ async def test_change_vtherm_temperature_with_presence(
     # 2. change the temp Number entity value for each VTherm
     temp_entity = search_entity(
         hass,
-        "number.theovervalvevtherm_" + preset_name + "_ac_away_temp",
+        "number.theovervalvevtherm_preset_" + preset_name + "_ac_away_temp",
         NUMBER_DOMAIN,
     )
 
@@ -1124,7 +1124,7 @@ async def test_change_vtherm_temperature_with_presence(
     # 3. We change now the current preset temp
     temp_entity = search_entity(
         hass,
-        "number.theovervalvevtherm_" + preset_name + "_ac_temp",
+        "number.theovervalvevtherm_preset_" + preset_name + "_ac_temp",
         NUMBER_DOMAIN,
     )
 

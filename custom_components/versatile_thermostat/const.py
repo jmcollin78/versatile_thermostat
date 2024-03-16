@@ -22,6 +22,9 @@ from .prop_algorithm import (
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_VERSION = 1
+CONFIG_MINOR_VERSION = 2
+
 PRESET_TEMP_SUFFIX = "_temp"
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
@@ -92,6 +95,7 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
+CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -134,7 +138,6 @@ CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
 
-CONF_ADD_CENTRAL_BOILER_CONTROL = "add_central_boiler_control"
 CONF_CENTRAL_BOILER_ACTIVATION_SRV = "central_boiler_activation_service"
 CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
 
@@ -253,6 +256,7 @@ ALL_CONF = (
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
+        CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
         CONF_VALVE,
         CONF_VALVE_2,
@@ -273,7 +277,6 @@ ALL_CONF = (
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
         CONF_USE_CENTRAL_MODE,
-        CONF_ADD_CENTRAL_BOILER_CONTROL,
         CONF_USED_BY_CENTRAL_BOILER,
         CONF_CENTRAL_BOILER_ACTIVATION_SRV,
         CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
@@ -466,6 +469,10 @@ class NoCentralConfig(HomeAssistantError):
 
 class ServiceConfigurationError(HomeAssistantError):
     """Error in the service configuration to control the central boiler"""
+
+
+class ConfigurationNotCompleteError(HomeAssistantError):
+    """Error the configuration is not complete"""
 
 
 class overrides:  # pylint: disable=invalid-name

@@ -49,7 +49,7 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
-    CONF_ADD_CENTRAL_BOILER_CONTROL,
+    CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
 )
 
@@ -75,7 +75,7 @@ async def async_setup_entry(
     entities = None
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
-        if entry.data.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+        if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
             entities = [
                 NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data)
             ]

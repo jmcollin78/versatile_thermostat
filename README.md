@@ -766,7 +766,7 @@ context:
 | ``inverse_switch_command``                | Inverse the switch command (for pilot wire switch)                            | X             | -                   | -            | -                       |
 | ``auto_fan_mode``                         | Auto fan mode                                                                 | -             | X                   | -            | -                       |
 | ``auto_regulation_use_device_temp``       | Use the internal temperature of the underlying device                         | -             | X                   | -            | -                       |
-| ``add_central_boiler_control``            | Add the control of a central boiler                                           | -             | -                   | -            | X                       |
+| ``use_central_boiler_feature``            | Add the control of a central boiler                                           | -             | -                   | -            | X                       |
 | ``central_boiler_activation_service``     | Activation service of the boiler                                              | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Deactivaiton service of the boiler                                            | -             | -                   | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indicate if the VTherm control the central boiler                             | X             | X                   | X            | -                       |
