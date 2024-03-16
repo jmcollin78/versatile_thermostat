@@ -35,8 +35,31 @@ from .commons import (
     FULL_CENTRAL_CONFIG_WITH_BOILER,
 )
 
+# https://github.com/miketheman/pytest-socket/pull/275
+from pytest_socket import socket_allow_hosts
+
+# ...
+
+
+# ...
+def pytest_runtest_setup():
+    """setup tests"""
+    socket_allow_hosts(
+        allowed=["localhost", "127.0.0.1", "::1"], allow_unix_socket=True
+    )
+
+
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
+# Permet d'exclure certains test en mode d'ex
+# sequential = pytest.mark.sequential
+
+
+# This fixture allow to execute some tests first and not in //
+# @pytest.fixture
+# def order():
+#     return 1
+#
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture

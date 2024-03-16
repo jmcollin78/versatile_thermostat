@@ -4,22 +4,12 @@
 from unittest.mock import patch  # , call
 
 # from datetime import datetime  # , timedelta
-
 from homeassistant import data_entry_flow
+from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 
-# from homeassistant.components.climate import HVACAction, HVACMode
-from homeassistant.config_entries import ConfigEntryState, SOURCE_USER
-
-# from homeassistant.helpers.entity_component import EntityComponent
-# from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
-
+from homeassistant.config_entries import SOURCE_USER
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-# from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.thermostat_climate import (
-    ThermostatOverClimate,
-)
 
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
@@ -31,8 +21,8 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_state):
     """Tests the clean_central_config_doubon of base_thermostat"""
     central_config_entry = MockConfigEntry(
@@ -76,17 +66,20 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
             CONF_SECURITY_DELAY_MIN: 61,
             CONF_SECURITY_MIN_ON_PERCENT: 0.5,
             CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-            CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
     )
 
-    central_config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(central_config_entry.entry_id)
-    assert central_config_entry.state is ConfigEntryState.LOADED
-
-    entity: ThermostatOverClimate = search_entity(
-        hass, "climate.thecentralconfigmockname", "climate"
+    entity = await create_thermostat(
+        hass, central_config_entry, "climate.thecentralconfigmockname"
     )
+    # central_config_entry.add_to_hass(hass)
+    # await hass.config_entries.async_setup(central_config_entry.entry_id)
+    # assert central_config_entry.state is ConfigEntryState.LOADED
+    #
+    # entity: ThermostatOverClimate = search_entity(
+    #    hass, "climate.thecentralconfigmockname", "climate"
+    # )
 
     assert entity is None
 
@@ -101,8 +94,8 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
     assert api.nb_active_device_for_boiler_entity is None
     assert api.nb_active_device_for_boiler is None
 
-    assert api.nb_active_device_for_boiler_threshold_entity is None
-    assert api.nb_active_device_for_boiler_threshold is None
+    assert api.nb_active_device_for_boiler_threshold_entity is not None
+    assert api.nb_active_device_for_boiler_threshold == 1  # the default value
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -185,8 +178,8 @@ async def test_minimal_over_switch_wo_central_config(
     entity.remove_thermostat()
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):
@@ -303,8 +296,8 @@ async def test_full_over_switch_wo_central_config(
     entity.remove_thermostat()
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_with_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -437,7 +430,13 @@ async def test_over_switch_with_central_config_but_no_central_config(
         },
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "main"}
+    )
+
+    assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "main"
     assert result["errors"] == {}
 
@@ -448,15 +447,71 @@ async def test_over_switch_with_central_config_but_no_central_config(
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_CYCLE_MIN: 5,
             CONF_DEVICE_POWER: 1,
-            CONF_USE_WINDOW_FEATURE: True,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
         },
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == FlowResultType.FORM
     # in case of error we stays in main
     assert result["step_id"] == "main"
     assert result["errors"] == {"use_main_central_config": "no_central_config"}
+
+
+async def test_migration_of_central_config(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+):
+    """Tests the clean_central_config_doubon of base_thermostat"""
+    central_config_entry = MockConfigEntry(
+        version=CONFIG_VERSION,
+        # An old minor version
+        minor_version=1,
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data={
+            CONF_NAME: CENTRAL_CONFIG_NAME,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.02,
+            CONF_MINIMAL_ACTIVATION_DELAY: 11,
+            CONF_SECURITY_DELAY_MIN: 61,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+            # The old central_boiler parameter
+            "add_central_boiler_control": True,
+            CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
+            CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+        },
+    )
+
+    central_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(central_config_entry.entry_id)
+    assert central_config_entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(
+        hass, "climate.thecentralconfigmockname", "climate"
+    )
+
+    assert entity is None
+
+    assert count_entities(hass, "climate.thecentralconfigmockname", "climate") == 0
+
+    # Test that VTherm API find the CentralConfig
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    central_configuration = api.find_central_configuration()
+    assert central_configuration is not None
+
+    assert central_config_entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
+
+    # Test that VTherm API have any central boiler entities
+    # It should have been migrated and initialized
+    assert api.nb_active_device_for_boiler_entity is not None
+    assert api.nb_active_device_for_boiler == 0
+
+    assert api.nb_active_device_for_boiler_threshold_entity is not None
+    assert api.nb_active_device_for_boiler_threshold is 1  # the default value is 1

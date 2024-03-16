@@ -1,4 +1,5 @@
 """The Versatile Thermostat integration."""
+
 from __future__ import annotations
 
 from typing import Dict
@@ -8,16 +9,18 @@ import logging
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.const import SERVICE_RELOAD
+from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, CoreState, callback
 
 from .base_thermostat import BaseThermostat
 
 from .const import (
     DOMAIN,
     PLATFORMS,
+    CONFIG_VERSION,
+    CONFIG_MINOR_VERSION,
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
@@ -27,6 +30,13 @@ from .const import (
     CONF_SAFETY_MODE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_TYPE,
+    CONF_USE_WINDOW_FEATURE,
+    CONF_USE_MOTION_FEATURE,
+    CONF_USE_PRESENCE_FEATURE,
+    CONF_USE_POWER_FEATURE,
+    CONF_USE_CENTRAL_BOILER_FEATURE,
+    CONF_POWER_SENSOR,
+    CONF_PRESENCE_SENSOR,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -82,14 +92,26 @@ async def async_setup(
 
     hass.data.setdefault(DOMAIN, {})
 
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     # L'argument config contient votre fichier configuration.yaml
     vtherm_config = config.get(DOMAIN)
-
     if vtherm_config is not None:
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         api.set_global_config(vtherm_config)
     else:
         _LOGGER.info("No global config from configuration.yaml available")
+
+    # Listen HA starts to initialize all links between
+    @callback
+    async def _async_startup_internal(*_):
+        _LOGGER.info(
+            "VersatileThermostat - HA is started, initialize all links between VTherm entities"
+        )
+        await api.init_vtherm_links()
+
+    if hass.state == CoreState.running:
+        await _async_startup_internal()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _async_startup_internal)
 
     hass.helpers.service.async_register_admin_service(
         DOMAIN,
@@ -114,6 +136,7 @@ async def reload_all_vtherm(hass):
     api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     if api:
         await api.reload_central_boiler_entities_list()
+        await api.init_vtherm_links()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -134,6 +157,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     await api.reload_central_boiler_entities_list()
+    await api.init_vtherm_links()
 
     return True
 
@@ -148,6 +172,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         if api is not None:
             await api.reload_central_boiler_entities_list()
+            await api.init_vtherm_links()
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -165,15 +190,40 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 # Example migration function
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate old entry."""
-    _LOGGER.debug("Migrating from version %s", config_entry.version)
+    _LOGGER.debug(
+        "Migrating from version %s/%s", config_entry.version, config_entry.minor_version
+    )
 
-    if config_entry.version == 1:
+    if (
+        config_entry.version != CONFIG_VERSION
+        or config_entry.minor_version != CONFIG_MINOR_VERSION
+    ):
+        _LOGGER.debug(
+            "Migration to %s/%s is needed", CONFIG_VERSION, CONFIG_MINOR_VERSION
+        )
         new = {**config_entry.data}
-        # TO DO: modify Config Entry data if there will be something to migrate
 
-        config_entry.version = 2
-        hass.config_entries.async_update_entry(config_entry, data=new)
+        if (
+            config_entry.data.get(CONF_THERMOSTAT_TYPE)
+            == CONF_THERMOSTAT_CENTRAL_CONFIG
+        ):
+            new[CONF_USE_WINDOW_FEATURE] = True
+            new[CONF_USE_MOTION_FEATURE] = True
+            new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
+            new[CONF_USE_PRESENCE_FEATURE] = (
+                new.get(CONF_PRESENCE_SENSOR, None) is not None
+            )
 
-    _LOGGER.info("Migration to version %s successful", config_entry.version)
+            new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
+                "add_central_boiler_control", False
+            ) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            data=new,
+            version=CONFIG_VERSION,
+            minor_version=CONFIG_MINOR_VERSION,
+        )
+        _LOGGER.info("Migration to version %s successful", config_entry.version)
 
     return True

@@ -74,7 +74,9 @@ def add_suggested_values_to_schema(
 class VersatileThermostatBaseConfigFlow(FlowHandler):
     """The base Config flow class. Used to put some code in commons."""
 
-    VERSION = 1
+    VERSION = CONFIG_VERSION
+    MINOR_VERSION = CONFIG_MINOR_VERSION
+
     _infos: dict
     _placeholders = {
         CONF_NAME: "",
@@ -95,16 +97,22 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         self._init_feature_flags(infos)
         self._init_central_config_flags(infos)
 
-    def _init_feature_flags(self, infos):
+    def _init_feature_flags(self, _):
         """Fix features selection depending to infos"""
-        is_empty: bool = not bool(infos)
+        is_empty: bool = False  # TODO remove this not bool(infos)
+        is_central_config = (
+            self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
+
         self._infos[CONF_USE_WINDOW_FEATURE] = (
             is_empty
             or self._infos.get(CONF_WINDOW_SENSOR) is not None
             or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
         self._infos[CONF_USE_MOTION_FEATURE] = (
-            is_empty or self._infos.get(CONF_MOTION_SENSOR) is not None
+            is_empty
+            or self._infos.get(CONF_MOTION_SENSOR) is not None
+            or is_central_config
         )
         self._infos[CONF_USE_POWER_FEATURE] = is_empty or (
             self._infos.get(CONF_POWER_SENSOR) is not None
@@ -112,6 +120,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
         self._infos[CONF_USE_PRESENCE_FEATURE] = (
             is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
+        )
+
+        self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] = is_empty or (
+            self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV) is not None
+            and self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV) is not None
         )
 
     def _init_central_config_flags(self, infos):
@@ -128,7 +141,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
         ):
             if not is_empty:
-                self._infos[config] = self._infos.get(config) is True
+                current_config = self._infos.get(config, None)
+                self._infos[config] = current_config is True or (
+                    current_config is None and self._central_config is not None
+                )
             else:
                 self._infos[config] = self._central_config is not None
 
@@ -193,7 +209,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     raise NoCentralConfig(conf)
 
         # Check the service for central boiler format
-        if self._infos.get(CONF_ADD_CENTRAL_BOILER_CONTROL):
+        if self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE):
             for conf in [
                 CONF_CENTRAL_BOILER_ACTIVATION_SRV,
                 CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
@@ -202,6 +218,92 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     check_and_extract_service_configuration(data.get(conf))
                 except ServiceConfigurationError as err:
                     raise ServiceConfigurationError(conf) from err
+
+    def check_config_complete(self, infos) -> bool:
+        """True if the config is now complete (ie all mandatory attributes are set)"""
+        is_central_config = (
+            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
+        if is_central_config:
+            if (
+                infos.get(CONF_NAME) is None
+                or infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
+            ):
+                return False
+
+            if infos.get(CONF_USE_POWER_FEATURE, False) is True and (
+                infos.get(CONF_POWER_SENSOR, None) is None
+                or infos.get(CONF_MAX_POWER_SENSOR, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
+                and infos.get(CONF_PRESENCE_SENSOR, None) is None
+            ):
+                return False
+        else:
+            if (
+                infos.get(CONF_NAME) is None
+                or infos.get(CONF_TEMP_SENSOR) is None
+                or infos.get(CONF_CYCLE_MIN) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
+                and infos.get(CONF_HEATER, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+                and infos.get(CONF_CLIMATE, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
+                and infos.get(CONF_VALVE, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_MOTION_FEATURE, False) is True
+                and infos.get(CONF_MOTION_SENSOR, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_POWER_FEATURE, False) is True
+                and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False
+                and (
+                    infos.get(CONF_POWER_SENSOR, None) is None
+                    or infos.get(CONF_MAX_POWER_SENSOR, None) is None
+                )
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
+                and infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_PRESENCE_SENSOR, None) is None
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
+            ):
+                return False
+
+        return True
 
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
@@ -239,11 +341,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "no_central_config"
             except ServiceConfigurationError as err:
                 errors[str(err)] = "service_configuration_format"
+            except ConfigurationNotCompleteError as err:
+                errors["base"] = "configuration_not_complete"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
                 self.merge_user_input(data_schema, user_input)
+                # Add default values for central config flags
+                self._init_central_config_flags(self._infos)
                 _LOGGER.debug("_info is now: %s", self._infos)
                 return await next_step_function()
 
@@ -264,30 +370,92 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("Into ConfigFlow.async_step_user user_input=%s", user_input)
 
         return await self.generic_step(
-            "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_main
+            "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_menu
+        )
+
+    async def async_step_configuration_not_complete(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """A fake step to handle the incomplete configuration flow"""
+        return await self.async_step_menu(user_input)
+
+    async def async_step_menu(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_menu user_input=%s", user_input)
+
+        is_central_config = (
+            self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
+        )
+
+        menu_options = ["main", "features"]
+        if not is_central_config:
+            menu_options.append("type")
+
+        if (
+            self._infos.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI
+            or is_central_config
+        ):
+            menu_options.append("tpi")
+
+        if self._infos[CONF_THERMOSTAT_TYPE] in [
+            CONF_THERMOSTAT_SWITCH,
+            CONF_THERMOSTAT_VALVE,
+            CONF_THERMOSTAT_CLIMATE,
+        ]:
+            menu_options.append("presets")
+
+        if (
+            is_central_config
+            and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
+        ):
+            menu_options.append("central_boiler")
+
+        if self._infos[CONF_USE_WINDOW_FEATURE] is True:
+            menu_options.append("window")
+
+        if self._infos[CONF_USE_MOTION_FEATURE] is True:
+            menu_options.append("motion")
+
+        if self._infos[CONF_USE_POWER_FEATURE] is True:
+            menu_options.append("power")
+
+        if self._infos[CONF_USE_PRESENCE_FEATURE] is True:
+            menu_options.append("presence")
+
+        menu_options.append("advanced")
+
+        if self.check_config_complete(self._infos):
+            menu_options.append("finalize")
+        else:
+            _LOGGER.info("The configuration is not terminated")
+            menu_options.append("configuration_not_complete")
+
+        return self.async_show_menu(
+            step_id="menu",
+            menu_options=menu_options,
+            description_placeholders=self._placeholders,
         )
 
     async def async_step_main(self, user_input: dict | None = None) -> FlowResult:
         """Handle the flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_main user_input=%s", user_input)
 
-        schema = STEP_MAIN_DATA_SCHEMA
-        next_step = self.async_step_type
-
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             self._infos[CONF_NAME] = CENTRAL_CONFIG_NAME
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
-            if user_input and user_input.get(CONF_ADD_CENTRAL_BOILER_CONTROL) is True:
-                next_step = self.async_step_central_boiler
-            else:
-                next_step = self.async_step_tpi
-        elif user_input and user_input.get(CONF_USE_MAIN_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_main
+        else:
             schema = STEP_MAIN_DATA_SCHEMA
-        # If we come from async_step_spec_main
-        elif self._infos.get(COMES_FROM) == "async_step_spec_main":
-            next_step = self.async_step_type
-            schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False
+            ):
+                if user_input and self._infos.get(COMES_FROM) == "async_step_spec_main":
+                    schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_main
 
         return await self.generic_step("main", schema, user_input, next_step)
 
@@ -299,7 +467,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
         else:
             schema = STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA
-        next_step = self.async_step_type
+        next_step = self.async_step_menu
 
         self._infos[COMES_FROM] = "async_step_spec_main"
 
@@ -315,7 +483,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         schema = STEP_CENTRAL_BOILER_SCHEMA
-        next_step = self.async_step_tpi
+        next_step = self.async_step_menu
 
         return await self.generic_step("central_boiler", schema, user_input, next_step)
 
@@ -325,36 +493,54 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
             return await self.generic_step(
-                "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
+                "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_menu
             )
         elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
             return await self.generic_step(
-                "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
+                "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_menu
             )
         else:
             return await self.generic_step(
                 "type",
                 STEP_THERMOSTAT_CLIMATE,
                 user_input,
-                self.async_step_presets,
+                self.async_step_menu,
             )
+
+    async def async_step_features(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the Type flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_features user_input=%s", user_input)
+
+        return await self.generic_step(
+            "features",
+            (
+                STEP_CENTRAL_FEATURES_DATA_SCHEMA
+                if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
+                else STEP_FEATURES_DATA_SCHEMA
+            ),
+            user_input,
+            self.async_step_menu,
+        )
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_tpi user_input=%s", user_input)
 
-        schema = STEP_TPI_DATA_SCHEMA
-        next_step = (
-            self.async_step_spec_tpi
-            if user_input and user_input.get(CONF_USE_TPI_CENTRAL_CONFIG) is False
-            else self.async_step_presets
-        )
-
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_TPI_DATA_SCHEMA
-            next_step = self.async_step_presets
-        elif self._infos.get(COMES_FROM) == "async_step_spec_tpi":
-            schema = STEP_CENTRAL_TPI_DATA_SCHEMA
+        else:
+            schema = STEP_TPI_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_TPI_CENTRAL_CONFIG, False) is False
+            ):
+                if user_input and self._infos.get(COMES_FROM) == "async_step_spec_tpi":
+                    schema = STEP_CENTRAL_TPI_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_tpi
 
         return await self.generic_step("tpi", schema, user_input, next_step)
 
@@ -364,7 +550,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         schema = STEP_CENTRAL_TPI_DATA_SCHEMA
         self._infos[COMES_FROM] = "async_step_spec_tpi"
-        next_step = self.async_step_presets
+        next_step = self.async_step_menu
 
         return await self.generic_step("tpi", schema, user_input, next_step)
 
@@ -372,82 +558,41 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presets flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presets user_input=%s", user_input)
 
-        if self._infos.get(CONF_AC_MODE) is True:
-            schema_ac_or_not = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
-        else:
-            schema_ac_or_not = STEP_CENTRAL_PRESETS_DATA_SCHEMA
-
-        next_step = self.async_step_advanced
+        next_step = self.async_step_menu  # advanced
         schema = STEP_PRESETS_DATA_SCHEMA
-        if self._infos[CONF_USE_WINDOW_FEATURE]:
-            next_step = self.async_step_window
-        elif self._infos[CONF_USE_MOTION_FEATURE]:
-            next_step = self.async_step_motion
-        elif self._infos[CONF_USE_POWER_FEATURE]:
-            next_step = self.async_step_power
-        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-            next_step = self.async_step_presence
 
-        # In Central config -> display the presets_with_ac and goto windows
+        # In Central config -> display the next step immedialty
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            schema = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
-            next_step = self.async_step_window
-        # If comes from async_step_spec_presets
-        elif self._infos.get(COMES_FROM) == "async_step_spec_presets":
-            schema = schema_ac_or_not
-        elif user_input and user_input.get(CONF_USE_PRESETS_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_presets
-            schema = STEP_PRESETS_DATA_SCHEMA
+            # Call directly the next step, we have nothing to display here
+            return await self.async_step_window()  #  = self.async_step_window
 
-        return await self.generic_step("presets", schema, user_input, next_step)
-
-    async def async_step_spec_presets(
-        self, user_input: dict | None = None
-    ) -> FlowResult:
-        """Handle the specific presets flow steps"""
-        _LOGGER.debug(
-            "Into ConfigFlow.async_step_spec_presets user_input=%s", user_input
-        )
-
-        if self._infos.get(CONF_AC_MODE) is True:
-            schema = STEP_CENTRAL_PRESETS_WITH_AC_DATA_SCHEMA
-        else:
-            schema = STEP_CENTRAL_PRESETS_DATA_SCHEMA
-
-        self._infos[COMES_FROM] = "async_step_spec_presets"
-
-        next_step = self.async_step_window
-
-        # This will return to async_step_main (to keep the "main" step)
         return await self.generic_step("presets", schema, user_input, next_step)
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window  sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_window user_input=%s", user_input)
 
-        schema = STEP_WINDOW_DATA_SCHEMA
-        next_step = self.async_step_advanced
-
-        if self._infos[CONF_USE_MOTION_FEATURE]:
-            next_step = self.async_step_motion
-        elif self._infos[CONF_USE_POWER_FEATURE]:
-            next_step = self.async_step_power
-        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-            next_step = self.async_step_presence
-
-        # In Central config -> display the presets_with_ac and goto windows
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
-            next_step = self.async_step_motion
-        # If comes from async_step_spec_window
-        elif self._infos.get(COMES_FROM) == "async_step_spec_window":
-            # If we have a window sensor don't display the auto window parameters
-            if self._infos.get(CONF_WINDOW_SENSOR) is not None:
-                schema = STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA
-            else:
-                schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
-        elif user_input and user_input.get(CONF_USE_WINDOW_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_window
+        else:
+            schema = STEP_WINDOW_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_WINDOW_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_window"
+                ):
+                    if self._infos.get(CONF_WINDOW_SENSOR) is not None:
+                        schema = STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA
+                    else:
+                        schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_window
 
         return await self.generic_step("window", schema, user_input, next_step)
 
@@ -474,23 +619,24 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the window and motion sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_motion user_input=%s", user_input)
 
-        schema = STEP_MOTION_DATA_SCHEMA
-        next_step = self.async_step_advanced
-
-        if self._infos[CONF_USE_POWER_FEATURE]:
-            next_step = self.async_step_power
-        elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-            next_step = self.async_step_presence
-
-        # In Central config -> display the presets_with_ac and goto windows
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
-            next_step = self.async_step_power
-        # If comes from async_step_spec_motion
-        elif self._infos.get(COMES_FROM) == "async_step_spec_motion":
-            schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
-        elif user_input and user_input.get(CONF_USE_MOTION_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_motion
+        else:
+            schema = STEP_MOTION_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_MOTION_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_motion"
+                ):
+                    schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_motion
 
         return await self.generic_step("motion", schema, user_input, next_step)
 
@@ -506,7 +652,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_motion"
 
-        next_step = self.async_step_power
+        next_step = self.async_step_menu
 
         # This will return to async_step_main (to keep the "main" step)
         return await self.generic_step("motion", schema, user_input, next_step)
@@ -515,21 +661,24 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the power management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_power user_input=%s", user_input)
 
-        schema = STEP_POWER_DATA_SCHEMA
-        next_step = self.async_step_advanced
-
-        if self._infos[CONF_USE_PRESENCE_FEATURE]:
-            next_step = self.async_step_presence
-
-        # In Central config -> display the presets_with_ac and goto windows
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_POWER_DATA_SCHEMA
-            next_step = self.async_step_presence
-        # If comes from async_step_spec_motion
-        elif self._infos.get(COMES_FROM) == "async_step_spec_power":
-            schema = STEP_CENTRAL_POWER_DATA_SCHEMA
-        elif user_input and user_input.get(CONF_USE_POWER_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_power
+        else:
+            schema = STEP_POWER_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_power"
+                ):
+                    schema = STEP_CENTRAL_POWER_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_power
 
         return await self.generic_step("power", schema, user_input, next_step)
 
@@ -541,7 +690,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_power"
 
-        next_step = self.async_step_presence
+        next_step = self.async_step_menu
 
         # This will return to async_step_power (to keep the "power" step)
         return await self.generic_step("power", schema, user_input, next_step)
@@ -550,25 +699,31 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
-        schema = STEP_PRESENCE_DATA_SCHEMA
-        next_step = self.async_step_advanced
-
-        # In Central config -> display the presets_with_ac and goto windows
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
-            next_step = self.async_step_advanced
-        # If comes from async_step_spec_presence
-        elif self._infos.get(COMES_FROM) == "async_step_spec_presence":
-            schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
-        elif user_input and user_input.get(CONF_USE_PRESENCE_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_presence
+        else:
+            schema = STEP_PRESENCE_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_presence"
+                ):
+                    schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_presence
 
         return await self.generic_step("presence", schema, user_input, next_step)
 
     async def async_step_spec_presence(
         self, user_input: dict | None = None
     ) -> FlowResult:
-        """Handle the specific preseence flow steps"""
+        """Handle the specific power flow steps"""
         _LOGGER.debug(
             "Into ConfigFlow.async_step_spec_presence user_input=%s", user_input
         )
@@ -577,26 +732,33 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_presence"
 
-        next_step = self.async_step_advanced
+        next_step = self.async_step_menu
 
-        # This will return to async_step_presence (to keep the "presence" step)
+        # This will return to async_step_power (to keep the "power" step)
         return await self.generic_step("presence", schema, user_input, next_step)
 
     async def async_step_advanced(self, user_input: dict | None = None) -> FlowResult:
         """Handle the advanced parameter flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_advanced user_input=%s", user_input)
 
-        schema = STEP_ADVANCED_DATA_SCHEMA
-        next_step = self.async_finalize
-
-        # In Central config -> display the presets_with_ac and goto windows
+        next_step = self.async_step_menu
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
-        # If comes from async_step_spec_presence
-        elif self._infos.get(COMES_FROM) == "async_step_spec_advanced":
-            schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
-        elif user_input and user_input.get(CONF_USE_ADVANCED_CENTRAL_CONFIG) is False:
-            next_step = self.async_step_spec_advanced
+        else:
+            schema = STEP_ADVANCED_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_advanced"
+                ):
+                    schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_advanced
 
         return await self.generic_step("advanced", schema, user_input, next_step)
 
@@ -617,21 +779,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # This will return to async_step_presence (to keep the "presence" step)
         return await self.generic_step("advanced", schema, user_input, next_step)
 
-    async def async_finalize(self):
+    async def async_step_finalize(self, _):
         """Should be implemented by Leaf classes"""
         raise HomeAssistantError(
             "async_finalize not implemented on VersatileThermostat sub-class"
         )
-
-    # Not used but can be useful in the future
-    # def find_all_climates(self) -> list(str):
-    #     """Find all climate known by HA"""
-    #     component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-    #     ret: list(str) = list()
-    #     for entity in component.entities:
-    #         ret.append(entity.entity_id)
-    #     _LOGGER.debug("Found all climate entities: %s", ret)
-    #     return ret
 
 
 class VersatileThermostatConfigFlow(
@@ -650,7 +802,7 @@ class VersatileThermostatConfigFlow(
         """Get options flow for this handler"""
         return VersatileThermostatOptionsFlowHandler(config_entry)
 
-    async def async_finalize(self):
+    async def async_step_finalize(self, _):
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug("ConfigFlow.async_finalize")
         # Removes temporary value
@@ -685,155 +837,9 @@ class VersatileThermostatOptionsFlowHandler(
             CONF_NAME: self._infos[CONF_NAME],
         }
 
-        return await self.async_step_main(user_input)
+        return await self.async_step_menu(user_input)
 
-    # async def async_step_main(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_user user_input=%s", user_input
-    #     )
-
-    #     return await self.generic_step(
-    #         "user", STEP_USER_DATA_SCHEMA, user_input, self.async_step_type
-    #     )
-
-    # async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_user user_input=%s", user_input
-    #     )
-
-    #     if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
-    #         return await self.generic_step(
-    #             "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_tpi
-    #         )
-    #     elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
-    #         return await self.generic_step(
-    #             "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_tpi
-    #         )
-    #     else:
-    #         return await self.generic_step(
-    #             "type",
-    #             STEP_THERMOSTAT_CLIMATE,
-    #             user_input,
-    #             self.async_step_presets,
-    #         )
-
-    # async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the tpi flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_tpi user_input=%s", user_input
-    #     )
-
-    #     return await self.generic_step(
-    #         "tpi", STEP_TPI_DATA_SCHEMA, user_input, self.async_step_presets
-    #     )
-
-    # async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the presets flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_presets user_input=%s", user_input
-    #     )
-
-    #     next_step = self.async_step_advanced
-    #     if self._infos[CONF_USE_WINDOW_FEATURE]:
-    #         next_step = self.async_step_window
-    #     elif self._infos[CONF_USE_MOTION_FEATURE]:
-    #         next_step = self.async_step_motion
-    #     elif self._infos[CONF_USE_POWER_FEATURE]:
-    #         next_step = self.async_step_power
-    #     elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-    #         next_step = self.async_step_presence
-
-    #     if self._infos.get(CONF_AC_MODE) is True:
-    #         schema = STEP_PRESETS_WITH_AC_DATA_SCHEMA
-    #     else:
-    #         schema = STEP_PRESETS_DATA_SCHEMA
-
-    #     return await self.generic_step("presets", schema, user_input, next_step)
-
-    # async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the window  sensor flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_window user_input=%s", user_input
-    #     )
-
-    #     next_step = self.async_step_advanced
-    #     if self._infos[CONF_USE_MOTION_FEATURE]:
-    #         next_step = self.async_step_motion
-    #     elif self._infos[CONF_USE_POWER_FEATURE]:
-    #         next_step = self.async_step_power
-    #     elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-    #         next_step = self.async_step_presence
-    #     return await self.generic_step(
-    #         "window", STEP_WINDOW_DATA_SCHEMA, user_input, next_step
-    #     )
-
-    # async def async_step_motion(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the window and motion sensor flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_motion user_input=%s", user_input
-    #     )
-
-    #     next_step = self.async_step_advanced
-    #     if self._infos[CONF_USE_POWER_FEATURE]:
-    #         next_step = self.async_step_power
-    #     elif self._infos[CONF_USE_PRESENCE_FEATURE]:
-    #         next_step = self.async_step_presence
-
-    #     return await self.generic_step(
-    #         "motion", STEP_MOTION_DATA_SCHEMA, user_input, next_step
-    #     )
-
-    # async def async_step_power(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the power management flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_power user_input=%s", user_input
-    #     )
-
-    #     next_step = self.async_step_advanced
-    #     if self._infos[CONF_USE_PRESENCE_FEATURE]:
-    #         next_step = self.async_step_presence
-
-    #     return await self.generic_step(
-    #         "power",
-    #         STEP_POWER_DATA_SCHEMA,
-    #         user_input,
-    #         next_step,
-    #     )
-
-    # async def async_step_presence(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the presence management flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_presence user_input=%s", user_input
-    #     )
-
-    #     if self._infos.get(CONF_AC_MODE) is True:
-    #         schema = STEP_PRESENCE_WITH_AC_DATA_SCHEMA
-    #     else:
-    #         schema = STEP_PRESENCE_DATA_SCHEMA
-
-    #     return await self.generic_step(
-    #         "presence",
-    #         schema,
-    #         user_input,
-    #         self.async_step_advanced,
-    #     )
-
-    # async def async_step_advanced(self, user_input: dict | None = None) -> FlowResult:
-    #     """Handle the advanced flow steps"""
-    #     _LOGGER.debug(
-    #         "Into OptionsFlowHandler.async_step_advanced user_input=%s", user_input
-    #     )
-
-    #     return await self.generic_step(
-    #         "advanced",
-    #         STEP_ADVANCED_DATA_SCHEMA,
-    #         user_input,
-    #         self.async_end,
-    #     )
-
-    async def async_finalize(self):
+    async def async_step_finalize(self, _):
         """Finalization of the ConfigEntry creation"""
         if not self._infos[CONF_USE_WINDOW_FEATURE]:
             self._infos[CONF_USE_WINDOW_CENTRAL_CONFIG] = False

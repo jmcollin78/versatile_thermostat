@@ -12,13 +12,32 @@
           "thermostat_type": "Only one central configuration type is possible"
         }
       },
+      "menu": {
+        "title": "Menu",
+        "description": "Configure your thermostat. You will be able to finalize the configuration when all needed parameters are valued.",
+        "menu_options": {
+          "main": "Main attributes",
+          "central_boiler": "Central boiler",
+          "type": "Underlyings",
+          "tpi": "TPI parameters",
+          "features": "Features",
+          "presets": "Presets",
+          "window": "Window detection",
+          "motion": "Motion detection",
+          "power": "Power management",
+          "presence": "Presence detection",
+          "advanced": "Advanced parameters",
+          "finalize": "All done",
+          "configuration_not_complete": "Configuration not complete"
+        }
+      },
       "main": {
         "title": "Add new Versatile Thermostat",
         "description": "Main mandatory attributes",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostat type",
-          "temperature_sensor_entity_id": "Temperature sensor entity id",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
           "temp_min": "Minimal temperature allowed",
@@ -26,16 +45,22 @@
           "step_temperature": "Temperature step",
           "device_power": "Device power",
           "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
-          "use_window_feature": "Use window detection",
-          "use_motion_feature": "Use motion detection",
-          "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection",
-          "use_main_central_config": "Use central main configuration. Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
-          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
+          "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+        }
+      },
+      "features": {
+        "title": "Features",
+        "description": "Thermostat features",
+        "data": {
+          "use_window_feature": "Use window detection",
+          "use_motion_feature": "Use motion detection",
+          "use_power_feature": "Use power management",
+          "use_presence_feature": "Use presence detection",
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {
@@ -104,26 +129,9 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "For each preset set the target temperature (0 to ignore preset)",
+        "description": "Check if the thermostat will use central presets. Uncheck and the thermostat will have its own preset entities",
         "data": {
-          "eco_temp": "Eco preset",
-          "comfort_temp": "Comfort preset",
-          "boost_temp": "Boost preset",
-          "frost_temp": "Frost protection preset",
-          "eco_ac_temp": "Eco preset for AC mode",
-          "comfort_ac_temp": "Comfort preset for AC mode",
-          "boost_ac_temp": "Boost preset for AC mode",
           "use_presets_central_config": "Use central presets configuration"
-        },
-        "data_description": {
-          "eco_temp": "Temperature in Eco preset",
-          "comfort_temp": "Temperature in Comfort preset",
-          "boost_temp": "Temperature in Boost preset",
-          "frost_temp": "Temperature in Frost protection preset",
-          "eco_ac_temp": "Temperature in Eco preset for AC mode",
-          "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
-          "boost_ac_temp": "Temperature in Boost preset for AC mode",
-          "use_presets_central_config": "Check to use the central presets configuration. Uncheck to use a specific presets configuration for this VTherm"
         }
       },
       "window": {
@@ -189,25 +197,10 @@
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor",
-          "eco_away_temp": "Eco preset",
-          "comfort_away_temp": "Comfort preset",
-          "boost_away_temp": "Boost preset",
-          "frost_away_temp": "Frost protection preset",
-          "eco_ac_away_temp": "Eco preset in AC mode",
-          "comfort_ac_away_temp": "Comfort preset in AC mode",
-          "boost_ac_away_temp": "Boost pres et in AC mode",
-          "use_presence_central_config": "Use central presence configuration"
+          "use_presence_central_config": "Use central presence temperature configuration. Uncheck to use specific temperature entities"
         },
         "data_description": {
-          "presence_sensor_entity_id": "Presence sensor entity id",
-          "eco_away_temp": "Temperature in Eco preset when no presence",
-          "comfort_away_temp": "Temperature in Comfort preset when no presence",
-          "boost_away_temp": "Temperature in Boost preset when no presence",
-          "frost_away_temp": "Temperature in Frost protection preset when no presence",
-          "eco_ac_away_temp": "Temperature in Eco preset when no presence in AC mode",
-          "comfort_ac_away_temp": "Temperature in Comfort preset when no presence in AC mode",
-          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode",
-          "use_presence_central_config": "Check to use the central presence configuration. Uncheck to use a specific presence configuration for this VTherm"
+          "presence_sensor_entity_id": "Presence sensor entity id"
         }
       },
       "advanced": {
@@ -251,6 +244,25 @@
           "thermostat_type": "Only one central configuration type is possible"
         }
       },
+      "menu": {
+        "title": "Menu",
+        "description": "Configure your thermostat. You will be able to finalize the configuration when all needed parameters are valued.",
+        "menu_options": {
+          "main": "Main attributes",
+          "central_boiler": "Central boiler",
+          "type": "Underlyings",
+          "tpi": "TPI parameters",
+          "features": "Features",
+          "presets": "Presets",
+          "window": "Window detection",
+          "motion": "Motion detection",
+          "power": "Power management",
+          "presence": "Presence detection",
+          "advanced": "Advanced parameters",
+          "finalize": "All done",
+          "configuration_not_complete": "Configuration not complete"
+        }
+      },
       "main": {
         "title": "Main - {name}",
         "description": "Main mandatory attributes",
@@ -265,16 +277,22 @@
           "step_temperature": "Temperature step",
           "device_power": "Device power",
           "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
-          "use_window_feature": "Use window detection",
-          "use_motion_feature": "Use motion detection",
-          "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection",
-          "use_main_central_config": "Use central main configuration. Check to use the central main configuration. Uncheck to use a specific main configuration for this VTherm",
-          "add_central_boiler_control": "Add a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the next configuration page",
+          "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+        }
+      },
+      "features": {
+        "title": "Features - {name}",
+        "description": "Thermostat features",
+        "data": {
+          "use_window_feature": "Use window detection",
+          "use_motion_feature": "Use motion detection",
+          "use_power_feature": "Use power management",
+          "use_presence_feature": "Use presence detection",
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {
@@ -343,26 +361,9 @@
       },
       "presets": {
         "title": "Presets - {name}",
-        "description": "For each preset set the target temperature (0 to ignore preset)",
+        "description": "Check if the thermostat will use central presets. Uncheck and the thermostat will have its own preset entities",
         "data": {
-          "eco_temp": "Eco preset",
-          "comfort_temp": "Comfort preset",
-          "boost_temp": "Boost preset",
-          "frost_temp": "Frost protection preset",
-          "eco_ac_temp": "Eco preset for AC mode",
-          "comfort_ac_temp": "Comfort preset for AC mode",
-          "boost_ac_temp": "Boost preset for AC mode",
           "use_presets_central_config": "Use central presets configuration"
-        },
-        "data_description": {
-          "eco_temp": "Temperature in Eco preset",
-          "comfort_temp": "Temperature in Comfort preset",
-          "boost_temp": "Temperature in Boost preset",
-          "frost_temp": "Temperature in Frost protection preset",
-          "eco_ac_temp": "Temperature in Eco preset for AC mode",
-          "comfort_ac_temp": "Temperature in Comfort preset for AC mode",
-          "boost_ac_temp": "Temperature in Boost preset for AC mode",
-          "use_presets_central_config": "Check to use the central presets configuration. Uncheck to use a specific presets configuration for this VTherm"
         }
       },
       "window": {
@@ -428,25 +429,10 @@
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor",
-          "eco_away_temp": "Eco away preset",
-          "comfort_away_temp": "Comfort away preset",
-          "boost_away_temp": "Boost away preset",
-          "frost_away_temp": "Frost protection preset",
-          "eco_ac_away_temp": "Eco away preset in AC mode",
-          "comfort_ac_away_temp": "Comfort away preset in AC mode",
-          "boost_ac_away_temp": "Boost away preset in AC mode",
-          "use_presence_central_config": "Use central presence configuration"
+          "use_presence_central_config": "Use central presence temperature configuration. Uncheck to use specific temperature entities"
         },
         "data_description": {
-          "presence_sensor_entity_id": "Presence sensor entity id",
-          "eco_away_temp": "Temperature in Eco preset when no presence",
-          "comfort_away_temp": "Temperature in Comfort preset when no presence",
-          "boost_away_temp": "Temperature in Boost preset when no presence",
-          "frost_away_temp": "Temperature in Frost protection preset when no presence",
-          "eco_ac_away_temp": "Temperature in Eco preset when no presence in AC mode",
-          "comfort_ac_away_temp": "Temperature in Comfort preset when no presence in AC mode",
-          "boost_ac_away_temp": "Temperature in Boost preset when no presence in AC mode",
-          "use_presence_central_config": "Check to use the central presence configuration. Uncheck to use a specific presence configuration for this VTherm"
+          "presence_sensor_entity_id": "Presence sensor entity id"
         }
       },
       "advanced": {
@@ -536,6 +522,53 @@
             }
           }
         }
+      }
+    },
+    "number": {
+      "frost_temp": {
+        "name": "Frost"
+      },
+      "eco_temp": {
+        "name": "Eco"
+      },
+      "comfort_temp": {
+        "name": "Comfort"
+      },
+      "boost_temp": {
+        "name": "Boost"
+      },
+      "frost_ac_temp": {
+        "name": "Frost ac"
+      },
+      "eco_ac_temp": {
+        "name": "Eco ac"
+      },
+      "comfort_ac_temp": {
+        "name": "Comfort ac"
+      },
+      "boost_ac_temp": {
+        "name": "Boost ac"
+      },
+      "frost_away_temp": {
+        "name": "Frost away"
+      },
+      "eco_away_temp": {
+        "name": "Eco away"
+      },
+      "comfort_away_temp": {
+        "name": "Comfort away"
+      },
+      "boost_away_temp": {
+        "name": "Boost away"
+      },
+      "eco_ac_away_temp": {
+        "name": "Eco ac away"
+      },
+      "comfort_ac_away_temp": {
+        "name": "Comfort ac away"
+      },
+      "boost_ac_away_temp": {
+        "name": "Boost ac away"
       }
     }
   }

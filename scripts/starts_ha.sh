@@ -25,5 +25,9 @@ fi
 ## without resulting to symlinks.
 export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
 
+## Link custom_components into config
+# rm -f ${PWD}/config/custom_components
+# ln -s ${PWD}/custom_components ${PWD}/config/
+
 # Start Home Assistant
 hass --config "${PWD}/config" --debug

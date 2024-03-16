@@ -1,4 +1,5 @@
 """ Implements the VersatileThermostat climate component """
+
 import logging
 
 
@@ -43,9 +44,6 @@ from .thermostat_climate import ThermostatOverClimate
 from .thermostat_valve import ThermostatOverValve
 
 _LOGGER = logging.getLogger(__name__)
-
-# _LOGGER.setLevel(logging.DEBUG)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,

@@ -7,11 +7,11 @@ from homeassistant.core import (
     HomeAssistant,
     callback,
     Event,
-    CoreState,
+    # CoreState,
     HomeAssistantError,
 )
 
-from homeassistant.const import STATE_ON, STATE_OFF, EVENT_HOMEASSISTANT_START
+from homeassistant.const import STATE_ON, STATE_OFF  # , EVENT_HOMEASSISTANT_START
 
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.event import async_track_state_change_event
@@ -386,17 +386,18 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         api.register_central_boiler(self)
 
-        @callback
-        async def _async_startup_internal(*_):
-            _LOGGER.debug("%s - Calling async_startup_internal", self)
-            await self.listen_nb_active_vtherm_entity()
-
-        if self.hass.state == CoreState.running:
-            await _async_startup_internal()
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_START, _async_startup_internal
-            )
+        # Should be not more needed and replaced by vtherm_api.init_vtherm_links
+        # @callback
+        # async def _async_startup_internal(*_):
+        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
+        #     await self.listen_nb_active_vtherm_entity()
+    #
+    # if self.hass.state == CoreState.running:
+    #     await _async_startup_internal()
+    # else:
+    #     self.hass.bus.async_listen_once(
+    #         EVENT_HOMEASSISTANT_START, _async_startup_internal
+    #     )
 
     async def listen_nb_active_vtherm_entity(self):
         """Initialize the listening of state change of VTherms"""

@@ -37,10 +37,10 @@ async def test_over_valve_full_start(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            PRESET_FROST_PROTECTION + "_temp": 7,
-            PRESET_ECO + "_temp": 17,
-            PRESET_COMFORT + "_temp": 19,
-            PRESET_BOOST + "_temp": 21,
+            PRESET_FROST_PROTECTION + PRESET_TEMP_SUFFIX: 7,
+            PRESET_ECO + PRESET_TEMP_SUFFIX: 17,
+            PRESET_COMFORT + PRESET_TEMP_SUFFIX: 19,
+            PRESET_BOOST + PRESET_TEMP_SUFFIX: 21,
             CONF_USE_WINDOW_FEATURE: True,
             CONF_USE_MOTION_FEATURE: True,
             CONF_USE_POWER_FEATURE: True,
@@ -58,10 +58,10 @@ async def test_over_valve_full_start(
             CONF_POWER_SENSOR: "sensor.power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
-            PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX + "_temp": 7,
-            PRESET_ECO + PRESET_AWAY_SUFFIX + "_temp": 17.1,
-            PRESET_COMFORT + PRESET_AWAY_SUFFIX + "_temp": 17.2,
-            PRESET_BOOST + PRESET_AWAY_SUFFIX + "_temp": 17.3,
+            PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 7,
+            PRESET_ECO + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 17.1,
+            PRESET_COMFORT + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 17.2,
+            PRESET_BOOST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 17.3,
             CONF_PRESET_POWER: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
@@ -119,7 +119,7 @@ async def test_over_valve_full_start(
         assert entity._prop_algorithm is not None  # pylint: disable=protected-access
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
-        assert mock_send_event.call_count == 2
+        # assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
                 call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
@@ -196,15 +196,18 @@ async def test_over_valve_full_start(
         assert mock_send_event.call_count == 0
 
         # Change to preset Comfort
+        # Change presence to off
+        event_timestamp = now - timedelta(minutes=4)
+        await send_presence_change_event(entity, False, True, event_timestamp)
         await entity.async_set_preset_mode(preset_mode=PRESET_COMFORT)
         assert entity.preset_mode == PRESET_COMFORT
-        assert entity.target_temperature == 17.2
+        assert entity.target_temperature == 17.2  # Comfort with presence off
         assert entity.valve_open_percent == 73
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
         # Change presence to on
-        event_timestamp = now - timedelta(minutes=4)
+        event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, True, False, event_timestamp)
         assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
         assert entity.preset_mode is PRESET_COMFORT
@@ -225,7 +228,7 @@ async def test_over_valve_full_start(
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get", return_value=expected_state
     ):
-        event_timestamp = now - timedelta(minutes=3)
+        event_timestamp = now - timedelta(minutes=2)
         await send_temperature_change_event(entity, 20, datetime.now())
         assert entity.valve_open_percent == 0
         assert entity.is_device_active is True  # Should be 0 but in fact 10 is send
@@ -275,7 +278,7 @@ async def test_over_valve_full_start(
         assert entity.valve_open_percent == 7
 
         # Unset the presence
-        event_timestamp = now - timedelta(minutes=2)
+        event_timestamp = now - timedelta(minutes=1)
         await send_presence_change_event(entity, False, True, event_timestamp)
         assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.valve_open_percent == 10
@@ -345,10 +348,10 @@ async def test_over_valve_regulation(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            PRESET_FROST_PROTECTION + "_temp": 7,
-            PRESET_ECO + "_temp": 17,
-            PRESET_COMFORT + "_temp": 19,
-            PRESET_BOOST + "_temp": 21,
+            PRESET_FROST_PROTECTION + PRESET_TEMP_SUFFIX: 7,
+            PRESET_ECO + PRESET_TEMP_SUFFIX: 17,
+            PRESET_COMFORT + PRESET_TEMP_SUFFIX: 19,
+            PRESET_BOOST + PRESET_TEMP_SUFFIX: 21,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,

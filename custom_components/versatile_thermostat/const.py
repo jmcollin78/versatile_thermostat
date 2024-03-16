@@ -22,6 +22,10 @@ from .prop_algorithm import (
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_VERSION = 1
+CONFIG_MINOR_VERSION = 2
+
+PRESET_TEMP_SUFFIX = "_temp"
 PRESET_AC_SUFFIX = "_ac"
 PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
 PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
@@ -39,11 +43,13 @@ HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
 
 DOMAIN = "versatile_thermostat"
 
+# The order is important.
 PLATFORMS: list[Platform] = [
-    Platform.NUMBER,
     Platform.SELECT,
     Platform.CLIMATE,
     Platform.SENSOR,
+    # Number should be after CLIMATE
+    Platform.NUMBER,
     Platform.BINARY_SENSOR,
 ]
 
@@ -89,6 +95,7 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
+CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -131,7 +138,6 @@ CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
 
-CONF_ADD_CENTRAL_BOILER_CONTROL = "add_central_boiler_control"
 CONF_CENTRAL_BOILER_ACTIVATION_SRV = "central_boiler_activation_service"
 CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
 
@@ -146,7 +152,7 @@ DEFAULT_SHORT_EMA_PARAMS = {
 }
 
 CONF_PRESETS = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION,
         PRESET_ECO,
@@ -156,7 +162,7 @@ CONF_PRESETS = {
 }
 
 CONF_PRESETS_WITH_AC = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION,
         PRESET_ECO,
@@ -172,7 +178,7 @@ CONF_PRESETS_WITH_AC = {
 PRESET_AWAY_SUFFIX = "_away"
 
 CONF_PRESETS_AWAY = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
         PRESET_ECO + PRESET_AWAY_SUFFIX,
@@ -182,7 +188,7 @@ CONF_PRESETS_AWAY = {
 }
 
 CONF_PRESETS_AWAY_WITH_AC = {
-    p: f"{p}_temp"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
         PRESET_ECO + PRESET_AWAY_SUFFIX,
@@ -250,6 +256,7 @@ ALL_CONF = (
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
+        CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
         CONF_VALVE,
         CONF_VALVE_2,
@@ -270,7 +277,6 @@ ALL_CONF = (
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
         CONF_USE_CENTRAL_MODE,
-        CONF_ADD_CENTRAL_BOILER_CONTROL,
         CONF_USED_BY_CENTRAL_BOILER,
         CONF_CENTRAL_BOILER_ACTIVATION_SRV,
         CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
@@ -361,7 +367,9 @@ CENTRAL_MODES = [
 class RegulationParamSlow:
     """Light parameters for slow latency regulation"""
 
-    kp: float = 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    kp: float = (
+        0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    )
     ki: float = (
         0.8 / 288.0
     )  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
@@ -369,7 +377,9 @@ class RegulationParamSlow:
         1.0 / 25.0
     )  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: float = 2.0  # limit to a final offset of -2°C to +2°C
-    stabilization_threshold: float = 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    stabilization_threshold: float = (
+        0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    )
     accumulated_error_threshold: float = (
         2.0 * 288
     )  # this allows up to 2°C long term offset in both directions
@@ -459,6 +469,10 @@ class NoCentralConfig(HomeAssistantError):
 
 class ServiceConfigurationError(HomeAssistantError):
     """Error in the service configuration to control the central boiler"""
+
+
+class ConfigurationNotCompleteError(HomeAssistantError):
+    """Error the configuration is not complete"""
 
 
 class overrides:  # pylint: disable=invalid-name

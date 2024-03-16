@@ -11,22 +11,26 @@
 	// "postCreateCommand": "container install",
 	"postCreateCommand": "./container dev-setup",
 
-	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-		// uncomment this to get the versatile-thermostat-ui-card
-		"source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
-	],
+    "mounts": [
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+        // uncomment this to get the versatile-thermostat-ui-card
+        "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
+    ],
 
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
+				"ms-python.pylint",
+				// Doesn't work (crash). Default in python is to use Jedi see Settings / Python / Default Language
+				// "ms-python.vscode-pylance",
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"visualstudioexptteam.vscodeintellicode",
+				"redhat.vscode-yaml",
 				"github.vscode-pull-request-github",
 				"ryanluker.vscode-coverage-gutters",
-				"ms-python.black-formatter",
-				"ms-python.pylint",
 				"ferrierbenjamin.fold-unfold-all-icone",
-				"ms-python.isort",
 				"LittleFoxTeam.vscode-python-test-adapter",
 				"donjayamanne.githistory",
 				"waderyan.gitblame",
@@ -55,9 +59,9 @@
 				"editor.formatOnPaste": false,
 				"editor.formatOnSave": true,
 				"editor.formatOnType": true,
-				"files.trimTrailingWhitespace": true,
-				"python.experiments.optOutFrom": ["pythonTestAdapter"],
-    			"python.analysis.logLevel": "Trace"
+				"files.trimTrailingWhitespace": true
+				// "python.experiments.optOutFrom": ["pythonTestAdapter"],
+    			// "python.analysis.logLevel": "Trace"
 			}
 		}
 	}

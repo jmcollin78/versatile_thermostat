@@ -1,7 +1,12 @@
 """ The API of Versatile Thermostat"""
+
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+
+from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.number import NumberEntity
 
 from .const import (
     DOMAIN,
@@ -51,19 +56,24 @@ class VersatileThermostatAPI(dict):
         self._central_boiler_entity = None
         self._threshold_number_entity = None
         self._nb_active_number_entity = None
+        self._central_configuration = None
+        # A dict that will store all Number entities which holds the temperature
+        self._number_temperatures = dict()
 
     def find_central_configuration(self):
         """Search for a central configuration"""
-        for config_entry in VersatileThermostatAPI._hass.config_entries.async_entries(
-            DOMAIN
-        ):
-            if (
-                config_entry.data.get(CONF_THERMOSTAT_TYPE)
-                == CONF_THERMOSTAT_CENTRAL_CONFIG
-            ):
-                central_config = config_entry
-                return central_config
-        return None
+        if not self._central_configuration:
+            for (
+                config_entry
+            ) in VersatileThermostatAPI._hass.config_entries.async_entries(DOMAIN):
+                if (
+                    config_entry.data.get(CONF_THERMOSTAT_TYPE)
+                    == CONF_THERMOSTAT_CENTRAL_CONFIG
+                ):
+                    self._central_configuration = config_entry
+                    break
+                    # return self._central_configuration
+        return self._central_configuration
 
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
@@ -106,10 +116,64 @@ class VersatileThermostatAPI(dict):
     ):
         """register the two number entities needed for boiler activation"""
         self._threshold_number_entity = threshold_number_entity
+        # If sensor and threshold number are initialized, reload the listener
+        # if self._nb_active_number_entity and self._central_boiler_entity:
+        #     self._hass.async_add_job(self.reload_central_boiler_binary_listener)
 
     def register_nb_device_active_boiler(self, nb_active_number_entity):
         """register the two number entities needed for boiler activation"""
         self._nb_active_number_entity = nb_active_number_entity
+        # if self._threshold_number_entity and self._central_boiler_entity:
+        #     self._hass.async_add_job(self.reload_central_boiler_binary_listener)
+
+    def register_temperature_number(
+        self,
+        config_id: str,
+        preset_name: str,
+        number_entity: NumberEntity,
+    ):
+        """Register the NumberEntity for a particular device / preset."""
+        # Search for device_name into the _number_temperatures dict
+        if not self._number_temperatures.get(config_id):
+            self._number_temperatures[config_id] = dict()
+
+        self._number_temperatures.get(config_id)[preset_name] = number_entity
+
+    def get_temperature_number_value(self, config_id, preset_name) -> float | None:
+        """Returns the value of a previously registred NumberEntity which represent
+        a temperature. If no NumberEntity was previously registred, then returns None"""
+        entities = self._number_temperatures.get(config_id, None)
+        if entities:
+            entity = entities.get(preset_name, None)
+            if entity:
+                return entity.state
+        return None
+
+    async def init_vtherm_links(self, only_use_central=False):
+        """INitialize all VTherms entities links
+        This method is called when HA is fully started (and all entities should be initialized)
+        Or when we need to reload all VTherm links (with Number temp entities, central boiler, ...)
+        """
+        await self.reload_central_boiler_binary_listener()
+        await self.reload_central_boiler_entities_list()
+        # Initialization of all preset for all VTherm
+        component: EntityComponent[ClimateEntity] = self._hass.data.get(
+            CLIMATE_DOMAIN, None
+        )
+        if component:
+            for entity in component.entities:
+                if hasattr(entity, "init_presets"):
+                    if (
+                        only_use_central is False
+                        or entity.use_central_config_temperature
+                    ):
+                        await entity.init_presets(self.find_central_configuration())
+
+    async def reload_central_boiler_binary_listener(self):
+        """Reloads the BinarySensor entity which listen to the number of
+        active devices and the thresholds entities"""
+        if self._central_boiler_entity:
+            await self._central_boiler_entity.listen_nb_active_vtherm_entity()
 
     async def reload_central_boiler_entities_list(self):
         """Reload the central boiler list of entities if a central boiler is used"""

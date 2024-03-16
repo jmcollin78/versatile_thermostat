@@ -1,9 +1,9 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, abstract-method
 
 """ Some common resources """
 import asyncio
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
@@ -23,9 +23,7 @@ from homeassistant.components.switch import (
     SwitchEntity,
 )
 
-from homeassistant.components.number import (
-    NumberEntity,
-)
+from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -72,6 +70,12 @@ from .const import (  # pylint: disable=unused-import
     overrides,
 )
 
+MOCK_FULL_FEATURES = {
+    CONF_USE_WINDOW_FEATURE: True,
+    CONF_USE_MOTION_FEATURE: True,
+    CONF_USE_POWER_FEATURE: True,
+    CONF_USE_PRESENCE_FEATURE: True,
+}
 
 FULL_SWITCH_CONFIG = (
     MOCK_TH_OVER_SWITCH_USER_CONFIG
@@ -80,6 +84,7 @@ FULL_SWITCH_CONFIG = (
     | MOCK_TH_OVER_SWITCH_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
     | MOCK_PRESETS_CONFIG
+    | MOCK_FULL_FEATURES
     | MOCK_WINDOW_CONFIG
     | MOCK_MOTION_CONFIG
     | MOCK_POWER_CONFIG
@@ -94,13 +99,13 @@ FULL_SWITCH_AC_CONFIG = (
     | MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
     | MOCK_PRESETS_AC_CONFIG
+    | MOCK_FULL_FEATURES
     | MOCK_WINDOW_CONFIG
     | MOCK_MOTION_CONFIG
     | MOCK_POWER_CONFIG
     | MOCK_PRESENCE_AC_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
-
 
 PARTIAL_CLIMATE_CONFIG = (
     MOCK_TH_OVER_CLIMATE_USER_CONFIG
@@ -183,12 +188,13 @@ FULL_CENTRAL_CONFIG = {
     CONF_NO_MOTION_PRESET: "frost",
     CONF_POWER_SENSOR: "sensor.mock_power_sensor",
     CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
+    CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
     CONF_PRESET_POWER: 14,
     CONF_MINIMAL_ACTIVATION_DELAY: 11,
     CONF_SECURITY_DELAY_MIN: 61,
     CONF_SECURITY_MIN_ON_PERCENT: 0.5,
     CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-    CONF_ADD_CENTRAL_BOILER_CONTROL: False,
+    CONF_USE_CENTRAL_BOILER_FEATURE: False,
 }
 
 FULL_CENTRAL_CONFIG_WITH_BOILER = {
@@ -229,7 +235,7 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_SECURITY_DELAY_MIN: 61,
     CONF_SECURITY_MIN_ON_PERCENT: 0.5,
     CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
-    CONF_ADD_CENTRAL_BOILER_CONTROL: True,
+    CONF_USE_CENTRAL_BOILER_FEATURE: True,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
 }
@@ -493,14 +499,18 @@ async def create_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
 ) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
 
-        return search_entity(hass, entity_id, CLIMATE_DOMAIN)
+    # We should reload the VTherm links
+    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+    # central_config = vtherm_api.find_central_configuration()
+    entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
+    # if entity and hasattr(entity, "init_presets")::
+    #    await entity.init_presets(central_config)
+
+    return entity
 
 
 async def create_central_config(  # pylint: disable=dangerous-default-value
@@ -523,11 +533,14 @@ async def create_central_config(  # pylint: disable=dangerous-default-value
     central_configuration = api.find_central_configuration()
     assert central_configuration is not None
 
+    return central_configuration
+
 
 def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
     for entity in component.entities:
+        _LOGGER.debug("Found %s entity: %s", domain, entity.entity_id)
         if entity.entity_id == entity_id:
             return entity
     return None
@@ -847,3 +860,25 @@ def cancel_switchs_cycles(entity: BaseThermostat):
         return
     for under in entity._underlyings:
         under._cancel_cycle()
+
+
+async def set_climate_preset_temp(
+    entity: BaseThermostat, temp_number_name: str, temp: float
+):
+    """Set a preset value in the temp Number entity"""
+    number_entity_id = (
+        NUMBER_DOMAIN
+        + "."
+        + entity.entity_id.split(".")[1]
+        + "_preset_"
+        + temp_number_name
+        + PRESET_TEMP_SUFFIX
+    )
+
+    temp_entity = search_entity(
+        entity.hass,
+        number_entity_id,
+        NUMBER_DOMAIN,
+    )
+    if temp_entity:
+        await temp_entity.async_set_native_value(temp)
