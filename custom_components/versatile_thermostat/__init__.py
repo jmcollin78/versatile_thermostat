@@ -190,12 +190,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 # Example migration function
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate old entry."""
-    _LOGGER.debug("Migrating from version %s", config_entry.version)
+    _LOGGER.debug(
+        "Migrating from version %s/%s", config_entry.version, config_entry.minor_version
+    )
 
     if (
         config_entry.version != CONFIG_VERSION
         or config_entry.minor_version != CONFIG_MINOR_VERSION
     ):
+        _LOGGER.debug(
+            "Migration to %s/%s is needed", CONFIG_VERSION, CONFIG_MINOR_VERSION
+        )
         new = {**config_entry.data}
 
         if (
@@ -211,14 +216,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
                 "add_central_boiler_control", False
-            )
+            ) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
+
         hass.config_entries.async_update_entry(
             config_entry,
             data=new,
             version=CONFIG_VERSION,
             minor_version=CONFIG_MINOR_VERSION,
         )
-
-    _LOGGER.info("Migration to version %s successful", config_entry.version)
+        _LOGGER.info("Migration to version %s successful", config_entry.version)
 
     return True
