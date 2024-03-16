@@ -12,7 +12,7 @@
   - [Temperature entities for presets](#temperature-entities-for-presets)
     - [In the case of a central configuration](#in-the-case-of-a-central-configuration)
   - [Redesign of the configuration menu](#redesign-of-the-configuration-menu)
-    - [Les options de menu 'Configuration incomplète' et 'Finaliser'](#les-options-de-menu-configuration-incomplète-et-finaliser)
+    - [The 'Incomplete configuration' and 'Finalize' menu options](#the-incomplete-configuration-and-finalize-menu-options)
 - [Changements dans la version 5.0](#changements-dans-la-version-50)
 - [Thanks for the beer buymecoffee](#thanks-for-the-beer-buymecoffee)
 - [When to use / not use](#when-to-use--not-use)
@@ -175,23 +175,23 @@ Example of menu with all functions checked:
 ![VTherm menu](images/config-menu-all-options.png)
 You can see that the 'Opening detection', 'Motion detection', 'Power management' and 'Presence management' options have been added. You can then configure them.
 
-### Les options de menu 'Configuration incomplète' et 'Finaliser'
+### The 'Incomplete configuration' and 'Finalize' menu options
 
-La dernière option du menu est spéciale. Elle permet de valider la création du VTherm lorsque toutes les fonctions ont été correctement configurées.
-Si l'une options n'est pas correctement configurée, la dernière option est la suivante :
+The last menu option is special. It allows you to validate the creation of the VTherm when all the functions have been correctly configured.
+If one option is not configured correctly, the last option is:
 
-![Configuration incomplète](images/config-not-complete.png)
+![Incomplete configuration](images/config-not-complete.png)
 
-Sa sélection ne fait rien mais vous empêche de finaliser la création (resp. la modification) du VTherm.
-**Vous devez alors chercher dans les options laquelle manque**.
+Its selection does nothing but prevents you from finalizing the creation (resp. modification) of the VTherm.
+**You must then search in the options which one is missing**.
 
-Une fois que toute la configuration est valide, la dernière option se transforme en :
+Once all configuration is valid, the last option changes to:
 
-![Configuration complète](images/config-complete.png)
+![Complete configuration](images/config-complete.png)
 
-Cliquez sur cette option pour créér (resp. modifier) le VTherm :
+Click on this option to create (resp. modify) the VTherm:
 
-![Configuration terminée](images/config-terminate.png)
+![Configuration Complete](images/config-terminate.png)
 
 <details>
 <summary>Changements dans la version 5.0</summary>
