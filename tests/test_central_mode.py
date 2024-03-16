@@ -23,7 +23,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_config_with_central_mode_true(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
