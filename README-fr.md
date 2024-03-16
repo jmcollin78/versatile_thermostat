@@ -8,7 +8,11 @@
 
 > ![Tip](images/tips.png) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
 
-- [Changements majeurs dans la version 5.0](#changements-majeurs-dans-la-version-50)
+- [Changements dans la version 6.0](#changements-dans-la-version-60)
+  - [Entités de température pour les pre-réglages](#entités-de-température-pour-les-pre-réglages)
+    - [Dans le cas d'une configuration centrale](#dans-le-cas-dune-configuration-centrale)
+  - [Refonte du menu de configuration](#refonte-du-menu-de-configuration)
+    - [Les options de menu 'Configuration incomplète' et 'Finaliser'](#les-options-de-menu-configuration-incomplète-et-finaliser)
 - [Merci pour la bière buymecoffee](#merci-pour-la-bière-buymecoffee)
 - [Quand l'utiliser et ne pas l'utiliser](#quand-lutiliser-et-ne-pas-lutiliser)
   - [Incompatibilités](#incompatibilités)
@@ -19,7 +23,7 @@
 - [Configuration](#configuration)
   - [Création d'un nouveau Versatile Thermostat](#création-dun-nouveau-versatile-thermostat)
   - [Choix des attributs de base](#choix-des-attributs-de-base)
-  - [Sélectionnez des entités pilotées](#sélectionnez-des-entités-pilotées)
+  - [Sélectionnez des entités pilotées (sous-jacents)](#sélectionnez-des-entités-pilotées-sous-jacents)
     - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
     - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
       - [L'auto-régulation](#lauto-régulation)
@@ -29,13 +33,13 @@
       - [Le mode auto-fan](#le-mode-auto-fan)
     - [Pour un thermostat de type ```thermostat_over_valve```:](#pour-un-thermostat-de-type-thermostat_over_valve)
   - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
-  - [Configurer la température préréglée](#configurer-la-température-préréglée)
+  - [Configurer les températures préréglées](#configurer-les-températures-préréglées)
   - [Configurer les portes/fenêtres en allumant/éteignant les thermostats](#configurer-les-portesfenêtres-en-allumantéteignant-les-thermostats)
     - [Le mode capteur](#le-mode-capteur)
     - [Le mode auto](#le-mode-auto)
   - [Configurer le mode d'activité ou la détection de mouvement](#configurer-le-mode-dactivité-ou-la-détection-de-mouvement)
   - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
-  - [Configurer la présence ou l'occupation](#configurer-la-présence-ou-loccupation)
+  - [Configurer la présence (ou l'absence)](#configurer-la-présence-ou-labsence)
   - [Configuration avancée](#configuration-avancée)
   - [Le contrôle centralisé](#le-contrôle-centralisé)
   - [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale)
@@ -86,7 +90,10 @@
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 
-> ![Nouveau](images/new-icon.png) _*Nouveautés*_
+> ![Nouveau](images/new-icon.png) _*Historique des dernières versions*_
+> * **Release 6.0** :
+>   - Ajout d'entités du domaine Number permettant de configurer les températures des presets [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
+>   - Refonte complète du menu de configuration pour supprimer les températures et utililsation d'un menu au lieu d'un tunnel de configuration [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
 > * **Release 5.4** :
 >   - Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
 >   - ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
@@ -96,6 +103,7 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
 > * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
+
 <details>
 <summary>Autres versions</summary>
 
@@ -117,8 +125,76 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et est une
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 </details>
 
-# Changements majeurs dans la version 5.0
-![Nouveau](images/new-icon.png)
+# Changements dans la version 6.0
+
+## Entités de température pour les pre-réglages
+Les températures des presets sont maintenant directement acessibles sous la forme d'entités reliés au VTherm.
+Exemple :
+
+![Entités température](images/temp-entities-1.png)
+
+Les entités Boost, Confort, Eco et Hors-gel permettent de régler directement les températures de ces présets sans avoir à reconfigurer le VTHerm dans les écrans de configuration.
+Ces modifications sont persistentent à un redémarrage et sont prises en compte immédiatement par le VTherm.
+
+En fonction des fonctions activées, la liste des températures peut être plus ou moins complète :
+1. Si la gestion de présence est activée, les presets en cas d'absence sont créés. Ils sont suffixés par 'abs' pour absence,
+2. Si la gestion de la climatisation (Mode AC) est activé, les presets en mode clim sont créés. Ils sont suffixés par 'clim' pour climatisation. Seul le preset Hors gel n'a pas d'équivalent en mode clim,
+3. Les différentes combinaison absent et clim peuvent être créés en fonction de la configuration du VTherm
+
+Si un VTherm utilise les preset de la configuration centrale, ces entités ne sont pas créées, car les températures des presets sont gérés par la configuration centrale.
+
+### Dans le cas d'une configuration centrale
+Si vous avez configuré une configuration centrale, celle-ci possède aussi ses propres presets qui répondent au même règles qu'énoncées ci-dessus.
+Exemple d'une configuration centrale avec gestion de présence et mode AC (climatisation) :
+
+![Entités température](images/temp-entities-2.png)
+
+Dans le cas d'un changement d'une température de la configuration centrale, tous les VTherm qui utilisent ce preset sont immédiatement mis à jour.
+
+## Refonte du menu de configuration
+Le menu de configuration a été totalement revu. Il s'adapte dynamiquement aux choix de l'utilisateur et permet d'accéder directement aux réglages de la fonction voulue sans avoir à dérouler tous le tunnel de configuration.
+
+Pour créer un nouveau VTherm, il faudra d'abord choisir le type de VTherm :
+
+![Choix VTherm](images/config-main0.png)
+
+Puis, vous accédez maintenant au menu de configuration suivant :
+
+![VTherm menu](images/config-menu.png)
+
+Chaque partie à configurer est accessible directement, sans avoir à dérouler tout le tunnel de configuration comme précédemment.
+
+Vous noterez l'option de menu nommée `Fonctions` qui permet de choisir quelles fonctions vont être implémentées pour ce VTherm :
+
+![VTherm fonctions](images/config-features.png)
+
+En fonction de vos choix, le menu principal s'adaptera pour ajouter les options nécessaires.
+
+Exemple de menu avec toutes les fonctions cochées :
+
+![VTherm menu](images/config-menu-all-options.png)
+Vous pouvez constater que les options 'Détection des ouvertures', 'Détection de mouvement', 'Gestion de la puissance' et 'Gestion de présence' ont été ajoutées. Vous pouvez alors les configurer.
+
+### Les options de menu 'Configuration incomplète' et 'Finaliser'
+
+La dernière option du menu est spéciale. Elle permet de valider la création du VTherm lorsque toutes les fonctions ont été correctement configurées.
+Si l'une options n'est pas correctement configurée, la dernière option est la suivante :
+
+![Configuration incomplète](images/config-not-complete.png)
+
+Sa sélection ne fait rien mais vous empêche de finaliser la création (resp. la modification) du VTherm.
+**Vous devez alors chercher dans les options laquelle manque**.
+
+Une fois que toute la configuration est valide, la dernière option se transforme en :
+
+![Configuration complète](images/config-complete.png)
+
+Cliquez sur cette option pour créér (resp. modifier) le VTherm :
+
+![Configuration terminée](images/config-terminate.png)
+
+<details>
+<summary>Changements dans la version 5.0</summary>
 
 Vous pouvez maintenant définir une configuration centrale qui va vous permettre de mettre en commun sur tous vos VTherms (ou seulement une partie), certains attributs. Pour utiliser cette possibilité, vous devez :
 1. Créer un VTherm de type "Configuration Centrale",
@@ -132,10 +208,10 @@ Lors d'un changement sur la configuration centrale, tous les VTherms seront rech
 
 En conséquence toute la phase de paramètrage d'un VTherm a été profondemment modifiée pour pouvoir utiliser la configuration centrale ou surcharger les valeurs de la configuration centrale par des valeurs propre au VTherm en cours de configuration.
 
-**Note :** les copies d'écran de la configuration d'un VTherm n'ont pas été mises à jour.
+</details>
 
 # Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R. pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
 
 
 # Quand l'utiliser et ne pas l'utiliser
@@ -209,18 +285,30 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 > 3. En plus de cette configuration centralisée, tous les VTherm peuvent être contrôlées par une seule entité de type `select`. Cette fonction est nommé `central_mode`. Cela permet de stopper / démarrer / mettre en hors gel / etc tous les VTherms en une seule fois. Pour chaque VTherm, l'utilisateur indique si il est concerné par ce `central_mode`.
 
 
+<details>
+<summary>Création d'un nouveau Versatile Thermostat</summary>
+
 ## Création d'un nouveau Versatile Thermostat
+
 Cliquez sur le bouton Ajouter une intégration dans la page d'intégration
 
 ![image](images/add-an-integration.png)
 
+puis
+
+![image](images/config-main0.png)
+
 La configuration peut être modifiée via la même interface. Sélectionnez simplement le thermostat à modifier, appuyez sur "Configurer" et vous pourrez modifier certains paramètres ou la configuration.
 
-Suivez ensuite les étapes de configuration comme suit :
+Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'option à configurer.
+</details>
+
+<details>
+<summary>Choix des attributs de base</summary>
 
 ## Choix des attributs de base
 
-![image](images/config-main0.png)
+Choisisez le menu "Principaux attributs".
 
 ![image](images/config-main.png)
 
@@ -238,8 +326,13 @@ Donnez les principaux attributs obligatoires :
 > ![Astuce](images/tips.png) _*Notes*_
 >  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
 >  2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
+</details>
 
-## Sélectionnez des entités pilotées
+<details>
+<summary>Sélectionnez des entités pilotées (sous-jacents)</summary>
+
+## Sélectionnez des entités pilotées (sous-jacents)
+
 En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type `switch`, `climate` ou `number`. Seules les entités compatibles avec le type sont présentées.
 
 > ![Astuce](images/tips.png) _*Comment choisir le type*_
@@ -421,10 +514,14 @@ Vous pouvez choisir jusqu'à entité du domaine ```number``` ou ```ìnput_number
 L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
 
 Il est possible de choisir un thermostat over valve qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
+</details>
+
+<details>
+<summary>Configurez les coefficients de l'algorithme TPI</summary>
 
 ## Configurez les coefficients de l'algorithme TPI
 
-Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` vous arriverez sur cette page :
+Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` et que vous sélectionnez l'option "TPI" vous menu, vous arriverez sur cette page :
 
 ![image](images/config-tpi.png)
 
@@ -434,11 +531,12 @@ Vous devez donner :
 
 
 Pour plus d'informations sur l'algorithme TPI et son réglage, veuillez vous référer à [algorithm](#algorithm).
+</details>
 
-## Configurer la température préréglée
-Cliquez sur 'Valider' sur la page précédente et vous y arriverez :
+<details>
+<summary>Configurer les températures préréglées</summary>
 
-![image](images/config-presets.png)
+## Configurer les températures préréglées
 
 Le mode préréglé (preset) vous permet de préconfigurer la température ciblée. Utilisé en conjonction avec Scheduler (voir [scheduler](#even-better-with-scheduler-component) vous aurez un moyen puissant et simple d'optimiser la température par rapport à la consommation électrique de votre maison. Les préréglages gérés sont les suivants :
  - **Eco** : l'appareil est en mode d'économie d'énergie
@@ -449,14 +547,21 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
 
 **Aucun** est toujours ajouté dans la liste des modes, car c'est un moyen de ne pas utiliser les preset mais une **température manuelle** à la place.
 
+Les pré-réglages se font (depuis v6.0) directement depuis les entités du VTherm ou de la configuration centrale si vous utilisez la configuration centrale.
+
 > ![Astuce](images/tips.png) _*Notes*_
 >  1. En modifiant manuellement la température cible, réglez le préréglage sur Aucun (pas de préréglage). De cette façon, vous pouvez toujours définir une température cible même si aucun préréglage n'est disponible.
 >  2. Le préréglage standard ``Away`` est un préréglage caché qui n'est pas directement sélectionnable. Versatile Thermostat utilise la gestion de présence ou la gestion de mouvement pour régler automatiquement et dynamiquement la température cible en fonction d'une présence dans le logement ou d'une activité dans la pièce. Voir [gestion de la présence](#configure-the-presence-management).
 >  3. Si vous utilisez la gestion du délestage, vous verrez un préréglage caché nommé ``power``. Le préréglage de l'élément chauffant est réglé sur « puissance » lorsque des conditions de surpuissance sont rencontrées et que le délestage est actif pour cet élément chauffant. Voir [gestion de l'alimentation](#configure-the-power-management).
 >  4. si vous utilisez la configuration avancée, vous verrez le préréglage défini sur ``sécurité`` si la température n'a pas pu être récupérée après un certain délai
 >  5. Si vous ne souhaitez pas utiliser le préréglage, indiquez 0 comme température. Le préréglage sera alors ignoré et ne s'affichera pas dans le composant front
+</details>
+
+<details>
+<summary>Configurer les portes/fenêtres en allumant/éteignant les thermostats</summary>
 
 ## Configurer les portes/fenêtres en allumant/éteignant les thermostats
+
 Vous devez avoir choisi la fonctionnalité ```Avec détection des ouvertures``` dans la première page pour arriver sur cette page.
 La détecttion des ouvertures peut se faire de 2 manières:
 1. soit avec un capteur placé sur l'ouverture (mode capteur),
@@ -496,8 +601,13 @@ Et c'est tout ! votre thermostat s'éteindra lorsque les fenêtres seront ouvert
 >  2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide,
 >  3. **Un seul mode est permis**. On ne peut pas configurer un thermostat avec un capteur et une détection automatique. Les 2 modes risquant de se contredire, il n'est pas possible d'avoir les 2 modes en même temps,
 >  4. Il est déconseillé d'utiliser le mode automatique pour un équipement soumis à des variations de température fréquentes et normales (couloirs, zones ouvertes, ...)
+</details>
+
+<details>
+<summary>Configurer le mode d'activité ou la détection de mouvement</summary>
 
 ## Configurer le mode d'activité ou la détection de mouvement
+
 Si vous avez choisi la fonctionnalité ```Avec détection de mouvement```, cliquez sur 'Valider' sur la page précédente et vous y arriverez :
 
 ![image](images/config-motion.png)
@@ -522,6 +632,10 @@ Pour que cela fonctionne, le thermostat doit être en mode préréglé « Activ
 
 > ![Astuce](images/tips.png) _*Notes*_
     1. Sachez que comme pour les autres modes prédéfinis, ``Activity`` ne sera proposé que s'il est correctement configuré. En d'autres termes, les 4 clés de configuration doivent être définies si vous souhaitez voir l'activité dans l'interface de l'assistant domestique
+</details>
+
+<details>
+<summary>Configurer la gestion de la puissance</summary>
 
 ## Configurer la gestion de la puissance
 
@@ -540,8 +654,13 @@ Cela vous permet de modifier la puissance maximale au fil du temps à l'aide d'u
 > 3. Gardez toujours une marge, car la puissance max peut être brièvement dépassée en attendant le calcul du prochain cycle typiquement ou par des équipements non régulés.
 > 4. Si vous ne souhaitez pas utiliser cette fonctionnalité, laissez simplement l'identifiant des entités vide
 > 5. Si vous controlez plusieurs radiateurs, la **consommation électrique de votre chauffage** renseigné doit correspondre à la somme des puissances.
+</details>
 
-## Configurer la présence ou l'occupation
+<details>
+<summary>Configurer la présence (ou l'absence)</summary>
+
+## Configurer la présence (ou l'absence)
+
 Si sélectionnée en première page, cette fonction vous permet de modifier dynamiquement la température de tous les préréglages du thermostat configurés lorsque personne n'est à la maison ou lorsque quelqu'un rentre à la maison. Pour cela, vous devez configurer la température qui sera utilisée pour chaque préréglage lorsque la présence est désactivée. Lorsque le capteur de présence s'éteint, ces températures seront utilisées. Lorsqu'il se rallume, la température "normale" configurée pour le préréglage est utilisée. Voir [gestion des préréglages](#configure-the-preset-temperature).
 Pour configurer la présence remplissez ce formulaire :
 
@@ -560,8 +679,13 @@ ATTENTION : les groupes de personnes ne fonctionnent pas en tant que capteur de 
 > ![Astuce](images/tips.png) _*Notes*_
 > 1. le changement de température est immédiat et se répercute sur le volet avant. Le calcul prendra en compte la nouvelle température cible au prochain calcul du cycle,
 > 2. vous pouvez utiliser le capteur direct person.xxxx ou un groupe de capteurs de Home Assistant. Le capteur de présence gère les états ``on`` ou ``home`` comme présents et les états ``off`` ou ``not_home`` comme absents.
+</details>
+
+<details>
+<summary>Configuration avancée</summary>
 
 ## Configuration avancée
+
 Ces paramètres permettent d'affiner le réglage du thermostat.
 Le formulaire de configuration avancée est le suivant :
 
@@ -593,8 +717,13 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
 > 4. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
 > 5. Les thermostats de type ``thermostat_over_climate`` ne sont pas concernés par le mode security.
+</details>
+
+<details>
+<summary>Le contrôle centralisé</summary>
 
 ## Le contrôle centralisé
+
 Depuis la release 5.2, si vous avez défini une configuration centralisée, vous avez une nouvelle entité nommée `select.central_mode` qui permet de piloter tous les VTherms avec une seule action. Pour qu'un VTherm soit contrôlable de façon centralisée, il faut que son attribut de configuration nommé `use_central_mode` soit vrai.
 
 Cette entité se présente sous la forme d'une liste de choix qui contient les choix suivants :
@@ -608,8 +737,13 @@ Il est donc possible de contrôler tous les VTherms (que ceux que l'on désigne 
 Exemple de rendu :
 
 ![central_mode](images/central_mode.png)
+</details>
+
+<details>
+<summary>Le contrôle d'une chaudière centrale</summary>
 
 ## Le contrôle d'une chaudière centrale
+
 Depuis la release 5.3, vous avez la possibilité de contrôler une chaudière centralisée. A partir du moment où il est possible de déclencher ou stopper cette chaudière depuis Home Assistant, alors Versatile Thermostat va pouvoir la commander directement.
 
 Le principe mis en place est globalement le suivant :
@@ -708,6 +842,10 @@ context:
 
 > ![Astuce](images/tips.png) _*Notes*_
 > Le contrôle par du logiciel ou du matériel de type domotique d'une chaudière centrale peut induire des risques pour son bon fonctionnement. Assurez-vous avant d'utiliser ces fonctions, que votre chaudière possède bien des fonctions de sécurité et que celles-ci fonctionnent. Allumer une chaudière si tous les robinets sont fermés peut générer de la sur-pression par exemple.
+</details>
+
+<details>
+<summary>Synthèse des paramètres</summary>
 
 ## Synthèse des paramètres
 
@@ -743,13 +881,7 @@ context:
 | ``ac_mode``                               | utilisation de l'air conditionné (AC) ?                                           | X             | X                   | X            | -                        |
 | ``tpi_coef_int``                          | Coefficient à utiliser pour le delta de température interne                       | X             | -                   | X            | X                        |
 | ``tpi_coef_ext``                          | Coefficient à utiliser pour le delta de température externe                       | X             | -                   | X            | X                        |
-| ``frost_tp``                              | Température en preset Hors-gel                                                    | X             | X                   | X            | X                        |
-| ``eco_temp``                              | Température en preset Eco                                                         | X             | X                   | X            | X                        |
-| ``comfort_temp``                          | Température en preset Confort                                                     | X             | X                   | X            | X                        |
-| ``boost_temp``                            | Température en preset Boost                                                       | X             | X                   | X            | X                        |
-| ``eco_ac_temp``                           | Température en preset Eco en mode AC                                              | X             | X                   | X            | X                        |
-| ``comfort_ac_temp``                       | Température en preset Confort en mode AC                                          | X             | X                   | X            | X                        |
-| ``boost_ac_temp``                         | Température en preset Boost en mode AC                                            | X             | X                   | X            | X                        |
+| ``frost_temp``                            | Température en preset Hors-gel                                                    | X             | X                   | X            | X                        |
 | ``window_sensor_entity_id``               | Détecteur d'ouverture (entity id)                                                 | X             | X                   | X            | -                        |
 | ``window_delay``                          | Délai avant extinction (secondes)                                                 | X             | X                   | X            | X                        |
 | ``window_auto_open_threshold``            | Seuil haut de chute de température pour la détection automatique (en °/min)       | X             | X                   | X            | X                        |
@@ -764,13 +896,6 @@ context:
 | ``max_power_sensor_entity_id``            | Capteur de puissance Max (entity id)                                              | X             | X                   | X            | X                        |
 | ``power_temp``                            | Température si délestaqe                                                          | X             | X                   | X            | X                        |
 | ``presence_sensor_entity_id``             | Capteur de présence entity id (true si quelqu'un est présent)                     | X             | X                   | X            | -                        |
-| ``frost_ay_temp``                         | Température en preset Hors-gel en cas d'absence                                   | X             | X                   | X            | X                        |
-| ``eco_away_temp``                         | Température en preset Eco en cas d'absence                                        | X             | X                   | X            | X                        |
-| ``comfort_away_temp``                     | Température en preset Comfort en cas d'absence                                    | X             | X                   | X            | X                        |
-| ``boost_away_temp``                       | Température en preset Boost en cas d'absence                                      | X             | X                   | X            | X                        |
-| ``eco_ac_away_temp``                      | Température en preset Eco en cas d'absence en mode AC                             | X             | X                   | X            | X                        |
-| ``comfort_ac_away_temp``                  | Température en preset Comfort en cas d'absence en mode AC                         | X             | X                   | X            | X                        |
-| ``boost_ac_away_temp``                    | Température en preset Boost en cas d'absence en mode AC                           | X             | X                   | X            | X                        |
 | ``minimal_activation_delay``              | Délai minimal d'activation                                                        | X             | -                   | -            | X                        |
 | ``security_delay_min``                    | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
 | ``security_min_on_percent``               | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
@@ -784,6 +909,7 @@ context:
 | ``central_boiler_activation_service``     | Service d'activation de la chaudière                                              | -             | -                   | -            | X                        |
 | ``central_boiler_deactivation_service``   | Service de desactivation de la chaudière                                          | -             | -                   | -            | X                        |
 | ``used_by_controls_central_boiler``       | Indique si le VTherm contrôle la chaudière centrale                               | X             | X                   | X            | -                        |
+</details>
 
 # Exemples de réglage
 
@@ -1311,7 +1437,11 @@ Si vous souhaitez contribuer, veuillez lire les [directives de contribution](CON
 
 # Dépannages
 
+<details>
+<summary>Utilisation d'un Heatzy</summary>
+
 ## Utilisation d'un Heatzy
+
 L'utilisation d'un Heatzy est possible à la condition d'utiliser un switch virtuel sur ce modèle :
 ```
 - platform: template
@@ -1340,6 +1470,10 @@ L'utilisation d'un Heatzy est possible à la condition d'utiliser un switch virt
           preset_mode: "eco"
 ```
 Merci à @gael pour cet exemple.
+</details>
+
+<details>
+<summary>Utilisation d'un radiateur avec un fil pilote</summary>
 
 ## Utilisation d'un radiateur avec un fil pilote
 Comme pour le Heatzy ci-dessus vous pouvez utiliser un switch virtuel qui va changer le preset de votre radiateur en fonction de l'état d'allumage du VTherm.
@@ -1361,9 +1495,20 @@ Exemple :
         icon_template: "{% if is_state('switch.radiateur_soan', 'on') %}mdi:radiator-disabled{% else %}mdi:radiator{% endif %}"
 ```
 
+</details>
+
+<details>
+<summary>Seul le premier radiateur chauffe</summary>
+
 ## Seul le premier radiateur chauffe
+
 En mode `over_switch` si plusieurs radiateurs sont configurés pour un même VTherm, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
 Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
+
+</details>
+
+<details>
+<summary>Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne</summary>
 
 ## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
 
@@ -1376,7 +1521,10 @@ Avec un VTherm de type `over_climate`, la régulation est faite par le `climate`
 Exemple de discussion autour de ces sujets: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
 
 Pour s'en sortir, VTherm est équipé d'une fonction nommée auto-régulation qui permet d'adapter la consigne envoyée au sous-jacent jusqu'à ce que la consigne soit respectée. Cette fonction permet de compenser le biais de mesure des thermomètres internes. Si le biais est important la régulation doit être importante. Voir [L'auto-régulation](#lauto-régulation) pour configurer l'auto-régulation.
+</details>
 
+<details>
+<summary>Régler les paramètres de détection d'ouverture de fenêtre en mode auto</summary>
 
 ## Régler les paramètres de détection d'ouverture de fenêtre en mode auto
 
@@ -1397,6 +1545,10 @@ versatile_thermostat:
 ```
 
 Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les utiliser que si vous savez ce que vous faites et que vos mesures de température ne sont pas déjà lisses.
+</details>
+
+<details>
+<summary>Pourquoi mon Versatile Thermostat se met en Securite ?</summary>
 
 ## Pourquoi mon Versatile Thermostat se met en Securite ?
 Le mode sécurité n'est possible que sur les VTherm `over_switch` et `over_valve`. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `security_delay_min` minutes et que le radiateur chauffait à au moins `security_min_on_percent`.
@@ -1444,8 +1596,13 @@ Cela va dépendre de la cause du problème :
 2. Si le paramètre `security_delay_min` est trop petit, cela rsique de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile.
 3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `security_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
+</details>
+
+<details>
+<summary>Utilisation d'un groupe de personnes comme capteur de présence</summary>
 
 ## Utilisation d'un groupe de personnes comme capteur de présence
+
 Malheureusement, les groupes de personnes ne sont pas reconnus comme des capteurs de présence. On ne peut donc pas les utiliser directement dans VTherm.
 Le contournement est de créer un template de binary_sensor avec le code suivant :
 
@@ -1466,6 +1623,10 @@ Fichier `configuration.yaml`:
 template: !include templates.yaml
 ...
 ```
+</details>
+
+<details>
+<summary>Activer les logs du Versatile Thermostat</summary>
 
 ## Activer les logs du Versatile Thermostat
 Des fois, vous aurez besoin d'activer les logs pour afiner les analyses. Pour cela, éditer le fichier `logger.yaml` de votre configuration et configurer les logs comme suit :
@@ -1475,6 +1636,8 @@ logs:
   custom_components.versatile_thermostat: info
 ```
 Vous devez recharger la configuration yaml (Outils de dev / Yaml / Toute la configuration Yaml) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
+
+</details>
 
 ***
 

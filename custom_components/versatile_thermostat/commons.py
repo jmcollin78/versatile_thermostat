@@ -235,7 +235,7 @@ class VersatileThermostatBaseEntity(Entity):
                     )
                 )
             else:
-                _LOGGER.warning("%s - no entity to listen. Try later", self)
+                _LOGGER.debug("%s - no entity to listen. Try later", self)
                 self._cancel_call = async_call_later(
                     self.hass, timedelta(seconds=1), try_find_climate
                 )
