@@ -329,7 +329,7 @@ CONF_WINDOW_ACTIONS = [
     CONF_WINDOW_ECO_TEMP,
 ]
 
-SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE
+SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
