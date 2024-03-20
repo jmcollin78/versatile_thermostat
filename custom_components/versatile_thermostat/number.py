@@ -98,63 +98,80 @@ async def async_setup_entry(
     if vt_type != CONF_THERMOSTAT_CENTRAL_CONFIG:
         # Creates non central temperature entities
         if not entry.data.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False):
-            for preset in CONF_PRESETS_VALUES:
-                entities.append(
-                    TemperatureNumber(
-                        hass, unique_id, name, preset, False, False, entry.data
-                    )
-                )
             if entry.data.get(CONF_AC_MODE, False):
                 for preset in CONF_PRESETS_WITH_AC_VALUES:
+                    _LOGGER.warning(
+                        "%s - configuring Number non central, AC, non AWAY for preset %s",
+                        name,
+                        preset,
+                    )
                     entities.append(
                         TemperatureNumber(
                             hass, unique_id, name, preset, True, False, entry.data
+                        )
+                    )
+            else:
+                for preset in CONF_PRESETS_VALUES:
+                    _LOGGER.warning(
+                        "%s - configuring Number non central, non AC, non AWAY for preset %s",
+                        name,
+                        preset,
+                    )
+                    entities.append(
+                        TemperatureNumber(
+                            hass, unique_id, name, preset, False, False, entry.data
                         )
                     )
 
         if entry.data.get(
             CONF_USE_PRESENCE_FEATURE, False
         ) is True and not entry.data.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False):
-            for preset in CONF_PRESETS_AWAY_VALUES:
-                entities.append(
-                    TemperatureNumber(
-                        hass, unique_id, name, preset, False, True, entry.data
-                    )
-                )
-
             if entry.data.get(CONF_AC_MODE, False):
                 for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
+                    _LOGGER.warning(
+                        "%s - configuring Number non central, AC, AWAY for preset %s",
+                        name,
+                        preset,
+                    )
                     entities.append(
                         TemperatureNumber(
                             hass, unique_id, name, preset, True, True, entry.data
                         )
                     )
+            else:
+                for preset in CONF_PRESETS_AWAY_VALUES:
+                    _LOGGER.warning(
+                        "%s - configuring Number non central, non AC, AWAY for preset %s",
+                        name,
+                        preset,
+                    )
+                    entities.append(
+                        TemperatureNumber(
+                            hass, unique_id, name, preset, False, True, entry.data
+                        )
+                    )
+
     # For central config only
     else:
         entities.append(
             ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
         )
-        for preset in CONF_PRESETS_VALUES:
-            entities.append(
-                CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, False, False, entry.data
-                )
-            )
         for preset in CONF_PRESETS_WITH_AC_VALUES:
+            _LOGGER.warning(
+                "%s - configuring Number central, AC, non AWAY for preset %s",
+                name,
+                preset,
+            )
             entities.append(
                 CentralConfigTemperatureNumber(
                     hass, unique_id, name, preset, True, False, entry.data
                 )
             )
 
-        for preset in CONF_PRESETS_AWAY_VALUES:
-            entities.append(
-                CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, False, True, entry.data
-                )
-            )
-
         for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
+            _LOGGER.warning(
+                "%s - configuring Number central, AC, AWAY for preset %s", name, preset
+            )
             entities.append(
                 CentralConfigTemperatureNumber(
                     hass, unique_id, name, preset, True, True, entry.data
