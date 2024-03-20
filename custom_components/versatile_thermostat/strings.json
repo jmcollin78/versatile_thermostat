@@ -14,7 +14,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Configure your thermostat. You will be able to finalize the configuration when all required required parameters are entered.",
+        "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
         "menu_options": {
           "main": "Main attributes",
           "central_boiler": "Central boiler",
