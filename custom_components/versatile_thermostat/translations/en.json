@@ -14,7 +14,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Configure your thermostat. You will be able to finalize the configuration when all needed parameters are valued.",
+        "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
         "menu_options": {
           "main": "Main attributes",
           "central_boiler": "Central boiler",
@@ -40,11 +40,11 @@
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "temp_min": "Minimal temperature allowed",
-          "temp_max": "Maximal temperature allowed",
+          "temp_min": "Minimum temperature allowed",
+          "temp_max": "Maximum temperature allowed",
           "step_temperature": "Temperature step",
           "device_power": "Device power",
-          "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
+          "use_central_mode": "Enable the control by central entity (requires central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
@@ -60,7 +60,7 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {
@@ -84,16 +84,16 @@
           "valve_entity4_id": "4th valve number",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
-          "auto_regulation_periode_min": "Regulation minimal period",
+          "auto_regulation_periode_min": "Regulation minimum period",
           "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
           "inverse_switch_command": "Inverse switch command",
           "auto_fan_mode": " Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Mandatory heater entity id",
-          "heater_entity2_id": "Optional 2nd Heater entity id. Leave empty if not used",
-          "heater_entity3_id": "Optional 3rd Heater entity id. Leave empty if not used",
-          "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not used",
+          "heater_entity2_id": "Optional 2nd Heater entity id. Leave empty if not required",
+          "heater_entity3_id": "Optional 3rd Heater entity id. Leave empty if not required",
+          "heater_entity4_id": "Optional 4th Heater entity id. Leave empty if not required",
           "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "climate_entity_id": "Underlying climate entity id",
@@ -129,7 +129,7 @@
       },
       "presets": {
         "title": "Presets",
-        "description": "Check if the thermostat will use central presets. Uncheck and the thermostat will have its own preset entities",
+        "description": "Select if the thermostat will use central preset - deselect for the thermostat to have its own presets",
         "data": {
           "use_presets_central_config": "Use central presets configuration"
         }
@@ -152,8 +152,8 @@
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
-          "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm",
-          "window_action": "Action to do if window is deteted as open"
+          "use_window_central_config": "Select to use the central window configuration. Deselect to use a specific window configuration for this VTherm",
+          "window_action": "Action to perform if window is deteted as open"
         }
       },
       "motion": {
@@ -178,7 +178,7 @@
       },
       "power": {
         "title": "Power management",
-        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nThen specify the power consumption of the heater when on.\nAll sensors and device power should have the same unit (kW or W).",
+        "description": "Power management attributes.\nGives the power and max power sensor of your home.\nSpecify the power consumption of the heater when on.\nAll sensors and device power should use the same unit (kW or W).",
         "data": {
           "power_sensor_entity_id": "Power",
           "max_power_sensor_entity_id": "Max power",
@@ -197,7 +197,7 @@
         "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting.",
         "data": {
           "presence_sensor_entity_id": "Presence sensor",
-          "use_presence_central_config": "Use central presence temperature configuration. Uncheck to use specific temperature entities"
+          "use_presence_central_config": "Use central presence temperature configuration. Deselect to use specific temperature entities"
         },
         "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id"
@@ -207,16 +207,16 @@
         "title": "Advanced parameters",
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
         "data": {
-          "minimal_activation_delay": "Minimal activation delay",
+          "minimal_activation_delay": "Minimum activation delay",
           "security_delay_min": "Safety delay (in minutes)",
-          "security_min_on_percent": "Minimal power percent to enable safety mode",
+          "security_min_on_percent": "Minimum power percent to enable safety mode",
           "security_default_on_percent": "Power percent to use in safety mode",
           "use_advanced_central_config": "Use central advanced configuration"
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a safety off state",
-          "security_min_on_percent": "Minimal heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
+          "security_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
@@ -226,7 +226,7 @@
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
-      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
+      "no_central_config": "You cannot select 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -246,7 +246,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Configure your thermostat. You will be able to finalize the configuration when all needed parameters are valued.",
+        "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
         "menu_options": {
           "main": "Main attributes",
           "central_boiler": "Central boiler",
@@ -272,11 +272,11 @@
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
           "cycle_min": "Cycle duration (minutes)",
-          "temp_min": "Minimal temperature allowed",
-          "temp_max": "Maximal temperature allowed",
+          "temp_min": "Minimum temperature allowed",
+          "temp_max": "Maximum temperature allowed",
           "step_temperature": "Temperature step",
           "device_power": "Device power",
-          "use_central_mode": "Enable the control by central entity (need central config). Check to enable the control of the VTherm with the select central_mode entities.",
+          "use_central_mode": "Enable the control by central entity (requires central config). Check to enable the control of the VTherm with the select central_mode entities.",
           "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
@@ -292,7 +292,7 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm need heating, the boiler will be turned on. If no VTherm needs heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
         }
       },
       "type": {
@@ -316,7 +316,7 @@
           "valve_entity4_id": "4th valve number",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
-          "auto_regulation_periode_min": "Regulation minimal period",
+          "auto_regulation_periode_min": "Regulation minimum period",
           "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
           "inverse_switch_command": "Inverse switch command",
           "auto_fan_mode": " Auto fan mode"
@@ -439,16 +439,16 @@
         "title": "Advanced - {name}",
         "description": "Advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation.",
         "data": {
-          "minimal_activation_delay": "Minimal activation delay",
+          "minimal_activation_delay": "Minimum activation delay",
           "security_delay_min": "Safety delay (in minutes)",
-          "security_min_on_percent": "Minimal power percent to enable safety mode",
+          "security_min_on_percent": "Minimum power percent to enable safety mode",
           "security_default_on_percent": "Power percent to use in safety mode",
           "use_advanced_central_config": "Use central advanced configuration"
         },
         "data_description": {
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "security_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a safety off state",
-          "security_min_on_percent": "Minimal heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
+          "security_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
