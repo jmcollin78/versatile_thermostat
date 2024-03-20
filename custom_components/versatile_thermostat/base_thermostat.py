@@ -214,6 +214,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
 
         super().__init__()
 
+        # To remove some silly warning event if code is fixed
+        self._enable_turn_on_off_backwards_compatibility = False
+
         self._hass = hass
         self._entry_infos = None
         self._attr_extra_state_attributes = {}
@@ -2700,3 +2703,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
 
         self.hass.create_task(self._check_initial_state())
+
+    async def async_turn_off(self) -> None:
+        await self.async_set_hvac_mode(HVACMode.OFF)
+
+    async def async_turn_on(self) -> None:
+        if self._ac_mode:
+            await self.async_set_hvac_mode(HVACMode.COOL)
+        else:
+            await self.async_set_hvac_mode(HVACMode.HEATING)
