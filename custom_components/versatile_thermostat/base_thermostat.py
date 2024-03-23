@@ -2711,4 +2711,4 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
         if self._ac_mode:
             await self.async_set_hvac_mode(HVACMode.COOL)
         else:
-            await self.async_set_hvac_mode(HVACMode.HEATING)
+            await self.async_set_hvac_mode(HVACMode.HEAT)
