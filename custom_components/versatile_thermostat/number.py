@@ -100,7 +100,7 @@ async def async_setup_entry(
         if not entry.data.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False):
             if entry.data.get(CONF_AC_MODE, False):
                 for preset in CONF_PRESETS_WITH_AC_VALUES:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "%s - configuring Number non central, AC, non AWAY for preset %s",
                         name,
                         preset,
@@ -112,7 +112,7 @@ async def async_setup_entry(
                     )
             else:
                 for preset in CONF_PRESETS_VALUES:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "%s - configuring Number non central, non AC, non AWAY for preset %s",
                         name,
                         preset,
@@ -128,7 +128,7 @@ async def async_setup_entry(
         ) is True and not entry.data.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False):
             if entry.data.get(CONF_AC_MODE, False):
                 for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "%s - configuring Number non central, AC, AWAY for preset %s",
                         name,
                         preset,
@@ -140,7 +140,7 @@ async def async_setup_entry(
                     )
             else:
                 for preset in CONF_PRESETS_AWAY_VALUES:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "%s - configuring Number non central, non AC, AWAY for preset %s",
                         name,
                         preset,
@@ -157,7 +157,7 @@ async def async_setup_entry(
             ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
         )
         for preset in CONF_PRESETS_WITH_AC_VALUES:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "%s - configuring Number central, AC, non AWAY for preset %s",
                 name,
                 preset,
@@ -169,7 +169,7 @@ async def async_setup_entry(
             )
 
         for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "%s - configuring Number central, AC, AWAY for preset %s", name, preset
             )
             entities.append(
