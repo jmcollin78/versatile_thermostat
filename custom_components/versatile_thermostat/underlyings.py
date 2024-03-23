@@ -188,7 +188,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         thermostat: Any,
         switch_entity_id: str,
         initial_delay_sec: int,
-        keep_alive_sec: int,
+        keep_alive_sec: float,
     ) -> None:
         """Initialize the underlying switch"""
 
@@ -216,6 +216,11 @@ class UnderlyingSwitch(UnderlyingEntity):
     def is_inversed(self):
         """Tells if the switch command should be inversed"""
         return self._thermostat.is_inversed
+
+    @property
+    def keep_alive_sec(self) -> float:
+        """Return the switch keep-alive interval in seconds."""
+        return self._keep_alive.interval_sec
 
     @overrides
     def startup(self):

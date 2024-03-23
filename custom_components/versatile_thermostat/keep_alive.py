@@ -24,10 +24,15 @@ class IntervalCaller:
     Convenience wrapper around Home Assistant's `async_track_time_interval` function.
     """
 
-    def __init__(self, hass: HomeAssistant, interval_sec: int) -> None:
+    def __init__(self, hass: HomeAssistant, interval_sec: float) -> None:
         self._hass = hass
         self._interval_sec = interval_sec
         self._remove_handle: CALLBACK_TYPE | None = None
+
+    @property
+    def interval_sec(self) -> float:
+        """Return the calling interval in seconds."""
+        return self._interval_sec
 
     def cancel(self):
         """Cancel the regular calls to the action function."""
@@ -43,7 +48,11 @@ class IntervalCaller:
 
         async def callback(_time: datetime):
             try:
-                _LOGGER.debug("Calling keep-alive action")
+                _LOGGER.debug(
+                    "Calling keep-alive action '%s' (%ss interval)",
+                    action.__name__,
+                    self._interval_sec,
+                )
                 await action()
             except Exception as e:  # pylint: disable=broad-exception-caught
                 _LOGGER.error(e)

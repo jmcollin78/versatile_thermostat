@@ -27,7 +27,7 @@ from .prop_algorithm import PropAlgorithm
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverSwitch(BaseThermostat):
+class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
     _entity_component_unrecorded_attributes = (
@@ -136,11 +136,11 @@ class ThermostatOverSwitch(BaseThermostat):
         """Custom attributes"""
         super().update_custom_attributes()
 
+        under0: UnderlyingSwitch = self._underlyings[0]
         self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
         self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
-        self._attr_extra_state_attributes["underlying_switch_0"] = self._underlyings[
-            0
-        ].entity_id
+        self._attr_extra_state_attributes["keep_alive_sec"] = under0.keep_alive_sec
+        self._attr_extra_state_attributes["underlying_switch_0"] = under0.entity_id
         self._attr_extra_state_attributes["underlying_switch_1"] = (
             self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
         )
