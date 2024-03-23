@@ -2005,13 +2005,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity):
             self._device_power,
         )
 
-        if self.is_over_climate:
-            power_consumption_max = self._device_power
+        # issue 407 - power_consumption_max is power we need to add. If already active we don't need to add more power
+        if self.is_device_active:
+            power_consumption_max = 0
         else:
-            power_consumption_max = max(
-                self._device_power / self.nb_underlying_entities,
-                self._device_power * self._prop_algorithm.on_percent,
-            )
+            if self.is_over_climate:
+                power_consumption_max = self._device_power
+            else:
+                power_consumption_max = max(
+                    self._device_power / self.nb_underlying_entities,
+                    self._device_power * self._prop_algorithm.on_percent,
+                )
 
         ret = (self._current_power + power_consumption_max) >= self._current_power_max
         if not self._overpowering_state and ret and self._hvac_mode != HVACMode.OFF:
