@@ -847,3 +847,80 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_POWER
         assert entity.overpowering_state is True
+
+
+async def test_bug_339(
+    hass: HomeAssistant,
+    # skip_hass_states_is_state,
+    init_central_config_with_boiler_fixture,
+):
+    """Test that the counter of active Vtherm in central boiler is
+    correctly updated with underlying is in auto and device is active
+    """
+
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    climate1 = MockClimate(
+        hass=hass,
+        unique_id="climate1",
+        name="theClimate1",
+        hvac_mode=HVACMode.AUTO,
+        hvac_modes=[HVACMode.AUTO, HVACMode.OFF, HVACMode.HEAT, HVACMode.COOL],
+        hvac_action=HVACAction.HEATING,
+    )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 8,
+            CONF_TEMP_MAX: 18,
+            "frost_temp": 10,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 21,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_CLIMATE: climate1.entity_id,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: True,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USED_BY_CENTRAL_BOILER: True,
+        },
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=climate1,
+    ):
+        entity: ThermostatOverValve = await create_thermostat(
+            hass, entry, "climate.theoverclimatemockname"
+        )
+        assert entity
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate
+        assert entity.underlying_entities[0].entity_id == "climate.climate1"
+        assert api.nb_active_device_for_boiler_threshold == 1
+
+    await entity.async_set_hvac_mode(HVACMode.AUTO)
+    # Simulate a state change in underelying
+    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices(None)
+
+    # The VTherm should be active
+    assert entity.underlying_entity(0).is_device_active is True
+    assert entity.is_device_active is True
+    assert api.nb_active_device_for_boiler == 1
+
+    entity.remove_thermostat()
