@@ -730,7 +730,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 entity.name,
             )
             if (
-                entity.hvac_mode == HVACMode.HEAT
+                entity.hvac_mode in [HVACMode.HEAT, HVACMode.AUTO]
                 and entity.hvac_action == HVACAction.HEATING
             ):
                 for under in entity.underlying_entities:
