@@ -242,6 +242,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 and infos.get(CONF_PRESENCE_SENSOR, None) is None
             ):
                 return False
+
+            if self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] and (
+                not self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV, False)
+                or len(self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)) <= 0
+                or not self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, False)
+                or len(self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)) <= 0
+            ):
+                return False
         else:
             if (
                 infos.get(CONF_NAME) is None
@@ -857,6 +865,9 @@ class VersatileThermostatOptionsFlowHandler(
         if not self._infos[CONF_USE_PRESENCE_FEATURE]:
             self._infos[CONF_USE_PRESENCE_CENTRAL_CONFIG] = False
             self._infos[CONF_PRESENCE_SENSOR] = None
+        if not self._infos[CONF_USE_CENTRAL_BOILER_FEATURE]:
+            self._infos[CONF_CENTRAL_BOILER_ACTIVATION_SRV] = None
+            self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV] = None
 
         _LOGGER.info(
             "Recreating entry %s due to configuration change. New config is now: %s",
