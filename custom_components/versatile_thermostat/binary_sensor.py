@@ -39,6 +39,7 @@ from .const import (
     CONF_USE_WINDOW_FEATURE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_USE_CENTRAL_BOILER_FEATURE,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV,
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
     overrides,
@@ -63,10 +64,13 @@ async def async_setup_entry(
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
 
+    entities = None
+
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
-        entities = [
-            CentralBoilerBinarySensor(hass, unique_id, name, entry.data),
-        ]
+        if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
+            entities = [
+                CentralBoilerBinarySensor(hass, unique_id, name, entry.data),
+            ]
     else:
         entities = [
             SecurityBinarySensor(hass, unique_id, name, entry.data),
@@ -81,7 +85,8 @@ async def async_setup_entry(
         if entry.data.get(CONF_USE_POWER_FEATURE):
             entities.append(OverpoweringBinarySensor(hass, unique_id, name, entry.data))
 
-    async_add_entities(entities, True)
+    if entities:
+        async_add_entities(entities, True)
 
 
 class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
