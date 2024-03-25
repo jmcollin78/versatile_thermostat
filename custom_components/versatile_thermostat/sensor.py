@@ -79,7 +79,6 @@ async def async_setup_entry(
             entities = [
                 NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data)
             ]
-            async_add_entities(entities, True)
     else:
         entities = [
             LastTemperatureSensor(hass, unique_id, name, entry.data),
@@ -108,6 +107,7 @@ async def async_setup_entry(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )
 
+    if entities:
         async_add_entities(entities, True)
 
 

@@ -51,6 +51,7 @@ from .const import (
     CONF_USE_PRESETS_CENTRAL_CONFIG,
     CONF_USE_PRESENCE_CENTRAL_CONFIG,
     CONF_USE_PRESENCE_FEATURE,
+    CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
 )
 
@@ -153,9 +154,10 @@ async def async_setup_entry(
 
     # For central config only
     else:
-        entities.append(
-            ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
-        )
+        if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
+            entities.append(
+                ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
+            )
         for preset in CONF_PRESETS_WITH_AC_VALUES:
             _LOGGER.debug(
                 "%s - configuring Number central, AC, non AWAY for preset %s",
@@ -178,7 +180,8 @@ async def async_setup_entry(
                 )
             )
 
-    async_add_entities(entities, True)
+    if len(entities) > 0:
+        async_add_entities(entities, True)
 
 
 class ActivateBoilerThresholdNumber(
