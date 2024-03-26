@@ -18,6 +18,9 @@ from custom_components.versatile_thermostat.base_thermostat import (
     BaseThermostat,
     ConfigData,
 )
+
+from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -96,17 +99,20 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
         if old_state is not None:
             self._attr_current_option = old_state.state
 
-        @callback
-        async def _async_startup_internal(*_):
-            _LOGGER.debug("%s - Calling async_startup_internal", self)
-            await self.notify_central_mode_change()
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        api.register_central_mode_select(self)
 
-        if self.hass.state == CoreState.running:
-            await _async_startup_internal()
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_START, _async_startup_internal
-            )
+        # @callback
+        # async def _async_startup_internal(*_):
+        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
+        #     await self.notify_central_mode_change()
+        #
+        # if self.hass.state == CoreState.running:
+        #     await _async_startup_internal()
+        # else:
+        #     self.hass.bus.async_listen_once(
+        #         EVENT_HOMEASSISTANT_START, _async_startup_internal
+        #     )
 
     @overrides
     async def async_select_option(self, option: str) -> None:
@@ -122,17 +128,9 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
 
     async def notify_central_mode_change(self, old_central_mode: str | None = None):
         """Notify all VTherm that the central_mode have change"""
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
         # Update all VTherm states
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
-            if isinstance(entity, BaseThermostat):
-                _LOGGER.debug(
-                    "Changing the central_mode. We have find %s to update",
-                    entity.name,
-                )
-                await entity.check_central_mode(
-                    self._attr_current_option, old_central_mode
-                )
+        await api.notify_central_mode_change(old_central_mode)
 
     def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"

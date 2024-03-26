@@ -107,6 +107,8 @@ async def async_setup(
             "VersatileThermostat - HA is started, initialize all links between VTherm entities"
         )
         await api.init_vtherm_links()
+        await api.notify_central_mode_change()
+        await api.reload_central_boiler_entities_list()
 
     if hass.state == CoreState.running:
         await _async_startup_internal()
@@ -156,8 +158,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    await api.reload_central_boiler_entities_list()
-    await api.init_vtherm_links()
+    if hass.state == CoreState.running:
+        await api.reload_central_boiler_entities_list()
+        await api.init_vtherm_links()
 
     return True
 

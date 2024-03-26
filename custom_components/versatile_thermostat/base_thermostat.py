@@ -629,7 +629,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self.async_on_remove(self.remove_thermostat)
 
-        await self.async_startup()
+        # issue 428. Link to others entities will start at link
+        # await self.async_startup()
 
     def remove_thermostat(self):
         """Called when the thermostat will be removed"""
@@ -637,154 +638,156 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         for under in self._underlyings:
             under.remove_entity()
 
-    async def async_startup(self):
+    async def async_startup(self, central_configuration):
         """Triggered on startup, used to get old state and set internal states accordingly"""
         _LOGGER.debug("%s - Calling async_startup", self)
 
-        @callback
-        async def _async_startup_internal(*_):
-            _LOGGER.debug("%s - Calling async_startup_internal", self)
-            need_write_state = False
+        _LOGGER.debug("%s - Calling async_startup_internal", self)
+        need_write_state = False
 
-            # Initialize all UnderlyingEntities
-            self.init_underlyings()
+        await self.get_my_previous_state()
 
-            temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
-            if temperature_state and temperature_state.state not in (
+        await self.init_presets(central_configuration)
+
+        # Initialize all UnderlyingEntities
+        self.init_underlyings()
+
+        temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
+        if temperature_state and temperature_state.state not in (
+            STATE_UNAVAILABLE,
+            STATE_UNKNOWN,
+        ):
+            _LOGGER.debug(
+                "%s - temperature sensor have been retrieved: %.1f",
+                self,
+                float(temperature_state.state),
+            )
+            await self._async_update_temp(temperature_state)
+            need_write_state = True
+
+        if self._ext_temp_sensor_entity_id:
+            ext_temperature_state = self.hass.states.get(
+                self._ext_temp_sensor_entity_id
+            )
+            if ext_temperature_state and ext_temperature_state.state not in (
                 STATE_UNAVAILABLE,
                 STATE_UNKNOWN,
             ):
                 _LOGGER.debug(
-                    "%s - temperature sensor have been retrieved: %.1f",
+                    "%s - external temperature sensor have been retrieved: %.1f",
                     self,
-                    float(temperature_state.state),
+                    float(ext_temperature_state.state),
                 )
-                await self._async_update_temp(temperature_state)
-                need_write_state = True
-
-            if self._ext_temp_sensor_entity_id:
-                ext_temperature_state = self.hass.states.get(
-                    self._ext_temp_sensor_entity_id
-                )
-                if ext_temperature_state and ext_temperature_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    _LOGGER.debug(
-                        "%s - external temperature sensor have been retrieved: %.1f",
-                        self,
-                        float(ext_temperature_state.state),
-                    )
-                    await self._async_update_ext_temp(ext_temperature_state)
-                else:
-                    _LOGGER.debug(
-                        "%s - external temperature sensor have NOT been retrieved cause unknown or unavailable",
-                        self,
-                    )
+                await self._async_update_ext_temp(ext_temperature_state)
             else:
                 _LOGGER.debug(
-                    "%s - external temperature sensor have NOT been retrieved cause no external sensor",
+                    "%s - external temperature sensor have NOT been retrieved cause unknown or unavailable",
                     self,
                 )
-
-            if self._pmax_on:
-                # try to acquire current power and power max
-                current_power_state = self.hass.states.get(self._power_sensor_entity_id)
-                if current_power_state and current_power_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self._current_power = float(current_power_state.state)
-                    _LOGGER.debug(
-                        "%s - Current power have been retrieved: %.3f",
-                        self,
-                        self._current_power,
-                    )
-                    need_write_state = True
-
-                # Try to acquire power max
-                current_power_max_state = self.hass.states.get(
-                    self._max_power_sensor_entity_id
-                )
-                if current_power_max_state and current_power_max_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self._current_power_max = float(current_power_max_state.state)
-                    _LOGGER.debug(
-                        "%s - Current power max have been retrieved: %.3f",
-                        self,
-                        self._current_power_max,
-                    )
-                    need_write_state = True
-
-                # try to acquire window entity state
-                if self._window_sensor_entity_id:
-                    window_state = self.hass.states.get(self._window_sensor_entity_id)
-                    if window_state and window_state.state not in (
-                        STATE_UNAVAILABLE,
-                        STATE_UNKNOWN,
-                    ):
-                        self._window_state = window_state.state == STATE_ON
-                        _LOGGER.debug(
-                            "%s - Window state have been retrieved: %s",
-                            self,
-                            self._window_state,
-                        )
-                        need_write_state = True
-
-                # try to acquire motion entity state
-                if self._motion_sensor_entity_id:
-                    motion_state = self.hass.states.get(self._motion_sensor_entity_id)
-                    if motion_state and motion_state.state not in (
-                        STATE_UNAVAILABLE,
-                        STATE_UNKNOWN,
-                    ):
-                        self._motion_state = motion_state.state
-                        _LOGGER.debug(
-                            "%s - Motion state have been retrieved: %s",
-                            self,
-                            self._motion_state,
-                        )
-                        # recalculate the right target_temp in activity mode
-                        await self._async_update_motion_temp()
-                        need_write_state = True
-
-            if self._presence_on:
-                # try to acquire presence entity state
-                presence_state = self.hass.states.get(self._presence_sensor_entity_id)
-                if presence_state and presence_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    await self._async_update_presence(presence_state.state)
-                    _LOGGER.debug(
-                        "%s - Presence have been retrieved: %s",
-                        self,
-                        presence_state.state,
-                    )
-                    need_write_state = True
-
-            if need_write_state:
-                self.async_write_ha_state()
-                if self._prop_algorithm:
-                    self._prop_algorithm.calculate(
-                        self._target_temp,
-                        self._cur_temp,
-                        self._cur_ext_temp,
-                        self._hvac_mode or HVACMode.OFF,
-                    )
-
-            self.reset_last_change_time()
-
-        await self.get_my_previous_state()
-
-        if self.hass.state == CoreState.running:
-            await _async_startup_internal()
         else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_START, _async_startup_internal
+            _LOGGER.debug(
+                "%s - external temperature sensor have NOT been retrieved cause no external sensor",
+                self,
             )
+
+        if self._pmax_on:
+            # try to acquire current power and power max
+            current_power_state = self.hass.states.get(self._power_sensor_entity_id)
+            if current_power_state and current_power_state.state not in (
+                STATE_UNAVAILABLE,
+                STATE_UNKNOWN,
+            ):
+                self._current_power = float(current_power_state.state)
+                _LOGGER.debug(
+                    "%s - Current power have been retrieved: %.3f",
+                    self,
+                    self._current_power,
+                )
+                need_write_state = True
+
+            # Try to acquire power max
+            current_power_max_state = self.hass.states.get(
+                self._max_power_sensor_entity_id
+            )
+            if current_power_max_state and current_power_max_state.state not in (
+                STATE_UNAVAILABLE,
+                STATE_UNKNOWN,
+            ):
+                self._current_power_max = float(current_power_max_state.state)
+                _LOGGER.debug(
+                    "%s - Current power max have been retrieved: %.3f",
+                    self,
+                    self._current_power_max,
+                )
+                need_write_state = True
+
+            # try to acquire window entity state
+            if self._window_sensor_entity_id:
+                window_state = self.hass.states.get(self._window_sensor_entity_id)
+                if window_state and window_state.state not in (
+                    STATE_UNAVAILABLE,
+                    STATE_UNKNOWN,
+                ):
+                    self._window_state = window_state.state == STATE_ON
+                    _LOGGER.debug(
+                        "%s - Window state have been retrieved: %s",
+                        self,
+                        self._window_state,
+                    )
+                    need_write_state = True
+
+            # try to acquire motion entity state
+            if self._motion_sensor_entity_id:
+                motion_state = self.hass.states.get(self._motion_sensor_entity_id)
+                if motion_state and motion_state.state not in (
+                    STATE_UNAVAILABLE,
+                    STATE_UNKNOWN,
+                ):
+                    self._motion_state = motion_state.state
+                    _LOGGER.debug(
+                        "%s - Motion state have been retrieved: %s",
+                        self,
+                        self._motion_state,
+                    )
+                    # recalculate the right target_temp in activity mode
+                    await self._async_update_motion_temp()
+                    need_write_state = True
+
+        if self._presence_on:
+            # try to acquire presence entity state
+            presence_state = self.hass.states.get(self._presence_sensor_entity_id)
+            if presence_state and presence_state.state not in (
+                STATE_UNAVAILABLE,
+                STATE_UNKNOWN,
+            ):
+                await self._async_update_presence(presence_state.state)
+                _LOGGER.debug(
+                    "%s - Presence have been retrieved: %s",
+                    self,
+                    presence_state.state,
+                )
+                need_write_state = True
+
+        if need_write_state:
+            self.async_write_ha_state()
+            if self._prop_algorithm:
+                self._prop_algorithm.calculate(
+                    self._target_temp,
+                    self._cur_temp,
+                    self._cur_ext_temp,
+                    self._hvac_mode or HVACMode.OFF,
+                )
+
+        self.hass.create_task(self._check_initial_state())
+
+        self.reset_last_change_time()
+
+        # if self.hass.state == CoreState.running:
+        #     await _async_startup_internal()
+        # else:
+        #     self.hass.bus.async_listen_once(
+        #         EVENT_HOMEASSISTANT_START, _async_startup_internal
+        #     )
 
     def init_underlyings(self):
         """Initialize all underlyings. Should be overriden if necessary"""
@@ -825,19 +828,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # Never restore a Power or Security preset
             if old_preset_mode is not None and old_preset_mode not in HIDDEN_PRESETS:
                 # old_preset_mode in self._attr_preset_modes
-                self._attr_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
+                self._attr_preset_mode = old_preset_mode
                 self.save_preset_mode()
             else:
                 self._attr_preset_mode = PRESET_NONE
 
-            if not self._hvac_mode and old_state.state in [
+            if old_state.state in [
                 HVACMode.OFF,
                 HVACMode.HEAT,
                 HVACMode.COOL,
             ]:
                 self._hvac_mode = old_state.state
             else:
-                self._hvac_mode = HVACMode.OFF
+                if not self._hvac_mode:
+                    self._hvac_mode = HVACMode.OFF
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             if old_total_energy:
@@ -2085,6 +2089,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             new_central_mode,
         )
 
+        first_init = self._last_central_mode == None
+
         self._last_central_mode = new_central_mode
 
         def save_all():
@@ -2093,7 +2099,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self.save_hvac_mode()
 
         if new_central_mode == CENTRAL_MODE_AUTO:
-            if self.window_state is not STATE_ON:
+            if self.window_state is not STATE_ON and not first_init:
                 await self.restore_hvac_mode()
                 await self.restore_preset_mode()
 
@@ -2706,8 +2712,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Re-applicate the last preset if any to take change into account
         if self._attr_preset_mode:
             await self._async_set_preset_mode_internal(self._attr_preset_mode, True)
-
-        self.hass.create_task(self._check_initial_state())
 
     async def async_turn_off(self) -> None:
         await self.async_set_hvac_mode(HVACMode.OFF)
