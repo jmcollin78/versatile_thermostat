@@ -57,6 +57,7 @@ class VersatileThermostatAPI(dict):
         self._threshold_number_entity = None
         self._nb_active_number_entity = None
         self._central_configuration = None
+        self._central_mode_select = None
         # A dict that will store all Number entities which holds the temperature
         self._number_temperatures = dict()
 
@@ -149,8 +150,8 @@ class VersatileThermostatAPI(dict):
                 return entity.state
         return None
 
-    async def init_vtherm_links(self, only_use_central=False):
-        """INitialize all VTherms entities links
+    async def init_vtherm_links(self):
+        """Initialize all VTherms entities links
         This method is called when HA is fully started (and all entities should be initialized)
         Or when we need to reload all VTherm links (with Number temp entities, central boiler, ...)
         """
@@ -162,12 +163,34 @@ class VersatileThermostatAPI(dict):
         )
         if component:
             for entity in component.entities:
-                if hasattr(entity, "init_presets"):
-                    if (
-                        only_use_central is False
-                        or entity.use_central_config_temperature
-                    ):
-                        await entity.init_presets(self.find_central_configuration())
+                # if hasattr(entity, "init_presets"):
+                #     if (
+                #         only_use_central is False
+                #         or entity.use_central_config_temperature
+                #     ):
+                #         await entity.init_presets(self.find_central_configuration())
+
+                # A little hack to test if the climate is a VTherm. Cannot use isinstance due to circular dependency of BaseThermostat
+                if (
+                    entity.device_info
+                    and entity.device_info.get("model", None) == DOMAIN
+                ):
+                    await entity.async_startup(self.find_central_configuration())
+
+    async def init_vtherm_preset_with_central(self):
+        """Init all VTherm presets when the VTherm uses central temperature"""
+        # Initialization of all preset for all VTherm
+        component: EntityComponent[ClimateEntity] = self._hass.data.get(
+            CLIMATE_DOMAIN, None
+        )
+        if component:
+            for entity in component.entities:
+                if (
+                    entity.device_info
+                    and entity.device_info.get("model", None) == DOMAIN
+                    and entity.use_central_config_temperature
+                ):
+                    await entity.init_presets(self.find_central_configuration())
 
     async def reload_central_boiler_binary_listener(self):
         """Reloads the BinarySensor entity which listen to the number of
@@ -179,6 +202,27 @@ class VersatileThermostatAPI(dict):
         """Reload the central boiler list of entities if a central boiler is used"""
         if self._nb_active_number_entity is not None:
             await self._nb_active_number_entity.listen_vtherms_entities()
+
+    def register_central_mode_select(self, central_mode_select):
+        """Register the select entity which holds the central_mode"""
+        self._central_mode_select = central_mode_select
+
+    async def notify_central_mode_change(self, old_central_mode: str | None = None):
+        """Notify all VTherm that the central_mode have change"""
+        if self._central_mode_select is None:
+            return
+
+        # Update all VTherm states
+        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+        for entity in component.entities:
+            if entity.device_info and entity.device_info.get("model", None) == DOMAIN:
+                _LOGGER.debug(
+                    "Changing the central_mode. We have find %s to update",
+                    entity.name,
+                )
+                await entity.check_central_mode(
+                    self._central_mode_select.state, old_central_mode
+                )
 
     @property
     def self_regulation_expert(self):
@@ -228,6 +272,14 @@ class VersatileThermostatAPI(dict):
         if self._threshold_number_entity is None:
             return None
         return int(self._threshold_number_entity.native_value)
+
+    @property
+    def central_mode(self) -> str | None:
+        """Get the current central mode or None"""
+        if self._central_mode_select:
+            return self._central_mode_select.state
+        else:
+            return None
 
     @property
     def hass(self):

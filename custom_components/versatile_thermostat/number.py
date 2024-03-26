@@ -353,7 +353,7 @@ class CentralConfigTemperatureNumber(
         # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
         # Update the VTherms which have temperature in central config
-        self.hass.create_task(api.init_vtherm_links(only_use_central=True))
+        self.hass.create_task(api.init_vtherm_preset_with_central())
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"

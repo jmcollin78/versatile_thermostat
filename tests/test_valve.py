@@ -181,14 +181,18 @@ async def test_over_valve_full_start(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {"entity_id": "number.mock_valve", "value": 90},
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 90},
+                    target={"entity_id": "number.mock_valve"},
+                    # {"entity_id": "number.mock_valve", "value": 90},
                 ),
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {"entity_id": "number.mock_valve", "value": 98},
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 98},
+                    target={"entity_id": "number.mock_valve"},
+                    # {"entity_id": "number.mock_valve", "value": 98},
                 ),
             ]
         )
@@ -241,9 +245,10 @@ async def test_over_valve_full_start(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {"entity_id": "number.mock_valve", "value": 10},
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 10},
+                    target={"entity_id": "number.mock_valve"},
                 )
             ]
         )
@@ -254,20 +259,16 @@ async def test_over_valve_full_start(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {
-                        "entity_id": "number.mock_valve",
-                        "value": 10,
-                    },  # the min allowed value
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 10},
+                    target={"entity_id": "number.mock_valve"},  # the min allowed value
                 ),
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {
-                        "entity_id": "number.mock_valve",
-                        "value": 50,
-                    },  # the max allowed value
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 50},  # the min allowed value
+                    target={"entity_id": "number.mock_valve"},
                 ),
             ]
         )
@@ -466,9 +467,10 @@ async def test_over_valve_regulation(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {"entity_id": "number.mock_valve", "value": 90},
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 90},
+                    target={"entity_id": "number.mock_valve"},
                 ),
             ]
         )
@@ -524,9 +526,10 @@ async def test_over_valve_regulation(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    "number",
-                    "set_value",
-                    {"entity_id": "number.mock_valve", "value": 96},
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 96},
+                    target={"entity_id": "number.mock_valve"},
                 ),
             ]
         )

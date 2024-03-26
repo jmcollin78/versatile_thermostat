@@ -486,8 +486,8 @@ class UnderlyingClimate(UnderlyingEntity):
                 self._underlying_climate,
             )
         else:
-            _LOGGER.error(
-                "%s - Cannot find the underlying climate entity: %s. Thermostat will not be operational",
+            _LOGGER.info(
+                "%s - Cannot find the underlying climate entity: %s. Thermostat will not be operational. Will try later.",
                 self,
                 self.entity_id,
             )
@@ -780,15 +780,19 @@ class UnderlyingValve(UnderlyingEntity):
         """Send the percent open to the underlying valve"""
         # This may fails if called after shutdown
         try:
-            data = {ATTR_ENTITY_ID: self._entity_id, "value": self._percent_open}
+            data = {"value": self._percent_open}
+            target = {ATTR_ENTITY_ID: self._entity_id}
             domain = self._entity_id.split(".")[0]
             await self._hass.services.async_call(
-                domain,
-                SERVICE_SET_VALUE,
-                data,
+                domain=domain,
+                service=SERVICE_SET_VALUE,
+                service_data=data,
+                target=target,
             )
         except ServiceNotFound as err:
             _LOGGER.error(err)
+            # This could happens in unit test if input_number domain is not yet loaded
+            # raise err
 
     async def turn_off(self):
         """Turn heater toggleable device off."""

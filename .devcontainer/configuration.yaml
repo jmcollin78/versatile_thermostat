@@ -3,9 +3,9 @@ default_config:
 logger:
     default: warning
     logs:
-    #    custom_components.versatile_thermostat: debug
-    #    custom_components.versatile_thermostat.underlyings: debug
-    #    custom_components.versatile_thermostat.climate: debug
+       custom_components.versatile_thermostat: info
+       custom_components.versatile_thermostat.underlyings: info
+       custom_components.versatile_thermostat.climate: info
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
