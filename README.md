@@ -76,6 +76,7 @@
 - [Troubleshooting](#troubleshooting)
   - [Using a Heatzy](#using-a-heatzy)
   - [Using a Heatsink with a Pilot Wire](#using-a-heatsink-with-a-pilot-wire)
+  - [Using a heater with a Nodon module](#using-a-heater-with-a-nodon-module)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
   - [The radiator heats up even though the setpoint temperature is exceeded or does not heat up even though the room temperature is well below the setpoint](#the-radiator-heats-up-even-though-the-setpoint-temperature-is-exceeded-or-does-not-heat-up-even-though-the-room-temperature-is-well-below-the-setpoint)
     - [Type `over_switch` or `over_valve`](#type-over_switch-or-over_valve)
@@ -1486,6 +1487,43 @@ Example :
              entity_id: switch.radiateur_soan
          icon_template: "{% if is_state('switch.radiateur_soan', 'on') %}mdi:radiator-disabled{% else %}mdi:radiator{% endif %}"
 ```
+</details>
+
+<details>
+<summary>Using a heater with a Nodon</summary>
+
+## Using a heater with a Nodon module
+As for the heatzy module above you can use a virtual switch which will change the preset of your heater depending of the state of the VTherm.
+Example :
+```
+- platform: template
+  switches:
+    chauffage_chb_parents:
+      unique_id: chauffage_chb_parents
+      friendly_name: Chauffage chambre parents
+      value_template: "{{ is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') }}"
+      icon_template: >-
+        {% if is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') %}
+          mdi:radiator
+        {% elif is_state('select.fp_chb_parents_pilot_wire_mode', 'frost_protection') %}
+          mdi:snowflake
+        {% else %}
+          mdi:radiator-disabled
+        {% endif %}
+      turn_on:
+        service: select.select_option
+        target:
+          entity_id: select.fp_chb_parents_pilot_wire_mode
+        data:
+          option: comfort
+      turn_off:
+        service: select.select_option
+        target:
+          entity_id: select.fp_chb_parents_pilot_wire_mode
+        data:
+          option: eco
+```
+
 </details>
 
 <details>

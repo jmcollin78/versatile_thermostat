@@ -75,6 +75,7 @@
 - [Dépannages](#dépannages)
   - [Utilisation d'un Heatzy](#utilisation-dun-heatzy)
   - [Utilisation d'un radiateur avec un fil pilote](#utilisation-dun-radiateur-avec-un-fil-pilote)
+  - [Utilisation d'un radiateur avec un fil pilote](#utilisation-dun-radiateur-avec-un-fil-pilote-1)
   - [Seul le premier radiateur chauffe](#seul-le-premier-radiateur-chauffe)
   - [Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne](#le-radiateur-chauffe-alors-que-la-température-de-consigne-est-dépassée-ou-ne-chauffe-pas-alors-que-la-température-de-la-pièce-est-bien-en-dessous-de-la-consigne)
     - [Type `over_switch` ou `over_valve`](#type-over_switch-ou-over_valve)
@@ -1493,6 +1494,43 @@ Exemple :
           data:
             entity_id: switch.radiateur_soan
         icon_template: "{% if is_state('switch.radiateur_soan', 'on') %}mdi:radiator-disabled{% else %}mdi:radiator{% endif %}"
+```
+
+</details>
+
+<details>
+<summary>Utilisation d'un radiateur avec un module Nodon</summary>
+
+## Utilisation d'un radiateur avec un fil pilote
+Comme pour le Heatzy ci-dessus vous pouvez utiliser un switch virtuel qui va changer le preset de votre radiateur en fonction de l'état d'allumage du VTherm.
+Exemple :
+```
+- platform: template
+  switches:
+    chauffage_chb_parents:
+      unique_id: chauffage_chb_parents
+      friendly_name: Chauffage chambre parents
+      value_template: "{{ is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') }}"
+      icon_template: >-
+        {% if is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') %}
+          mdi:radiator
+        {% elif is_state('select.fp_chb_parents_pilot_wire_mode', 'frost_protection') %}
+          mdi:snowflake
+        {% else %}
+          mdi:radiator-disabled
+        {% endif %}
+      turn_on:
+        service: select.select_option
+        target:
+          entity_id: select.fp_chb_parents_pilot_wire_mode
+        data:
+          option: comfort
+      turn_off:
+        service: select.select_option
+        target:
+          entity_id: select.fp_chb_parents_pilot_wire_mode
+        data:
+          option: eco
 ```
 
 </details>
