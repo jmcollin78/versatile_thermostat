@@ -37,8 +37,9 @@
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
-          "temperature_sensor_entity_id": "Température sensor entity id",
-          "external_temperature_sensor_entity_id": "Température exterieure sensor entity id",
+          "temperature_sensor_entity_id": "Capteur de température",
+          "last_seen_temperature_sensor_entity_id": "Dernière vue capteur de température",
+          "external_temperature_sensor_entity_id": "Capteur de température exterieure",
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
@@ -49,7 +50,9 @@
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure."
+          "temperature_sensor_entity_id": "Id d'entité du capteur de température",
+          "last_seen_temperature_sensor_entity_id": "Id d'entité du capteur donnant la date et heure de dernière vue capteur de température. L'état doit être au format date heure (ex: 2024-03-31T17:07:03+00:00)",
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie"
         }
       },
       "features": {
@@ -281,19 +284,22 @@
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
-          "temperature_sensor_entity_id": "Température sensor entity id",
-          "external_temperature_sensor_entity_id": "Température exterieure sensor entity id",
+          "temperature_sensor_entity_id": "Capteur de température",
+          "last_seen_temperature_sensor_entity_id": "Dernière vue capteur de température",
+          "external_temperature_sensor_entity_id": "Capteur de température exterieure",
           "cycle_min": "Durée du cycle (minutes)",
           "temp_min": "Température minimale permise",
           "temp_max": "Température maximale permise",
           "step_temperature": "Pas de température",
           "device_power": "Puissance de l'équipement",
           "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
-          "use_main_central_config": "Utiliser la configuration centrale supplémentaire. Cochez pour utiliser la configuration centrale supplémentaire (température externe, min, max, pas, ...).",
+          "use_main_central_config": "Utiliser la configuration centrale supplémentaire. Cochez pour utiliser la configuration centrale supplémentaire (température externe, min, max, pas, ...)",
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. N'est pas utilisé si la configuration centrale est utilisée."
+          "temperature_sensor_entity_id": "Id d'entité du capteur de température",
+          "last_seen_temperature_sensor_entity_id": "Id d'entité du capteur donnant la date et heure de dernière vue capteur de température. L'état doit être au format date heure (ex: 2024-03-31T17:07:03+00:00)",
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie"
         }
       },
       "features": {
