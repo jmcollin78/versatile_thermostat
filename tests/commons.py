@@ -580,6 +580,31 @@ async def send_temperature_change_event(
     return dearm_window_auto
 
 
+async def send_last_seen_temperature_change_event(
+    entity: BaseThermostat, date, sleep=True
+):
+    """Sending a new last seen event simulating a change on last seen temperature sensor"""
+    _LOGGER.info(
+        "------- Testu: sending send_last_seen_temperature_change_event, date=%s on %s",
+        date,
+        entity,
+    )
+    last_seen_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity.entity_id,
+                state=date,
+                last_changed=date,
+                last_updated=date,
+            )
+        },
+    )
+    await entity._async_last_seen_temperature_changed(last_seen_event)
+    if sleep:
+        await asyncio.sleep(0.1)
+
+
 async def send_ext_temperature_change_event(
     entity: BaseThermostat, new_temp, date, sleep=True
 ):

@@ -68,6 +68,7 @@ from .const import (
     DEVICE_MANUFACTURER,
     CONF_POWER_SENSOR,
     CONF_TEMP_SENSOR,
+    CONF_LAST_SEEN_TEMP_SENSOR,
     CONF_EXTERNAL_TEMP_SENSOR,
     CONF_MAX_POWER_SENSOR,
     CONF_WINDOW_SENSOR,
@@ -242,6 +243,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._motion_call_cancel = None
         self._cur_temp = None
         self._ac_mode = None
+        self._temp_sensor_entity_id = None
+        self._last_seen_temp_sensor_entity_id = None
+        self._ext_temp_sensor_entity_id = None
         self._last_ext_temperature_measure = None
         self._last_temperature_measure = None
         self._cur_ext_temp = None
@@ -393,6 +397,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
+        self._last_seen_temp_sensor_entity_id = entry_infos.get(
+            CONF_LAST_SEEN_TEMP_SENSOR
+        )
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
@@ -573,6 +580,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._async_temperature_changed,
             )
         )
+
+        if self._last_seen_temp_sensor_entity_id:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass,
+                    [self._last_seen_temp_sensor_entity_id],
+                    self._async_last_seen_temperature_changed,
+                )
+            )
 
         if self._ext_temp_sensor_entity_id:
             self.async_on_remove(
@@ -1444,6 +1460,44 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.recalculate()
         await self.async_control_heating(force=False)
         return dearm_window_auto
+
+    @callback
+    async def _async_last_seen_temperature_changed(self, event: Event):
+        """Handle last seen temperature sensor changes."""
+        new_state: State = event.data.get("new_state")
+        _LOGGER.debug(
+            "%s - Last seen temperature changed. Event.new_state is %s",
+            self,
+            new_state,
+        )
+        if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            return
+
+        # try to extract the datetime (from state)
+        try:
+            # Convertir la chaîne au format ISO 8601 en objet datetime
+            self._last_temperature_measure = self.get_last_updated_date_or_now(
+                new_state
+            )
+            self.reset_last_change_time()
+            _LOGGER.debug(
+                "%s - new last_temperature_measure is now: %s",
+                self,
+                self._last_temperature_measure,
+            )
+
+            # try to restart if we were in safety mode
+            if self._security_state:
+                await self.check_safety()
+
+        except ValueError as err:
+            # La conversion a échoué, la chaîne n'est pas au format ISO 8601
+            _LOGGER.warning(
+                "%s - impossible to convert last seen datetime %s. Error is: %s",
+                self,
+                new_state.state,
+                err,
+            )
 
     async def _async_ext_temperature_changed(self, event: Event):
         """Handle external temperature opf the sensor changes."""

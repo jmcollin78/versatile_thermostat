@@ -6,6 +6,7 @@ logger:
        custom_components.versatile_thermostat: info
        custom_components.versatile_thermostat.underlyings: info
        custom_components.versatile_thermostat.climate: info
+       custom_components.versatile_thermostat.base_thermostat: debug
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
@@ -165,6 +166,13 @@ climate:
       name: Underlying thermostat9
       heater: input_boolean.fake_heater_switch3
       target_sensor: input_number.fake_temperature_sensor1
+
+input_datetime:
+    fake_last_seen:
+        name: Last seen temp sensor
+        icon: mdi:update
+        has_date: true
+        has_time: true
 
 recorder:
     commit_interval: 1

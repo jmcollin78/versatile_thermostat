@@ -16,6 +16,10 @@ from homeassistant.components.input_number import (
     DOMAIN as INPUT_NUMBER_DOMAIN,
 )
 
+from homeassistant.components.input_datetime import (
+    DOMAIN as INPUT_DATETIME_DOMAIN,
+)
+
 from homeassistant.components.person import DOMAIN as PERSON_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 
@@ -41,6 +45,11 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_TEMP_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
+        ),
+        vol.Optional(CONF_LAST_SEEN_TEMP_SENSOR): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN]
+            ),
         ),
         vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
