@@ -74,22 +74,12 @@ async def test_over_valve_full_start(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
+    # 1. create the entity
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
 
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
-                if entity.entity_id == entity_id:
-                    return entity
-
-        # The name is in the CONF and not the title of the entry
-        entity: ThermostatOverValve = find_my_entity("climate.theovervalvemockname")
+        entity = await create_thermostat(hass, entry, "climate.theovervalvemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverValve)
@@ -130,7 +120,7 @@ async def test_over_valve_full_start(
             ]
         )
 
-    # Set the HVACMode to HEAT, with manual preset and target_temp to 18 before receiving temperature
+    # 2. Set the HVACMode to HEAT, with manual preset and target_temp to 18 before receiving temperature
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -158,7 +148,7 @@ async def test_over_valve_full_start(
         # Nothing have changed cause we don't have room and external temperature
         assert mock_send_event.call_count == 1
 
-    # Set temperature and external temperature
+    # 3. Set temperature and external temperature
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -220,7 +210,7 @@ async def test_over_valve_full_start(
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
-    # Change internal temperature
+    # 4. Change internal temperature
     expected_state = State(
         entity_id="number.mock_valve", state="0", attributes={"min": 10, "max": 50}
     )
@@ -267,7 +257,9 @@ async def test_over_valve_full_start(
                 call.async_call(
                     domain="number",
                     service="set_value",
-                    service_data={"value": 50},  # the min allowed value
+                    service_data={
+                        "value": 34
+                    },  # 34 is 50 x open_percent (69%) and is the max allowed value
                     target={"entity_id": "number.mock_valve"},
                 ),
             ]
@@ -287,9 +279,9 @@ async def test_over_valve_full_start(
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
-    # Test window open/close (with a normal min/max so that is_device_active is False when open_percent is 0)
+    # 5. Test window open/close (with a normal min/max so that is_device_active is False when open_percent is 0)
     expected_state = State(
-        entity_id="number.mock_valve", state="0", attributes={"min": 0, "max": 99}
+        entity_id="number.mock_valve", state="0", attributes={"min": 0, "max": 255}
     )
 
     with patch(
