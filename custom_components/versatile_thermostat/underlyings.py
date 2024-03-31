@@ -861,7 +861,7 @@ class UnderlyingValve(UnderlyingEntity):
             min_val = valve_state.attributes["min"]
             max_val = valve_state.attributes["max"]
 
-            new_value = round(max(min_val, min(value, max_val)))
+            new_value = round(max(min_val, min(value / 100 * max_val, max_val)))
         else:
             _LOGGER.debug("%s - no min and max attributes on underlying", self)
             new_value = value
