@@ -2302,12 +2302,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._security_state = True
             self.save_hvac_mode()
             self.save_preset_mode()
+            if self._prop_algorithm:
+                self._prop_algorithm.set_security(self._security_default_on_percent)
             await self._async_set_preset_mode_internal(PRESET_SECURITY)
             # Turn off the underlying climate or heater if security default on_percent is 0
             if self.is_over_climate or self._security_default_on_percent <= 0.0:
                 await self.async_set_hvac_mode(HVACMode.OFF, False)
-            if self._prop_algorithm:
-                self._prop_algorithm.set_security(self._security_default_on_percent)
 
             self.send_event(
                 EventType.SECURITY_EVENT,
@@ -2334,12 +2334,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._saved_preset_mode,
             )
             self._security_state = False
+            if self._prop_algorithm:
+                self._prop_algorithm.unset_security()
             # Restore hvac_mode if previously saved
             if self.is_over_climate or self._security_default_on_percent <= 0.0:
                 await self.restore_hvac_mode(False)
             await self.restore_preset_mode()
-            if self._prop_algorithm:
-                self._prop_algorithm.unset_security()
             self.send_event(
                 EventType.SECURITY_EVENT,
                 {
@@ -2569,7 +2569,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """update the entity if the config entry have been updated
         Note: this don't work either
         """
-        _LOGGER.info("%s - The config entry have been updated")
+        _LOGGER.info("%s - The config entry have been updated", self)
 
     async def service_set_presence(self, presence: str):
         """Called by a service call:
