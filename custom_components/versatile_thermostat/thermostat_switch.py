@@ -88,6 +88,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._tpi_coef_ext,
             self._cycle_min,
             self._minimal_activation_delay,
+            self.name,
         )
 
         lst_switches = [config_entry.get(CONF_HEATER)]

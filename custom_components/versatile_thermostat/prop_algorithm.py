@@ -24,16 +24,19 @@ class PropAlgorithm:
         tpi_coef_ext,
         cycle_min: int,
         minimal_activation_delay: int,
+        vtherm_entity_id: str = None,
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",  # pylint: disable=line-too-long
+            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",  # pylint: disable=line-too-long
+            vtherm_entity_id,
             function_type,
             tpi_coef_int,
             tpi_coef_ext,
             cycle_min,
             minimal_activation_delay,
         )
+        self._vtherm_entity_id = vtherm_entity_id
         self._function = function_type
         self._tpi_coef_int = tpi_coef_int
         self._tpi_coef_ext = tpi_coef_ext
@@ -57,7 +60,10 @@ class PropAlgorithm:
         if target_temp is None or current_temp is None:
             log = _LOGGER.debug if hvac_mode == HVACMode.OFF else _LOGGER.warning
             log(
-                "Proportional algorithm: calculation is not possible cause target_temp or current_temp is null. Heating/cooling will be disabled"  # pylint: disable=line-too-long
+                "%s - Proportional algorithm: calculation is not possible cause target_temp (%s) or current_temp (%s) is null. Heating/cooling will be disabled. This could be normal at startup",  # pylint: disable=line-too-long
+                self._vtherm_entity_id,
+                target_temp,
+                current_temp,
             )
             self._calculated_on_percent = 0
         else:
@@ -83,7 +89,8 @@ class PropAlgorithm:
                 )
             else:
                 _LOGGER.warning(
-                    "Proportional algorithm: unknown %s function. Heating will be disabled",
+                    "%s - Proportional algorithm: unknown %s function. Heating will be disabled",
+                    self._vtherm_entity_id,
                     self._function,
                 )
                 self._calculated_on_percent = 0
@@ -91,7 +98,8 @@ class PropAlgorithm:
         self._calculate_internal()
 
         _LOGGER.debug(
-            "heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
+            "%s - heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f, on_time is %d (sec), off_time is %d (sec)",  # pylint: disable=line-too-long
+            self._vtherm_entity_id,
             current_temp if current_temp else -9999.0,
             ext_current_temp if ext_current_temp else -9999.0,
             target_temp if target_temp else -9999.0,
@@ -110,11 +118,12 @@ class PropAlgorithm:
             self._calculated_on_percent = 0
 
         if self._security:
-            _LOGGER.debug(
-                "Security is On using the default_on_percent %f",
-                self._default_on_percent,
-            )
             self._on_percent = self._default_on_percent
+            _LOGGER.info(
+                "%s - Security is On using the default_on_percent %f",
+                self._vtherm_entity_id,
+                self._on_percent,
+            )
         else:
             _LOGGER.debug(
                 "Security is Off using the calculated_on_percent %f",
@@ -128,13 +137,8 @@ class PropAlgorithm:
         if self._on_time_sec < self._minimal_activation_delay:
             if self._on_time_sec > 0:
                 _LOGGER.info(
-                    "No heating period due to heating period too small (%f < %f)",
-                    self._on_time_sec,
-                    self._minimal_activation_delay,
-                )
-            else:
-                _LOGGER.debug(
-                    "No heating period due to heating period too small (%f < %f)",
+                    "%s - No heating period due to heating period too small (%f < %f)",
+                    self._vtherm_entity_id,
                     self._on_time_sec,
                     self._minimal_activation_delay,
                 )
@@ -144,12 +148,18 @@ class PropAlgorithm:
 
     def set_security(self, default_on_percent: float):
         """Set a default value for on_percent (used for safety mode)"""
+        _LOGGER.info(
+            "%s - Proportional Algo - set security to ON", self._vtherm_entity_id
+        )
         self._security = True
         self._default_on_percent = default_on_percent
         self._calculate_internal()
 
     def unset_security(self):
         """Unset the safety mode"""
+        _LOGGER.info(
+            "%s - Proportional Algo - set security to OFF", self._vtherm_entity_id
+        )
         self._security = False
         self._calculate_internal()
 
