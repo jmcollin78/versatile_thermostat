@@ -1258,6 +1258,31 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self, preset_mode: str, overwrite_saved_preset=True
     ):
         """Set new preset mode."""
+
+        # Wer accept a new preset when:
+        # 1. last_central_mode is not set,
+        # 2. or last_central_mode is AUTO,
+        # 3. or last_central_mode is CENTRAL_MODE_FROST_PROTECTION and preset_mode is PRESET_FROST_PROTECTION (to be abel to re-set the preset_mode)
+        accept = self._last_central_mode in [
+            None,
+            CENTRAL_MODE_AUTO,
+            CENTRAL_MODE_COOL_ONLY,
+            CENTRAL_MODE_HEAT_ONLY,
+            CENTRAL_MODE_STOPPED,
+        ] or (
+            self._last_central_mode == CENTRAL_MODE_FROST_PROTECTION
+            and preset_mode == PRESET_FROST_PROTECTION
+        )
+        if not accept:
+            _LOGGER.info(
+                "%s - Impossible to change the preset to %s because central mode is %s",
+                self,
+                preset_mode,
+                self._last_central_mode,
+            )
+
+            return
+
         await self._async_set_preset_mode_internal(
             preset_mode, force=False, overwrite_saved_preset=overwrite_saved_preset
         )
