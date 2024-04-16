@@ -125,15 +125,15 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        if math.isnan(self.my_climate.total_energy) or math.isinf(
-            self.my_climate.total_energy
-        ):
+        energy = self.my_climate.total_energy
+        if energy is None:
+            return
+
+        if math.isnan(energy) or math.isinf(energy):
             raise ValueError(f"Sensor has illegal state {self.my_climate.total_energy}")
 
         old_state = self._attr_native_value
-        self._attr_native_value = round(
-            self.my_climate.total_energy, self.suggested_display_precision
-        )
+        self._attr_native_value = round(energy, self.suggested_display_precision)
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return

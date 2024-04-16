@@ -199,7 +199,11 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         if not self.is_over_climate and self.mean_cycle_power is not None:
             added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
 
-        self._total_energy += added_energy
+        if self._total_energy is None:
+            self._total_energy = added_energy
+        else:
+            self._total_energy += added_energy
+
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
             self,
