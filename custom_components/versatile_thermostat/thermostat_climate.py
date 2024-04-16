@@ -581,7 +581,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         ):
             added_energy = self._device_power * self._underlying_climate_delta_t
 
-        self._total_energy += added_energy
+        if self._total_energy is None:
+            self._total_energy = added_energy
+        else:
+            self._total_energy += added_energy
+
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
             self,

@@ -532,7 +532,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._overpowering_state = None
         self._presence_state = None
 
-        self._total_energy = 0
+        self._total_energy = None
 
         # Read the parameter from configuration.yaml if it exists
         short_ema_params = DEFAULT_SHORT_EMA_PARAMS
@@ -860,8 +860,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._hvac_mode = HVACMode.OFF
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
-            if old_total_energy:
-                self._total_energy = old_total_energy
+            self._total_energy = old_total_energy if old_total_energy else 0
 
             self.restore_specific_previous_state(old_state)
         else:
@@ -874,6 +873,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.warning(
                 "No previously saved temperature, setting to %s", self._target_temp
             )
+            self._total_energy = 0
 
         self._saved_target_temp = self._target_temp
 
@@ -1063,7 +1063,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def total_energy(self) -> float | None:
         """Returns the total energy calculated for this thermostast"""
-        return round(self._total_energy, 2)
+        if self._total_energy is not None:
+            return round(self._total_energy, 2)
+        else:
+            return None
 
     @property
     def device_power(self) -> float | None:
