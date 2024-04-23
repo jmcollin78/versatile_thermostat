@@ -168,11 +168,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         _LOGGER.info("%s - regulation calculation will be done", self)
 
+        # use _attr_target_temperature_step to round value if _auto_regulation_dtemp is equal to 0
+        regulation_step = self._auto_regulation_dtemp if self._auto_regulation_dtemp else self._attr_target_temperature_step
+        _LOGGER.debug("%s - usage of regulation_step: %.2f ",
+                      self,
+                      regulation_step)
+        
         new_regulated_temp = round_to_nearest(
             self._regulation_algo.calculate_regulated_temperature(
                 self.current_temperature, self._cur_ext_temp
             ),
-            self._auto_regulation_dtemp,
+            regulation_step,
         )
         dtemp = new_regulated_temp - self._regulated_target_temp
 
@@ -216,7 +222,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             ):
                 offset_temp = device_temp - self.current_temperature
 
-            target_temp = round_to_nearest(self.regulated_target_temp + offset_temp, self._auto_regulation_dtemp)
+            target_temp = round_to_nearest(self.regulated_target_temp + offset_temp, regulation_step)
 
             _LOGGER.debug(
                 "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
