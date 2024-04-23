@@ -11,6 +11,9 @@ from homeassistant.components.number import (
     NumberMode,
     NumberDeviceClass,
     DOMAIN as NUMBER_DOMAIN,
+    DEFAULT_MAX_VALUE,
+    DEFAULT_MIN_VALUE,
+    DEFAULT_STEP,
 )
 from homeassistant.components.climate import (
     PRESET_BOOST,
@@ -53,6 +56,7 @@ from .const import (
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
+    CONF_USE_MAIN_CENTRAL_CONFIG,
 )
 
 PRESET_ICON_MAPPING = {
@@ -341,7 +345,10 @@ class CentralConfigTemperatureNumber(
     async def async_set_native_value(self, value: float) -> None:
         """The value have change from the Number Entity in UI"""
         float_value = float(value)
-        old_value = float(self._attr_native_value)
+        old_value = (
+            None if self._attr_native_value is None else float(self._attr_native_value)
+        )
+
         if float_value == old_value:
             return
 
@@ -395,9 +402,11 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
-        self._attr_native_step = entry_infos.get(CONF_STEP_TEMPERATURE, 0.5)
-        self._attr_native_min_value = entry_infos.get(CONF_TEMP_MIN)
-        self._attr_native_max_value = entry_infos.get(CONF_TEMP_MAX)
+        self._has_central_main_attributes = entry_infos.get(
+            CONF_USE_MAIN_CENTRAL_CONFIG, False
+        )
+
+        self.init_min_max_step(entry_infos)
 
         # Initialize the values if included into the entry_infos. This will do
         # the temperature migration.
@@ -459,7 +468,9 @@ class TemperatureNumber(  # pylint: disable=abstract-method
             return
 
         float_value = float(value)
-        old_value = float(self._attr_native_value)
+        old_value = (
+            None if self._attr_native_value is None else float(self._attr_native_value)
+        )
 
         if float_value == old_value:
             return
@@ -476,6 +487,10 @@ class TemperatureNumber(  # pylint: disable=abstract-method
             )
         )
 
+        # We set the min, max and step from central config if relevant because it is possible that central config
+        # was not loaded at startup
+        self.init_min_max_step()
+
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
 
@@ -485,3 +500,26 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         if not self.my_climate:
             return UnitOfTemperature.CELSIUS
         return self.my_climate.temperature_unit
+
+    def init_min_max_step(self, entry_infos=None):
+        """Initialize min, max and step value from config or from central config"""
+        if self._has_central_main_attributes:
+            vthermapi: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+            central_config = vthermapi.find_central_configuration()
+            if central_config:
+                self._attr_native_step = central_config.data.get(CONF_STEP_TEMPERATURE)
+                self._attr_native_min_value = central_config.data.get(CONF_TEMP_MIN)
+                self._attr_native_max_value = central_config.data.get(CONF_TEMP_MAX)
+
+                return
+
+        if entry_infos:
+            self._attr_native_step = entry_infos.get(
+                CONF_STEP_TEMPERATURE, DEFAULT_STEP
+            )
+            self._attr_native_min_value = entry_infos.get(
+                CONF_TEMP_MIN, DEFAULT_MIN_VALUE
+            )
+            self._attr_native_max_value = entry_infos.get(
+                CONF_TEMP_MAX, DEFAULT_MAX_VALUE
+            )
