@@ -646,7 +646,7 @@ async def test_over_climate_regulation_dtemp_null(
             ) 
 
         old_regulated_temp = entity.regulated_target_temp
-        # change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
+        # Test if a small temperature change is taken into account : change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
         event_timestamp = now - timedelta(minutes=10)
         with patch(
             "custom_components.versatile_thermostat.commons.NowClass.get_now",
