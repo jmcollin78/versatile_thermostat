@@ -213,7 +213,7 @@ Consequently, the entire configuration phase of a VTherm has been profoundly mod
 </details>
 
 # Thanks for the beer [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG, @MattG, @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R., @John Burgess, @Sylvoliv, @cdenfert for the beers. It's very nice and encourages me to continue!
+Many thanks to @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG, @MattG, @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R., @John Burgess, @Sylvoliv, @cdenfert, @stephane.l for the beers. It's very nice and encourages me to continue!
 
 # When to use / not use
 This thermostat can control 3 types of equipment:
