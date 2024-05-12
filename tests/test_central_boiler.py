@@ -69,7 +69,7 @@ async def test_add_a_central_config_with_boiler(
     assert api.nb_active_device_for_boiler == 0
 
     assert api.nb_active_device_for_boiler_threshold_entity is not None
-    assert api.nb_active_device_for_boiler_threshold is 1  # the default value is 1
+    assert api.nb_active_device_for_boiler_threshold == 1  # the default value is 1
 
 
 async def test_update_central_boiler_state_simple(
