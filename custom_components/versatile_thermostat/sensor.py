@@ -570,7 +570,7 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str | None:
         if not self.my_climate:
-            return UnitOfTemperature.CELSIUS
+            return self.hass.config.units.temperature_unit
         return self.my_climate.temperature_unit
 
     @property
@@ -621,7 +621,7 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str | None:
         if not self.my_climate:
-            return UnitOfTemperature.CELSIUS
+            return self.hass.config.units.temperature_unit
         return self.my_climate.temperature_unit
 
     @property

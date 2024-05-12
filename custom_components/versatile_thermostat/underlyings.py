@@ -663,7 +663,7 @@ class UnderlyingClimate(UnderlyingEntity):
     def temperature_unit(self) -> str:
         """Get the temperature_unit"""
         if not self.is_initialized:
-            return UnitOfTemperature.CELSIUS
+            return self._hass.config.units.temperature_unit
         return self._underlying_climate.temperature_unit
 
     @property
