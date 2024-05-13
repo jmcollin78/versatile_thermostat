@@ -514,4 +514,4 @@ async def test_migration_of_central_config(
     assert api.nb_active_device_for_boiler == 0
 
     assert api.nb_active_device_for_boiler_threshold_entity is not None
-    assert api.nb_active_device_for_boiler_threshold is 1  # the default value is 1
+    assert api.nb_active_device_for_boiler_threshold == 1  # the default value is 1

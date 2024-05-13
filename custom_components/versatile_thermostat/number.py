@@ -283,7 +283,7 @@ class CentralConfigTemperatureNumber(
         self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_preset_{preset_name}"
         self._attr_unique_id = f"central_configuration_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
-        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+        self._attr_native_unit_of_measurement = hass.config.units.temperature_unit
 
         self._attr_native_step = entry_infos.get(CONF_STEP_TEMPERATURE, 0.5)
         self._attr_native_min_value = entry_infos.get(CONF_TEMP_MIN)
@@ -371,7 +371,7 @@ class CentralConfigTemperatureNumber(
         # TODO Kelvin ? It seems not because all internal values are stored in
         # ° Celsius but only the render in front can be in °K depending on the
         # user configuration.
-        return UnitOfTemperature.CELSIUS
+        return self.hass.config.units.temperature_unit
 
 
 class TemperatureNumber(  # pylint: disable=abstract-method
@@ -400,7 +400,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         self._attr_unique_id = f"{self._device_name}_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
-        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+        self._attr_native_unit_of_measurement = hass.config.units.temperature_unit
 
         self._has_central_main_attributes = entry_infos.get(
             CONF_USE_MAIN_CENTRAL_CONFIG, False
@@ -498,7 +498,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
     def native_unit_of_measurement(self) -> str | None:
         """The unit of measurement"""
         if not self.my_climate:
-            return UnitOfTemperature.CELSIUS
+            return self.hass.config.units.temperature_unit
         return self.my_climate.temperature_unit
 
     def init_min_max_step(self, entry_infos=None):
