@@ -207,7 +207,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 # regulation can use the device_temp
                 self.auto_regulation_use_device_temp
                 # and we have access to the device temp
-                and (device_temp := under.underlying_current_temperature) is not None
+                and (device_temp := self._hass.states.get(under._entity_id).attributes.get("current_temperature")) is not None
                 # and target is not reach (ie we need regulation)
                 and (
                     (
@@ -900,10 +900,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).temperature_unit
-
-        return self._unit
+        return self.hass.config.units.temperature_unit
 
     @property
     def supported_features(self):

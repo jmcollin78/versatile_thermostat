@@ -731,8 +731,8 @@ class UnderlyingClimate(UnderlyingEntity):
             self._underlying_climate.min_temp is not None
             and self._underlying_climate is not None
         ):
-            min_val = self._underlying_climate.min_temp
-            max_val = self._underlying_climate.max_temp
+            min_val = self._hass.states.get(self._entity_id).attributes.get("min_temp")
+            max_val = self._hass.states.get(self._entity_id).attributes.get("max_temp")
 
             new_value = max(min_val, min(value, max_val))
         else:
