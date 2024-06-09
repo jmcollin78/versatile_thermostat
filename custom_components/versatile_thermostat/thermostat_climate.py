@@ -207,7 +207,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 # regulation can use the device_temp
                 self.auto_regulation_use_device_temp
                 # and we have access to the device temp
-                and (device_temp := self._hass.states.get(under._entity_id).attributes.get("current_temperature")) is not None
+                and (device_temp := under.underlying_current_temperature) is not None
                 # and target is not reach (ie we need regulation)
                 and (
                     (

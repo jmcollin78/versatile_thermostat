@@ -30,6 +30,7 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .const import UnknownEntity, overrides
 from .keep_alive import IntervalCaller
@@ -704,7 +705,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if not hasattr(self._underlying_climate, "current_temperature"):
             return None
 
-        return self._underlying_climate.current_temperature
+        return self._hass.states.get(self._entity_id).attributes.get("current_temperature")
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -731,8 +732,12 @@ class UnderlyingClimate(UnderlyingEntity):
             self._underlying_climate.min_temp is not None
             and self._underlying_climate is not None
         ):
-            min_val = self._hass.states.get(self._entity_id).attributes.get("min_temp")
-            max_val = self._hass.states.get(self._entity_id).attributes.get("max_temp")
+            min_val = TemperatureConverter.convert(
+                self._underlying_climate.min_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
+            )
+            max_val = TemperatureConverter.convert(
+                self._underlying_climate.max_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
+            )
 
             new_value = max(min_val, min(value, max_val))
         else:
