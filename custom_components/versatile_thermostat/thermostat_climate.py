@@ -900,10 +900,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
-        if self.underlying_entity(0):
-            return self.underlying_entity(0).temperature_unit
-
-        return self._unit
+        return self.hass.config.units.temperature_unit
 
     @property
     def supported_features(self):

@@ -1,1 +1,1 @@
-homeassistant==2024.4.3
+homeassistant==2024.6.1
