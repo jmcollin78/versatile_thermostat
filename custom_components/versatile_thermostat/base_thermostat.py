@@ -1646,11 +1646,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 _LOGGER.debug("%s - Motion delay condition is satisfied", self)
                 self._motion_state = new_state.state
                 if self._attr_preset_mode == PRESET_ACTIVITY:
-                    new_preset = (
-                        self._motion_preset
-                        if self._motion_state == STATE_ON
-                        else self._no_motion_preset
-                    )
+                    if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+                        new_preset = (
+                            self._motion_preset + PRESET_AC_SUFFIX
+                            if self._motion_state == STATE_ON
+                            else self._no_motion_preset + PRESET_AC_SUFFIX
+                        )
+                    else:
+                        new_preset = (
+                            self._motion_preset
+                            if self._motion_state == STATE_ON
+                            else self._no_motion_preset
+                        )
                     _LOGGER.info(
                         "%s - Motion condition have changes. New preset temp will be %s",
                         self,
@@ -1658,6 +1665,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     )
                     # We do not change the preset which is kept to ACTIVITY but only the target_temperature
                     # We take the presence into account
+
                     await self._async_internal_set_temperature(
                         self.find_preset_temp(new_preset)
                     )
@@ -1895,17 +1903,28 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             or self._attr_preset_mode != PRESET_ACTIVITY
         ):
             return
-
-        await self._async_internal_set_temperature(
-            self._presets.get(
-                (
-                    self._motion_preset
-                    if self._motion_state == STATE_ON
-                    else self._no_motion_preset
-                ),
-                None,
+        if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+            await self._async_internal_set_temperature(
+                self._presets.get(
+                    (
+                        self._motion_preset + PRESET_AC_SUFFIX
+                        if self._motion_state == STATE_ON
+                        else self._no_motion_preset + PRESET_AC_SUFFIX
+                    ),
+                    None,
+                )
             )
-        )
+        else:
+            await self._async_internal_set_temperature(
+                self._presets.get(
+                    (
+                        self._motion_preset
+                        if self._motion_state == STATE_ON
+                        else self._no_motion_preset
+                    ),
+                    None,
+                )
+            )
         _LOGGER.debug(
             "%s - regarding motion, target_temp have been set to %.2f",
             self,
