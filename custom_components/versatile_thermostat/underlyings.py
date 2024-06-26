@@ -5,7 +5,7 @@ import logging
 from typing import Any
 from enum import StrEnum
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, UnitOfTemperature
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
@@ -253,7 +253,28 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
-        await (self.turn_on() if self.is_device_active else self.turn_off())
+        timer = self._keep_alive.backoff_timer
+        state: State | None = self._hass.states.get(self._entity_id)
+        # Normal, expected state.state values are "on" and "off". An absent
+        # underlying MQTT switch was observed to produce either state == None
+        # or state.state == STATE_UNAVAILABLE ("unavailable").
+        if state is None or state.state == STATE_UNAVAILABLE:
+            if timer.is_ready():
+                _LOGGER.warning(
+                    "Entity %s is not available (state: %s). Will keep trying "
+                    "keep alive calls, but won't log this condition every time.",
+                    self._entity_id,
+                    state.state if state else "None",
+                )
+        else:
+            if timer.in_progress:
+                timer.reset()
+                _LOGGER.warning(
+                    "Entity %s has recovered (state: %s).",
+                    self._entity_id,
+                    state.state,
+                )
+            await (self.turn_on() if self.is_device_active else self.turn_off())
 
     # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
     async def turn_off(self):
