@@ -6,6 +6,7 @@ from unittest.mock import ANY, _Call, call, patch
 from datetime import datetime, timedelta
 from typing import cast
 
+from custom_components.versatile_thermostat.keep_alive import BackoffTimer
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
@@ -52,6 +53,7 @@ class CommonMocks:
     hass: HomeAssistant
     thermostat: ThermostatOverSwitch
     mock_is_state: MagicMock
+    mock_get_state: MagicMock
     mock_service_call: MagicMock
     mock_async_track_time_interval: MagicMock
     mock_send_event: MagicMock
@@ -73,15 +75,18 @@ async def common_mocks(
         thermostat = cast(ThermostatOverSwitch, await create_thermostat(
             hass, config_entry, "climate.theoverswitchmockname"
         ))
-        yield CommonMocks(
-            config_entry=config_entry,
-            hass=hass,
-            thermostat=thermostat,
-            mock_is_state=mock_is_state,
-            mock_service_call=mock_service_call,
-            mock_async_track_time_interval=mock_async_track_time_interval,
-            mock_send_event=mock_send_event,
-        )
+        with patch("homeassistant.core.StateMachine.get") as mock_get_state:
+            mock_get_state.return_value.state = "off"
+            yield CommonMocks(
+                config_entry=config_entry,
+                hass=hass,
+                thermostat=thermostat,
+                mock_is_state=mock_is_state,
+                mock_get_state=mock_get_state,
+                mock_service_call=mock_service_call,
+                mock_async_track_time_interval=mock_async_track_time_interval,
+                mock_send_event=mock_send_event,
+            )
         # Clean the entity
         thermostat.remove_thermostat()
 
@@ -256,3 +261,123 @@ class TestKeepAlive:
                 call("switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"}),
             ],
         )
+
+
+class TestBackoffTimer:
+    """Test the keep_alive.BackoffTimer helper class."""
+
+    def test_exponential_period_increase(self):
+        """Test that consecutive calls to is_ready() produce increasing wait periods."""
+        with patch(
+            "custom_components.versatile_thermostat.keep_alive.monotonic"
+        ) as mock_monotonic:
+            timer = BackoffTimer(
+                multiplier=2,
+                lower_limit_sec=30,
+                upper_limit_sec=86400,
+                initially_ready=True,
+            )
+            mock_monotonic.return_value = 100
+            assert timer.is_ready()
+            mock_monotonic.return_value = 129
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 130
+            assert timer.is_ready()
+            mock_monotonic.return_value = 188
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 189
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 190
+            assert timer.is_ready()
+            mock_monotonic.return_value = 309
+            assert not timer.is_ready()
+
+    def test_the_upper_limit_option(self):
+        """Test the timer.in_progress property and the effect of timer.reset()."""
+        with patch(
+            "custom_components.versatile_thermostat.keep_alive.monotonic"
+        ) as mock_monotonic:
+            timer = BackoffTimer(
+                multiplier=2,
+                lower_limit_sec=30,
+                upper_limit_sec=50,
+                initially_ready=True,
+            )
+            mock_monotonic.return_value = 100
+            assert timer.is_ready()
+            mock_monotonic.return_value = 129
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 130
+            assert timer.is_ready()
+            mock_monotonic.return_value = 178
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 179
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 180
+            assert timer.is_ready()
+            mock_monotonic.return_value = 229
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 230
+            assert timer.is_ready()
+
+    def test_the_lower_limit_option(self):
+        """Test the timer.in_progress property and the effect of timer.reset()."""
+        with patch(
+            "custom_components.versatile_thermostat.keep_alive.monotonic"
+        ) as mock_monotonic:
+            timer = BackoffTimer(
+                multiplier=0.5,
+                lower_limit_sec=30,
+                upper_limit_sec=50,
+                initially_ready=True,
+            )
+            mock_monotonic.return_value = 100
+            assert timer.is_ready()
+            mock_monotonic.return_value = 129
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 130
+            assert timer.is_ready()
+            mock_monotonic.return_value = 158
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 159
+            assert not timer.is_ready()
+            mock_monotonic.return_value = 160
+            assert timer.is_ready()
+
+    def test_initial_is_ready_result(self):
+        """Test that the first call to is_ready() produces the initially_ready option value."""
+        with patch(
+            "custom_components.versatile_thermostat.keep_alive.monotonic"
+        ) as mock_monotonic:
+            for initial in [True, False]:
+                timer = BackoffTimer(
+                    multiplier=2,
+                    lower_limit_sec=30,
+                    upper_limit_sec=86400,
+                    initially_ready=initial,
+                )
+                mock_monotonic.return_value = 100
+                assert timer.is_ready() == initial
+                assert not timer.is_ready()
+
+    def test_in_progress_and_reset(self):
+        """Test the timer.in_progress property and the effect of timer.reset()."""
+        with patch(
+            "custom_components.versatile_thermostat.keep_alive.monotonic"
+        ) as mock_monotonic:
+            timer = BackoffTimer(
+                multiplier=2,
+                lower_limit_sec=30,
+                upper_limit_sec=86400,
+                initially_ready=True,
+            )
+            mock_monotonic.return_value = 100
+            assert not timer.in_progress
+            assert timer.is_ready()
+            assert timer.in_progress
+            assert not timer.is_ready()
+            timer.reset()
+            assert not timer.in_progress
+            assert timer.is_ready()
+            assert timer.in_progress
+            assert not timer.is_ready()
