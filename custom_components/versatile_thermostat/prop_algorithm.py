@@ -70,9 +70,9 @@ class PropAlgorithm:
             if hvac_mode == HVACMode.COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = (
-                    ext_current_temp
+                    ext_current_temp - target_temp
                     if ext_current_temp is not None
-                    else 0 - target_temp
+                    else 0
                 )
             else:
                 delta_temp = target_temp - current_temp
