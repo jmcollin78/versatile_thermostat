@@ -737,37 +737,37 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
                 need_write_state = True
 
-            # try to acquire window entity state
-            if self._window_sensor_entity_id:
-                window_state = self.hass.states.get(self._window_sensor_entity_id)
-                if window_state and window_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self._window_state = window_state.state == STATE_ON
-                    _LOGGER.debug(
-                        "%s - Window state have been retrieved: %s",
-                        self,
-                        self._window_state,
-                    )
-                    need_write_state = True
+        # try to acquire window entity state
+        if self._window_sensor_entity_id:
+            window_state = self.hass.states.get(self._window_sensor_entity_id)
+            if window_state and window_state.state not in (
+                STATE_UNAVAILABLE,
+                STATE_UNKNOWN,
+            ):
+                self._window_state = window_state.state == STATE_ON
+                _LOGGER.debug(
+                    "%s - Window state have been retrieved: %s",
+                    self,
+                    self._window_state,
+                )
+                need_write_state = True
 
-            # try to acquire motion entity state
-            if self._motion_sensor_entity_id:
-                motion_state = self.hass.states.get(self._motion_sensor_entity_id)
-                if motion_state and motion_state.state not in (
-                    STATE_UNAVAILABLE,
-                    STATE_UNKNOWN,
-                ):
-                    self._motion_state = motion_state.state
-                    _LOGGER.debug(
-                        "%s - Motion state have been retrieved: %s",
-                        self,
-                        self._motion_state,
-                    )
-                    # recalculate the right target_temp in activity mode
-                    await self._async_update_motion_temp()
-                    need_write_state = True
+        # try to acquire motion entity state
+        if self._motion_sensor_entity_id:
+            motion_state = self.hass.states.get(self._motion_sensor_entity_id)
+            if motion_state and motion_state.state not in (
+                STATE_UNAVAILABLE,
+                STATE_UNKNOWN,
+            ):
+                self._motion_state = motion_state.state
+                _LOGGER.debug(
+                    "%s - Motion state have been retrieved: %s",
+                    self,
+                    self._motion_state,
+                )
+                # recalculate the right target_temp in activity mode
+                await self._async_update_motion_temp()
+                need_write_state = True
 
         if self._presence_on:
             # try to acquire presence entity state
@@ -1389,7 +1389,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     if self._motion_state == STATE_ON
                     else self._no_motion_preset
                 )
-            
+
             if motion_preset in self._presets:
                 return self._presets[motion_preset]
             else:
@@ -1654,7 +1654,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 _LOGGER.debug("%s - Motion delay condition is satisfied", self)
                 self._motion_state = new_state.state
                 if self._attr_preset_mode == PRESET_ACTIVITY:
-       
+
                     new_preset = (
                         self._motion_preset
                         if self._motion_state == STATE_ON
@@ -1905,7 +1905,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             or self._attr_preset_mode != PRESET_ACTIVITY
         ):
             return
-        
+
         new_preset = (
                         self._motion_preset
                         if self._motion_state == STATE_ON
@@ -1916,13 +1916,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                         self,
                         new_preset,
                     )
-                    # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-                    # We take the presence into account
+        # We do not change the preset which is kept to ACTIVITY but only the target_temperature
+        # We take the presence into account
 
         await self._async_internal_set_temperature(
             self.find_preset_temp(new_preset)
         )
-        
+
         _LOGGER.debug(
             "%s - regarding motion, target_temp have been set to %.2f",
             self,
