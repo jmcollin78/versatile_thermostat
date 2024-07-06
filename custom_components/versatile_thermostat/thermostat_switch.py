@@ -2,12 +2,11 @@
 
 """ A climate over switch classe """
 import logging
-from homeassistant.core import callback
+from homeassistant.core import Event, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     EventStateChangedData,
 )
-from homeassistant.helpers.typing import EventType as HASSEventType
 from homeassistant.components.climate import HVACMode
 
 from .const import (
@@ -212,7 +211,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         )
 
     @callback
-    def _async_switch_changed(self, event: HASSEventType[EventStateChangedData]):
+    def _async_switch_changed(self, event: Event[EventStateChangedData]):
         """Handle heater switch state changes."""
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")

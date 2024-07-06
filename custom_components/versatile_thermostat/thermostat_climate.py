@@ -3,13 +3,12 @@
 import logging
 from datetime import timedelta, datetime
 
-from homeassistant.core import HomeAssistant, State, callback
+from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
     EventStateChangedData,
 )
-from homeassistant.helpers.typing import EventType as HASSEventType
 from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
@@ -600,7 +599,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
     @callback
-    async def _async_climate_changed(self, event: HASSEventType[EventStateChangedData]):
+    async def _async_climate_changed(self, event: Event[EventStateChangedData]):
         """Handle unerdlying climate state changes.
         This method takes the underlying values and update the VTherm with them.
         To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
