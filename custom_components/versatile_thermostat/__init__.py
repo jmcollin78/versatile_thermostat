@@ -13,6 +13,7 @@ from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant, CoreState, callback
+from homeassistant.helpers.service import async_register_admin_service
 
 from .base_thermostat import BaseThermostat
 
@@ -115,7 +116,8 @@ async def async_setup(
     else:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _async_startup_internal)
 
-    hass.helpers.service.async_register_admin_service(
+    async_register_admin_service(
+        hass,
         DOMAIN,
         SERVICE_RELOAD,
         _handle_reload,
