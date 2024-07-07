@@ -22,7 +22,6 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
-from homeassistant.helpers.typing import EventType as HASSEventType
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -1790,7 +1789,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
     @callback
-    async def _async_power_changed(self, event: HASSEventType[EventStateChangedData]):
+    async def _async_power_changed(self, event: Event[EventStateChangedData]):
         """Handle power changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power event", self.name)
         _LOGGER.debug(event)
@@ -1816,9 +1815,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
 
     @callback
-    async def _async_max_power_changed(
-        self, event: HASSEventType[EventStateChangedData]
-    ):
+    async def _async_max_power_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power Max event", self.name)
         _LOGGER.debug(event)
@@ -1843,9 +1840,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
 
     @callback
-    async def _async_presence_changed(
-        self, event: HASSEventType[EventStateChangedData]
-    ):
+    async def _async_presence_changed(self, event: Event[EventStateChangedData]):
         """Handle presence changes."""
         new_state = event.data.get("new_state")
         _LOGGER.info(

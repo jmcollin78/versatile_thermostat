@@ -8,8 +8,7 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
     EventStateChangedData,
 )
-from homeassistant.helpers.typing import EventType as HASSEventType
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.components.climate import HVACMode
 
 from .base_thermostat import BaseThermostat, ConfigData
@@ -149,7 +148,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         )
 
     @callback
-    async def _async_valve_changed(self, event: HASSEventType[EventStateChangedData]):
+    async def _async_valve_changed(self, event: Event[EventStateChangedData]):
         """Handle unerdlying valve state changes.
         This method just log the change. It changes nothing to avoid loops.
         """
