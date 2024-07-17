@@ -4,7 +4,6 @@
         "editor.formatOnSave": true,
         "editor.formatOnSaveMode": "modifications"
     },
-    "pylint.lintOnChange": false,
     "files.associations": {
         "*.yaml": "home-assistant"
     },
