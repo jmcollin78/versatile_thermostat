@@ -1202,9 +1202,9 @@ Une carte spéciale pour le Versatile Thermostat a été développée (sur la ba
 ## Encore mieux avec le composant Scheduler !
 
 Afin de profiter de toute la puissance du Versatile Thermostat, je vous invite à l'utiliser avec https://github.com/nielsfaber/scheduler-component
-En effet, le composant scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le thermostat Awesome :
+En effet, le composant scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
 
-À partir d'ici, je suppose que vous avez installé Awesome Thermostat et Scheduler Component.
+À partir d'ici, je suppose que vous avez installé Versatile Thermostat et Scheduler Component.
 
 Dans Scheduler, ajoutez un planning :
 
