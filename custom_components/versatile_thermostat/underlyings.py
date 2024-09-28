@@ -612,12 +612,22 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return
 
-        data = {
-            ATTR_ENTITY_ID: self._entity_id,
-            "temperature": self.cap_sent_value(temperature),
-            "target_temp_high": max_temp,
-            "target_temp_low": min_temp,
-        }
+        # Issue 508 we have to take care of service set_temperature or set_range
+        target_temp = self.cap_sent_value(temperature)
+        if (
+            ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+            in self._underlying_climate.supported_features
+        ):
+            data = {
+                ATTR_ENTITY_ID: self._entity_id,
+                "target_temp_high": target_temp,
+                "target_temp_low": target_temp,
+            }
+        else:
+            data = {
+                ATTR_ENTITY_ID: self._entity_id,
+                "temperature": target_temp,
+            }
 
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
