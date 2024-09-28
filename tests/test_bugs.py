@@ -657,8 +657,8 @@ async def test_bug_272(
                     {
                         "entity_id": "climate.mock_climate",
                         "temperature": 17.5,
-                        "target_temp_high": 30,
-                        "target_temp_low": 15,
+                        # "target_temp_high": 30,
+                        # "target_temp_low": 15,
                     },
                 ),
             ]
@@ -687,8 +687,8 @@ async def test_bug_272(
                     {
                         "entity_id": "climate.mock_climate",
                         "temperature": 15,  # the minimum acceptable
-                        "target_temp_high": 30,
-                        "target_temp_low": 15,
+                        # "target_temp_high": 30,
+                        # "target_temp_low": 15,
                     },
                 ),
             ]
@@ -714,8 +714,8 @@ async def test_bug_272(
                     {
                         "entity_id": "climate.mock_climate",
                         "temperature": 19,  # the maximum acceptable
-                        "target_temp_high": 30,
-                        "target_temp_low": 15,
+                        # "target_temp_high": 30,
+                        # "target_temp_low": 15,
                     },
                 ),
             ]
@@ -924,3 +924,92 @@ async def test_bug_339(
     assert api.nb_active_device_for_boiler == 1
 
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_508(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that it not possible to set the target temperature under the min_temp setting"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        # default value are min 15°, max 31°, step 0.1
+        data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
+    )
+
+    # Min_temp is 10 and max_temp is 31 and features contains TARGET_TEMPERATURE_RANGE
+    fake_underlying_climate = MagicMockClimateWithTemperatureRange()
+
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ), patch(
+        "homeassistant.core.ServiceRegistry.async_call"
+    ) as mock_service_call:
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert entity
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.hvac_mode is HVACMode.OFF
+        # The VTherm value and not the underlying value
+        assert entity.target_temperature_step == 0.1
+        assert entity.target_temperature == entity.min_temp
+        assert entity.is_regulated is True
+
+        assert mock_service_call.call_count == 0
+
+        # Set the hvac_mode to HEAT
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+
+        # Not In the accepted interval -> should be converted into 10 (the min) and send with target_temp_high and target_temp_low
+        await entity.async_set_temperature(temperature=8.5)
+
+        # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "climate",
+                    SERVICE_SET_TEMPERATURE,
+                    {
+                        "entity_id": "climate.mock_climate",
+                        # "temperature": 17.5,
+                        "target_temp_high": 10,
+                        "target_temp_low": 10,
+                    },
+                ),
+            ]
+        )
+
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        # Not In the accepted interval -> should be converted into 10 (the min) and send with target_temp_high and target_temp_low
+        await entity.async_set_temperature(temperature=32)
+
+        # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    "climate",
+                    SERVICE_SET_TEMPERATURE,
+                    {
+                        "entity_id": "climate.mock_climate",
+                        "target_temp_high": 31,
+                        "target_temp_low": 31,
+                    },
+                ),
+            ]
+        )

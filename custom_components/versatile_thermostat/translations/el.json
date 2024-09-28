@@ -43,7 +43,7 @@
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
@@ -64,7 +64,7 @@
           "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
           "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -216,7 +216,7 @@
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
@@ -237,7 +237,7 @@
           "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
           "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {

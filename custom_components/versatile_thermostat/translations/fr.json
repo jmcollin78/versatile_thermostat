@@ -337,7 +337,7 @@
           "auto_regulation_periode_min": "Période minimale de régulation",
           "auto_regulation_use_device_temp": "Utiliser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id du 1er radiateur obligatoire",

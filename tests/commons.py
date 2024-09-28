@@ -435,6 +435,86 @@ class MagicMockClimate(MagicMock):
         return 19
 
 
+class MagicMockClimateWithTemperatureRange(MagicMock):
+    """A Magic Mock class for a underlying climate entity"""
+
+    @property
+    def temperature_unit(self):  # pylint: disable=missing-function-docstring
+        return UnitOfTemperature.CELSIUS
+
+    @property
+    def hvac_mode(self):  # pylint: disable=missing-function-docstring
+        return HVACMode.HEAT
+
+    @property
+    def hvac_action(self):  # pylint: disable=missing-function-docstring
+        return HVACAction.IDLE
+
+    @property
+    def target_temperature(self):  # pylint: disable=missing-function-docstring
+        return 15
+
+    @property
+    def current_temperature(self):  # pylint: disable=missing-function-docstring
+        return 14
+
+    @property
+    def target_temperature_step(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return 0.5
+
+    @property
+    def target_temperature_high(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return 35
+
+    @property
+    def target_temperature_low(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return 7
+
+    @property
+    def hvac_modes(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> list[str] | None:
+        return [HVACMode.HEAT, HVACMode.OFF, HVACMode.COOL]
+
+    @property
+    def fan_modes(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> list[str] | None:
+        return None
+
+    @property
+    def swing_modes(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> list[str] | None:
+        return None
+
+    @property
+    def fan_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
+    def swing_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
+    def supported_features(self):  # pylint: disable=missing-function-docstring
+        return ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+
+    @property
+    def min_temp(self):  # pylint: disable=missing-function-docstring
+        return 10
+
+    @property
+    def max_temp(self):  # pylint: disable=missing-function-docstring
+        return 31
+
+
 class MockSwitch(SwitchEntity):
     """A fake switch to be used instead real switch"""
 

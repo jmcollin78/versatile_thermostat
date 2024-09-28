@@ -42,7 +42,7 @@
           "valve_entity4_id": "Quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
           "inverse_switch_command": "Comando inverso",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -62,7 +62,7 @@
           "valve_entity4_id": "Entity id della quarta valvola",
           "auto_regulation_mode": "Regolazione automatica della temperatura target",
           "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
@@ -206,7 +206,7 @@
           "valve_entity4_id": "Quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
           "inverse_switch_command": "Comando inverso",
-          "auto_fan_mode": " Auto fan mode"
+          "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
           "heater_entity_id": "Entity id obbligatoria del primo riscaldatore",
@@ -226,7 +226,7 @@
           "valve_entity4_id": "Entity id della quarta valvola",
           "auto_regulation_mode": "Autoregolamentazione",
           "inverse_switch_command": "Inverte il controllo dell'interruttore per un'installazione con filo pilota e diodo",
-          "auto_fan_mode": " Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },
       "tpi": {
