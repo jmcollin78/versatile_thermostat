@@ -254,6 +254,9 @@ async def test_over_switch_deactivate_preset(
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_SECURITY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.01,
         },
     )
 

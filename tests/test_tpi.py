@@ -3,7 +3,10 @@
 from homeassistant.components.climate import HVACMode
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm
+from custom_components.versatile_thermostat.prop_algorithm import (
+    PropAlgorithm,
+    PROPORTIONAL_FUNCTION_TPI,
+)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
@@ -121,3 +124,123 @@ async def test_tpi_calculation(
     assert tpi_algo.calculated_on_percent == 0
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_wrong_tpi_parameters(
+    hass: HomeAssistant, skip_hass_states_is_state: None
+):  # pylint: disable=unused-argument
+    """Test the wrong TPI parameters"""
+
+    # Nominal case
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            0.6,
+            0.01,
+            5,
+            1,
+            "entity_id",
+        )
+        # We should not be there
+        assert True
+    except TypeError as e:
+        # the normal case
+        assert False
+
+    # Test TPI function
+    try:
+        algo = PropAlgorithm(
+            "WRONG",
+            1,
+            0,
+            2,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test coef_int
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            None,
+            0,
+            2,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test coef_ext
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            0.6,
+            None,
+            2,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test cycle_min
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            0.6,
+            0.00001,
+            None,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test minimal_activation_delay
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            0.6,
+            0.00001,
+            0,
+            None,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test vtherm_entity_id
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            0.6,
+            0.00001,
+            0,
+            12,
+            None,
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
