@@ -14,6 +14,10 @@ PROPORTIONAL_MIN_DURATION_SEC = 10
 FUNCTION_TYPE = [PROPORTIONAL_FUNCTION_ATAN, PROPORTIONAL_FUNCTION_LINEAR]
 
 
+def is_number(value):
+    return isinstance(value, (int, float))
+
+
 class PropAlgorithm:
     """This class aims to do all calculation of the Proportional alogorithm"""
 
@@ -36,6 +40,30 @@ class PropAlgorithm:
             cycle_min,
             minimal_activation_delay,
         )
+
+        # Issue 506 - check parameters
+        if (
+            vtherm_entity_id is None
+            or not is_number(tpi_coef_int)
+            or not is_number(tpi_coef_ext)
+            or not is_number(cycle_min)
+            or not is_number(minimal_activation_delay)
+            or function_type != PROPORTIONAL_FUNCTION_TPI
+        ):
+            _LOGGER.error(
+                "%s - configuration is wrong. function_type=%s, entity_id is %s, tpi_coef_int is %s, tpi_coef_ext is %s, cycle_min is %s, minimal_activation_delay is %s",
+                vtherm_entity_id,
+                function_type,
+                vtherm_entity_id,
+                tpi_coef_int,
+                tpi_coef_ext,
+                cycle_min,
+                minimal_activation_delay,
+            )
+            raise TypeError(
+                f"TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values"
+            )
+
         self._vtherm_entity_id = vtherm_entity_id
         self._function = function_type
         self._tpi_coef_int = tpi_coef_int
