@@ -12,6 +12,12 @@ from homeassistant.components.climate import (
     SERVICE_SET_TEMPERATURE,
 )
 
+from homeassistant.config_entries import SOURCE_USER, ConfigEntry
+from homeassistant.data_entry_flow import FlowResultType
+
+from custom_components.versatile_thermostat.config_flow import (
+    VersatileThermostatBaseConfigFlow,
+)
 from .commons import *
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -1013,3 +1019,72 @@ async def test_bug_508(
                 ),
             ]
         )
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_500_1(hass: HomeAssistant, init_vtherm_api) -> None:
+    """Test that the form is served with no input"""
+
+    config = {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        CONF_USE_WINDOW_CENTRAL_CONFIG: True,
+        CONF_USE_POWER_CENTRAL_CONFIG: True,
+        CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
+        CONF_USE_MOTION_FEATURE: True,
+        CONF_MOTION_SENSOR: "sensor.theMotionSensor",
+    }
+
+    flow = VersatileThermostatBaseConfigFlow(config)
+
+    assert flow._infos[CONF_USE_WINDOW_FEATURE] is True
+    assert flow._infos[CONF_USE_POWER_FEATURE] is True
+    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is True
+    assert flow._infos[CONF_USE_MOTION_FEATURE] is True
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_500_2(hass: HomeAssistant, init_vtherm_api) -> None:
+    """Test that the form is served with no input"""
+
+    config = {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+        CONF_USE_POWER_CENTRAL_CONFIG: False,
+        CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+        CONF_USE_MOTION_FEATURE: False,
+    }
+
+    flow = VersatileThermostatBaseConfigFlow(config)
+
+    assert flow._infos[CONF_USE_WINDOW_FEATURE] is False
+    assert flow._infos[CONF_USE_POWER_FEATURE] is False
+    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is False
+    assert flow._infos[CONF_USE_MOTION_FEATURE] is False
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_500_3(hass: HomeAssistant, init_vtherm_api) -> None:
+    """Test that the form is served with no input"""
+
+    config = {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+        CONF_WINDOW_SENSOR: "sensor.theWindowSensor",
+        CONF_USE_POWER_CENTRAL_CONFIG: False,
+        CONF_POWER_SENSOR: "sensor.thePowerSensor",
+        CONF_MAX_POWER_SENSOR: "sensor.theMaxPowerSensor",
+        CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+        CONF_PRESENCE_SENSOR: "sensor.thePresenceSensor",
+        CONF_USE_MOTION_FEATURE: True,  # motion sensor need to be checked AND a motion sensor set
+        CONF_MOTION_SENSOR: "sensor.theMotionSensor",
+    }
+
+    flow = VersatileThermostatBaseConfigFlow(config)
+
+    assert flow._infos[CONF_USE_WINDOW_FEATURE] is True
+    assert flow._infos[CONF_USE_POWER_FEATURE] is True
+    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is True
+    assert flow._infos[CONF_USE_MOTION_FEATURE] is True
