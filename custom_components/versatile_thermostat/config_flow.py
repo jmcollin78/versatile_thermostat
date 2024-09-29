@@ -99,30 +99,31 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
     def _init_feature_flags(self, _):
         """Fix features selection depending to infos"""
-        is_empty: bool = False  # TODO remove this not bool(infos)
         is_central_config = (
             self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
         )
 
         self._infos[CONF_USE_WINDOW_FEATURE] = (
-            is_empty
+            self._infos.get(CONF_USE_WINDOW_CENTRAL_CONFIG)
             or self._infos.get(CONF_WINDOW_SENSOR) is not None
             or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
-        self._infos[CONF_USE_MOTION_FEATURE] = (
-            is_empty
-            or self._infos.get(CONF_MOTION_SENSOR) is not None
-            or is_central_config
-        )
-        self._infos[CONF_USE_POWER_FEATURE] = is_empty or (
+        self._infos[CONF_USE_MOTION_FEATURE] = self._infos.get(
+            CONF_USE_MOTION_FEATURE
+        ) and (self._infos.get(CONF_MOTION_SENSOR) is not None or is_central_config)
+
+        self._infos[CONF_USE_POWER_FEATURE] = self._infos.get(
+            CONF_USE_POWER_CENTRAL_CONFIG
+        ) or (
             self._infos.get(CONF_POWER_SENSOR) is not None
             and self._infos.get(CONF_MAX_POWER_SENSOR) is not None
         )
         self._infos[CONF_USE_PRESENCE_FEATURE] = (
-            is_empty or self._infos.get(CONF_PRESENCE_SENSOR) is not None
+            self._infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG)
+            or self._infos.get(CONF_PRESENCE_SENSOR) is not None
         )
 
-        self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] = is_empty or (
+        self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] = (
             self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV) is not None
             and self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV) is not None
         )
