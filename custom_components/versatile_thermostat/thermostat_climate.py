@@ -145,6 +145,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ")
             return
 
+        if self.current_temperature is None or self.target_temperature is None:
+            _LOGGER.warning(
+                "%s - don't send regulated temperature cause VTherm current_temp (%s) or target_temp (%s) is None. This should be a temporary warning message."
+            )
+            return
+
         _LOGGER.info(
             "%s - Calling ThermostatClimate._send_regulated_temperature force=%s",
             self,
@@ -172,7 +178,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         _LOGGER.debug("%s - usage of regulation_step: %.2f ",
                       self,
                       regulation_step)
-        
+
         new_regulated_temp = round_to_nearest(
             self._regulation_algo.calculate_regulated_temperature(
                 self.current_temperature, self._cur_ext_temp
