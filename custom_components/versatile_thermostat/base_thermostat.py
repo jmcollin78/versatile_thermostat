@@ -13,7 +13,6 @@ from homeassistant.util import dt as dt_util
 from homeassistant.core import (
     HomeAssistant,
     callback,
-    CoreState,
     Event,
     State,
 )
@@ -57,7 +56,6 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     STATE_OFF,
     STATE_ON,
-    EVENT_HOMEASSISTANT_START,
     STATE_HOME,
     STATE_NOT_HOME,
 )
@@ -299,7 +297,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._presets: dict[str, Any] = {}  # presets
         self._presets_away: dict[str, Any] = {}  # presets_away
 
-        self._attr_preset_modes: list[str] | None
+        self._attr_preset_modes: list[str] = []
 
         self._use_central_config_temperature = False
 
@@ -2183,7 +2181,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             new_central_mode,
         )
 
-        first_init = self._last_central_mode == None
+        first_init = self._last_central_mode is None
 
         self._last_central_mode = new_central_mode
 
