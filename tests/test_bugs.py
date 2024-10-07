@@ -12,12 +12,14 @@ from homeassistant.components.climate import (
     SERVICE_SET_TEMPERATURE,
 )
 
-from homeassistant.config_entries import SOURCE_USER, ConfigEntry
-from homeassistant.data_entry_flow import FlowResultType
-
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
+from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
+
 from .commons import *
 
 logging.getLogger().setLevel(logging.DEBUG)

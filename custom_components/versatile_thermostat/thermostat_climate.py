@@ -147,11 +147,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             return
 
-        if self.current_temperature is None or self.target_temperature is None:
+        if self.target_temperature is None:
             _LOGGER.warning(
-                "%s - don't send regulated temperature cause VTherm current_temp (%s) or target_temp (%s) is None. This should be a temporary warning message.",
+                "%s - don't send regulated temperature cause VTherm target_temp (%s) is None. This should be a temporary warning message.",
                 self,
-                self.current_temperature,
                 self.target_temperature,
             )
             return
@@ -180,16 +179,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # use _attr_target_temperature_step to round value if _auto_regulation_dtemp is equal to 0
         regulation_step = self._auto_regulation_dtemp if self._auto_regulation_dtemp else self._attr_target_temperature_step
-        _LOGGER.debug("%s - usage of regulation_step: %.2f ",
-                      self,
-                      regulation_step)
+        _LOGGER.debug("%s - usage regulation_step: %.2f ", self, regulation_step)
 
-        new_regulated_temp = round_to_nearest(
-            self._regulation_algo.calculate_regulated_temperature(
-                self.current_temperature, self._cur_ext_temp
-            ),
-            regulation_step,
-        )
+        if self.current_temperature is not None:
+            new_regulated_temp = round_to_nearest(
+                self._regulation_algo.calculate_regulated_temperature(
+                    self.current_temperature, self._cur_ext_temp
+                ),
+                regulation_step,
+            )
+        else:
+            new_regulated_temp = self.target_temperature
         dtemp = new_regulated_temp - self._regulated_target_temp
 
         if not force and abs(dtemp) < self._auto_regulation_dtemp:
@@ -214,8 +214,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             offset_temp = 0
             device_temp = 0
             if (
+                # current_temperature is set
+                self.current_temperature is not None
                 # regulation can use the device_temp
-                self.auto_regulation_use_device_temp
+                and self.auto_regulation_use_device_temp
                 # and we have access to the device temp
                 and (device_temp := under.underlying_current_temperature) is not None
                 # and target is not reach (ie we need regulation)
