@@ -142,12 +142,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Sends the regulated temperature to all underlying"""
 
         if self.hvac_mode == HVACMode.OFF:
-            _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ")
+            _LOGGER.debug(
+                "%s - don't send regulated temperature cause VTherm is off ", self
+            )
             return
 
         if self.current_temperature is None or self.target_temperature is None:
             _LOGGER.warning(
-                "%s - don't send regulated temperature cause VTherm current_temp (%s) or target_temp (%s) is None. This should be a temporary warning message."
+                "%s - don't send regulated temperature cause VTherm current_temp (%s) or target_temp (%s) is None. This should be a temporary warning message.",
+                self,
+                self.current_temperature,
+                self.target_temperature,
             )
             return
 
