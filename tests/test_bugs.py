@@ -17,6 +17,9 @@ from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
+from custom_components.versatile_thermostat.thermostat_climate import (
+    ThermostatOverClimate,
+)
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
@@ -1134,6 +1137,7 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
@@ -1155,7 +1159,9 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm = await create_thermostat(hass, config_entry, "climate.overclimate")
+        vtherm: ThermostatOverClimate = await create_thermostat(
+            hass, config_entry, "climate.overclimate"
+        )
 
     assert vtherm is not None
 
@@ -1172,3 +1178,36 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
         assert temp_entity
         # Because set_value is not implemented in Number class (really don't understand why...)
         assert temp_entity.state == value
+
+    # 1. Set mode to Heat and preset to Comfort
+    await send_presence_change_event(vtherm, True, False, datetime.now())
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 19.0
+
+    # 2. Only change the HVAC_MODE (and keep preset to comfort)
+    await vtherm.async_set_hvac_mode(HVACMode.COOL)
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 25.0
+
+    # 3. Only change the HVAC_MODE (and keep preset to comfort)
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 19.0
+
+    # 4. Change presence to off
+    await send_presence_change_event(vtherm, False, True, datetime.now())
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 19.1
+
+    # 5. Change hvac_mode to AC
+    await vtherm.async_set_hvac_mode(HVACMode.COOL)
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 25.1
+
+    # 6. Change presence to on
+    await send_presence_change_event(vtherm, True, False, datetime.now())
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 25
