@@ -987,3 +987,8 @@ async def set_climate_preset_temp(
     )
     if temp_entity:
         await temp_entity.async_set_native_value(temp)
+    else:
+        _LOGGER.warning(
+            "commons tests set_cliamte_preset_temp: cannot find number entity with entity_id '%s'",
+            number_entity_id,
+        )

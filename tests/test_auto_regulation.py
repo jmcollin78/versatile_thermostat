@@ -53,18 +53,6 @@ async def test_over_climate_regulation(
         return_value=fake_underlying_climate,
     ):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #    """Find my new entity"""
-        #    component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #    for entity in component.entities:
-        #        if entity.entity_id == entity_id:
-        #            return entity
-        #
-        # entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
@@ -163,18 +151,6 @@ async def test_over_climate_regulation_ac_mode(
         return_value=fake_underlying_climate,
     ):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
@@ -626,9 +602,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 20 + 0.9
-            ) 
+            assert entity.regulated_target_temp == 20 + 0.9
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=13)
@@ -641,9 +615,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 20 + 0.5
-            ) 
+            assert entity.regulated_target_temp == 20 + 0.5
 
         old_regulated_temp = entity.regulated_target_temp
         # Test if a small temperature change is taken into account : change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)

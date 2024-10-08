@@ -5,9 +5,6 @@ from unittest.mock import patch, call
 from datetime import timedelta, datetime
 import logging
 
-from custom_components.versatile_thermostat.thermostat_climate import (
-    ThermostatOverClimate,
-)
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )

@@ -72,6 +72,13 @@ async def async_setup_entry(
         entity = ThermostatOverClimate(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_VALVE:
         entity = ThermostatOverValve(hass, unique_id, name, entry.data)
+    else:
+        _LOGGER.error(
+            "Cannot create Versatile Thermostat name=%s of type %s which is unknown",
+            name,
+            vt_type,
+        )
+        return
 
     async_add_entities([entity], True)
 
