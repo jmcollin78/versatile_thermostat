@@ -731,7 +731,7 @@ async def test_update_central_boiler_state_simple_climate(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=climate1,
     ):
-        entity: ThermostatOverValve = await create_thermostat(
+        entity: ThermostatOverClimate = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
         assert entity
