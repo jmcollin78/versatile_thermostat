@@ -1001,6 +1001,7 @@ async def test_bug_508(
                         # "temperature": 17.5,
                         "target_temp_high": 10,
                         "target_temp_low": 10,
+                        "temperature": 10,
                     },
                 ),
             ]
@@ -1021,6 +1022,7 @@ async def test_bug_508(
                         "entity_id": "climate.mock_climate",
                         "target_temp_high": 31,
                         "target_temp_low": 31,
+                        "temperature": 31,
                     },
                 ),
             ]
