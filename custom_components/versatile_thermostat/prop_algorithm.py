@@ -1,4 +1,5 @@
 """ The TPI calculation module """
+# pylint: disable='line-too-long'
 import logging
 
 from homeassistant.components.climate import HVACMode
@@ -15,6 +16,7 @@ FUNCTION_TYPE = [PROPORTIONAL_FUNCTION_ATAN, PROPORTIONAL_FUNCTION_LINEAR]
 
 
 def is_number(value):
+    """check if value is a number"""
     return isinstance(value, (int, float))
 
 
@@ -61,7 +63,7 @@ class PropAlgorithm:
                 minimal_activation_delay,
             )
             raise TypeError(
-                f"TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values"
+                "TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values"
             )
 
         self._vtherm_entity_id = vtherm_entity_id

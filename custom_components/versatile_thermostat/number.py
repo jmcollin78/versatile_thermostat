@@ -20,7 +20,6 @@ from homeassistant.components.climate import (
     PRESET_COMFORT,
     PRESET_ECO,
 )
-from homeassistant.components.sensor import UnitOfTemperature
 
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
@@ -487,8 +486,8 @@ class TemperatureNumber(  # pylint: disable=abstract-method
             )
         )
 
-        # We set the min, max and step from central config if relevant because it is possible that central config
-        # was not loaded at startup
+        # We set the min, max and step from central config if relevant because it is possible
+        # that central config was not loaded at startup
         self.init_min_max_step()
 
     def __str__(self):

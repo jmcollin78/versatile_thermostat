@@ -33,26 +33,24 @@ _LOGGER = logging.getLogger(__name__)
 class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
-    _entity_component_unrecorded_attributes = (
-        BaseThermostat._entity_component_unrecorded_attributes.union(
-            frozenset(
-                {
-                    "is_over_valve",
-                    "underlying_valve_0",
-                    "underlying_valve_1",
-                    "underlying_valve_2",
-                    "underlying_valve_3",
-                    "on_time_sec",
-                    "off_time_sec",
-                    "cycle_min",
-                    "function",
-                    "tpi_coef_int",
-                    "tpi_coef_ext",
-                    "auto_regulation_dpercent",
-                    "auto_regulation_period_min",
-                    "last_calculation_timestamp",
-                }
-            )
+    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
+        frozenset(
+            {
+                "is_over_valve",
+                "underlying_valve_0",
+                "underlying_valve_1",
+                "underlying_valve_2",
+                "underlying_valve_3",
+                "on_time_sec",
+                "off_time_sec",
+                "cycle_min",
+                "function",
+                "tpi_coef_int",
+                "tpi_coef_ext",
+                "auto_regulation_dpercent",
+                "auto_regulation_period_min",
+                "last_calculation_timestamp",
+            }
         )
     )
 
@@ -241,10 +239,16 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             max(0, min(self.proportional_algorithm.on_percent, 1)) * 100
         )
 
+        # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
+        if new_valve_percent < self._auto_regulation_dpercent:
+            new_valve_percent = 0
+
         dpercent = new_valve_percent - self.valve_open_percent
         if (
-            dpercent >= -1 * self._auto_regulation_dpercent
-            and dpercent < self._auto_regulation_dpercent
+            new_valve_percent > 0
+            and -1 * self._auto_regulation_dpercent
+            <= dpercent
+            < self._auto_regulation_dpercent
         ):
             _LOGGER.debug(
                 "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",

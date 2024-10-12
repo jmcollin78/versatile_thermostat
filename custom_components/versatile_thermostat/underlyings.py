@@ -880,8 +880,10 @@ class UnderlyingValve(UnderlyingEntity):
     ):
         """We use this function to change the on_percent"""
         if force:
-            self._percent_open = self.cap_sent_value(self._percent_open)
-            await self.send_percent_open()
+            # self._percent_open = self.cap_sent_value(self._percent_open)
+            # await self.send_percent_open()
+            # avoid to send 2 times the same value at startup
+            self.set_valve_open_percent()
 
     @overrides
     def cap_sent_value(self, value) -> float:
