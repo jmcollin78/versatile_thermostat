@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the Window management """
 import asyncio
@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 import logging
 
+from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import (
     SERVICE_SET_TEMPERATURE,
@@ -1376,3 +1377,150 @@ async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state):
                 ),
             ]
         )
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test store and restore hvac_mode on toggle hvac state"""
+
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    # 0. initialisation
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_ACTION: CONF_WINDOW_TURN_OFF,
+            CONF_WINDOW_DELAY: 1,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_CLIMATE: "climate.mock_climate",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+        },
+    )
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="mock_climate",
+        hvac_modes=[HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, HVACMode.FAN_ONLY],
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        vtherm: ThermostatOverClimate = await create_thermostat(
+            hass, config_entry, "climate.overclimate"
+        )
+        assert vtherm is not None
+
+        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+    now: datetime = datetime.now(tz=get_tz(hass))
+
+    # 1. Set mode to Heat and preset to Comfort
+    await send_presence_change_event(vtherm, True, False, datetime.now())
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 21.0
+
+    # 2. Toggle the VTherm state
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.OFF
+
+    # 3. (re)Toggle the VTherm state
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.HEAT
+
+    # 4. Toggle from COOL
+    await vtherm.async_set_hvac_mode(HVACMode.COOL)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 23.0
+
+    # 5. Toggle the VTherm state
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.OFF
+
+    # 6. (re)Toggle the VTherm state
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.COOL
+
+    ###
+    # Same test with an open window and initial state is COOL
+    #
+    # 7. open the window
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        try_window_condition = await send_window_change_event(
+            vtherm, True, False, now, False
+        )
+        await try_window_condition(None)
+        await hass.async_block_till_done()
+
+    assert vtherm.window_state is STATE_ON
+    assert vtherm.hvac_mode == HVACMode.OFF
+
+    # 8. call toggle -> we should stay in OFF (command is ignored)
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.OFF
+
+    # 9. Close the window (we should come back to Cool this time)
+    now = now + timedelta(minutes=2)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        try_window_condition = await send_window_change_event(
+            vtherm, False, True, now, False
+        )
+        await try_window_condition(None)
+        await hass.async_block_till_done()
+
+    assert vtherm.window_state is STATE_OFF
+    assert vtherm.hvac_mode == HVACMode.COOL
+
+    # 9. call toggle -> we should come back in OFF
+    await vtherm.async_toggle()
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == HVACMode.OFF

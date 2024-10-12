@@ -3,6 +3,7 @@
 import logging
 from datetime import timedelta, datetime
 
+from homeassistant.const import STATE_ON
 from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -1104,3 +1105,29 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.choose_auto_fan_mode(CONF_AUTO_FAN_TURBO)
 
         self.update_custom_attributes()
+
+    @overrides
+    async def async_turn_off(self) -> None:
+        # if window is open, don't overwrite the saved_hvac_mode
+        if self.window_state != STATE_ON:
+            self.save_hvac_mode()
+        await self.async_set_hvac_mode(HVACMode.OFF)
+
+    @overrides
+    async def async_turn_on(self) -> None:
+
+        # don't turn_on if window is open
+        if self.window_state == STATE_ON:
+            _LOGGER.info(
+                "%s - refuse to turn on because window is open. We keep the save_hvac_mode",
+                self,
+            )
+            return
+
+        if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
+            await self.restore_hvac_mode(True)
+        else:
+            if self._ac_mode:
+                await self.async_set_hvac_mode(HVACMode.COOL)
+            else:
+                await self.async_set_hvac_mode(HVACMode.HEAT)
