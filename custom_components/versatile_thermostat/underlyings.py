@@ -622,6 +622,8 @@ class UnderlyingClimate(UnderlyingEntity):
                 ATTR_ENTITY_ID: self._entity_id,
                 "target_temp_high": target_temp,
                 "target_temp_low": target_temp,
+                # issue 518 - we should send also the target temperature, even in TARGET RANGE
+                "temperature": target_temp,
             }
         else:
             data = {
