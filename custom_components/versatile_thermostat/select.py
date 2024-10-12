@@ -3,19 +3,15 @@
 """ Implements the VersatileThermostat select component """
 import logging
 
-from homeassistant.const import EVENT_HOMEASSISTANT_START
-from homeassistant.core import HomeAssistant, CoreState, callback
+from homeassistant.core import HomeAssistant
 
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_component import EntityComponent
 
 from custom_components.versatile_thermostat.base_thermostat import (
-    BaseThermostat,
     ConfigData,
 )
 
@@ -125,6 +121,12 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
         if option in CENTRAL_MODES:
             self._attr_current_option = option
             await self.notify_central_mode_change(old_central_mode=old_option)
+
+    @overrides
+    def select_option(self, option: str) -> None:
+        """Change the selected option"""
+        # Update the VTherms which have temperature in central config
+        self.hass.create_task(self.async_select_option(option))
 
     async def notify_central_mode_change(self, old_central_mode: str | None = None):
         """Notify all VTherm that the central_mode have change"""

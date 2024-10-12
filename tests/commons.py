@@ -552,7 +552,14 @@ class MockNumber(NumberEntity):
     """A fake switch to be used instead real switch"""
 
     def __init__(  # pylint: disable=unused-argument, dangerous-default-value
-        self, hass: HomeAssistant, unique_id, name, entry_infos={}
+        self,
+        hass: HomeAssistant,
+        unique_id,
+        name,
+        min=0,
+        max=100,
+        step=1,
+        entry_infos={},
     ):
         """Init the switch"""
         super().__init__()
@@ -562,7 +569,9 @@ class MockNumber(NumberEntity):
         self.entity_id = self.platform + "." + unique_id
         self._name = name
         self._attr_native_value = 0
-        self._attr_native_min_value = 0
+        self._attr_native_min_value = min
+        self._attr_native_max_value = max
+        self._attr_step = step
 
     @property
     def name(self) -> str:
@@ -992,3 +1001,26 @@ async def set_climate_preset_temp(
             "commons tests set_cliamte_preset_temp: cannot find number entity with entity_id '%s'",
             number_entity_id,
         )
+
+
+async def set_all_climate_preset_temp(
+    hass, vtherm: BaseThermostat, temps: dict, number_entity_base_name: str
+):
+    """Initialize all temp of preset for a VTherm entity"""
+    # We initialize
+    for preset_name, value in temps.items():
+
+        await set_climate_preset_temp(vtherm, preset_name, value)
+
+        # Search the number entity to control it is correctly set
+        number_entity_name = (
+            f"number.{number_entity_base_name}_preset_{preset_name}{PRESET_TEMP_SUFFIX}"
+        )
+        temp_entity: NumberEntity = search_entity(
+            hass,
+            number_entity_name,
+            NUMBER_DOMAIN,
+        )
+        assert temp_entity
+        # Because set_value is not implemented in Number class (really don't understand why...)
+        assert temp_entity.state == value
