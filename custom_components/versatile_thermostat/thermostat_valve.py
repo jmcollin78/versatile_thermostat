@@ -270,7 +270,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._last_calculation_timestamp = now
 
         self.update_custom_attributes()
-        self.async_write_ha_state()
+        # already done in update_custom_attributes
+        # self.async_write_ha_state()
 
     @overrides
     def incremente_energy(self):
@@ -286,6 +287,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             self._total_energy = added_energy
         else:
             self._total_energy += added_energy
+
+        self.update_custom_attributes()
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
