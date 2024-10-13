@@ -57,6 +57,13 @@ from .underlyings import UnderlyingClimate
 
 _LOGGER = logging.getLogger(__name__)
 
+HVAC_ACTION_ON = [  # pylint: disable=invalid-name
+    HVACAction.COOLING,
+    HVACAction.DRYING,
+    HVACAction.FAN,
+    HVACAction.HEATING,
+]
+
 
 class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     """Representation of a base class for a Versatile Thermostat over a climate"""
@@ -636,6 +643,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if not new_state:
             return
 
+        # Find the underlying which have change
+        under = self.find_underlying_by_entity_id(new_state.entity_id)
+
+        if not under:
+            _LOGGER.warning(
+                "We have a receive an event from entity %s which is NOT one of our underlying entities. This is not normal and should be reported to the developper of the integration"
+            )
+            return
+
         changes = False
         new_hvac_mode = new_state.state
 
@@ -670,20 +686,44 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             new_state.last_updated if new_state and new_state.last_updated else None
         )
 
+        new_target_temp = (
+            new_state.attributes.get("temperature")
+            if new_state and new_state.attributes
+            else None
+        )
+
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
         # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
         #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
         #    new_hvac_mode = HVACMode.OFF
 
+        # Forget event when the event holds no real changes
+        if (
+            new_hvac_mode == self._hvac_mode
+            and new_hvac_action == old_hvac_action
+            and new_target_temp is None
+            and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode)
+        ):
+            _LOGGER.debug(
+                "%s - a underlying state change event is received but no real change have been found. Forget the event",
+                self,
+            )
+            return
+
+        # A real changes have to be managed
         _LOGGER.info(
-            "%s - Underlying climate %s changed. Event.new_hvac_mode is %s, current_hvac_mode=%s, new_hvac_action=%s, old_hvac_action=%s",
+            "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
             self,
-            new_state.entity_id,
+            under.entity_id,
             new_hvac_mode,
             self._hvac_mode,
             new_hvac_action,
             old_hvac_action,
+            new_target_temp,
+            self.target_temperature,
+            new_fan_mode,
+            self._attr_fan_mode,
         )
 
         _LOGGER.debug(
@@ -697,12 +737,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
         # Interpretation of hvac action
-        HVAC_ACTION_ON = [  # pylint: disable=invalid-name
-            HVACAction.COOLING,
-            HVACAction.DRYING,
-            HVACAction.FAN,
-            HVACAction.HEATING,
-        ]
         if old_hvac_action not in HVAC_ACTION_ON and new_hvac_action in HVAC_ACTION_ON:
             self._underlying_climate_start_hvac_action_date = (
                 self.get_last_updated_date_or_now(new_state)
@@ -735,6 +769,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             changes = True
 
+        # Filter new state when received just after a change from VTherm
         # Issue #120 - Some TRV are changing target temperature a very long time (6 sec) after the change.
         # In that case a loop is possible if a user change multiple times during this 6 sec.
         if new_state_date_updated and self._last_change_time:
@@ -747,6 +782,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 await end_climate_changed(changes)
                 return
 
+        # Update all underlyings hvac_mode state if it has change
         if (
             new_hvac_mode
             in [
@@ -761,7 +797,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             ]
             and self._hvac_mode != new_hvac_mode
         ):
-            # Update all underlyings state
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
@@ -792,27 +827,31 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self._attr_fan_mode = new_fan_mode
             changes = True
 
+        # try to manage new target temperature set if state if no other changes have been found
         if not changes:
-            # try to manage new target temperature set if state
             _LOGGER.debug(
-                "Do temperature check. temperature is %s, new_state.attributes is %s",
-                self.target_temperature,
-                new_state.attributes,
+                "Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
+                under.last_sent_temperature,
+                new_target_temp,
             )
             if (
-                # we do not change target temperature on regulated VTherm
-                not self.is_regulated
-                and new_state.attributes
-                and (new_target_temp := new_state.attributes.get("temperature"))
-                and new_target_temp != self.target_temperature
+                # if the underlying have change its target temperature
+                new_target_temp is not None
+                and new_target_temp != under.last_sent_temperature
             ):
                 _LOGGER.info(
-                    "%s - Target temp in underlying have change to %s",
+                    "%s - Target temp in underlying have change to %s (vs %s)",
                     self,
                     new_target_temp,
+                    under.last_sent_temperature,
                 )
                 await self.async_set_temperature(temperature=new_target_temp)
                 changes = True
+            else:
+                _LOGGER.debug(
+                    "%s - Forget the eventual underlying temperature change because VTherm is regulated",
+                    self,
+                )
 
         await end_climate_changed(changes)
 

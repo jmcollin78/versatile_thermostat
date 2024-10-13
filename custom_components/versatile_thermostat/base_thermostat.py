@@ -15,10 +15,12 @@ from homeassistant.core import (
     callback,
     Event,
     State,
+
 )
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.entity import Entity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 
@@ -1159,9 +1161,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return len(self._underlyings)
 
     @property
-    def underlying_entities(self) -> int:
+    def underlying_entities(self) -> list | None:
         """Returns the underlying entities"""
         return self._underlyings
+
+    def find_underlying_by_entity_id(self, entity_id: str) -> Entity | None:
+        """Get the underlying entity by a entity_id"""
+        for under in self._underlyings:
+            if under.entity_id == entity_id:
+                return under
+        return None
 
     @property
     def is_on(self) -> bool:

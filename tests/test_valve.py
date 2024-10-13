@@ -551,7 +551,9 @@ async def test_over_valve_regulation(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_bug_533(
+    hass: HomeAssistant, skip_hass_states_is_state
+):  # pylint: disable=unused-argument
     """Test that with an over_valve and _auto_regulation_dpercent is set that the valve could close totally"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)

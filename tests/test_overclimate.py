@@ -128,18 +128,6 @@ async def test_bug_82(
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
 
@@ -239,18 +227,6 @@ async def test_bug_101(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
 
@@ -286,7 +262,7 @@ async def test_bug_101(
         assert mock_find_climate.mock_calls[0] == call()
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
-        # Force preset mode
+        # 1. Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
         await entity.async_set_preset_mode(PRESET_COMFORT)
@@ -306,7 +282,7 @@ async def test_bug_101(
         assert entity.target_temperature == 17
         assert entity.preset_mode is PRESET_COMFORT
 
-        # 2. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
+        # 3. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
         # Wait 11 sec
         event_timestamp = now + timedelta(seconds=11)
         assert entity.is_regulated is False
