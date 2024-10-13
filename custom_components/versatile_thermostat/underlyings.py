@@ -488,6 +488,7 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_id=climate_entity_id,
         )
         self._underlying_climate = None
+        self._last_sent_temperature = None
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
@@ -637,6 +638,13 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
+        self._last_sent_temperature = target_temp
+
+    @property
+    def last_sent_temperature(self) -> float | None:
+        """Get the last send temperature. None if no temperature have been sent yet"""
+        return self._last_sent_temperature
+
     @property
     def hvac_action(self) -> HVACAction | None:
         """Get the hvac action of the underlying"""
@@ -720,6 +728,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return 15
         return self._underlying_climate.target_temperature_low
+
+    @property
+    def target_temperature(self) -> float:
+        """Get the target_temperature"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.target_temperature
 
     @property
     def is_aux_heat(self) -> bool:

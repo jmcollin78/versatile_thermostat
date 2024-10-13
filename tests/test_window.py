@@ -1925,3 +1925,162 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
 
     # Clean the entity
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_66(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that it should be possible to open/close the window rapidly without side effect"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_HEATER: "switch.mock_switch",
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,  # !! here
+            CONF_DEVICE_POWER: 200,
+            CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
+            CONF_WINDOW_DELAY: 0,  # important to not been obliged to wait
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theoverswitchmockname"
+    )
+    assert entity
+
+    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(PRESET_BOOST)
+
+    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.preset_mode is PRESET_BOOST
+    assert entity.target_temperature == 19
+    assert entity.window_state is STATE_OFF
+
+    # Open the window and let the thermostat shut down
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ) as mock_condition, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=True,
+    ):
+        await send_temperature_change_event(entity, 15, now)
+        try_window_condition = await send_window_change_event(
+            entity, True, False, now, False
+        )
+
+        # simulate the call to try_window_condition
+        await try_window_condition(None)
+
+        assert mock_send_event.call_count == 1
+        assert mock_heater_on.call_count == 1
+        assert mock_heater_off.call_count >= 1
+        assert mock_condition.call_count == 1
+
+        assert entity.window_state == STATE_ON
+
+    # Close the window but too shortly
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "homeassistant.helpers.condition.state", return_value=False
+    ) as mock_condition, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=False,
+    ):
+        event_timestamp = now + timedelta(minutes=1)
+        try_window_condition = await send_window_change_event(
+            entity, False, True, event_timestamp
+        )
+        # simulate the call to try_window_condition
+        await try_window_condition(None)
+
+        # window state should not have change
+        assert entity.window_state == STATE_ON
+
+    # Reopen immediatly with sufficient time
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ) as mock_condition, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=False,
+    ):
+        try_window_condition = await send_window_change_event(
+            entity, True, False, event_timestamp
+        )
+        # simulate the call to try_window_condition
+        await try_window_condition(None)
+
+        # still no change
+        assert entity.window_state == STATE_ON
+        assert entity.hvac_mode == HVACMode.OFF
+
+    # Close the window but with sufficient time this time
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+    ) as mock_heater_off, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ) as mock_condition, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        return_value=False,
+    ):
+        event_timestamp = now + timedelta(minutes=2)
+        try_window_condition = await send_window_change_event(
+            entity, False, True, event_timestamp
+        )
+        # simulate the call to try_window_condition
+        await try_window_condition(None)
+
+        # window state should be Off this time and old state should have been restored
+        assert entity.window_state == STATE_OFF
+        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.preset_mode is PRESET_BOOST
