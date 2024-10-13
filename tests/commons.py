@@ -931,6 +931,7 @@ async def send_climate_change_event_with_temperature(
     date,
     temperature,
     sleep=True,
+    underlying_entity_id=None,
 ):
     """Sending a new climate event simulating a change on the underlying climate state"""
     _LOGGER.info(
@@ -943,18 +944,21 @@ async def send_climate_change_event_with_temperature(
         temperature,
         entity,
     )
+    if not underlying_entity_id:
+        underlying_entity_id = entity.entity_id
+
     climate_event = Event(
         EVENT_STATE_CHANGED,
         {
             "new_state": State(
-                entity_id=entity.entity_id,
+                entity_id=underlying_entity_id,
                 state=new_hvac_mode,
                 attributes={"hvac_action": new_hvac_action, "temperature": temperature},
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
-                entity_id=entity.entity_id,
+                entity_id=underlying_entity_id,
                 state=old_hvac_mode,
                 attributes={"hvac_action": old_hvac_action},
                 last_changed=date,

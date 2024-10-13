@@ -283,6 +283,7 @@ async def test_sensors_over_climate(
         new_hvac_action=HVACAction.HEATING,
         old_hvac_action=HVACAction.OFF,
         date=event_timestamp,
+        underlying_entity_id="climate.mock_climate",
     )
 
     # Send a climate_change event with HVACAction=IDLE (end of heating)
@@ -293,6 +294,7 @@ async def test_sensors_over_climate(
         new_hvac_action=HVACAction.IDLE,
         old_hvac_action=HVACAction.HEATING,
         date=now,
+        underlying_entity_id="climate.mock_climate",
     )
 
     # 60 minutes heating with 1.5 kW heating -> 1.5 kWh

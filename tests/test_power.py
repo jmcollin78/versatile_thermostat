@@ -433,6 +433,7 @@ async def test_power_management_energy_over_climate(
         new_hvac_action=HVACAction.HEATING,
         old_hvac_action=HVACAction.OFF,
         date=event_timestamp,
+        underlying_entity_id="climate.mock_climate",
     )
     # We have the start event and not the end event
     assert (entity._underlying_climate_start_hvac_action_date - now).total_seconds() < 1
@@ -448,6 +449,7 @@ async def test_power_management_energy_over_climate(
         new_hvac_action=HVACAction.IDLE,
         old_hvac_action=HVACAction.HEATING,
         date=now,
+        underlying_entity_id="climate.mock_climate",
     )
     # We have the end event -> we should have some power and on_percent
     assert entity._underlying_climate_start_hvac_action_date is None

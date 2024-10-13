@@ -277,6 +277,8 @@ async def test_bug_101(
             HVACAction.OFF,
             now,
             12.75,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
         )
         # Should NOT have been switched to Manual preset
         assert entity.target_temperature == 17
@@ -294,6 +296,8 @@ async def test_bug_101(
             HVACAction.OFF,
             event_timestamp,
             12.75,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
         )
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE

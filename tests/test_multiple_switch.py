@@ -596,6 +596,7 @@ async def test_multiple_climates_underlying_changes(
             HVACAction.IDLE,
             HVACAction.OFF,
             event_timestamp,
+            underlying_entity_id="switch.mock_climate3",
         )
 
         # Should be call for all Switch
