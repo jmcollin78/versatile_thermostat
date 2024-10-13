@@ -6,10 +6,6 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACAction, HVACMode
-from homeassistant.config_entries import ConfigEntryState
-
-from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -551,3 +547,166 @@ async def test_over_valve_regulation(
 
         assert mock_service_call.call_count == 0
         assert mock_send_event.call_count == 0
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test that with an over_valve and _auto_regulation_dpercent is set that the valve could close totally"""
+
+    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+    }
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverValveMockName",
+        unique_id="overValveUniqueId",
+        data={
+            CONF_NAME: "overValve",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_VALVE: "number.mock_valve",
+            CONF_AUTO_REGULATION_DTEMP: 10,  # This parameter makes the bug
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 60,
+        },
+        # | temps,
+    )
+
+    # Not used because number is not registred so we can use directly the underlying number
+    # fake_underlying_number = MockNumber(
+    #     hass=hass, unique_id="mock_number", name="mock_number"
+    # )
+
+    vtherm: ThermostatOverValve = await create_thermostat(
+        hass, config_entry, "climate.overvalve"
+    )
+
+    assert vtherm is not None
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # Set all temps and check they are correctly initialized
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overvalve")
+    await send_temperature_change_event(vtherm, 15, now)
+    await send_ext_temperature_change_event(vtherm, 15, now)
+
+    # 1. Set mode to Heat and preset to Comfort
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    with patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="number.mock_valve",
+            state="100",
+            attributes={"min": 0, "max": 100},
+        ),
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await vtherm.async_set_preset_mode(PRESET_COMFORT)
+        await hass.async_block_till_done()
+
+        assert vtherm.target_temperature == 19.0
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 100},
+                    target={"entity_id": "number.mock_valve"},
+                ),
+            ]
+        )
+
+    # 2. set current temperature to 18 -> still 50% open, so there is a call
+    now = now + timedelta(minutes=1)
+    with patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="number.mock_valve",
+            state="100",
+            attributes={"min": 0, "max": 100},
+        ),
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await send_temperature_change_event(vtherm, 18, now)
+        await hass.async_block_till_done()
+
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 50},
+                    target={"entity_id": "number.mock_valve"},
+                ),
+            ]
+        )
+
+    # 3. set current temperature to 18.8 -> still 10% open, so there is one call
+    now = now + timedelta(minutes=1)
+    with patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="number.mock_valve",
+            state="50",
+            attributes={"min": 0, "max": 100},
+        ),
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await send_temperature_change_event(vtherm, 18.8, now)
+        await hass.async_block_till_done()
+
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 10},
+                    target={"entity_id": "number.mock_valve"},
+                ),
+            ]
+        )
+
+    # 4. set current temperature to 19 -> should have 0% open and one call to set the 0
+    now = now + timedelta(minutes=1)
+    with patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="number.mock_valve",
+            state="10",  # the previous value
+            attributes={"min": 0, "max": 100},
+        ),
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await send_temperature_change_event(vtherm, 19, now)
+        await hass.async_block_till_done()
+
+        assert mock_service_call.call_count == 1
+        mock_service_call.assert_has_calls(
+            [
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 0},
+                    target={"entity_id": "number.mock_valve"},
+                ),
+            ]
+        )
