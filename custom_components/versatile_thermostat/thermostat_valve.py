@@ -19,6 +19,11 @@ from .const import (
     CONF_VALVE_2,
     CONF_VALVE_3,
     CONF_VALVE_4,
+    CONF_VALVE_5,
+    CONF_VALVE_6,
+    CONF_VALVE_7,
+    CONF_VALVE_8,
+    CONF_VALVE_9,
     # This is not really self-regulation but regulation here
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
@@ -112,6 +117,16 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             lst_valves.append(config_entry.get(CONF_VALVE_3))
         if config_entry.get(CONF_VALVE_4):
             lst_valves.append(config_entry.get(CONF_VALVE_4))
+        if config_entry.get(CONF_VALVE_5):
+            lst_valves.append(config_entry.get(CONF_VALVE_5))
+        if config_entry.get(CONF_VALVE_6):
+            lst_valves.append(config_entry.get(CONF_VALVE_6))
+        if config_entry.get(CONF_VALVE_7):
+            lst_valves.append(config_entry.get(CONF_VALVE_7))
+        if config_entry.get(CONF_VALVE_8):
+            lst_valves.append(config_entry.get(CONF_VALVE_8))
+        if config_entry.get(CONF_VALVE_9):
+            lst_valves.append(config_entry.get(CONF_VALVE_9))
 
         for _, valve in enumerate(lst_valves):
             self._underlyings.append(
