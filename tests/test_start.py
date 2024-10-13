@@ -196,7 +196,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity._presence_state is None
         assert entity._prop_algorithm is not None
 
-        assert entity.nb_underlying_entities == 4
+        assert entity.nb_underlying_entities == 5
 
         # Checks that we have the 4 UnderlyingEntity correctly configured
         for idx in range(4):
@@ -204,7 +204,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
             assert under is not None
             assert isinstance(under, UnderlyingSwitch)
             assert under.entity_id == "switch.mock_4switch" + str(idx)
-            assert under.initial_delay_sec == 8 * 60 / 4 * idx
+            assert under.initial_delay_sec == 8 * 60 / 5 * idx
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -251,6 +251,8 @@ async def test_over_switch_deactivate_preset(
             CONF_HEATER_2: None,
             CONF_HEATER_3: None,
             CONF_HEATER_4: None,
+            CONF_HEATER_5: None,
+            CONF_HEATER_6: None,
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_SECURITY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,

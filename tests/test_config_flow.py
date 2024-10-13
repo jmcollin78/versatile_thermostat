@@ -796,6 +796,7 @@ async def test_user_config_flow_over_4_switches(
         CONF_HEATER_2: "switch.mock_switch2",
         CONF_HEATER_3: "switch.mock_switch3",
         CONF_HEATER_4: "switch.mock_switch4",
+        CONF_HEATER_5: "switch.mock_switch5",
         CONF_HEATER_KEEP_ALIVE: 0,
         CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
         CONF_AC_MODE: False,

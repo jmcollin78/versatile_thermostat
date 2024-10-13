@@ -57,6 +57,8 @@ CONF_HEATER = "heater_entity_id"
 CONF_HEATER_2 = "heater_entity2_id"
 CONF_HEATER_3 = "heater_entity3_id"
 CONF_HEATER_4 = "heater_entity4_id"
+CONF_HEATER_5 = "heater_entity5_id"
+CONF_HEATER_6 = "heater_entity6_id"
 CONF_HEATER_KEEP_ALIVE = "heater_keep_alive"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"
 CONF_LAST_SEEN_TEMP_SENSOR = "last_seen_temperature_sensor_entity_id"
@@ -92,6 +94,8 @@ CONF_CLIMATE = "climate_entity_id"
 CONF_CLIMATE_2 = "climate_entity2_id"
 CONF_CLIMATE_3 = "climate_entity3_id"
 CONF_CLIMATE_4 = "climate_entity4_id"
+CONF_CLIMATE_5 = "climate_entity5_id"
+CONF_CLIMATE_6 = "climate_entity6_id"
 CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
@@ -105,6 +109,8 @@ CONF_VALVE = "valve_entity_id"
 CONF_VALVE_2 = "valve_entity2_id"
 CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
+CONF_VALVE_5 = "valve_entity5_id"
+CONF_VALVE_6 = "valve_entity6_id"
 CONF_AUTO_REGULATION_MODE = "auto_regulation_mode"
 CONF_AUTO_REGULATION_NONE = "auto_regulation_none"
 CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
@@ -220,6 +226,8 @@ ALL_CONF = (
         CONF_HEATER_2,
         CONF_HEATER_3,
         CONF_HEATER_4,
+        CONF_HEATER_5,
+        CONF_HEATER_6,
         CONF_HEATER_KEEP_ALIVE,
         CONF_TEMP_SENSOR,
         CONF_EXTERNAL_TEMP_SENSOR,
@@ -253,6 +261,8 @@ ALL_CONF = (
         CONF_CLIMATE_2,
         CONF_CLIMATE_3,
         CONF_CLIMATE_4,
+        CONF_CLIMATE_5,
+        CONF_CLIMATE_6,
         CONF_USE_WINDOW_FEATURE,
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
@@ -263,6 +273,8 @@ ALL_CONF = (
         CONF_VALVE_2,
         CONF_VALVE_3,
         CONF_VALVE_4,
+        CONF_VALVE_5,
+        CONF_VALVE_6,
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,

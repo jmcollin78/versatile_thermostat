@@ -93,6 +93,7 @@ MOCK_TH_OVER_4SWITCH_TYPE_CONFIG = {
     CONF_HEATER_2: "switch.mock_4switch1",
     CONF_HEATER_3: "switch.mock_4switch2",
     CONF_HEATER_4: "switch.mock_4switch3",
+    CONF_HEATER_5: "switch.mock_4switch4",
     CONF_HEATER_KEEP_ALIVE: 0,
     CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
     CONF_AC_MODE: False,

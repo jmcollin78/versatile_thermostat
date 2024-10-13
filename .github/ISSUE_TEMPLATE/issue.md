@@ -94,6 +94,8 @@ underlying_switch_0: input_boolean.fake_heater_switch1
 underlying_switch_1: null
 underlying_switch_2: null
 underlying_switch_3: null
+underlying_switch_4: null
+underlying_switch_5: null
 on_percent: 0.1
 on_time_sec: 6
 off_time_sec: 54
