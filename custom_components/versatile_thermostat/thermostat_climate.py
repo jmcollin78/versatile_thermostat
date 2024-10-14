@@ -692,8 +692,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             else None
         )
 
+        last_sent_temperature = under.last_sent_temperature or 0
         under_temp_diff = (
-            (new_target_temp - under.last_sent_temperature) if new_target_temp else 0
+            (new_target_temp - last_sent_temperature) if new_target_temp else 0
         )
         if -1 < under_temp_diff < 1:
             under_temp_diff = 0
