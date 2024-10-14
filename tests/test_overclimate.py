@@ -302,6 +302,23 @@ async def test_bug_101(
         assert entity.target_temperature == 12.75
         assert entity.preset_mode is PRESET_NONE
 
+        # 4. Change the target temp with < 1 value. The value should not be taken
+        # Wait 11 sec
+        event_timestamp = now + timedelta(seconds=11)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            event_timestamp,
+            12.5,  # 12.75 means 13 in vtherm
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        assert entity.target_temperature == 12.75
+        assert entity.preset_mode is PRESET_NONE
+
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_508(
