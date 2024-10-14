@@ -692,6 +692,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             else None
         )
 
+        under_temp_diff = (
+            (new_target_temp - under.last_sent_temperature) if new_target_temp else 0
+        )
+        if -1 < under_temp_diff < 1:
+            under_temp_diff = 0
+
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
         # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
@@ -702,7 +708,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if (
             new_hvac_mode == self._hvac_mode
             and new_hvac_action == old_hvac_action
-            and new_target_temp is None
+            and under_temp_diff == 0
             and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode)
         ):
             _LOGGER.debug(
@@ -834,11 +840,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 under.last_sent_temperature,
                 new_target_temp,
             )
-            if (
-                # if the underlying have change its target temperature
-                new_target_temp is not None
-                and new_target_temp != under.last_sent_temperature
-            ):
+            # if the underlying have change its target temperature
+            if under_temp_diff != 0:
                 _LOGGER.info(
                     "%s - Target temp in underlying have change to %s (vs %s)",
                     self,
@@ -849,7 +852,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 changes = True
             else:
                 _LOGGER.debug(
-                    "%s - Forget the eventual underlying temperature change because VTherm is regulated",
+                    "%s - Forget the eventual underlying temperature change there is no real change",
                     self,
                 )
 
