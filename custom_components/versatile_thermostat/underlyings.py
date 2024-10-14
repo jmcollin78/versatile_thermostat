@@ -552,7 +552,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if self.is_initialized:
             return (
                 self._underlying_climate.hvac_mode != HVACMode.OFF
-                and self._underlying_climate.hvac_action
+                and self.hvac_action
                 not in [
                     HVACAction.IDLE,
                     HVACAction.OFF,
@@ -650,7 +650,36 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the hvac action of the underlying"""
         if not self.is_initialized:
             return None
-        return self._underlying_climate.hvac_action
+
+        hvac_action = self._underlying_climate.hvac_action
+        if hvac_action is None:
+            target = (
+                self.underlying_target_temperature
+                or self._thermostat.target_temperature
+            )
+            current = (
+                self.underlying_current_temperature
+                or self._thermostat.current_temperature
+            )
+            hvac_mode = self.hvac_mode
+
+            _LOGGER.debug(
+                "%s - hvac_action simulation target=%s, current=%s, hvac_mode=%s",
+                self,
+                target,
+                current,
+                hvac_mode,
+            )
+            hvac_action = HVACAction.IDLE
+            if target is not None and current is not None:
+                dtemp = target - current
+
+                if hvac_mode == HVACMode.COOL and dtemp < 0:
+                    hvac_action = HVACAction.COOLING
+                elif hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL] and dtemp > 0:
+                    hvac_action = HVACAction.HEATING
+
+        return hvac_action
 
     @property
     def hvac_mode(self) -> HVACMode | None:
@@ -730,18 +759,19 @@ class UnderlyingClimate(UnderlyingEntity):
         return self._underlying_climate.target_temperature_low
 
     @property
-    def target_temperature(self) -> float:
+    def underlying_target_temperature(self) -> float:
         """Get the target_temperature"""
         if not self.is_initialized:
             return None
-        return self._underlying_climate.target_temperature
 
-    @property
-    def is_aux_heat(self) -> bool:
-        """Get the is_aux_heat"""
-        if not self.is_initialized:
-            return False
-        return self._underlying_climate.is_aux_heat
+        if not hasattr(self._underlying_climate, "target_temperature"):
+            return None
+        else:
+            return self._underlying_climate.target_temperature
+
+        # return self._hass.states.get(self._entity_id).attributes.get(
+        #    "target_temperature"
+        # )
 
     @property
     def underlying_current_temperature(self) -> float | None:
@@ -752,8 +782,17 @@ class UnderlyingClimate(UnderlyingEntity):
 
         if not hasattr(self._underlying_climate, "current_temperature"):
             return None
+        else:
+            return self._underlying_climate.current_temperature
 
-        return self._hass.states.get(self._entity_id).attributes.get("current_temperature")
+        # return self._hass.states.get(self._entity_id).attributes.get("current_temperature")
+
+    @property
+    def is_aux_heat(self) -> bool:
+        """Get the is_aux_heat"""
+        if not self.is_initialized:
+            return False
+        return self._underlying_climate.is_aux_heat
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
