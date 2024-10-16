@@ -1654,11 +1654,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             if not long_enough:
                 _LOGGER.debug(
-                    "Motion delay condition is not satisfied. Check motion sensor state"
+                    "Motion delay condition is not satisfied (the sensor have change its state during the delay). Check motion sensor state"
                 )
                 # Get sensor current state
                 motion_state = self.hass.states.get(self._motion_sensor_entity_id)
-                if motion_state == new_state.state and new_state.state == STATE_ON:
+                _LOGGER.debug(
+                    "%s - motion_state=%s, new_state.state=%s",
+                    self,
+                    motion_state.state,
+                    new_state.state,
+                )
+                if (
+                    motion_state.state == new_state.state
+                    and new_state.state == STATE_ON
+                ):
                     _LOGGER.debug(
                         "%s - the motion sensor is finally 'on' after the delay", self
                     )

@@ -97,7 +97,12 @@ async def test_movement_management_time_not_enough(
         return_value=False,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=False
-    ) as mock_condition:
+    ) as mock_condition, patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
+        ),
+    ):
         event_timestamp = now - timedelta(minutes=4)
         try_condition = await send_motion_change_event(entity, True, False, event_timestamp)
 
@@ -156,7 +161,12 @@ async def test_movement_management_time_not_enough(
         return_value=True,
     ) as mock_device_active, patch(
         "homeassistant.helpers.condition.state", return_value=False
-    ) as mock_condition:
+    ) as mock_condition, patch(
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
+        ),
+    ):
         event_timestamp = now - timedelta(minutes=2)
         try_condition = await send_motion_change_event(entity, False, True, event_timestamp)
 
@@ -685,7 +695,10 @@ async def test_movement_management_with_stop_during_condition_last_state_on(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ), patch("homeassistant.helpers.condition.state", return_value=False), patch(
-        "homeassistant.core.StateMachine.get", return_value=STATE_OFF
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
+        ),
     ):
         event_timestamp = now - timedelta(minutes=5)
         try_condition1 = await send_motion_change_event(
@@ -705,7 +718,10 @@ async def test_movement_management_with_stop_during_condition_last_state_on(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         return_value=True,
     ), patch("homeassistant.helpers.condition.state", return_value=False), patch(
-        "homeassistant.core.StateMachine.get", return_value=STATE_ON
+        "homeassistant.core.StateMachine.get",
+        return_value=State(
+            entity_id="binary_sensor.mock_motion_sensor", state=STATE_ON
+        ),
     ):
         event_timestamp = now - timedelta(minutes=5)
         try_condition1 = await send_motion_change_event(
