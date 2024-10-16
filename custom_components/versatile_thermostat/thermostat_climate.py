@@ -27,6 +27,11 @@ from .const import (
     CONF_CLIMATE_2,
     CONF_CLIMATE_3,
     CONF_CLIMATE_4,
+    CONF_CLIMATE_5,
+    CONF_CLIMATE_6,
+    CONF_CLIMATE_7,
+    CONF_CLIMATE_8,
+    CONF_CLIMATE_9,
     CONF_AUTO_REGULATION_MODE,
     CONF_AUTO_REGULATION_NONE,
     CONF_AUTO_REGULATION_SLOW,
@@ -314,6 +319,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             CONF_CLIMATE_2,
             CONF_CLIMATE_3,
             CONF_CLIMATE_4,
+            CONF_CLIMATE_5,
+            CONF_CLIMATE_6,
+            CONF_CLIMATE_7,
+            CONF_CLIMATE_8,
+            CONF_CLIMATE_9,
         ]:
             if config_entry.get(climate):
                 self._underlyings.append(

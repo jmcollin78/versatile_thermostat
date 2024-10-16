@@ -251,6 +251,7 @@ async def test_update_central_boiler_state_multiple(
     switch2 = MockSwitch(hass, "switch2", "theSwitch2")
     switch3 = MockSwitch(hass, "switch3", "theSwitch3")
     switch4 = MockSwitch(hass, "switch4", "theSwitch4")
+    switch5 = MockSwitch(hass, "switch5", "theSwitch5")
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -276,6 +277,7 @@ async def test_update_central_boiler_state_multiple(
             CONF_HEATER_2: switch2.entity_id,
             CONF_HEATER_3: switch3.entity_id,
             CONF_HEATER_4: switch4.entity_id,
+            CONF_HEATER_5: switch5.entity_id,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_INVERSE_SWITCH: False,
             CONF_TPI_COEF_INT: 0.3,
@@ -302,6 +304,7 @@ async def test_update_central_boiler_state_multiple(
     assert entity.underlying_entities[1].entity_id == "switch.switch2"
     assert entity.underlying_entities[2].entity_id == "switch.switch3"
     assert entity.underlying_entities[3].entity_id == "switch.switch4"
+    assert entity.underlying_entities[4].entity_id == "switch.switch5"
 
     assert api.nb_active_device_for_boiler_threshold == 1
     assert api.nb_active_device_for_boiler == 0
@@ -463,7 +466,37 @@ async def test_update_central_boiler_state_multiple(
         assert api.nb_active_device_for_boiler == 4
         assert boiler_binary_sensor.state == STATE_ON
 
-    # 5. stop a heater
+    # 5. start a 5th heater
+    with patch(
+        "homeassistant.core.ServiceRegistry.async_call"
+    ) as mock_service_call, patch(
+        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
+    ) as mock_send_event:
+        await switch5.async_turn_on()
+        switch5.async_write_ha_state()
+        # Wait for state event propagation
+        await asyncio.sleep(0.1)
+
+        assert entity.hvac_action == HVACAction.HEATING
+
+        # Only the first heater is started by the algo
+        assert mock_service_call.call_count == 1
+        # No switch of the boiler. Caution: each time a underlying heater state change itself,
+        # the cycle restarts. So it is always the first heater that is started
+        mock_service_call.assert_has_calls(
+            [
+                call.service_call(
+                    "switch",
+                    "turn_on",
+                    {"entity_id": "switch.switch1"},
+                ),
+            ]
+        )
+        assert mock_send_event.call_count == 0
+        assert api.nb_active_device_for_boiler == 5
+        assert boiler_binary_sensor.state == STATE_ON
+
+    # 6. stop a heater
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
@@ -478,10 +511,10 @@ async def test_update_central_boiler_state_multiple(
 
         assert mock_service_call.call_count == 0
         assert mock_send_event.call_count == 0
-        assert api.nb_active_device_for_boiler == 3
+        assert api.nb_active_device_for_boiler == 4
         assert boiler_binary_sensor.state == STATE_ON
 
-    # 6. stop a 2nd heater
+    # 7. stop a 2nd heater
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
@@ -489,6 +522,24 @@ async def test_update_central_boiler_state_multiple(
     ) as mock_send_event:
         await switch4.async_turn_off()
         switch4.async_write_ha_state()
+        # Wait for state event propagation
+        await asyncio.sleep(0.1)
+
+        assert entity.hvac_action == HVACAction.HEATING
+
+        assert mock_service_call.call_count == 0
+        assert mock_send_event.call_count == 0
+        assert api.nb_active_device_for_boiler == 3
+        assert boiler_binary_sensor.state == STATE_ON
+
+    # 8. stop a 3rd heater
+    with patch(
+        "homeassistant.core.ServiceRegistry.async_call"
+    ) as mock_service_call, patch(
+        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
+    ) as mock_send_event:
+        await switch5.async_turn_off()
+        switch5.async_write_ha_state()
         # Wait for state event propagation
         await asyncio.sleep(0.1)
 
