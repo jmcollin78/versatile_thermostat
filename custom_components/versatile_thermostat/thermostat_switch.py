@@ -14,6 +14,8 @@ from .const import (
     CONF_HEATER_2,
     CONF_HEATER_3,
     CONF_HEATER_4,
+    CONF_HEATER_5,
+    CONF_HEATER_6,
     CONF_HEATER_KEEP_ALIVE,
     CONF_INVERSE_SWITCH,
     overrides,
@@ -39,6 +41,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                     "underlying_switch_1",
                     "underlying_switch_2",
                     "underlying_switch_3",
+                    "underlying_switch_4",
+                    "underlying_switch_5",
                     "on_time_sec",
                     "off_time_sec",
                     "cycle_min",
@@ -97,6 +101,10 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             lst_switches.append(config_entry.get(CONF_HEATER_3))
         if config_entry.get(CONF_HEATER_4):
             lst_switches.append(config_entry.get(CONF_HEATER_4))
+        if config_entry.get(CONF_HEATER_5):
+            lst_switches.append(config_entry.get(CONF_HEATER_5))
+        if config_entry.get(CONF_HEATER_6):
+            lst_switches.append(config_entry.get(CONF_HEATER_6))
 
         delta_cycle = self._cycle_min * 60 / len(lst_switches)
         for idx, switch in enumerate(lst_switches):
@@ -149,6 +157,12 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         )
         self._attr_extra_state_attributes["underlying_switch_3"] = (
             self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
+        )
+        self._attr_extra_state_attributes["underlying_switch_4"] = (
+            self._underlyings[4].entity_id if len(self._underlyings) > 4 else None
+        )
+        self._attr_extra_state_attributes["underlying_switch_5"] = (
+            self._underlyings[5].entity_id if len(self._underlyings) > 5 else None
         )
 
         self._attr_extra_state_attributes[
