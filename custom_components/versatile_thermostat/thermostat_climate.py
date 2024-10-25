@@ -719,6 +719,22 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             return
 
+        # Forget event when the new target temperature is out of range
+        if (
+            not new_target_temp is None
+            and not self._attr_min_temp is None
+            and not self._attr_max_temp is None
+            and (new_target_temp < self._attr_min_temp or new_target_temp > self._attr_max_temp)
+        ):
+            _LOGGER.debug(
+                "%s - underlying sent a target temperature (%s) which is out of configured min/max range (%s / %s). The value will be ignored",
+                self,
+                new_target_temp,
+                self._attr_min_temp,
+                self._attr_max_temp,
+            )
+            return
+
         # A real changes have to be managed
         _LOGGER.info(
             "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
