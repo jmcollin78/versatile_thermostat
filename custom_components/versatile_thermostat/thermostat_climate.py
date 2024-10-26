@@ -724,7 +724,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             not new_target_temp is None
             and not self._attr_min_temp is None
             and not self._attr_max_temp is None
-            and (new_target_temp < self._attr_min_temp or new_target_temp > self._attr_max_temp)
+            and not (self._attr_min_temp <= new_target_temp <= self._attr_max_temp)
         ):
             _LOGGER.debug(
                 "%s - underlying sent a target temperature (%s) which is out of configured min/max range (%s / %s). The value will be ignored",

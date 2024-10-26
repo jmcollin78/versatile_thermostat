@@ -276,7 +276,7 @@ async def test_bug_101(
             HVACAction.OFF,
             HVACAction.OFF,
             now,
-            12.75,
+            entity.min_temp + 1,
             True,
             "climate.mock_climate",  # the underlying climate entity id
         )
@@ -295,11 +295,11 @@ async def test_bug_101(
             HVACAction.OFF,
             HVACAction.OFF,
             event_timestamp,
-            12.75,
+            entity.min_temp + 1,
             True,
             "climate.mock_climate",  # the underlying climate entity id
         )
-        assert entity.target_temperature == 12.75
+        assert entity.target_temperature == entity.min_temp + 1
         assert entity.preset_mode is PRESET_NONE
 
         # 4. Change the target temp with < 1 value. The value should not be taken
@@ -312,11 +312,11 @@ async def test_bug_101(
             HVACAction.OFF,
             HVACAction.OFF,
             event_timestamp,
-            12.5,  # 12.75 means 13 in vtherm
+            entity.min_temp + 1.5,
             True,
             "climate.mock_climate",  # the underlying climate entity id
         )
-        assert entity.target_temperature == 12.75
+        assert entity.target_temperature == entity.min_temp + 1
         assert entity.preset_mode is PRESET_NONE
 
 
@@ -523,3 +523,111 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
     await send_presence_change_event(vtherm, True, False, datetime.now())
     await hass.async_block_till_done()
     assert vtherm.target_temperature == 25
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_ignore_temp_outside_minmax_range(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when a underlying climate target temp is changed, the VTherm ignores the target temp if it is outside the min/max range"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,  # 5 minutes security delay
+    )
+
+    # Underlying is in HEAT mode but should be shutdown at startup
+    fake_underlying_climate = MockClimate(
+        hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ) as mock_find_climate, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode:
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert entity
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.hvac_mode is HVACMode.OFF
+        # because in MockClimate HVACAction is HEATING if hvac_mode is not set
+        assert entity.hvac_action is HVACAction.HEATING
+        # Underlying should have been shutdown
+        assert mock_underlying_set_hvac_mode.call_count == 1
+        mock_underlying_set_hvac_mode.assert_has_calls(
+            [
+                call.set_hvac_mode(HVACMode.OFF),
+            ]
+        )
+
+        assert entity.target_temperature == entity.min_temp
+        assert entity.preset_mode is PRESET_NONE
+
+        # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
+        assert mock_send_event.call_count == 2
+        mock_send_event.assert_has_calls(
+            [
+                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(
+                    EventType.HVAC_MODE_EVENT,
+                    {"hvac_mode": HVACMode.OFF},
+                ),
+            ]
+        )
+
+        assert mock_find_climate.call_count == 1
+        assert mock_find_climate.mock_calls[0] == call()
+        mock_find_climate.assert_has_calls([call.find_underlying_entity()])
+
+        # 1. Force preset mode
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity.hvac_mode == HVACMode.HEAT
+        await entity.async_set_preset_mode(PRESET_COMFORT)
+        assert entity.preset_mode == PRESET_COMFORT
+
+        # 1. Try to set the target temperature to a below min_temp -> should be ignored
+        # Wait 11 sec
+        event_timestamp = now + timedelta(seconds=11)
+        assert entity.is_regulated is False
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            event_timestamp,
+            entity.min_temp - 1,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        assert entity.target_temperature == 17
+
+        # 2. Try to set the target temperature to a above max_temp -> should be ignored
+        event_timestamp = event_timestamp + timedelta(seconds=11)
+        assert entity.is_regulated is False
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            event_timestamp,
+            entity.max_temp + 1,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        assert entity.target_temperature == 17
