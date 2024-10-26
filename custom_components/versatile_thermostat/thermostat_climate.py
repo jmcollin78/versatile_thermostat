@@ -228,18 +228,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 and self.auto_regulation_use_device_temp
                 # and we have access to the device temp
                 and (device_temp := under.underlying_current_temperature) is not None
-                # issue 467 - always apply offset. TODO removes this if ok
-                # and target is not reach (ie we need regulation)
-                # and (
-                #     (
-                #         self.hvac_mode == HVACMode.COOL
-                #         and self.target_temperature < self.current_temperature
-                #     )
-                #     or (
-                #         self.hvac_mode == HVACMode.HEAT
-                #         and self.target_temperature > self.current_temperature
-                #     )
-                # )
             ):
                 offset_temp = device_temp - self.current_temperature
 
