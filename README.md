@@ -468,21 +468,16 @@ and of course, configure the VTherm's self-regulation mode in **Expert** mode. A
 For the changes to be taken into account, you must either **completely restart Home Assistant** or just the **Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat).
 
 #### Internal temperature compensation
-Sometimes, it happens that the internal thermometer of the underlying (TRV, air conditioning, etc.) is so wrong that self-regulation is not enough to regulate.
-This happens when the internal thermometer is too close to the heat source. The internal temperature then rises much faster than the room temperature, which generates faults in the regulation.
-Example :
-1. the room temperature is 18°, the setpoint is 20°,
-2. the internal temperature of the equipment is 22°,
-3. if VTherm sends 21° as setpoint (= 20° + 1° auto-regulation), then the equipment will not heat because its internal temperature (22°) is above the setpoint (21°)
+Sometimes, a device’s internal temperature sensor (like in a TRV or AC) can give inaccurate readings, especially if it’s too close to a heat source. This can cause the device to stop heating too soon.
+For example:
+1. target temperature: 20 °C, room temperature: 18 °C,
+2. device’s internal sensor: 22 °C
+3. If the target temperature is increased to 21 °C, the device won’t heat because it thinks it’s already warm (internal temperature is 22°C).
 
-To overcome this, a new optional option was added in version 5.4: ![Use of internal temperature](images/config-use-internal-temp.png)
+The Adjust Setpoint for Room vs. TRV Temperature feature fixes this by adding the temperature difference between the room and the device’s internal reading to the target. In this case, VTherm would adjust the target to 25°C (21°C + 4°C difference), forcing the device to continue heating.
 
-When enabled, this function will add the difference between the internal temperature and the room temperature to the setpoint to force heating.
-In the example above, the difference is +4° (22° - 18°), so VTherm will send 25° (21°+4°) to the equipment forcing it to heat up.
-
-This difference is calculated for each underlying because each has its own internal temperature. Think of a VTherm which would be connected to 3 TRVs each with its internal temperature for example.
-
-We then obtain much more effective self-regulation which avoids the pitfall of large variations in faulty internal temperature.
+This adjustment is specific to each device, making the heating system more accurate and avoiding issues from faulty sensor readings.
+See ![Use of internal temperature](images/config-use-internal-temp.png)
 
 #### synthesis of the self-regulation algorithm
 The self-regulation algorithm can be summarized as follows:
