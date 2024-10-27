@@ -128,6 +128,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             and self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV) is not None
         )
 
+        self._infos[CONF_USE_AUTO_START_STOP_FEATURE] = (
+            self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE) is True
+            and self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+        )
+
     def _init_central_config_flags(self, infos):
         """Initialisation of central configuration flags"""
         is_empty: bool = not bool(infos)
@@ -413,11 +418,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ]:
             menu_options.append("presets")
 
-        if self._infos[CONF_THERMOSTAT_TYPE] in [
-            CONF_THERMOSTAT_CLIMATE,
-        ]:
-            menu_options.append("auto_start_stop")
-
         if (
             is_central_config
             and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
@@ -435,6 +435,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self._infos[CONF_USE_PRESENCE_FEATURE] is True:
             menu_options.append("presence")
+
+        if self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE) is True and self._infos[
+            CONF_THERMOSTAT_TYPE
+        ] in [
+            CONF_THERMOSTAT_CLIMATE,
+        ]:
+            menu_options.append("auto_start_stop")
 
         menu_options.append("advanced")
 
@@ -886,6 +893,8 @@ class VersatileThermostatOptionsFlowHandler(
         if not self._infos[CONF_USE_CENTRAL_BOILER_FEATURE]:
             self._infos[CONF_CENTRAL_BOILER_ACTIVATION_SRV] = None
             self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV] = None
+        if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
+            self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
 
         _LOGGER.info(
             "Recreating entry %s due to configuration change. New config is now: %s",

@@ -521,10 +521,10 @@
     },
     "auto_start_stop": {
       "options": {
-        "none": "No auto start/stop",
-        "slow": "Slow detection",
-        "medium": "Medium detection",
-        "fast": "Fast detection"
+        "auto_start_stop_none": "No auto start/stop",
+        "auto_start_stop_slow": "Slow detection",
+        "auto_start_stop_medium": "Medium detection",
+        "auto_start_stop_fast": "Fast detection"
       }
     }
   },

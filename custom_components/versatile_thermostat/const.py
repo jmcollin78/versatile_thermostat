@@ -147,10 +147,10 @@ CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
 CONF_WINDOW_ACTION = "window_action"
 
 CONF_AUTO_START_STOP_LEVEL = "auto_start_stop_level"
-AUTO_START_STOP_LEVEL_NONE = "none"
-AUTO_START_STOP_LEVEL_SLOW = "slow"
-AUTO_START_STOP_LEVEL_MEDIUM = "medium"
-AUTO_START_STOP_LEVEL_FAST = "fast"
+AUTO_START_STOP_LEVEL_NONE = "auto_start_stop_none"
+AUTO_START_STOP_LEVEL_SLOW = "auto_start_stop_slow"
+AUTO_START_STOP_LEVEL_MEDIUM = "auto_start_stop_medium"
+AUTO_START_STOP_LEVEL_FAST = "auto_start_stop_fast"
 CONF_AUTO_START_STOP_LEVELS = [
     AUTO_START_STOP_LEVEL_NONE,
     AUTO_START_STOP_LEVEL_SLOW,
