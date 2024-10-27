@@ -97,6 +97,7 @@ CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
+CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -144,6 +145,18 @@ CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
 
 CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
 CONF_WINDOW_ACTION = "window_action"
+
+CONF_AUTO_START_STOP_LEVEL = "auto_start_stop_level"
+AUTO_START_STOP_LEVEL_NONE = "none"
+AUTO_START_STOP_LEVEL_SLOW = "slow"
+AUTO_START_STOP_LEVEL_MEDIUM = "medium"
+AUTO_START_STOP_LEVEL_FAST = "fast"
+CONF_AUTO_START_STOP_LEVELS = [
+    AUTO_START_STOP_LEVEL_NONE,
+    AUTO_START_STOP_LEVEL_SLOW,
+    AUTO_START_STOP_LEVEL_MEDIUM,
+    AUTO_START_STOP_LEVEL_FAST,
+]
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,

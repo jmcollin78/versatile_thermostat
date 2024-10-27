@@ -413,6 +413,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ]:
             menu_options.append("presets")
 
+        if self._infos[CONF_THERMOSTAT_TYPE] in [
+            CONF_THERMOSTAT_CLIMATE,
+        ]:
+            menu_options.append("auto_start_stop")
+
         if (
             is_central_config
             and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
@@ -520,16 +525,28 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the Type flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_features user_input=%s", user_input)
 
+        schema = STEP_FEATURES_DATA_SCHEMA
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_FEATURES_DATA_SCHEMA
+        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE:
+            schema = STEP_CLIMATE_FEATURES_DATA_SCHEMA
+
         return await self.generic_step(
             "features",
-            (
-                STEP_CENTRAL_FEATURES_DATA_SCHEMA
-                if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
-                else STEP_FEATURES_DATA_SCHEMA
-            ),
+            schema,
             user_input,
             self.async_step_menu,
         )
+
+    async def async_step_auto_start_stop(self, user_input: dict | None = None) -> FlowResult:
+        """ Handle the Auto start stop step"""
+        _LOGGER.debug("Into ConfigFlow.async_step_auto_start_stop user_input=%s", user_input)
+
+        schema = STEP_AUTO_START_STOP
+        self._infos[COMES_FROM] = None
+        next_step = self.async_step_menu
+
+        return await self.generic_step("auto_start_stop", schema, user_input, next_step)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""
