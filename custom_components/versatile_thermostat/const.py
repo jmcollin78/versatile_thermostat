@@ -2,6 +2,7 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
+from typing import Literal
 
 from enum import Enum
 from homeassistant.const import CONF_NAME, Platform
@@ -156,6 +157,14 @@ CONF_AUTO_START_STOP_LEVELS = [
     AUTO_START_STOP_LEVEL_SLOW,
     AUTO_START_STOP_LEVEL_MEDIUM,
     AUTO_START_STOP_LEVEL_FAST,
+]
+
+# For explicit typing purpose only
+TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
+    AUTO_START_STOP_LEVEL_FAST,
+    AUTO_START_STOP_LEVEL_MEDIUM,
+    AUTO_START_STOP_LEVEL_SLOW,
+    AUTO_START_STOP_LEVEL_NONE,
 ]
 
 DEFAULT_SHORT_EMA_PARAMS = {
@@ -458,6 +467,7 @@ class EventType(Enum):
     CENTRAL_BOILER_EVENT: str = "versatile_thermostat_central_boiler_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
     WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
+    AUTO_START_STOP_EVENT: str = "versatile_thermostat_auto_start_stop_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):

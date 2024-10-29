@@ -3,7 +3,7 @@
 """ Test the Auto Start Stop algorithm management """
 from datetime import datetime, timedelta
 import logging
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 from homeassistant.components.climate import HVACMode
 
@@ -21,376 +21,165 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-async def test_auto_start_stop_algo_slow(hass: HomeAssistant):
+async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
         AUTO_START_STOP_LEVEL_SLOW, "testu"
     )
 
-    assert algo._dtemp == 3
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
     assert algo._dt == 30
     assert algo._vtherm_name == "testu"
 
-    # 1. In heating we should stop
+    # 1. should not stop (accumulated_error too low)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.HEAT,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=18,
         target_temp=21,
         current_temp=22,
         slope_min=0.1,
+        now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.accumulated_error == -1
 
-    # 2. In heating we should do nothing
+    # 2. should not stop (accumulated_error too low)
+    now = now + timedelta(minutes=5)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.HEAT,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=20,
         target_temp=21,
-        current_temp=21,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 3. In Cooling we should stop
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.COOL,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=24,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_OFF
-
-    # 4. In Colling we should do nothing
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.COOL,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 5. In Off, we should start heating
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 6. In Off we should not heat
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=23,
-        target_temp=21,
-        current_temp=24,
-        slope_min=0.5,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 7. In Off we still should not heat (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.01,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 8. In Off, we should start cooling
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
-        current_temp=25,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 9. In Off we should not cool
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=20,
-        target_temp=24,
-        current_temp=21,
-        slope_min=0.01,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-    # 9.1 In Off and slow we should cool
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=20,
-        target_temp=24,
-        current_temp=21,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 10. In Off we still should not cool (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
         current_temp=23,
-        slope_min=0.01,
+        slope_min=0.1,
+        now=now,
     )
     assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.accumulated_error == -6
+
+    # 3. should not stop (accumulated_error too low)
+    now = now + timedelta(minutes=2)
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=21,
+        current_temp=23,
+        slope_min=0.1,
+        now=now,
+    )
+    assert algo.accumulated_error == -8
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+
+    # 4 .No change on accumulated error because the new measure is too near the last one
+    now = now + timedelta(minutes=1)
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=21,
+        current_temp=23,
+        slope_min=0.1,
+        now=now,
+    )
+    assert algo.accumulated_error == -8
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+
+    # 5. should stop now because accumulated_error is > ERROR_THRESHOLD for slow (10)
+    now = now + timedelta(minutes=4)
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=21,
+        current_temp=22,
+        slope_min=0.1,
+        now=now,
+    )
+    assert algo.accumulated_error == -10
+    assert ret == AUTO_START_STOP_ACTION_OFF
+
+    # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
+    now = now + timedelta(minutes=2)
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=22,
+        current_temp=21,
+        slope_min=-0.1,
+        now=now,
+    )
+    assert algo.accumulated_error == -4  # -10/2 + 1
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+
+    # 7. change level to slow (no real change) -> error_accumulated should not reset to 0
+    algo.set_level(AUTO_START_STOP_LEVEL_SLOW)
+    assert algo.accumulated_error == -4
+
+    # 8. change level -> error_accumulated should reset to 0
+    algo.set_level(AUTO_START_STOP_LEVEL_FAST)
+    assert algo.accumulated_error == 0
 
 
-async def test_auto_start_stop_algo_medium(hass: HomeAssistant):
+async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
         AUTO_START_STOP_LEVEL_MEDIUM, "testu"
     )
 
-    assert algo._dtemp == 2
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
     assert algo._dt == 15
     assert algo._vtherm_name == "testu"
 
-    # 1. In heating we should stop
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.HEAT,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=18,
-        target_temp=21,
-        current_temp=22,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_OFF
-
-    # 2. In heating we should do nothing
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.HEAT,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=20,
-        target_temp=21,
-        current_temp=21,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 3. In Cooling we should stop
+    # 1. should not stop (accumulated_error too low)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.COOL,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=24,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.1,
+        target_temp=22,
+        current_temp=21,
+        slope_min=0.1,
+        now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.accumulated_error == 1
 
-    # 4. In Colling we should do nothing
+    # 2. should not stop (accumulated_error too low)
+    now = now + timedelta(minutes=3)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.COOL,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 5. In Off, we should start heating
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 6. In Off we should not heat
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=23,
-        target_temp=21,
-        current_temp=24,
-        slope_min=0.5,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 7. In Off we still should not heat (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.01,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 8. In Off, we should start cooling
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
-        current_temp=25,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 9. In Off we should not cool
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=20,
-        target_temp=24,
+        target_temp=23,
         current_temp=21,
         slope_min=0.1,
+        now=now,
     )
     assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.accumulated_error == 4
 
-    # 10. In Off we still should not cool (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
-        current_temp=23,
-        slope_min=0.01,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-
-async def test_auto_start_stop_algo_high(hass: HomeAssistant):
-    """Testing directly the algorithm in Slow level"""
-    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
-        AUTO_START_STOP_LEVEL_FAST, "testu"
-    )
-
-    assert algo._dtemp == 1
-    assert algo._dt == 7
-    assert algo._vtherm_name == "testu"
-
-    # 1. In heating we should stop
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.HEAT,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=18,
-        target_temp=21,
-        current_temp=22,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_OFF
-
-    # 2. In heating and fast we should turn off
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.HEAT,
-        saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=20,
-        target_temp=21,
-        current_temp=21,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_OFF
-
-    # 3. In Cooling we should stop
+    # 2. should stop
+    now = now + timedelta(minutes=5)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.COOL,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=24,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.1,
+        target_temp=23,
+        current_temp=21,
+        slope_min=0.1,
+        now=now,
     )
     assert ret == AUTO_START_STOP_ACTION_OFF
+    assert algo.accumulated_error == 5  # should be 9 but is capped at error threshold
 
-    # 4. In Cooling and fast we should turn off
+    # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
+    now = now + timedelta(minutes=2)
     ret = algo.calculate_action(
         hvac_mode=HVACMode.COOL,
         saved_hvac_mode=HVACMode.OFF,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=0.0,
-    )
-    assert ret == AUTO_START_STOP_ACTION_OFF
-
-    # 5. In Off and fast , we should do nothing
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
         target_temp=21,
         current_temp=22,
         slope_min=-0.1,
+        now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 6. In Off we should not heat
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=23,
-        target_temp=21,
-        current_temp=24,
-        slope_min=0.5,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 7. In Off we still should not heat (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.HEAT,
-        regulated_temp=22,
-        target_temp=21,
-        current_temp=22,
-        slope_min=-0.01,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 8. In Off, we should start cooling
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
-        current_temp=25,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_ON
-
-    # 9. In Off we should not cool
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=20,
-        target_temp=24,
-        current_temp=21,
-        slope_min=0.1,
-    )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
-
-    # 10. In Off we still should not cool (slope too low)
-    ret = algo.calculate_action(
-        hvac_mode=HVACMode.OFF,
-        saved_hvac_mode=HVACMode.COOL,
-        regulated_temp=25,
-        target_temp=24,
-        current_temp=23,
-        slope_min=0.01,
-    )
+    assert algo.accumulated_error == 1.5  # 5/2 - 1
     assert ret == AUTO_START_STOP_ACTION_NOTHING
 
 
@@ -467,8 +256,15 @@ async def test_auto_start_stop_none_vtherm(
 
         # Initialize all temps
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+        # Check correct initialization of auto_start_stop attributes
+        assert (
+            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
+            == AUTO_START_STOP_LEVEL_NONE
+        )
 
-    # 1. Vtherm auto-start/stop should be in MEDIUM mode
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] is None
+
+    # 1. Vtherm auto-start/stop should be in NONE mode
     assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_NONE
 
 
@@ -546,38 +342,75 @@ async def test_auto_start_stop_medium_vtherm(
         # Initialize all temps
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
+        # Check correct initialization of auto_start_stop attributes
+        assert (
+            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
+            == AUTO_START_STOP_LEVEL_MEDIUM
+        )
+
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 15
+
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
     assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_MEDIUM
 
-    # 1. Set mode to Heat and preset to Comfort
-    await send_presence_change_event(vtherm, True, False, datetime.now())
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # 2. Set mode to Heat and preset to Comfort
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
     await vtherm.async_set_preset_mode(PRESET_COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
+    # VTherm should be heating
+    assert vtherm.hvac_mode == HVACMode.HEAT
 
-    # 2. Only change the HVAC_MODE (and keep preset to comfort)
-    await vtherm.async_set_hvac_mode(HVACMode.COOL)
-    await hass.async_block_till_done()
-    assert vtherm.target_temperature == 25.0
+    # 3. Set current temperature to 19 5 min later
+    now = now + timedelta(minutes=5)
+    with patch(
+        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
+    ) as mock_send_event:
+        await send_temperature_change_event(vtherm, 19, now, True)
+        await hass.async_block_till_done()
 
-    # 3. Only change the HVAC_MODE (and keep preset to comfort)
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await hass.async_block_till_done()
-    assert vtherm.target_temperature == 19.0
+        # VTherm should still be heating
+        assert vtherm.hvac_mode == HVACMode.HEAT
+        assert mock_send_event.call_count == 0
 
-    # 4. Change presence to off
-    await send_presence_change_event(vtherm, False, True, datetime.now())
-    await hass.async_block_till_done()
-    assert vtherm.target_temperature == 19.1
+    # 4. Set current temperature to 20 5 min later
+    now = now + timedelta(minutes=5)
+    with patch(
+        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
+    ) as mock_send_event:
+        await send_temperature_change_event(vtherm, 20, now, True)
+        await hass.async_block_till_done()
 
-    # 5. Change hvac_mode to AC
-    await vtherm.async_set_hvac_mode(HVACMode.COOL)
-    await hass.async_block_till_done()
-    assert vtherm.target_temperature == 25.1
+        # VTherm should still be heating
+        assert vtherm.hvac_mode == HVACMode.HEAT
+        assert mock_send_event.call_count == 0
 
-    # 6. Change presence to on
-    await send_presence_change_event(vtherm, True, False, datetime.now())
-    await hass.async_block_till_done()
-    assert vtherm.target_temperature == 25
+    # 5. Set current temperature to 21 5 min later
+    with patch(
+        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
+    ) as mock_send_event:
+        now = now + timedelta(minutes=5)
+        await send_temperature_change_event(vtherm, 21, now, True)
+        await hass.async_block_till_done()
+
+        # VTherm should have been stopped
+        assert vtherm.hvac_mode == HVACMode.OFF
+
+        # a message should have been sent
+        assert mock_send_event.call_count == 1
+        mock_send_event.assert_has_calls(
+            [
+                call.send_vtherm_event(
+                    hass=hass,
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    entity=vtherm.entity_id,
+                    data={},
+                )
+            ]
+        )
