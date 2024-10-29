@@ -15,10 +15,7 @@ from .base_thermostat import BaseThermostat, ConfigData
 from .prop_algorithm import PropAlgorithm
 
 from .const import (
-    CONF_VALVE,
-    CONF_VALVE_2,
-    CONF_VALVE_3,
-    CONF_VALVE_4,
+    CONF_UNDERLYING_LIST,
     # This is not really self-regulation but regulation here
     CONF_AUTO_REGULATION_DTEMP,
     CONF_AUTO_REGULATION_PERIOD_MIN,
@@ -37,10 +34,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         frozenset(
             {
                 "is_over_valve",
-                "underlying_valve_0",
-                "underlying_valve_1",
-                "underlying_valve_2",
-                "underlying_valve_3",
+                "underlying_entities",
                 "on_time_sec",
                 "off_time_sec",
                 "cycle_min",
@@ -105,13 +99,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             self.name,
         )
 
-        lst_valves = [config_entry.get(CONF_VALVE)]
-        if config_entry.get(CONF_VALVE_2):
-            lst_valves.append(config_entry.get(CONF_VALVE_2))
-        if config_entry.get(CONF_VALVE_3):
-            lst_valves.append(config_entry.get(CONF_VALVE_3))
-        if config_entry.get(CONF_VALVE_4):
-            lst_valves.append(config_entry.get(CONF_VALVE_4))
+        lst_valves = config_entry.get(CONF_UNDERLYING_LIST)
 
         for _, valve in enumerate(lst_valves):
             self._underlyings.append(
@@ -163,18 +151,10 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             "valve_open_percent"
         ] = self.valve_open_percent
         self._attr_extra_state_attributes["is_over_valve"] = self.is_over_valve
-        self._attr_extra_state_attributes["underlying_valve_0"] = self._underlyings[
-            0
-        ].entity_id
-        self._attr_extra_state_attributes["underlying_valve_1"] = (
-            self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-        )
-        self._attr_extra_state_attributes["underlying_valve_2"] = (
-            self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-        )
-        self._attr_extra_state_attributes["underlying_valve_3"] = (
-            self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-        )
+
+        self._attr_extra_state_attributes["underlying_entities"] = [
+           underlying.entity_id for underlying in self._underlyings
+        ]
 
         self._attr_extra_state_attributes[
             "on_percent"

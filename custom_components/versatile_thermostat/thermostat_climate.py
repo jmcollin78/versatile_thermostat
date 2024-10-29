@@ -23,10 +23,7 @@ from .pi_algorithm import PITemperatureRegulator
 from .const import (
     overrides,
     DOMAIN,
-    CONF_CLIMATE,
-    CONF_CLIMATE_2,
-    CONF_CLIMATE_3,
-    CONF_CLIMATE_4,
+    CONF_UNDERLYING_LIST,
     CONF_AUTO_REGULATION_MODE,
     CONF_AUTO_REGULATION_NONE,
     CONF_AUTO_REGULATION_SLOW,
@@ -88,10 +85,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 {
                     "is_over_climate",
                     "start_hvac_action_date",
-                    "underlying_climate_0",
-                    "underlying_climate_1",
-                    "underlying_climate_2",
-                    "underlying_climate_3",
+                    "underlying_entities",
                     "regulation_accumulated_error",
                     "auto_regulation_mode",
                     "auto_fan_mode",
@@ -309,20 +303,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
-        for climate in [
-            CONF_CLIMATE,
-            CONF_CLIMATE_2,
-            CONF_CLIMATE_3,
-            CONF_CLIMATE_4,
-        ]:
-            if config_entry.get(climate):
-                self._underlyings.append(
-                    UnderlyingClimate(
-                        hass=self._hass,
-                        thermostat=self,
-                        climate_entity_id=config_entry.get(climate),
-                    )
+
+        for climate in config_entry.get(CONF_UNDERLYING_LIST):
+            self._underlyings.append(
+                UnderlyingClimate(
+                    hass=self._hass,
+                    thermostat=self,
+                    climate_entity_id=climate,
                 )
+            )
 
         self.choose_auto_regulation_mode(
             config_entry.get(CONF_AUTO_REGULATION_MODE)
@@ -521,18 +510,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._attr_extra_state_attributes["start_hvac_action_date"] = (
             self._underlying_climate_start_hvac_action_date
         )
-        self._attr_extra_state_attributes["underlying_climate_0"] = self._underlyings[
-            0
-        ].entity_id
-        self._attr_extra_state_attributes["underlying_climate_1"] = (
-            self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-        )
-        self._attr_extra_state_attributes["underlying_climate_2"] = (
-            self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-        )
-        self._attr_extra_state_attributes["underlying_climate_3"] = (
-            self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-        )
+
+        self._attr_extra_state_attributes["underlying_entities"] = [
+            underlying.entity_id for underlying in self._underlyings
+        ]
 
         if self.is_regulated:
             self._attr_extra_state_attributes["is_regulated"] = self.is_regulated

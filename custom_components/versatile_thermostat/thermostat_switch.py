@@ -10,10 +10,7 @@ from homeassistant.helpers.event import (
 from homeassistant.components.climate import HVACMode
 
 from .const import (
-    CONF_HEATER,
-    CONF_HEATER_2,
-    CONF_HEATER_3,
-    CONF_HEATER_4,
+    CONF_UNDERLYING_LIST,
     CONF_HEATER_KEEP_ALIVE,
     CONF_INVERSE_SWITCH,
     overrides,
@@ -35,10 +32,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                 {
                     "is_over_switch",
                     "is_inversed",
-                    "underlying_switch_0",
-                    "underlying_switch_1",
-                    "underlying_switch_2",
-                    "underlying_switch_3",
+                    "underlying_entities",
                     "on_time_sec",
                     "off_time_sec",
                     "cycle_min",
@@ -90,13 +84,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self.name,
         )
 
-        lst_switches = [config_entry.get(CONF_HEATER)]
-        if config_entry.get(CONF_HEATER_2):
-            lst_switches.append(config_entry.get(CONF_HEATER_2))
-        if config_entry.get(CONF_HEATER_3):
-            lst_switches.append(config_entry.get(CONF_HEATER_3))
-        if config_entry.get(CONF_HEATER_4):
-            lst_switches.append(config_entry.get(CONF_HEATER_4))
+        lst_switches = config_entry.get(CONF_UNDERLYING_LIST)
 
         delta_cycle = self._cycle_min * 60 / len(lst_switches)
         for idx, switch in enumerate(lst_switches):
@@ -140,16 +128,10 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
         self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
         self._attr_extra_state_attributes["keep_alive_sec"] = under0.keep_alive_sec
-        self._attr_extra_state_attributes["underlying_switch_0"] = under0.entity_id
-        self._attr_extra_state_attributes["underlying_switch_1"] = (
-            self._underlyings[1].entity_id if len(self._underlyings) > 1 else None
-        )
-        self._attr_extra_state_attributes["underlying_switch_2"] = (
-            self._underlyings[2].entity_id if len(self._underlyings) > 2 else None
-        )
-        self._attr_extra_state_attributes["underlying_switch_3"] = (
-            self._underlyings[3].entity_id if len(self._underlyings) > 3 else None
-        )
+
+        self._attr_extra_state_attributes["underlying_entities"] = [
+           underlying.entity_id for underlying in self._underlyings
+        ]
 
         self._attr_extra_state_attributes[
             "on_percent"

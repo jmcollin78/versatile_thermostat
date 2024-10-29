@@ -109,17 +109,10 @@ STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
 
 STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_HEATER): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
-        ),
-        vol.Optional(CONF_HEATER_2): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
-        ),
-        vol.Optional(CONF_HEATER_3): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
-        ),
-        vol.Optional(CONF_HEATER_4): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
+        vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN], multiple=True
+            ),
         ),
         vol.Optional(CONF_HEATER_KEEP_ALIVE): cv.positive_int,
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
@@ -134,17 +127,8 @@ STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_CLIMATE): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-        ),
-        vol.Optional(CONF_CLIMATE_2): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-        ),
-        vol.Optional(CONF_CLIMATE_3): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
-        ),
-        vol.Optional(CONF_CLIMATE_4): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN),
+        vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN, multiple=True),
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
         vol.Optional(
@@ -173,17 +157,10 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_VALVE): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]),
-        ),
-        vol.Optional(CONF_VALVE_2): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]),
-        ),
-        vol.Optional(CONF_VALVE_3): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]),
-        ),
-        vol.Optional(CONF_VALVE_4): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]),
+        vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
+            ),
         ),
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
             [

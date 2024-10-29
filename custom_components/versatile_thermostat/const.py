@@ -22,8 +22,8 @@ from .prop_algorithm import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_VERSION = 1
-CONFIG_MINOR_VERSION = 2
+CONFIG_VERSION = 2
+CONFIG_MINOR_VERSION = 0
 
 PRESET_TEMP_SUFFIX = "_temp"
 PRESET_AC_SUFFIX = "_ac"
@@ -53,10 +53,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
 ]
 
-CONF_HEATER = "heater_entity_id"
-CONF_HEATER_2 = "heater_entity2_id"
-CONF_HEATER_3 = "heater_entity3_id"
-CONF_HEATER_4 = "heater_entity4_id"
+CONF_UNDERLYING_LIST = "underlying_entity_ids"
 CONF_HEATER_KEEP_ALIVE = "heater_keep_alive"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"
 CONF_LAST_SEEN_TEMP_SENSOR = "last_seen_temperature_sensor_entity_id"
@@ -88,10 +85,6 @@ CONF_THERMOSTAT_CENTRAL_CONFIG = "thermostat_central_config"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
 CONF_THERMOSTAT_CLIMATE = "thermostat_over_climate"
 CONF_THERMOSTAT_VALVE = "thermostat_over_valve"
-CONF_CLIMATE = "climate_entity_id"
-CONF_CLIMATE_2 = "climate_entity2_id"
-CONF_CLIMATE_3 = "climate_entity3_id"
-CONF_CLIMATE_4 = "climate_entity4_id"
 CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
@@ -101,10 +94,6 @@ CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
-CONF_VALVE = "valve_entity_id"
-CONF_VALVE_2 = "valve_entity2_id"
-CONF_VALVE_3 = "valve_entity3_id"
-CONF_VALVE_4 = "valve_entity4_id"
 CONF_AUTO_REGULATION_MODE = "auto_regulation_mode"
 CONF_AUTO_REGULATION_NONE = "auto_regulation_none"
 CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
@@ -123,6 +112,20 @@ CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
 CONF_STEP_TEMPERATURE = "step_temperature"
+
+# Deprecated
+CONF_HEATER = "heater_entity_id"
+CONF_HEATER_2 = "heater_entity2_id"
+CONF_HEATER_3 = "heater_entity3_id"
+CONF_HEATER_4 = "heater_entity4_id"
+CONF_CLIMATE = "climate_entity_id"
+CONF_CLIMATE_2 = "climate_entity2_id"
+CONF_CLIMATE_3 = "climate_entity3_id"
+CONF_CLIMATE_4 = "climate_entity4_id"
+CONF_VALVE = "valve_entity_id"
+CONF_VALVE_2 = "valve_entity2_id"
+CONF_VALVE_3 = "valve_entity3_id"
+CONF_VALVE_4 = "valve_entity4_id"
 
 # Global params into configuration.yaml
 CONF_SHORT_EMA_PARAMS = "short_ema_params"
@@ -216,10 +219,6 @@ CONF_PRESETS_AWAY_WITH_AC_VALUES = list(CONF_PRESETS_AWAY_WITH_AC.values())
 ALL_CONF = (
     [
         CONF_NAME,
-        CONF_HEATER,
-        CONF_HEATER_2,
-        CONF_HEATER_3,
-        CONF_HEATER_4,
         CONF_HEATER_KEEP_ALIVE,
         CONF_TEMP_SENSOR,
         CONF_EXTERNAL_TEMP_SENSOR,
@@ -249,20 +248,12 @@ ALL_CONF = (
         CONF_THERMOSTAT_TYPE,
         CONF_THERMOSTAT_SWITCH,
         CONF_THERMOSTAT_CLIMATE,
-        CONF_CLIMATE,
-        CONF_CLIMATE_2,
-        CONF_CLIMATE_3,
-        CONF_CLIMATE_4,
         CONF_USE_WINDOW_FEATURE,
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
         CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
-        CONF_VALVE,
-        CONF_VALVE_2,
-        CONF_VALVE_3,
-        CONF_VALVE_4,
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
