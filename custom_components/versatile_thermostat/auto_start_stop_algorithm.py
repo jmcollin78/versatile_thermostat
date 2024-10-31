@@ -90,6 +90,17 @@ class AutoStartStopDetectionAlgorithm:
             )
             return AUTO_START_STOP_ACTION_NOTHING
 
+        _LOGGER.debug(
+            "%s - calculate_action: hvac_mode=%s, saved_hvac_mode=%s, target_temp=%s, current_temp=%s, slope_min=%s at %s",
+            self,
+            hvac_mode,
+            saved_hvac_mode,
+            target_temp,
+            current_temp,
+            slope_min,
+            now,
+        )
+
         if (
             hvac_mode is None
             or target_temp is None
@@ -102,24 +113,13 @@ class AutoStartStopDetectionAlgorithm:
             )
             return AUTO_START_STOP_ACTION_NOTHING
 
-        _LOGGER.debug(
-            "%s - calculate_action: hvac_mode=%s, saved_hvac_mode=%s, target_temp=%s, current_temp=%s, slope_min=%s at %s",
-            self,
-            hvac_mode,
-            saved_hvac_mode,
-            target_temp,
-            current_temp,
-            slope_min,
-            now,
-        )
-
         # Calculate the error factor (P)
         error = target_temp - current_temp
 
         # reduce the error considering the dt between the last measurement
         if self._last_calculation_date is not None:
             dtmin = (now - self._last_calculation_date).total_seconds() / CYCLE_SEC
-            # ignore two calls too near (< 2,5 min)
+            # ignore two calls too near (< 1 min)
             if dtmin <= 0.5:
                 _LOGGER.debug(
                     "%s - new calculation of auto_start_stop (%s) is too near of the last one (%s). Forget it",
@@ -147,26 +147,27 @@ class AutoStartStopDetectionAlgorithm:
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
         if hvac_mode == HVACMode.HEAT:
-            if self._accumulated_error <= -self._error_threshold:
+            if self._accumulated_error <= -self._error_threshold and slope_min >= 0:
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for heating for a long time.",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_OFF
             else:
-                _LOGGER.debug(
-                    "%s - nothing to do, we are heating",
-                )
+                _LOGGER.debug("%s - nothing to do, we are heating", self)
                 return AUTO_START_STOP_ACTION_NOTHING
 
         if hvac_mode == HVACMode.COOL:
-            if self._accumulated_error >= self._error_threshold:
+            if self._accumulated_error >= self._error_threshold and slope_min <= 0:
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for cooling for a long time.",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_OFF
             else:
                 _LOGGER.debug(
                     "%s - nothing to do, we are cooling",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_NOTHING
 
@@ -175,11 +176,13 @@ class AutoStartStopDetectionAlgorithm:
             if current_temp + slope_min * self._dt <= target_temp:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to heat",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_ON
             else:
                 _LOGGER.debug(
                     "%s - nothing to do, we don't need to heat soon",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_NOTHING
 
@@ -187,16 +190,19 @@ class AutoStartStopDetectionAlgorithm:
             if current_temp + slope_min * self._dt >= target_temp:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to cool",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_ON
             else:
                 _LOGGER.debug(
                     "%s - nothing to do, we don't need to cool soon",
+                    self,
                 )
                 return AUTO_START_STOP_ACTION_NOTHING
 
         _LOGGER.debug(
             "%s - nothing to do, no conditions applied",
+            self,
         )
         return AUTO_START_STOP_ACTION_NOTHING
 
@@ -213,6 +219,11 @@ class AutoStartStopDetectionAlgorithm:
     def accumulated_error(self) -> float:
         """Get the accumulated error value"""
         return self._accumulated_error
+
+    @property
+    def accumulated_error_threshold(self) -> float:
+        """Get the accumulated error threshold value"""
+        return self._error_threshold
 
     @property
     def level(self) -> TYPE_AUTO_START_STOP_LEVELS:

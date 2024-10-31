@@ -52,6 +52,7 @@ PLATFORMS: list[Platform] = [
     # Number should be after CLIMATE
     Platform.NUMBER,
     Platform.BINARY_SENSOR,
+    Platform.SWITCH,
 ]
 
 CONF_HEATER = "heater_entity_id"

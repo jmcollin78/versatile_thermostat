@@ -91,6 +91,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     _auto_deactivated_fan_mode: str | None = None
     _auto_start_stop_level: TYPE_AUTO_START_STOP_LEVELS = AUTO_START_STOP_LEVEL_NONE
     _auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
+    _is_auto_start_stop_enabled: bool = False
 
     _entity_component_unrecorded_attributes = (
         BaseThermostat._entity_component_unrecorded_attributes.union(
@@ -110,8 +111,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     "auto_deactivated_fan_mode",
                     "auto_regulation_use_device_temp",
                     "auto_start_stop_level",
-                    "auto_start_stop_dtemp",
                     "auto_start_stop_dtmin",
+                    "auto_start_stop_enable",
+                    "auto_start_stop_accumulated_error",
+                    "auto_start_stop_accumulated_error_threshold",
                 }
             )
         )
@@ -572,12 +575,23 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.auto_regulation_use_device_temp
         )
 
+        self._attr_extra_state_attributes["auto_start_stop_enable"] = (
+            self.auto_start_stop_enable
+        )
+
         self._attr_extra_state_attributes["auto_start_stop_level"] = (
             self._auto_start_stop_algo.level
         )
         self._attr_extra_state_attributes["auto_start_stop_dtmin"] = (
             self._auto_start_stop_algo.dt_min
         )
+        self._attr_extra_state_attributes["auto_start_stop_accumulated_error"] = (
+            self._auto_start_stop_algo.accumulated_error
+        )
+
+        self._attr_extra_state_attributes[
+            "auto_start_stop_accumulated_error_threshold"
+        ] = self._auto_start_stop_algo.accumulated_error_threshold
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -898,56 +912,67 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         ret = await super().async_control_heating(force, _)
 
         # Check if we need to auto start/stop the Vtherm
-        action = self._auto_start_stop_algo.calculate_action(
-            self.hvac_mode,
-            self._saved_hvac_mode,
-            self.target_temperature,
-            self.current_temperature,
-            self._window_auto_algo.last_slope,
-            self.now
-        )
-        _LOGGER.debug("%s - auto_start_stop action is %s", self, action)
-        if action == AUTO_START_STOP_ACTION_OFF:
-            _LOGGER.info(
-                "%s - Turning OFF the Vtherm due to auto-start-stop conditions", self
+        if (
+            self.auto_start_stop_enable
+            and self._window_auto_algo.last_slope is not None
+        ):
+            action = self._auto_start_stop_algo.calculate_action(
+                self.hvac_mode,
+                self._saved_hvac_mode,
+                self.target_temperature,
+                self.current_temperature,
+                self._window_auto_algo.last_slope / 60,  # to have the slope in °/min
+                self.now,
             )
-            await self.async_turn_off()
+            _LOGGER.debug("%s - auto_start_stop action is %s", self, action)
+            if action == AUTO_START_STOP_ACTION_OFF:
+                _LOGGER.info(
+                    "%s - Turning OFF the Vtherm due to auto-start-stop conditions",
+                    self,
+                )
+                await self.async_turn_off()
 
-            # Send an event
-            self.send_event(
-                event_type=EventType.AUTO_START_STOP_EVENT,
-                data={
-                    "type": "stop",
-                    "cause": "Auto stop conditions reached",
-                    "hvac_mode": self.hvac_mode,
-                    "saved_hvac_mode": self._saved_hvac_mode,
-                    "target_temperature": self.target_temperature,
-                    "current_temperature": self.current_temperature,
-                    "temperature_slope": self._window_auto_algo.last_slope,
-                },
-            )
+                # Send an event
+                self.send_event(
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    data={
+                        "type": "stop",
+                        "name:": self.name,
+                        "cause": "Auto stop conditions reached",
+                        "hvac_mode": self.hvac_mode,
+                        "saved_hvac_mode": self._saved_hvac_mode,
+                        "target_temperature": self.target_temperature,
+                        "current_temperature": self.current_temperature,
+                        "temperature_slope": self._window_auto_algo.last_slope,
+                    },
+                )
 
-            # Stop here
-            return ret
-        elif action == AUTO_START_STOP_ACTION_ON:
-            _LOGGER.info(
-                "%s - Turning ON the Vtherm due to auto-start-stop conditions", self
-            )
-            await self.async_turn_on()
+                # Stop here
+                return ret
+            elif action == AUTO_START_STOP_ACTION_ON:
+                _LOGGER.info(
+                    "%s - Turning ON the Vtherm due to auto-start-stop conditions", self
+                )
+                await self.async_turn_on()
 
-            # Send an event
-            self.send_event(
-                event_type=EventType.AUTO_START_STOP_EVENT,
-                data={
-                    "type": "start",
-                    "cause": "Auto start conditions reached",
-                    "hvac_mode": self.hvac_mode,
-                    "saved_hvac_mode": self._saved_hvac_mode,
-                    "target_temperature": self.target_temperature,
-                    "current_temperature": self.current_temperature,
-                    "temperature_slope": self._window_auto_algo.last_slope,
-                },
-            )
+                # Send an event
+                self.send_event(
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    data={
+                        "type": "start",
+                        "name:": self.name,
+                        "cause": "Auto start conditions reached",
+                        "hvac_mode": self.hvac_mode,
+                        "saved_hvac_mode": self._saved_hvac_mode,
+                        "target_temperature": self.target_temperature,
+                        "current_temperature": self.current_temperature,
+                        "temperature_slope": self._window_auto_algo.last_slope,
+                    },
+                )
+
+                self.update_custom_attributes()
+        else:
+            _LOGGER.debug("%s - auto start/stop is disabled")
 
             # Continue the normal async_control_heating
 
@@ -958,6 +983,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             await self._send_auto_fan_mode()
 
         return ret
+
+    def set_auto_start_stop_enable(self, is_enabled: bool):
+        """Enable/Disable the auto-start/stop feature"""
+        self._is_auto_start_stop_enabled = is_enabled
 
     @property
     def auto_regulation_mode(self) -> str | None:
@@ -1109,6 +1138,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def auto_start_stop_level(self) -> TYPE_AUTO_START_STOP_LEVELS:
         """Return the auto start/stop level."""
         return self._auto_start_stop_level
+
+    @property
+    def auto_start_stop_enable(self) -> bool:
+        """Returns the auto_start_stop_enable"""
+        return self._is_auto_start_stop_enabled
 
     @overrides
     def init_underlyings(self):
