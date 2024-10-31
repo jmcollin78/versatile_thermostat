@@ -79,7 +79,7 @@ class AutoStartStopDetectionAlgorithm:
         saved_hvac_mode: HVACMode | None,
         target_temp: float,
         current_temp: float,
-        slope_min: float,
+        slope_min: float | None,
         now: datetime,
     ) -> AUTO_START_STOP_ACTIONS:
         """Calculate an eventual action to do depending of the value in parameter"""
@@ -101,12 +101,7 @@ class AutoStartStopDetectionAlgorithm:
             now,
         )
 
-        if (
-            hvac_mode is None
-            or target_temp is None
-            or current_temp is None
-            or slope_min is None
-        ):
+        if hvac_mode is None or target_temp is None or current_temp is None:
             _LOGGER.debug(
                 "%s - No all mandatory parameters are set. Disable auto-start/stop",
                 self,
@@ -119,8 +114,8 @@ class AutoStartStopDetectionAlgorithm:
         # reduce the error considering the dt between the last measurement
         if self._last_calculation_date is not None:
             dtmin = (now - self._last_calculation_date).total_seconds() / CYCLE_SEC
-            # ignore two calls too near (< 1 min)
-            if dtmin <= 0.5:
+            # ignore two calls too near (< 24 sec)
+            if dtmin <= 0.2:
                 _LOGGER.debug(
                     "%s - new calculation of auto_start_stop (%s) is too near of the last one (%s). Forget it",
                     self,

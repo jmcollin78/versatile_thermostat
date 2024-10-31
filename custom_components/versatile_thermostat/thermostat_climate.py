@@ -912,16 +912,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         ret = await super().async_control_heating(force, _)
 
         # Check if we need to auto start/stop the Vtherm
-        if (
-            self.auto_start_stop_enable
-            and self._window_auto_algo.last_slope is not None
-        ):
+        if self.auto_start_stop_enable:
+            slope = (
+                self._window_auto_algo.last_slope or 0
+            ) / 60  # to have the slope in °/min
             action = self._auto_start_stop_algo.calculate_action(
                 self.hvac_mode,
                 self._saved_hvac_mode,
                 self.target_temperature,
                 self.current_temperature,
-                self._window_auto_algo.last_slope / 60,  # to have the slope in °/min
+                slope,
                 self.now,
             )
             _LOGGER.debug("%s - auto_start_stop action is %s", self, action)
@@ -943,7 +943,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         "saved_hvac_mode": self._saved_hvac_mode,
                         "target_temperature": self.target_temperature,
                         "current_temperature": self.current_temperature,
-                        "temperature_slope": self._window_auto_algo.last_slope,
+                        "temperature_slope": slope,
                     },
                 )
 
@@ -966,7 +966,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         "saved_hvac_mode": self._saved_hvac_mode,
                         "target_temperature": self.target_temperature,
                         "current_temperature": self.current_temperature,
-                        "temperature_slope": self._window_auto_algo.last_slope,
+                        "temperature_slope": slope,
                     },
                 )
 
