@@ -911,21 +911,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.info(
                 "%s - Turning OFF the Vtherm due to auto-start-stop conditions", self
             )
+            await self.async_turn_off()
+
             # Send an event
             self.send_event(
-                EventType.AUTO_START_STOP_EVENT,
-                {
+                event_type=EventType.AUTO_START_STOP_EVENT,
+                data={
                     "type": "stop",
-                    "cause": "Auto start conditions reached",
+                    "cause": "Auto stop conditions reached",
                     "hvac_mode": self.hvac_mode,
                     "saved_hvac_mode": self._saved_hvac_mode,
-                    "regulated_target_temp": self.regulated_target_temp,
                     "target_temperature": self.target_temperature,
                     "current_temperature": self.current_temperature,
                     "temperature_slope": self._window_auto_algo.last_slope,
                 },
             )
-            await self.async_turn_off()
 
             # Stop here
             return ret
@@ -934,7 +934,20 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 "%s - Turning ON the Vtherm due to auto-start-stop conditions", self
             )
             await self.async_turn_on()
+
             # Send an event
+            self.send_event(
+                event_type=EventType.AUTO_START_STOP_EVENT,
+                data={
+                    "type": "start",
+                    "cause": "Auto start conditions reached",
+                    "hvac_mode": self.hvac_mode,
+                    "saved_hvac_mode": self._saved_hvac_mode,
+                    "target_temperature": self.target_temperature,
+                    "current_temperature": self.current_temperature,
+                    "temperature_slope": self._window_auto_algo.last_slope,
+                },
+            )
 
             # Continue the normal async_control_heating
 
