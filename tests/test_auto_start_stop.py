@@ -868,7 +868,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
             ]
         )
 
-    # 4.1 reduce the slope
+    # 4.1 reduce the slope (because slope is smoothed and was very high)
     now = now + timedelta(minutes=5)
     await send_temperature_change_event(vtherm, 19, now, True)
 
