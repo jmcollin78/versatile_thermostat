@@ -144,10 +144,15 @@ class AutoStartStopDetectionAlgorithm:
 
         self._last_calculation_date = now
 
+        temp_at_dt = current_temp + slope_min * self._dt
+
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
         if hvac_mode == HVACMode.HEAT:
-            if self._accumulated_error <= -self._error_threshold and slope_min >= 0:
+            if (
+                self._accumulated_error <= -self._error_threshold
+                and temp_at_dt >= target_temp
+            ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for heating for a long time.",
                     self,
@@ -158,7 +163,10 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         if hvac_mode == HVACMode.COOL:
-            if self._accumulated_error >= self._error_threshold and slope_min <= 0:
+            if (
+                self._accumulated_error >= self._error_threshold
+                and temp_at_dt <= target_temp
+            ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for cooling for a long time.",
                     self,
@@ -173,7 +181,7 @@ class AutoStartStopDetectionAlgorithm:
 
         # check to turn on
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.HEAT:
-            if current_temp + slope_min * self._dt <= target_temp:
+            if temp_at_dt <= target_temp:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to heat",
                     self,
@@ -187,7 +195,7 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.COOL:
-            if current_temp + slope_min * self._dt >= target_temp:
+            if temp_at_dt >= target_temp:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to cool",
                     self,

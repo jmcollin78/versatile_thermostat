@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant, callback
 
 from homeassistant.components.switch import SwitchEntity
 
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

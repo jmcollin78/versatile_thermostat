@@ -987,6 +987,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""
         self._is_auto_start_stop_enabled = is_enabled
+        self.update_custom_attributes()
 
     @property
     def auto_regulation_mode(self) -> str | None:
