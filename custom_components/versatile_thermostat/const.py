@@ -168,6 +168,16 @@ TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_NONE,
 ]
 
+HVAC_OFF_REASON_NAME = "hvac_off_reason"
+HVAC_OFF_REASON_MANUAL = "manual"
+HVAC_OFF_REASON_AUTO_START_STOP = "auto_start_stop"
+HVAC_OFF_REASON_WINDOW_DETECTION = "window_detection"
+HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
+    HVAC_OFF_REASON_MANUAL,
+    HVAC_OFF_REASON_AUTO_START_STOP,
+    HVAC_OFF_REASON_WINDOW_DETECTION,
+]
+
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
     # In sec
