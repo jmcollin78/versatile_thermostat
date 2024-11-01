@@ -32,6 +32,7 @@
       - [Internal temperature compensation](#internal-temperature-compensation)
       - [synthesis of the self-regulation algorithm](#synthesis-of-the-self-regulation-algorithm)
       - [Auto-fan mode](#auto-fan-mode)
+      - [Automatic start/stop](#automatic-startstop)
     - [For a thermostat of type ```thermostat_over_valve```:](#for-a-thermostat-of-type-thermostat_over_valve)
   - [Configure the TPI algorithm coefficients](#configure-the-tpi-algorithm-coefficients)
   - [Configure the preset temperature](#configure-the-preset-temperature)
@@ -93,6 +94,9 @@
 This custom component for Home Assistant is an upgrade and is a complete rewrite of the component "Awesome thermostat" (see [Github](https://github.com/dadge/awesome_thermostat)) with addition of features.
 
 >![New](images/new-icon.png) _*Latest releases*_
+> * **Release 6.5** :
+> - Added a new function allowing the automatic shutdown and restart of a VTherm `over_climate` [585](https://github.com/jmcollin78/versatile_thermostat/issues/585)
+> - Improved management of openings at startup. Allows to memorize and recalculate the state of an opening when restarting Home Assistant [504](https://github.com/jmcollin78/versatile_thermostat/issues/504)
 > * **Release 6.0**:
 > - Added entities from the Number domain to configure preset temperatures [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
 > - Complete redesign of the configuration menu to remove temperatures and use a menu instead of a configuration tunnel [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
@@ -101,13 +105,13 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 >   - addition of regulation thresholds for the `over_valve` to avoid draining the TRV battery too much [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
 >   - added an option allowing the internal temperature of a TRV to be used to force self-regulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
 >   - added a keep-alive function for VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
+<details>
+<summary>Others releases</summary>
+
 > * **Release 5.3**: Added a central boiler control function [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - more information here: [Controlling a central boiler](#controlling-a-central-boiler). Added the ability to disable security mode for outdoor thermometer [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2**: Added a `central_mode` allowing all VTherms to be controlled centrally [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 > * **Release 5.1**: Limitation of the values sent to the valves and the temperature sent to the underlying climate.
 > * **Release 5.0**: Added a central configuration allowing the sharing of attributes that can be shared [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
-<details>
-<summary>Others releases</summary>
-
 > * **Release 4.3**: Added an auto-fan mode for the `over_climate` type allowing ventilation to be activated if the temperature difference is significant [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
 > * **Release 4.2**: The calculation of the slope of the temperature curve is now done in °/hour and no longer in °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction of automatic detection of openings by adding smoothing of the temperature curve.
 > * **Release 4.1**: Added an **Expert** regulation mode in which the user can specify their own auto-regulation parameters instead of using the pre-programmed ones [#194]( https://github.com/jmcollin78/versatile_thermostat/issues/194).
@@ -499,6 +503,17 @@ You can choose which ventilation you want to activate between the following sett
 Obviously your underlying equipment must be equipped with ventilation and be controllable for this to work.
 If your equipment does not include Turbo mode, Forte` mode will be used as a replacement.
 Once the temperature difference becomes low again, the ventilation will go into a "normal" mode which depends on your equipment, namely (in order): `Silence (mute)`, `Auto (auto)`, `Low (low)`. The first value that is possible for your equipment will be chosen.
+
+#### Automatic start/stop
+This function was introduced in 6.5.0. It allows VTherm to stop equipment that does not need to be turned on and to restart it when conditions require it. This function has 3 settings that allow the equipment to be stopped/restarted more or less quickly.
+
+To use it, you must:
+1. Add the `Use the auto start and stop feature` function in the 'Features' menu,
+2. Set the detection level in the `Auto start and stop` option that is displayed when the function has been activated. You choose the detection level between 'Slow', 'Medium' and 'Fast'. The 'Fast' level will result in more shutdowns/restarts.
+
+Once configured, you will now have a new entity of type `switch` that allows you to authorize or not the automatic shutdown/restart without touching the configuration. This entity is available on the VTherm device and is called `switch.<name>_enable_auto_start_stop`. Check it to authorize the automatic startup and shutdown.
+
+The detection algorithm is described [here](https://github.com/jmcollin78/versatile_thermostat/issues/585).
 
 ### For a thermostat of type ```thermostat_over_valve```:
 ![image](images/config-linked-entity3.png)
@@ -900,6 +915,8 @@ context:
 | ``central_boiler_activation_service``     | Activation service of the boiler                                              | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Deactivaiton service of the boiler                                            | -             | -                   | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indicate if the VTherm control the central boiler                             | X             | X                   | X            | -                       |
+| ``use_auto_start_stop_feature``           | Indique si la fonction de démarrage/extinction automatique est activée        | -             | X                   | -            | -                       |
+| ``auto_start_stop_lvel``                  | Le niveau de détection de l'auto start/stop                                   | -             | X                   | -            | -                       |
 </details>
 
 # Tuning examples
@@ -1155,6 +1172,9 @@ Custom attributes are the following:
 | ``is_controlled_by_central_mode`` | True if the VTherm can be centrally controlled                                                                                   |
 | ``last_central_mode``             | The last central mode used (None if the VTherm is not centrally controlled)                                                      |
 | ``is_used_by_central_boiler``     | Indicate if the VTherm can control the central boiler                                                                            |
+| ``auto_start_stop_enable``        | Indique si le VTherm est autorisé à s'auto démarrer/arrêter                                                                      |
+| ``auto_start_stop_level``         | Indique le niveau d'auto start/stop                                                                                              |
+| ``hvac_off_reason``               | Indique la raison de l'arrêt (hvac_off) du VTherm. Ce peut être Window, Auto-start/stop ou Manuel                                |
 
 # Some results
 

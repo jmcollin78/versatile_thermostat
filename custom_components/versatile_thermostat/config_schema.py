@@ -68,6 +68,16 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
+    }
+)
+
 STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
@@ -193,6 +203,20 @@ STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
         vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=10): vol.Coerce(float),
         vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int,
+    }
+)
+
+STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(
+            CONF_AUTO_START_STOP_LEVEL, default=AUTO_START_STOP_LEVEL_NONE
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_AUTO_START_STOP_LEVELS,
+                translation_key="auto_start_stop",
+                mode="dropdown",
+            )
+        ),
     }
 )
 

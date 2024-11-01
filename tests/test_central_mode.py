@@ -982,7 +982,8 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         await select_entity.async_select_option(CENTRAL_MODE_COOL_ONLY)
 
         assert entity.last_central_mode is CENTRAL_MODE_COOL_ONLY
-        await entity.async_set_hvac_mode(HVACMode.OFF)
+        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
         assert entity._saved_hvac_mode == HVACMode.HEAT
         assert entity._saved_preset_mode == PRESET_ACTIVITY
@@ -1000,12 +1001,14 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         await try_function(None)
 
-        assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
-        )
+        # The VTherm is already off -> window detection is ignored
+        assert mock_send_event.call_count == 0
+        # mock_send_event.assert_has_calls(
+        #    [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
+        # )
 
         assert entity.hvac_mode == HVACMode.OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
         assert entity.preset_mode == PRESET_ACTIVITY
         assert entity._saved_hvac_mode == HVACMode.HEAT
         assert entity._saved_preset_mode == PRESET_ACTIVITY
@@ -1021,6 +1024,8 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.last_central_mode is CENTRAL_MODE_AUTO
         # No change
         assert entity.hvac_mode == HVACMode.OFF
+        # We have to a reason of WINDOW_DETECTION
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.preset_mode == PRESET_ACTIVITY
         assert entity._saved_hvac_mode == HVACMode.HEAT
         assert entity._saved_preset_mode == PRESET_ACTIVITY
@@ -1046,6 +1051,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         # We should stay off because central is STOPPED
         assert entity.hvac_mode == HVACMode.HEAT
+        assert entity.hvac_off_reason is None
         assert entity.preset_mode == PRESET_ACTIVITY
         assert entity._saved_hvac_mode == HVACMode.HEAT
         assert entity._saved_preset_mode == PRESET_ACTIVITY

@@ -205,6 +205,8 @@ async def test_window_management_time_enough(
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
         assert entity.hvac_mode is HVACMode.OFF
+        assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
 
     # Close the window
@@ -242,6 +244,9 @@ async def test_window_management_time_enough(
             any_order=False,
         )
         assert entity.preset_mode is PRESET_BOOST
+        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity._saved_hvac_mode is HVACMode.HEAT  # No change
+        assert entity.hvac_off_reason == None
 
     # Clean the entity
     entity.remove_thermostat()
@@ -1339,6 +1344,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         # The underlying should be in FAN_ONLY hvac_mode
         assert entity.hvac_mode is HVACMode.FAN_ONLY
         assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity.hvac_off_reason is None  # Hvac is not off
         assert entity.preset_mode is PRESET_COMFORT
 
     # 3. Close the window
@@ -1357,7 +1363,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         await try_function(None)
 
         # Wait for initial delay of heater
-        await asyncio.sleep(0.3)
+        await hass.async_block_till_done()
 
         assert entity.window_state == STATE_OFF
         assert mock_send_event.call_count == 1
@@ -1379,6 +1385,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         )
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_COMFORT
+        assert entity.hvac_off_reason is None
 
     # Clean the entity
     entity.remove_thermostat()
