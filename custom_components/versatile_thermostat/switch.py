@@ -48,7 +48,7 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
     ):
         super().__init__(hass, unique_id, name)
         self._attr_name = "Enable auto start/stop"
-        self._attr_unique_id = f"{self._device_name}_enbale_auto_start_stop"
+        self._attr_unique_id = f"{self._device_name}_enable_auto_start_stop"
         self._default_value = (
             entry_infos.data.get(CONF_AUTO_START_STOP_LEVEL)
             != AUTO_START_STOP_LEVEL_NONE

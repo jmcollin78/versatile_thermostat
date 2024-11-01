@@ -3,7 +3,7 @@
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Literal
 
 from homeassistant.components.climate import HVACMode
@@ -13,7 +13,6 @@ from .const import (
     AUTO_START_STOP_LEVEL_FAST,
     AUTO_START_STOP_LEVEL_MEDIUM,
     AUTO_START_STOP_LEVEL_SLOW,
-    CONF_AUTO_START_STOP_LEVELS,
     TYPE_AUTO_START_STOP_LEVELS,
 )
 
@@ -30,6 +29,9 @@ DT_MIN = {
 
 # the measurement cycle (2 min)
 CYCLE_SEC = 120
+
+# A temp hysteresis to avoid rapid OFF/ON
+TEMP_HYSTERESIS = 0.5
 
 ERROR_THRESHOLD = {
     AUTO_START_STOP_LEVEL_NONE: 0,  # Not used
@@ -146,7 +148,7 @@ class AutoStartStopDetectionAlgorithm:
         if hvac_mode == HVACMode.HEAT:
             if (
                 self._accumulated_error <= -self._error_threshold
-                and temp_at_dt >= target_temp
+                and temp_at_dt >= target_temp + TEMP_HYSTERESIS
             ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for heating for a long time.",
@@ -160,7 +162,7 @@ class AutoStartStopDetectionAlgorithm:
         if hvac_mode == HVACMode.COOL:
             if (
                 self._accumulated_error >= self._error_threshold
-                and temp_at_dt <= target_temp
+                and temp_at_dt <= target_temp - TEMP_HYSTERESIS
             ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for cooling for a long time.",
@@ -176,7 +178,7 @@ class AutoStartStopDetectionAlgorithm:
 
         # check to turn on
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.HEAT:
-            if temp_at_dt <= target_temp:
+            if temp_at_dt <= target_temp - TEMP_HYSTERESIS:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to heat",
                     self,
@@ -190,7 +192,7 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.COOL:
-            if temp_at_dt >= target_temp:
+            if temp_at_dt >= target_temp + TEMP_HYSTERESIS:
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to cool",
                     self,

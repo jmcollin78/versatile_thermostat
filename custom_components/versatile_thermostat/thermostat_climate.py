@@ -49,6 +49,7 @@ from .const import (
     RegulationParamStrong,
     AUTO_FAN_DTEMP_THRESHOLD,
     AUTO_FAN_DEACTIVATED_MODES,
+    CONF_USE_AUTO_START_STOP_FEATURE,
     CONF_AUTO_START_STOP_LEVEL,
     AUTO_START_STOP_LEVEL_NONE,
     TYPE_AUTO_START_STOP_LEVELS,
@@ -176,9 +177,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP, False
         )
 
-        self._auto_start_stop_level = config_entry.get(
-            CONF_AUTO_START_STOP_LEVEL, AUTO_START_STOP_LEVEL_NONE
-        )
+        use_auto_start_stop = config_entry.get(CONF_USE_AUTO_START_STOP_FEATURE, False)
+        if use_auto_start_stop:
+            self._auto_start_stop_level = config_entry.get(
+                CONF_AUTO_START_STOP_LEVEL, AUTO_START_STOP_LEVEL_NONE
+            )
+        else:
+            self._auto_start_stop_level = AUTO_START_STOP_LEVEL_NONE
+
         # Instanciate the auto start stop algo
         self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(
             self._auto_start_stop_level, self.name
@@ -914,7 +920,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # Check if we need to auto start/stop the Vtherm
         if self.auto_start_stop_enable:
             slope = (
-                self._window_auto_algo.last_slope or 0
+                self.last_temperature_slope or 0
             ) / 60  # to have the slope in °/min
             action = self._auto_start_stop_algo.calculate_action(
                 self.hvac_mode,
@@ -937,13 +943,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     event_type=EventType.AUTO_START_STOP_EVENT,
                     data={
                         "type": "stop",
-                        "name:": self.name,
+                        "name": self.name,
                         "cause": "Auto stop conditions reached",
                         "hvac_mode": self.hvac_mode,
                         "saved_hvac_mode": self._saved_hvac_mode,
                         "target_temperature": self.target_temperature,
                         "current_temperature": self.current_temperature,
-                        "temperature_slope": slope,
+                        "temperature_slope": round(slope, 3),
                     },
                 )
 
@@ -960,13 +966,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     event_type=EventType.AUTO_START_STOP_EVENT,
                     data={
                         "type": "start",
-                        "name:": self.name,
+                        "name": self.name,
                         "cause": "Auto start conditions reached",
                         "hvac_mode": self.hvac_mode,
                         "saved_hvac_mode": self._saved_hvac_mode,
                         "target_temperature": self.target_temperature,
                         "current_temperature": self.current_temperature,
-                        "temperature_slope": slope,
+                        "temperature_slope": round(slope, 3),
                     },
                 )
 

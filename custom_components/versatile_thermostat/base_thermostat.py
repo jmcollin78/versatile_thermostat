@@ -199,6 +199,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "is_device_active",
                     "target_temperature_step",
                     "is_used_by_central_boiler",
+                    "temperature_slope"
                 }
             )
         )
@@ -2633,6 +2634,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "is_device_active": self.is_device_active,
             "ema_temp": self._ema_temp,
             "is_used_by_central_boiler": self.is_used_by_central_boiler,
+            "temperature_slope": round(self.last_temperature_slope or 0, 3),
         }
 
     @callback
