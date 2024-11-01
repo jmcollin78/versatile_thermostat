@@ -1702,6 +1702,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Prevent from starting a VTherm if window is open
         if (
             self.is_window_auto_enabled
+            and self._window_sensor_entity_id is not None
             and self._hass.states.is_state(self._window_sensor_entity_id, STATE_ON)
             and self.is_on
             and self.window_action == CONF_WINDOW_TURN_OFF
@@ -2182,13 +2183,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if self.window_state is not STATE_ON and not first_init:
                 await self.restore_hvac_mode()
                 await self.restore_preset_mode()
-
+            elif self.window_state is STATE_ON and self.hvac_mode == HVACMode.OFF:
+                # do not restore but mark the reason of off with window detection
+                self.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             return
 
         if old_central_mode == CENTRAL_MODE_AUTO and self.window_state is not STATE_ON:
             save_all()
 
         if new_central_mode == CENTRAL_MODE_STOPPED:
+            self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
             await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2196,6 +2200,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if HVACMode.COOL in self.hvac_modes:
                 await self.async_set_hvac_mode(HVACMode.COOL)
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2203,6 +2208,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if HVACMode.HEAT in self.hvac_modes:
                 await self.async_set_hvac_mode(HVACMode.HEAT)
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2216,6 +2222,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     PRESET_FROST_PROTECTION, overwrite_saved_preset=False
                 )
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
