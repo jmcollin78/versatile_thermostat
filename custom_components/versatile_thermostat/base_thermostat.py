@@ -796,6 +796,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             ]:
                 self._hvac_mode = old_state.state
 
+            # restpre also saved info so that window detection will work
+            self._saved_hvac_mode = old_state.attributes.get("saved_hvac_mode", None)
+            self._saved_preset_mode = old_state.attributes.get(
+                "saved_preset_mode", None
+            )
+
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
 
