@@ -1172,9 +1172,9 @@ Custom attributes are the following:
 | ``is_controlled_by_central_mode`` | True if the VTherm can be centrally controlled                                                                                   |
 | ``last_central_mode``             | The last central mode used (None if the VTherm is not centrally controlled)                                                      |
 | ``is_used_by_central_boiler``     | Indicate if the VTherm can control the central boiler                                                                            |
-| ``auto_start_stop_enable``        | Indique si le VTherm est autorisé à s'auto démarrer/arrêter                                                                      |
-| ``auto_start_stop_level``         | Indique le niveau d'auto start/stop                                                                                              |
-| ``hvac_off_reason``               | Indique la raison de l'arrêt (hvac_off) du VTherm. Ce peut être Window, Auto-start/stop ou Manuel                                |
+| ``auto_start_stop_enable``        | Indicate if the VTherm is allowed to do auto start and stop                                                                      |
+| ``auto_start_stop_level``         | Give the level of auto start/stop                                                                                                |
+| ``hvac_off_reason``               | Give the reason of stop of the VTherm. This could be Window, Auto-start/stop or Manual                                           |
 
 # Some results
 
