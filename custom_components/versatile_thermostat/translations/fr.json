@@ -554,7 +554,8 @@
             "state": {
               "power": "Délestage",
               "security": "Sécurité",
-              "none": "Manuel"
+              "none": "Manuel",
+              "frost": "Hors Gel"
             }
           }
         }
