@@ -62,72 +62,7 @@ from homeassistant.const import (
     STATE_NOT_HOME,
 )
 
-from .const import (
-    DOMAIN,
-    DEVICE_MANUFACTURER,
-    CONF_POWER_SENSOR,
-    CONF_TEMP_SENSOR,
-    CONF_LAST_SEEN_TEMP_SENSOR,
-    CONF_EXTERNAL_TEMP_SENSOR,
-    CONF_MAX_POWER_SENSOR,
-    CONF_WINDOW_SENSOR,
-    CONF_WINDOW_DELAY,
-    CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
-    CONF_WINDOW_AUTO_OPEN_THRESHOLD,
-    CONF_WINDOW_AUTO_MAX_DURATION,
-    CONF_MOTION_SENSOR,
-    CONF_MOTION_DELAY,
-    CONF_MOTION_OFF_DELAY,
-    CONF_MOTION_PRESET,
-    CONF_NO_MOTION_PRESET,
-    CONF_DEVICE_POWER,
-    CONF_PRESETS,
-    # CONF_PRESETS_AWAY,
-    # CONF_PRESETS_WITH_AC,
-    # CONF_PRESETS_AWAY_WITH_AC,
-    CONF_CYCLE_MIN,
-    CONF_PROP_FUNCTION,
-    CONF_TPI_COEF_INT,
-    CONF_TPI_COEF_EXT,
-    CONF_PRESENCE_SENSOR,
-    CONF_PRESET_POWER,
-    SUPPORT_FLAGS,
-    PRESET_FROST_PROTECTION,
-    PRESET_POWER,
-    PRESET_SECURITY,
-    PROPORTIONAL_FUNCTION_TPI,
-    PRESET_AWAY_SUFFIX,
-    CONF_SECURITY_DELAY_MIN,
-    CONF_SECURITY_MIN_ON_PERCENT,
-    CONF_SECURITY_DEFAULT_ON_PERCENT,
-    DEFAULT_SECURITY_MIN_ON_PERCENT,
-    DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
-    CONF_MINIMAL_ACTIVATION_DELAY,
-    CONF_USE_MAIN_CENTRAL_CONFIG,
-    CONF_USE_TPI_CENTRAL_CONFIG,
-    CONF_USE_PRESETS_CENTRAL_CONFIG,
-    CONF_USE_WINDOW_CENTRAL_CONFIG,
-    CONF_USE_MOTION_CENTRAL_CONFIG,
-    CONF_USE_POWER_CENTRAL_CONFIG,
-    CONF_USE_PRESENCE_CENTRAL_CONFIG,
-    CONF_USE_ADVANCED_CENTRAL_CONFIG,
-    CONF_USE_PRESENCE_FEATURE,
-    CONF_TEMP_MAX,
-    CONF_TEMP_MIN,
-    HIDDEN_PRESETS,
-    CONF_AC_MODE,
-    EventType,
-    ATTR_MEAN_POWER_CYCLE,
-    ATTR_TOTAL_ENERGY,
-    PRESET_AC_SUFFIX,
-    DEFAULT_SHORT_EMA_PARAMS,
-    CENTRAL_MODE_AUTO,
-    CENTRAL_MODE_STOPPED,
-    CENTRAL_MODE_HEAT_ONLY,
-    CENTRAL_MODE_COOL_ONLY,
-    CENTRAL_MODE_FROST_PROTECTION,
-    send_vtherm_event,
-)
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -199,6 +134,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "is_device_active",
                     "target_temperature_step",
                     "is_used_by_central_boiler",
+                    "temperature_slope"
                 }
             )
         )
@@ -302,6 +238,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._attr_preset_modes: list[str] = []
 
         self._use_central_config_temperature = False
+
+        self._hvac_off_reason: HVAC_OFF_REASONS | None = None
 
         self.post_init(entry_infos)
 
@@ -848,18 +786,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             else:
                 self._attr_preset_mode = PRESET_NONE
 
+            # Restore old hvac_off_reason
+            self._hvac_off_reason = old_state.attributes.get(HVAC_OFF_REASON_NAME, None)
+
             if old_state.state in [
                 HVACMode.OFF,
                 HVACMode.HEAT,
                 HVACMode.COOL,
             ]:
                 self._hvac_mode = old_state.state
-            else:
-                if not self._hvac_mode:
-                    self._hvac_mode = HVACMode.OFF
+
+            # restpre also saved info so that window detection will work
+            self._saved_hvac_mode = old_state.attributes.get("saved_hvac_mode", None)
+            self._saved_preset_mode = old_state.attributes.get(
+                "saved_preset_mode", None
+            )
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
-            self._total_energy = old_total_energy if old_total_energy else 0
+            self._total_energy = old_total_energy if old_total_energy is not None else 0
 
             self.restore_specific_previous_state(old_state)
         else:
@@ -874,11 +818,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
             self._total_energy = 0
 
-        self._saved_target_temp = self._target_temp
-
-        # Set default state to off
         if not self._hvac_mode:
             self._hvac_mode = HVACMode.OFF
+
+        if not self.is_on and self.hvac_off_reason is None:
+            self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
+
+        self._saved_target_temp = self._target_temp
 
         self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
         self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
@@ -987,16 +933,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        # Issue #114 - returns my current hvac_mode and not the underlying hvac_mode which could be different
-        # delta will be managed by climate_state_change event.
-        # if self.is_over_climate:
-        # if one not OFF -> return it
-        # else OFF
-        #    for under in self._underlyings:
-        #        if (mode := under.hvac_mode) not in [HVACMode.OFF]
-        #            return mode
-        #    return HVACMode.OFF
-
         return self._hvac_mode
 
     @property
@@ -1193,6 +1129,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """True if this VTHerm uses the central configuration temperature"""
         return self._use_central_config_temperature
 
+    @property
+    def hvac_off_reason(self) -> HVAC_OFF_REASONS:
+        """Returns the reason of the last switch to HVAC_OFF
+        This is useful for features that turns off the VTherm like
+        window detection or auto-start-stop"""
+        return self._hvac_off_reason
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1255,8 +1198,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
-
         self.reset_last_change_time()
+
+        if self._hvac_mode != HVACMode.OFF:
+            self.set_hvac_off_reason(None)
 
         self.update_custom_attributes()
         self.async_write_ha_state()
@@ -1760,6 +1705,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         for under in self._underlyings:
             await under.check_initial_state(self._hvac_mode)
 
+        # Prevent from starting a VTherm if window is open
+        if (
+            self.is_window_auto_enabled
+            and self._window_sensor_entity_id is not None
+            and self._hass.states.is_state(self._window_sensor_entity_id, STATE_ON)
+            and self.is_on
+            and self.window_action == CONF_WINDOW_TURN_OFF
+        ):
+            _LOGGER.info("%s - the window is open. Prevent starting the VTherm")
+            self._window_auto_state = True
+            self.save_hvac_mode()
+            await self.async_set_hvac_mode(HVACMode.OFF)
+
         # Starts the initial control loop (don't wait for an update of temperature)
         await self.async_control_heating(force=True)
 
@@ -2096,6 +2054,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._hvac_mode,
         )
 
+    def set_hvac_off_reason(self, hvac_off_reason: HVAC_OFF_REASONS):
+        """Set the reason of hvac_off"""
+        self._hvac_off_reason = hvac_off_reason
+
     async def restore_hvac_mode(self, need_control_heating=False):
         """Restore a previous hvac_mod"""
         await self.async_set_hvac_mode(self._saved_hvac_mode, need_control_heating)
@@ -2227,13 +2189,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if self.window_state is not STATE_ON and not first_init:
                 await self.restore_hvac_mode()
                 await self.restore_preset_mode()
-
+            elif self.window_state is STATE_ON and self.hvac_mode == HVACMode.OFF:
+                # do not restore but mark the reason of off with window detection
+                self.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             return
 
         if old_central_mode == CENTRAL_MODE_AUTO and self.window_state is not STATE_ON:
             save_all()
 
         if new_central_mode == CENTRAL_MODE_STOPPED:
+            self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
             await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2241,6 +2206,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if HVACMode.COOL in self.hvac_modes:
                 await self.async_set_hvac_mode(HVACMode.COOL)
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2248,6 +2214,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if HVACMode.HEAT in self.hvac_modes:
                 await self.async_set_hvac_mode(HVACMode.HEAT)
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2261,6 +2228,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     PRESET_FROST_PROTECTION, overwrite_saved_preset=False
                 )
             else:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
@@ -2440,17 +2408,27 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Change the window detection state.
         new_state is on if an open window have been detected or off else
         """
-        if not new_state:
+        if new_state is False:
             _LOGGER.info(
-                "%s - Window is closed. Restoring hvac_mode '%s' if central_mode is not STOPPED",
+                "%s - Window is closed. Restoring hvac_mode '%s' if stopped by window detection or temperature %s",
                 self,
                 self._saved_hvac_mode,
+                self._saved_target_temp,
             )
             if self._window_action in [CONF_WINDOW_FROST_TEMP, CONF_WINDOW_ECO_TEMP]:
                 await self._async_internal_set_temperature(self._saved_target_temp)
+
             # default to TURN_OFF
-            elif self._window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
+            elif self._window_action in [CONF_WINDOW_TURN_OFF]:
+                if (
+                    self.last_central_mode != CENTRAL_MODE_STOPPED
+                    and self.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+                ):
+                    self.set_hvac_off_reason(None)
+                    await self.restore_hvac_mode(True)
+            elif self._window_action in [CONF_WINDOW_FAN_ONLY]:
                 if self.last_central_mode != CENTRAL_MODE_STOPPED:
+                    self.set_hvac_off_reason(None)
                     await self.restore_hvac_mode(True)
             else:
                 _LOGGER.error(
@@ -2462,6 +2440,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.info(
                 "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
             )
+            if self._window_action == CONF_WINDOW_TURN_OFF and not self.is_on:
+                _LOGGER.debug(
+                    "%s is already off. Forget turning off VTherm due to window detection"
+                )
+                return
+
             if self.last_central_mode in [CENTRAL_MODE_AUTO, None]:
                 if self._window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
                     self.save_hvac_mode()
@@ -2491,6 +2475,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self.find_preset_temp(PRESET_ECO)
                 )
             else:  # default is to turn_off
+                self.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
                 await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_control_heating(self, force=False, _=None) -> bool:
@@ -2633,6 +2618,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "is_device_active": self.is_device_active,
             "ema_temp": self._ema_temp,
             "is_used_by_central_boiler": self.is_used_by_central_boiler,
+            "temperature_slope": round(self.last_temperature_slope or 0, 3),
+            "hvac_off_reason": self.hvac_off_reason,
         }
 
     @callback

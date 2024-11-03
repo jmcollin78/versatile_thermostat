@@ -27,6 +27,7 @@
           "power": "Power management",
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
+          "auto_start_stop": "Auto start and stop",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -63,7 +64,8 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
+          "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
       },
       "type": {
@@ -240,6 +242,7 @@
           "power": "Power management",
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
+          "auto_start_stop": "Auto start and stop",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -276,7 +279,8 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page"
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
+          "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
       },
       "type": {
@@ -470,6 +474,14 @@
         "comfort": "Comfort",
         "boost": "Boost"
       }
+    },
+    "auto_start_stop": {
+      "options": {
+        "auto_start_stop_none": "No auto start/stop",
+        "auto_start_stop_slow": "Slow detection",
+        "auto_start_stop_medium": "Medium detection",
+        "auto_start_stop_fast": "Fast detection"
+      }
     }
   },
   "entity": {
@@ -480,7 +492,8 @@
             "state": {
               "power": "Shedding",
               "security": "Safety",
-              "none": "Manual"
+              "none": "Manual",
+              "frost": "Frost"
             }
           }
         }

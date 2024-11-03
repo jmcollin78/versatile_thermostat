@@ -27,6 +27,7 @@
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
+          "auto_start_stop": "Allumage/extinction automatique",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -63,7 +64,8 @@
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
-          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante."
+          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
         }
       },
       "type": {
@@ -274,6 +276,7 @@
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
+          "auto_start_stop": "Allumage/extinction automatique",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -310,7 +313,8 @@
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
-          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante."
+          "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un controle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commande la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
         }
       },
       "type": {
@@ -532,6 +536,14 @@
         "comfort": "Confort",
         "boost": "Renforcé (boost)"
       }
+    },
+    "auto_start_stop": {
+      "options": {
+        "auto_start_stop_none": "No auto start/stop",
+        "auto_start_stop_slow": "Slow detection",
+        "auto_start_stop_medium": "Medium detection",
+        "auto_start_stop_fast": "Fast detection"
+      }
     }
   },
   "entity": {
@@ -542,7 +554,8 @@
             "state": {
               "power": "Délestage",
               "security": "Sécurité",
-              "none": "Manuel"
+              "none": "Manuel",
+              "frost": "Hors Gel"
             }
           }
         }

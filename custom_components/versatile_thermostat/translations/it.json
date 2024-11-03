@@ -364,7 +364,8 @@
             "state": {
               "power": "Ripartizione",
               "security": "Sicurezza",
-              "none": "Manuale"
+              "none": "Manuale",
+              "frost": "Gelo"
             }
           }
         }

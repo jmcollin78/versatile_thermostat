@@ -100,7 +100,7 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         entry_infos,
     ) -> None:
         """Initialize the SecurityState Binary sensor"""
-        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        super().__init__(hass, unique_id, name)
         self._attr_name = "Security state"
         self._attr_unique_id = f"{self._device_name}_security_state"
         self._attr_is_on = False

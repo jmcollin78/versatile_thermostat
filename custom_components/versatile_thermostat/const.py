@@ -2,6 +2,7 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
+from typing import Literal
 
 from enum import Enum
 from homeassistant.const import CONF_NAME, Platform
@@ -51,6 +52,7 @@ PLATFORMS: list[Platform] = [
     # Number should be after CLIMATE
     Platform.NUMBER,
     Platform.BINARY_SENSOR,
+    Platform.SWITCH,
 ]
 
 CONF_UNDERLYING_LIST = "underlying_entity_ids"
@@ -90,6 +92,7 @@ CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
+CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -147,6 +150,36 @@ CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
 
 CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
 CONF_WINDOW_ACTION = "window_action"
+
+CONF_AUTO_START_STOP_LEVEL = "auto_start_stop_level"
+AUTO_START_STOP_LEVEL_NONE = "auto_start_stop_none"
+AUTO_START_STOP_LEVEL_SLOW = "auto_start_stop_slow"
+AUTO_START_STOP_LEVEL_MEDIUM = "auto_start_stop_medium"
+AUTO_START_STOP_LEVEL_FAST = "auto_start_stop_fast"
+CONF_AUTO_START_STOP_LEVELS = [
+    AUTO_START_STOP_LEVEL_NONE,
+    AUTO_START_STOP_LEVEL_SLOW,
+    AUTO_START_STOP_LEVEL_MEDIUM,
+    AUTO_START_STOP_LEVEL_FAST,
+]
+
+# For explicit typing purpose only
+TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
+    AUTO_START_STOP_LEVEL_FAST,
+    AUTO_START_STOP_LEVEL_MEDIUM,
+    AUTO_START_STOP_LEVEL_SLOW,
+    AUTO_START_STOP_LEVEL_NONE,
+]
+
+HVAC_OFF_REASON_NAME = "hvac_off_reason"
+HVAC_OFF_REASON_MANUAL = "manual"
+HVAC_OFF_REASON_AUTO_START_STOP = "auto_start_stop"
+HVAC_OFF_REASON_WINDOW_DETECTION = "window_detection"
+HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
+    HVAC_OFF_REASON_MANUAL,
+    HVAC_OFF_REASON_AUTO_START_STOP,
+    HVAC_OFF_REASON_WINDOW_DETECTION,
+]
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
@@ -436,6 +469,7 @@ class EventType(Enum):
     CENTRAL_BOILER_EVENT: str = "versatile_thermostat_central_boiler_event"
     PRESET_EVENT: str = "versatile_thermostat_preset_event"
     WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
+    AUTO_START_STOP_EVENT: str = "versatile_thermostat_auto_start_stop_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
