@@ -165,7 +165,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # check the heater_entity_id
         for conf in [
-            CONF_HEATER,
+            CONF_UNDERLYING_LIST,
             CONF_TEMP_SENSOR,
             CONF_EXTERNAL_TEMP_SENSOR,
             CONF_WINDOW_SENSOR,
@@ -173,15 +173,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
             CONF_PRESENCE_SENSOR,
-            CONF_CLIMATE,
         ]:
             d = data.get(conf, None)  # pylint: disable=invalid-name
-            if d is not None and self.hass.states.get(d) is None:
-                _LOGGER.error(
-                    "Entity id %s doesn't have any state. We cannot use it in the Versatile Thermostat configuration",  # pylint: disable=line-too-long
-                    d,
-                )
-                raise UnknownEntity(conf)
+            if not isinstance(d, list):
+                d = [d]
+            for e in d:
+                if e is not None and self.hass.states.get(e) is None:
+                    _LOGGER.error(
+                        "Entity id %s doesn't have any state. We cannot use it in the Versatile Thermostat configuration",  # pylint: disable=line-too-long
+                        e,
+                    )
+                    raise UnknownEntity(conf)
 
         # Check that only one window feature is used
         ws = self._infos.get(CONF_WINDOW_SENSOR)  # pylint: disable=invalid-name
@@ -270,21 +272,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if (
-                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
-                and infos.get(CONF_HEATER, None) is None
-            ):
-                return False
-
-            if (
-                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
-                and infos.get(CONF_CLIMATE, None) is None
-            ):
-                return False
-
-            if (
-                infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
-                and infos.get(CONF_VALVE, None) is None
+            if infos.get(CONF_UNDERLYING_LIST, None) is not None and not infos.get(
+                CONF_UNDERLYING_LIST, None
             ):
                 return False
 

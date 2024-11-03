@@ -38,6 +38,22 @@ from .const import (
     CONF_USE_CENTRAL_BOILER_FEATURE,
     CONF_POWER_SENSOR,
     CONF_PRESENCE_SENSOR,
+    CONF_UNDERLYING_LIST,
+    CONF_HEATER,
+    CONF_HEATER_2,
+    CONF_HEATER_3,
+    CONF_HEATER_4,
+    CONF_CLIMATE,
+    CONF_CLIMATE_2,
+    CONF_CLIMATE_3,
+    CONF_CLIMATE_4,
+    CONF_VALVE,
+    CONF_VALVE_2,
+    CONF_VALVE_3,
+    CONF_VALVE_4,
+    CONF_THERMOSTAT_SWITCH,
+    CONF_THERMOSTAT_CLIMATE,
+    CONF_THERMOSTAT_VALVE,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -208,10 +224,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         new = {**config_entry.data}
 
-        if (
-            config_entry.data.get(CONF_THERMOSTAT_TYPE)
-            == CONF_THERMOSTAT_CENTRAL_CONFIG
-        ):
+        thermostat_type = config_entry.data.get(CONF_THERMOSTAT_TYPE)
+
+        if thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
             new[CONF_USE_WINDOW_FEATURE] = True
             new[CONF_USE_MOTION_FEATURE] = True
             new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
@@ -222,6 +237,50 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
                 "add_central_boiler_control", False
             ) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
+
+        if config_entry.data.get(CONF_UNDERLYING_LIST, None) is None:
+            underlying_list = []
+            if thermostat_type == CONF_THERMOSTAT_SWITCH:
+                underlying_list = [
+                    config_entry.data.get(CONF_HEATER, None),
+                    config_entry.data.get(CONF_HEATER_2, None),
+                    config_entry.data.get(CONF_HEATER_3, None),
+                    config_entry.data.get(CONF_HEATER_4, None),
+                ]
+            elif thermostat_type == CONF_THERMOSTAT_CLIMATE:
+                underlying_list = [
+                    config_entry.data.get(CONF_CLIMATE, None),
+                    config_entry.data.get(CONF_CLIMATE_2, None),
+                    config_entry.data.get(CONF_CLIMATE_3, None),
+                    config_entry.data.get(CONF_CLIMATE_4, None),
+                ]
+            elif thermostat_type == CONF_THERMOSTAT_VALVE:
+                underlying_list = [
+                    config_entry.data.get(CONF_VALVE, None),
+                    config_entry.data.get(CONF_VALVE_2, None),
+                    config_entry.data.get(CONF_VALVE_3, None),
+                    config_entry.data.get(CONF_VALVE_4, None),
+                ]
+
+            new[CONF_UNDERLYING_LIST] = [
+                entity for entity in underlying_list if entity is not None
+            ]
+
+            for key in [
+                CONF_HEATER,
+                CONF_HEATER_2,
+                CONF_HEATER_3,
+                CONF_HEATER_4,
+                CONF_CLIMATE,
+                CONF_CLIMATE_2,
+                CONF_CLIMATE_3,
+                CONF_CLIMATE_4,
+                CONF_VALVE,
+                CONF_VALVE_2,
+                CONF_VALVE_3,
+                CONF_VALVE_4,
+            ]:
+                new.pop(key, None)
 
         hass.config_entries.async_update_entry(
             config_entry,

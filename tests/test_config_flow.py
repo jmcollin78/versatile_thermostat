@@ -87,7 +87,7 @@ async def test_user_config_flow_over_switch(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_AC_MODE: False,
@@ -292,7 +292,7 @@ async def test_user_config_flow_over_switch(
     )
     assert result["result"]
     assert result["result"].domain == DOMAIN
-    assert result["result"].version == 1
+    assert result["result"].version == 2
     assert result["result"].title == "TheOverSwitchMockName"
     assert isinstance(result["result"], ConfigEntry)
 
@@ -379,7 +379,7 @@ async def test_user_config_flow_over_climate(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_CLIMATE: "climate.mock_climate",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
             CONF_AUTO_REGULATION_DTEMP: 0.5,
@@ -794,10 +794,7 @@ async def test_user_config_flow_over_4_switches(
     }
 
     TYPE_CONFIG = {  # pylint: disable=invalid-name
-        CONF_HEATER: "switch.mock_switch1",
-        CONF_HEATER_2: "switch.mock_switch2",
-        CONF_HEATER_3: "switch.mock_switch3",
-        CONF_HEATER_4: "switch.mock_switch4",
+        CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2", "switch.mock_switch3","switch.mock_switch4"],
         CONF_HEATER_KEEP_ALIVE: 0,
         CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
         CONF_AC_MODE: False,
