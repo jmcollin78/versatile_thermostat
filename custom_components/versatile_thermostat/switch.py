@@ -58,7 +58,7 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
     @property
     def icon(self) -> str | None:
         """The icon"""
-        return "mdi:power-settings"
+        return "mdi:power-sleep"
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()

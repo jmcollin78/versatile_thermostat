@@ -910,6 +910,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     "target_temperature": self.target_temperature,
                     "current_temperature": self.current_temperature,
                     "temperature_slope": round(slope, 3),
+                    "accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                    "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
                 },
             )
 
@@ -933,6 +935,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     "target_temperature": self.target_temperature,
                     "current_temperature": self.current_temperature,
                     "temperature_slope": round(slope, 3),
+                    "accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                    "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
                 },
             )
 
