@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "shedding": "mdi:power-plug-off",
+              "safety": "mdi:shield-alert",
+              "none": "mdi:knob",
+              "frost": "mdi:snowflake"
+            }
+          }
+        }
+      }
+    }
+  }
+}

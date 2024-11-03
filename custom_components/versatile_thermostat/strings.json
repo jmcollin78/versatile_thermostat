@@ -524,7 +524,8 @@
             "state": {
               "power": "Shedding",
               "security": "Safety",
-              "none": "Manual"
+              "none": "Manual",
+              "frost": "Frost"
             }
           }
         }
