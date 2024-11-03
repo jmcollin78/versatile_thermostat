@@ -512,7 +512,7 @@ async def test_user_config_flow_over_climate(
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
-    assert result["result"].version == 1
+    assert result["result"].version == 2
     assert result["result"].title == "TheOverClimateMockName"
     assert isinstance(result["result"], ConfigEntry)
 
@@ -1012,7 +1012,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_CLIMATE: "climate.mock_climate",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
             CONF_AUTO_REGULATION_DTEMP: 0.5,
@@ -1121,6 +1121,6 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
-    assert result["result"].version == 1
+    assert result["result"].version == 2
     assert result["result"].title == "TheOverClimateMockName"
     assert isinstance(result["result"], ConfigEntry)

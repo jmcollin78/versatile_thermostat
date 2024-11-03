@@ -444,6 +444,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
                         "target_temperature": 19.0,
                         "current_temperature": 21.0,
                         "temperature_slope": 0.167,
+                        "accumulated_error": -5,
+                        "accumulated_error_threshold": 5,
                     },
                 )
             ]
@@ -507,6 +509,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
                         "target_temperature": 19.0,
                         "current_temperature": 18.0,
                         "temperature_slope": -0.034,
+                        "accumulated_error": 5,
+                        "accumulated_error_threshold": 5,
                     },
                 )
             ]
@@ -569,7 +573,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
             CONF_USE_AUTO_START_STOP_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
-            CONF_CLIMATE: "climate.mock_climate",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SECURITY_DELAY_MIN: 5,
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
@@ -672,6 +676,8 @@ async def test_auto_start_stop_fast_ac_vtherm(
                         "target_temperature": 25.0,
                         "current_temperature": 23.0,
                         "temperature_slope": -0.28,
+                        "accumulated_error": 2,
+                        "accumulated_error_threshold": 2,
                     },
                 )
             ]
@@ -734,6 +740,8 @@ async def test_auto_start_stop_fast_ac_vtherm(
                         "target_temperature": 25.0,
                         "current_temperature": 26.5,
                         "temperature_slope": 0.112,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
                     },
                 )
             ]
@@ -881,6 +889,8 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
                         "target_temperature": 17.0,
                         "current_temperature": 19.0,
                         "temperature_slope": 0.3,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
                     },
                 )
             ]
@@ -936,6 +946,8 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
                         "target_temperature": 21.0,
                         "current_temperature": 17.0,
                         "temperature_slope": -0.087,
+                        "accumulated_error": 2,
+                        "accumulated_error_threshold": 2,
                     },
                 )
             ]
@@ -1445,6 +1457,8 @@ async def test_auto_start_stop_fast_heat_window_mixed(
                         "target_temperature": 19.0,
                         "current_temperature": 21.0,
                         "temperature_slope": 0.214,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
                     },
                 ),
             ]
