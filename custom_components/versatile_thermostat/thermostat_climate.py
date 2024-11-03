@@ -97,20 +97,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
-        for climate in [
-            CONF_CLIMATE,
-            CONF_CLIMATE_2,
-            CONF_CLIMATE_3,
-            CONF_CLIMATE_4,
-        ]:
-            if config_entry.get(climate):
-                self._underlyings.append(
-                    UnderlyingClimate(
-                        hass=self._hass,
-                        thermostat=self,
-                        climate_entity_id=config_entry.get(climate),
-                    )
+        
+        for climate in config_entry.get(CONF_UNDERLYING_LIST):
+            self._underlyings.append(
+                UnderlyingClimate(
+                    hass=self._hass,
+                    thermostat=self,
+                    climate_entity_id=climate,
                 )
+            )
 
         self.choose_auto_regulation_mode(
             config_entry.get(CONF_AUTO_REGULATION_MODE)
