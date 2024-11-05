@@ -1353,7 +1353,7 @@ Example of graph obtained with Plotly :
 
 
 ## And always better and better with the NOTIFIER daemon app to notify events
-This automation uses the excellent App Daemon named NOTIFIER developed by Horizon Domotique that you will find in demonstration [here](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) and the code is [here](https ://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). It allows you to notify the users of the accommodation when one of the events affecting safety occurs on one of the Versatile Thermostats.
+This automation uses the excellent App Daemon named NOTIFIER developed by Horizon Domotique that you will find in demonstration [here](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) and the code is [here](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). It allows you to notify the users of the accommodation when one of the events affecting safety occurs on one of the Versatile Thermostats.
 
 This is a great example of using the notifications described here [notification](#notifications).
 
