@@ -25,7 +25,9 @@ from .const import (
 from .underlyings import UnderlyingValve
 
 _LOGGER = logging.getLogger(__name__)
-
+_LOGGER_ENERGY = logging.getLogger(
+    "custom_components.versatile_thermostat.energy_debug"
+)
 
 class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
@@ -265,8 +267,18 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         if self._total_energy is None:
             self._total_energy = added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - incremente_energy set energy is %s",
+                self,
+                self._total_energy,
+            )
         else:
             self._total_energy += added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - get_my_previous_state increment energy is %s",
+                self,
+                self._total_energy,
+            )
 
         self.update_custom_attributes()
 
