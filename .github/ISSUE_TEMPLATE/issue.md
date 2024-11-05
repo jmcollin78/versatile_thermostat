@@ -4,6 +4,8 @@ about: Create a report to help us improve
 
 ---
 
+> Please read carefuly this instructions and fill this form before writing an issue. It helps me to help you.
+
 <!-- This template will allow the maintainer to be efficient and post the more accurante response as possible. There is many types / modes / configuration possible, so the analysis can be very tricky. If don't follow this template, your issue could be rejected without any message. Please help me to help you. -->
 
 <!-- Before you open a new issue, search through the existing issues to see if others have had the same problem.
