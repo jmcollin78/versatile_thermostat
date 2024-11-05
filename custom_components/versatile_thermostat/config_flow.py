@@ -109,17 +109,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
         self._infos[CONF_USE_MOTION_FEATURE] = self._infos.get(
-            CONF_USE_MOTION_FEATURE
+            CONF_USE_MOTION_FEATURE, False
         ) and (self._infos.get(CONF_MOTION_SENSOR) is not None or is_central_config)
 
         self._infos[CONF_USE_POWER_FEATURE] = self._infos.get(
-            CONF_USE_POWER_CENTRAL_CONFIG
+            CONF_USE_POWER_CENTRAL_CONFIG, False
         ) or (
             self._infos.get(CONF_POWER_SENSOR) is not None
             and self._infos.get(CONF_MAX_POWER_SENSOR) is not None
         )
         self._infos[CONF_USE_PRESENCE_FEATURE] = (
-            self._infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG)
+            self._infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False)
             or self._infos.get(CONF_PRESENCE_SENSOR) is not None
         )
 
@@ -129,7 +129,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         self._infos[CONF_USE_AUTO_START_STOP_FEATURE] = (
-            self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE) is True
+            self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True
             and self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
         )
 
@@ -145,12 +145,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_PRESETS_CENTRAL_CONFIG,
             CONF_USE_PRESENCE_CENTRAL_CONFIG,
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
+            CONF_USE_CENTRAL_MODE,
         ):
             if not is_empty:
                 current_config = self._infos.get(config, None)
-                self._infos[config] = current_config is True or (
-                    current_config is None and self._central_config is not None
+
+                self._infos[config] = self._central_config is not None and (
+                    current_config is True or current_config is None
                 )
+                # self._infos[config] = current_config is True or (
+                #     current_config is None and self._central_config is not None
+                # )
             else:
                 self._infos[config] = self._central_config is not None
 
@@ -209,6 +214,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 CONF_USE_PRESENCE_CENTRAL_CONFIG,
                 CONF_USE_PRESETS_CENTRAL_CONFIG,
                 CONF_USE_ADVANCED_CENTRAL_CONFIG,
+                CONF_USE_CENTRAL_MODE,
+                CONF_USE_CENTRAL_BOILER_FEATURE,
+                CONF_USED_BY_CENTRAL_BOILER,
             ]:
                 if data.get(conf) is True:
                     _LOGGER.error(
@@ -303,6 +311,22 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             if (
                 infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
                 and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
+            ):
+                return False
+
+            if (
+                infos.get(CONF_PROP_FUNCTION, None) == PROPORTIONAL_FUNCTION_TPI
+                and infos.get(CONF_USE_TPI_CENTRAL_CONFIG, False) is False
+                and (
+                    infos.get(CONF_TPI_COEF_INT, None) is None
+                    or infos.get(CONF_TPI_COEF_EXT) is None
+                )
+            ):
+                return False
+
+            if (
+                infos.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False) is True
+                and self._central_config is None
             ):
                 return False
 
