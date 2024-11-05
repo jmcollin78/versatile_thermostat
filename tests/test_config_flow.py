@@ -26,7 +26,7 @@ async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-# Disable this test which don't work anymore (kill the pytest !)
+# Disable this test which don't work anymore (kill the pytest !) and make the others tests failed
 @pytest.mark.skip
 async def test_user_config_flow_over_switch(
     hass: HomeAssistant, skip_hass_states_get, init_central_config
@@ -314,6 +314,7 @@ async def test_user_config_flow_over_climate(
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == SOURCE_USER
 
+    # 1. Type
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
@@ -332,6 +333,7 @@ async def test_user_config_flow_over_climate(
     ]
     assert result.get("errors") is None
 
+    # 2. Main
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "main"}
     )
@@ -347,7 +349,7 @@ async def test_user_config_flow_over_climate(
             CONF_CYCLE_MIN: 5,
             CONF_DEVICE_POWER: 1,
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
-            CONF_USE_CENTRAL_MODE: True,
+            CONF_USE_CENTRAL_MODE: False,
             # Keep default values which are False
         },
     )
@@ -355,6 +357,7 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "main"
     assert result.get("errors") == {}
 
+    # 3. Main 2
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
@@ -369,6 +372,7 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
 
+    # 4. Type
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "type"}
     )
@@ -401,6 +405,7 @@ async def test_user_config_flow_over_climate(
     ]
     assert result.get("errors") is None
 
+    # 5. Presets
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "presets"}
     )
@@ -415,6 +420,7 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
 
+    # 6. Features
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "features"}
     )
@@ -429,6 +435,7 @@ async def test_user_config_flow_over_climate(
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: False,
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -444,6 +451,7 @@ async def test_user_config_flow_over_climate(
         # "finalize", finalize is not present waiting for advanced configuration
     ]
 
+    # 7. Advanced
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "advanced"}
     )
@@ -494,7 +502,6 @@ async def test_user_config_flow_over_climate(
         CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
-        CONF_USE_TPI_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
         CONF_USE_MOTION_FEATURE: False,
         CONF_USE_POWER_FEATURE: False,
@@ -509,6 +516,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
+        CONF_USE_CENTRAL_MODE: False,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -517,365 +525,365 @@ async def test_user_config_flow_over_climate(
     assert isinstance(result["result"], ConfigEntry)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-# TODO reimplement this
-@pytest.mark.skip
-async def test_user_config_flow_window_auto_ok(
-    hass: HomeAssistant,
-    skip_hass_states_get,
-    skip_control_heating,  # pylint: disable=unused-argument
-):
-    """Test the config flow with only window auto feature"""
-    await create_central_config(hass)
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
+# # TODO reimplement this
+# @pytest.mark.skip
+# async def test_user_config_flow_window_auto_ok(
+#     hass: HomeAssistant,
+#     skip_hass_states_get,
+#     skip_control_heating,  # pylint: disable=unused-argument
+# ):
+#     """Test the config flow with only window auto feature"""
+#     await create_central_config(hass)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
+#     result = await hass.config_entries.flow.async_init(
+#         DOMAIN, context={"source": SOURCE_USER}
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == SOURCE_USER
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == SOURCE_USER
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
-        },
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={
+#             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+#         },
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "main"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "main"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_NAME: "TheOverSwitchMockName",
-            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-            CONF_CYCLE_MIN: 5,
-            CONF_DEVICE_POWER: 1,
-            CONF_USE_WINDOW_FEATURE: True,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
-            CONF_USE_MAIN_CENTRAL_CONFIG: True,
-            CONF_USED_BY_CENTRAL_BOILER: True,
-        },
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={
+#             CONF_NAME: "TheOverSwitchMockName",
+#             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+#             CONF_CYCLE_MIN: 5,
+#             CONF_DEVICE_POWER: 1,
+#             CONF_USE_WINDOW_FEATURE: True,
+#             CONF_USE_MOTION_FEATURE: False,
+#             CONF_USE_POWER_FEATURE: False,
+#             CONF_USE_PRESENCE_FEATURE: False,
+#             CONF_USE_MAIN_CENTRAL_CONFIG: True,
+#             CONF_USED_BY_CENTRAL_BOILER: True,
+#         },
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "type"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "type"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TYPE_CONFIG
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TYPE_CONFIG
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "tpi"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "tpi"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "tpi"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "tpi"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "presets"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "presets"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "window"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "window"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={CONF_USE_WINDOW_CENTRAL_CONFIG: False},
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={CONF_USE_WINDOW_CENTRAL_CONFIG: False},
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "window"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "window"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input=MOCK_WINDOW_AUTO_CONFIG,
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input=MOCK_WINDOW_AUTO_CONFIG,
+#     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "advanced"
-    assert result.get("errors") is None
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "advanced"
+#     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: True}
-    )
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: True}
+#     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result["data"] == {
-        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
-        CONF_NAME: "TheOverSwitchMockName",
-        CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-        CONF_CYCLE_MIN: 5,
-        CONF_DEVICE_POWER: 1,
-        CONF_USE_WINDOW_FEATURE: True,
-        CONF_USE_MOTION_FEATURE: False,
-        CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False,
-        CONF_USE_MOTION_FEATURE: False,
-        CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False,
-        CONF_WINDOW_DELAY: 30,  # the default value is added
-        CONF_USE_CENTRAL_MODE: True,  # True is the defaulf value
-    } | MOCK_TH_OVER_SWITCH_TYPE_CONFIG | MOCK_TH_OVER_SWITCH_TPI_CONFIG | MOCK_WINDOW_AUTO_CONFIG | {
-        CONF_USE_MAIN_CENTRAL_CONFIG: True,
-        CONF_USE_TPI_CENTRAL_CONFIG: False,
-        CONF_USE_PRESETS_CENTRAL_CONFIG: True,
-        CONF_USE_WINDOW_CENTRAL_CONFIG: False,
-        CONF_USE_MOTION_CENTRAL_CONFIG: False,
-        CONF_USE_POWER_CENTRAL_CONFIG: False,
-        CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
-        CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
-        CONF_USED_BY_CENTRAL_BOILER: True,
-    }
-    assert result["result"]
-    assert result["result"].domain == DOMAIN
-    assert result["result"].version == 1
-    assert result["result"].title == "TheOverSwitchMockName"
-    assert isinstance(result["result"], ConfigEntry)
-
-
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-# TODO reimplement this
-@pytest.mark.skip
-async def test_user_config_flow_window_auto_ko(
-    hass: HomeAssistant, skip_hass_states_get  # pylint: disable=unused-argument
-):
-    """Test the config flow with window auto and window features -> not allowed"""
-
-    await create_central_config(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == SOURCE_USER
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
-        },
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "main"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_NAME: "TheOverSwitchMockName",
-            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-            CONF_CYCLE_MIN: 5,
-            CONF_DEVICE_POWER: 1,
-            CONF_USE_WINDOW_FEATURE: True,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
-            CONF_USE_MAIN_CENTRAL_CONFIG: True,
-        },
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "type"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TYPE_CONFIG
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "tpi"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "tpi"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "presets"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "window"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
-            CONF_USE_WINDOW_CENTRAL_CONFIG: False,
-        },
-    )
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "window"
-    assert result.get("errors") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input=MOCK_WINDOW_DELAY_CONFIG,
-    )
-
-    # Since issue #280 we cannot have the error because we only display the
-    # MOCK_WINDOW_DELAY_CONFIG form if we have a sensor configured
-    assert result["type"] == FlowResultType.MENU
-    # We should stay on window with an error
-    assert result.get("errors") is None
-    #    "window_sensor_entity_id": "window_open_detection_method"
-    # }
-    assert result["step_id"] == "advanced"
+#     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+#     assert result["data"] == {
+#         CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+#         CONF_NAME: "TheOverSwitchMockName",
+#         CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+#         CONF_CYCLE_MIN: 5,
+#         CONF_DEVICE_POWER: 1,
+#         CONF_USE_WINDOW_FEATURE: True,
+#         CONF_USE_MOTION_FEATURE: False,
+#         CONF_USE_POWER_FEATURE: False,
+#         CONF_USE_PRESENCE_FEATURE: False,
+#         CONF_USE_MOTION_FEATURE: False,
+#         CONF_USE_POWER_FEATURE: False,
+#         CONF_USE_PRESENCE_FEATURE: False,
+#         CONF_WINDOW_DELAY: 30,  # the default value is added
+#         CONF_USE_CENTRAL_MODE: True,  # True is the defaulf value
+#     } | MOCK_TH_OVER_SWITCH_TYPE_CONFIG | MOCK_TH_OVER_SWITCH_TPI_CONFIG | MOCK_WINDOW_AUTO_CONFIG | {
+#         CONF_USE_MAIN_CENTRAL_CONFIG: True,
+#         CONF_USE_TPI_CENTRAL_CONFIG: False,
+#         CONF_USE_PRESETS_CENTRAL_CONFIG: True,
+#         CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+#         CONF_USE_MOTION_CENTRAL_CONFIG: False,
+#         CONF_USE_POWER_CENTRAL_CONFIG: False,
+#         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+#         CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+#         CONF_USED_BY_CENTRAL_BOILER: True,
+#     }
+#     assert result["result"]
+#     assert result["result"].domain == DOMAIN
+#     assert result["result"].version == 1
+#     assert result["result"].title == "TheOverSwitchMockName"
+#     assert isinstance(result["result"], ConfigEntry)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-# TODO reimplement this
-@pytest.mark.skip
-async def test_user_config_flow_over_4_switches(
-    hass: HomeAssistant,
-    skip_hass_states_get,
-    skip_control_heating,  # pylint: disable=unused-argument
-):
-    """Test the config flow with 4 switchs thermostat_over_switch features"""
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
+# # TODO reimplement this
+# @pytest.mark.skip
+# async def test_user_config_flow_window_auto_ko(
+#     hass: HomeAssistant, skip_hass_states_get  # pylint: disable=unused-argument
+# ):
+#     """Test the config flow with window auto and window features -> not allowed"""
 
-    await create_central_config(hass)
+#     await create_central_config(hass)
 
-    SOURCE_CONFIG = {  # pylint: disable=invalid-name
-        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
-    }
+#     result = await hass.config_entries.flow.async_init(
+#         DOMAIN, context={"source": SOURCE_USER}
+#     )
 
-    MAIN_CONFIG = {  # pylint: disable=invalid-name
-        CONF_NAME: "TheOver4SwitchMockName",
-        CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-        CONF_CYCLE_MIN: 5,
-        CONF_DEVICE_POWER: 1,
-        CONF_USE_WINDOW_FEATURE: False,
-        CONF_USE_MOTION_FEATURE: False,
-        CONF_USE_POWER_FEATURE: False,
-        CONF_USE_PRESENCE_FEATURE: False,
-        CONF_USE_MAIN_CENTRAL_CONFIG: True,
-        CONF_USE_CENTRAL_MODE: False,
-        CONF_USED_BY_CENTRAL_BOILER: False,
-    }
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == SOURCE_USER
 
-    TYPE_CONFIG = {  # pylint: disable=invalid-name
-        CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2", "switch.mock_switch3","switch.mock_switch4"],
-        CONF_HEATER_KEEP_ALIVE: 0,
-        CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
-        CONF_AC_MODE: False,
-        CONF_INVERSE_SWITCH: False,
-    }
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={
+#             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+#         },
+#     )
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "main"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == SOURCE_USER
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={
+#             CONF_NAME: "TheOverSwitchMockName",
+#             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+#             CONF_CYCLE_MIN: 5,
+#             CONF_DEVICE_POWER: 1,
+#             CONF_USE_WINDOW_FEATURE: True,
+#             CONF_USE_MOTION_FEATURE: False,
+#             CONF_USE_POWER_FEATURE: False,
+#             CONF_USE_PRESENCE_FEATURE: False,
+#             CONF_USE_MAIN_CENTRAL_CONFIG: True,
+#         },
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input=SOURCE_CONFIG,
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "type"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "main"
-    assert result.get("errors") is None
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TYPE_CONFIG
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input=MAIN_CONFIG,
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "tpi"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "type"
-    assert result.get("errors") is None
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input=TYPE_CONFIG,
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "tpi"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "tpi"
-    assert result.get("errors") is None
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: True}
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "presets"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "presets"
-    assert result.get("errors") is None
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "window"
+#     assert result.get("errors") is None
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "advanced"
-    assert result.get("errors") is None
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input={
+#             CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+#             CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+#         },
+#     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: True}
-    )
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "window"
+#     assert result.get("errors") is None
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result["data"] == (
-        SOURCE_CONFIG
-        | MAIN_CONFIG
-        | TYPE_CONFIG
-        | {
-            CONF_USE_MAIN_CENTRAL_CONFIG: True,
-            CONF_USE_TPI_CENTRAL_CONFIG: True,
-            CONF_USE_PRESETS_CENTRAL_CONFIG: True,
-            CONF_USE_WINDOW_CENTRAL_CONFIG: False,
-            CONF_USE_MOTION_CENTRAL_CONFIG: False,
-            CONF_USE_POWER_CENTRAL_CONFIG: False,
-            CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
-            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
-        }
-    )
-    assert result["result"]
-    assert result["result"].domain == DOMAIN
-    assert result["result"].version == 1
-    assert result["result"].title == "TheOver4SwitchMockName"
-    assert isinstance(result["result"], ConfigEntry)
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input=MOCK_WINDOW_DELAY_CONFIG,
+#     )
+
+#     # Since issue #280 we cannot have the error because we only display the
+#     # MOCK_WINDOW_DELAY_CONFIG form if we have a sensor configured
+#     assert result["type"] == FlowResultType.MENU
+#     # We should stay on window with an error
+#     assert result.get("errors") is None
+#     #    "window_sensor_entity_id": "window_open_detection_method"
+#     # }
+#     assert result["step_id"] == "advanced"
+
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
+# # TODO reimplement this
+# @pytest.mark.skip
+# async def test_user_config_flow_over_4_switches(
+#     hass: HomeAssistant,
+#     skip_hass_states_get,
+#     skip_control_heating,  # pylint: disable=unused-argument
+# ):
+#     """Test the config flow with 4 switchs thermostat_over_switch features"""
+
+#     await create_central_config(hass)
+
+#     SOURCE_CONFIG = {  # pylint: disable=invalid-name
+#         CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+#     }
+
+#     MAIN_CONFIG = {  # pylint: disable=invalid-name
+#         CONF_NAME: "TheOver4SwitchMockName",
+#         CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+#         CONF_CYCLE_MIN: 5,
+#         CONF_DEVICE_POWER: 1,
+#         CONF_USE_WINDOW_FEATURE: False,
+#         CONF_USE_MOTION_FEATURE: False,
+#         CONF_USE_POWER_FEATURE: False,
+#         CONF_USE_PRESENCE_FEATURE: False,
+#         CONF_USE_MAIN_CENTRAL_CONFIG: True,
+#         CONF_USE_CENTRAL_MODE: False,
+#         CONF_USED_BY_CENTRAL_BOILER: False,
+#     }
+
+#     TYPE_CONFIG = {  # pylint: disable=invalid-name
+#         CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2", "switch.mock_switch3","switch.mock_switch4"],
+#         CONF_HEATER_KEEP_ALIVE: 0,
+#         CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+#         CONF_AC_MODE: False,
+#         CONF_INVERSE_SWITCH: False,
+#     }
+
+#     result = await hass.config_entries.flow.async_init(
+#         DOMAIN, context={"source": SOURCE_USER}
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == SOURCE_USER
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input=SOURCE_CONFIG,
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "main"
+#     assert result.get("errors") is None
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input=MAIN_CONFIG,
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "type"
+#     assert result.get("errors") is None
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"],
+#         user_input=TYPE_CONFIG,
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "tpi"
+#     assert result.get("errors") is None
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: True}
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "presets"
+#     assert result.get("errors") is None
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: True}
+#     )
+
+#     assert result["type"] == FlowResultType.MENU
+#     assert result["step_id"] == "advanced"
+#     assert result.get("errors") is None
+
+#     result = await hass.config_entries.flow.async_configure(
+#         result["flow_id"], user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: True}
+#     )
+
+#     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+#     assert result["data"] == (
+#         SOURCE_CONFIG
+#         | MAIN_CONFIG
+#         | TYPE_CONFIG
+#         | {
+#             CONF_USE_MAIN_CENTRAL_CONFIG: True,
+#             CONF_USE_TPI_CENTRAL_CONFIG: True,
+#             CONF_USE_PRESETS_CENTRAL_CONFIG: True,
+#             CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+#             CONF_USE_MOTION_CENTRAL_CONFIG: False,
+#             CONF_USE_POWER_CENTRAL_CONFIG: False,
+#             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+#             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+#         }
+#     )
+#     assert result["result"]
+#     assert result["result"].domain == DOMAIN
+#     assert result["result"].version == 1
+#     assert result["result"].title == "TheOver4SwitchMockName"
+#     assert isinstance(result["result"], ConfigEntry)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -979,7 +987,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
             CONF_CYCLE_MIN: 5,
             CONF_DEVICE_POWER: 1,
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
-            CONF_USE_CENTRAL_MODE: True,
+            CONF_USE_CENTRAL_MODE: False,
             # Keep default values which are False
         },
     )
@@ -1109,7 +1117,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USE_WINDOW_FEATURE: False,
         CONF_USE_AUTO_START_STOP_FEATURE: False,
         CONF_USE_CENTRAL_BOILER_FEATURE: False,
-        CONF_USE_TPI_CENTRAL_CONFIG: False,
+        CONF_USE_CENTRAL_MODE: False,
         CONF_USE_WINDOW_CENTRAL_CONFIG: False,
         CONF_USE_MOTION_CENTRAL_CONFIG: False,
         CONF_USE_POWER_CENTRAL_CONFIG: False,
@@ -1123,4 +1131,256 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     assert result["result"].domain == DOMAIN
     assert result["result"].version == 2
     assert result["result"].title == "TheOverClimateMockName"
+    assert isinstance(result["result"], ConfigEntry)
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_user_config_flow_over_switch_bug_552_tpi(
+    hass: HomeAssistant, skip_hass_states_get
+):  # pylint: disable=unused-argument
+    """Test the bug 552 - a VTherm over_switch can be configured without TPI parameters
+    if 'use central config is checked with no central config"""
+
+    # 1. Thermostat over_switch
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == SOURCE_USER
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        },
+    )
+
+    # 2. Menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "presets",
+        "advanced",
+        "configuration_not_complete",
+    ]
+    assert result.get("errors") is None
+
+    # 3. Main attributes
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "main"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+        },
+    )
+
+    # 4. Main attributes 2
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.5,
+            # Keep default values which are False
+        },
+    )
+
+    # 5. Menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "presets",
+        "advanced",
+        "configuration_not_complete",  # tpi and presets are not configured and there is no central configuration
+    ]
+
+    # 6. Type
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "type"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "type"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_HEATER_KEEP_ALIVE: 0,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_AC_MODE: False,
+            CONF_INVERSE_SWITCH: False,
+        },
+    )
+
+    # 7. Menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "advanced",
+        "configuration_not_complete",  # advanced, tpi and presets are not configured and there is no central configuration
+    ]
+
+    # 8. Advanced
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "advanced"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "advanced"
+    assert result.get("errors") == {}
+
+    # 8. Advanced 2
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: False},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "advanced"
+    assert result.get("errors") == {}
+
+    # 9. Advanced 3
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+        },
+    )
+
+    # 10. Menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "advanced",
+        "configuration_not_complete",  # tpi is not configured and there is no central configuration
+    ]
+
+    # 11. TPI
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "tpi"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "tpi"
+    assert result.get("errors") == {}
+
+    # 11. TPI 2
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "tpi"
+    assert result.get("errors") == {}
+
+    # 12. Menu
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
+    )
+
+    # 11. Presets
+    # We do not configure preset so we should have a default: don't use preset central config
+    # result = await hass.config_entries.flow.async_configure(
+    #     result["flow_id"], user_input={"next_step_id": "presets"}
+    # )
+    # assert result["type"] == FlowResultType.FORM
+    # assert result["step_id"] == "presets"
+    # assert result.get("errors") == {}
+    #
+    # result = await hass.config_entries.flow.async_configure(
+    #     result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: False}
+    # )
+
+    # 12. Menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "advanced",
+        "finalize",  # all is now configured
+    ]
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "finalize"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result.get("errors") is None
+    assert result["data"] == (
+        MOCK_TH_OVER_SWITCH_USER_CONFIG
+        | MOCK_TH_OVER_SWITCH_MAIN_CONFIG
+        | MOCK_TH_OVER_SWITCH_TYPE_CONFIG
+        | MOCK_TH_OVER_SWITCH_TPI_CONFIG
+        | {
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.5,
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_TPI_CENTRAL_CONFIG: False,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+            CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+            CONF_USE_MOTION_CENTRAL_CONFIG: False,
+            CONF_USE_POWER_CENTRAL_CONFIG: False,
+            CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: False,
+            CONF_USE_CENTRAL_MODE: False,
+            CONF_USED_BY_CENTRAL_BOILER: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_CENTRAL_BOILER_FEATURE: False,
+        }
+    )
+    assert result["result"]
+    assert result["result"].domain == DOMAIN
+    assert result["result"].version == 2
+    assert result["result"].title == "TheOverSwitchMockName"
     assert isinstance(result["result"], ConfigEntry)
