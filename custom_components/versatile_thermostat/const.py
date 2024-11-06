@@ -115,6 +115,7 @@ CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
 CONF_STEP_TEMPERATURE = "step_temperature"
+CONF_ACTIVE_PRESETS = "active_presets"
 
 # Deprecated
 CONF_HEATER = "heater_entity_id"
@@ -164,7 +165,7 @@ CONF_AUTO_START_STOP_LEVELS = [
 ]
 
 # For explicit typing purpose only
-TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
+TYPE_AUTO_START_STOP_LEVELS = [  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_FAST,
     AUTO_START_STOP_LEVEL_MEDIUM,
     AUTO_START_STOP_LEVEL_SLOW,
@@ -175,7 +176,7 @@ HVAC_OFF_REASON_NAME = "hvac_off_reason"
 HVAC_OFF_REASON_MANUAL = "manual"
 HVAC_OFF_REASON_AUTO_START_STOP = "auto_start_stop"
 HVAC_OFF_REASON_WINDOW_DETECTION = "window_detection"
-HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
+HVAC_OFF_REASONS = [  # pylint: disable=invalid-name
     HVAC_OFF_REASON_MANUAL,
     HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_WINDOW_DETECTION,
@@ -500,6 +501,8 @@ class ServiceConfigurationError(HomeAssistantError):
 class ConfigurationNotCompleteError(HomeAssistantError):
     """Error the configuration is not complete"""
 
+class InvalidPresets(HomeAssistantError):
+    """Error a disabled preset has been selected"""
 
 class overrides:  # pylint: disable=invalid-name
     """An annotation to inform overrides"""

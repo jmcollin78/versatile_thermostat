@@ -216,6 +216,17 @@ STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_PRESETS_SELECT_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(
+            CONF_ACTIVE_PRESETS, default=CONF_PRESETS_SELECTIONABLE
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_PRESETS_SELECTIONABLE, multiple=True, mode="list"
+            )
+        )
+    }
+)
 
 STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {

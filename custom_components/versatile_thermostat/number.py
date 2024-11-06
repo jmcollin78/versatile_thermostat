@@ -31,6 +31,8 @@ from .vtherm_api import VersatileThermostatAPI
 from .commons import VersatileThermostatBaseEntity
 
 from .const import (
+    CONF_ACTIVE_PRESETS,
+    CONF_PRESETS_SELECTIONABLE,
     DOMAIN,
     DEVICE_MANUFACTURER,
     CONF_NAME,
@@ -40,6 +42,7 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_STEP_TEMPERATURE,
     CONF_AC_MODE,
+    PRESET_AC_SUFFIX,
     PRESET_FROST_PROTECTION,
     PRESET_ECO_AC,
     PRESET_COMFORT_AC,
@@ -98,12 +101,20 @@ async def async_setup_entry(
     # is_central_boiler = entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE)
 
     entities = []
-
+    presets = entry.data.get(CONF_ACTIVE_PRESETS, CONF_PRESETS_SELECTIONABLE)
+    _LOGGER.debug(presets)
+    ac_presets = presets.copy()
+    ac_presets.remove(PRESET_FROST_PROTECTION)
+    _LOGGER.debug(ac_presets)
+    ac_presets = [ac_preset + PRESET_AC_SUFFIX for ac_preset in ac_presets]
+    _LOGGER.debug(presets)
+    ac_presets.extend(presets)
+    _LOGGER.debug(presets)
     if vt_type != CONF_THERMOSTAT_CENTRAL_CONFIG:
         # Creates non central temperature entities
         if not entry.data.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False):
             if entry.data.get(CONF_AC_MODE, False):
-                for preset in CONF_PRESETS_WITH_AC_VALUES:
+                for preset in ac_presets:
                     _LOGGER.debug(
                         "%s - configuring Number non central, AC, non AWAY for preset %s",
                         name,
@@ -111,11 +122,17 @@ async def async_setup_entry(
                     )
                     entities.append(
                         TemperatureNumber(
-                            hass, unique_id, name, preset, True, False, entry.data
+                            hass,
+                            unique_id,
+                            name,
+                            preset + PRESET_TEMP_SUFFIX,
+                            True,
+                            False,
+                            entry.data,
                         )
                     )
             else:
-                for preset in CONF_PRESETS_VALUES:
+                for preset in presets:
                     _LOGGER.debug(
                         "%s - configuring Number non central, non AC, non AWAY for preset %s",
                         name,
@@ -123,7 +140,13 @@ async def async_setup_entry(
                     )
                     entities.append(
                         TemperatureNumber(
-                            hass, unique_id, name, preset, False, False, entry.data
+                            hass,
+                            unique_id,
+                            name,
+                            preset + PRESET_TEMP_SUFFIX,
+                            False,
+                            False,
+                            entry.data,
                         )
                     )
 
@@ -131,7 +154,7 @@ async def async_setup_entry(
             CONF_USE_PRESENCE_FEATURE, False
         ) is True and not entry.data.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False):
             if entry.data.get(CONF_AC_MODE, False):
-                for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
+                for preset in ac_presets:
                     _LOGGER.debug(
                         "%s - configuring Number non central, AC, AWAY for preset %s",
                         name,
@@ -139,11 +162,17 @@ async def async_setup_entry(
                     )
                     entities.append(
                         TemperatureNumber(
-                            hass, unique_id, name, preset, True, True, entry.data
+                            hass,
+                            unique_id,
+                            name,
+                            preset + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX,
+                            True,
+                            True,
+                            entry.data,
                         )
                     )
             else:
-                for preset in CONF_PRESETS_AWAY_VALUES:
+                for preset in presets:
                     _LOGGER.debug(
                         "%s - configuring Number non central, non AC, AWAY for preset %s",
                         name,
@@ -151,7 +180,13 @@ async def async_setup_entry(
                     )
                     entities.append(
                         TemperatureNumber(
-                            hass, unique_id, name, preset, False, True, entry.data
+                            hass,
+                            unique_id,
+                            name,
+                            preset + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX,
+                            False,
+                            True,
+                            entry.data,
                         )
                     )
 
@@ -161,7 +196,7 @@ async def async_setup_entry(
             entities.append(
                 ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
             )
-        for preset in CONF_PRESETS_WITH_AC_VALUES:
+        for preset in ac_presets:
             _LOGGER.debug(
                 "%s - configuring Number central, AC, non AWAY for preset %s",
                 name,
@@ -169,17 +204,27 @@ async def async_setup_entry(
             )
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, True, False, entry.data
+                    hass,
+                    unique_id,
+                    name,
+                    preset + PRESET_TEMP_SUFFIX,
+                    True,
+                    False,
+                    entry.data,
                 )
             )
-
-        for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
             _LOGGER.debug(
                 "%s - configuring Number central, AC, AWAY for preset %s", name, preset
             )
             entities.append(
                 CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, True, True, entry.data
+                    hass,
+                    unique_id,
+                    name,
+                    preset + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX,
+                    True,
+                    True,
+                    entry.data,
                 )
             )
 
