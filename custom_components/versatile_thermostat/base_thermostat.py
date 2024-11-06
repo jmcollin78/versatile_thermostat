@@ -19,7 +19,10 @@ from homeassistant.core import (
 )
 
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.restore_state import (
+    RestoreEntity,
+    async_get as restore_async_get,
+)
 from homeassistant.helpers.entity import Entity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
@@ -591,14 +594,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # issue 428. Link to others entities will start at link
         # await self.async_startup()
 
+    async def async_will_remove_from_hass(self):
+        """Try to force backup of entity"""
+        _LOGGER_ENERGY.debug(
+            "%s - force write before remove. Energy is %s", self, self.total_energy
+        )
+        # Force dump in background
+        await restore_async_get(self.hass).async_dump_states()
+
     def remove_thermostat(self):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
+
         for under in self._underlyings:
             under.remove_entity()
 
     async def async_startup(self, central_configuration):
-        """Triggered on startup, used to get old state and set internal states accordingly"""
+        """Triggered on startup, used to get old state and set internal states accordingly. This is triggered by
+        VTherm API"""
         _LOGGER.debug("%s - Calling async_startup", self)
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
