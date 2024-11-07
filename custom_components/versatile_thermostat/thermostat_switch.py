@@ -21,7 +21,9 @@ from .underlyings import UnderlyingSwitch
 from .prop_algorithm import PropAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
-
+_LOGGER_ENERGY = logging.getLogger(
+    "custom_components.versatile_thermostat.energy_debug"
+)
 
 class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
@@ -183,8 +185,18 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
 
         if self._total_energy is None:
             self._total_energy = added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - incremente_energy set energy is %s",
+                self,
+                self._total_energy,
+            )
         else:
             self._total_energy += added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - incremente_energy increment energy is %s",
+                self,
+                self._total_energy,
+            )
 
         self.update_custom_attributes()
 

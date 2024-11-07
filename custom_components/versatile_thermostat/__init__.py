@@ -178,13 +178,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if hass.state == CoreState.running:
         await api.reload_central_boiler_entities_list()
-        await api.init_vtherm_links()
+        await api.init_vtherm_links(entry.entry_id)
 
     return True
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update listener."""
+
+    _LOGGER.debug(
+        "Calling update_listener entry: entry_id='%s', value='%s'",
+        entry.entry_id,
+        entry.data,
+    )
+
     if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
         await reload_all_vtherm(hass)
     else:
@@ -193,7 +200,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         if api is not None:
             await api.reload_central_boiler_entities_list()
-            await api.init_vtherm_links()
+            await api.init_vtherm_links(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

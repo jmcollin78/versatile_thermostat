@@ -215,7 +215,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 CONF_USE_PRESETS_CENTRAL_CONFIG,
                 CONF_USE_ADVANCED_CENTRAL_CONFIG,
                 CONF_USE_CENTRAL_MODE,
-                CONF_USE_CENTRAL_BOILER_FEATURE,
+                # CONF_USE_CENTRAL_BOILER_FEATURE, this is for Central Config
                 CONF_USED_BY_CENTRAL_BOILER,
             ]:
                 if data.get(conf) is True:
