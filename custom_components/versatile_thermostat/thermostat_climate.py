@@ -852,7 +852,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             changes = True
 
         # try to manage new target temperature set if state if no other changes have been found
-        if not changes:
+        # and if a target temperature have already been sent
+        if not changes and under.last_sent_temperature is not None:
             _LOGGER.debug(
                 "Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
                 under.last_sent_temperature,
