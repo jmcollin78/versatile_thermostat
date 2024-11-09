@@ -152,6 +152,7 @@ climate:
       name: Underlying thermostat2
       heater: input_boolean.fake_heater_switch3
       target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: false
     - platform: generic_thermostat
       name: Underlying thermostat3
       heater: input_boolean.fake_heater_switch3

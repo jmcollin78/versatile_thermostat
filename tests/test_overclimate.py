@@ -320,6 +320,78 @@ async def test_bug_101(
         assert entity.preset_mode is PRESET_NONE
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_615(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when a underlying climate target temp is changed, the VTherm don't change its own temperature target if no
+    target_temperature have already been sent"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,  # 5 minutes security delay
+    )
+
+    # Underlying is in HEAT mode but should be shutdown at startup
+    fake_underlying_climate = MockClimate(
+        hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING
+    )
+
+    # 1. create the thermostat
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert vtherm
+
+        assert vtherm.name == "TheOverClimateMockName"
+        assert vtherm.is_over_climate is True
+        assert vtherm.hvac_mode is HVACMode.OFF
+        # because in MockClimate HVACAction is HEATING if hvac_mode is not set
+        assert vtherm.hvac_action is HVACAction.HEATING
+
+        # Force a preset_mode without sending a temperature (as it was restored with a preset)
+        vtherm._attr_preset_mode = PRESET_BOOST
+
+        assert vtherm.target_temperature == vtherm.min_temp
+        assert vtherm.preset_mode is PRESET_BOOST
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode:
+        # 2. Change the target temp of underlying thermostat at now + 1 min
+        now = now + timedelta(minutes=1)
+        await send_climate_change_event_with_temperature(
+            vtherm,
+            HVACMode.OFF,
+            HVACMode.OFF,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            now,
+            25,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        # Should NOT have been taken the new target temp nor have change the preset
+        assert vtherm.target_temperature == vtherm.min_temp
+        assert vtherm.preset_mode is PRESET_BOOST
+
+        mock_underlying_set_hvac_mode.assert_not_called()
+
+
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_508(
     hass: HomeAssistant,
