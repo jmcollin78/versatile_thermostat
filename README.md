@@ -13,7 +13,7 @@
     - [In the case of a central configuration](#in-the-case-of-a-central-configuration)
   - [Redesign of the configuration menu](#redesign-of-the-configuration-menu)
     - [The 'Incomplete configuration' and 'Finalize' menu options](#the-incomplete-configuration-and-finalize-menu-options)
-- [Changements dans la version 5.0](#changements-dans-la-version-50)
+- [Changes in release 5.0](#changes-in-release-50)
 - [Thanks for the beer buymecoffee](#thanks-for-the-beer-buymecoffee)
 - [When to use / not use](#when-to-use--not-use)
   - [Incompatibilities](#incompatibilities)
@@ -130,6 +130,10 @@ This custom component for Home Assistant is an upgrade and is a complete rewrite
 > * **major release 2.0**: addition of the "over climate" thermostat allowing you to transform any thermostat into a Versatile Thermostat and add all the functions of the latter.
 </details>
 
+
+<details>
+<summary>Changes in version 6.0</summary>
+
 # Changes in version 6.0
 
 ## Temperature entities for presets
@@ -197,11 +201,12 @@ Once all configuration is valid, the last option changes to:
 Click on this option to create (resp. modify) the VTherm:
 
 ![Configuration Complete](images/config-terminate.png)
+</details>
 
 <details>
-<summary>Changements dans la version 5.0</summary>
+<summary>Changes in release 5.0</summary>
 
-# Changements dans la version 5.0
+# Changes in release 5.0
 
 You can now define a central configuration which will allow you to share certain attributes on all your VTherms (or only part of them). To use this possibility, you must:
 1. Create a VTherm of type “Central Configuration”,
@@ -292,9 +297,6 @@ This component named __Versatile thermostat__ manage the following use cases :
 > 3. In addition to this centralized configuration, all VTherms can be controlled by a single entity of type `select`. This function is named `central_mode`. This allows you to stop / start / freeze / etc. all VTherms at once. For each VTherm, the user indicates whether he is affected by this `central_mode`.
 
 
-<details>
-<summary>Creation of a new Versatile Thermostat</summary>
-
 ## Creation of a new Versatile Thermostat
 
 Click on Add integration button in the integration page
@@ -304,11 +306,6 @@ The configuration can be change through the same interface. Simply select the th
 
 Then choose the type of VTherm you want to create:
 ![image](images/config-main0.png)
-
-</details>
-
-<details>
-<summary>Minimal configuration update</summary>
 
 ## Minimal configuration update
 
@@ -330,10 +327,6 @@ Give the main mandatory attributes:
 > ![Tip](images/tips.png) _*Notes*_
 > 1. With the ```thermostat_over_switch``` type, calculation are done at each cycle. So in case of conditions change, you will have to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 min is a good value**,
 > 2. if the cycle is too short, the heater could never reach the target temperature. For the storage radiator for example it will be used unnecessarily.
-</details>
-
-<details>
-<summary>Select the driven entity</summary>
 
 ## Select the driven entity
 
@@ -522,22 +515,12 @@ The algorithm to use is currently limited to TPI is available. See [algorithm](#
 
 It is possible to choose an over valve thermostat which controls air conditioning by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
 
-</details>
-
-<details>
-<summary>Configure the TPI algorithm coefficients</summary>
-
 ## Configure the TPI algorithm coefficients
 
 Ff you choose a  ```over_switch``` or ```over_valve``` thermostat and select the "TPI" menu option, you will get there:
 ![image](images/config-tpi.png)
 
 For more informations on the TPI algorithm and tuned please refer to [algorithm](#algorithm).
-
-</details>
-
-<details>
-<summary>Configure the preset temperature</summary>
 
 ## Configure the preset temperature
 
@@ -558,11 +541,6 @@ The pre-settings are made (since v6.0) directly from the VTherm entities or from
 >  3. if you uses the power shedding management, you will see a hidden preset named ``power``. The heater preset is set to ``power`` when overpowering conditions are encountered and shedding is active for this heater. See [power management](#configure-the-power-management).
 >  4. if you uses the advanced configuration you will see the preset set to ``safety`` if the temperature could not be retrieved after a certain delay
 >  5. ff you don't want to use the preseet, give 0 as temperature. The preset will then been ignored and will not displayed in the front component
-
-</details>
-
-<details>
-<summary>Configure the doors/windows turning on/off the thermostats</summary>
 
 ## Configure the doors/windows turning on/off the thermostats
 
@@ -605,11 +583,6 @@ And that's all ! your thermostat will turn off when the windows are open and tur
 > 3. **Only one mode is allowed**. You cannot configure a thermostat with a sensor and automatic detection. The 2 modes may contradict each other, it is not possible to have the 2 modes at the same time,
 > 4. It is not recommended to use the automatic mode for equipment subject to frequent and normal temperature variations (corridors, open areas, ...)
 
-</details>
-
-<details>
-<summary>Configure the activity mode or motion detection</summary>
-
 ## Configure the activity mode or motion detection
 If you choose the ```Motion management``` feature, lick on 'Validate' on the previous page and you will get there:
 ![image](images/config-motion.png)
@@ -634,11 +607,6 @@ For this to work, the climate thermostat should be in ``Activity`` preset mode.
 > ![Tip](images/tips.png)  _*Notes*_
 > 1. Be aware that as for the others preset modes, ``Activity`` will only be proposed if it's correctly configure. In other words, the 4 configuration keys have to be set if you want to see Activity in home assistant Interface
 
-</details>
-
-<details>
-<summary>Configure the power management</summary>
-
 ## Configure the power management
 
 If you choose the ```Power management``` feature, click on 'Validate' on the previous page and you will get there:
@@ -656,10 +624,6 @@ This allows you to change the max power along time using a Scheduler or whatever
 > 3. Always keep a margin, because max power can be briefly exceeded while waiting for the next cycle calculation typically or by not regulated equipement.
 > 4. If you don't want to use this feature, just leave the entities id empty
 > 5. If you control several heaters, the **power consumption of your heater** setup should be the sum of the power.
-</details>
-
-<details>
-<summary>Configure presence or occupancy</summary>
 
 ## Configure presence or occupancy
 
@@ -681,11 +645,6 @@ ATTENTION: groups of people do not function as a presence sensor. They are not r
 > ![Tip](images/tips.png) _*Notes*_
 > 1. the change in temperature is immediate and is reflected on the front shutter. The calculation will take into account the new target temperature at the next calculation of the cycle,
 > 2. you can use the person.xxxx direct sensor or a group of Home Assistant sensors. The presence sensor manages the ``on`` or ``home`` states as present and the ``off`` or ``not_home`` states as absent.
-
-</details>
-
-<details>
-<summary>Advanced configuration</summary>
 
 ## Advanced configuration
 
@@ -721,11 +680,6 @@ See [example tuning](#examples-tuning) for common tuning examples
 > 4. For natural usage, the ``security_default_on_percent`` should be less than ``security_min_on_percent``,
 > 5. Thermostat of type ``thermostat_over_climate`` are not concerned by the safety feature.
 
-</details>
-
-<details>
-<summary>Centralized control</summary>
-
 ## Centralized control
 
 Since release 5.2, if you have defined a centralized configuration, you have a new entity named `select.central_mode` which allows you to control all VTherms with a single action. For a VTherm to be centrally controllable, its configuration attribute named `use_central_mode` must be true.
@@ -741,11 +695,6 @@ It is therefore possible to control all VTherms (only those explicitly designate
 Example rendering:
 
 ![central_mode](images/central_mode.png)
-
-</details>
-
-<details>
-<summary>Control of a central boiler</summary>
 
 ## Control of a central boiler
 
@@ -847,8 +796,6 @@ context:
 
 > ![Tip](images/tips.png) _*Notes*_
 > Controlling a central boiler using software or hardware such as home automation can pose risks to its proper functioning. Before using these functions, make sure that your boiler has safety functions and that they are working. Turning on a boiler if all the taps are closed can generate excess pressure, for example.
-
-</details>
 
 <details>
 <summary>Parameter summary</summary>
