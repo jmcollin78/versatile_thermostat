@@ -1206,6 +1206,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if hvac_mode is None:
             return
 
+        def save_state():
+            self.reset_last_change_time()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+            self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
+
+        # If we already are in OFF, the manual OFF should just overwrite the reason and saved_hvac_mode
+        if self._hvac_mode == HVACMode.OFF and hvac_mode == HVACMode.OFF:
+            _LOGGER.info(
+                "%s - already in OFF. Change the reason to MANUAL and erase the saved_havc_mode"
+            )
+            self._hvac_off_reason = HVAC_OFF_REASON_MANUAL
+            self._saved_hvac_mode = HVACMode.OFF
+
+            save_state()
+
+            return
+
         self._hvac_mode = hvac_mode
 
         # Delegate to all underlying
@@ -1227,14 +1245,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
-        self.reset_last_change_time()
 
         if self._hvac_mode != HVACMode.OFF:
             self.set_hvac_off_reason(None)
 
-        self.update_custom_attributes()
-        self.async_write_ha_state()
-        self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
+        save_state()
 
     @overrides
     async def async_set_preset_mode(
@@ -2227,8 +2242,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             save_all()
 
         if new_central_mode == CENTRAL_MODE_STOPPED:
-            self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
-            await self.async_set_hvac_mode(HVACMode.OFF)
+            if self.hvac_mode != HVACMode.OFF:
+                self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
+                await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
         if new_central_mode == CENTRAL_MODE_COOL_ONLY:
@@ -2242,7 +2258,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if new_central_mode == CENTRAL_MODE_HEAT_ONLY:
             if HVACMode.HEAT in self.hvac_modes:
                 await self.async_set_hvac_mode(HVACMode.HEAT)
-            else:
+            # if not already off
+            elif self.hvac_mode != HVACMode.OFF:
                 self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
