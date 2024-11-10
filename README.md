@@ -662,6 +662,8 @@ Setting this parameter to ``0.00`` will trigger the safety preset regardless of 
 
 The fourth parameter (``security_default_on_percent``) is the ``on_percent`` value that will be used when the thermostat enters ``safety`` mode. If you put ``0`` then the thermostat will be cut off when it goes into ``safety`` mode, putting 0.2% for example allows you to keep a little heating (20% in this case), even in mode ``safety``. It avoids finding your home totally frozen during a thermometer failure.
 
+Note: parameters `security_min_on_percent` et `security_default_on_percent` are not used by `over_climate` VTherm.
+
 Since version 5.3 it is possible to deactivate the safety device following a lack of data from the outdoor thermometer. Indeed, this most of the time having a low impact on regulation (depending on your settings), it is possible that it is absent without endangering the home. To do this, you must add the following lines to your `configuration.yaml`:
 ```
 versatile_thermostat:
