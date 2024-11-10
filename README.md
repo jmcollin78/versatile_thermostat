@@ -247,6 +247,7 @@ Some TRV type thermostats are known to be incompatible with the Versatile Thermo
 4. Thermostats of type Rointe tends to awake alone even if VTherm turns it off. Others functions works fine.
 5. TRV of type Aqara SRTS-A01 and MOES TV01-ZB which doesn't have the return state `hvac_action` allowing to know if it is heating or not. So return states are not available. Others features, seems to work normally.
 6. The Airwell with the "Midea AC LAN" integration. If two orders are too close, the device shut off.
+7. System based on intégration Overkiz don't work as expected. It seems not possible to turn off nor sending setpoint on those systems.
 
 # Why another thermostat implementation ?
 

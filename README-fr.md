@@ -247,6 +247,7 @@ Certains thermostat de type TRV sont réputés incompatibles avec le Versatile T
 4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
 5. les TRV de type Aqara SRTS-A01 et MOES TV01-ZB qui n'ont pas le retour d'état `hvac_action` permettant de savoir si elle chauffe ou pas. Donc les retours d'état sont faussés, le reste à l'air fonctionnel.
 6. La clim Airwell avec l'intégration "Midea AC LAN". Si 2 commandes de VTherm sont trop rapprochées, la clim s'arrête d'elle même.
+7. Les climates basés sur l'intégration Overkiz ne fonctionnent pas. Il parait impossible d'éteindre ni même de changer la température sur ces systèmes.
 
 # Pourquoi une nouvelle implémentation du thermostat ?
 
