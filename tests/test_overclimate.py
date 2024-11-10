@@ -11,6 +11,8 @@ from homeassistant.components.climate import (
     SERVICE_SET_TEMPERATURE,
 )
 
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
@@ -703,3 +705,356 @@ async def test_ignore_temp_outside_minmax_range(
             "climate.mock_climate",  # the underlying climate entity id
         )
         assert entity.target_temperature == 17
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_manual_hvac_off_should_take_the_lead_over_window(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test than a manual hvac_off is taken into account over a window hvac_off"""
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_DELAY: 10,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_CLIMATE: "climate.mock_climate",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="mock_climate",
+        hvac_modes=[HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT],
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        vtherm: ThermostatOverClimate = await create_thermostat(
+            hass, config_entry, "climate.overclimate"
+        )
+
+        assert vtherm is not None
+
+        # Initialize all temps
+        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+        # Check correct initialization of auto_start_stop attributes
+        assert (
+            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
+            == AUTO_START_STOP_LEVEL_FAST
+        )
+
+        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        enable_entity = search_entity(
+            hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
+        )
+        assert enable_entity is not None
+        assert enable_entity.state == STATE_ON
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # 1. Set mode to Heat and preset to Comfort and close the window
+    send_window_change_event(vtherm, False, False, now, False)
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 18, now, True)
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 19.0
+    # VTherm should be heating
+    assert vtherm.hvac_mode == HVACMode.HEAT
+    # VTherm window_state should be off
+    assert vtherm.window_state == STATE_OFF
+
+    # 2. Open the window and wait for the delay
+    now = now + timedelta(minutes=2)
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        vtherm._set_now(now)
+        try_function = await send_window_change_event(
+            vtherm, True, False, now, sleep=False
+        )
+
+        await try_function(None)
+
+        # Nothing should have change (window event is ignoed as we are already OFF)
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+        assert vtherm._saved_hvac_mode == HVACMode.HEAT
+
+        assert mock_send_event.call_count == 2
+
+        assert vtherm.window_state == STATE_ON
+
+    # 3. Turn off manually the VTherm. This should be taken into account
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event:
+        await vtherm.async_set_hvac_mode(HVACMode.OFF)
+        await hass.async_block_till_done()
+
+        # Should be off with reason MANUAL
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert vtherm._saved_hvac_mode == HVACMode.OFF
+        # Window state should not change
+        assert vtherm.window_state == STATE_ON
+
+        assert mock_send_event.call_count == 1
+        mock_send_event.assert_has_calls(
+            [
+                call(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
+            ]
+        )
+
+    # 4. close the window -> we should stay off reason manual
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        try_function = await send_window_change_event(
+            vtherm, False, True, now, sleep=False
+        )
+
+        await try_function(None)
+
+        # The VTherm should turn on and off again due to auto-start-stop
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason is HVAC_OFF_REASON_MANUAL
+        assert vtherm._saved_hvac_mode == HVACMode.OFF
+
+        assert vtherm.window_state == STATE_OFF
+        assert mock_send_event.call_count == 0
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test than a manual hvac_off is taken into account over a auto-start/stop hvac_off"""
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_DELAY: 10,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_CLIMATE: "climate.mock_climate",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="mock_climate",
+        hvac_modes=[HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT],
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        vtherm: ThermostatOverClimate = await create_thermostat(
+            hass, config_entry, "climate.overclimate"
+        )
+
+        assert vtherm is not None
+
+        # Initialize all temps
+        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+        # Check correct initialization of auto_start_stop attributes
+        assert (
+            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
+            == AUTO_START_STOP_LEVEL_FAST
+        )
+
+        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        enable_entity = search_entity(
+            hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
+        )
+        assert enable_entity is not None
+        assert enable_entity.state == STATE_ON
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # 1. Set mode to Heat and preset to Comfort
+    send_window_change_event(vtherm, False, False, now, False)
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 18, now, True)
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 19.0
+    # VTherm should be heating
+    assert vtherm.hvac_mode == HVACMode.HEAT
+
+    # 2. Set current temperature to 21 5 min later -> should turn off VTherm
+    now = now + timedelta(minutes=5)
+    vtherm._set_now(now)
+    # reset accumulated error (only for testing)
+    vtherm._auto_start_stop_algo._accumulated_error = 0
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event:
+        await send_temperature_change_event(vtherm, 21, now, True)
+        await hass.async_block_till_done()
+
+        # VTherm should no more be heating
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        assert vtherm._saved_hvac_mode == HVACMode.HEAT
+        assert mock_send_event.call_count == 2  # turned to off
+
+        mock_send_event.assert_has_calls(
+            [
+                call(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
+                call(
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    data={
+                        "type": "stop",
+                        "name": "overClimate",
+                        "cause": "Auto stop conditions reached",
+                        "hvac_mode": HVACMode.OFF,
+                        "saved_hvac_mode": HVACMode.HEAT,
+                        "target_temperature": 19.0,
+                        "current_temperature": 21.0,
+                        "temperature_slope": 0.3,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
+                    },
+                ),
+            ]
+        )
+
+    # 3. Turn off manually the VTherm. This should be taken into account
+    now = now + timedelta(minutes=1)
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event:
+        await vtherm.async_set_hvac_mode(HVACMode.OFF)
+        await hass.async_block_till_done()
+
+        # Should be off with reason MANUAL
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert vtherm._saved_hvac_mode == HVACMode.OFF
+
+        assert mock_send_event.call_count == 1
+        mock_send_event.assert_has_calls(
+            [
+                call(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
+            ]
+        )
+
+    # 4. removes the auto-start/stop detection
+    now = now + timedelta(minutes=5)
+    vtherm._set_now(now)
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        await send_temperature_change_event(vtherm, 15, now, True)
+        await hass.async_block_till_done()
+
+        # VTherm should no more be heating
+        assert vtherm.hvac_mode == HVACMode.OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert vtherm._saved_hvac_mode == HVACMode.OFF
+        assert mock_send_event.call_count == 0  # nothing have change
