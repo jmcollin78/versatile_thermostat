@@ -34,10 +34,16 @@ async def async_setup_entry(
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
     auto_start_stop_feature = entry.data.get(CONF_USE_AUTO_START_STOP_FEATURE)
 
-    if vt_type == CONF_THERMOSTAT_CLIMATE and auto_start_stop_feature is True:
-        # Creates a switch to enable the auto-start/stop
-        enable_entity = AutoStartStopEnable(hass, unique_id, name, entry)
-        async_add_entities([enable_entity], True)
+    entities = []
+    if vt_type == CONF_THERMOSTAT_CLIMATE:
+        entities.append(FollowUnderlyingTemperatureChange(hass, unique_id, name, entry))
+
+        if auto_start_stop_feature is True:
+            # Creates a switch to enable the auto-start/stop
+            enable_entity = AutoStartStopEnable(hass, unique_id, name, entry)
+            entities.append(enable_entity)
+
+    async_add_entities([enable_entity], True)
 
 
 class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity):
@@ -80,6 +86,66 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
         self.async_write_ha_state()
         if self.my_climate is not None:
             self.my_climate.set_auto_start_stop_enable(self._attr_is_on)
+
+    @callback
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the entity on."""
+        self.turn_on()
+
+    @callback
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the entity off."""
+        self.turn_off()
+
+    @overrides
+    def turn_off(self, **kwargs: Any):
+        self._attr_is_on = False
+        self.update_my_state_and_vtherm()
+
+    @overrides
+    def turn_on(self, **kwargs: Any):
+        self._attr_is_on = True
+        self.update_my_state_and_vtherm()
+
+
+class FollowUnderlyingTemperatureChange(
+    VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity
+):
+    """The that enables the ManagedDevice optimisation with"""
+
+    def __init__(
+        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigEntry
+    ):
+        super().__init__(hass, unique_id, name)
+        self._attr_name = "Follow underlying temp change"
+        self._attr_unique_id = f"{self._device_name}_follow_underlying_temp_change"
+        self._attr_is_on = False
+
+    @property
+    def icon(self) -> str | None:
+        """The icon"""
+        return "mdi:content-copy"
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        # Récupérer le dernier état sauvegardé de l'entité
+        last_state = await self.async_get_last_state()
+
+        # Si l'état précédent existe, vous pouvez l'utiliser
+        if last_state is not None:
+            self._attr_is_on = last_state.state == "on"
+        else:
+            # If no previous state set it to false by default
+            self._attr_is_on = False
+
+        self.update_my_state_and_vtherm()
+
+    def update_my_state_and_vtherm(self):
+        """Update the follow flag in my VTherm"""
+        self.async_write_ha_state()
+        if self.my_climate is not None:
+            self.my_climate.set_follow_underlying_temp_change(self._attr_is_on)
 
     @callback
     async def async_turn_on(self, **kwargs: Any) -> None:
