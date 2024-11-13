@@ -15,6 +15,7 @@ from .const import (
     CONF_SAFETY_MODE,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_MAX_ON_PERCENT,
 )
 
 VTHERM_API_NAME = "vtherm_api"
@@ -60,6 +61,7 @@ class VersatileThermostatAPI(dict):
         self._central_mode_select = None
         # A dict that will store all Number entities which holds the temperature
         self._number_temperatures = dict()
+        self._max_on_percent = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -106,6 +108,12 @@ class VersatileThermostatAPI(dict):
         self._safety_mode = config.get(CONF_SAFETY_MODE)
         if self._safety_mode:
             _LOGGER.debug("We have found safet_mode params %s", self._safety_mode)
+
+        self._max_on_percent = config.get(CONF_MAX_ON_PERCENT)
+        if self._max_on_percent:
+            _LOGGER.debug(
+                "We have found max_on_percent setting %s", self._max_on_percent
+            )
 
     def register_central_boiler(self, central_boiler_entity):
         """Register the central boiler entity. This is used by the CentralBoilerBinarySensor

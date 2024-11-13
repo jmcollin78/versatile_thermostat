@@ -42,6 +42,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                     "tpi_coef_int",
                     "tpi_coef_ext",
                     "power_percent",
+                    "calculated_on_percent",
                 }
             )
         )
@@ -84,6 +85,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._cycle_min,
             self._minimal_activation_delay,
             self.name,
+            max_on_percent=self._max_on_percent,
         )
 
         lst_switches = config_entry.get(CONF_UNDERLYING_LIST)
@@ -149,6 +151,9 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes["function"] = self._proportional_function
         self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
         self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
+        self._attr_extra_state_attributes[
+            "calculated_on_percent"
+        ] = self._prop_algorithm.calculated_on_percent
 
         self.async_write_ha_state()
         _LOGGER.debug(
