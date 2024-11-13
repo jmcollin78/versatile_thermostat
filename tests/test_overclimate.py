@@ -17,6 +17,10 @@ from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
 
+from custom_components.versatile_thermostat.switch import (
+    FollowUnderlyingTemperatureChange,
+)
+
 from .commons import *
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -197,7 +201,7 @@ async def test_bug_82(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_bug_101(
+async def test_underlying_change_follow(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
@@ -231,12 +235,27 @@ async def test_bug_101(
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
         assert entity
-
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.hvac_mode is HVACMode.OFF
         # because in MockClimate HVACAction is HEATING if hvac_mode is not set
         assert entity.hvac_action is HVACAction.HEATING
+        assert entity.follow_underlying_temp_change is False
+
+        follow_entity: FollowUnderlyingTemperatureChange = search_entity(
+            hass,
+            "switch.theoverclimatemockname_follow_underlying_temp_change",
+            SWITCH_DOMAIN,
+        )
+        assert follow_entity is not None
+        assert follow_entity.state is STATE_OFF
+
+        # follow the underlying temp change
+        follow_entity.turn_on()
+
+        assert entity.follow_underlying_temp_change is True
+        assert follow_entity.state is STATE_ON
+
         # Underlying should have been shutdown
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
@@ -320,6 +339,93 @@ async def test_bug_101(
         )
         assert entity.target_temperature == entity.min_temp + 1
         assert entity.preset_mode is PRESET_NONE
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_underlying_change_not_follow(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when a underlying climate target temp is changed, the VTherm change its own temperature target and switch to manual"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,  # 5 minutes security delay
+    )
+
+    # Underlying is in HEAT mode but should be shutdown at startup
+    fake_underlying_climate = MockClimate(
+        hass, "mockUniqueId", "MockClimateName", {}, HVACMode.HEAT, HVACAction.HEATING
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ) as mock_send_event, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ) as mock_find_climate, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
+    ) as mock_underlying_set_hvac_mode:
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert entity
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.hvac_mode is HVACMode.OFF
+        # because in MockClimate HVACAction is HEATING if hvac_mode is not set
+        assert entity.hvac_action is HVACAction.HEATING
+        assert entity.target_temperature == 15
+        assert entity.preset_mode is PRESET_NONE
+
+        # default value
+        assert entity.follow_underlying_temp_change is False
+
+        follow_entity: FollowUnderlyingTemperatureChange = search_entity(
+            hass,
+            "switch.theoverclimatemockname_follow_underlying_temp_change",
+            SWITCH_DOMAIN,
+        )
+        assert follow_entity is not None
+        assert follow_entity.state is STATE_OFF
+
+        # follow the underlying temp change
+        follow_entity.turn_off()
+
+        assert entity.follow_underlying_temp_change is False
+        assert follow_entity.state is STATE_OFF
+
+        # 1. Force preset mode
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity.hvac_mode == HVACMode.HEAT
+        await entity.async_set_preset_mode(PRESET_COMFORT)
+        assert entity.preset_mode == PRESET_COMFORT
+        assert entity.target_temperature == 17
+
+        # 2. Change the target temp of underlying thermostat at 11 sec later to avoid temporal filter
+        event_timestamp = now + timedelta(seconds=30)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            HVACMode.HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            event_timestamp,
+            21,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        # Should NOT have been switched to Manual preset
+        assert entity.target_temperature == 17
+        assert entity.preset_mode is PRESET_COMFORT
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
