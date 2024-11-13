@@ -630,6 +630,7 @@ async def test_climate_ac_only_change_central_mode_true(
         },
     )
 
+    # 1. set hvac_mode to COOL and preet ECO
     with patch("homeassistant.core.ServiceRegistry.async_call"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,

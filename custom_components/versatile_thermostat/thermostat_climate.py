@@ -31,6 +31,10 @@ from .auto_start_stop_algorithm import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_LOGGER_ENERGY = logging.getLogger(
+    "custom_components.versatile_thermostat.energy_debug"
+)
+
 
 HVAC_ACTION_ON = [  # pylint: disable=invalid-name
     HVACAction.COOLING,
@@ -97,7 +101,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
-        
+
         for climate in config_entry.get(CONF_UNDERLYING_LIST):
             self._underlyings.append(
                 UnderlyingClimate(
@@ -549,6 +553,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         ] = self._auto_start_stop_algo.accumulated_error_threshold
 
         self.async_write_ha_state()
+
         _LOGGER.debug(
             "%s - Calling update_custom_attributes: %s",
             self,
@@ -595,8 +600,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if self._total_energy is None:
             self._total_energy = added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - incremente_energy set energy is %s",
+                self,
+                self._total_energy,
+            )
         else:
             self._total_energy += added_energy
+            _LOGGER_ENERGY.debug(
+                "%s - incremente_energy incremented energy is %s",
+                self,
+                self._total_energy,
+            )
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
@@ -837,7 +852,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             changes = True
 
         # try to manage new target temperature set if state if no other changes have been found
-        if not changes:
+        # and if a target temperature have already been sent
+        if not changes and under.last_sent_temperature is not None:
             _LOGGER.debug(
                 "Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
                 under.last_sent_temperature,

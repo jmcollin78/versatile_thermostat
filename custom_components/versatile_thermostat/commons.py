@@ -17,7 +17,6 @@ from .const import DOMAIN, DEVICE_MANUFACTURER, ServiceConfigurationError
 
 _LOGGER = logging.getLogger(__name__)
 
-
 def get_tz(hass: HomeAssistant):
     """Get the current timezone"""
 

@@ -150,10 +150,11 @@ class VersatileThermostatAPI(dict):
                 return entity.state
         return None
 
-    async def init_vtherm_links(self):
+    async def init_vtherm_links(self, entry_id=None):
         """Initialize all VTherms entities links
         This method is called when HA is fully started (and all entities should be initialized)
         Or when we need to reload all VTherm links (with Number temp entities, central boiler, ...)
+        If entry_id is set, only the VTherm of this entry will be reloaded
         """
         await self.reload_central_boiler_binary_listener()
         await self.reload_central_boiler_entities_list()
@@ -175,7 +176,8 @@ class VersatileThermostatAPI(dict):
                     entity.device_info
                     and entity.device_info.get("model", None) == DOMAIN
                 ):
-                    await entity.async_startup(self.find_central_configuration())
+                    if entry_id is None or entry_id == entity.unique_id:
+                        await entity.async_startup(self.find_central_configuration())
 
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""
