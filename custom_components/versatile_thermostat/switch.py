@@ -43,7 +43,7 @@ async def async_setup_entry(
             enable_entity = AutoStartStopEnable(hass, unique_id, name, entry)
             entities.append(enable_entity)
 
-    async_add_entities([enable_entity], True)
+    async_add_entities(entities, True)
 
 
 class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity):
