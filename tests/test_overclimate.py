@@ -773,13 +773,26 @@ async def test_ignore_temp_outside_minmax_range(
         assert mock_find_climate.mock_calls[0] == call()
         mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
-        # 1. Force preset mode
+        # 1. VTherm must follow the underlying's temperature changes
+        follow_entity: FollowUnderlyingTemperatureChange = search_entity(
+            hass,
+            "switch.theoverclimatemockname_follow_underlying_temp_change",
+            SWITCH_DOMAIN,
+        )
+
+        # follow the underlying temp change
+        follow_entity.turn_on()
+
+        assert entity.follow_underlying_temp_change is True
+        assert follow_entity.state is STATE_ON
+
+        # 2. Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.preset_mode == PRESET_COMFORT
 
-        # 1. Try to set the target temperature to a below min_temp -> should be ignored
+        # 3. Try to set the target temperature to a below min_temp -> should be ignored
         # Wait 11 sec
         event_timestamp = now + timedelta(seconds=11)
         assert entity.is_regulated is False
@@ -787,8 +800,8 @@ async def test_ignore_temp_outside_minmax_range(
             entity,
             HVACMode.HEAT,
             HVACMode.HEAT,
-            HVACAction.OFF,
-            HVACAction.OFF,
+            HVACAction.HEATING,
+            HVACAction.HEATING,
             event_timestamp,
             entity.min_temp - 1,
             True,
@@ -796,15 +809,15 @@ async def test_ignore_temp_outside_minmax_range(
         )
         assert entity.target_temperature == 17
 
-        # 2. Try to set the target temperature to a above max_temp -> should be ignored
+        # 4. Try to set the target temperature to a above max_temp -> should be ignored
         event_timestamp = event_timestamp + timedelta(seconds=11)
         assert entity.is_regulated is False
         await send_climate_change_event_with_temperature(
             entity,
             HVACMode.HEAT,
             HVACMode.HEAT,
-            HVACAction.OFF,
-            HVACAction.OFF,
+            HVACAction.HEATING,
+            HVACAction.HEATING,
             event_timestamp,
             entity.max_temp + 1,
             True,
@@ -812,6 +825,28 @@ async def test_ignore_temp_outside_minmax_range(
         )
         assert entity.target_temperature == 17
 
+        # 5. Switch off the VTherm and receive an event from the underlying with a temp to be ignored,
+        # but an HVACAction to be taken into account
+        await entity.async_set_hvac_mode(HVACMode.OFF)
+        assert entity.hvac_mode == HVACMode.OFF
+
+        fake_underlying_climate.set_hvac_mode(HVACMode.OFF)
+        fake_underlying_climate.set_hvac_action(HVACAction.IDLE)
+
+        event_timestamp = event_timestamp + timedelta(seconds=11)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            HVACAction.IDLE,
+            HVACAction.HEATING,
+            event_timestamp,
+            entity.min_temp - 1,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        assert entity.target_temperature == 17
+        assert entity.hvac_action == HVACAction.IDLE
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
