@@ -62,6 +62,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     _auto_start_stop_level: TYPE_AUTO_START_STOP_LEVELS = AUTO_START_STOP_LEVEL_NONE
     _auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
     _is_auto_start_stop_enabled: bool = False
+    _follow_underlying_temp_change: bool = False
 
     _entity_component_unrecorded_attributes = (
         BaseThermostat._entity_component_unrecorded_attributes.union(
@@ -82,6 +83,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     "auto_start_stop_enable",
                     "auto_start_stop_accumulated_error",
                     "auto_start_stop_accumulated_error_threshold",
+                    "follow_underlying_temp_change",
                 }
             )
         )
@@ -552,6 +554,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             "auto_start_stop_accumulated_error_threshold"
         ] = self._auto_start_stop_algo.accumulated_error_threshold
 
+        self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
+            self._follow_underlying_temp_change
+        )
+
         self.async_write_ha_state()
 
         _LOGGER.debug(
@@ -853,7 +859,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # try to manage new target temperature set if state if no other changes have been found
         # and if a target temperature have already been sent
-        if not changes and under.last_sent_temperature is not None:
+        if (
+            self._follow_underlying_temp_change
+            and not changes
+            and under.last_sent_temperature is not None
+        ):
             _LOGGER.debug(
                 "Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
                 under.last_sent_temperature,
@@ -970,6 +980,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""
         self._is_auto_start_stop_enabled = is_enabled
+        self.update_custom_attributes()
+
+    def set_follow_underlying_temp_change(self, follow: bool):
+        """Set the flaf follow the underlying temperature changes"""
+        self._follow_underlying_temp_change = follow
         self.update_custom_attributes()
 
     @property
@@ -1127,6 +1142,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def auto_start_stop_enable(self) -> bool:
         """Returns the auto_start_stop_enable"""
         return self._is_auto_start_stop_enabled
+
+    @property
+    def follow_underlying_temp_change(self) -> bool:
+        """Get the follow underlying temp change flag"""
+        return self._follow_underlying_temp_change
 
     @overrides
     def init_underlyings(self):
