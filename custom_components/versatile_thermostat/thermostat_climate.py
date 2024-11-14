@@ -725,7 +725,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             return
 
-        # Forget event when the new target temperature is out of range
+        # Ignore new target temperature when out of range
         if (
             not new_target_temp is None
             and not self._attr_min_temp is None
@@ -739,7 +739,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_min_temp,
                 self._attr_max_temp,
             )
-            return
+            new_target_temp = None
+            under_temp_diff = 0
 
         # A real changes have to be managed
         _LOGGER.info(
