@@ -165,7 +165,7 @@ class PropAlgorithm:
 
         if self._max_on_percent is not None and self._on_percent > self._max_on_percent:
             _LOGGER.debug(
-                "%s - Heating period clamped to %s%% (instead of %s%%) due to max_on_percent setting.",
+                "%s - Heating period clamped to %s (instead of %s) due to max_on_percent setting.",
                 self._vtherm_entity_id,
                 self._max_on_percent,
                 self._on_percent,
