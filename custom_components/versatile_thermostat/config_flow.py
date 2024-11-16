@@ -456,6 +456,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ]:
             menu_options.append("auto_start_stop")
 
+        if self._infos.get(CONF_SONOFF_TRZB_MODE) is True:
+            menu_options.append("sonoff_trvzb")
+
         menu_options.append("advanced")
 
         if self.check_config_complete(self._infos):
@@ -567,6 +570,20 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         next_step = self.async_step_menu
 
         return await self.generic_step("auto_start_stop", schema, user_input, next_step)
+
+    async def async_step_sonoff_trvzb(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle the Sonoff TRVZB configuration step"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_sonoff_trvzb user_input=%s", user_input
+        )
+
+        schema = STEP_SONOFF_TRVZB
+        self._infos[COMES_FROM] = None
+        next_step = self.async_step_menu
+
+        return await self.generic_step("sonoff_trvzb", schema, user_input, next_step)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""

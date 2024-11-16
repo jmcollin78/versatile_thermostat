@@ -94,6 +94,7 @@ CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
 CONF_AC_MODE = "ac_mode"
+CONF_SONOFF_TRZB_MODE = "sonoff_trvzb_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
@@ -115,6 +116,9 @@ CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
 CONF_STEP_TEMPERATURE = "step_temperature"
+CONF_OFFSET_CALIBRATION_LIST = "offset_calibration_entity_ids"
+CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
+CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 
 # Deprecated
 CONF_HEATER = "heater_entity_id"
@@ -287,6 +291,7 @@ ALL_CONF = (
         CONF_USE_POWER_FEATURE,
         CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
+        CONF_SONOFF_TRZB_MODE,
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
