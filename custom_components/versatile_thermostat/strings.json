@@ -28,6 +28,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "sonoff_trvzb": "Sonoff TRVZB configuration",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -76,6 +77,7 @@
           "heater_keep_alive": "Switch keep-alive interval in seconds",
           "proportional_function": "Algorithm",
           "ac_mode": "AC mode",
+          "sonoff_trvzb_mode": "SONOFF TRVZB mode",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimum period",
@@ -88,6 +90,7 @@
           "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "ac_mode": "Use the Air Conditioning (AC) mode",
+          "sonoff_trvzb_mode": "The underlyings are SONOFF TRVZB. You have to configure some extra entities in the specific menu option 'Sonoff trvzb configuration'",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
           "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
@@ -203,6 +206,34 @@
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
+      },
+      "central_boiler": {
+        "title": "Control of the central boiler",
+        "description": "Enter the services to call to turn on/off the central boiler. Leave blank if no service call is to be made (in this case, you will have to manage the turning on/off of your central boiler yourself). The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Command to turn-on",
+          "central_boiler_deactivation_service": "Command to turn-off"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+        }
+      },
+      "sonoff_trvzb": {
+        "title": "Sonoff TRVZB configuration",
+        "description": "Specific Sonoff TRVZB configuration",
+        "data": {
+          "offset_calibration_entity_ids": "Offset calibration entities",
+          "opening_degree_entity_ids": "Opening degree entities",
+          "closing_degree_entity_ids": "Closing degree entities",
+          "proportional_function": "Algorithm"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. There should be one per underlying climate entities",
+          "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
+          "closing_degree_entity_ids": "The list of the 'closing degree' entities. There should be one per underlying climate entities",
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
+        }
       }
     },
     "error": {
@@ -243,6 +274,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "sonoff_trvzb": "Sonoff TRVZB configuration",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -291,6 +323,7 @@
           "heater_keep_alive": "Switch keep-alive interval in seconds",
           "proportional_function": "Algorithm",
           "ac_mode": "AC mode",
+          "sonoff_trvzb_mode": "SONOFF TRVZB mode",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimum period",
@@ -303,6 +336,7 @@
           "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "ac_mode": "Use the Air Conditioning (AC) mode",
+          "sonoff_trvzb_mode": "The underlyings are SONOFF TRVZB. You have to configure some extra entities in the specific menu option 'Sonoff trvzb configuration'",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
           "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
@@ -417,6 +451,34 @@
           "security_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
+        }
+      },
+      "central_boiler": {
+        "title": "Control of the central boiler",
+        "description": "Enter the services to call to turn on/off the central boiler. Leave blank if no service call is to be made (in this case, you will have to manage the turning on/off of your central boiler yourself). The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Command to turn-on",
+          "central_boiler_deactivation_service": "Command to turn-off"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+        }
+      },
+      "sonoff_trvzb": {
+        "title": "Sonoff TRVZB configuration",
+        "description": "Specific Sonoff TRVZB configuration",
+        "data": {
+          "offset_calibration_entity_ids": "Offset calibration entities",
+          "opening_degree_entity_ids": "Opening degree entities",
+          "closing_degree_entity_ids": "Closing degree entities",
+          "proportional_function": "Algorithm"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. There should be one per underlying climate entities",
+          "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
+          "closing_degree_entity_ids": "The list of the 'closing degree' entities. There should be one per underlying climate entities",
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
         }
       }
     },

@@ -28,6 +28,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "sonoff_trvzb": "Configuration spécifique à Sonoff TRVZB",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -72,48 +73,28 @@
         "title": "Entité(s) liée(s)",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "1er radiateur",
-          "heater_entity2_id": "2ème radiateur",
-          "heater_entity3_id": "3ème radiateur",
-          "heater_entity4_id": "4ème radiateur",
+          "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
-          "climate_entity_id": "Thermostat sous-jacent",
-          "climate_entity2_id": "2ème thermostat sous-jacent",
-          "climate_entity3_id": "3ème thermostat sous-jacent",
-          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?",
-          "valve_entity_id": "1ère valve number",
-          "valve_entity2_id": "2ème valve number",
-          "valve_entity3_id": "3ème valve number",
-          "valve_entity4_id": "4ème valve number",
+          "sonoff_trvzb_mode": "Mode Sonoff TRVZB",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "auto_regulation_use_device_temp": "Utiliser la température interne du sous-jacent",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
           "auto_fan_mode": " Auto ventilation mode"
         },
         "data_description": {
-          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
-          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
-          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
-          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
+          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Entity id du thermostat sous-jacent",
-          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
-          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
-          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "valve_entity_id": "Entity id de la 1ère valve",
-          "valve_entity2_id": "Entity id de la 2ème valve",
-          "valve_entity3_id": "Entity id de la 3ème valve",
-          "valve_entity4_id": "Entity id de la 4ème valve",
+          "sonoff_trvzb_mode": "Les équipements sont des Sonoff TRVZB. Vous devez configurer les entités dédiées dans le menu 'Configuration Sonoff TRVZB'",
           "auto_regulation_mode": "Ajustement automatique de la température cible",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
@@ -237,6 +218,22 @@
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
+      },
+      "sonoff_trvzb": {
+        "title": "Configuration Sonoff TRVZB",
+        "description": "Configuration spécifique des Sonoff TRVZB",
+        "data": {
+          "offset_calibration_entity_ids": "Entités de 'Offset calibration'",
+          "opening_degree_entity_ids": "Entités de 'Opening degree'",
+          "closing_degree_entity_ids": "Entités de 'Closing degree'",
+          "proportional_function": "Algorithme"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "La liste des entités 'offset calibration' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'opening degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'closing degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
+        }
       }
     },
     "error": {
@@ -277,6 +274,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "sonoff_trvzb": "Configuration spécifique à Sonoff TRVZB",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -318,51 +316,31 @@
         }
       },
       "type": {
-        "title": "Entités - {name}",
+        "title": "Entité(s) liée(s)",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "1er radiateur",
-          "heater_entity2_id": "2ème radiateur",
-          "heater_entity3_id": "3ème radiateur",
-          "heater_entity4_id": "4ème radiateur",
-          "heater_keep_alive": "Keep-alive (sec)",
+          "underlying_entity_ids": "Les équipements à controller",
+          "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
-          "climate_entity_id": "Thermostat sous-jacent",
-          "climate_entity2_id": "2ème thermostat sous-jacent",
-          "climate_entity3_id": "3ème thermostat sous-jacent",
-          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?",
-          "valve_entity_id": "1ère valve",
-          "valve_entity2_id": "2ème valve",
-          "valve_entity3_id": "3ème valve",
-          "valve_entity4_id": "4ème valve",
-          "auto_regulation_mode": "Auto-regulation",
+          "sonoff_trvzb_mode": "Mode Sonoff TRVZB",
+          "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "auto_regulation_use_device_temp": "Utiliser la température interne du sous-jacent",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": " Auto ventilation mode"
         },
         "data_description": {
-          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
-          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
-          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
-          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
+          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Entity id du thermostat sous-jacent",
-          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
-          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
-          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "valve_entity_id": "Entity id de la 1ère valve",
-          "valve_entity2_id": "Entity id de la 2ème valve",
-          "valve_entity3_id": "Entity id de la 3ème valve",
-          "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la consigne",
+          "sonoff_trvzb_mode": "Les équipements sont des Sonoff TRVZB. Vous devez configurer les entités dédiées dans le menu 'Configuration Sonoff TRVZB'",
+          "auto_regulation_mode": "Ajustement automatique de la température cible",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
@@ -479,6 +457,22 @@
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+        }
+      },
+      "sonoff_trvzb": {
+        "title": "Configuration Sonoff TRVZB",
+        "description": "Configuration spécifique des Sonoff TRVZB",
+        "data": {
+          "offset_calibration_entity_ids": "Entités de 'Offset calibration'",
+          "opening_degree_entity_ids": "Entités de 'Opening degree'",
+          "closing_degree_entity_ids": "Entités de 'Closing degree'",
+          "proportional_function": "Algorithme"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "La liste des entités 'offset calibration' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'opening degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'closing degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
         }
       }
     },
