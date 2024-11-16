@@ -23,7 +23,7 @@ from .pi_algorithm import PITemperatureRegulator
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
-from .underlyings import UnderlyingClimate
+from .underlyings import UnderlyingClimate, UnderlyingSonoffTRVZB
 from .auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
     AUTO_START_STOP_ACTION_OFF,
@@ -104,14 +104,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         super().post_init(config_entry)
 
-        for climate in config_entry.get(CONF_UNDERLYING_LIST):
-            self._underlyings.append(
-                UnderlyingClimate(
+        for idx, climate in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
+            if config_entry.get(CONF_SONOFF_TRZB_MODE) is True:
+                offset = config_entry.get(CONF_OFFSET_CALIBRATION_LIST)[idx]
+                opening = config_entry.get(CONF_OPENING_DEGREE_LIST)[idx]
+                closing = config_entry.get(CONF_CLOSING_DEGREE_LIST)[idx]
+                under = UnderlyingSonoffTRVZB(
+                    hass=self._hass,
+                    thermostat=self,
+                    climate_entity_id=climate,
+                    offset_calibration=offset,
+                    opening_degree=opening,
+                    closing_degree=closing,
+                )
+            else:
+                under = UnderlyingClimate(
                     hass=self._hass,
                     thermostat=self,
                     climate_entity_id=climate,
                 )
-            )
+            self._underlyings.append(under)
 
         self.choose_auto_regulation_mode(
             config_entry.get(CONF_AUTO_REGULATION_MODE)
@@ -1112,6 +1124,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """
         if self.underlying_entity(0):
             return self.underlying_entity(0).target_temperature_low
+
+        return None
+
+    @property
+    def current_humidity(self) -> float | None:
+        """Return the humidity."""
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).humidity
 
         return None
 
