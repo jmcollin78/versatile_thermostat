@@ -966,7 +966,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             if not continu:
                 return ret
         else:
-            _LOGGER.debug("%s - auto start/stop is disabled")
+            _LOGGER.debug("%s - auto start/stop is disabled", self)
 
             # Continue the normal async_control_heating
 

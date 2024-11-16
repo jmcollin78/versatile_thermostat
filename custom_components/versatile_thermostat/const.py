@@ -510,6 +510,11 @@ class ConfigurationNotCompleteError(HomeAssistantError):
     """Error the configuration is not complete"""
 
 
+class SonoffTRVZBNbEntitiesIncorrect(HomeAssistantError):
+    """Error to indicate there is an error in the configuration of the Sonoff TRVZB.
+    The number of specific entities is incorrect."""
+
+
 class overrides:  # pylint: disable=invalid-name
     """An annotation to inform overrides"""
 

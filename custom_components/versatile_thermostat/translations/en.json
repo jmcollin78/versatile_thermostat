@@ -487,7 +487,8 @@
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
-      "service_configuration_format": "The format of the service configuration is wrong"
+      "service_configuration_format": "The format of the service configuration is wrong",
+      "sonoff_trvzb_nb_entities_incorrect": "The number of specific entities for Sonoff TRVZB should be equal to the number of underlyings"
     },
     "abort": {
       "already_configured": "Device is already configured"
