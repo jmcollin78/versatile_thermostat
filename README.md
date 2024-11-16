@@ -1546,7 +1546,7 @@ These parameters are sensitive and quite difficult to adjust. Please only use th
 
 ## Why does my Versatile Thermostat go into Safety?
 
-Safety mode is only possible on VTherm `over_switch` and `over_valve`. It occurs when one of the 2 thermometers which gives the room temperature or the outside temperature has not sent a value for more than `security_delay_min` minutes and the radiator was heating at least `security_min_on_percent`.
+Safety mode is possible on all VTherm's type. It occurs when one of the 2 thermometers which gives the room temperature or the outside temperature has not sent a value for more than `security_delay_min` minutes and the radiator was heating at least `security_min_on_percent`.
 
 As the algorithm is based on temperature measurements, if they are no longer received by the VTherm, there is a risk of overheating and fire. To avoid this, when the conditions mentioned above are detected, heating is limited to the `security_default_on_percent` parameter. This value must therefore be reasonably low. It helps prevent a fire while avoiding completely cutting off the radiator (risk of freezing).
 

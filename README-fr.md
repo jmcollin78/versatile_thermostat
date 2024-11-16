@@ -1571,7 +1571,7 @@ Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les u
 <summary>Pourquoi mon Versatile Thermostat se met en Securite ?</summary>
 
 ## Pourquoi mon Versatile Thermostat se met en Securite ?
-Le mode sécurité n'est possible que sur les VTherm `over_switch` et `over_valve`. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `security_delay_min` minutes et que le radiateur chauffait à au moins `security_min_on_percent`.
+Le mode sécurité est possible sur tous les types de VTherm . Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `security_delay_min` minutes et que le radiateur chauffait à au moins `security_min_on_percent`.
 
 Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `security_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
 
