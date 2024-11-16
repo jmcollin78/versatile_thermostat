@@ -141,6 +141,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN, multiple=True),
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
+        vol.Optional(CONF_SONOFF_TRZB_MODE, default=False): cv.boolean,
         vol.Optional(
             CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
         ): selector.SelectSelector(
@@ -193,6 +194,31 @@ STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
                 translation_key="auto_start_stop",
                 mode="dropdown",
             )
+        ),
+    }
+)
+
+STEP_SONOFF_TRVZB = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_OFFSET_CALIBRATION_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
+            ),
+        ),
+        vol.Required(CONF_OPENING_DEGREE_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
+            ),
+        ),
+        vol.Required(CONF_CLOSING_DEGREE_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
+            ),
+        ),
+        vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
+            [
+                PROPORTIONAL_FUNCTION_TPI,
+            ]
         ),
     }
 )
