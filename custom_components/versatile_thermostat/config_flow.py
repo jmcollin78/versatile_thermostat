@@ -162,7 +162,26 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if COMES_FROM in self._infos:
             del self._infos[COMES_FROM]
 
-    async def validate_input(self, data: dict) -> None:
+    def check_sonoff_trvzb_nb_entities(self, data: dict) -> bool:
+        """Check the number of entities for Sonoff TRVZB"""
+        ret = True
+        if (
+            self._infos.get(CONF_SONOFF_TRZB_MODE)
+            and data.get(CONF_OFFSET_CALIBRATION_LIST) is not None
+        ):
+            nb_unders = len(self._infos.get(CONF_UNDERLYING_LIST))
+            nb_offset = len(data.get(CONF_OFFSET_CALIBRATION_LIST))
+            nb_opening = len(data.get(CONF_OPENING_DEGREE_LIST))
+            nb_closing = len(data.get(CONF_CLOSING_DEGREE_LIST))
+            if (
+                nb_unders != nb_offset
+                or nb_unders != nb_opening
+                or nb_unders != nb_closing
+            ):
+                ret = False
+        return ret
+
+    async def validate_input(self, data: dict, step_id) -> None:
         """Validate the user input allows us to connect.
 
         Data has the keys from STEP_*_DATA_SCHEMA with values provided by the user.
@@ -178,6 +197,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
             CONF_PRESENCE_SENSOR,
+            CONF_OFFSET_CALIBRATION_LIST,
+            CONF_OPENING_DEGREE_LIST,
+            CONF_CLOSING_DEGREE_LIST,
         ]:
             d = data.get(conf, None)  # pylint: disable=invalid-name
             if not isinstance(d, list):
@@ -234,6 +256,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     check_and_extract_service_configuration(data.get(conf))
                 except ServiceConfigurationError as err:
                     raise ServiceConfigurationError(conf) from err
+
+        # Check that the number of offet_calibration and opening_degree and closing_degree are equals
+        # to the number of underlying entities
+        if not self.check_sonoff_trvzb_nb_entities(data):
+            raise SonoffTRVZBNbEntitiesIncorrect()
 
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
@@ -330,6 +357,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
+            if not self.check_sonoff_trvzb_nb_entities(infos):
+                return False
+
         return True
 
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
@@ -359,7 +389,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if user_input is not None:
             defaults.update(user_input or {})
             try:
-                await self.validate_input(user_input)
+                await self.validate_input(user_input, step_id)
             except UnknownEntity as err:
                 errors[str(err)] = "unknown_entity"
             except WindowOpenDetectionMethod as err:
@@ -370,6 +400,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "service_configuration_format"
             except ConfigurationNotCompleteError as err:
                 errors["base"] = "configuration_not_complete"
+            except SonoffTRVZBNbEntitiesIncorrect as err:
+                errors["base"] = "sonoff_trvzb_nb_entities_incorrect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -527,6 +559,24 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
         """Handle the Type flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_type user_input=%s", user_input)
+
+        if (
+            self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE
+            and user_input is not None
+            and not user_input.get(CONF_SONOFF_TRZB_MODE)
+        ):
+            # Remove TPI info
+            for key in [
+                PROPORTIONAL_FUNCTION_TPI,
+                CONF_PROP_FUNCTION,
+                CONF_TPI_COEF_INT,
+                CONF_TPI_COEF_EXT,
+                CONF_OFFSET_CALIBRATION_LIST,
+                CONF_OPENING_DEGREE_LIST,
+                CONF_CLOSING_DEGREE_LIST,
+            ]:
+                if self._infos.get(key):
+                    del self._infos[key]
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
             return await self.generic_step(
