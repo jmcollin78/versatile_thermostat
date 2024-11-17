@@ -54,6 +54,7 @@ from .const import (
     CONF_THERMOSTAT_SWITCH,
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
+    CONF_MAX_ON_PERCENT,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -86,6 +87,7 @@ CONFIG_SCHEMA = vol.Schema(
                 CONF_AUTO_REGULATION_EXPERT: vol.Schema(SELF_REGULATION_PARAM_SCHEMA),
                 CONF_SHORT_EMA_PARAMS: vol.Schema(EMA_PARAM_SCHEMA),
                 CONF_SAFETY_MODE: vol.Schema(SAFETY_MODE_PARAM_SCHEMA),
+                vol.Optional(CONF_MAX_ON_PERCENT): vol.Coerce(float),
             }
         ),
     },

@@ -125,6 +125,39 @@ async def test_tpi_calculation(
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
+    """
+    Test the max_on_percent clamping calculations
+    """
+    tpi_algo._max_on_percent = 0.8
+
+    # no clamping
+    tpi_algo.calculate(15, 14.7, 15, HVACMode.HEAT)
+    assert tpi_algo.on_percent == 0.09
+    assert tpi_algo.calculated_on_percent == 0.09
+    assert tpi_algo.on_time_sec == 0
+    assert tpi_algo.off_time_sec == 300
+
+    # no clamping  (calculated_on_percent = 0.79)
+    tpi_algo.calculate(15, 12.5, 11, HVACMode.HEAT)
+    assert tpi_algo.on_percent == 0.79
+    assert tpi_algo.calculated_on_percent == 0.79
+    assert tpi_algo.on_time_sec == 237
+    assert tpi_algo.off_time_sec == 63
+
+    # clamping to 80%  (calculated_on_percent = 1)
+    tpi_algo.calculate(15, 10, 7, HVACMode.HEAT)
+    assert tpi_algo.on_percent == 0.8 # should be clamped to 80%
+    assert tpi_algo.calculated_on_percent == 1 # calculated percentage should not be affected by clamping
+    assert tpi_algo.on_time_sec == 240 # capped at 80%
+    assert tpi_algo.off_time_sec == 60
+
+    # clamping to 80%  (calculated_on_percent = 0.81)
+    tpi_algo.calculate(15, 12.5, 9, HVACMode.HEAT)
+    assert tpi_algo.on_percent == 0.80 # should be clamped to 80%
+    assert tpi_algo.calculated_on_percent == 0.81 # calculated percentage should not be affected by clamping
+    assert tpi_algo.on_time_sec == 240 # capped at 80%
+    assert tpi_algo.off_time_sec == 60
+
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])

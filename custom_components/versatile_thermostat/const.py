@@ -133,6 +133,7 @@ CONF_VALVE_4 = "valve_entity4_id"
 # Global params into configuration.yaml
 CONF_SHORT_EMA_PARAMS = "short_ema_params"
 CONF_SAFETY_MODE = "safety_mode"
+CONF_MAX_ON_PERCENT = "max_on_percent"
 
 CONF_USE_MAIN_CENTRAL_CONFIG = "use_main_central_config"
 CONF_USE_TPI_CENTRAL_CONFIG = "use_tpi_central_config"

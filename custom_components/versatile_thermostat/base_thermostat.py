@@ -141,7 +141,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "is_device_active",
                     "target_temperature_step",
                     "is_used_by_central_boiler",
-                    "temperature_slope"
+                    "temperature_slope",
+                    "max_on_percent"
                 }
             )
         )
@@ -506,6 +507,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._window_action = (
             entry_infos.get(CONF_WINDOW_ACTION) or CONF_WINDOW_TURN_OFF
         )
+
+        self._max_on_percent = api._max_on_percent
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
@@ -2666,6 +2669,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "is_used_by_central_boiler": self.is_used_by_central_boiler,
             "temperature_slope": round(self.last_temperature_slope or 0, 3),
             "hvac_off_reason": self.hvac_off_reason,
+            "max_on_percent": self._max_on_percent,
         }
 
         _LOGGER_ENERGY.debug(

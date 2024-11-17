@@ -31,6 +31,7 @@ class PropAlgorithm:
         cycle_min: int,
         minimal_activation_delay: int,
         vtherm_entity_id: str = None,
+        max_on_percent: float = None,
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
@@ -78,6 +79,7 @@ class PropAlgorithm:
         self._off_time_sec = self._cycle_min * 60
         self._security = False
         self._default_on_percent = 0
+        self._max_on_percent = max_on_percent
 
     def calculate(
         self,
@@ -160,6 +162,15 @@ class PropAlgorithm:
                 self._calculated_on_percent,
             )
             self._on_percent = self._calculated_on_percent
+
+        if self._max_on_percent is not None and self._on_percent > self._max_on_percent:
+            _LOGGER.debug(
+                "%s - Heating period clamped to %s (instead of %s) due to max_on_percent setting.",
+                self._vtherm_entity_id,
+                self._max_on_percent,
+                self._on_percent,
+            )
+            self._on_percent = self._max_on_percent
 
         self._on_time_sec = self._on_percent * self._cycle_min * 60
 

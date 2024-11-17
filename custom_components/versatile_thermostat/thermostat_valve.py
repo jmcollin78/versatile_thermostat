@@ -46,6 +46,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                 "auto_regulation_dpercent",
                 "auto_regulation_period_min",
                 "last_calculation_timestamp",
+                "calculated_on_percent",
             }
         )
     )
@@ -99,6 +100,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             self._cycle_min,
             self._minimal_activation_delay,
             self.name,
+            max_on_percent=self._max_on_percent,
         )
 
         lst_valves = config_entry.get(CONF_UNDERLYING_LIST)
@@ -182,6 +184,9 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             if self._last_calculation_timestamp
             else None
         )
+        self._attr_extra_state_attributes[
+            "calculated_on_percent"
+        ] = self._prop_algorithm.calculated_on_percent
 
         self.async_write_ha_state()
         _LOGGER.debug(
