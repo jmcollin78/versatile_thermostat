@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, abstract-method
 
 """ A climate over switch classe """
 import logging
@@ -25,22 +25,20 @@ _LOGGER = logging.getLogger(__name__)
 class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
-    _entity_component_unrecorded_attributes = (
-        BaseThermostat._entity_component_unrecorded_attributes.union(
-            frozenset(
-                {
-                    "is_over_switch",
-                    "is_inversed",
-                    "underlying_entities",
-                    "on_time_sec",
-                    "off_time_sec",
-                    "cycle_min",
-                    "function",
-                    "tpi_coef_int",
-                    "tpi_coef_ext",
-                    "power_percent",
-                }
-            )
+    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
+        frozenset(
+            {
+                "is_over_switch",
+                "is_inversed",
+                "underlying_entities",
+                "on_time_sec",
+                "off_time_sec",
+                "cycle_min",
+                "function",
+                "tpi_coef_int",
+                "tpi_coef_ext",
+                "power_percent",
+            }
         )
     )
 

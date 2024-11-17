@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long, too-many-lines
+# pylint: disable=line-too-long, too-many-lines, abstract-method
 """ A climate over climate classe """
 import logging
 from datetime import timedelta, datetime
@@ -60,28 +60,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     _is_auto_start_stop_enabled: bool = False
     _follow_underlying_temp_change: bool = False
 
-    _entity_component_unrecorded_attributes = (
-        BaseThermostat._entity_component_unrecorded_attributes.union(
-            frozenset(
-                {
-                    "is_over_climate",
-                    "start_hvac_action_date",
-                    "underlying_entities",
-                    "regulation_accumulated_error",
-                    "auto_regulation_mode",
-                    "auto_fan_mode",
-                    "current_auto_fan_mode",
-                    "auto_activated_fan_mode",
-                    "auto_deactivated_fan_mode",
-                    "auto_regulation_use_device_temp",
-                    "auto_start_stop_level",
-                    "auto_start_stop_dtmin",
-                    "auto_start_stop_enable",
-                    "auto_start_stop_accumulated_error",
-                    "auto_start_stop_accumulated_error_threshold",
-                    "follow_underlying_temp_change",
-                }
-            )
+    _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
+        frozenset(
+            {
+                "is_over_climate",
+                "start_hvac_action_date",
+                "underlying_entities",
+                "regulation_accumulated_error",
+                "auto_regulation_mode",
+                "auto_fan_mode",
+                "current_auto_fan_mode",
+                "auto_activated_fan_mode",
+                "auto_deactivated_fan_mode",
+                "auto_regulation_use_device_temp",
+                "auto_start_stop_level",
+                "auto_start_stop_dtmin",
+                "auto_start_stop_enable",
+                "auto_start_stop_accumulated_error",
+                "auto_start_stop_accumulated_error_threshold",
+                "follow_underlying_temp_change",
+            }
         )
     )
 

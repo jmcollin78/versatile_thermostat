@@ -17,7 +17,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
-    UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
 
@@ -50,6 +49,7 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_USE_CENTRAL_BOILER_FEATURE,
+    CONF_SONOFF_TRZB_MODE,
     overrides,
 )
 
@@ -71,6 +71,7 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+    is_sonoff_trvzb = entry.data.get(CONF_SONOFF_TRZB_MODE)
 
     entities = None
 
@@ -99,10 +100,16 @@ async def async_setup_entry(
             entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
             entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
 
-        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE:
+        if (
+            entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
+            or is_sonoff_trvzb
+        ):
             entities.append(ValveOpenPercentSensor(hass, unique_id, name, entry.data))
 
-        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE:
+        if (
+            entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+            and not is_sonoff_trvzb
+        ):
             entities.append(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )

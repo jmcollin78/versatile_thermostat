@@ -454,7 +454,7 @@
         }
       },
       "central_boiler": {
-        "title": "Control of the central boiler",
+        "title": "Control of the central boiler - {name}",
         "description": "Enter the services to call to turn on/off the central boiler. Leave blank if no service call is to be made (in this case, you will have to manage the turning on/off of your central boiler yourself). The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Command to turn-on",
@@ -466,7 +466,7 @@
         }
       },
       "sonoff_trvzb": {
-        "title": "Sonoff TRVZB configuration",
+        "title": "Sonoff TRVZB configuration - {name}",
         "description": "Specific Sonoff TRVZB configuration",
         "data": {
           "offset_calibration_entity_ids": "Offset calibration entities",

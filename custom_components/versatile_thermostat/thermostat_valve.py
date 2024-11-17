@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, abstract-method
 """ A climate over switch classe """
 import logging
 from datetime import timedelta, datetime
