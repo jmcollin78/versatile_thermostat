@@ -1,5 +1,5 @@
 # pylint: disable=line-too-long, too-many-lines
-""" A climate over switch classe """
+""" A climate over climate classe """
 import logging
 from datetime import timedelta, datetime
 
@@ -23,7 +23,7 @@ from .pi_algorithm import PITemperatureRegulator
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
-from .underlyings import UnderlyingClimate, UnderlyingSonoffTRVZB
+from .underlyings import UnderlyingClimate
 from .auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
     AUTO_START_STOP_ACTION_OFF,
@@ -31,10 +31,6 @@ from .auto_start_stop_algorithm import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER_ENERGY = logging.getLogger(
-    "custom_components.versatile_thermostat.energy_debug"
-)
-
 
 HVAC_ACTION_ON = [  # pylint: disable=invalid-name
     HVACAction.COOLING,
@@ -104,25 +100,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         super().post_init(config_entry)
 
-        for idx, climate in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
-            if config_entry.get(CONF_SONOFF_TRZB_MODE) is True:
-                offset = config_entry.get(CONF_OFFSET_CALIBRATION_LIST)[idx]
-                opening = config_entry.get(CONF_OPENING_DEGREE_LIST)[idx]
-                closing = config_entry.get(CONF_CLOSING_DEGREE_LIST)[idx]
-                under = UnderlyingSonoffTRVZB(
-                    hass=self._hass,
-                    thermostat=self,
-                    climate_entity_id=climate,
-                    offset_calibration=offset,
-                    opening_degree=opening,
-                    closing_degree=closing,
-                )
-            else:
-                under = UnderlyingClimate(
-                    hass=self._hass,
-                    thermostat=self,
-                    climate_entity_id=climate,
-                )
+        for climate in config_entry.get(CONF_UNDERLYING_LIST):
+            under = UnderlyingClimate(
+                hass=self._hass,
+                thermostat=self,
+                climate_entity_id=climate,
+            )
             self._underlyings.append(under)
 
         self.choose_auto_regulation_mode(
@@ -618,14 +601,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if self._total_energy is None:
             self._total_energy = added_energy
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - incremente_energy set energy is %s",
                 self,
                 self._total_energy,
             )
         else:
             self._total_energy += added_energy
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - incremente_energy incremented energy is %s",
                 self,
                 self._total_energy,
@@ -1131,7 +1114,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def current_humidity(self) -> float | None:
         """Return the humidity."""
         if self.underlying_entity(0):
-            return self.underlying_entity(0).humidity
+            return self.underlying_entity(0).current_humidity
 
         return None
 
