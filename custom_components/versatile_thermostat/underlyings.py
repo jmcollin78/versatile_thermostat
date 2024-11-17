@@ -53,6 +53,9 @@ class UnderlyingEntityType(StrEnum):
     # a valve
     VALVE = "valve"
 
+    # a Sonoff TRVZB
+    SONOFF_TRVZB = "sonoff_trvzb"
+
 
 class UnderlyingEntity:
     """Represent a underlying device which could be a switch or a climate"""
@@ -714,6 +717,13 @@ class UnderlyingClimate(UnderlyingEntity):
         return self._underlying_climate.hvac_modes
 
     @property
+    def current_humidity(self) -> float | None:
+        """Get the humidity"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.current_humidity
+
+    @property
     def fan_modes(self) -> list[str]:
         """Get the fan_modes"""
         if not self.is_initialized:
@@ -851,7 +861,7 @@ class UnderlyingValve(UnderlyingEntity):
     def __init__(
         self, hass: HomeAssistant, thermostat: Any, valve_entity_id: str
     ) -> None:
-        """Initialize the underlying switch"""
+        """Initialize the underlying valve"""
 
         super().__init__(
             hass=hass,
@@ -988,3 +998,40 @@ class UnderlyingValve(UnderlyingEntity):
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()
+
+
+class UnderlyingSonoffTRVZB(UnderlyingValve):
+    """A specific underlying class for Sonoff TRVZB TRV"""
+
+    _offset_calibration_entity_id: str
+    _opening_degree_entity_id: str
+    _closing_degree_entity_id: str
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        offset_calibration_entity_id: str,
+        opening_degree_entity_id: str,
+        closing_degree_entity_id: str,
+    ) -> None:
+        """Initialize the underlying Sonoff TRV"""
+        super().__init__(hass, thermostat, opening_degree_entity_id)
+        self._offset_calibration_entity_id = offset_calibration_entity_id
+        self._opening_degree_entity_id = opening_degree_entity_id
+        self._closing_degree_entity_id = closing_degree_entity_id
+
+    @property
+    def offset_calibration_entity_id(self) -> str:
+        """The offset_calibration_entity_id"""
+        return self._offset_calibration_entity_id
+
+    @property
+    def opening_degree_entity_id(self) -> str:
+        """The offset_calibration_entity_id"""
+        return self._opening_degree_entity_id
+
+    @property
+    def closing_degree_entity_id(self) -> str:
+        """The offset_calibration_entity_id"""
+        return self._closing_degree_entity_id
