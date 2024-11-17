@@ -79,6 +79,7 @@ class UnderlyingEntity:
         self._thermostat = thermostat
         self._type = entity_type
         self._entity_id = entity_id
+        self._hvac_mode = None
 
     def __str__(self):
         return str(self._thermostat) + "-" + self._entity_id
