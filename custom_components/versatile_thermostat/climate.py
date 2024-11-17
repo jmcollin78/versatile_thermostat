@@ -37,11 +37,13 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_SONOFF_TRZB_MODE,
 )
 
 from .thermostat_switch import ThermostatOverSwitch
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_valve import ThermostatOverValve
+from .thermostat_sonoff_trvzb import ThermostatOverSonoffTRVZB
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+    is_sonoff_trvzb = entry.data.get(CONF_SONOFF_TRZB_MODE)
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         return
@@ -69,7 +72,10 @@ async def async_setup_entry(
     if vt_type == CONF_THERMOSTAT_SWITCH:
         entity = ThermostatOverSwitch(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_CLIMATE:
-        entity = ThermostatOverClimate(hass, unique_id, name, entry.data)
+        if is_sonoff_trvzb is True:
+            entity = ThermostatOverSonoffTRVZB(hass, unique_id, name, entry.data)
+        else:
+            entity = ThermostatOverClimate(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_VALVE:
         entity = ThermostatOverValve(hass, unique_id, name, entry.data)
     else:

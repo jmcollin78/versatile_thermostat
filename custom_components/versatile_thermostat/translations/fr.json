@@ -259,7 +259,7 @@
         }
       },
       "menu": {
-        "title": "Menu",
+        "title": "Menu - {name}",
         "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
         "menu_options": {
           "main": "Principaux Attributs",
@@ -316,7 +316,7 @@
         }
       },
       "type": {
-        "title": "Entité(s) liée(s)",
+        "title": "Entité(s) liée(s) - {name}",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
           "underlying_entity_ids": "Les équipements à controller",
@@ -460,7 +460,7 @@
         }
       },
       "sonoff_trvzb": {
-        "title": "Configuration Sonoff TRVZB",
+        "title": "Configuration Sonoff TRVZB - {name}",
         "description": "Configuration spécifique des Sonoff TRVZB",
         "data": {
           "offset_calibration_entity_ids": "Entités de 'Offset calibration'",

@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument, line-too-long
+# pylint: disable=unused-argument, line-too-long, too-many-lines
 
 """ Underlying entities classes """
 import logging
@@ -65,6 +65,7 @@ class UnderlyingEntity:
     _thermostat: Any
     _entity_id: str
     _type: UnderlyingEntityType
+    _hvac_mode: HVACMode | None
 
     def __init__(
         self,
@@ -103,12 +104,23 @@ class UnderlyingEntity:
 
     async def set_hvac_mode(self, hvac_mode: HVACMode):
         """Set the HVACmode"""
+        self._hvac_mode = hvac_mode
         return
+
+    @property
+    def hvac_mode(self) -> HVACMode | None:
+        """Return the current hvac_mode"""
+        return self._hvac_mode
 
     @property
     def is_device_active(self) -> bool | None:
         """If the toggleable device is currently active."""
         return None
+
+    @property
+    def hvac_action(self) -> HVACAction:
+        """Calculate a hvac_action"""
+        return HVACAction.HEATING if self.is_device_active is True else HVACAction.OFF
 
     async def set_temperature(self, temperature, max_temp, min_temp):
         """Set the target temperature"""
@@ -184,7 +196,6 @@ class UnderlyingSwitch(UnderlyingEntity):
     _initialDelaySec: int
     _on_time_sec: int
     _off_time_sec: int
-    _hvac_mode: HVACMode
 
     def __init__(
         self,
@@ -207,7 +218,6 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
         self._off_time_sec = 0
-        self._hvac_mode = None
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
 
     @property
@@ -240,8 +250,8 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
             self._cancel_cycle()
 
-        if self._hvac_mode != hvac_mode:
-            self._hvac_mode = hvac_mode
+        if self.hvac_mode != hvac_mode:
+            super().set_hvac_mode(hvac_mode)
             return True
         else:
             return False
@@ -857,6 +867,7 @@ class UnderlyingValve(UnderlyingEntity):
     _hvac_mode: HVACMode
     # This is the percentage of opening int integer (from 0 to 100)
     _percent_open: int
+    _last_sent_temperature = None
 
     def __init__(
         self, hass: HomeAssistant, thermostat: Any, valve_entity_id: str
@@ -875,13 +886,12 @@ class UnderlyingValve(UnderlyingEntity):
         self._percent_open = self._thermostat.valve_open_percent
         self._valve_entity_id = valve_entity_id
 
-    async def send_percent_open(self):
-        """Send the percent open to the underlying valve"""
-        # This may fails if called after shutdown
+    async def _send_value_to_number(self, number_entity_id: str, value: int):
+        """Send a value to a number entity"""
         try:
-            data = {"value": self._percent_open}
-            target = {ATTR_ENTITY_ID: self._entity_id}
-            domain = self._entity_id.split(".")[0]
+            data = {"value": value}
+            target = {ATTR_ENTITY_ID: number_entity_id}
+            domain = number_entity_id.split(".")[0]
             await self._hass.services.async_call(
                 domain=domain,
                 service=SERVICE_SET_VALUE,
@@ -892,6 +902,11 @@ class UnderlyingValve(UnderlyingEntity):
             _LOGGER.error(err)
             # This could happens in unit test if input_number domain is not yet loaded
             # raise err
+
+    async def send_percent_open(self):
+        """Send the percent open to the underlying valve"""
+        # This may fails if called after shutdown
+        return await self._send_value_to_number(self._entity_id, self._percent_open)
 
     async def turn_off(self):
         """Turn heater toggleable device off."""
@@ -1020,6 +1035,47 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         self._offset_calibration_entity_id = offset_calibration_entity_id
         self._opening_degree_entity_id = opening_degree_entity_id
         self._closing_degree_entity_id = closing_degree_entity_id
+        self._is_min_max_initialized = False
+        self._max_opening_degree = None
+        self._min_offset_calibration = None
+
+    async def send_percent_open(self):
+        """Send the percent open to the underlying valve"""
+        if not self._is_min_max_initialized:
+            _LOGGER.debug(
+                "%s - initialize min offset_calibration and max open_degree", self
+            )
+            self._max_opening_degree = self._hass.states.get(
+                self._opening_degree_entity_id
+            ).attributes.get("max")
+            self._min_offset_calibration = self._hass.states.get(
+                self._offset_calibration_entity_id
+            ).attributes.get("min")
+
+            self._is_min_max_initialized = (
+                self._max_opening_degree is not None
+                and self._min_offset_calibration is not None
+            )
+
+        if not self._is_min_max_initialized:
+            _LOGGER.warning(
+                "%s - impossible to initialize max_opening_degree or min_offset_calibration. Abort sending percent open to the valve. This could be a temporary message at startup."
+            )
+            return
+
+        # Send opening_degree
+        await super().send_percent_open()
+
+        # Send closing_degree. TODO 100 hard-coded or take the max of the _closing_degree_entity_id ?
+        await self._send_value_to_number(
+            self._closing_degree_entity_id,
+            self._max_opening_degree - self._percent_open,
+        )
+
+        # send offset_calibration to the min value
+        await self._send_value_to_number(
+            self._offset_calibration_entity_id, self._min_offset_calibration
+        )
 
     @property
     def offset_calibration_entity_id(self) -> str:
@@ -1035,3 +1091,10 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
     def closing_degree_entity_id(self) -> str:
         """The offset_calibration_entity_id"""
         return self._closing_degree_entity_id
+
+    @property
+    def hvac_modes(self) -> list[HVACMode]:
+        """Get the hvac_modes"""
+        if not self.is_initialized:
+            return []
+        return [HVACMode.OFF, HVACMode.HEAT]
