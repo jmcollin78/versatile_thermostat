@@ -389,82 +389,6 @@ These three parameters make it possible to modulate the regulation and avoid mul
 
 Self-regulation consists of forcing the equipment to go further by forcing its set temperature regularly. Its consumption can therefore be increased, as well as its wear.
 
-#### Self-regulation in Expert mode
-
-In **Expert** mode you can finely adjust the auto-regulation parameters to achieve your objectives and optimize as best as possible. The algorithm calculates the difference between the setpoint and the actual temperature of the room. This discrepancy is called error.
-The adjustable parameters are as follows:
-1. `kp`: the factor applied to the raw error,
-2. `ki`: the factor applied to the accumulation of errors,
-3. `k_ext`: the factor applied to the difference between the interior temperature and the exterior temperature,
-4. `offset_max`: the maximum correction (offset) that the regulation can apply,
-5. `stabilization_threshold`: a stabilization threshold which, when reached by the error, resets the accumulation of errors to 0,
-6. `accumulated_error_threshold`: the maximum for error accumulation.
-
-For tuning, these observations must be taken into account:
-1. `kp * error` will give the offset linked to the raw error. This offset is directly proportional to the error and will be 0 when the target is reached,
-2. the accumulation of the error makes it possible to correct the stabilization of the curve while there remains an error. The error accumulates and the offset therefore gradually increases which should eventually stabilize at the target temperature. For this fundamental parameter to have an effect it must not be too small. An average value is 30
-3. `ki * accumulated_error_threshold` will give the maximum offset linked to the accumulation of the error,
-4. `k_ext` allows a correction to be applied immediately (without waiting for errors to accumulate) when the outside temperature is very different from the target temperature. If the stabilization is done too high when the temperature differences are significant, it is because this parameter is too high. It should be possible to cancel completely to let the first 2 offsets take place
-
-The pre-programmed values are as follows:
-
-Slow régulation :
-
-    kp: 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
-    ki: 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
-    k_ext: 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
-    offset_max: 2.0  # limit to a final offset of -2°C to +2°C
-    stabilization_threshold: 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
-    accumulated_error_threshold: 2.0 * 288  # this allows up to 2°C long term offset in both directions
-
-Light régulation :
-
-    kp: 0.2
-    ki: 0.05
-    k_ext: 0.05
-    offset_max: 1.5
-    stabilization_threshold: 0.1
-    accumulated_error_threshold: 10
-
-Medium régulation :
-
-    kp: 0.3
-    ki: 0.05
-    k_ext: 0.1
-    offset_max: 2
-    stabilization_threshold: 0.1
-    accumulated_error_threshold: 20
-
-Strong régulation :
-
-    """Strong parameters for regulation
-    A set of parameters which doesn't take into account the external temp
-    and concentrate to internal temp error + accumulated error.
-    This should work for cold external conditions which else generates
-    high external_offset"""
-
-    kp: 0.4
-    ki: 0.08
-    k_ext: 0.0
-    offset_max: 5
-    stabilization_threshold: 0.1
-    accumulated_error_threshold: 50
-
-To use Expert mode you must declare the values you want to use for each of these parameters in your `configuration.yaml` in the following form:
-```
-versatile_thermostat:
-     auto_regulation_expert:
-         kp: 0.4
-         ki: 0.08
-         k_ext: 0.0
-         offset_max: 5
-         stabilization_threshold: 0.1
-         accumulated_error_threshold: 50
-```
-and of course, configure the VTherm's self-regulation mode in **Expert** mode. All VTherms in Expert mode will use these same settings.
-
-For the changes to be taken into account, you must either **completely restart Home Assistant** or just the **Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat).
-
 #### Internal temperature compensation
 Sometimes, a device’s internal temperature sensor (like in a TRV or AC) can give inaccurate readings, especially if it’s too close to a heat source. This can cause the device to stop heating too soon.
 For example:
@@ -799,6 +723,113 @@ context:
 
 > ![Tip](images/tips.png) _*Notes*_
 > Controlling a central boiler using software or hardware such as home automation can pose risks to its proper functioning. Before using these functions, make sure that your boiler has safety functions and that they are working. Turning on a boiler if all the taps are closed can generate excess pressure, for example.
+
+
+## Expert Mode Settings
+
+Expert Mode settings refer to Settings made in the Home Assistant `configuration.yaml` file under the `versatile_thermostat` section. You might have to add this section by yourself to the `configuration.yaml` file.
+
+These settings are meant to be used only in **specific niche cases and with careful considerations**. 
+
+
+The following sections describe the available export mode settings in detail with examples on how to configure them. Be aware that these settings require a **complete restart** of Home Assistant or a **reload of Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat) to take effect.
+
+
+### Self-regulation in Expert mode
+
+In **Expert** mode you can finely adjust the auto-regulation parameters to achieve your objectives and optimize as best as possible. The algorithm calculates the difference between the setpoint and the actual temperature of the room. This discrepancy is called error.
+The adjustable parameters are as follows:
+1. `kp`: the factor applied to the raw error,
+2. `ki`: the factor applied to the accumulation of errors,
+3. `k_ext`: the factor applied to the difference between the interior temperature and the exterior temperature,
+4. `offset_max`: the maximum correction (offset) that the regulation can apply,
+5. `stabilization_threshold`: a stabilization threshold which, when reached by the error, resets the accumulation of errors to 0,
+6. `accumulated_error_threshold`: the maximum for error accumulation.
+
+For tuning, these observations must be taken into account:
+1. `kp * error` will give the offset linked to the raw error. This offset is directly proportional to the error and will be 0 when the target is reached,
+2. the accumulation of the error makes it possible to correct the stabilization of the curve while there remains an error. The error accumulates and the offset therefore gradually increases which should eventually stabilize at the target temperature. For this fundamental parameter to have an effect it must not be too small. An average value is 30
+3. `ki * accumulated_error_threshold` will give the maximum offset linked to the accumulation of the error,
+4. `k_ext` allows a correction to be applied immediately (without waiting for errors to accumulate) when the outside temperature is very different from the target temperature. If the stabilization is done too high when the temperature differences are significant, it is because this parameter is too high. It should be possible to cancel completely to let the first 2 offsets take place
+
+The pre-programmed values are as follows:
+
+Slow régulation :
+
+    kp: 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki: 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext: 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    offset_max: 2.0  # limit to a final offset of -2°C to +2°C
+    stabilization_threshold: 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    accumulated_error_threshold: 2.0 * 288  # this allows up to 2°C long term offset in both directions
+
+Light régulation :
+
+    kp: 0.2
+    ki: 0.05
+    k_ext: 0.05
+    offset_max: 1.5
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 10
+
+Medium régulation :
+
+    kp: 0.3
+    ki: 0.05
+    k_ext: 0.1
+    offset_max: 2
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 20
+
+Strong régulation :
+
+    """Strong parameters for regulation
+    A set of parameters which doesn't take into account the external temp
+    and concentrate to internal temp error + accumulated error.
+    This should work for cold external conditions which else generates
+    high external_offset"""
+
+    kp: 0.4
+    ki: 0.08
+    k_ext: 0.0
+    offset_max: 5
+    stabilization_threshold: 0.1
+    accumulated_error_threshold: 50
+
+To use Expert mode you must declare the values you want to use for each of these parameters in your `configuration.yaml` in the following form:
+```
+versatile_thermostat:
+     auto_regulation_expert:
+         kp: 0.4
+         ki: 0.08
+         k_ext: 0.0
+         offset_max: 5
+         stabilization_threshold: 0.1
+         accumulated_error_threshold: 50
+```
+and of course, configure the VTherm's self-regulation mode in **Expert** mode. All VTherms in Expert mode will use these same settings.
+
+For the changes to be taken into account, you must either **completely restart Home Assistant** or just the **Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat).
+
+
+### On Time Clamping (max_on_percent)
+
+
+The calculated on time percent can be limited to a maximum percentage of the cycle duration. This setting has to be made in expert mode and will be used for all Versatile Thermostats. 
+
+```
+versatile_thermostat:
+    max_on_percent: 0.8
+```
+
+The example above limits the maximum ON time to 80% (0.8) of the cycle length. If the cycle length is for example 600 seconds (10min), the maximum ON time will be limited to 480 seconds (8min). The remaining 120 seconds of the cycle will always remain in the OFF state. 
+
+There are three debug attributes of interest regarding this feature:
+
+* `max_on_percent` # clamping setting as configured in expert mode
+* `calculated_on_percent` # calculated on percent without clamping applied
+* `on_percent` # used on percent with clamping applied 
+
 
 <details>
 <summary>Parameter summary</summary>
