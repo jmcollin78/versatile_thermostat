@@ -87,10 +87,6 @@ def get_tz(hass: HomeAssistant):
     return dt_util.get_time_zone(hass.config.time_zone)
 
 
-_LOGGER_ENERGY = logging.getLogger(
-    "custom_components.versatile_thermostat.energy_debug"
-)
-
 class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
 
@@ -206,7 +202,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
-        _LOGGER_ENERGY.debug("%s - _init_ resetting energy to None", self)
+        _LOGGER.debug("%s - _init_ resetting energy to None", self)
 
         # because energy of climate is calculated in the thermostat we have to keep that here and not in underlying entity
         self._underlying_climate_start_hvac_action_date = None
@@ -479,7 +475,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._presence_state = None
 
         self._total_energy = None
-        _LOGGER_ENERGY.debug("%s - post_init_ resetting energy to None", self)
+        _LOGGER.debug("%s - post_init_ resetting energy to None", self)
 
         # Read the parameter from configuration.yaml if it exists
         short_ema_params = DEFAULT_SHORT_EMA_PARAMS
@@ -599,7 +595,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_will_remove_from_hass(self):
         """Try to force backup of entity"""
-        _LOGGER_ENERGY.debug(
+        _LOGGER.debug(
             "%s - force write before remove. Energy is %s", self, self.total_energy
         )
         # Force dump in background
@@ -826,7 +822,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - get_my_previous_state restored energy is %s",
                 self,
                 self._total_energy,
@@ -844,7 +840,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "No previously saved temperature, setting to %s", self._target_temp
             )
             self._total_energy = 0
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - get_my_previous_state  no previous state energy is %s",
                 self,
                 self._total_energy,
@@ -2672,7 +2668,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "max_on_percent": self._max_on_percent,
         }
 
-        _LOGGER_ENERGY.debug(
+        _LOGGER.debug(
             "%s - update_custom_attributes saved energy is %s",
             self,
             self.total_energy,
@@ -2681,7 +2677,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @overrides
     def async_write_ha_state(self):
         """overrides to have log"""
-        _LOGGER_ENERGY.debug(
+        _LOGGER.debug(
             "%s - async_write_ha_state written state energy is %s",
             self,
             self._total_energy,
