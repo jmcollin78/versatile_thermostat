@@ -921,7 +921,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             # Stop here
             return False
-        elif action == AUTO_START_STOP_ACTION_ON:
+        elif (
+            action == AUTO_START_STOP_ACTION_ON
+            and self.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        ):
             _LOGGER.info(
                 "%s - Turning ON the Vtherm due to auto-start-stop conditions", self
             )
