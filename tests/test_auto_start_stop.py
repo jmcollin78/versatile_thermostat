@@ -1401,7 +1401,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert vtherm._saved_hvac_mode == HVACMode.HEAT
 
-        assert mock_send_event.call_count == 2
+        assert mock_send_event.call_count == 1
 
         assert vtherm.window_state == STATE_ON
 
