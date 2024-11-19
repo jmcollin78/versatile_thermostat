@@ -1030,15 +1030,18 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         offset_calibration_entity_id: str,
         opening_degree_entity_id: str,
         closing_degree_entity_id: str,
+        climate_underlying: UnderlyingClimate,
     ) -> None:
         """Initialize the underlying Sonoff TRV"""
         super().__init__(hass, thermostat, opening_degree_entity_id)
         self._offset_calibration_entity_id = offset_calibration_entity_id
         self._opening_degree_entity_id = opening_degree_entity_id
         self._closing_degree_entity_id = closing_degree_entity_id
+        self._climate_underlying = climate_underlying
         self._is_min_max_initialized = False
         self._max_opening_degree = None
         self._min_offset_calibration = None
+        self._max_offset_calibration = None
 
     async def send_percent_open(self):
         """Send the percent open to the underlying valve"""
@@ -1052,6 +1055,9 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
             self._min_offset_calibration = self._hass.states.get(
                 self._offset_calibration_entity_id
             ).attributes.get("min")
+            self._max_offset_calibration = self._hass.states.get(
+                self._offset_calibration_entity_id
+            ).attributes.get("max")
 
             self._is_min_max_initialized = (
                 self._max_opening_degree is not None
@@ -1067,15 +1073,32 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         # Send opening_degree
         await super().send_percent_open()
 
-        # Send closing_degree. TODO 100 hard-coded or take the max of the _closing_degree_entity_id ?
+        # Send closing_degree.
         await self._send_value_to_number(
             self._closing_degree_entity_id,
-            self._max_opening_degree - self._percent_open,
+            closing_degree := self._max_opening_degree - self._percent_open,
         )
 
-        # send offset_calibration to the min value
-        await self._send_value_to_number(
-            self._offset_calibration_entity_id, self._min_offset_calibration
+        # send offset_calibration to the difference between target temp and local temp
+        offset = 0
+        if (
+            local_temp := self._climate_underlying.underlying_current_temperature
+        ) is not None and (
+            room_temp := self._thermostat.current_temperature
+        ) is not None:
+            offset = min(
+                self._max_offset_calibration,
+                max(self._min_offset_calibration, room_temp - local_temp),
+            )
+
+        await self._send_value_to_number(self._offset_calibration_entity_id, offset)
+
+        _LOGGER.debug(
+            "%s - SonoffTRVZB - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
+            self,
+            offset,
+            self._percent_open,
+            closing_degree,
         )
 
     @property

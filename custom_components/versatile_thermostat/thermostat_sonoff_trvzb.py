@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACMode
+from homeassistant.components.climate import HVACMode, HVACAction
 
 from .underlyings import UnderlyingSonoffTRVZB
 
@@ -96,6 +96,7 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
                 offset_calibration_entity_id=offset,
                 opening_degree_entity_id=opening,
                 closing_degree_entity_id=closing,
+                climate_underlying=self._underlyings[idx],
             )
             self._underlyings_sonoff_trvzb.append(under)
 
@@ -240,3 +241,9 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
             return 0
         else:
             return self._valve_open_percent
+
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Returns the current hvac_action by checking all hvac_action of the _underlyings_sonoff_trvzb"""
+
+        return self.calculate_hvac_action(self._underlyings_sonoff_trvzb)

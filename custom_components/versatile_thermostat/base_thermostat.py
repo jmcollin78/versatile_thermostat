@@ -504,7 +504,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             entry_infos.get(CONF_WINDOW_ACTION) or CONF_WINDOW_TURN_OFF
         )
 
-        self._max_on_percent = api._max_on_percent
+        self._max_on_percent = api.max_on_percent
 
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
