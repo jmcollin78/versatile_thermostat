@@ -179,7 +179,8 @@ class VersatileThermostatAPI(dict):
                 #     ):
                 #         await entity.init_presets(self.find_central_configuration())
 
-                # A little hack to test if the climate is a VTherm. Cannot use isinstance due to circular dependency of BaseThermostat
+                # A little hack to test if the climate is a VTherm. Cannot use isinstance
+                # due to circular dependency of BaseThermostat
                 if (
                     entity.device_info
                     and entity.device_info.get("model", None) == DOMAIN
@@ -248,6 +249,11 @@ class VersatileThermostatAPI(dict):
     def safety_mode(self):
         """Get the safety_mode params"""
         return self._safety_mode
+
+    @property
+    def max_on_percent(self):
+        """Get the max_open_percent params"""
+        return self._max_on_percent
 
     @property
     def central_boiler_entity(self):

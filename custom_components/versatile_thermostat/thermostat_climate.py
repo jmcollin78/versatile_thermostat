@@ -151,15 +151,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """True if the Thermostat is over_climate"""
         return True
 
-    @property
-    def hvac_action(self) -> HVACAction | None:
-        """Returns the current hvac_action by checking all hvac_action of the underlyings"""
-
+    def calculate_hvac_action(self, under_list: list) -> HVACAction | None:
+        """Calculate an hvac action based on the hvac_action of the list in argument"""
         # if one not IDLE or OFF -> return it
         # else if one IDLE -> IDLE
         # else OFF
         one_idle = False
-        for under in self._underlyings:
+        for under in under_list:
             if (action := under.hvac_action) not in [
                 HVACAction.IDLE,
                 HVACAction.OFF,
@@ -170,6 +168,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if one_idle:
             return HVACAction.IDLE
         return HVACAction.OFF
+
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Returns the current hvac_action by checking all hvac_action of the underlyings"""
+        return self.calculate_hvac_action(self._underlyings)
 
     @overrides
     async def _async_internal_set_temperature(self, temperature: float):

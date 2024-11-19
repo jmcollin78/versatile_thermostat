@@ -464,9 +464,9 @@ class RegulationParamVeryStrong:
     kp: float = 0.6
     ki: float = 0.1
     k_ext: float = 0.2
-    offset_max: float = 4
+    offset_max: float = 8
     stabilization_threshold: float = 0.1
-    accumulated_error_threshold: float = 30
+    accumulated_error_threshold: float = 80
 
 
 class EventType(Enum):
