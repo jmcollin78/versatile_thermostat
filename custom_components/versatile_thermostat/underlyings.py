@@ -32,7 +32,7 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from .const import UnknownEntity, overrides
+from .const import UnknownEntity, overrides, get_safe_float
 from .keep_alive import IntervalCaller
 
 _LOGGER = logging.getLogger(__name__)
@@ -884,7 +884,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._async_cancel_cycle = None
         self._should_relaunch_control_heating = False
         self._hvac_mode = None
-        self._percent_open = self._thermostat.valve_open_percent
+        self._percent_open = None  # self._thermostat.valve_open_percent
         self._valve_entity_id = valve_entity_id
 
     async def _send_value_to_number(self, number_entity_id: str, value: int):
@@ -1062,6 +1062,7 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
             self._is_min_max_initialized = (
                 self._max_opening_degree is not None
                 and self._min_offset_calibration is not None
+                and self._max_offset_calibration is not None
             )
 
         if not self._is_min_max_initialized:
@@ -1073,25 +1074,39 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         # Send opening_degree
         await super().send_percent_open()
 
-        # Send closing_degree.
-        await self._send_value_to_number(
-            self._closing_degree_entity_id,
-            closing_degree := self._max_opening_degree - self._percent_open,
-        )
-
-        # send offset_calibration to the difference between target temp and local temp
-        offset = 0
-        if (
-            local_temp := self._climate_underlying.underlying_current_temperature
-        ) is not None and (
-            room_temp := self._thermostat.current_temperature
-        ) is not None:
-            offset = min(
-                self._max_offset_calibration,
-                max(self._min_offset_calibration, room_temp - local_temp),
+        # Send closing_degree if set
+        closing_degree = None
+        if self._closing_degree_entity_id is not None:
+            await self._send_value_to_number(
+                self._closing_degree_entity_id,
+                closing_degree := self._max_opening_degree - self._percent_open,
             )
 
-        await self._send_value_to_number(self._offset_calibration_entity_id, offset)
+        # send offset_calibration to the difference between target temp and local temp
+        offset = None
+        if self._offset_calibration_entity_id is not None:
+            if (
+                (local_temp := self._climate_underlying.underlying_current_temperature)
+                is not None
+                and (room_temp := self._thermostat.current_temperature) is not None
+                and (
+                    current_offset := get_safe_float(
+                        self._hass, self._offset_calibration_entity_id
+                    )
+                )
+                is not None
+            ):
+                offset = min(
+                    self._max_offset_calibration,
+                    max(
+                        self._min_offset_calibration,
+                        room_temp - (local_temp - current_offset),
+                    ),
+                )
+
+                await self._send_value_to_number(
+                    self._offset_calibration_entity_id, offset
+                )
 
         _LOGGER.debug(
             "%s - SonoffTRVZB - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
@@ -1122,3 +1137,11 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         if not self.is_initialized:
             return []
         return [HVACMode.OFF, HVACMode.HEAT]
+
+    @property
+    def is_device_active(self):
+        """If the opening valve is open."""
+        try:
+            return get_safe_float(self._hass, self._opening_degree_entity_id) > 0
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False

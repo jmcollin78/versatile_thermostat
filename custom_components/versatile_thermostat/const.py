@@ -2,6 +2,7 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
+import math
 from typing import Literal
 
 from enum import Enum
@@ -489,6 +490,20 @@ def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
     data["name"] = entity.name
     data["state_attributes"] = entity.state_attributes
     hass.bus.fire(event_type.value, data)
+
+
+def get_safe_float(hass, entity_id: str):
+    """Get a safe float state value for an entity.
+    Return None if entity is not available"""
+    if (
+        entity_id is None
+        or not (state := hass.states.get(entity_id))
+        or state.state == "unknown"
+        or state.state == "unavailable"
+    ):
+        return None
+    float_val = float(state.state)
+    return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
 
 
 class UnknownEntity(HomeAssistantError):

@@ -41,7 +41,7 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
         )
     )
     _underlyings_sonoff_trvzb: list[UnderlyingSonoffTRVZB] = []
-    _valve_open_percent: int = 0
+    _valve_open_percent: int | None = None
     _last_calculation_timestamp: datetime | None = None
     _auto_regulation_dpercent: float | None = None
     _auto_regulation_period_min: int | None = None
@@ -188,9 +188,14 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
         if new_valve_percent < self._auto_regulation_dpercent:
             new_valve_percent = 0
 
-        dpercent = new_valve_percent - self.valve_open_percent
+        dpercent = (
+            new_valve_percent - self._valve_open_percent
+            if self._valve_open_percent is not None
+            else 0
+        )
         if (
-            new_valve_percent > 0
+            self._last_calculation_timestamp is not None
+            and new_valve_percent > 0
             and -1 * self._auto_regulation_dpercent
             <= dpercent
             < self._auto_regulation_dpercent
@@ -203,7 +208,10 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
 
             return
 
-        if self._valve_open_percent == new_valve_percent:
+        if (
+            self._last_calculation_timestamp is not None
+            and self._valve_open_percent == new_valve_percent
+        ):
             _LOGGER.debug("%s - no change in valve_open_percent.", self)
             return
 
@@ -215,6 +223,10 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
         self._last_calculation_timestamp = now
 
         self.update_custom_attributes()
+
+    async def _send_regulated_temperature(self, force=False):
+        """Sends the regulated temperature to all underlying"""
+        self.recalculate()
 
     @property
     def is_over_sonoff_trvzb(self) -> bool:
@@ -237,7 +249,7 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self._hvac_mode == HVACMode.OFF:
+        if self._hvac_mode == HVACMode.OFF or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent
