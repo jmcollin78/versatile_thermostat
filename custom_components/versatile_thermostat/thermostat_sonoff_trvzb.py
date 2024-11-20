@@ -226,6 +226,16 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
+        if self.target_temperature is None:
+            return
+
+        for under in self._underlyings:
+            await under.set_temperature(
+                self.target_temperature,
+                self._attr_max_temp,
+                self._attr_min_temp,
+            )
+
         self.recalculate()
 
     @property
