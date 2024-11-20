@@ -1279,9 +1279,13 @@ Replace values in [[ ]] by yours.
       yaxis: y1
       name: Ema
     - entity: '[[climate]]'
-      attribute: regulated_target_temperature
-      yaxis: y1
-      name: Regulated T°
+      attribute: on_percent
+      yaxis: y2
+      name: Power percent
+      fill: tozeroy
+      fillcolor: rgba(200, 10, 10, 0.3)
+      line:
+        color: rgba(200, 10, 10, 0.9)
     - entity: '[[slope]]'
       name: Slope
       fill: tozeroy
@@ -1306,12 +1310,19 @@ Replace values in [[ ]] by yours.
     yaxis:
       visible: true
       position: 0
+    yaxis2:
+      visible: true
+      position: 0
+      fixedrange: true
+      range:
+        - 0
+        - 1
     yaxis9:
       visible: true
       fixedrange: false
       range:
-        - -0.5
-        - 0.5
+        - -2
+        - 2
       position: 1
     xaxis:
       rangeselector:
