@@ -235,6 +235,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 except ServiceConfigurationError as err:
                     raise ServiceConfigurationError(conf) from err
 
+        motion_presets = [CONF_MOTION_PRESET, CONF_NO_MOTION_PRESET]
+        for conf in motion_presets:
+            preset = data.get(CONF_MOTION_PRESET, None)
+            if preset and (
+                preset not in data.get(CONF_ACTIVE_PRESETS, CONF_PRESETS_SELECTIONABLE)
+            ):
+                raise InvalidPresets(conf)
+
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
         is_central_config = (
@@ -424,12 +432,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             menu_options.append("tpi")
 
-        if self._infos[CONF_THERMOSTAT_TYPE] in [
-            CONF_THERMOSTAT_SWITCH,
-            CONF_THERMOSTAT_VALVE,
-            CONF_THERMOSTAT_CLIMATE,
-        ]:
-            menu_options.append("presets")
+        menu_options.append("presets")
 
         if (
             is_central_config
@@ -606,13 +609,30 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         next_step = self.async_step_menu  # advanced
         schema = STEP_PRESETS_DATA_SCHEMA
+        if user_input is not None and not user_input.get(
+            CONF_USE_PRESETS_CENTRAL_CONFIG, False
+        ):
+            next_step = self.async_step_presets_select
 
         # In Central config -> display the next step immedialty
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             # Call directly the next step, we have nothing to display here
-            return await self.async_step_window()  #  = self.async_step_window
+            return await self.async_step_presets_select()  #  = self.async_step_window
 
         return await self.generic_step("presets", schema, user_input, next_step)
+
+    async def async_step_presets_select(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle disabling presets"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_presets_select user_input=%s", user_input
+        )
+
+        next_step = self.async_step_menu  # advanced
+        schema = STEP_PRESETS_SELECT_SCHEMA
+
+        return await self.generic_step("presets_select", schema, user_input, next_step)
 
     async def async_step_window(self, user_input: dict | None = None) -> FlowResult:
         """Handle the window  sensor flow steps"""
