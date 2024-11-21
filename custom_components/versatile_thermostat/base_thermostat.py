@@ -1385,7 +1385,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
 
             if motion_preset in self._presets:
-                return self._presets[motion_preset]
+                if self._presence_on and self.presence_state in [STATE_OFF, None]:
+                    return self._presets_away[motion_preset + PRESET_AWAY_SUFFIX]
+                else:
+                    return self._presets[motion_preset]
             else:
                 return None
         else:
@@ -1906,7 +1909,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             STATE_NOT_HOME,
         ):
             return
-        if self._attr_preset_mode not in [PRESET_BOOST, PRESET_COMFORT, PRESET_ECO]:
+        if self._attr_preset_mode not in [
+            PRESET_BOOST,
+            PRESET_COMFORT,
+            PRESET_ECO,
+            PRESET_ACTIVITY,
+        ]:
             return
 
         new_temp = self.find_preset_temp(self.preset_mode)
