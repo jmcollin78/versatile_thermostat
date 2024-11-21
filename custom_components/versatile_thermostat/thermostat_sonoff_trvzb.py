@@ -217,12 +217,9 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
 
         self._valve_open_percent = new_valve_percent
 
-        for under in self._underlyings_sonoff_trvzb:
-            under.set_valve_open_percent()
-
         self._last_calculation_timestamp = now
 
-        self.update_custom_attributes()
+        super().recalculate()
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
@@ -236,7 +233,8 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
                 self._attr_min_temp,
             )
 
-        self.recalculate()
+        for under in self._underlyings_sonoff_trvzb:
+            await under.set_valve_open_percent()
 
     @property
     def is_over_sonoff_trvzb(self) -> bool:
@@ -269,3 +267,8 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_sonoff_trvzb"""
 
         return self.calculate_hvac_action(self._underlyings_sonoff_trvzb)
+
+    @property
+    def is_device_active(self) -> bool:
+        """A hack to overrides the state from underlyings"""
+        return self.valve_open_percent > 0

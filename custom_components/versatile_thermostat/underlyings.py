@@ -920,7 +920,7 @@ class UnderlyingValve(UnderlyingEntity):
 
     async def turn_on(self):
         """Nothing to do for Valve because it cannot be turned on"""
-        self.set_valve_open_percent()
+        await self.set_valve_open_percent()
 
     async def set_hvac_mode(self, hvac_mode: HVACMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
@@ -958,11 +958,8 @@ class UnderlyingValve(UnderlyingEntity):
         force=False,
     ):
         """We use this function to change the on_percent"""
-        if force:
-            # self._percent_open = self.cap_sent_value(self._percent_open)
-            # await self.send_percent_open()
-            # avoid to send 2 times the same value at startup
-            self.set_valve_open_percent()
+        # if force:
+        await self.set_valve_open_percent()
 
     @overrides
     def cap_sent_value(self, value) -> float:
@@ -995,7 +992,7 @@ class UnderlyingValve(UnderlyingEntity):
 
         return new_value
 
-    def set_valve_open_percent(self):
+    async def set_valve_open_percent(self):
         """Update the valve open percent"""
         caped_val = self.cap_sent_value(self._thermostat.valve_open_percent)
         if self._percent_open == caped_val:
@@ -1009,7 +1006,8 @@ class UnderlyingValve(UnderlyingEntity):
             "%s - Setting valve ouverture percent to %s", self, self._percent_open
         )
         # Send the change to the valve, in background
-        self._hass.create_task(self.send_percent_open())
+        # self._hass.create_task(self.send_percent_open())
+        await self.send_percent_open()
 
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
@@ -1137,6 +1135,19 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         if not self.is_initialized:
             return []
         return [HVACMode.OFF, HVACMode.HEAT]
+
+    @overrides
+    async def start_cycle(
+        self,
+        hvac_mode: HVACMode,
+        _1,
+        _2,
+        _3,
+        force=False,
+    ):
+        """We use this function to change the on_percent"""
+        # if force:
+        await self.set_valve_open_percent()
 
     @property
     def is_device_active(self):

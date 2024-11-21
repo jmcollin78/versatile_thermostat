@@ -248,8 +248,9 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         self._valve_open_percent = new_valve_percent
 
-        for under in self._underlyings:
-            under.set_valve_open_percent()
+        # is one in start_cycle now
+        # for under in self._underlyings:
+        #    under.set_valve_open_percent()
 
         self._last_calculation_timestamp = now
 
