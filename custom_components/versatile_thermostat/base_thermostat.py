@@ -138,7 +138,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "target_temperature_step",
                     "is_used_by_central_boiler",
                     "temperature_slope",
-                    "max_on_percent"
+                    "max_on_percent",
+                    "have_valve_regulation",
                 }
             )
         )
@@ -2673,6 +2674,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "temperature_slope": round(self.last_temperature_slope or 0, 3),
             "hvac_off_reason": self.hvac_off_reason,
             "max_on_percent": self._max_on_percent,
+            "have_valve_regulation": self.have_valve_regulation,
         }
 
         _LOGGER.debug(
@@ -2690,6 +2692,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._total_energy,
         )
         return super().async_write_ha_state()
+
+    @property
+    def have_valve_regulation(self) -> bool:
+        """True if the Thermostat is regulated by valve"""
+        return False
 
     @callback
     def async_registry_entry_updated(self):

@@ -103,6 +103,7 @@ async def test_over_valve_full_start(
         assert entity._motion_state is None  # pylint: disable=protected-access
         assert entity._presence_state is None  # pylint: disable=protected-access
         assert entity._prop_algorithm is not None  # pylint: disable=protected-access
+        assert entity.have_valve_regulation is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         # assert mock_send_event.call_count == 2

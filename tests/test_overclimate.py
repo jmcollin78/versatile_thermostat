@@ -1,6 +1,6 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
-""" Test the Window management """
+""" Test the over_climate Vtherm """
 from unittest.mock import patch, call
 from datetime import datetime, timedelta
 

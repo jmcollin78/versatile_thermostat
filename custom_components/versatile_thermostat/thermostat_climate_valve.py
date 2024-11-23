@@ -227,11 +227,12 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             return
 
         for under in self._underlyings:
-            await under.set_temperature(
-                self.target_temperature,
-                self._attr_max_temp,
-                self._attr_min_temp,
-            )
+            if self.target_temperature != under.last_sent_temperature:
+                await under.set_temperature(
+                    self.target_temperature,
+                    self._attr_max_temp,
+                    self._attr_min_temp,
+                )
 
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()

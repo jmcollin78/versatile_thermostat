@@ -3,6 +3,7 @@
 """ Some common resources """
 import asyncio
 import logging
+from typing import Any, Dict, Callable
 from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
@@ -1007,12 +1008,50 @@ async def set_climate_preset_temp(
         )
 
 
+# The temperatures to set
+default_temperatures_ac_away = {
+    "frost": 7.0,
+    "eco": 17.0,
+    "comfort": 19.0,
+    "boost": 21.0,
+    "eco_ac": 27.0,
+    "comfort_ac": 25.0,
+    "boost_ac": 23.0,
+    "frost_away": 7.1,
+    "eco_away": 17.1,
+    "comfort_away": 19.1,
+    "boost_away": 21.1,
+    "eco_ac_away": 27.1,
+    "comfort_ac_away": 25.1,
+    "boost_ac_away": 23.1,
+}
+
+default_temperatures_away = {
+    "frost": 7.0,
+    "eco": 17.0,
+    "comfort": 19.0,
+    "boost": 21.0,
+    "frost_away": 7.1,
+    "eco_away": 17.1,
+    "comfort_away": 19.1,
+    "boost_away": 21.1,
+}
+
+default_temperatures = {
+    "frost": 7.0,
+    "eco": 17.0,
+    "comfort": 19.0,
+    "boost": 21.0,
+}
+
+
 async def set_all_climate_preset_temp(
-    hass, vtherm: BaseThermostat, temps: dict, number_entity_base_name: str
+    hass, vtherm: BaseThermostat, temps: dict | None, number_entity_base_name: str
 ):
     """Initialize all temp of preset for a VTherm entity"""
+    local_temps = temps if temps is not None else default_temperatures
     # We initialize
-    for preset_name, value in temps.items():
+    for preset_name, value in local_temps.items():
 
         await set_climate_preset_temp(vtherm, preset_name, value)
 
@@ -1028,3 +1067,31 @@ async def set_all_climate_preset_temp(
         assert temp_entity
         # Because set_value is not implemented in Number class (really don't understand why...)
         assert temp_entity.state == value
+
+
+#
+# Side effects management
+#
+SideEffectDict = Dict[str, Any]
+
+
+class SideEffects:
+    """A class to manage sideEffects for mock"""
+
+    def __init__(self, side_effects: SideEffectDict, default_side_effect: Any):
+        """Initialise the side effects"""
+        self._current_side_effects: SideEffectDict = side_effects
+        self._default_side_effect: Any = default_side_effect
+
+    def get_side_effects(self) -> Callable[[str], Any]:
+        """returns the method which apply the side effects"""
+
+        def side_effect_method(arg) -> Any:
+            """Search a side effect definition and return it"""
+            return self._current_side_effects.get(arg, self._default_side_effect)
+
+        return side_effect_method
+
+    def add_or_update_side_effect(self, key: str, new_value: Any):
+        """Update the value of a side effect"""
+        self._current_side_effects[key] = new_value
