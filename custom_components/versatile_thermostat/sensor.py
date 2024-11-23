@@ -49,7 +49,8 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_USE_CENTRAL_BOILER_FEATURE,
-    CONF_SONOFF_TRZB_MODE,
+    CONF_AUTO_REGULATION_VALVE,
+    CONF_AUTO_REGULATION_MODE,
     overrides,
 )
 
@@ -71,7 +72,9 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
-    is_sonoff_trvzb = entry.data.get(CONF_SONOFF_TRZB_MODE)
+    have_valve_regulation = (
+        entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+    )
 
     entities = None
 
@@ -102,13 +105,13 @@ async def async_setup_entry(
 
         if (
             entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
-            or is_sonoff_trvzb
+            or have_valve_regulation
         ):
             entities.append(ValveOpenPercentSensor(hass, unique_id, name, entry.data))
 
         if (
             entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
-            and not is_sonoff_trvzb
+            and not have_valve_regulation
         ):
             entities.append(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)

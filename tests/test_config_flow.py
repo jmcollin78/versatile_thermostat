@@ -1,7 +1,6 @@
-# pylint: disable=unused-argument, line-too-long
+# pylint: disable=unused-argument, line-too-long, too-many-lines
 """ Test the Versatile Thermostat config flow """
 
-from homeassistant import data_entry_flow
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
@@ -517,7 +516,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
-        CONF_SONOFF_TRZB_MODE: False,
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1127,7 +1126,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_AUTO_START_STOP_FEATURE: True,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
-        CONF_SONOFF_TRZB_MODE: False,
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN

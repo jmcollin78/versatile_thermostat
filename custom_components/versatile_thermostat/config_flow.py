@@ -29,27 +29,6 @@ COMES_FROM = "comes_from"
 
 _LOGGER = logging.getLogger(__name__)
 
-
-# Not used but can be useful in other context
-# def schema_defaults(schema, **defaults):
-#    """Create a new schema with default values filled in."""
-#    copy = schema.extend({})
-#    for field, field_type in copy.schema.items():
-#        if isinstance(field_type, vol.In):
-#            value = None
-#
-#            if value in field_type.container:
-#                # field.default = vol.default_factory(value)
-#                field.description = {"suggested_value": value}
-#                continue
-#
-#        if field.schema in defaults:
-#            # field.default = vol.default_factory(defaults[field])
-#            field.description = {"suggested_value": defaults[field]}
-#    return copy
-#
-
-
 def add_suggested_values_to_schema(
     data_schema: vol.Schema, suggested_values: Mapping[str, Any]
 ) -> vol.Schema:
@@ -162,17 +141,18 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if COMES_FROM in self._infos:
             del self._infos[COMES_FROM]
 
-    def check_sonoff_trvzb_nb_entities(self, data: dict) -> bool:
-        """Check the number of entities for Sonoff TRVZB"""
+    def is_valve_regulation_selected(self, infos) -> bool:
+        """True of the valve regulation mode is selected"""
+        return infos.get(CONF_AUTO_REGULATION_MODE, None) == CONF_AUTO_REGULATION_VALVE
+
+    def check_valve_regulation_nb_entities(self, data: dict) -> bool:
+        """Check the number of entities for Valve regulation"""
         ret = True
-        if (
-            self._infos.get(CONF_SONOFF_TRZB_MODE)
-            and data.get(CONF_OFFSET_CALIBRATION_LIST) is not None
-        ):
+        if self.is_valve_regulation_selected(self._infos):
             nb_unders = len(self._infos.get(CONF_UNDERLYING_LIST))
-            nb_offset = len(data.get(CONF_OFFSET_CALIBRATION_LIST))
-            nb_opening = len(data.get(CONF_OPENING_DEGREE_LIST))
-            nb_closing = len(data.get(CONF_CLOSING_DEGREE_LIST))
+            nb_offset = len(data.get(CONF_OFFSET_CALIBRATION_LIST, []))
+            nb_opening = len(data.get(CONF_OPENING_DEGREE_LIST, []))
+            nb_closing = len(data.get(CONF_CLOSING_DEGREE_LIST, []))
             if (
                 nb_unders != nb_offset
                 or nb_unders != nb_opening
@@ -181,7 +161,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 ret = False
         return ret
 
-    async def validate_input(self, data: dict, step_id) -> None:
+    async def validate_input(self, data: dict, _) -> None:
         """Validate the user input allows us to connect.
 
         Data has the keys from STEP_*_DATA_SCHEMA with values provided by the user.
@@ -259,8 +239,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # Check that the number of offet_calibration and opening_degree and closing_degree are equals
         # to the number of underlying entities
-        if not self.check_sonoff_trvzb_nb_entities(data):
-            raise SonoffTRVZBNbEntitiesIncorrect()
+        if not self.check_valve_regulation_nb_entities(data):
+            raise ValveRegulationNbEntitiesIncorrect()
 
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
@@ -357,7 +337,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if not self.check_sonoff_trvzb_nb_entities(infos):
+            if not self.check_valve_regulation_nb_entities(infos):
                 return False
 
         return True
@@ -400,8 +380,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "service_configuration_format"
             except ConfigurationNotCompleteError as err:
                 errors["base"] = "configuration_not_complete"
-            except SonoffTRVZBNbEntitiesIncorrect as err:
-                errors["base"] = "sonoff_trvzb_nb_entities_incorrect"
+            except ValveRegulationNbEntitiesIncorrect as err:
+                errors["base"] = "valve_regulation_nb_entities_incorrect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -488,8 +468,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ]:
             menu_options.append("auto_start_stop")
 
-        if self._infos.get(CONF_SONOFF_TRZB_MODE) is True:
-            menu_options.append("sonoff_trvzb")
+        if self.is_valve_regulation_selected(self._infos):
+            menu_options.append("valve_regulation")
 
         menu_options.append("advanced")
 
@@ -563,7 +543,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if (
             self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE
             and user_input is not None
-            and not user_input.get(CONF_SONOFF_TRZB_MODE)
+            and not self.is_valve_regulation_selected(user_input)
         ):
             # Remove TPI info
             for key in [
@@ -621,19 +601,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step("auto_start_stop", schema, user_input, next_step)
 
-    async def async_step_sonoff_trvzb(
+    async def async_step_valve_regulation(
         self, user_input: dict | None = None
     ) -> FlowResult:
-        """Handle the Sonoff TRVZB configuration step"""
+        """Handle the valve regulation configuration step"""
         _LOGGER.debug(
-            "Into ConfigFlow.async_step_sonoff_trvzb user_input=%s", user_input
+            "Into ConfigFlow.async_step_valve_regulation user_input=%s", user_input
         )
 
-        schema = STEP_SONOFF_TRVZB
+        schema = STEP_VALVE_REGULATION
         self._infos[COMES_FROM] = None
         next_step = self.async_step_menu
 
-        return await self.generic_step("sonoff_trvzb", schema, user_input, next_step)
+        return await self.generic_step(
+            "valve_regulation", schema, user_input, next_step
+        )
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""

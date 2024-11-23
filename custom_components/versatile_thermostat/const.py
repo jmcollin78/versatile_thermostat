@@ -526,8 +526,8 @@ class ConfigurationNotCompleteError(HomeAssistantError):
     """Error the configuration is not complete"""
 
 
-class SonoffTRVZBNbEntitiesIncorrect(HomeAssistantError):
-    """Error to indicate there is an error in the configuration of the Sonoff TRVZB.
+class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
+    """Error to indicate there is an error in the configuration of the TRV with valve regulation.
     The number of specific entities is incorrect."""
 
 

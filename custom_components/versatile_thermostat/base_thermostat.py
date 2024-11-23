@@ -460,8 +460,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             else DEFAULT_SECURITY_DEFAULT_ON_PERCENT
         )
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
-        self._last_temperature_measure = datetime.now(tz=self._current_tz)
-        self._last_ext_temperature_measure = datetime.now(tz=self._current_tz)
+        self._last_temperature_measure = self.now
+        self._last_ext_temperature_measure = self.now
         self._security_state = False
 
         # Initiate the ProportionalAlgorithm
@@ -1342,7 +1342,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self, old_preset_mode: str | None = None
     ):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
-        self._last_change_time = datetime.now(tz=self._current_tz)
+        self._last_change_time = self.now
         _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time)
 
     def reset_last_temperature_time(self, old_preset_mode: str | None = None):
@@ -1352,7 +1352,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             and old_preset_mode not in HIDDEN_PRESETS
         ):
             self._last_temperature_measure = self._last_ext_temperature_measure = (
-                datetime.now(tz=self._current_tz)
+                self.now
             )
 
     def find_preset_temp(self, preset_mode: str):
@@ -1458,16 +1458,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Extract the last_changed state from State or return now if not available"""
         return (
             state.last_changed.astimezone(self._current_tz)
-            if state.last_changed is not None
-            else datetime.now(tz=self._current_tz)
+            if isinstance(state.last_changed, datetime)
+            else self.now
         )
 
     def get_last_updated_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
         return (
             state.last_updated.astimezone(self._current_tz)
-            if state.last_updated is not None
-            else datetime.now(tz=self._current_tz)
+            if isinstance(state.last_updated, datetime)
+            else self.now
         )
 
     @callback
@@ -2004,7 +2004,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if in_cycle:
             slope = self._window_auto_algo.check_age_last_measurement(
                 temperature=self._ema_temp,
-                datetime_now=datetime.now(get_tz(self._hass)),
+                datetime_now=self.now,
             )
         else:
             slope = self._window_auto_algo.add_temp_measurement(
@@ -2296,6 +2296,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def check_safety(self) -> bool:
         """Check if last temperature date is too long"""
+
         now = self.now
         delta_temp = (
             now - self._last_temperature_measure.replace(tzinfo=self._current_tz)
@@ -2663,9 +2664,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "device_power": self._device_power,
             ATTR_MEAN_POWER_CYCLE: self.mean_cycle_power,
             ATTR_TOTAL_ENERGY: self.total_energy,
-            "last_update_datetime": datetime.now()
-            .astimezone(self._current_tz)
-            .isoformat(),
+            "last_update_datetime": self.now.isoformat(),
             "timezone": str(self._current_tz),
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,

@@ -28,7 +28,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
-          "sonoff_trvzb": "Configuration spécifique à Sonoff TRVZB",
+          "valve_regulation": "Configuration de la regulation par vanne",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -77,7 +77,6 @@
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
           "ac_mode": "AC mode ?",
-          "sonoff_trvzb_mode": "Mode Sonoff TRVZB",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
@@ -90,9 +89,8 @@
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "sonoff_trvzb_mode": "Les équipements sont des Sonoff TRVZB. Vous devez configurer les entités dédiées dans le menu 'Configuration Sonoff TRVZB'",
-          "auto_regulation_mode": "Ajustement automatique de la température cible",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
@@ -219,19 +217,19 @@
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
       },
-      "sonoff_trvzb": {
-        "title": "Configuration Sonoff TRVZB",
-        "description": "Configuration spécifique des Sonoff TRVZB",
+      "valve_regulation": {
+        "title": "Auto-régulation par vanne - {name}",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
         "data": {
-          "offset_calibration_entity_ids": "Entités de 'Offset calibration'",
-          "opening_degree_entity_ids": "Entités de 'Opening degree'",
-          "closing_degree_entity_ids": "Entités de 'Closing degree'",
+          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
+          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
+          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
           "proportional_function": "Algorithme"
         },
         "data_description": {
-          "offset_calibration_entity_ids": "La liste des entités 'offset calibration' entities. Il doit y en avoir une par entité climate sous-jacente",
-          "opening_degree_entity_ids": "La liste des entités 'opening degree' entities. Il doit y en avoir une par entité climate sous-jacente",
-          "closing_degree_entity_ids": "La liste des entités 'closing degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
         }
       }
@@ -274,7 +272,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
-          "sonoff_trvzb": "Configuration spécifique à Sonoff TRVZB",
+          "valve_regulation": "Configuration de la regulation par vanne",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -323,7 +321,6 @@
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
           "ac_mode": "AC mode ?",
-          "sonoff_trvzb_mode": "Mode Sonoff TRVZB",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
@@ -336,9 +333,8 @@
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "sonoff_trvzb_mode": "Les équipements sont des Sonoff TRVZB. Vous devez configurer les entités dédiées dans le menu 'Configuration Sonoff TRVZB'",
-          "auto_regulation_mode": "Ajustement automatique de la température cible",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
@@ -459,19 +455,19 @@
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
       },
-      "sonoff_trvzb": {
-        "title": "Configuration Sonoff TRVZB - {name}",
-        "description": "Configuration spécifique des Sonoff TRVZB",
+      "valve_regulation": {
+        "title": "Auto-régulation par vanne - {name}",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
         "data": {
-          "offset_calibration_entity_ids": "Entités de 'Offset calibration'",
-          "opening_degree_entity_ids": "Entités de 'Opening degree'",
-          "closing_degree_entity_ids": "Entités de 'Closing degree'",
+          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
+          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
+          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
           "proportional_function": "Algorithme"
         },
         "data_description": {
-          "offset_calibration_entity_ids": "La liste des entités 'offset calibration' entities. Il doit y en avoir une par entité climate sous-jacente",
-          "opening_degree_entity_ids": "La liste des entités 'opening degree' entities. Il doit y en avoir une par entité climate sous-jacente",
-          "closing_degree_entity_ids": "La liste des entités 'closing degree' entities. Il doit y en avoir une par entité climate sous-jacente",
+          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
         }
       }
@@ -482,7 +478,7 @@
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
-      "sonoff_trvzb_nb_entities_incorrect": "Le nombre d'entités spécifiques au Sonoff TRVZB doit être égal au nombre d'entité sous-jacentes"
+      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -504,7 +500,8 @@
         "auto_regulation_medium": "Moyenne",
         "auto_regulation_light": "Légère",
         "auto_regulation_expert": "Expert",
-        "auto_regulation_none": "Aucune"
+        "auto_regulation_none": "Aucune",
+        "auto_regulation_valve": "Contrôle direct de la vanne"
       }
     },
     "auto_fan_mode": {

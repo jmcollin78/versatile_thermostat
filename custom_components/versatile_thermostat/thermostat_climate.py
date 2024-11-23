@@ -1258,6 +1258,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_SLOW)
         elif auto_regulation_mode == "Expert":
             self.choose_auto_regulation_mode(CONF_AUTO_REGULATION_EXPERT)
+        else:
+            _LOGGER.warning(
+                "%s - auto_regulation_mode %s is not supported",
+                self,
+                auto_regulation_mode,
+            )
+            return
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()

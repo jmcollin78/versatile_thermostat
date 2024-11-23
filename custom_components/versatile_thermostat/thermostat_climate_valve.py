@@ -1,5 +1,5 @@
 # pylint: disable=line-too-long, too-many-lines, abstract-method
-""" A climate over Sonoff TRVZB classe """
+""" A climate with a direct valve regulation class """
 
 import logging
 from datetime import datetime
@@ -7,7 +7,7 @@ from datetime import datetime
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import HVACMode, HVACAction
 
-from .underlyings import UnderlyingSonoffTRVZB
+from .underlyings import UnderlyingValveRegulation
 
 # from .commons import NowClass, round_to_nearest
 from .base_thermostat import ConfigData
@@ -21,14 +21,14 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
-    """This class represent a VTherm over a Sonoff TRVZB climate"""
+class ThermostatOverClimateValve(ThermostatOverClimate):
+    """This class represent a VTherm over a climate with a direct valve regulation"""
 
     _entity_component_unrecorded_attributes = ThermostatOverClimate._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset(
             {
                 "is_over_climate",
-                "is_over_sonoff_trvzb",
+                "have_valve_regulation",
                 "underlying_entities",
                 "on_time_sec",
                 "off_time_sec",
@@ -40,7 +40,7 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
             }
         )
     )
-    _underlyings_sonoff_trvzb: list[UnderlyingSonoffTRVZB] = []
+    _underlyings_valve_regulation: list[UnderlyingValveRegulation] = []
     _valve_open_percent: int | None = None
     _last_calculation_timestamp: datetime | None = None
     _auto_regulation_dpercent: float | None = None
@@ -49,8 +49,8 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
     def __init__(
         self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
     ):
-        """Initialize the ThermostatOverSonoffTRVZB class"""
-        _LOGGER.debug("%s - creating a ThermostatOverSonoffTRVZB VTherm", name)
+        """Initialize the ThermostatOverClimateValve class"""
+        _LOGGER.debug("%s - creating a ThermostatOverClimateValve VTherm", name)
         super().__init__(hass, unique_id, name, entry_infos)
         # self._valve_open_percent: int = 0
         # self._last_calculation_timestamp: datetime | None = None
@@ -60,8 +60,8 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat and underlyings
-        Beware that the underlyings list contains the climate which represent the Sonoff TRVZB
-        but also the UnderlyingSonoff which reprensent the valve"""
+        Beware that the underlyings list contains the climate which represent the TRV
+        but also the UnderlyingValveRegulation which reprensent the valve"""
 
         super().post_init(config_entry)
 
@@ -90,7 +90,7 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
             offset = config_entry.get(CONF_OFFSET_CALIBRATION_LIST)[idx]
             opening = config_entry.get(CONF_OPENING_DEGREE_LIST)[idx]
             closing = config_entry.get(CONF_CLOSING_DEGREE_LIST)[idx]
-            under = UnderlyingSonoffTRVZB(
+            under = UnderlyingValveRegulation(
                 hass=self._hass,
                 thermostat=self,
                 offset_calibration_entity_id=offset,
@@ -98,19 +98,19 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
             )
-            self._underlyings_sonoff_trvzb.append(under)
+            self._underlyings_valve_regulation.append(under)
 
     @overrides
     def update_custom_attributes(self):
         """Custom attributes"""
         super().update_custom_attributes()
 
-        self._attr_extra_state_attributes["is_over_sonoff_trvzb"] = (
-            self.is_over_sonoff_trvzb
+        self._attr_extra_state_attributes["have_valve_regulation"] = (
+            self.have_valve_regulation
         )
 
-        self._attr_extra_state_attributes["underlying_sonoff_trvzb_entities"] = [
-            underlying.entity_id for underlying in self._underlyings_sonoff_trvzb
+        self._attr_extra_state_attributes["underlyings_valve_regulation"] = [
+            underlying.entity_id for underlying in self._underlyings_valve_regulation
         ]
 
         self._attr_extra_state_attributes["on_percent"] = (
@@ -233,12 +233,12 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
                 self._attr_min_temp,
             )
 
-        for under in self._underlyings_sonoff_trvzb:
+        for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()
 
     @property
-    def is_over_sonoff_trvzb(self) -> bool:
-        """True if the Thermostat is over_sonoff_trvzb"""
+    def have_valve_regulation(self) -> bool:
+        """True if the Thermostat is regulated by valve"""
         return True
 
     @property
@@ -264,11 +264,16 @@ class ThermostatOverSonoffTRVZB(ThermostatOverClimate):
 
     @property
     def hvac_action(self) -> HVACAction | None:
-        """Returns the current hvac_action by checking all hvac_action of the _underlyings_sonoff_trvzb"""
+        """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
-        return self.calculate_hvac_action(self._underlyings_sonoff_trvzb)
+        return self.calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
     def is_device_active(self) -> bool:
         """A hack to overrides the state from underlyings"""
         return self.valve_open_percent > 0
+
+    @overrides
+    async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
+        """This should not be possible in valve regulation mode"""
+        return

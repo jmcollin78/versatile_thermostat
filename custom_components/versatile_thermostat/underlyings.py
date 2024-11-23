@@ -53,8 +53,8 @@ class UnderlyingEntityType(StrEnum):
     # a valve
     VALVE = "valve"
 
-    # a Sonoff TRVZB
-    SONOFF_TRVZB = "sonoff_trvzb"
+    # a direct valve regulation
+    VALVE_REGULATION = "valve_regulation"
 
 
 class UnderlyingEntity:
@@ -871,7 +871,11 @@ class UnderlyingValve(UnderlyingEntity):
     _last_sent_temperature = None
 
     def __init__(
-        self, hass: HomeAssistant, thermostat: Any, valve_entity_id: str
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        valve_entity_id: str,
+        type: UnderlyingEntityType = UnderlyingEntityType.VALVE,
     ) -> None:
         """Initialize the underlying valve"""
 
@@ -1014,8 +1018,8 @@ class UnderlyingValve(UnderlyingEntity):
         self._cancel_cycle()
 
 
-class UnderlyingSonoffTRVZB(UnderlyingValve):
-    """A specific underlying class for Sonoff TRVZB TRV"""
+class UnderlyingValveRegulation(UnderlyingValve):
+    """A specific underlying class for Valve regulation"""
 
     _offset_calibration_entity_id: str
     _opening_degree_entity_id: str
@@ -1030,8 +1034,13 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
     ) -> None:
-        """Initialize the underlying Sonoff TRV"""
-        super().__init__(hass, thermostat, opening_degree_entity_id)
+        """Initialize the underlying TRV with valve regulation"""
+        super().__init__(
+            hass,
+            thermostat,
+            opening_degree_entity_id,
+            type=UnderlyingEntityType.VALVE_REGULATION,
+        )
         self._offset_calibration_entity_id = offset_calibration_entity_id
         self._opening_degree_entity_id = opening_degree_entity_id
         self._closing_degree_entity_id = closing_degree_entity_id
@@ -1050,17 +1059,21 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
             self._max_opening_degree = self._hass.states.get(
                 self._opening_degree_entity_id
             ).attributes.get("max")
-            self._min_offset_calibration = self._hass.states.get(
-                self._offset_calibration_entity_id
-            ).attributes.get("min")
-            self._max_offset_calibration = self._hass.states.get(
-                self._offset_calibration_entity_id
-            ).attributes.get("max")
 
-            self._is_min_max_initialized = (
-                self._max_opening_degree is not None
-                and self._min_offset_calibration is not None
-                and self._max_offset_calibration is not None
+            if self.have_offset_calibration_entity:
+                self._min_offset_calibration = self._hass.states.get(
+                    self._offset_calibration_entity_id
+                ).attributes.get("min")
+                self._max_offset_calibration = self._hass.states.get(
+                    self._offset_calibration_entity_id
+                ).attributes.get("max")
+
+            self._is_min_max_initialized = self._max_opening_degree is not None and (
+                not self.have_offset_calibration_entity
+                or (
+                    self._min_offset_calibration is not None
+                    and self._max_offset_calibration is not None
+                )
             )
 
         if not self._is_min_max_initialized:
@@ -1074,7 +1087,7 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
 
         # Send closing_degree if set
         closing_degree = None
-        if self._closing_degree_entity_id is not None:
+        if self.have_closing_degree_entity:
             await self._send_value_to_number(
                 self._closing_degree_entity_id,
                 closing_degree := self._max_opening_degree - self._percent_open,
@@ -1082,7 +1095,7 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
 
         # send offset_calibration to the difference between target temp and local temp
         offset = None
-        if self._offset_calibration_entity_id is not None:
+        if self.have_offset_calibration_entity:
             if (
                 (local_temp := self._climate_underlying.underlying_current_temperature)
                 is not None
@@ -1107,7 +1120,7 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
                 )
 
         _LOGGER.debug(
-            "%s - SonoffTRVZB - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
+            "%s - valve regulation - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
             self,
             offset,
             self._percent_open,
@@ -1128,6 +1141,16 @@ class UnderlyingSonoffTRVZB(UnderlyingValve):
     def closing_degree_entity_id(self) -> str:
         """The offset_calibration_entity_id"""
         return self._closing_degree_entity_id
+
+    @property
+    def have_closing_degree_entity(self) -> bool:
+        """Return True if the underlying have a closing_degree entity"""
+        return self._closing_degree_entity_id is not None
+
+    @property
+    def have_offset_calibration_entity(self) -> bool:
+        """Return True if the underlying have a offset_calibration entity"""
+        return self._offset_calibration_entity_id is not None
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
