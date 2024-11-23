@@ -433,6 +433,9 @@ Once configured, you will now have a new entity of type `switch` that allows you
 
 The detection algorithm is described [here](https://github.com/jmcollin78/versatile_thermostat/issues/585).
 
+> [!WARNING]
+> Using the Auto start/stop feature on an Air-to-Air heat pump when the outside temperature drops below freezing can prevent the heat pump from running its defrost-cycle correctly, resulting in an outdoor unit that is covered in ice.
+
 ### For a thermostat of type ```thermostat_over_valve```:
 ![image](images/config-linked-entity3.png)
 You can choose up to domain entity ```number``` or ```ìnput_number``` which will control the valves.
