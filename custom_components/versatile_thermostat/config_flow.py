@@ -145,23 +145,34 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """True of the valve regulation mode is selected"""
         return infos.get(CONF_AUTO_REGULATION_MODE, None) == CONF_AUTO_REGULATION_VALVE
 
-    def check_valve_regulation_nb_entities(self, data: dict) -> bool:
+    def check_valve_regulation_nb_entities(self, data: dict, step_id=None) -> bool:
         """Check the number of entities for Valve regulation"""
+        underlyings_to_check = data if step_id == "type" else self._infos
+        regulation_infos_to_check = (
+            data if step_id == "valve_regulation" else self._infos
+        )
+
         ret = True
-        if self.is_valve_regulation_selected(self._infos):
-            nb_unders = len(self._infos.get(CONF_UNDERLYING_LIST))
-            nb_offset = len(data.get(CONF_OFFSET_CALIBRATION_LIST, []))
-            nb_opening = len(data.get(CONF_OPENING_DEGREE_LIST, []))
-            nb_closing = len(data.get(CONF_CLOSING_DEGREE_LIST, []))
+        if self.is_valve_regulation_selected(underlyings_to_check):
+            nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
+            nb_offset = len(
+                regulation_infos_to_check.get(CONF_OFFSET_CALIBRATION_LIST, [])
+            )
+            nb_opening = len(
+                regulation_infos_to_check.get(CONF_OPENING_DEGREE_LIST, [])
+            )
+            nb_closing = len(
+                regulation_infos_to_check.get(CONF_CLOSING_DEGREE_LIST, [])
+            )
             if (
-                nb_unders != nb_offset
-                or nb_unders != nb_opening
-                or nb_unders != nb_closing
+                nb_unders != nb_opening
+                or (nb_unders != nb_offset and nb_offset > 0)
+                or (nb_unders != nb_closing and nb_closing > 0)
             ):
                 ret = False
         return ret
 
-    async def validate_input(self, data: dict, _) -> None:
+    async def validate_input(self, data: dict, step_id) -> None:
         """Validate the user input allows us to connect.
 
         Data has the keys from STEP_*_DATA_SCHEMA with values provided by the user.
@@ -239,7 +250,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # Check that the number of offet_calibration and opening_degree and closing_degree are equals
         # to the number of underlying entities
-        if not self.check_valve_regulation_nb_entities(data):
+        if not self.check_valve_regulation_nb_entities(data, step_id):
             raise ValveRegulationNbEntitiesIncorrect()
 
     def check_config_complete(self, infos) -> bool:

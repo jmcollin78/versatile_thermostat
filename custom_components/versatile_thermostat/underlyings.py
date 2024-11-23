@@ -875,7 +875,7 @@ class UnderlyingValve(UnderlyingEntity):
         hass: HomeAssistant,
         thermostat: Any,
         valve_entity_id: str,
-        type: UnderlyingEntityType = UnderlyingEntityType.VALVE,
+        entity_type: UnderlyingEntityType = UnderlyingEntityType.VALVE,
     ) -> None:
         """Initialize the underlying valve"""
 
@@ -1039,7 +1039,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             hass,
             thermostat,
             opening_degree_entity_id,
-            type=UnderlyingEntityType.VALVE_REGULATION,
+            entity_type=UnderlyingEntityType.VALVE_REGULATION,
         )
         self._offset_calibration_entity_id = offset_calibration_entity_id
         self._opening_degree_entity_id = opening_degree_entity_id
