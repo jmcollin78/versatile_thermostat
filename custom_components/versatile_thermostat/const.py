@@ -95,12 +95,12 @@ CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
 CONF_AC_MODE = "ac_mode"
-CONF_SONOFF_TRZB_MODE = "sonoff_trvzb_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
 CONF_AUTO_REGULATION_MODE = "auto_regulation_mode"
 CONF_AUTO_REGULATION_NONE = "auto_regulation_none"
+CONF_AUTO_REGULATION_VALVE = "auto_regulation_valve"
 CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
 CONF_AUTO_REGULATION_LIGHT = "auto_regulation_light"
 CONF_AUTO_REGULATION_MEDIUM = "auto_regulation_medium"
@@ -293,7 +293,6 @@ ALL_CONF = (
         CONF_USE_POWER_FEATURE,
         CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
-        CONF_SONOFF_TRZB_MODE,
         CONF_AUTO_REGULATION_MODE,
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
@@ -327,6 +326,7 @@ CONF_FUNCTIONS = [
 
 CONF_AUTO_REGULATION_MODES = [
     CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_VALVE,
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
