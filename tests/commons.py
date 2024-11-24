@@ -31,10 +31,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from custom_components.versatile_thermostat.commons import (  # pylint: disable=unused-import
-    get_tz,
-    NowClass,
-)
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 

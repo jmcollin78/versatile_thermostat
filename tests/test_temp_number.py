@@ -17,7 +17,7 @@ from custom_components.versatile_thermostat.base_thermostat import BaseThermosta
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
-from custom_components.versatile_thermostat.commons import NowClass
+from custom_components.versatile_thermostat.const import NowClass
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 
 from .commons import *

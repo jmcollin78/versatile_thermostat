@@ -9,7 +9,6 @@ from datetime import timedelta, datetime
 from types import MappingProxyType
 from typing import Any, TypeVar, Generic
 
-from homeassistant.util import dt as dt_util
 from homeassistant.core import (
     HomeAssistant,
     callback,
@@ -79,13 +78,6 @@ from .ema import ExponentialMovingAverage
 _LOGGER = logging.getLogger(__name__)
 ConfigData = MappingProxyType[str, Any]
 T = TypeVar("T", bound=UnderlyingEntity)
-
-
-def get_tz(hass: HomeAssistant):
-    """Get the current timezone"""
-
-    return dt_util.get_time_zone(hass.config.time_zone)
-
 
 class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
@@ -2293,7 +2285,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def now(self) -> datetime:
         """Get now. The local datetime or the overloaded _set_now date"""
-        return self._now if self._now is not None else datetime.now(self._current_tz)
+        return self._now if self._now is not None else NowClass.get_now(self._hass)
 
     async def check_safety(self) -> bool:
         """Check if last temperature date is too long"""

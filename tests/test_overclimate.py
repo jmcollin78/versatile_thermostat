@@ -517,6 +517,9 @@ async def test_bug_508(
         data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
     # Min_temp is 10 and max_temp is 31 and features contains TARGET_TEMPERATURE_RANGE
     fake_underlying_climate = MagicMockClimateWithTemperatureRange()
 
@@ -545,6 +548,9 @@ async def test_bug_508(
         # Set the hvac_mode to HEAT
         await entity.async_set_hvac_mode(HVACMode.HEAT)
 
+        now = now + timedelta(minutes=3)  # avoid temporal filter
+        entity._set_now(now)
+
         # Not In the accepted interval -> should be converted into 10 (the min) and send with target_temp_high and target_temp_low
         await entity.async_set_temperature(temperature=8.5)
 
@@ -568,6 +574,9 @@ async def test_bug_508(
 
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         # Not In the accepted interval -> should be converted into 10 (the min) and send with target_temp_high and target_temp_low
+        now = now + timedelta(minutes=3)  # avoid temporal filter
+        entity._set_now(now)
+
         await entity.async_set_temperature(temperature=32)
 
         # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call

@@ -4,8 +4,10 @@
 import logging
 import math
 from typing import Literal
+from datetime import datetime
 
 from enum import Enum
+from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
 from homeassistant.components.climate import (
@@ -17,6 +19,7 @@ from homeassistant.components.climate import (
 )
 
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import dt as dt_util
 
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
@@ -504,6 +507,24 @@ def get_safe_float(hass, entity_id: str):
         return None
     float_val = float(state.state)
     return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
+
+
+def get_tz(hass: HomeAssistant):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)
+
+
+class NowClass:
+    """For testing purpose only"""
+
+    @staticmethod
+    def get_now(hass: HomeAssistant) -> datetime:
+        """A test function to get the now.
+        For testing purpose this method can be overriden to get a specific
+        timestamp.
+        """
+        return datetime.now(get_tz(hass))
 
 
 class UnknownEntity(HomeAssistantError):

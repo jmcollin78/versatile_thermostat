@@ -16,7 +16,7 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
-from .commons import NowClass, round_to_nearest
+from .commons import round_to_nearest
 from .base_thermostat import BaseThermostat, ConfigData
 from .pi_algorithm import PITemperatureRegulator
 
@@ -90,7 +90,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # super.__init__ calls post_init at the end. So it must be called after regulation initialization
         super().__init__(hass, unique_id, name, entry_infos)
         self._regulated_target_temp = self.target_temperature
-        self._last_regulation_change = NowClass.get_now(hass)
+        self._last_regulation_change = None  # NowClass.get_now(hass)
 
     @overrides
     def post_init(self, config_entry: ConfigData):
@@ -206,16 +206,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             force,
         )
 
-        now: datetime = NowClass.get_now(self._hass)
-        period = float((now - self._last_regulation_change).total_seconds()) / 60.0
-        if not force and period < self._auto_regulation_period_min:
-            _LOGGER.info(
-                "%s - period (%.1f) min is < %.0f min -> forget the regulation send",
-                self,
-                period,
-                self._auto_regulation_period_min,
+        if self._last_regulation_change is not None:
+            period = (
+                float((self.now - self._last_regulation_change).total_seconds()) / 60.0
             )
-            return
+            if not force and period < self._auto_regulation_period_min:
+                _LOGGER.info(
+                    "%s - period (%.1f) min is < %.0f min -> forget the regulation send",
+                    self,
+                    period,
+                    self._auto_regulation_period_min,
+                )
+                return
 
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
@@ -253,7 +255,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             new_regulated_temp,
         )
 
-        self._last_regulation_change = now
+        self._last_regulation_change = self.now
         for under in self._underlyings:
             # issue 348 - use device temperature if configured as offset
             offset_temp = 0
