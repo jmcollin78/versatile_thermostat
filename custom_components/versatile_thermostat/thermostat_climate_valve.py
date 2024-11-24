@@ -52,10 +52,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Initialize the ThermostatOverClimateValve class"""
         _LOGGER.debug("%s - creating a ThermostatOverClimateValve VTherm", name)
         super().__init__(hass, unique_id, name, entry_infos)
-        # self._valve_open_percent: int = 0
-        # self._last_calculation_timestamp: datetime | None = None
-        # self._auto_regulation_dpercent: float | None = None
-        # self._auto_regulation_period_min: int | None = None
 
     @overrides
     def post_init(self, config_entry: ConfigData):
@@ -114,7 +110,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         )
 
         self._attr_extra_state_attributes["underlyings_valve_regulation"] = [
-            underlying.entity_id for underlying in self._underlyings_valve_regulation
+            underlying.valve_entity_ids
+            for underlying in self._underlyings_valve_regulation
         ]
 
         self._attr_extra_state_attributes["on_percent"] = (

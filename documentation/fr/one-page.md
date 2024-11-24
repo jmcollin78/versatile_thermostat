@@ -6,14 +6,25 @@
 
 ![Tip](images/icon.png)
 
-> ![Tip](images/tips.png) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos thermostats. ;-).
+> ![Tip](images/tips.png) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de courant ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos climats. ;-).
 
-- [Merci pour les bières buymecoffee](#merci-pour-les-bières-buymecoffee)
-- [Glossaire](#glossaire)
-- [Documentation](#documentation)
-- [Comment installer Versatile Thermostat ?](#comment-installer-versatile-thermostat-)
+- [Changements dans la version 6.0](#changements-dans-la-version-60)
+  - [Entités de température pour les pre-réglages](#entités-de-température-pour-les-pre-réglages)
+    - [Dans le cas d'une configuration centrale](#dans-le-cas-dune-configuration-centrale)
+  - [Refonte du menu de configuration](#refonte-du-menu-de-configuration)
+    - [Les options de menu 'Configuration incomplète' et 'Finaliser'](#les-options-de-menu-configuration-incomplète-et-finaliser)
+- [Changements dans la version 5.0](#changements-dans-la-version-50)
+- [Merci pour la bière buymecoffee](#merci-pour-la-bière-buymecoffee)
+- [Quand l'utiliser et ne pas l'utiliser](#quand-lutiliser-et-ne-pas-lutiliser)
+  - [Incompatibilités](#incompatibilités)
+- [Pourquoi une nouvelle implémentation du thermostat ?](#pourquoi-une-nouvelle-implémentation-du-thermostat-)
+- [Comment installer cet incroyable Thermostat Versatile ?](#comment-installer-cet-incroyable-thermostat-versatile-)
   - [HACS installation (recommendé)](#hacs-installation-recommendé)
   - [Installation manuelle](#installation-manuelle)
+- [Configuration](#configuration)
+  - [Création d'un nouveau Versatile Thermostat](#création-dun-nouveau-versatile-thermostat)
+  - [Choix des attributs de base](#choix-des-attributs-de-base)
+  - [Sélectionnez des entités pilotées (sous-jacents)](#sélectionnez-des-entités-pilotées-sous-jacents)
     - [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
     - [Pour un thermostat de type ```thermostat_over_climate```:](#pour-un-thermostat-de-type-thermostat_over_climate)
       - [L'auto-régulation](#lauto-régulation)
@@ -34,7 +45,7 @@
   - [Configuration avancée](#configuration-avancée)
   - [Le contrôle centralisé](#le-contrôle-centralisé)
   - [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale)
-    - [Configuration](#configuration)
+    - [Configuration](#configuration-1)
     - [Comment trouver le bon service ?](#comment-trouver-le-bon-service-)
     - [Les évènements](#les-évènements)
     - [Avertissement](#avertissement)
@@ -81,22 +92,180 @@
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et est une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
-# Merci pour les bières [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R., @John Burgess, @Sylvoliv, @cdenfert, @stephane.l, @jms92100, ... pour les bières. Ca fait très plaisir et ça m'encourage à continuer ! Si cette intégration vous a fait économiser, payez moi une p'tite bière !
 
-# Glossaire
+> ![Nouveau](images/new-icon.png) _*Historique des dernières versions*_
+> * **Release 6.5** :
+>   - Ajout d'une nouvelle fonction permettant l'arrêt et la relance automatique d'un VTherm `over_climate` [585](https://github.com/jmcollin78/versatile_thermostat/issues/585)
+>   - Amélioration de la gestion des ouvertures au démarrage. Permet de mémoriser et de recalculer l'état d'une ouverture au redémarage de Home Assistant [504](https://github.com/jmcollin78/versatile_thermostat/issues/504)
+> * **Release 6.0** :
+>   - Ajout d'entités du domaine Number permettant de configurer les températures des presets [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
+>   - Refonte complète du menu de configuration pour supprimer les températures et utililsation d'un menu au lieu d'un tunnel de configuration [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
+> * **Release 5.4** :
+>   - Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
+>   - ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
+>   - ajout d'une option permettant d'utiliser la température interne d'un TRV pour forcer l' auto-régulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
+>   - ajout d'une fonction de keep-alive pour les VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
 
-  _VTherm_ : Versatile Thermostat dans la suite de ce document
-  _TRV_ : tête thermostatique équipée d'une vanne. La vanne s'ouvre ou se ferme permettant le passage de l'eau chaude
+<details>
+<summary>Autres versions</summary>
 
-# Documentation
+> * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale). Ajout de la possibilité de désactiver le mode sécurité pour le thermomètre extérieur [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
+> * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
+> * **Release 5.1** : Limitation des valeurs envoyées aux valves et au température envoyées au climate sous-jacent.
+> * **Release 5.0** : Ajout d'une configuration centrale permettant de mettre en commun les attributs qui peuvent l'être [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239).
+> * **Release 4.3** : Ajout d'un mode auto-fan pour le type `over_climate` permettant d'activer la ventilation si l'écart de température est important [#223](https://github.com/jmcollin78/versatile_thermostat/issues/223).
+> * **Release 4.2** : Le calcul de la pente de la courbe de température se fait maintenant en °/heure et non plus en °/min [#242](https://github.com/jmcollin78/versatile_thermostat/issues/242). Correction de la détection automatique des ouvertures par l'ajout d'un lissage de la courbe de température .
+> * **Release 4.1** : Ajout d'un mode de régulation **Expert** dans lequel l'utilisateur peut spécifier ses propres paramètres d'auto-régulation au lieu d'utiliser les pre-programmés [#194](https://github.com/jmcollin78/versatile_thermostat/issues/194).
+> * **Release 4.0** : Ajout de la prise en charge de la **Versatile Thermostat UI Card**. Voir [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card). Ajout d'un mode de régulation **Slow** pour les appareils de chauffage à latence lente [#168](https://github.com/jmcollin78/versatile_thermostat/issues/168). Changement de la façon dont **la puissance est calculée** dans le cas de VTherm avec des équipements multi-sous-jacents [#146](https://github.com/jmcollin78/versatile_thermostat/issues/146). Ajout de la prise en charge de AC et Heat pour VTherm via un interrupteur également [#144](https://github.com/jmcollin78/versatile_thermostat/pull/144)
+> * **Release 3.8**: Ajout d'une **fonction d'auto-régulation** pour les thermostats `over climate` dont la régulation est faite par le climate sous-jacent. Cf. [L'auto-régulation](#lauto-régulation) et [#129](https://github.com/jmcollin78/versatile_thermostat/issues/129). Ajout de la **possibilité d'inverser la commande** pour un thermostat `over switch` pour adresser les installations avec fil pilote et diode [#124](https://github.com/jmcollin78/versatile_thermostat/issues/124).
+> * **Release 3.7**: Ajout du type de **Versatile Thermostat `over valve`** pour piloter une vanne TRV directement ou tout autre équipement type gradateur pour le chauffage. La régulation se fait alors directement en agissant sur le pourcentage d'ouverture de l'entité sous-jacente : 0 la vanne est coupée, 100 : la vanne est ouverte à fond. Cf. [#131](https://github.com/jmcollin78/versatile_thermostat/issues/131). Ajout d'une fonction permettant le bypass de la détection d'ouverture [#138](https://github.com/jmcollin78/versatile_thermostat/issues/138). Ajout de la langue Slovaque
+> * **Release 3.6**: Ajout du paramètre `motion_off_delay` pour améliorer la gestion de des mouvements [#116](https://github.com/jmcollin78/versatile_thermostat/issues/116), [#128](https://github.com/jmcollin78/versatile_thermostat/issues/128). Ajout du mode AC (air conditionné) pour un VTherm over switch. Préparation du projet Github pour faciliter les contributions [#127](https://github.com/jmcollin78/versatile_thermostat/issues/127)
+> * **Release 3.5**: Plusieurs thermostats sont possibles en "thermostat over climate" mode [#113](https://github.com/jmcollin78/versatile_thermostat/issues/113)
+> * **Release 3.4**: bug fix et exposition des preset temperatures pour le mode AC [#103](https://github.com/jmcollin78/versatile_thermostat/issues/103)
+> * **Release 3.3**: ajout du mode Air Conditionné (AC). Cette fonction vous permet d'utiliser le mode AC de votre thermostat sous-jacent. Pour l'utiliser, vous devez cocher l'option "Uitliser le mode AC" et définir les valeurs de température pour les presets et pour les presets en cas d'absence
+> * **Release 3.2** : ajout de la possibilité de commander plusieurs switch à partir du même thermostat. Dans ce mode, les switchs sont déclenchés avec un délai pour minimiser la puissance nécessaire à un instant (on minimise les périodes de recouvrement). Voir [Configuration](#sélectionnez-des-entités-pilotées)
+> * **Release 3.1** : ajout d'une détection de fenêtres/portes ouvertes par chute de température. Cette nouvelle fonction permet de stopper automatiquement un radiateur lorsque la température chute brutalement. Voir [Le mode auto](#le-mode-auto)
+> * **Release majeure 3.0** : ajout d'un équipement thermostat et de capteurs (binaires et non binaires) associés. Beaucoup plus proche de la philosphie Home Assistant, vous avez maintenant un accès direct à l'énergie consommée par le radiateur piloté par le thermostat et à plein d'autres capteurs qui seront utiles dans vos automatisations et dashboard.
+> * **release 2.3** : ajout de la mesure de puissance et d'énergie du radiateur piloté par le thermostat.
+> * **release 2.2** : ajout de fonction de sécurité permettant de ne pas laisser éternellement en chauffe un radiateur en cas de panne du thermomètre
+> * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
+</details>
 
-La documentation est maintenant découpée en plusieurs pages pour faciliter la lecture et la recherche d'informations :
-1. [présentation](documentation/fr/presentation.md),
-2. [choisir un type de VTherm](documentation/fr/creation.md),
-3. [les attributs de base](documentation/fr/base-attributes.md)
+<details>
+<summary>Changements dans la version 6.0</summary>
+# Changements dans la version 6.0
 
-# Comment installer Versatile Thermostat ?
+## Entités de température pour les pre-réglages
+Les températures des presets sont maintenant directement acessibles sous la forme d'entités reliés au VTherm.
+Exemple :
+
+![Entités température](images/temp-entities-1.png)
+
+Les entités Boost, Confort, Eco et Hors-gel permettent de régler directement les températures de ces présets sans avoir à reconfigurer le VTHerm dans les écrans de configuration.
+Ces modifications sont persistentent à un redémarrage et sont prises en compte immédiatement par le VTherm.
+
+En fonction des fonctions activées, la liste des températures peut être plus ou moins complète :
+1. Si la gestion de présence est activée, les presets en cas d'absence sont créés. Ils sont suffixés par 'abs' pour absence,
+2. Si la gestion de la climatisation (Mode AC) est activé, les presets en mode clim sont créés. Ils sont suffixés par 'clim' pour climatisation. Seul le preset Hors gel n'a pas d'équivalent en mode clim,
+3. Les différentes combinaison absent et clim peuvent être créés en fonction de la configuration du VTherm
+
+Si un VTherm utilise les preset de la configuration centrale, ces entités ne sont pas créées, car les températures des presets sont gérés par la configuration centrale.
+
+### Dans le cas d'une configuration centrale
+Si vous avez configuré une configuration centrale, celle-ci possède aussi ses propres presets qui répondent au même règles qu'énoncées ci-dessus.
+Exemple d'une configuration centrale avec gestion de présence et mode AC (climatisation) :
+
+![Entités température](images/temp-entities-2.png)
+
+Dans le cas d'un changement d'une température de la configuration centrale, tous les VTherm qui utilisent ce preset sont immédiatement mis à jour.
+
+## Refonte du menu de configuration
+Le menu de configuration a été totalement revu. Il s'adapte dynamiquement aux choix de l'utilisateur et permet d'accéder directement aux réglages de la fonction voulue sans avoir à dérouler tous le tunnel de configuration.
+
+Pour créer un nouveau VTherm, il faudra d'abord choisir le type de VTherm :
+
+![Choix VTherm](images/config-main0.png)
+
+Puis, vous accédez maintenant au menu de configuration suivant :
+
+![VTherm menu](images/config-menu.png)
+
+Chaque partie à configurer est accessible directement, sans avoir à dérouler tout le tunnel de configuration comme précédemment.
+
+Vous noterez l'option de menu nommée `Fonctions` qui permet de choisir quelles fonctions vont être implémentées pour ce VTherm :
+
+![VTherm fonctions](images/config-features.png)
+
+En fonction de vos choix, le menu principal s'adaptera pour ajouter les options nécessaires.
+
+Exemple de menu avec toutes les fonctions cochées :
+
+![VTherm menu](images/config-menu-all-options.png)
+Vous pouvez constater que les options 'Détection des ouvertures', 'Détection de mouvement', 'Gestion de la puissance' et 'Gestion de présence' ont été ajoutées. Vous pouvez alors les configurer.
+
+### Les options de menu 'Configuration incomplète' et 'Finaliser'
+
+La dernière option du menu est spéciale. Elle permet de valider la création du VTherm lorsque toutes les fonctions ont été correctement configurées.
+Si l'une options n'est pas correctement configurée, la dernière option est la suivante :
+
+![Configuration incomplète](images/config-not-complete.png)
+
+Sa sélection ne fait rien mais vous empêche de finaliser la création (resp. la modification) du VTherm.
+**Vous devez alors chercher dans les options laquelle manque**.
+
+Une fois que toute la configuration est valide, la dernière option se transforme en :
+
+![Configuration complète](images/config-complete.png)
+
+Cliquez sur cette option pour créér (resp. modifier) le VTherm :
+
+![Configuration terminée](images/config-terminate.png)
+</details>
+
+<details>
+<summary>Changements dans la version 5.0</summary>
+
+# Changements dans la version 5.0
+
+Vous pouvez maintenant définir une configuration centrale qui va vous permettre de mettre en commun sur tous vos VTherms (ou seulement une partie), certains attributs. Pour utiliser cette possibilité, vous devez :
+1. Créer un VTherm de type "Configuration Centrale",
+2. Saisir les attributs de cette configuration centrale
+
+Pour l'utiliser ensuite dans les autres VTherms, vous devez les reconfigurer et à chaque fois que c'est possible cocher la case "Utiliser la configuration centrale". Cette case à cocher apparait dans tous les groupes d'attributs qui peuvent avoir recours à la configuration centrale : attributs principaux, TPI, ouvertures, mouvement, puissance, présence et paramètres avancés.
+
+Les attributs configurable dans la configuration centrale est listée ici : [Synthèse des paramètres](#synthèse-des-paramètres).
+
+Lors d'un changement sur la configuration centrale, tous les VTherms seront rechargés pour tenir compte de ces changements.
+
+En conséquence toute la phase de paramètrage d'un VTherm a été profondemment modifiée pour pouvoir utiliser la configuration centrale ou surcharger les valeurs de la configuration centrale par des valeurs propre au VTherm en cours de configuration.
+
+</details>
+
+# Merci pour la bière [buymecoffee](https://www.buymeacoffee.com/jmcollin78)
+Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R., @John Burgess, @Sylvoliv, @cdenfert, @stephane.l, @jms92100 pour les bières. Ca fait très plaisir et ça m'encourage à continuer !
+
+
+# Quand l'utiliser et ne pas l'utiliser
+Ce thermostat peut piloter 3 types d'équipements :
+1. un radiateur qui ne fonctionne qu'en mode marche/arrêt (nommé ```thermostat_over_switch```). La configuration minimale nécessaire pour utiliser ce type thermostat est :
+   1. un équipement comme un radiateur (un ```switch``` ou équivalent),
+   2. une sonde de température pour la pièce (ou un input_number),
+   3. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
+   1. un équipement - comme une climatisation, une valve thermostatique - qui est pilotée par sa propre entity de type ```climate```,
+3. un équipement qui peut prendre une valeur de 0 à 100% (nommée ```thermostat_over_valve```). A 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une valve thermostatique (cf. valve Shelly) qui expose une entité de type `number.` permetttant de piloter directement l'ouverture de la vanne. Versatile Thermostat régule la température de la pièce en jouant sur le pourcentage d'ouverture, à l'aide des capteurs de température intérieur et extérieur en utilisant l'algorithme TPI décrit ci-dessous.
+
+Le type `over_climate` vous permet d'ajouter à votre équipement existant toutes les fonctionnalités apportées par VersatileThermostat. L'entité climate VersatileThermostat contrôlera votre entité climate sous-jacente, l'éteindra si les fenêtres sont ouvertes, la fera passer en mode Eco si personne n'est présent, etc. Voir [ici] (#pourquoi-un-nouveau-thermostat-implémentation). Pour ce type de thermostat, tous les cycles de chauffage sont contrôlés par l'entité climate sous-jacente et non par le thermostat polyvalent lui-même. Une fonction facultative d'auto-régulation permet au Versatile Thermostat d'ajuster la température donnée en consigne au sous-jacent afin d'atteindre la consigne.
+
+Les installations avec fil pilote et diode d'activation bénéficie d'une option qui permet d'inverser la commande on/off du radiateur sous-jacent. Pour cela, utilisez le type `over switch` et cochez l'option d'inversion de la commande.
+
+## Incompatibilités
+Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
+1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le VTherm,
+2. Les thermostats « Homematic » (et éventuellement Homematic IP) sont connus pour rencontrer des problèmes avec le Versatile Thermostat en raison des limitations du protocole RF sous-jacent. Ce problème se produit particulièrement lorsque vous essayez de contrôler plusieurs thermostats Homematic à la fois dans une seule instance de VTherm. Afin de réduire la charge du cycle de service, vous pouvez par ex. regroupez les thermostats avec des procédures spécifiques à Homematic (par exemple en utilisant un thermostat mural) et laissez Versatile Thermostat contrôler uniquement le thermostat mural directement. Une autre option consiste à contrôler un seul thermostat et à propager les changements de mode CVC et de température par un automatisme,
+3. les thermostats de type Heatzy qui ne supportent pas les commandes de type set_temperature
+4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
+5. les TRV de type Aqara SRTS-A01 et MOES TV01-ZB qui n'ont pas le retour d'état `hvac_action` permettant de savoir si elle chauffe ou pas. Donc les retours d'état sont faussés, le reste à l'air fonctionnel.
+6. La clim Airwell avec l'intégration "Midea AC LAN". Si 2 commandes de VTherm sont trop rapprochées, la clim s'arrête d'elle même.
+7. Les climates basés sur l'intégration Overkiz ne fonctionnent pas. Il parait impossible d'éteindre ni même de changer la température sur ces systèmes.
+
+# Pourquoi une nouvelle implémentation du thermostat ?
+
+Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivants :
+- Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
+- Utilisations complètes du **mode préréglages**,
+- Désactiver le mode préréglé lorsque la température est **définie manuellement** sur un thermostat,
+- Éteindre/allumer un thermostat lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
+- Changer de preset lorsqu'une **activité est détectée** ou non dans une pièce pendant un temps défini,
+- Utiliser un algorithme **TPI (Time Proportional Interval)** grâce à l'algorithme [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] ,
+- Ajouter une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
+- La **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
+- Des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
+- Ajouter des capteurs pour voir les états internes du thermostat,
+- Contrôle centralisé de tous les Versatile Thermostat pour les stopper tous, les passer tous en hors-gel, les forcer en mode Chauffage (l'hiver), les forcer en mode Climatisation (l'été).
+- Contrôle d'une chaudière centrale et des VTherm qui doivent contrôler cette chaudière.
+
+# Comment installer cet incroyable Thermostat Versatile ?
 
 ## HACS installation (recommendé)
 
@@ -117,6 +286,64 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 6. Redémarrez l'assistant domestique
 7. Configurer la nouvelle intégration du Versatile Thermostat
 
+# Configuration
+
+-- VTherm = Versatile Thermostat dans la suite de ce document --
+
+> ![Astuce](images/tips.png) _*Notes*_
+>
+> Trois façons de configurer les VTherms sont disponibles :
+> 1. Chaque Versatile Thermostat est entièrement configurée de manière indépendante. Choisissez cette option si vous ne souhaitez avoir aucune configuration ou gestion centrale.
+> 2. Certains aspects sont configurés de manière centralisée. Cela permet par ex. définir la température min/max, la détection de fenêtre ouverte,… au niveau d'une instance centrale et unique. Pour chaque VTherm que vous configurez, vous pouvez alors choisir d'utiliser la configuration centrale ou de la remplacer par des paramètres personnalisés.
+> 3. En plus de cette configuration centralisée, tous les VTherm peuvent être contrôlées par une seule entité de type `select`. Cette fonction est nommé `central_mode`. Cela permet de stopper / démarrer / mettre en hors gel / etc tous les VTherms en une seule fois. Pour chaque VTherm, l'utilisateur indique si il est concerné par ce `central_mode`.
+
+
+## Création d'un nouveau Versatile Thermostat
+
+Cliquez sur le bouton Ajouter une intégration dans la page d'intégration
+
+![image](images/add-an-integration.png)
+
+puis
+
+![image](images/config-main0.png)
+
+La configuration peut être modifiée via la même interface. Sélectionnez simplement le thermostat à modifier, appuyez sur "Configurer" et vous pourrez modifier certains paramètres ou la configuration.
+
+Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'option à configurer.
+
+## Choix des attributs de base
+
+Choisisez le menu "Principaux attributs".
+
+![image](images/config-main.png)
+
+Donnez les principaux attributs obligatoires :
+1. un nom (sera le nom de l'intégration et aussi le nom de l'entité climate)
+2. le type de thermostat ```thermostat_over_switch``` pour piloter un radiateur commandé par un switch ou ```thermostat_over_climate``` pour piloter un autre thermostat, ou ```thermostat_over_valve``` Cf. [ci-dessus](#pourquoi-une-nouvelle-implémentation-du-thermostat)
+4. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle le radiateur est installé,
+5. une entité capteur de température donnant la température extérieure. Si vous n'avez pas de capteur externe, vous pouvez utiliser l'intégration météo locale
+6. une durée de cycle en minutes. A chaque cycle, le radiateur s'allumera puis s'éteindra pendant une durée calculée afin d'atteindre la température ciblée (voir [preset](#configure-the-preset-temperature) ci-dessous). En mode ```over_climate```, le cycle ne sert qu'à faire des controles de base mais ne régule pas directement la température. C'est le ```climate``` sous-jacent qui le fait,
+7. les températures minimales et maximales du thermostat,
+8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil,
+9. la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
+10. la liste des fonctionnalités qui seront utilisées pour ce thermostat. En fonction de vos choix, les écrans de configuration suivants s'afficheront ou pas.
+
+> ![Astuce](images/tips.png) _*Notes*_
+>  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur**,
+>  2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
+
+## Sélectionnez des entités pilotées (sous-jacents)
+
+En fonction de votre choix sur le type de thermostat, vous devrez choisir une ou plusieurs entités de type `switch`, `climate` ou `number`. Seules les entités compatibles avec le type sont présentées.
+
+> ![Astuce](images/tips.png) _*Comment choisir le type*_
+> Le choix du type est important. Même si il toujours possible de le modifier ensuite via l'IHM de configuration, il est préférable de se poser les quelques questions suivantes :
+> 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire :
+>    1. si vous avez une vanne thermostatique (TRV) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
+>    2. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
+>    3. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```
+> 2. **quelle type de régulation je veux ?** Si l'équipement piloté possède son propre mécanisme de régulation (clim, certaine vanne TRV) et que cette régulation fonctionne bien, optez pour un ```over_climate```
 
 ### Pour un thermostat de type ```thermostat_over_switch```
 ![image](images/config-linked-entity.png)

@@ -1179,3 +1179,16 @@ class UnderlyingValveRegulation(UnderlyingValve):
             return get_safe_float(self._hass, self._opening_degree_entity_id) > 0
         except Exception:  # pylint: disable=broad-exception-caught
             return False
+
+    @property
+    def valve_entity_ids(self) -> [str]:
+        """get an arrary with all entityd id of the valve"""
+        ret = []
+        for entity in [
+            self.opening_degree_entity_id,
+            self.closing_degree_entity_id,
+            self.offset_calibration_entity_id,
+        ]:
+            if entity:
+                ret.append(entity)
+        return ret
