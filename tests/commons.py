@@ -1019,8 +1019,8 @@ default_temperatures_ac_away = {
     "boost_ac": 23.0,
     "frost_away": 7.1,
     "eco_away": 17.1,
-    "comfort_away": 19.1,
-    "boost_away": 21.1,
+    "comfort_away": 17.2,
+    "boost_away": 17.3,
     "eco_ac_away": 27.1,
     "comfort_ac_away": 25.1,
     "boost_ac_away": 23.1,
@@ -1033,8 +1033,8 @@ default_temperatures_away = {
     "boost": 21.0,
     "frost_away": 7.1,
     "eco_away": 17.1,
-    "comfort_away": 19.1,
-    "boost_away": 21.1,
+    "comfort_away": 17.2,
+    "boost_away": 17.3,
 }
 
 default_temperatures = {
