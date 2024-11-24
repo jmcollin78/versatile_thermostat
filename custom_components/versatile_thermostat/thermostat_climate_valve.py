@@ -86,10 +86,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self.name,
         )
 
+        offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST)
+        opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
+        closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST)
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
-            offset = config_entry.get(CONF_OFFSET_CALIBRATION_LIST)[idx]
-            opening = config_entry.get(CONF_OPENING_DEGREE_LIST)[idx]
-            closing = config_entry.get(CONF_CLOSING_DEGREE_LIST)[idx]
+            offset = offset_list[idx] if idx < len(offset_list) else None
+            # number of opening should equal number of underlying
+            opening = opening_list[idx]
+            closing = closing_list[idx] if idx < len(closing_list) else None
             under = UnderlyingValveRegulation(
                 hass=self._hass,
                 thermostat=self,

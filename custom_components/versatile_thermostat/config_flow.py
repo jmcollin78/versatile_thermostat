@@ -147,7 +147,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
     def check_valve_regulation_nb_entities(self, data: dict, step_id=None) -> bool:
         """Check the number of entities for Valve regulation"""
-        underlyings_to_check = data if step_id == "type" else self._infos
+        if step_id not in ["type", "valve_regulation", "check_complete"]:
+            return True
+
+        # underlyings_to_check = data if step_id == "type" else self._infos
+        underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
         regulation_infos_to_check = (
             data if step_id == "valve_regulation" else self._infos
         )
@@ -348,7 +352,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if not self.check_valve_regulation_nb_entities(infos):
+            if not self.check_valve_regulation_nb_entities(infos, "check_complete"):
                 return False
 
         return True
@@ -444,6 +448,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if (
             self._infos.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI
             or is_central_config
+            or self.is_valve_regulation_selected(self._infos)
         ):
             menu_options.append("tpi")
 
