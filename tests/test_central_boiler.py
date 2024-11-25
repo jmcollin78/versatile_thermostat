@@ -302,6 +302,7 @@ async def test_update_central_boiler_state_multiple(
     assert entity.underlying_entities[1].entity_id == "switch.switch2"
     assert entity.underlying_entities[2].entity_id == "switch.switch3"
     assert entity.underlying_entities[3].entity_id == "switch.switch4"
+    assert entity.nb_device_actives == 0
 
     assert api.nb_active_device_for_boiler_threshold == 1
     assert api.nb_active_device_for_boiler == 0
@@ -337,6 +338,7 @@ async def test_update_central_boiler_state_multiple(
         await asyncio.sleep(0.1)
 
         assert entity.hvac_action == HVACAction.HEATING
+        assert entity.nb_device_actives == 1
 
         assert mock_service_call.call_count == 1
         # No switch of the boiler
@@ -366,6 +368,7 @@ async def test_update_central_boiler_state_multiple(
         await asyncio.sleep(0.1)
 
         assert entity.hvac_action == HVACAction.HEATING
+        assert entity.nb_device_actives == 2
 
         # Only the first heater is started by the algo
         assert mock_service_call.call_count == 1
@@ -591,6 +594,7 @@ async def test_update_central_boiler_state_simple_valve(
     now: datetime = datetime.now(tz=tz)
 
     assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.nb_device_actives == 0
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
         hass, "binary_sensor.central_boiler", "binary_sensor"
@@ -612,6 +616,7 @@ async def test_update_central_boiler_state_simple_valve(
         await asyncio.sleep(0.1)
 
         assert entity.hvac_action == HVACAction.HEATING
+        assert entity.nb_device_actives == 1
 
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
@@ -653,6 +658,7 @@ async def test_update_central_boiler_state_simple_valve(
         await asyncio.sleep(0.1)
 
         assert entity.hvac_action == HVACAction.IDLE
+        assert entity.nb_device_actives == 0
 
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
@@ -750,6 +756,7 @@ async def test_update_central_boiler_state_simple_climate(
     now: datetime = datetime.now(tz=tz)
 
     assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.nb_device_actives == 0
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
         hass, "binary_sensor.central_boiler", "binary_sensor"
@@ -772,6 +779,7 @@ async def test_update_central_boiler_state_simple_climate(
         await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
+        assert entity.nb_device_actives == 1
 
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
@@ -813,6 +821,7 @@ async def test_update_central_boiler_state_simple_climate(
         await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.IDLE
+        assert entity.nb_device_actives == 0
 
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(

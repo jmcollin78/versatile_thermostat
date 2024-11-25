@@ -127,6 +127,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "max_power_sensor_entity_id",
                     "temperature_unit",
                     "is_device_active",
+                    "nb_device_actives",
                     "target_temperature_step",
                     "is_used_by_central_boiler",
                     "temperature_slope",
@@ -994,6 +995,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if under.is_device_active:
                 return True
         return False
+
+    @property
+    def nb_device_actives(self) -> int:
+        """Calculate the number of active devices"""
+        ret = 0
+        for under in self._underlyings:
+            if under.is_device_active:
+                ret += 1
+        return ret
 
     @property
     def current_temperature(self) -> float | None:
@@ -2661,6 +2671,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "timezone": str(self._current_tz),
             "temperature_unit": self.temperature_unit,
             "is_device_active": self.is_device_active,
+            "nb_device_actives": self.nb_device_actives,
             "ema_temp": self._ema_temp,
             "is_used_by_central_boiler": self.is_used_by_central_boiler,
             "temperature_slope": round(self.last_temperature_slope or 0, 3),

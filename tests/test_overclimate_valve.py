@@ -149,6 +149,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         )
 
         assert mock_get_state.call_count > 5  # each temp sensor + each valve
+        assert vtherm.nb_device_actives == 0
 
 
         # initialize the temps
@@ -200,6 +201,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
+        assert vtherm.nb_device_actives == 1
 
     # 2. Starts heating very slowly (18.9 vs 19)
     now = now + timedelta(minutes=2)
@@ -245,6 +247,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
+        assert vtherm.nb_device_actives == 1
 
     # 3. Stop heating 21 > 19
     now = now + timedelta(minutes=2)
@@ -290,8 +293,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.is_device_active is False
-
-
+        assert vtherm.nb_device_actives == 0
 
     await hass.async_block_till_done()
 
@@ -415,6 +417,7 @@ async def test_over_climate_valve_multi_presence(
         await vtherm.async_set_hvac_mode(HVACMode.HEAT)
 
         assert vtherm.target_temperature == 17.2
+        assert vtherm.nb_device_actives == 0
 
     # 2: set presence on -> should activate the valve and change target
     # fmt: off
@@ -445,6 +448,8 @@ async def test_over_climate_valve_multi_presence(
             ]
         )
 
+        assert vtherm.nb_device_actives >= 2 # should be 2 but when run in // with the first test it give 3
+
     # 3: set presence off -> should deactivate the valve and change target
     # fmt: off
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -473,3 +478,5 @@ async def test_over_climate_valve_multi_presence(
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
+
+        assert vtherm.nb_device_actives == 0

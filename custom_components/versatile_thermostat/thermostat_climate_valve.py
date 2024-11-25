@@ -275,6 +275,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """A hack to overrides the state from underlyings"""
         return self.valve_open_percent > 0
 
+    @property
+    def nb_device_actives(self) -> int:
+        """Calculate the number of active devices"""
+        if self.is_device_active:
+            return len(self._underlyings_valve_regulation)
+        else:
+            return 0
+
     @overrides
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
         """This should not be possible in valve regulation mode"""
