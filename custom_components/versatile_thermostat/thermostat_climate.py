@@ -42,24 +42,6 @@ HVAC_ACTION_ON = [  # pylint: disable=invalid-name
 class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     """Representation of a base class for a Versatile Thermostat over a climate"""
 
-    _auto_regulation_mode: str | None = None
-    _regulation_algo = None
-    _regulated_target_temp: float | None = None
-    _auto_regulation_dtemp: float | None = None
-    _auto_regulation_period_min: int | None = None
-    _last_regulation_change: datetime | None = None
-    # The fan mode configured in configEntry
-    _auto_fan_mode: str | None = None
-    # The current fan mode (could be change by service call)
-    _current_auto_fan_mode: str | None = None
-    # The fan_mode name depending of the current_mode
-    _auto_activated_fan_mode: str | None = None
-    _auto_deactivated_fan_mode: str | None = None
-    _auto_start_stop_level: TYPE_AUTO_START_STOP_LEVELS = AUTO_START_STOP_LEVEL_NONE
-    _auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
-    _is_auto_start_stop_enabled: bool = False
-    _follow_underlying_temp_change: bool = False
-
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset(
             {
@@ -87,10 +69,30 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
     ):
         """Initialize the thermostat over switch."""
+        self._auto_regulation_mode: str | None = None
+        self._regulation_algo = None
+        self._regulated_target_temp: float | None = None
+        self._auto_regulation_dtemp: float | None = None
+        self._auto_regulation_period_min: int | None = None
+        self._last_regulation_change: datetime | None = None
+        # The fan mode configured in configEntry
+        self._auto_fan_mode: str | None = None
+        # The current fan mode (could be change by service call)
+        self._current_auto_fan_mode: str | None = None
+        # The fan_mode name depending of the current_mode
+        self._auto_activated_fan_mode: str | None = None
+        self._auto_deactivated_fan_mode: str | None = None
+        self._auto_start_stop_level: TYPE_AUTO_START_STOP_LEVELS = (
+            AUTO_START_STOP_LEVEL_NONE
+        )
+        self._auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
+        self._is_auto_start_stop_enabled: bool = False
+        self._follow_underlying_temp_change: bool = False
+        self._last_regulation_change = None  # NowClass.get_now(hass)
+
         # super.__init__ calls post_init at the end. So it must be called after regulation initialization
         super().__init__(hass, unique_id, name, entry_infos)
         self._regulated_target_temp = self.target_temperature
-        self._last_regulation_change = None  # NowClass.get_now(hass)
 
     @overrides
     def post_init(self, config_entry: ConfigData):

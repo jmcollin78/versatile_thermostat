@@ -1021,10 +1021,6 @@ class UnderlyingValve(UnderlyingEntity):
 class UnderlyingValveRegulation(UnderlyingValve):
     """A specific underlying class for Valve regulation"""
 
-    _offset_calibration_entity_id: str
-    _opening_degree_entity_id: str
-    _closing_degree_entity_id: str
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -1041,14 +1037,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_degree_entity_id,
             entity_type=UnderlyingEntityType.VALVE_REGULATION,
         )
-        self._offset_calibration_entity_id = offset_calibration_entity_id
-        self._opening_degree_entity_id = opening_degree_entity_id
-        self._closing_degree_entity_id = closing_degree_entity_id
+        self._offset_calibration_entity_id: str = offset_calibration_entity_id
+        self._opening_degree_entity_id: str = opening_degree_entity_id
+        self._closing_degree_entity_id: str = closing_degree_entity_id
         self._climate_underlying = climate_underlying
-        self._is_min_max_initialized = False
-        self._max_opening_degree = None
-        self._min_offset_calibration = None
-        self._max_offset_calibration = None
+        self._is_min_max_initialized: bool = False
+        self._max_opening_degree: float = None
+        self._min_offset_calibration: float = None
+        self._max_offset_calibration: float = None
 
     async def send_percent_open(self):
         """Send the percent open to the underlying valve"""

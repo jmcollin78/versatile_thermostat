@@ -7,6 +7,7 @@ from homeassistant.helpers.event import (
     async_track_state_change_event,
     EventStateChangedData,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import HVACMode
 
 from .const import (
@@ -45,11 +46,10 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         )
     )
 
-    # useless for now
-    # def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
-    #    """Initialize the thermostat over switch."""
-    #    super().__init__(hass, unique_id, name, config_entry)
-    _is_inversed: bool | None = None
+    def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
+        """Initialize the thermostat over switch."""
+        self._is_inversed: bool | None = None
+        super().__init__(hass, unique_id, name, config_entry)
 
     @property
     def is_over_switch(self) -> bool:

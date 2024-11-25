@@ -56,7 +56,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     VERSION = CONFIG_VERSION
     MINOR_VERSION = CONFIG_MINOR_VERSION
 
-    _infos: dict
     _placeholders = {
         CONF_NAME: "",
     }
@@ -64,7 +63,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     def __init__(self, infos) -> None:
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
-        self._infos = infos
+        self._infos: dict = infos
 
         # VTherm API should have been initialized before arriving here
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()

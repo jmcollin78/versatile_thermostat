@@ -40,17 +40,18 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             }
         )
     )
-    _underlyings_valve_regulation: list[UnderlyingValveRegulation] = []
-    _valve_open_percent: int | None = None
-    _last_calculation_timestamp: datetime | None = None
-    _auto_regulation_dpercent: float | None = None
-    _auto_regulation_period_min: int | None = None
 
     def __init__(
         self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
     ):
         """Initialize the ThermostatOverClimateValve class"""
         _LOGGER.debug("%s - creating a ThermostatOverClimateValve VTherm", name)
+        self._underlyings_valve_regulation: list[UnderlyingValveRegulation] = []
+        self._valve_open_percent: int | None = None
+        self._last_calculation_timestamp: datetime | None = None
+        self._auto_regulation_dpercent: float | None = None
+        self._auto_regulation_period_min: int | None = None
+
         super().__init__(hass, unique_id, name, entry_infos)
 
     @overrides
