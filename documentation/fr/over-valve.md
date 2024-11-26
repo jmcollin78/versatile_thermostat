@@ -17,7 +17,7 @@ L'installation doit ressembler à celle pour le VTherm `over_switch` sauf que l'
 5. ces entités `number` sous-jacentes vont alors commander le taux d'ouverture de la vanne sur le _TRV_
 6. ce qui va faire chauffer plus ou moins le radiateur
 
-Le taux d'ouverture est recalculé à chaque cycle et c'est ce qui permet de réguler la température de la pièce.
+> Le taux d'ouverture est recalculé à chaque cycle et c'est ce qui permet de réguler la température de la pièce.
 
 
 ## Configuration

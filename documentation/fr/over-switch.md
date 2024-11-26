@@ -12,7 +12,7 @@ L'installation doit ressembler à ça :
 5. ces entités switchs sous-jacentes vont alors commander le switch physique
 6. la commande du switch physique allumera ou éteindra le radiateur.
 
-Le pourcentage d'allumage est recalculé à chaque cycle et c'est ce qui permet de réguler la température de la pièce.
+> Le pourcentage d'allumage est recalculé à chaque cycle et c'est ce qui permet de réguler la température de la pièce.
 
 ## Configuration
 
