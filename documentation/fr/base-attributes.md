@@ -12,7 +12,7 @@ Donnez les principaux attributs obligatoires. Ces attributs sont communs à tous
    1. `over_switch` : VTherm allumera/éteindra le radiateur en modulant la proportion de temps allumé,
    2. `over_valve` : VTherm calculera une nouvelle ouverture de la vanne et lui enverra si elle a changée,
    3. `over_climate` : le cycle permet d'effectuer les contrôles de base et recalcule les coefficients de l'auto-régulation. Le cycle peut déboucher sur une nouvelle consigne envoyée au sous-jacents ou sur une modification d'ouverture de la vanne dans le cas d'un _TRV_ dont la vanne est commandable.
-8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil,
+8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil. Si plusieurs équipements sont reliés au même VTherm, il faut indiquer ici le total des puissances max des équipements,
 9.  la possibilité d'utiliser des paramètres complémentaires venant de la configuration centralisée :
     1.  capteur de température extérieure,
     2.  température minimale / maximale et pas de température
