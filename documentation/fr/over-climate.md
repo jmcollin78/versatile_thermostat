@@ -1,4 +1,4 @@
-# Thermostat de type ```thermostat_over_climate```
+# Thermostat de type `thermostat_over_climate`
 
 ## Pré-requis
 
@@ -68,3 +68,11 @@ On obtient alors une auto-régulation bien plus efficace qui évite l'eccueil de
 Attention toutefois, certaine température interne varient tellement vite et sont tellement fausse qu'elles faussent totalement le calcul. Dans ce cas, là, il vaut mieux désactiver cette option.
 
 Vous trouverez des conseils pour régler au mieux ces paramètres dans la page (TODO optimiser)
+
+## Fonctions spécifiques
+
+Les fonctions spécifiques sont paramétrables avec une option dédiée du menu.
+
+Les fonctions spécifiques qui nécessite un paramétrage à ce type de VTherm sont :
+1. l'auto-start/stop : arrêt et démarrage automatique du VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
+2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf (TODO TPI)

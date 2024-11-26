@@ -118,32 +118,6 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 6. Redémarrez l'assistant domestique
 7. Configurer la nouvelle intégration du Versatile Thermostat
 
-
-
-
-
-
-
-
-
-#### Le démarrage / arrêt automatique
-Cette fonction a été introduite en 6.5.0. Elle permet d'autoriser VTherm a stopper un équipement qui n'a pas besoin d'être allumé et de le redémarrer lorsque les conditions le réclame. Cette fonction est munie de 3 réglages qui permettent d'arrêter / relancer plus ou moins rapidement l'équipement.
-
-Pour l'utiliser, vous devez :
-1. Ajouter la fonction `Avec démmarrage et extinction automatique` dans le menu 'Fonctions',
-2. Paramétrer le niveau de détection dans l'option 'Allumage/extinction automatique' qui s'affiche lorsque la fonction a été activée. Vous choisissez le niveau de détection entre 'Lent', 'Moyen' et 'Rapide'. Les arrêts/relances seront plus nombreux avec le niveau 'Rapide'.
-
-Une fois paramétré, vous aurez maintenant une nouvelle entité de type `switch` qui vous permet d'autoriser ou non l'arrêt/relance automatique sans toucher à la configuration. Cette entité est disponible sur l'appareil VTherm et se nomme `switch.<name>_enable_auto_start_stop`. Cochez la pour autoriser le démarrage et extinction automatique.
-
-L'algorithme de détection est décrit [ici](https://github.com/jmcollin78/versatile_thermostat/issues/585).
-
-### Pour un thermostat de type ```thermostat_over_valve```:
-![image](images/config-linked-entity3.png)
-Vous pouvez choisir jusqu'à entité du domaine ```number``` ou ```ìnput_number``` qui vont commander les vannes.
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
-
-Il est possible de choisir un thermostat over valve qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
-
 ## Configurez les coefficients de l'algorithme TPI
 
 Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` et que vous sélectionnez l'option "TPI" vous menu, vous arriverez sur cette page :
