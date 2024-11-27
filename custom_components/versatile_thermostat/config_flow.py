@@ -72,8 +72,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         else:
             self._central_config = None
 
-        self._init_feature_flags(infos)
         self._init_central_config_flags(infos)
+        self._init_feature_flags(infos)
 
     def _init_feature_flags(self, _):
         """Fix features selection depending to infos"""
@@ -149,14 +149,17 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if step_id not in ["type", "valve_regulation", "check_complete"]:
             return True
 
-        # underlyings_to_check = data if step_id == "type" else self._infos
-        underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
+        underlyings_to_check = data if step_id == "type" else self._infos
+        # underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
         regulation_infos_to_check = (
             data if step_id == "valve_regulation" else self._infos
         )
 
         ret = True
-        if self.is_valve_regulation_selected(underlyings_to_check):
+        if (
+            self.is_valve_regulation_selected(underlyings_to_check)
+            and step_id != "type"
+        ):
             nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
             nb_offset = len(
                 regulation_infos_to_check.get(CONF_OFFSET_CALIBRATION_LIST, [])
@@ -562,7 +565,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             # Remove TPI info
             for key in [
-                PROPORTIONAL_FUNCTION_TPI,
                 CONF_PROP_FUNCTION,
                 CONF_TPI_COEF_INT,
                 CONF_TPI_COEF_EXT,

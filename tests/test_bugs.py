@@ -407,9 +407,10 @@ async def test_bug_500_1(hass: HomeAssistant, init_vtherm_api) -> None:
 
     flow = VersatileThermostatBaseConfigFlow(config)
 
-    assert flow._infos[CONF_USE_WINDOW_FEATURE] is True
-    assert flow._infos[CONF_USE_POWER_FEATURE] is True
-    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is True
+    assert flow._infos[CONF_USE_WINDOW_FEATURE] is False
+    assert flow._infos[CONF_USE_POWER_FEATURE] is False
+    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is False
+    # we have a motion sensor configured
     assert flow._infos[CONF_USE_MOTION_FEATURE] is True
 
 
