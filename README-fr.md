@@ -57,29 +57,18 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 
 # Quelques résultats
 
-**Convergence de la température vers la cible configurée par preset:**
+**Stabilité de la température autour de la cible configurée par preset:**
 
 ![image](documentation/fr/images/results-1.png)
 
 Cycle de marche/arrêt calculé par l'intégration (`over_climate`):
 ![image](documentation/fr/images/results-2.png)
 
-**Coef_int trop élevé (oscillations autour de la cible)**
-
-![image](documentation/fr/images/results-3.png)
-
-**Évolution du calcul de l'algorithme**
+**Régulation avec un `over_switch`**
 
 ![image](documentation/fr/images/results-4.png)
 
 Voir le code de ce composant [[ci-dessous](#even-better-with-apex-chart-to-tune-your-thermostat)]
-
-**Thermostat finement réglé**
-
-Merci [impuR_Shozz](https://forum.hacf.fr/u/impur_shozz/summary) !
-On peut voir une stabilité autour de la température cible (consigne) et lorsqu'à cible le on_percent (puissance) est proche de 0,3 ce qui semble une très bonne valeur.
-
-![image](images/results-fine-tuned.png)
 
 **Regulation forte en `over_climate`**
 
