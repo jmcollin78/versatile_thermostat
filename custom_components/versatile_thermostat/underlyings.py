@@ -838,10 +838,14 @@ class UnderlyingClimate(UnderlyingEntity):
             and self._underlying_climate is not None
         ):
             min_val = TemperatureConverter.convert(
-                self._underlying_climate.min_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
+                self._underlying_climate.min_temp,
+                self._underlying_climate.temperature_unit,
+                self._hass.config.units.temperature_unit,
             )
             max_val = TemperatureConverter.convert(
-                self._underlying_climate.max_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
+                self._underlying_climate.max_temp,
+                self._underlying_climate.temperature_unit,
+                self._hass.config.units.temperature_unit,
             )
 
             new_value = max(min_val, min(value, max_val))
@@ -1081,82 +1085,83 @@ class UnderlyingValveRegulation(UnderlyingValve):
         # Send opening_degree
         await super().send_percent_open()
 
-# Handle closing_degree adjustments
-closing_degree = 0  # Default to 0 to prevent uninitialized use
-buffer = 1  # Define a buffer to prevent idle states at boundaries
-min_closing_threshold = 1  # Minimum allowed value for closing_degree when system must stay active
+        # Handle closing_degree adjustments
+        closing_degree = None
+        buffer = 1  # Define a buffer to prevent idle states at boundaries
+        min_closing_threshold = (
+            1  # Minimum allowed value for closing_degree when system must stay active
+        )
 
-if self.have_closing_degree_entity:
-    # Calculate closing_degree with buffer logic
-    closing_degree = self._max_opening_degree - self._percent_open - buffer
+        if self.have_closing_degree_entity:
+            # Calculate closing_degree with buffer logic
+            closing_degree = self._max_opening_degree - self._percent_open - buffer
 
-    # Special handling for edge cases to ensure proper system behavior
-    if self._percent_open == 100:
-        # Fully open: Adjust closing_degree to prevent idle state
-        closing_degree = min_closing_threshold
-        _LOGGER.info(
-            "%s - Fully open: Adjusted closing_degree to %s to avoid idle state.",
+            # Special handling for edge cases to ensure proper system behavior
+            if self._percent_open == 100:
+                # Fully open: Adjust closing_degree to prevent idle state
+                closing_degree = min_closing_threshold
+                _LOGGER.info(
+                    "%s - Fully open: Adjusted closing_degree to %s to avoid idle state.",
+                    self,
+                    closing_degree,
+                )
+            elif self._percent_open == 99 and buffer == 1:
+                # Almost fully open: Allow closing_degree to reach 0
+                closing_degree = 0
+                _LOGGER.info(
+                    "%s - Almost fully open: Set closing_degree to 0 to maintain functionality.",
+                    self,
+                )
+            elif self._percent_open == 0:
+                # Fully closed: Allow system to idle with max closing_degree
+                closing_degree = self._max_opening_degree
+                _LOGGER.info(
+                    "%s - Fully closed: Set closing_degree to %s to allow idle state.",
+                    self,
+                    closing_degree,
+                )
+            else:
+                # General case: Apply standard buffer and clamp to valid range
+                closing_degree = max(
+                    min(self._max_opening_degree, closing_degree), min_closing_threshold
+                )
+
+                if closing_degree < min_closing_threshold:
+                    _LOGGER.warning(
+                        "%s - closing_degree below minimum threshold. Adjusted to %s. "
+                        "max_opening_degree=%s, percent_open=%s, buffer=%s",
+                        self,
+                        min_closing_threshold,
+                        self._max_opening_degree,
+                        self._percent_open,
+                        buffer,
+                    )
+                    closing_degree = min_closing_threshold
+                elif closing_degree > self._max_opening_degree:
+                    _LOGGER.warning(
+                        "%s - closing_degree exceeded max_opening_degree. Adjusted to %s. "
+                        "max_opening_degree=%s, percent_open=%s, buffer=%s",
+                        self,
+                        self._max_opening_degree,
+                        self._max_opening_degree,
+                        self._percent_open,
+                        buffer,
+                    )
+                    closing_degree = self._max_opening_degree
+
+            # Send the calculated closing_degree to the appropriate entity
+            await self._send_value_to_number(
+                self._closing_degree_entity_id, closing_degree
+            )
+
+        _LOGGER.debug(
+            "%s - Final closing_degree=%s, percent_open=%s, max_opening_degree=%s, buffer=%s",
             self,
             closing_degree,
+            self._percent_open,
+            self._max_opening_degree,
+            buffer,
         )
-    elif self._percent_open == 99 and buffer == 1:
-        # Almost fully open: Allow closing_degree to reach 0
-        closing_degree = 0
-        _LOGGER.info(
-            "%s - Almost fully open: Set closing_degree to 0 to maintain functionality.",
-            self,
-        )
-    elif self._percent_open == 0:
-        # Fully closed: Allow system to idle with max closing_degree
-        closing_degree = self._max_opening_degree
-        _LOGGER.info(
-            "%s - Fully closed: Set closing_degree to %s to allow idle state.",
-            self,
-            closing_degree,
-        )
-    else:
-        # General case: Apply standard buffer and clamp to valid range
-        closing_degree = max(
-            min(self._max_opening_degree, closing_degree), min_closing_threshold
-        )
-
-        if closing_degree < min_closing_threshold:
-            _LOGGER.warning(
-                "%s - closing_degree below minimum threshold. Adjusted to %s. "
-                "max_opening_degree=%s, percent_open=%s, buffer=%s",
-                self,
-                min_closing_threshold,
-                self._max_opening_degree,
-                self._percent_open,
-                buffer,
-            )
-            closing_degree = min_closing_threshold
-        elif closing_degree > self._max_opening_degree:
-            _LOGGER.warning(
-                "%s - closing_degree exceeded max_opening_degree. Adjusted to %s. "
-                "max_opening_degree=%s, percent_open=%s, buffer=%s",
-                self,
-                closing_degree,
-                self._max_opening_degree,
-                self._percent_open,
-                buffer,
-            )
-            closing_degree = self._max_opening_degree
-
-    # Send the calculated closing_degree to the appropriate entity
-    if closing_degree is not None:
-        await self._send_value_to_number(
-            self._closing_degree_entity_id, closing_degree
-        )
-
-_LOGGER.debug(
-    "%s - Final closing_degree=%s, percent_open=%s, max_opening_degree=%s, buffer=%s",
-    self,
-    closing_degree,
-    self._percent_open,
-    self._max_opening_degree,
-    buffer,
-)
 
         # send offset_calibration to the difference between target temp and local temp
         offset = None
