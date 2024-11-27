@@ -1132,6 +1132,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Returns the underlying entities"""
         return self._underlyings
 
+    @property
+    def activable_underlying_entities(self) -> list | None:
+        """Returns the activable underlying entities for controling the central boiler"""
+        return self.underlying_entities
+
     def find_underlying_by_entity_id(self, entity_id: str) -> Entity | None:
         """Get the underlying entity by a entity_id"""
         for under in self._underlyings:

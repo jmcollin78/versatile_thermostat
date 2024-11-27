@@ -284,6 +284,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         else:
             return 0
 
+    @property
+    def activable_underlying_entities(self) -> list | None:
+        """Returns the activable underlying entities for controling the central boiler"""
+        return self._underlyings_valve_regulation
+
     @overrides
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
         """This should not be possible in valve regulation mode"""
