@@ -7,7 +7,7 @@ L'installation doit ressembler à ça :
 
 1. L'utilisateur ou une automatisation ou le Sheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
 2. régulièrement le thermomètre intérieur (2) ou extérieur (2b) ou interne à l'équipement (2c) envoie la température mesurée. Le thermomètre intérieur doit être placé à une place pertinente pour le ressenti de l'utilisateur : idéalement au milieu du lieu de vie. Evitez de le mettre trop près d'une fenêtre ou trop proche de l'équipement,
-3. avec les valeurs de consigne, des différents et les paramètres de l'auto-régulation (cf. TODO), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacentes,
+3. avec les valeurs de consigne, des différents et les paramètres de l'auto-régulation (cf. [auto-regulation](self-regulation.md)), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacentes,
 4. l'entité `climate` sous-jacente contrôle l'équipement avec son propre protocole,
 5. selon les options de régulation choisie le VTherm pourra potentiellement contrôler directement l'ouverture d'une vanne thermostatique ou calibrer l'équipement pour que sa température interne soit le reflet de la température de la pièce.
 
@@ -30,7 +30,7 @@ En mode `over_cliamte`, le device utilise son propre algorithme de régulation :
 
 Selon l'équipement cette régulation interne peut être plus ou moins bonne. Ca dépend beaucoup de la qualité de l'équipement, du fonctionnement de son thermomètre interne et de son algorithme interne. Pour améliorer les équipements qui régule mal, VTherm propose de tricher un peu sur la consigne qui lui est envoyée en augmentant ou diminuant celle-ci en fonction cette fois de la température de la pièce mesurée par VTherm et non plus de la température interne.
 
-Les choix d'auto-régulation sont décrits dans le détail ici (TODO).
+Les choix d'auto-régulation sont décrits dans le détail [ici](self-regulation.md).
 
 Afin d'éviter de trop solliciter l'équipement sous-jacent (certain font un bip désagréable, d'autres sont sur batterie, ...), deux seuils permettant de limiter le nombre de sollicitation sont proposés :
 1. le seuil de régulation : un seuil en ° en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne était de 22°, alors la prochaine envoyée, sera de 22° +/- seuil de régulation,
@@ -75,4 +75,4 @@ Les fonctions spécifiques sont paramétrables avec une option dédiée du menu.
 
 Les fonctions spécifiques qui nécessite un paramétrage à ce type de VTherm sont :
 1. l'auto-start/stop : arrêt et démarrage automatique du VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
-2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf (TODO TPI)
+2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf ([algorithmes](algorithms.md))

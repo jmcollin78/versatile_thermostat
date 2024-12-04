@@ -1,5 +1,10 @@
 # La configuration avancée
 
+- [La configuration avancée](#la-configuration-avancée)
+  - [Configuration avancée](#configuration-avancée)
+  - [La mise en sécurité](#la-mise-en-sécurité)
+
+
 ## Configuration avancée
 
 Ces paramètres permettent d'affiner le réglage du thermostat.
@@ -8,6 +13,8 @@ Le formulaire de configuration avancée est le suivant :
 ![image](images/config-advanced.png)
 
 Le premier délai (minimal_activation_delay_sec) en secondes est le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint.
+
+## La mise en sécurité
 
 Le deuxième délai (``security_delay_min``) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security``. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur passeront en mode ``security`` après ce délai. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
 
@@ -18,7 +25,7 @@ Le quatrième param§tre (``security_default_on_percent``) est la valeur de ``on
 
 Note: les paramètres `security_min_on_percent` et `security_default_on_percent` ne s'applique pas aux VTherms `over_climate`.
 
-Depuis la version 5.3 il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
+Il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
 ```
 versatile_thermostat:
 ...
@@ -34,4 +41,4 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
 > 4. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
-> 5. Les thermostats de type ``thermostat_over_climate`` ne sont pas concernés par le mode security.
+

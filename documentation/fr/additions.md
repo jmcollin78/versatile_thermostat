@@ -1,5 +1,13 @@
 # Quelques compléments indispensables
 
+- [Quelques compléments indispensables](#quelques-compléments-indispensables)
+  - [Bien mieux avec le Versatile Thermostat UI Card](#bien-mieux-avec-le-versatile-thermostat-ui-card)
+  - [Encore mieux avec le composant Scheduler !](#encore-mieux-avec-le-composant-scheduler-)
+  - [Encore bien mieux avec la custom:simple-thermostat front integration](#encore-bien-mieux-avec-la-customsimple-thermostat-front-integration)
+  - [Toujours mieux avec Plotly pour régler votre thermostat](#toujours-mieux-avec-plotly-pour-régler-votre-thermostat)
+  - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
+
+
 ## Bien mieux avec le Versatile Thermostat UI Card
 Une carte spéciale pour le Versatile Thermostat a été développée (sur la base du Better Thermostat). Elle est dispo ici [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) et propose une vision moderne de tous les status du VTherm :
 

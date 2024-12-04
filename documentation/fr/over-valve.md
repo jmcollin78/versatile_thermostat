@@ -23,6 +23,7 @@ L'installation doit ressembler à celle pour le VTherm `over_switch` sauf que l'
 ## Configuration
 
 Cliquer sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
+
 ![image](images/config-linked-entity2.png)
 
 ### les sous-jacents

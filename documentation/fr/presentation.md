@@ -28,13 +28,16 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
 - Utilisations complètes du **mode préréglages**,
 - Désactiver le mode préréglé lorsque la température est **définie manuellement** sur un thermostat,
-- Éteindre/allumer un thermostat lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
+- Éteindre/allumer un thermostat ou chager de preset lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
 - Changer de preset lorsqu'une **activité est détectée** ou non dans une pièce pendant un temps défini,
 - Utiliser un algorithme **TPI (Time Proportional Interval)** grâce à l'algorithme [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] ,
 - Ajouter une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.
-- La **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
-- Des **services pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
+- La **gestion de la présence à domicile**. Cette fonctionnalité vous permet de modifier dynamiquement la température du préréglage en tenant compte d'un capteur de présence de votre maison.
+- Des **actions pour interagir avec le thermostat** à partir d'autres intégrations : vous pouvez forcer la présence / la non-présence à l'aide d'un service, et vous pouvez modifier dynamiquement la température des préréglages et changer les paramètres de sécurité.
 - Ajouter des capteurs pour voir les états internes du thermostat,
 - Contrôle centralisé de tous les Versatile Thermostat pour les stopper tous, les passer tous en hors-gel, les forcer en mode Chauffage (l'hiver), les forcer en mode Climatisation (l'été).
 - Contrôle d'une chaudière centrale et des VTherm qui doivent contrôler cette chaudière.
+- Un arrêt démarrage automatique basé sur une prévision d'usage pour les `over_climate`.
+
+Toutes ces fonctions sont configurables de façon centralisée ou individuelle en fonction de vos besoins.
 

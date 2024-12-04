@@ -30,11 +30,12 @@ Choisissez le menu "Fonctions".
 ![image](images/config-features.png)
 
 Les différentes fonctions que vous souhaitez utiliser pour ce VTherm :
-1. la détection d'ouvertures (portes, fenêtres) permettant de stopper le chauffage lorsque l'ouverture est ouverte. (f. TODO)
-2. la détection de mouvement : VTherm peut adapter une consigne de température lorsqu'un mouvement est détecté dans la pièce. (cf. TODO)
-3. la gestion de la puissance : VTherm peut stopper un équipement si la puissance consommée dans votre habitation dépasse un seuil. (cf TODO)
-4. la détection de présence : si vous avez un capteur indiquant une présence ou non dans votre habitation, vous pouvez l'utiliser pour changer la température de consigne. CF. TODO. Attention de ne pas confondre cette fonction avec la détection de mouvement. La présence est plus faite pour être à l'échelle de l'habitation alors que le mouvement est plus fait pour être à l'échelle de la pièce.
-5. l'arrêt/démarrage automatique : pour les VTherm de type `over_climate` uniquement. Cette fonction permet d'arrêter un équipement lorsque VTherm détete qu'il ne sera plus néessaire pendant un certain temps. Il utilise la courbe de température pour prévoir quand l'équipement sera de nouveau utile et le rallumera à ce moment là.
+1. la détection d'ouvertures (portes, fenêtres) permettant de stopper le chauffage lorsque l'ouverture est ouverte. (cf. [gestion des ouvertures](feature-window.md))
+2. la détection de mouvement : VTherm peut adapter une consigne de température lorsqu'un mouvement est détecté dans la pièce. (cf. [détection du mouvement](feature-motion.md))
+3. la gestion de la puissance : VTherm peut stopper un équipement si la puissance consommée dans votre habitation dépasse un seuil. (cf. [gestion du délestage](feature-power.md))
+4. la détection de présence : si vous avez un capteur indiquant une présence ou non dans votre habitation, vous pouvez l'utiliser pour changer la température de consigne. Cf. [gestion de la présence](feature-presence.md). Attention de ne pas confondre cette fonction avec la détection de mouvement. La présence est plus faite pour être à l'échelle de l'habitation alors que le mouvement est plus fait pour être à l'échelle de la pièce.
+5. l'arrêt/démarrage automatique : pour les VTherm de type `over_climate` uniquement. Cette fonction permet d'arrêter un équipement lorsque VTherm détete qu'il ne sera plus néessaire pendant un certain temps. Il utilise la courbe de température pour prévoir quand l'équipement sera de nouveau utile et le rallumera à ce moment là. Cf. [gestion de l'arrêt/démarrage automatique](feature-auto-start-stop.md)
+
 
 > ![Astuce](images/tips.png) _*Notes*_
 > 1. La liste des fonctions disponibles s'adapte à votre type de VTherm.
