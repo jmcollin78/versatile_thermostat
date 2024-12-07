@@ -2500,7 +2500,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
         else:
             _LOGGER.info(
-                "%s - Window is open. Set hvac_mode to '%s'", self, HVACMode.OFF
+                "%s - Window is open. Apply window action %s", self, self._window_action
             )
             if self._window_action == CONF_WINDOW_TURN_OFF and not self.is_on:
                 _LOGGER.debug(

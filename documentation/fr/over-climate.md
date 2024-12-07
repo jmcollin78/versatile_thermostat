@@ -1,5 +1,15 @@
 # Thermostat de type `thermostat_over_climate`
 
+- [Thermostat de type `thermostat_over_climate`](#thermostat-de-type-thermostat_over_climate)
+  - [Pré-requis](#pré-requis)
+  - [Configuration](#configuration)
+    - [les sous-jacents](#les-sous-jacents)
+    - [Le mode AC](#le-mode-ac)
+    - [L'auto-régulation](#lauto-régulation)
+    - [L'auto-ventilation (auto-fan)](#lauto-ventilation-auto-fan)
+    - [Compenser la température interne du sous-jacent](#compenser-la-température-interne-du-sous-jacent)
+  - [Fonctions spécifiques](#fonctions-spécifiques)
+
 ## Pré-requis
 
 L'installation doit ressembler à ça :
@@ -65,7 +75,7 @@ Cet écart est calculé pour chaque sous-jacent car chacun à sa propre tempéra
 
 On obtient alors une auto-régulation bien plus efficace qui évite l'eccueil des gros écarts de température interne défaillante.
 
-Attention toutefois, certaine température interne varient tellement vite et sont tellement fausse qu'elles faussent totalement le calcul. Dans ce cas, là, il vaut mieux désactiver cette option.
+Attention toutefois, certaines températures internes varient tellement vite et sont tellement fausses qu'elles faussent totalement le calcul. Dans ce cas, là, il vaut mieux désactiver cette option.
 
 Vous trouverez des conseils pour régler au mieux ces paramètres dans la page (TODO optimiser)
 

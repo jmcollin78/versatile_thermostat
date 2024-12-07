@@ -1,7 +1,46 @@
 
-#### L'auto-régulation
-Depuis la release 3.8, vous avez la possibilité d'activer la fonction d'auto-régulation. Cette fonction autorise VersatileThermostat à adapter la consigne de température donnée au climate sous-jacent afin que la température de la pièce atteigne réellement la consigne.
-Pour faire ça, le VersatileThermostat calcule un décalage basé sur les informations suivantes :
+# L'auto-régulation
+
+- [L'auto-régulation](#lauto-régulation)
+      - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
+      - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
+
+Vous avez la possibilité d'activer la fonction d'auto-régulation pour les _VTherm_ de type `over_climate` uniquement.
+
+Il y a globalement 2 cas :
+1. Si votre sous-jacent est un _TRV_ et que la vanne est commandable directement dans Home Assistant (Sonoff TRVZB par exemple), cette fonction va autoriser _VTherm_ a manipuler directement l'ouverture de la vanne pour effectuer la régulation. L'ouverture est alors calculé par un algorithme de type _TPI_ (cf. [ici](algorithms.md)).
+2. Sinon, Versatile Thermostat va adapter la consigne de température donnée au climate sous-jacent afin que la température de la pièce atteigne réellement la consigne.
+
+## Configuration
+
+### auto-régulation par contrôle direct de la vanne
+
+Ce type d'auto-régulation nommé `Controle direct de la vanne` nécessite :
+1. une entité de type `climate` qui est mis dans les sous-jacents du _VTherm_,
+2. une enité de type `number` qui permet de contrôle du taux d'ouverture de la vanne du _TRV_,
+3. une entité facultative de type `number` permettant de calibrer la température interne du sous-jacent,
+3. une entité facultative de type `number` permettant le contrôle de la fermeture de la vanne
+
+Lorsque l'auto-regulation choisie est `Contrôle direct de la vanne` sur un _VTherm_ `over_climate` alors une nouvelle page de configuration nommée `Configuration de la régulation par vanne` apparait :
+
+![Menu de configuration](images/config-self-regulation-valve-1.png)
+
+Elle permet de configurer les entités de contrôle de la vanne :
+
+![Entités de configuration](images/config-self-regulation-valve-2.png)
+
+Vous devez donner :
+1. autant d'entités de contrôle d'ouverture de la vanne qu'il y a de sous-jacents et dans le même odre. Ces paramètres sont obligatoires,
+2. autant d'entités de calibrage du décalage de température qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,
+3. autant d'entités de de contrôile du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun
+
+L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décrit [ici](algorithms.md). C'est le même algorithme qui est utilisé pour les _VTherm_ `over_switch` et `over_valve`.
+
+Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné avec la valeur 100 - taux d'ouverture pour forcer la vanne dans un état.
+
+### autres auto-régulation
+
+Dans ce deuxième cas, le Versatile Thermostat calcule un décalage basé sur les informations suivantes :
 1. la différence actuelle entre la température réelle et la température de consigne, appelé erreur brute,
 2. l'accumulation des erreurs passées,
 3. la différence entre la température extérieure et la consigne
@@ -90,31 +129,24 @@ Strong régulation :
     stabilization_threshold: 0.1
     accumulated_error_threshold: 50
 
-Pour utiliser le mode Expert il vous faut déclarer les valeurs que vous souhaitez utiliser pour chacun de ces paramètres dans votre `configuration.yaml` sous la forme suivante :
+Pour utiliser le mode Expert il vous faut déclarer les valeurs que vous souhaitez utiliser pour chacun de ces paramètres dans votre `configuration.yaml` sous la forme suivante. Exemple de 'Extrem regulation` :
 ```
 versatile_thermostat:
     auto_regulation_expert:
-        kp: 0.4
-        ki: 0.08
+        kp: 0.6
+        ki: 0.1
         k_ext: 0.0
-        offset_max: 5
+        offset_max: 10
         stabilization_threshold: 0.1
-        accumulated_error_threshold: 50
+        accumulated_error_threshold: 80
 ```
-et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les VTherm en mode **Expert** utiliseront ces mêmes paramètres.
+et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les _VTherm_ en mode **Expert** utiliseront ces mêmes paramètres, il n'est pas possible d'avoir plusieurs réglages expert différent.
 
 Pour que les modifications soient prises en compte, il faut soit **relancer totalement Home Assistant** soit juste l'intégration Versatile Thermostat (Outils de dev / Yaml / rechargement de la configuration / Versatile Thermostat).
 
+> ![Astuce](images/tips.png) _*Notes*_
+> 1. En mode expert, il est rarement nécessaire d'utiliser l'option [Compenser la température interne du sous-jacent](over-climate.md#compenser-la-température-interne-du-sous-jacent). Cela risque de générer des consignes vraiment très forte.
 
-#### Synthèse de l'algorithme d'auto-régulation
-L'algorithme d'auto-régulation peut être synthétisé comme suit:
+## Synthèse de l'algorithme d'auto-régulation
 
-1. initialiser la température cible comme la consigne du VTherm,
-1. Si l'auto-régulation est activée,
-   1. calcule de la température régulée (valable pour un VTherm),
-   2. prendre cette température comme cible,
-2. Pour chaque sous-jacent du VTherm,
-     1. Si "utiliser la température interne" est cochée,
-          1. calcule de l'écart (trv internal temp - room temp),
-     2. ajout de l'écart à la température cible,
-     3. envoie de la température cible ( = temp regulee + (temp interne - temp pièce)) au sous-jacent
+Une synthèse de l'algorithme d'auto-régulation est décrite [ici](algorithms.md#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)

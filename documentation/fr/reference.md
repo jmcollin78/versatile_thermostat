@@ -1,5 +1,16 @@
 # Documentation de référence
 
+- [Documentation de référence](#documentation-de-référence)
+  - [Synthèse des paramètres](#synthèse-des-paramètres)
+- [Capteurs](#capteurs)
+- [Actions (services)](#actions-services)
+  - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
+  - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
+  - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
+  - [ByPass Window Check](#bypass-window-check)
+- [Evènements](#evènements)
+- [Attributs personnalisés](#attributs-personnalisés)
+
 ## Synthèse des paramètres
 
 | Paramètre                                 | Libellé                                                                           | "over switch" | "over climate"      | "over valve" | "configuration centrale" |
@@ -63,7 +74,7 @@
 | ``central_boiler_deactivation_service``   | Service de desactivation de la chaudière                                          | -             | -                   | -            | X                        |
 | ``used_by_controls_central_boiler``       | Indique si le VTherm contrôle la chaudière centrale                               | X             | X                   | X            | -                        |
 | ``use_auto_start_stop_feature``           | Indique si la fonction de démarrage/extinction automatique est activée            | -             | X                   | -            | -                        |
-| ``auto_start_stop_lvel``                  | Le niveau de détection de l'auto start/stop                                       | -             | X                   | -            | -                        |
+| ``auto_start_stop_level``                 | Le niveau de détection de l'auto start/stop                                       | -             | X                   | -            | -                        |
 
 # Capteurs
 
@@ -73,19 +84,23 @@ Avec le thermostat sont disponibles des capteurs qui permettent de visualiser le
 
 Dans l'ordre, il y a :
 1. l'entité principale climate de commande du thermostat,
-2. l'énergie consommée par le thermostat (valeur qui s'incrémente en permanence),
-3. l'heure de réception de la dernière température extérieure,
-4. l'heure de réception de la dernière température intérieure,
-5. la puissance moyenne de l'appareil sur le cycle (pour les TPI seulement),
-6. le temps passé à l'état éteint dans le cycle (TPI seulement),
-7. le temps passé à l'état allumé dans le cycle (TPI seulement),
-8. l'état de délestage,
-9. le pourcentage de puissance sur le cycle (TPI seulement),
-10. l'état de présence (si la gestion de la présence est configurée),
-11. l'état de sécurité,
-12. l'état de l'ouverture (si la gestion des ouvertures est configurée),
-13. l'état du mouvement (si la gestion du mouvements est configurée)
-14. le pourcentage d'ouverture de la vanne (pour le type `over_valve`)
+2.  l'entité permettant d'autoriser la fonction auto-start/stop
+3.  l'entité permettant d'indiquer au _VTherm_ de suivre les changement du sous-jacents,
+4. l'énergie consommée par le thermostat (valeur qui s'incrémente en permanence),
+5. l'heure de réception de la dernière température extérieure,
+6. l'heure de réception de la dernière température intérieure,
+7. la puissance moyenne de l'appareil sur le cycle (pour les TPI seulement),
+8. le temps passé à l'état éteint dans le cycle (TPI seulement),
+9. le temps passé à l'état allumé dans le cycle (TPI seulement),
+10. l'état de délestage,
+11. le pourcentage de puissance sur le cycle (TPI seulement),
+12. l'état de présence (si la gestion de la présence est configurée),
+13. l'état de sécurité,
+14. l'état de l'ouverture (si la gestion des ouvertures est configurée),
+15. l'état du mouvement (si la gestion du mouvements est configurée)
+16. le pourcentage d'ouverture de la vanne (pour le type `over_valve`),
+
+La présence de ces entités est conditionnée au fait que la fonction associée soit présente.
 
 Pour colorer les capteurs, ajouter ces lignes et personnalisez les au besoin, dans votre configuration.yaml :
 
@@ -104,9 +119,9 @@ et choisissez le thème ```versatile_thermostat_theme``` dans la configuration d
 
 ![image](images/colored-thermostat-sensors.png)
 
-# Services
+# Actions (services)
 
-Cette implémentation personnalisée offre des services spécifiques pour faciliter l'intégration avec d'autres composants Home Assistant.
+Cette implémentation personnalisée offre des actions (ex service) spécifiques pour faciliter l'intégration avec d'autres composants Home Assistant.
 
 ## Forcer la présence/occupation
 Ce service permet de forcer l'état de présence indépendamment du capteur de présence. Cela peut être utile si vous souhaitez gérer la présence via un service et non via un capteur. Par exemple, vous pouvez utiliser votre réveil pour forcer l'absence lorsqu'il est allumé.
@@ -190,6 +205,7 @@ Les évènements notifiés sont les suivants:
 - ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_central_boiler_event`` : un évènement indiquant un changement dans l'état de la chaudière.
+- ``versatile_thermostat_auto_start_stop_event`` : un évènement indiquant un arrêt ou une relance fait par la fonction d'auto-start/stop
 
 Si vous avez bien suivi, lorsqu'un thermostat passe en mode sécurité, 3 évènements sont déclenchés :
 1. ``versatile_thermostat_temperature_event`` pour indiquer qu'un thermomètre ne répond plus,
@@ -254,3 +270,4 @@ Les attributs personnalisés sont les suivants :
 | ``auto_start_stop_level``         | Indique le niveau d'auto start/stop                                                                                                                                      |
 | ``hvac_off_reason``               | Indique la raison de l'arrêt (hvac_off) du VTherm. Ce peut être Window, Auto-start/stop ou Manuel                                                                        |
 
+Ces attributs vous seront demandés lors d'une demande d'aide.

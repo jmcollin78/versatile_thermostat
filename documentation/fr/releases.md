@@ -1,20 +1,26 @@
-> ![Nouveau](images/new-icon.png) _*Historique des dernières versions*_
+# Note de versions
+
+![Nouveau](images/new-icon.png)
+
 > * **Release 6.8**:
->   - Ajout d'une nouvelle méthode de régulation pour les Versatile Thermostat de type `over_climate`. Cette méthode nommée 'Contrôle direct de la vanne' permet de contrôler directement la vanne d'un TRV et éventuellement un décalage pour calibrer le thermomètre interne de votre TRV. Cette nouvelle méthode a été testée avec des Sonoff TRVZB et généralisée pour d'autre type de TRV pour lesquels la vanne est directement commandable via des entités de type `number`
-> * **Release 6.5** :
->   - Ajout d'une nouvelle fonction permettant l'arrêt et la relance automatique d'un VTherm `over_climate` [585](https://github.com/jmcollin78/versatile_thermostat/issues/585)
->   - Amélioration de la gestion des ouvertures au démarrage. Permet de mémoriser et de recalculer l'état d'une ouverture au redémarage de Home Assistant [504](https://github.com/jmcollin78/versatile_thermostat/issues/504)
-> * **Release 6.0** :
->   - Ajout d'entités du domaine Number permettant de configurer les températures des presets [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
->   - Refonte complète du menu de configuration pour supprimer les températures et utililsation d'un menu au lieu d'un tunnel de configuration [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
-> * **Release 5.4** :
->   - Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
->   - ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
->   - ajout d'une option permettant d'utiliser la température interne d'un TRV pour forcer l' auto-régulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
->   - ajout d'une fonction de keep-alive pour les VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
+>   - Ajout d'une nouvelle méthode de régulation pour les Versatile Thermostat de type `over_climate`. Cette méthode nommée 'Contrôle direct de la vanne' permet de contrôler directement la vanne d'un TRV et éventuellement un décalage pour calibrer le thermomètre interne de votre TRV. Cette nouvelle méthode a été testée avec des Sonoff TRVZB et généralisée pour d'autre type de TRV pour lesquels la vanne est directement commandable via des entités de type `number`. Plus d'informations [ici](over-climate.md#lauto-régulation) et [ici](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne).
+
+## **Release 6.5** :
+  - Ajout d'une nouvelle fonction permettant l'arrêt et la relance automatique d'un VTherm `over_climate` [585](https://github.com/jmcollin78/versatile_thermostat/issues/585)
+  - Amélioration de la gestion des ouvertures au démarrage. Permet de mémoriser et de recalculer l'état d'une ouverture au redémarage de Home Assistant [504](https://github.com/jmcollin78/versatile_thermostat/issues/504)
+
+## **Release 6.0** :
+  - Ajout d'entités du domaine `number` permettant de configurer les températures des presets [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
+  - Refonte complète du menu de configuration pour supprimer les températures et utililsation d'un menu au lieu d'un tunnel de configuration [354](https://github.com/jmcollin78/versatile_thermostat/issues/354)
+
+## **Release 5.4** :
+  - Ajout du pas de température [#311](https://github.com/jmcollin78/versatile_thermostat/issues/311),
+  - ajout de seuils de régulation pour les `over_valve` pour éviter de trop vider la batterie des TRV [#338](https://github.com/jmcollin78/versatile_thermostat/issues/338),
+  - ajout d'une option permettant d'utiliser la température interne d'un TRV pour forcer l' auto-régulation [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348),
+  - ajout d'une fonction de keep-alive pour les VTherm `over_switch` [#345](https://github.com/jmcollin78/versatile_thermostat/issues/345)
 
 <details>
-<summary>Autres versions</summary>
+<summary>Autres versions plus anciennes</summary>
 
 > * **Release 5.3** : Ajout d'une fonction de pilotage d'une chaudière centrale [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - plus d'infos ici: [Le contrôle d'une chaudière centrale](#le-contrôle-dune-chaudière-centrale). Ajout de la possibilité de désactiver le mode sécurité pour le thermomètre extérieur [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343)
 > * **Release 5.2** : Ajout d'un `central_mode` permettant de piloter tous les VTherms de façon centralisée [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
@@ -38,92 +44,6 @@
 > * **release majeure 2.0** : ajout du thermostat "over climate" permettant de transformer n'importe quel thermostat en Versatile Thermostat et lui ajouter toutes les fonctions de ce dernier.
 </details>
 
-<details>
-<summary>Changements dans la version 6.0</summary>
-# Changements dans la version 6.0
-
-## Entités de température pour les pre-réglages
-Les températures des presets sont maintenant directement acessibles sous la forme d'entités reliés au VTherm.
-Exemple :
-
-![Entités température](images/temp-entities-1.png)
-
-Les entités Boost, Confort, Eco et Hors-gel permettent de régler directement les températures de ces présets sans avoir à reconfigurer le VTHerm dans les écrans de configuration.
-Ces modifications sont persistentent à un redémarrage et sont prises en compte immédiatement par le VTherm.
-
-En fonction des fonctions activées, la liste des températures peut être plus ou moins complète :
-1. Si la gestion de présence est activée, les presets en cas d'absence sont créés. Ils sont suffixés par 'abs' pour absence,
-2. Si la gestion de la climatisation (Mode AC) est activé, les presets en mode clim sont créés. Ils sont suffixés par 'clim' pour climatisation. Seul le preset Hors gel n'a pas d'équivalent en mode clim,
-3. Les différentes combinaison absent et clim peuvent être créés en fonction de la configuration du VTherm
-
-Si un VTherm utilise les preset de la configuration centrale, ces entités ne sont pas créées, car les températures des presets sont gérés par la configuration centrale.
-
-### Dans le cas d'une configuration centrale
-Si vous avez configuré une configuration centrale, celle-ci possède aussi ses propres presets qui répondent au même règles qu'énoncées ci-dessus.
-Exemple d'une configuration centrale avec gestion de présence et mode AC (climatisation) :
-
-![Entités température](images/temp-entities-2.png)
-
-Dans le cas d'un changement d'une température de la configuration centrale, tous les VTherm qui utilisent ce preset sont immédiatement mis à jour.
-
-## Refonte du menu de configuration
-Le menu de configuration a été totalement revu. Il s'adapte dynamiquement aux choix de l'utilisateur et permet d'accéder directement aux réglages de la fonction voulue sans avoir à dérouler tous le tunnel de configuration.
-
-Pour créer un nouveau VTherm, il faudra d'abord choisir le type de VTherm :
-
-![Choix VTherm](images/config-main0.png)
-
-Puis, vous accédez maintenant au menu de configuration suivant :
-
-![VTherm menu](images/config-menu.png)
-
-Chaque partie à configurer est accessible directement, sans avoir à dérouler tout le tunnel de configuration comme précédemment.
-
-Vous noterez l'option de menu nommée `Fonctions` qui permet de choisir quelles fonctions vont être implémentées pour ce VTherm :
-
-![VTherm fonctions](images/config-features.png)
-
-En fonction de vos choix, le menu principal s'adaptera pour ajouter les options nécessaires.
-
-Exemple de menu avec toutes les fonctions cochées :
-
-![VTherm menu](images/config-menu-all-options.png)
-Vous pouvez constater que les options 'Détection des ouvertures', 'Détection de mouvement', 'Gestion de la puissance' et 'Gestion de présence' ont été ajoutées. Vous pouvez alors les configurer.
-
-### Les options de menu 'Configuration incomplète' et 'Finaliser'
-
-La dernière option du menu est spéciale. Elle permet de valider la création du VTherm lorsque toutes les fonctions ont été correctement configurées.
-Si l'une options n'est pas correctement configurée, la dernière option est la suivante :
-
-![Configuration incomplète](images/config-not-complete.png)
-
-Sa sélection ne fait rien mais vous empêche de finaliser la création (resp. la modification) du VTherm.
-**Vous devez alors chercher dans les options laquelle manque**.
-
-Une fois que toute la configuration est valide, la dernière option se transforme en :
-
-![Configuration complète](images/config-complete.png)
-
-Cliquez sur cette option pour créér (resp. modifier) le VTherm :
-
-![Configuration terminée](images/config-terminate.png)
-</details>
-
-<details>
-<summary>Changements dans la version 5.0</summary>
-
-# Changements dans la version 5.0
-
-Vous pouvez maintenant définir une configuration centrale qui va vous permettre de mettre en commun sur tous vos VTherms (ou seulement une partie), certains attributs. Pour utiliser cette possibilité, vous devez :
-1. Créer un VTherm de type "Configuration Centrale",
-2. Saisir les attributs de cette configuration centrale
-
-Pour l'utiliser ensuite dans les autres VTherms, vous devez les reconfigurer et à chaque fois que c'est possible cocher la case "Utiliser la configuration centrale". Cette case à cocher apparait dans tous les groupes d'attributs qui peuvent avoir recours à la configuration centrale : attributs principaux, TPI, ouvertures, mouvement, puissance, présence et paramètres avancés.
-
-Les attributs configurable dans la configuration centrale est listée ici : [Synthèse des paramètres](#synthèse-des-paramètres).
-
-Lors d'un changement sur la configuration centrale, tous les VTherms seront rechargés pour tenir compte de ces changements.
-
-En conséquence toute la phase de paramètrage d'un VTherm a été profondemment modifiée pour pouvoir utiliser la configuration centrale ou surcharger les valeurs de la configuration centrale par des valeurs propre au VTherm en cours de configuration.
-
-</details>
+> ![Astuce](images/tips.png) _*Notes*_
+>
+> Toutes les notes de versions complètes sont disponibles sur le [github de l'intégration](https://github.com/jmcollin78/versatile_thermostat/releases/).

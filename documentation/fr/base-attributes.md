@@ -7,17 +7,17 @@ Choisisez le menu "Principaux attributs".
 Donnez les principaux attributs obligatoires. Ces attributs sont communs à tous les VTherms :
 1. un nom (sera le nom de l'intégration et aussi le nom de l'entité `climate`)
 4. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle le radiateur est installé,
-5. une entité facultative de capteur de donnant la date et heure de dernière vue du capteur (`last_seen`). Si vous avez ce capteur donnez le ici, il permet d'éviter des mises en sécurité lorsque la température est stable et que le capteur ne remonte plus de température pendant longtemps. (cf. TODO),
+5. une entité facultative de capteur de donnant la date et heure de dernière vue du capteur (`last_seen`). Si vous avez ce capteur donnez le ici, il permet d'éviter des mises en sécurité lorsque la température est stable et que le capteur ne remonte plus de température pendant longtemps. (cf. [ici](troubleshooting.md#pourquoi-mon-versatile-thermostat-se-met-en-securite-)),
 6. une durée de cycle en minutes. A chaque cycle :
    1. `over_switch` : VTherm allumera/éteindra le radiateur en modulant la proportion de temps allumé,
    2. `over_valve` : VTherm calculera une nouvelle ouverture de la vanne et lui enverra si elle a changée,
    3. `over_climate` : le cycle permet d'effectuer les contrôles de base et recalcule les coefficients de l'auto-régulation. Le cycle peut déboucher sur une nouvelle consigne envoyée au sous-jacents ou sur une modification d'ouverture de la vanne dans le cas d'un _TRV_ dont la vanne est commandable.
-8. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil. Si plusieurs équipements sont reliés au même VTherm, il faut indiquer ici le total des puissances max des équipements,
-9.  la possibilité d'utiliser des paramètres complémentaires venant de la configuration centralisée :
+7. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil. Si plusieurs équipements sont reliés au même VTherm, il faut indiquer ici le total des puissances max des équipements,
+8.  la possibilité d'utiliser des paramètres complémentaires venant de la configuration centralisée :
     1.  capteur de température extérieure,
     2.  température minimale / maximale et pas de température
-10. la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
-11. une case à cocher si ce VTherm est utilisé pour déclencher une éventuelle chaudière centrale.
+9.  la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
+10. une case à cocher si ce VTherm est utilisé pour déclencher une éventuelle chaudière centrale.
 
 > ![Astuce](images/tips.png) _*Notes*_
 >  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur** mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. 'TODO exemples de reglages,

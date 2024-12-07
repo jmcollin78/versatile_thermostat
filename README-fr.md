@@ -11,16 +11,20 @@
 Ce composant personnalisé pour Home Assistant est une mise à niveau et une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
 
 # Quoi de neuf ?
-> ![Nouveau](images/new-icon.png)
+![Nouveau](images/new-icon.png)
 > * **Release 6.8**:
 >
 > Ajout d'une nouvelle méthode de régulation pour les Versatile Thermostat de type `over_climate`. Cette méthode nommée 'Contrôle direct de la vanne' permet de contrôler directement la vanne d'un TRV et éventuellement un décalage pour calibrer le thermomètre interne de votre TRV. Cette nouvelle méthode a été testée avec des Sonoff TRVZB et généralisée pour d'autre type de TRV pour lesquels la vanne est directement commandable via des entités de type `number`.
 >
 > Plus d'informations [ici](documentation/fr/over-climate.md) et [ici](documentation/fr/self-regulation.md).
+>
+> * **Refonte de la documentation**:
+>
+> Avec toutes les évolutions réalisées depuis le début de l'intégration, la documentation nécessitait une profonde re-organisation, c'est chose faite sur cette version. Tous vos retours sur cette nouvelle organisation seront les bienvenus.
 
 
 # 🍻 Merci pour les bières [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
-Un grand merci à @salabur, @pvince83, @bergoglio, @EPicLURcher, @ecolorado66, @Kriss1670, @maia, @f.maymil, @moutte69, @Jerome, @Gunnar M, @Greg.o, @John Burgess, @abyssmal, @capinfo26, @Helge, @MattG @Mexx62, @Someone, @Lajull, @giopeco, @fredericselier, @philpagan, @studiogriffanti, @Edwin, @Sebbou, @Gerard R., @John Burgess, @Sylvoliv, @cdenfert, @stephane.l, @jms92100, ... pour les bières. Ca fait très plaisir et ça m'encourage à continuer ! Si cette intégration vous a fait économiser, payez moi une p'tite bière !
+Un grand merci à tous mes fournisseurs de bières pour leurs dons et leurs encouragments. Ca me fait très plaisir et ça m'encourage à continuer ! Si cette intégration vous a fait économiser, payez moi une p'tite bière en retour, j'en vous en serais très reconnaissant !
 
 # Glossaire
 
@@ -45,14 +49,16 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 7. [la gestion de mouvement](documentation/fr/feature-motion.md)
 8. [la gestion de la puissance](documentation/fr/feature-power.md)
 9. [l'auto start and stop](documentation/fr/feature-auto-start-stop.md)
-10. [la commande centralisée de tous vos VTherms](documentation/fr/feature-central-mode.md)
+10. [la contrôle centralisé de tous vos VTherms](documentation/fr/feature-central-mode.md)
 11. [la commande du chauffage central](documentation/fr/feature-central-boiler.md)
-12. [aspects avancés, mode sécurité, mode expert](documentation/fr/feature-advanced.md)
+12. [aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 12. [l'auto-régulation](documentation/fr/self-regulation.md)
 13. [exemples de réglages](documentation/fr/tuning-examples.md)
 14. [les différents algorithmes](documentation/fr/algorithms.md)
 15. [documentation de référence](documentation/fr/reference.md)
-15. [notes de version](documentation/fr/releases.md)
+16. [exemple de réglages](documentation/fr/tuning-examples.md)
+17. [dépannage](documentation/fr/troubleshooting.md)
+18. [notes de version](documentation/fr/releases.md)
 
 
 # Quelques résultats
