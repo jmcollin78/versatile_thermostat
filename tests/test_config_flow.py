@@ -1,7 +1,6 @@
-# pylint: disable=unused-argument, line-too-long
+# pylint: disable=unused-argument, line-too-long, too-many-lines
 """ Test the Versatile Thermostat config flow """
 
-from homeassistant import data_entry_flow
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
@@ -517,6 +516,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1126,6 +1126,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_AUTO_START_STOP_FEATURE: True,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1383,4 +1384,340 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
     assert result["result"].domain == DOMAIN
     assert result["result"].version == 2
     assert result["result"].title == "TheOverSwitchMockName"
+    assert isinstance(result["result"], ConfigEntry)
+
+
+# @pytest.mark.parametrize("expected_lingering_tasks", [True])
+# @pytest.mark.parametrize("expected_lingering_timers", [True])
+# @pytest.mark.skip
+async def test_user_config_flow_over_climate_valve(
+    hass: HomeAssistant, skip_hass_states_get
+):  # pylint: disable=unused-argument
+    """Test the config flow with all thermostat_over_climate with the valve regulation activated.
+    We don't use any features nor central config
+    but we will add multiple underlying climate and valve"""
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == SOURCE_USER
+
+    # 1. Type
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "presets",
+        "advanced",
+        "configuration_not_complete",
+    ]
+    assert result.get("errors") is None
+
+    # 2. Main
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "main"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+            # Keep default values which are False
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+    assert result.get("errors") == {}
+
+    # 3. Main 2
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            # Keep default values which are False
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+
+    # 4. Type
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "type"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "type"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+            CONF_AC_MODE: False,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 2,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "valve_regulation",
+        "advanced",
+        "configuration_not_complete",
+        # "finalize",  # because we need Advanced default parameters
+    ]
+    assert result.get("errors") is None
+
+    # 5. TPI
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "tpi"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "tpi"
+    assert result.get("errors") == {}
+
+    # 6. TPI 2
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "tpi"
+    assert result.get("errors") == {}
+
+    # 7. Menu
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG
+    )
+
+    # 8. Presets
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "presets"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "presets"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: False}
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+
+    # 9. Features
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "features"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "features"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "valve_regulation",
+        "advanced",
+        "configuration_not_complete",
+        # "finalize", finalize is not present waiting for advanced configuration
+    ]
+
+    # 11. Valve_regulation
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "valve_regulation"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {}
+
+    # 11.1 Only one but 2 expected
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OFFSET_CALIBRATION_LIST: ["number.offset_calibration1"],
+            CONF_OPENING_DEGREE_LIST: ["number.opening_degree1"],
+            CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
+
+    # 11.2 Give two openings but only one offset_calibration
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OFFSET_CALIBRATION_LIST: [
+                "number.offset_calibration1",
+                "number.offset_calibration2",
+            ],
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
+
+    # 11.3 Give two openings and 2 calibration and 0 closing
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OFFSET_CALIBRATION_LIST: [
+                "number.offset_calibration1",
+                "number.offset_calibration2",
+            ],
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "valve_regulation",
+        "advanced",
+        "configuration_not_complete",
+        # "finalize", finalize is not present waiting for advanced configuration
+    ]
+
+    # 10. Advanced
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "advanced"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "advanced"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_USE_ADVANCED_CENTRAL_CONFIG: False},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "advanced"
+    assert result.get("errors") == {}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
+            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "valve_regulation",
+        "advanced",
+        "finalize",  # Now it is complete
+    ]
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "finalize"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result.get("errors") is None
+    assert result[
+        "data"
+    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
+        CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        CONF_SECURITY_DELAY_MIN: 5,
+        CONF_SECURITY_MIN_ON_PERCENT: 0.4,
+        CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+    } | MOCK_DEFAULT_FEATURE_CONFIG | {
+        CONF_USE_MAIN_CENTRAL_CONFIG: False,
+        CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+        CONF_USE_MOTION_FEATURE: False,
+        CONF_USE_POWER_FEATURE: False,
+        CONF_USE_PRESENCE_FEATURE: False,
+        CONF_USE_WINDOW_FEATURE: False,
+        CONF_USE_AUTO_START_STOP_FEATURE: False,
+        CONF_USE_CENTRAL_BOILER_FEATURE: False,
+        CONF_USE_TPI_CENTRAL_CONFIG: False,
+        CONF_USE_WINDOW_CENTRAL_CONFIG: False,
+        CONF_USE_MOTION_CENTRAL_CONFIG: False,
+        CONF_USE_POWER_CENTRAL_CONFIG: False,
+        CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+        CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_USED_BY_CENTRAL_BOILER: False,
+        CONF_USE_CENTRAL_MODE: False,
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+        CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+        CONF_OPENING_DEGREE_LIST: ["number.opening_degree1", "number.opening_degree2"],
+        CONF_CLOSING_DEGREE_LIST: [],
+        CONF_OFFSET_CALIBRATION_LIST: [
+            "number.offset_calibration1",
+            "number.offset_calibration2",
+        ],
+        CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+        CONF_TPI_COEF_INT: 0.3,
+        CONF_TPI_COEF_EXT: 0.1,
+    }
+    assert result["result"]
+    assert result["result"].domain == DOMAIN
+    assert result["result"].version == 2
+    assert result["result"].title == "TheOverClimateMockName"
     assert isinstance(result["result"], ConfigEntry)

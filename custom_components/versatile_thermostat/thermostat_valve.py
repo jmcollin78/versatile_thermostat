@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, abstract-method
 """ A climate over switch classe """
 import logging
 from datetime import timedelta, datetime
@@ -25,9 +25,6 @@ from .const import (
 from .underlyings import UnderlyingValve
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER_ENERGY = logging.getLogger(
-    "custom_components.versatile_thermostat.energy_debug"
-)
 
 class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
@@ -251,8 +248,9 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         self._valve_open_percent = new_valve_percent
 
-        for under in self._underlyings:
-            under.set_valve_open_percent()
+        # is one in start_cycle now
+        # for under in self._underlyings:
+        #    under.set_valve_open_percent()
 
         self._last_calculation_timestamp = now
 
@@ -272,14 +270,14 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         if self._total_energy is None:
             self._total_energy = added_energy
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - incremente_energy set energy is %s",
                 self,
                 self._total_energy,
             )
         else:
             self._total_energy += added_energy
-            _LOGGER_ENERGY.debug(
+            _LOGGER.debug(
                 "%s - get_my_previous_state increment energy is %s",
                 self,
                 self._total_energy,

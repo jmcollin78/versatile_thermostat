@@ -28,6 +28,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "valve_regulation": "Valve regulation configuration",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -203,6 +204,34 @@
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
+      },
+      "central_boiler": {
+        "title": "Control of the central boiler",
+        "description": "Enter the services to call to turn on/off the central boiler. Leave blank if no service call is to be made (in this case, you will have to manage the turning on/off of your central boiler yourself). The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Command to turn-on",
+          "central_boiler_deactivation_service": "Command to turn-off"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+        }
+      },
+      "valve_regulation": {
+        "title": "Self-regulation with valve",
+        "description": "Configuration for self-regulation with direct control of the valve",
+        "data": {
+          "offset_calibration_entity_ids": "Offset calibration entities",
+          "opening_degree_entity_ids": "Opening degree entities",
+          "closing_degree_entity_ids": "Closing degree entities",
+          "proportional_function": "Algorithm"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
+          "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
+          "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
+        }
       }
     },
     "error": {
@@ -243,6 +272,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "valve_regulation": "Valve regulation configuration",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -279,7 +309,7 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
-          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after seecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
+          "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
       },
@@ -418,6 +448,34 @@
           "security_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
           "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
         }
+      },
+      "central_boiler": {
+        "title": "Control of the central boiler - {name}",
+        "description": "Enter the services to call to turn on/off the central boiler. Leave blank if no service call is to be made (in this case, you will have to manage the turning on/off of your central boiler yourself). The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Command to turn-on",
+          "central_boiler_deactivation_service": "Command to turn-off"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+        }
+      },
+      "valve_regulation": {
+        "title": "Self-regulation with valve - {name}",
+        "description": "Configuration for self-regulation with direct control of the valve",
+        "data": {
+          "offset_calibration_entity_ids": "Offset calibration entities",
+          "opening_degree_entity_ids": "Opening degree entities",
+          "closing_degree_entity_ids": "Closing degree entities",
+          "proportional_function": "Algorithm"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
+          "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
+          "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
+        }
       }
     },
     "error": {
@@ -425,7 +483,8 @@
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
-      "service_configuration_format": "The format of the service configuration is wrong"
+      "service_configuration_format": "The format of the service configuration is wrong",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -447,7 +506,8 @@
         "auto_regulation_medium": "Medium",
         "auto_regulation_light": "Light",
         "auto_regulation_expert": "Expert",
-        "auto_regulation_none": "No auto-regulation"
+        "auto_regulation_none": "No auto-regulation",
+        "auto_regulation_valve": "Direct control of valve"
       }
     },
     "auto_fan_mode": {

@@ -161,19 +161,6 @@ async def test_bug_272(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity = find_my_entity("climate.theoverclimatemockname")
-
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
@@ -215,16 +202,18 @@ async def test_bug_272(
         )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
-    now: datetime = datetime.now(tz=tz)
+    event_timestamp: datetime = datetime.now(tz=tz)
+    entity._set_now(now)
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         # Set room temperature to something very cold
-        event_timestamp = now + timedelta(minutes=1)
+        await send_temperature_change_event(entity, 13, now)
+        await send_ext_temperature_change_event(entity, 9, now)
 
-        await send_temperature_change_event(entity, 13, event_timestamp)
-        await send_ext_temperature_change_event(entity, 9, event_timestamp)
+        event_timestamp = event_timestamp + timedelta(minutes=3)
+        entity._set_now(event_timestamp)
 
         # Not in the accepted interval (15-19)
         await entity.async_set_temperature(temperature=10)
@@ -248,12 +237,15 @@ async def test_bug_272(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         # Set room temperature to something very cold
-        event_timestamp = now + timedelta(minutes=1)
+        event_timestamp = event_timestamp + timedelta(minutes=1)
+        entity._set_now(event_timestamp)
 
         await send_temperature_change_event(entity, 13, event_timestamp)
         await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
         # In the accepted interval
+        event_timestamp = event_timestamp + timedelta(minutes=3)
+        entity._set_now(event_timestamp)
         await entity.async_set_temperature(temperature=20.8)
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
@@ -415,9 +407,10 @@ async def test_bug_500_1(hass: HomeAssistant, init_vtherm_api) -> None:
 
     flow = VersatileThermostatBaseConfigFlow(config)
 
-    assert flow._infos[CONF_USE_WINDOW_FEATURE] is True
-    assert flow._infos[CONF_USE_POWER_FEATURE] is True
-    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is True
+    assert flow._infos[CONF_USE_WINDOW_FEATURE] is False
+    assert flow._infos[CONF_USE_POWER_FEATURE] is False
+    assert flow._infos[CONF_USE_PRESENCE_FEATURE] is False
+    # we have a motion sensor configured
     assert flow._infos[CONF_USE_MOTION_FEATURE] is True
 
 

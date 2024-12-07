@@ -108,7 +108,7 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.security_state is True
@@ -147,7 +147,7 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
         self._attr_is_on = self.my_climate.overpowering_state is True
@@ -186,7 +186,7 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
         # Issue 120 - only take defined presence value
@@ -236,7 +236,7 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
         # Issue 120 - only take defined presence value
         if self.my_climate.motion_state in [STATE_ON, STATE_OFF]:
@@ -277,7 +277,7 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
 
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
         # Issue 120 - only take defined presence value
         if self.my_climate.presence_state in [STATE_ON, STATE_OFF]:
@@ -317,7 +317,7 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
         if self.my_climate.window_bypass_state in [True, False]:
             self._attr_is_on = self.my_climate.window_bypass_state

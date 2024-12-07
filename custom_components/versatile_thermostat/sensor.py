@@ -3,7 +3,7 @@
 import logging
 import math
 
-from homeassistant.core import HomeAssistant, callback, Event, CoreState
+from homeassistant.core import HomeAssistant, callback, Event, CoreState, State
 
 from homeassistant.const import (
     UnitOfTime,
@@ -17,20 +17,19 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
-    UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import (
+    async_track_state_change_event,
+)
 
 from homeassistant.components.climate import (
     ClimateEntity,
     DOMAIN as CLIMATE_DOMAIN,
-    HVACAction,
-    HVACMode,
 )
 
 
@@ -50,6 +49,8 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_USE_CENTRAL_BOILER_FEATURE,
+    CONF_AUTO_REGULATION_VALVE,
+    CONF_AUTO_REGULATION_MODE,
     overrides,
 )
 
@@ -71,6 +72,9 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+    have_valve_regulation = (
+        entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+    )
 
     entities = None
 
@@ -99,10 +103,16 @@ async def async_setup_entry(
             entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
             entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
 
-        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE:
+        if (
+            entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE
+            or have_valve_regulation
+        ):
             entities.append(ValveOpenPercentSensor(hass, unique_id, name, entry.data))
 
-        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE:
+        if (
+            entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+            and not have_valve_regulation
+        ):
             entities.append(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )
@@ -123,7 +133,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         energy = self.my_climate.total_energy
         if energy is None:
@@ -178,7 +188,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         if math.isnan(float(self.my_climate.mean_cycle_power)) or math.isinf(
             self.my_climate.mean_cycle_power
@@ -235,7 +245,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         on_percent = (
             float(self.my_climate.proportional_algorithm.on_percent)
@@ -290,7 +300,7 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.valve_open_percent
@@ -332,7 +342,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         on_time = (
             float(self.my_climate.proportional_algorithm.on_time_sec)
@@ -381,7 +391,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         off_time = (
             float(self.my_climate.proportional_algorithm.off_time_sec)
@@ -429,7 +439,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_temperature_measure
@@ -458,7 +468,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.last_ext_temperature_measure
@@ -487,7 +497,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         last_slope = self.my_climate.last_temperature_slope
         if last_slope is None:
@@ -540,7 +550,7 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         new_temp = self.my_climate.regulated_target_temp
         if new_temp is None:
@@ -591,7 +601,7 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        _LOGGER.debug("%s - climate state change", self._attr_unique_id)
+        # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         new_ema = self.my_climate.ema_temperature
         if new_ema is None:
@@ -698,7 +708,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
-                for under in entity.underlying_entities:
+                for under in entity.activable_underlying_entities:
                     underlying_entities_id.append(under.entity_id)
         if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
@@ -718,25 +728,65 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
         await self.calculate_nb_active_devices(None)
 
-    async def calculate_nb_active_devices(self, _):
+    async def calculate_nb_active_devices(self, event: Event):
         """Calculate the number of active VTherm that have an
         influence on central boiler"""
 
-        _LOGGER.debug("%s - calculating the number of active VTherm", self)
+        # _LOGGER.debug("%s- calculate_nb_active_devices - the event is %s ", self, event)
+
+        if event is not None:
+            new_state: State = event.data.get("new_state")
+            # _LOGGER.debug(
+            #     "%s - calculate_nb_active_devices new_state is %s", self, new_state
+            # )
+            if not new_state:
+                return
+
+            old_state: State = event.data.get("old_state")
+
+            # For underlying climate, we need to observe also the hvac_action if available
+            new_hvac_action = new_state.attributes.get("hvac_action")
+            old_hvac_action = (
+                old_state.attributes.get("hvac_action")
+                if old_state is not None
+                else None
+            )
+
+            # Filter events that are not interested for us
+            if (
+                old_state is not None
+                and new_state.state == old_state.state
+                and new_hvac_action == old_hvac_action
+            ):
+                # A false state change
+                return
+
+            _LOGGER.debug(
+                "%s - calculating the number of active underlying device for boiler activation. change change from %s to %s",
+                self,
+                old_state,
+                new_state,
+            )
+        else:
+            _LOGGER.debug(
+                "%s - calculating the number of active underlying device for boiler activation. First time calculation",
+                self,
+            )
+
         nb_active = 0
         for entity in self._entities:
+            nb_active += entity.nb_device_actives
             _LOGGER.debug(
-                "Examining the hvac_action of %s",
+                "After examining the hvac_action of %s, nb_active is %s",
                 entity.name,
+                nb_active,
             )
-            if (
-                entity.hvac_mode in [HVACMode.HEAT, HVACMode.AUTO]
-                and entity.hvac_action == HVACAction.HEATING
-            ):
-                for under in entity.underlying_entities:
-                    nb_active += 1 if under.is_device_active else 0
 
         self._attr_native_value = nb_active
+        _LOGGER.debug(
+            "%s - Number of active underlying entities is %s", self, nb_active
+        )
+
         self.async_write_ha_state()
 
     def __str__(self):
