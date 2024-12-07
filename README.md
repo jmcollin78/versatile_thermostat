@@ -4,6 +4,8 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
+[En](README.md)|[Fr](README-fr.md)
+
 ![Tip](images/icon.png)
 
 > ![Tip](images/tips.png) This thermostat integration aims to drastically simplify your automations around climate management. Because all classical events in climate are natively handled by the thermostat (nobody at home ?, activity detected in a room ?, window open ?, power shedding ?), you don't have to build over complicated scripts and automations to manage your climates ;-).
@@ -28,7 +30,6 @@
     - [For a ```thermostat_over_switch``` type thermostat](#for-a-thermostat_over_switch-type-thermostat)
     - [For a thermostat of type ```thermostat_over_climate```:](#for-a-thermostat-of-type-thermostat_over_climate)
       - [Self-regulation](#self-regulation)
-      - [Self-regulation in Expert mode](#self-regulation-in-expert-mode)
       - [Internal temperature compensation](#internal-temperature-compensation)
       - [synthesis of the self-regulation algorithm](#synthesis-of-the-self-regulation-algorithm)
       - [Auto-fan mode](#auto-fan-mode)
@@ -49,6 +50,9 @@
     - [How to find the right service?](#how-to-find-the-right-service)
     - [The events](#the-events)
     - [Warning](#warning)
+  - [Expert Mode Settings](#expert-mode-settings)
+    - [Self-regulation in Expert mode](#self-regulation-in-expert-mode)
+    - [On Time Clamping (max\_on\_percent)](#on-time-clamping-max_on_percent)
   - [Parameter summary](#parameter-summary)
 - [Tuning examples](#tuning-examples)
   - [Electrical heater](#electrical-heater)
@@ -729,7 +733,7 @@ context:
 
 Expert Mode settings refer to Settings made in the Home Assistant `configuration.yaml` file under the `versatile_thermostat` section. You might have to add this section by yourself to the `configuration.yaml` file.
 
-These settings are meant to be used only in **specific niche cases and with careful considerations**. 
+These settings are meant to be used only in **specific niche cases and with careful considerations**.
 
 
 The following sections describe the available export mode settings in detail with examples on how to configure them. Be aware that these settings require a **complete restart** of Home Assistant or a **reload of Versatile Thermostat integration** (Dev tools / Yaml / reloading the configuration / Versatile Thermostat) to take effect.
@@ -815,20 +819,20 @@ For the changes to be taken into account, you must either **completely restart H
 ### On Time Clamping (max_on_percent)
 
 
-The calculated on time percent can be limited to a maximum percentage of the cycle duration. This setting has to be made in expert mode and will be used for all Versatile Thermostats. 
+The calculated on time percent can be limited to a maximum percentage of the cycle duration. This setting has to be made in expert mode and will be used for all Versatile Thermostats.
 
 ```
 versatile_thermostat:
     max_on_percent: 0.8
 ```
 
-The example above limits the maximum ON time to 80% (0.8) of the cycle length. If the cycle length is for example 600 seconds (10min), the maximum ON time will be limited to 480 seconds (8min). The remaining 120 seconds of the cycle will always remain in the OFF state. 
+The example above limits the maximum ON time to 80% (0.8) of the cycle length. If the cycle length is for example 600 seconds (10min), the maximum ON time will be limited to 480 seconds (8min). The remaining 120 seconds of the cycle will always remain in the OFF state.
 
 There are three debug attributes of interest regarding this feature:
 
 * `max_on_percent` # clamping setting as configured in expert mode
 * `calculated_on_percent` # calculated on percent without clamping applied
-* `on_percent` # used on percent with clamping applied 
+* `on_percent` # used on percent with clamping applied
 
 
 <details>
