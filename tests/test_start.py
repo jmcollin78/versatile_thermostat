@@ -58,6 +58,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity._motion_state is None
         assert entity._presence_state is None
         assert entity._prop_algorithm is not None
+        assert entity.have_valve_regulation is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -94,18 +95,6 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
@@ -127,6 +116,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity._window_state is None
         assert entity._motion_state is None
         assert entity._presence_state is None
+        assert entity.have_valve_regulation is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2

@@ -28,6 +28,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "valve_regulation": "Configuration de la regulation par vanne",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -72,48 +73,26 @@
         "title": "Entité(s) liée(s)",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "1er radiateur",
-          "heater_entity2_id": "2ème radiateur",
-          "heater_entity3_id": "3ème radiateur",
-          "heater_entity4_id": "4ème radiateur",
+          "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
-          "climate_entity_id": "Thermostat sous-jacent",
-          "climate_entity2_id": "2ème thermostat sous-jacent",
-          "climate_entity3_id": "3ème thermostat sous-jacent",
-          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?",
-          "valve_entity_id": "1ère valve number",
-          "valve_entity2_id": "2ème valve number",
-          "valve_entity3_id": "3ème valve number",
-          "valve_entity4_id": "4ème valve number",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "auto_regulation_use_device_temp": "Utiliser la température interne du sous-jacent",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
           "auto_fan_mode": " Auto ventilation mode"
         },
         "data_description": {
-          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
-          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
-          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
-          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
+          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Entity id du thermostat sous-jacent",
-          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
-          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
-          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "valve_entity_id": "Entity id de la 1ère valve",
-          "valve_entity2_id": "Entity id de la 2ème valve",
-          "valve_entity3_id": "Entity id de la 3ème valve",
-          "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la température cible",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
@@ -237,6 +216,22 @@
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
+      },
+      "valve_regulation": {
+        "title": "Auto-régulation par vanne - {name}",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
+        "data": {
+          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
+          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
+          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
+          "proportional_function": "Algorithme"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
+        }
       }
     },
     "error": {
@@ -262,7 +257,7 @@
         }
       },
       "menu": {
-        "title": "Menu",
+        "title": "Menu - {name}",
         "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
         "menu_options": {
           "main": "Principaux Attributs",
@@ -277,6 +272,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "valve_regulation": "Configuration de la regulation par vanne",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -318,51 +314,29 @@
         }
       },
       "type": {
-        "title": "Entités - {name}",
+        "title": "Entité(s) liée(s) - {name}",
         "description": "Attributs de(s) l'entité(s) liée(s)",
         "data": {
-          "heater_entity_id": "1er radiateur",
-          "heater_entity2_id": "2ème radiateur",
-          "heater_entity3_id": "3ème radiateur",
-          "heater_entity4_id": "4ème radiateur",
-          "heater_keep_alive": "Keep-alive (sec)",
+          "underlying_entity_ids": "Les équipements à controller",
+          "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
-          "climate_entity_id": "Thermostat sous-jacent",
-          "climate_entity2_id": "2ème thermostat sous-jacent",
-          "climate_entity3_id": "3ème thermostat sous-jacent",
-          "climate_entity4_id": "4ème thermostat sous-jacent",
           "ac_mode": "AC mode ?",
-          "valve_entity_id": "1ère valve",
-          "valve_entity2_id": "2ème valve",
-          "valve_entity3_id": "3ème valve",
-          "valve_entity4_id": "4ème valve",
-          "auto_regulation_mode": "Auto-regulation",
+          "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
-          "auto_regulation_use_device_temp": "Utiliser la température interne du sous-jacent",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": " Auto ventilation mode"
         },
         "data_description": {
-          "heater_entity_id": "Entity id du 1er radiateur obligatoire",
-          "heater_entity2_id": "Optionnel entity id du 2ème radiateur",
-          "heater_entity3_id": "Optionnel entity id du 3ème radiateur",
-          "heater_entity4_id": "Optionnel entity id du 4ème radiateur",
+          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
-          "climate_entity_id": "Entity id du thermostat sous-jacent",
-          "climate_entity2_id": "Entity id du 2ème thermostat sous-jacent",
-          "climate_entity3_id": "Entity id du 3ème thermostat sous-jacent",
-          "climate_entity4_id": "Entity id du 4ème thermostat sous-jacent",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "valve_entity_id": "Entity id de la 1ère valve",
-          "valve_entity2_id": "Entity id de la 2ème valve",
-          "valve_entity3_id": "Entity id de la 3ème valve",
-          "valve_entity4_id": "Entity id de la 4ème valve",
-          "auto_regulation_mode": "Ajustement automatique de la consigne",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les valves) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Utiliser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
         }
@@ -480,6 +454,22 @@
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
+      },
+      "valve_regulation": {
+        "title": "Auto-régulation par vanne - {name}",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
+        "data": {
+          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
+          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
+          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
+          "proportional_function": "Algorithme"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
+          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
+        }
       }
     },
     "error": {
@@ -487,7 +477,8 @@
       "unknown_entity": "entity id inconnu",
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
-      "service_configuration_format": "Mauvais format de la configuration du service"
+      "service_configuration_format": "Mauvais format de la configuration du service",
+      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
@@ -509,7 +500,8 @@
         "auto_regulation_medium": "Moyenne",
         "auto_regulation_light": "Légère",
         "auto_regulation_expert": "Expert",
-        "auto_regulation_none": "Aucune"
+        "auto_regulation_none": "Aucune",
+        "auto_regulation_valve": "Contrôle direct de la vanne"
       }
     },
     "auto_fan_mode": {

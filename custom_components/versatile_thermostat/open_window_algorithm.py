@@ -26,20 +26,14 @@ MIN_NB_POINT = 4  # do not calculate slope until we have enough point
 class WindowOpenDetectionAlgorithm:
     """The class that implements the algorithm listed above"""
 
-    _alert_threshold: float
-    _end_alert_threshold: float
-    _last_slope: float
-    _last_datetime: datetime
-    _last_temperature: float
-    _nb_point: int
-
     def __init__(self, alert_threshold, end_alert_threshold) -> None:
         """Initalize a new algorithm with the both threshold"""
-        self._alert_threshold = alert_threshold
-        self._end_alert_threshold = end_alert_threshold
-        self._last_slope = None
-        self._last_datetime = None
-        self._nb_point = 0
+        self._alert_threshold: float = alert_threshold
+        self._end_alert_threshold: float = end_alert_threshold
+        self._last_slope: float | None = None
+        self._last_datetime: datetime = None
+        self._last_temperature: float | None = None
+        self._nb_point: int = 0
 
     def check_age_last_measurement(self, temperature, datetime_now) -> float:
         """ " Check if last measurement is old and add

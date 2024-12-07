@@ -2,9 +2,12 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
+import math
 from typing import Literal
+from datetime import datetime
 
 from enum import Enum
+from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
 from homeassistant.components.climate import (
@@ -16,6 +19,7 @@ from homeassistant.components.climate import (
 )
 
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import dt as dt_util
 
 from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
@@ -99,6 +103,7 @@ CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
 CONF_WINDOW_AUTO_MAX_DURATION = "window_auto_max_duration"
 CONF_AUTO_REGULATION_MODE = "auto_regulation_mode"
 CONF_AUTO_REGULATION_NONE = "auto_regulation_none"
+CONF_AUTO_REGULATION_VALVE = "auto_regulation_valve"
 CONF_AUTO_REGULATION_SLOW = "auto_regulation_slow"
 CONF_AUTO_REGULATION_LIGHT = "auto_regulation_light"
 CONF_AUTO_REGULATION_MEDIUM = "auto_regulation_medium"
@@ -115,6 +120,9 @@ CONF_AUTO_FAN_MEDIUM = "auto_fan_medium"
 CONF_AUTO_FAN_HIGH = "auto_fan_high"
 CONF_AUTO_FAN_TURBO = "auto_fan_turbo"
 CONF_STEP_TEMPERATURE = "step_temperature"
+CONF_OFFSET_CALIBRATION_LIST = "offset_calibration_entity_ids"
+CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
+CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 
 # Deprecated
 CONF_HEATER = "heater_entity_id"
@@ -321,6 +329,7 @@ CONF_FUNCTIONS = [
 
 CONF_AUTO_REGULATION_MODES = [
     CONF_AUTO_REGULATION_NONE,
+    CONF_AUTO_REGULATION_VALVE,
     CONF_AUTO_REGULATION_LIGHT,
     CONF_AUTO_REGULATION_MEDIUM,
     CONF_AUTO_REGULATION_STRONG,
@@ -459,9 +468,9 @@ class RegulationParamVeryStrong:
     kp: float = 0.6
     ki: float = 0.1
     k_ext: float = 0.2
-    offset_max: float = 4
+    offset_max: float = 8
     stabilization_threshold: float = 0.1
-    accumulated_error_threshold: float = 30
+    accumulated_error_threshold: float = 80
 
 
 class EventType(Enum):
@@ -486,6 +495,38 @@ def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
     hass.bus.fire(event_type.value, data)
 
 
+def get_safe_float(hass, entity_id: str):
+    """Get a safe float state value for an entity.
+    Return None if entity is not available"""
+    if (
+        entity_id is None
+        or not (state := hass.states.get(entity_id))
+        or state.state == "unknown"
+        or state.state == "unavailable"
+    ):
+        return None
+    float_val = float(state.state)
+    return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
+
+
+def get_tz(hass: HomeAssistant):
+    """Get the current timezone"""
+
+    return dt_util.get_time_zone(hass.config.time_zone)
+
+
+class NowClass:
+    """For testing purpose only"""
+
+    @staticmethod
+    def get_now(hass: HomeAssistant) -> datetime:
+        """A test function to get the now.
+        For testing purpose this method can be overriden to get a specific
+        timestamp.
+        """
+        return datetime.now(get_tz(hass))
+
+
 class UnknownEntity(HomeAssistantError):
     """Error to indicate there is an unknown entity_id given."""
 
@@ -504,6 +545,11 @@ class ServiceConfigurationError(HomeAssistantError):
 
 class ConfigurationNotCompleteError(HomeAssistantError):
     """Error the configuration is not complete"""
+
+
+class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
+    """Error to indicate there is an error in the configuration of the TRV with valve regulation.
+    The number of specific entities is incorrect."""
 
 
 class overrides:  # pylint: disable=invalid-name

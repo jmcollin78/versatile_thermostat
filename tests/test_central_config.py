@@ -15,6 +15,10 @@ from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
 
+from custom_components.versatile_thermostat.thermostat_climate import (
+    ThermostatOverClimate,
+)
+
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import

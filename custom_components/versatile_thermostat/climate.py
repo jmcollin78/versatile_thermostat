@@ -22,26 +22,12 @@ from homeassistant.const import (
     STATE_NOT_HOME,
 )
 
-from .const import (
-    DOMAIN,
-    PLATFORMS,
-    CONF_PRESETS_WITH_AC,
-    SERVICE_SET_PRESENCE,
-    SERVICE_SET_PRESET_TEMPERATURE,
-    SERVICE_SET_SECURITY,
-    SERVICE_SET_WINDOW_BYPASS,
-    SERVICE_SET_AUTO_REGULATION_MODE,
-    SERVICE_SET_AUTO_FAN_MODE,
-    CONF_THERMOSTAT_TYPE,
-    CONF_THERMOSTAT_SWITCH,
-    CONF_THERMOSTAT_CLIMATE,
-    CONF_THERMOSTAT_VALVE,
-    CONF_THERMOSTAT_CENTRAL_CONFIG,
-)
+from .const import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 from .thermostat_switch import ThermostatOverSwitch
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_valve import ThermostatOverValve
+from .thermostat_climate_valve import ThermostatOverClimateValve
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +46,9 @@ async def async_setup_entry(
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+    have_valve_regulation = (
+        entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+    )
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         return
@@ -69,7 +58,10 @@ async def async_setup_entry(
     if vt_type == CONF_THERMOSTAT_SWITCH:
         entity = ThermostatOverSwitch(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_CLIMATE:
-        entity = ThermostatOverClimate(hass, unique_id, name, entry.data)
+        if have_valve_regulation is True:
+            entity = ThermostatOverClimateValve(hass, unique_id, name, entry.data)
+        else:
+            entity = ThermostatOverClimate(hass, unique_id, name, entry.data)
     elif vt_type == CONF_THERMOSTAT_VALVE:
         entity = ThermostatOverValve(hass, unique_id, name, entry.data)
     else:
