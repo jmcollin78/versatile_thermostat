@@ -15,6 +15,7 @@ from custom_components.versatile_thermostat.auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
     AUTO_START_STOP_ACTION_NOTHING,
     AUTO_START_STOP_ACTION_OFF,
+    AUTO_START_STOP_ACTION_ON,
 )
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -44,6 +45,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert ret == AUTO_START_STOP_ACTION_NOTHING
     assert algo.accumulated_error == -1
+    assert algo.last_switch_date is None
 
     # 2. should not stop (accumulated_error too low)
     now = now + timedelta(minutes=5)
@@ -57,6 +59,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert ret == AUTO_START_STOP_ACTION_NOTHING
     assert algo.accumulated_error == -6
+    assert algo.last_switch_date is None
 
     # 3. should not stop (accumulated_error too low)
     now = now + timedelta(minutes=2)
@@ -70,6 +73,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert algo.accumulated_error == -8
     assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.last_switch_date is None
 
     # 4 .No change on accumulated error because the new measure is too near the last one
     now = now + timedelta(seconds=11)
@@ -83,6 +87,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert algo.accumulated_error == -8
     assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.last_switch_date is None
 
     # 5. should stop now because accumulated_error is > ERROR_THRESHOLD for slow (10)
     now = now + timedelta(minutes=4)
@@ -96,6 +101,9 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert algo.accumulated_error == -10
     assert ret == AUTO_START_STOP_ACTION_OFF
+    assert algo.last_switch_date is not None
+    assert algo.last_switch_date == now
+    last_now = now
 
     # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
     now = now + timedelta(minutes=2)
@@ -109,14 +117,111 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     )
     assert algo.accumulated_error == -4  # -10/2 + 1
     assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.last_switch_date == last_now
 
     # 7. change level to slow (no real change) -> error_accumulated should not reset to 0
     algo.set_level(AUTO_START_STOP_LEVEL_SLOW)
     assert algo.accumulated_error == -4
+    assert algo.last_switch_date == last_now
 
     # 8. change level -> error_accumulated should reset to 0
     algo.set_level(AUTO_START_STOP_LEVEL_FAST)
     assert algo.accumulated_error == 0
+    assert algo.last_switch_date == last_now
+
+
+async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
+    """Testing directly the algorithm in Slow level"""
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
+        AUTO_START_STOP_LEVEL_SLOW, "testu"
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    assert algo._dt == 30
+    assert algo._vtherm_name == "testu"
+
+    #
+    # Testing with turn_on
+    #
+
+    # 1. should stop
+    algo._accumulated_error = -100
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=10,
+        current_temp=21,
+        slope_min=0.5,
+        now=now,
+    )
+
+    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert algo.last_switch_date is not None
+    assert algo.last_switch_date == now
+    last_now = now
+
+    # 2. now we should turn on but to near the last change -> no nothing to do
+    now = now + timedelta(minutes=2)
+    algo._accumulated_error = -100
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.OFF,
+        saved_hvac_mode=HVACMode.HEAT,
+        target_temp=21,
+        current_temp=17,
+        slope_min=-0.1,
+        now=now,
+    )
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.last_switch_date == last_now
+
+    # 3. now we should turn on and now is much later ->
+    now = now + timedelta(minutes=30)
+    algo._accumulated_error = -100
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.OFF,
+        saved_hvac_mode=HVACMode.HEAT,
+        target_temp=21,
+        current_temp=17,
+        slope_min=-0.1,
+        now=now,
+    )
+    assert ret == AUTO_START_STOP_ACTION_ON
+    assert algo.last_switch_date == now
+    last_now = now
+
+    #
+    # Testing with turn_off
+    #
+
+    # 4. try to turn_off but too speed (29 min)
+    now = now + timedelta(minutes=29)
+    algo._accumulated_error = -100
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=17,
+        current_temp=21,
+        slope_min=0.5,
+        now=now,
+    )
+    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert algo.last_switch_date == last_now
+
+    # 5. turn_off much later (29 min + 1 min)
+    now = now + timedelta(minutes=1)
+    algo._accumulated_error = -100
+    ret = algo.calculate_action(
+        hvac_mode=HVACMode.HEAT,
+        saved_hvac_mode=HVACMode.OFF,
+        target_temp=17,
+        current_temp=21,
+        slope_min=0.5,
+        now=now,
+    )
+    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert algo.last_switch_date == now
 
 
 async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
