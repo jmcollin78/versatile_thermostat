@@ -791,6 +791,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 entity.name,
                 nb_active,
             )
+            
             if (
                 entity.hvac_mode in [HVACMode.HEAT, HVACMode.AUTO]
                 and entity.hvac_action == HVACAction.HEATING
@@ -802,6 +803,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
         self._attr_native_value = nb_active
         self._attr_active_device_names = active_device_names
+
         self.async_write_ha_state()
 
     def __str__(self):
