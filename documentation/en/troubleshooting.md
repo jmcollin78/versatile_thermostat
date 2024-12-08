@@ -82,6 +82,8 @@ Example:
           option: eco
 ```
 
+Another more complex example is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+
 ## Only the first radiator heats
 
 In `over_switch` mode, if multiple radiators are configured for the same VTherm, the heating will be triggered sequentially to smooth out the consumption peaks as much as possible.

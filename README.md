@@ -17,7 +17,7 @@ This custom component for Home Assistant is an upgrade and a complete rewrite of
 >
 > Added a new regulation method for `over_climate` type Versatile Thermostats. This method, called 'Direct control of valve', allows direct control of a TRV valve and optionally a calibration offset for the internal thermometer of your TRV. This new method has been tested with Sonoff TRVZB and generalized for other TRV types whose valves can be directly controlled via `number` entities.
 >
-> More information [here](documentation/fr/over-climate.md) and [here](documentation/fr/self-regulation.md).
+> More information [here](documentation/en/over-climate.md) and [here](documentation/en/self-regulation.md).
 >
 > * **Documentation overhaul**:
 >
@@ -37,51 +37,51 @@ A big thank you to all my beer sponsors for their donations and encouragements. 
 # Documentation
 
 The documentation is now divided into several pages for easier reading and searching:
-1. [Introduction](documentation/fr/presentation.md),
-2. [Choosing a VTherm type](documentation/fr/creation.md),
-3. [Basic attributes](documentation/fr/base-attributes.md)
-3. [Configuring a VTherm on a `switch`](documentation/fr/over-switch.md)
-3. [Configuring a VTherm on a `climate`](documentation/fr/over-climate.md)
-3. [Configuring a VTherm on a valve](documentation/fr/over-valve.md)
-4. [Presets](documentation/fr/feature-presets.md)
-5. [Window management](documentation/fr/feature-window.md)
-6. [Presence management](documentation/fr/feature-presence.md)
-7. [Motion management](documentation/fr/feature-motion.md)
-8. [Power management](documentation/fr/feature-power.md)
-9. [Auto start and stop](documentation/fr/feature-auto-start-stop.md)
-10. [Centralized control of all VTherms](documentation/fr/feature-central-mode.md)
-11. [Central heating control](documentation/fr/feature-central-boiler.md)
-12. [Advanced aspects, security mode](documentation/fr/feature-advanced.md)
-12. [Self-regulation](documentation/fr/self-regulation.md)
-13. [Tuning examples](documentation/fr/tuning-examples.md)
-14. [Algorithms](documentation/fr/algorithms.md)
-15. [Reference documentation](documentation/fr/reference.md)
-16. [Tuning examples](documentation/fr/tuning-examples.md)
-17. [Troubleshooting](documentation/fr/troubleshooting.md)
-18. [Release notes](documentation/fr/releases.md)
+1. [Introduction](documentation/en/presentation.md),
+2. [Choosing a VTherm type](documentation/en/creation.md),
+3. [Basic attributes](documentation/en/base-attributes.md)
+3. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
+3. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
+3. [Configuring a VTherm on a valve](documentation/en/over-valve.md)
+4. [Presets](documentation/en/feature-presets.md)
+5. [Window management](documentation/en/feature-window.md)
+6. [Presence management](documentation/en/feature-presence.md)
+7. [Motion management](documentation/en/feature-motion.md)
+8. [Power management](documentation/en/feature-power.md)
+9. [Auto start and stop](documentation/en/feature-auto-start-stop.md)
+10. [Centralized control of all VTherms](documentation/en/feature-central-mode.md)
+11. [Central heating control](documentation/en/feature-central-boiler.md)
+12. [Advanced aspects, security mode](documentation/en/feature-advanced.md)
+12. [Self-regulation](documentation/en/self-regulation.md)
+13. [Tuning examples](documentation/en/tuning-examples.md)
+14. [Algorithms](documentation/en/algorithms.md)
+15. [Reference documentation](documentation/en/reference.md)
+16. [Tuning examples](documentation/en/tuning-examples.md)
+17. [Troubleshooting](documentation/en/troubleshooting.md)
+18. [Release notes](documentation/en/releases.md)
 
 # Some results
 
 **Temperature stability around the target configured by preset:**
 
-![image](documentation/fr/images/results-1.png)
+![image](documentation/en/images/results-1.png)
 
 On/off cycles calculated by the integration (`over_climate`):
-![image](documentation/fr/images/results-2.png)
+![image](documentation/en/images/results-2.png)
 
 **Regulation with an `over_switch`**
 
-![image](documentation/fr/images/results-4.png)
+![image](documentation/en/images/results-4.png)
 
 See the component's code [[below](#even-better-with-apex-chart-to-tune-your-thermostat)]
 
 **Strong regulation in `over_climate`**
 
-![image](documentation/fr/images/results-over-climate-1.png)
+![image](documentation/en/images/results-over-climate-1.png)
 
 **Regulation with direct valve control in `over_climate`**
 
-![image](documentation/fr/images/results-over-climate-2.png)
+![image](documentation/en/images/results-over-climate-2.png)
 
 Enjoy!
 
