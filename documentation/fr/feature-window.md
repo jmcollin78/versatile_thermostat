@@ -9,10 +9,6 @@ La détection des ouvertures peut se faire de 2 manières:
 1. soit avec un capteur placé sur l'ouverture (mode capteur),
 2. soit en détectant une chute brutale de température (mode auto)
 
-La configuration de la détection d'ouverture est la suivante :
-
-![image](images/config-window-main.png)
-
 ## Le mode capteur
 Pour passer en mode capteur, vous devez donner une entité de type `binary_sensor` ou `input_boolean`.
 Dans ce mode, vous devez renseigner les informations suivantes:
@@ -36,6 +32,7 @@ Pareil, lorsque le détecteur passe à fermé :
 
 ## Le mode auto
 En mode auto, la configuration est la suivante:
+
 ![image](images/config-window-auto.png)
 
 1. un **délai en secondes** avant tout changement. Cela permet d'ouvrir rapidement une fenêtre sans arrêter le chauffage,
@@ -58,6 +55,7 @@ Pour bien régler il est conseillé d'affocher sur un même graphique historique
 ![image](images/window-auto-tuning.png)
 
 > ![Astuce](images/tips.png) _*Notes*_
+>
 >  1. Si vous souhaitez utiliser **plusieurs capteurs de porte/fenêtre** pour automatiser votre thermostat, créez simplement un groupe avec le comportement habituel (https://www.home-assistant.io/integrations/binary_sensor.group/)
 >  2. Si vous n'avez pas de capteur de fenêtre/porte dans votre chambre, laissez simplement l'identifiant de l'entité du capteur vide,
 >  3. **Un seul mode est permis**. On ne peut pas configurer un thermostat avec un capteur et une détection automatique. Les 2 modes risquant de se contredire, il n'est pas possible d'avoir les 2 modes en même temps,

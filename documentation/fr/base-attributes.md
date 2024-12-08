@@ -1,3 +1,6 @@
+- [Choix des attributs de base](#choix-des-attributs-de-base)
+- [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
+
 # Choix des attributs de base
 
 Choisisez le menu "Principaux attributs".
@@ -20,7 +23,7 @@ Donnez les principaux attributs obligatoires. Ces attributs sont communs à tous
 10. une case à cocher si ce VTherm est utilisé pour déclencher une éventuelle chaudière centrale.
 
 > ![Astuce](images/tips.png) _*Notes*_
->  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur** mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. 'TODO exemples de reglages,
+>  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur** mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. [Exemples de réglages](tuning-examples.md),
 >  2. si le cycle est trop court, le radiateur ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
 
 # Choix des fonctions utilisées

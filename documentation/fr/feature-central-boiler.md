@@ -54,7 +54,7 @@ Cliquez sur 'Appeler l'action'. Si votre chaudière s'allume vous avez la bonne 
 
 Exemple:
 
-Sous "Outils de développement / Service" :
+Sous "Outils de développement / Actions" :
 
 ![Configuration du service](images/dev-tools-turnon-boiler-1.png)
 
@@ -72,7 +72,7 @@ A chaque allumage ou extinction réussie de la chaudière un évènement est env
 Les évènements ressemblent à ça :
 
 Un évènement d'allumage :
-```
+```yaml
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
@@ -88,7 +88,7 @@ context:
 ```
 
 Un évènement d'extinction :
-```
+```yaml
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
@@ -106,4 +106,5 @@ context:
 ## Avertissement
 
 > ![Astuce](images/tips.png) _*Notes*_
+>
 > Le contrôle par du logiciel ou du matériel de type domotique d'une chaudière centrale peut induire des risques pour son bon fonctionnement. Assurez-vous avant d'utiliser ces fonctions, que votre chaudière possède bien des fonctions de sécurité et que celles-ci fonctionnent. Allumer une chaudière si tous les robinets sont fermés peut générer de la sur-pression par exemple.

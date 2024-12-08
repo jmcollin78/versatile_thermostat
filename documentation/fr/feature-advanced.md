@@ -35,7 +35,7 @@ Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque
 Le quatrième paramètre (`security_default_on_percent`) est la valeur de `on_percent` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez `0` alors le thermostat sera coupé lorsqu'il passe en mode `security`, mettre 0,2% par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
 
 Il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
-```
+```yaml
 versatile_thermostat:
 ...
     safety_mode:

@@ -18,7 +18,7 @@ Si vous avez défini une configuration centralisée, vous avez une nouvelle enti
 
 Cette entité se présente sous la forme d'une liste de choix qui contient les choix suivants :
 1. `Auto` : le mode 'normal' dans lequel chaque VTherm se comporte de façon autonome,
-2. `Stooped` : tous les VTherms sont mis à l'arrêt (`hvac_off`),
+2. `Stopped` : tous les VTherms sont mis à l'arrêt (`hvac_off`),
 3. `Heat only` : tous les VTherms sont mis en mode chauffage lorsque ce mode est supporté par le VTherm, sinon il est stoppé,
 4. `Cool only` : tous les VTherms sont mis en mode climatisation lorsque ce mode est supporté par le VTherm, sinon il est stoppé,
 5. `Frost protection` : tous les VTherms sont mis en preset hors-gel lorsque ce preset est supporté par le VTherm, sinon il est stoppé.

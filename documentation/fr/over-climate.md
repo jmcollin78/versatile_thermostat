@@ -1,6 +1,6 @@
-# Thermostat de type `thermostat_over_climate`
+# Thermostat de type `over_climate`
 
-- [Thermostat de type `thermostat_over_climate`](#thermostat-de-type-thermostat_over_climate)
+- [Thermostat de type `over_climate`](#thermostat-de-type-over_climate)
   - [Pré-requis](#pré-requis)
   - [Configuration](#configuration)
     - [les sous-jacents](#les-sous-jacents)
@@ -13,6 +13,7 @@
 ## Pré-requis
 
 L'installation doit ressembler à ça :
+
 ![installation `over_climate`](images/over-climate-schema.png)
 
 1. L'utilisateur ou une automatisation ou le Sheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
@@ -25,6 +26,7 @@ L'installation doit ressembler à ça :
 ## Configuration
 
 Cliquer sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
+
 ![image](images/config-linked-entity2.png)
 
 ### les sous-jacents
@@ -77,7 +79,7 @@ On obtient alors une auto-régulation bien plus efficace qui évite l'eccueil de
 
 Attention toutefois, certaines températures internes varient tellement vite et sont tellement fausses qu'elles faussent totalement le calcul. Dans ce cas, là, il vaut mieux désactiver cette option.
 
-Vous trouverez des conseils pour régler au mieux ces paramètres dans la page (TODO optimiser)
+Vous trouverez des conseils pour régler au mieux ces paramètres dans la page [auto-regulation](self-regulation.md).
 
 ## Fonctions spécifiques
 

@@ -104,7 +104,7 @@ La présence de ces entités est conditionnée au fait que la fonction associée
 
 Pour colorer les capteurs, ajouter ces lignes et personnalisez les au besoin, dans votre configuration.yaml :
 
-```
+```yaml
 frontend:
   themes:
     versatile_thermostat_theme:
@@ -127,7 +127,7 @@ Cette implémentation personnalisée offre des actions (ex service) spécifiques
 Ce service permet de forcer l'état de présence indépendamment du capteur de présence. Cela peut être utile si vous souhaitez gérer la présence via un service et non via un capteur. Par exemple, vous pouvez utiliser votre réveil pour forcer l'absence lorsqu'il est allumé.
 
 Le code pour appeler ce service est le suivant :
-```
+```yaml
 service : versatile_thermostat.set_presence
 Les données:
     présence : "off"
@@ -142,7 +142,7 @@ Si le préréglage modifié est actuellement sélectionné, la modification de l
 Vous pouvez modifier l'une ou les deux températures (lorsqu'elles sont présentes ou absentes) de chaque préréglage.
 
 Utilisez le code suivant pour régler la température du préréglage :
-```
+```yaml
 service : versatile_thermostat.set_preset_temperature
 date:
     preset : boost
@@ -153,7 +153,7 @@ target:
 ```
 
 Ou pour changer le pré-réglage du mode Air Conditionné (AC) ajoutez un préfixe `_ac`` au nom du preset comme ceci :
-```
+```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
     preset: boost_ac
@@ -164,14 +164,15 @@ target:
 ```
 
 > ![Astuce](images/tips.png) _*Notes*_
-    - après un redémarrage, les préréglages sont réinitialisés à la température configurée. Si vous souhaitez que votre changement soit permanent, vous devez modifier le préréglage de la température dans la configuration de l'intégration.
+>
+>    - après un redémarrage, les préréglages sont réinitialisés à la température configurée. Si vous souhaitez que votre changement soit permanent, vous devez modifier le préréglage de la température dans la configuration de l'intégration.
 
 ## Modifier les paramètres de sécurité
 Ce service permet de modifier dynamiquement les paramètres de sécurité décrits ici [Configuration avancée](#configuration-avancée).
 Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqués immédiatement.
 
 Pour changer les paramètres de sécurité utilisez le code suivant :
-```
+```yaml
 service : versatile_thermostat.set_security
 data:
     min_on_percent: "0.5"
@@ -187,7 +188,7 @@ Il permet de continuer à chauffer même si la fenetre est detectée ouverte.
 Mis à ``true`` les modifications de status de la fenetre n'auront plus d'effet sur le thermostat, remis à ``false`` cela s'assurera de désactiver le thermostat si la fenetre est toujours ouverte.
 
 Pour changer le paramètre de bypass utilisez le code suivant :
-```
+```yaml
 service : versatile_thermostat.set_window_bypass
 data:
     window_bypass: true

@@ -27,6 +27,7 @@ Si le vehicle n'est pas en charge, la puissance totale consommé est de 1 kW, un
 ## Configurer la gestion de la puissance
 
 Si vous avez choisi la fonctionnalité `Avec détection de la puissance`, vous la configurez de la façon suivante :
+
 ![image](images/config-power.png)
 
 1. l'id d'entité du **capteur de puissance instantané consommé** de votre logement,
@@ -37,6 +38,7 @@ Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW o
 Le fait d'avoir un **capteur de puissance maximale autorisée**, vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou d'une automatisation.
 
 > ![Astuce](images/tips.png) _*Notes*_
+>
 > 1. En cas de délestage, le radiateur est réglé sur le préréglage nommé `power`. Il s'agit d'un préréglage caché, vous ne pouvez pas le sélectionner manuellement.
 > 2. Gardez toujours une marge, car la puissance max peut être brièvement dépassée en attendant le calcul du prochain cycle typiquement ou par des équipements non régulés.
 > 3. Si vous ne souhaitez pas utiliser cette fonctionnalité, décochez la dans le menu 'Fonctions'.
