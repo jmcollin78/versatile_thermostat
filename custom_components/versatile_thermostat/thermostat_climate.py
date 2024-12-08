@@ -985,6 +985,32 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""
         self._is_auto_start_stop_enabled = is_enabled
+        if (
+            self.hvac_mode == HVACMode.OFF
+            and self.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        ):
+            _LOGGER.debug(
+                "%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm"
+            )
+            self.hass.create_task(self.async_turn_on())
+
+            # Send an event
+            self.send_event(
+                event_type=EventType.AUTO_START_STOP_EVENT,
+                data={
+                    "type": "start",
+                    "name": self.name,
+                    "cause": "Auto start stop disabled",
+                    "hvac_mode": self.hvac_mode,
+                    "saved_hvac_mode": self._saved_hvac_mode,
+                    "target_temperature": self.target_temperature,
+                    "current_temperature": self.current_temperature,
+                    "temperature_slope": round(self.last_temperature_slope or 0, 3),
+                    "accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                    "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
+                },
+            )
+
         self.update_custom_attributes()
 
     def set_follow_underlying_temp_change(self, follow: bool):
