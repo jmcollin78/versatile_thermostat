@@ -1,19 +1,18 @@
 # Quelques compléments indispensables
 
 - [Quelques compléments indispensables](#quelques-compléments-indispensables)
-  - [Bien mieux avec le Versatile Thermostat UI Card](#bien-mieux-avec-le-versatile-thermostat-ui-card)
-  - [Encore mieux avec le composant Scheduler !](#encore-mieux-avec-le-composant-scheduler-)
-  - [Encore bien mieux avec la custom:simple-thermostat front integration](#encore-bien-mieux-avec-la-customsimple-thermostat-front-integration)
-  - [Toujours mieux avec Plotly pour régler votre thermostat](#toujours-mieux-avec-plotly-pour-régler-votre-thermostat)
-  - [Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements](#et-toujours-de-mieux-en-mieux-avec-laappdaemon-notifier-pour-notifier-les-évènements)
+  - [Versatile Thermostat UI Card](#versatile-thermostat-ui-card)
+  - [Composant Scheduler !](#composant-scheduler-)
+  - [Courbes de régulattion avec Plotly](#courbes-de-régulattion-avec-plotly)
+  - [Les notification avec l'AappDaemon NOTIFIER](#les-notification-avec-laappdaemon-notifier)
 
 
-## Bien mieux avec le Versatile Thermostat UI Card
+## Versatile Thermostat UI Card
 Une carte spéciale pour le Versatile Thermostat a été développée (sur la base du Better Thermostat). Elle est dispo ici [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) et propose une vision moderne de tous les status du VTherm :
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-## Encore mieux avec le composant Scheduler !
+## Composant Scheduler !
 
 Afin de profiter de toute la puissance du Versatile Thermostat, je vous invite à l'utiliser avec https://github.com/nielsfaber/scheduler-component
 En effet, le composant scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
@@ -39,58 +38,13 @@ Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il 
 
 J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !
 
-## Encore bien mieux avec la custom:simple-thermostat front integration
-Le ``custom:simple-thermostat`` [ici](https://github.com/nervetattoo/simple-thermostat) est une excellente intégration qui permet une certaine personnalisation qui s'adapte bien à ce thermostat.
-Vous pouvez avoir quelque chose comme ça très facilement ![image](images/simple-thermostat.png)
-Exemple de configuration :
-
-```
-      type: custom:simple-thermostat
-      entity: climate.thermostat_sam2
-      layout:
-        step: row
-      label:
-        temperature: T°
-        state: Etat
-      hide:
-        state: false
-      control:
-        hvac:
-          _name: Mode
-        preset:
-          _name: Preset
-      sensors:
-        - entity: sensor.total_puissance_radiateur_sam2
-          icon: mdi:lightning-bolt-outline
-      header:
-        toggle:
-          entity: input_boolean.etat_ouverture_porte_sam
-          name: Porte sam
-```
-
-Vous pouvez personnaliser ce composant à l'aide du composant HACS card-mod pour ajuster les couleurs des alertes. Exemple pour afficher en rouge les alertes sécurité et délestage :
-
-```
-          card_mod:
-            style: |
-              {% if is_state('binary_sensor.thermostat_chambre_security_state', 'on') %}
-              ha-card .body .sensor-heading ha-icon[icon="mdi:alert-outline"] {
-                color: red;
-              }
-              {% endif %}
-              {% if is_state('binary_sensor.thermostat_chambre_overpowering_state', 'on') %}
-              ha-card .body .sensor-heading ha-icon[icon="mdi:flash"] {
-                color: red;
-              }
-              {% endif %}
-```
-![image](images/custom-css-thermostat.png)
-
-## Toujours mieux avec Plotly pour régler votre thermostat
+## Courbes de régulattion avec Plotly
 Vous pouvez obtenir une courbe comme celle présentée dans [some results](#some-results) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](#custom-attributes) :
 
 Remplacez les valeurs entre [[ ]] par les votres.
-```
+<details>
+
+```yaml
 - type: custom:plotly-graph
   entities:
     - entity: '[[climate]]'
@@ -106,9 +60,13 @@ Remplacez les valeurs entre [[ ]] par les votres.
       yaxis: y1
       name: Ema
     - entity: '[[climate]]'
-      attribute: regulated_target_temperature
-      yaxis: y1
-      name: Regulated T°
+      attribute: on_percent
+      yaxis: y2
+      name: Power percent
+      fill: tozeroy
+      fillcolor: rgba(200, 10, 10, 0.3)
+      line:
+        color: rgba(200, 10, 10, 0.9)
     - entity: '[[slope]]'
       name: Slope
       fill: tozeroy
@@ -133,12 +91,19 @@ Remplacez les valeurs entre [[ ]] par les votres.
     yaxis:
       visible: true
       position: 0
+    yaxis2:
+      visible: true
+      position: 0
+      fixedrange: true
+      range:
+        - 0
+        - 1
     yaxis9:
       visible: true
       fixedrange: false
       range:
-        - -0.5
-        - 0.5
+        - -2
+        - 2
       position: 1
     xaxis:
       rangeselector:
@@ -154,17 +119,20 @@ Remplacez les valeurs entre [[ ]] par les votres.
           - count: 7
             step: day
 ```
+</details>
 
 Exemple de courbes obtenues avec Plotly :
 
 ![image](images/plotly-curves.png)
 
-## Et toujours de mieux en mieux avec l'AappDaemon NOTIFIER pour notifier les évènements
+## Les notification avec l'AappDaemon NOTIFIER
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.
 
 C'est un excellent exemple de l'utilisation des notifications décrites ici [notification](#notifications).
 
-```
+<details>
+
+```yaml
 alias: Surveillance Mode Sécurité chauffage
 description: Envoi une notification si un thermostat passe en mode sécurité ou power
 trigger:
@@ -245,3 +213,4 @@ action:
 mode: queued
 max: 30
 ```
+</details>
