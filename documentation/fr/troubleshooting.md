@@ -79,6 +79,7 @@ Exemple :
         data:
           option: eco
 ```
+Un exemple plus complet est [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
 
 ## Seul le premier radiateur chauffe
 
