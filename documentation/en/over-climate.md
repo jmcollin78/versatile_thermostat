@@ -9,6 +9,7 @@
     - [Auto-Fan (Auto Ventilation)](#auto-fan-auto-ventilation)
     - [Compensating for the Internal Temperature of the Underlying Equipment](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
   - [Specific Functions](#specific-functions)
+  - [Follow Underlying Temperature Changes](#follow-underlying-temperature-changes)
 
 ## Prerequisites
 
@@ -84,3 +85,17 @@ Specific functions can be configured through a dedicated option in the menu.
 The specific functions that require configuration for this type of VTherm are:
 1. Auto-Start/Stop: Automatic start and stop of VTherm based on usage forecasts. This is described here: [auto-start/stop function](feature-auto-start-stop.md).
 2. If valve regulation is chosen, the TPI algorithm configuration is accessible from the menu. See ([algorithms](algorithms.md)).
+
+## Follow Underlying Temperature Changes
+
+Some users want to continue using their equipment as before (without _VTherm_). For example, you might want to use the remote control of your _PAC_ or turn the knob on your _TRV_.
+If you are in this case, an entity has been added to the _VTherm_ device called `Follow underlying temp changes`:
+
+![Track temperature changes](images/entity-follow-under-temp-change.png)
+
+When this entity is 'On', all temperature or state changes made directly on the underlying equipment are reflected in _VTherm_.
+
+Be careful, if you use this feature, your equipment is now controlled in two ways: _VTherm_ and directly by you. The commands might be contradictory, which could lead to confusion about the equipment's state. _VTherm_ is equipped with a delay mechanism that prevents loops: the user gives a setpoint, which is captured by _VTherm_ and changes the setpoint, ... This delay may cause the change made directly on the equipment to be ignored if these changes are too close together in time.
+
+Some equipment (like Daikin, for example) changes state by itself. If the checkbox is checked, it may turn off the _VTherm_ when that's not what you intended.
+That's why it's better not to use it. It generates a lot of confusion and many support requests.
