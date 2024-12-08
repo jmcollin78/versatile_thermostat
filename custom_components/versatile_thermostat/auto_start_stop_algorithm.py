@@ -57,10 +57,13 @@ class AutoStartStopDetectionAlgorithm:
     _accumulated_error: float = 0
     _error_threshold: float | None = None
     _last_calculation_date: datetime | None = None
+    _last_switch_date: datetime | None = None
 
     def __init__(self, level: TYPE_AUTO_START_STOP_LEVELS, vtherm_name) -> None:
         """Initalize a new algorithm with the right constants"""
         self._vtherm_name = vtherm_name
+        self._last_calculation_date = None
+        self._last_switch_date = None
         self._init_level(level)
 
     def _init_level(self, level: TYPE_AUTO_START_STOP_LEVELS):
@@ -143,17 +146,26 @@ class AutoStartStopDetectionAlgorithm:
 
         temp_at_dt = current_temp + slope_min * self._dt
 
+        # Calculate the number of minute from last_switch
+        nb_minutes_since_last_switch = 999
+        if self._last_switch_date is not None:
+            nb_minutes_since_last_switch = (
+                now - self._last_switch_date
+            ).total_seconds() / 60
+
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
         if hvac_mode == HVACMode.HEAT:
             if (
                 self._accumulated_error <= -self._error_threshold
                 and temp_at_dt >= target_temp + TEMP_HYSTERESIS
+                and nb_minutes_since_last_switch >= self._dt
             ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for heating for a long time.",
                     self,
                 )
+                self._last_switch_date = now
                 return AUTO_START_STOP_ACTION_OFF
             else:
                 _LOGGER.debug("%s - nothing to do, we are heating", self)
@@ -163,11 +175,13 @@ class AutoStartStopDetectionAlgorithm:
             if (
                 self._accumulated_error >= self._error_threshold
                 and temp_at_dt <= target_temp - TEMP_HYSTERESIS
+                and nb_minutes_since_last_switch >= self._dt
             ):
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for cooling for a long time.",
                     self,
                 )
+                self._last_switch_date = now
                 return AUTO_START_STOP_ACTION_OFF
             else:
                 _LOGGER.debug(
@@ -178,11 +192,15 @@ class AutoStartStopDetectionAlgorithm:
 
         # check to turn on
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.HEAT:
-            if temp_at_dt <= target_temp - TEMP_HYSTERESIS:
+            if (
+                temp_at_dt <= target_temp - TEMP_HYSTERESIS
+                and nb_minutes_since_last_switch >= self._dt
+            ):
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to heat",
                     self,
                 )
+                self._last_switch_date = now
                 return AUTO_START_STOP_ACTION_ON
             else:
                 _LOGGER.debug(
@@ -192,11 +210,15 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.COOL:
-            if temp_at_dt >= target_temp + TEMP_HYSTERESIS:
+            if (
+                temp_at_dt >= target_temp + TEMP_HYSTERESIS
+                and nb_minutes_since_last_switch >= self._dt
+            ):
                 _LOGGER.info(
                     "%s - We need to start, because it will be time to cool",
                     self,
                 )
+                self._last_switch_date = now
                 return AUTO_START_STOP_ACTION_ON
             else:
                 _LOGGER.debug(
@@ -234,6 +256,11 @@ class AutoStartStopDetectionAlgorithm:
     def level(self) -> TYPE_AUTO_START_STOP_LEVELS:
         """Get the level value"""
         return self._level
+
+    @property
+    def last_switch_date(self) -> datetime | None:
+        """Get the last of the last switch"""
+        return self._last_switch_date
 
     def __str__(self) -> str:
         return f"AutoStartStopDetectionAlgorithm-{self._vtherm_name}"

@@ -60,6 +60,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 "auto_start_stop_enable",
                 "auto_start_stop_accumulated_error",
                 "auto_start_stop_accumulated_error_threshold",
+                "auto_start_stop_last_switch_date",
                 "follow_underlying_temp_change",
             }
         )
@@ -554,6 +555,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._attr_extra_state_attributes[
             "auto_start_stop_accumulated_error_threshold"
         ] = self._auto_start_stop_algo.accumulated_error_threshold
+
+        self._attr_extra_state_attributes["auto_start_stop_last_switch_date"] = (
+            self._auto_start_stop_algo.last_switch_date
+        )
 
         self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
             self._follow_underlying_temp_change
@@ -1113,15 +1118,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return self.underlying_entity(0).supported_features | self._support_flags
 
         return self._support_flags
-
-    # We keep the step configured for the VTherm and not the step of the underlying
-    # @property
-    # def target_temperature_step(self) -> float | None:
-    #     """Return the supported step of target temperature."""
-    #     if self.underlying_entity(0):
-    #         return self.underlying_entity(0).target_temperature_step
-    #
-    #     return None
 
     @property
     def target_temperature_high(self) -> float | None:
