@@ -20,7 +20,8 @@
 ## Utilisation d'un Heatzy
 
 L'utilisation d'un Heatzy ou Nodon est possible à la condition d'utiliser un switch virtuel sur ce modèle :
-```
+
+```yaml
 - platform: template
   switches:
     chauffage_sdb:
@@ -51,7 +52,8 @@ Merci à @gael pour cet exemple.
 ## Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)
 Comme pour le Heatzy ci-dessus vous pouvez utiliser un switch virtuel qui va changer le preset de votre radiateur en fonction de l'état d'allumage du VTherm.
 Exemple :
-```
+
+```yaml
 - platform: template
   switches:
     chauffage_chb_parents:
@@ -108,7 +110,8 @@ Cet algorithm possède 3 paramètres :
 3. `precision` : le nombre de chiffre après la virgule conservée pour le calcul de la moyenne mobile.
 
 Pour changer ses paramètres, il faut modifier le fichier `configuration.yaml` et ajouter la section suivante (les valeurs sont les valeurs par défaut):
-```
+
+```yaml
 versatile_thermostat:
   short_ema_params:
     max_alpha: 0.5
@@ -138,7 +141,8 @@ Si vous avez installé la carte [Versatile Thermostat UI Card](https://github.co
 Vous pouvez aussi vérifier dans les attributs du VTherm les dates de réception des différentes dates. **Les attributs sont disponibles dans les Outils de développement / Etats**.
 
 Exemple :
-```
+
+```yaml
 security_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
@@ -172,7 +176,8 @@ Malheureusement, les groupes de personnes ne sont pas reconnus comme des capteur
 Le contournement est de créer un template de binary_sensor avec le code suivant :
 
 Fichier `template.yaml` :
-```
+
+```yaml
 - binary_sensor:
     - name: maison_occupee
       unique_id: maison_occupee
@@ -183,7 +188,8 @@ Fichier `template.yaml` :
 Vous noterez dans cet exemple, l'utilisation d'un input_boolean nommé force_presence qui permet de forcer le capteur à `True` et ainsi de forcer les VTherm qui l'utilise avec présence active. Ca permet par exemple, de forcer un pré-chauffage du logement lors du départ du travail, ou lorsqu'une personne non reconnue nativement dans HA est présente.
 
 Fichier `configuration.yaml`:
-```
+
+```yaml
 ...
 template: !include templates.yaml
 ...
@@ -191,7 +197,8 @@ template: !include templates.yaml
 
 ## Activer les logs du Versatile Thermostat
 Des fois, vous aurez besoin d'activer les logs pour afiner les analyses. Pour cela, éditer le fichier `logger.yaml` de votre configuration et configurer les logs comme suit :
-```
+
+```yaml
 default: xxxx
 logs:
   custom_components.versatile_thermostat: info
