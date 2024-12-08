@@ -1005,7 +1005,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     "saved_hvac_mode": self._saved_hvac_mode,
                     "target_temperature": self.target_temperature,
                     "current_temperature": self.current_temperature,
-                    "temperature_slope": round(self.last_temperature_slope, 3),
+                    "temperature_slope": round(self.last_temperature_slope or 0, 3),
                     "accumulated_error": self._auto_start_stop_algo.accumulated_error,
                     "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
                 },
