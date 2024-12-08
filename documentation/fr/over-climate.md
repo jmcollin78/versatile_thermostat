@@ -9,6 +9,7 @@
     - [L'auto-ventilation (auto-fan)](#lauto-ventilation-auto-fan)
     - [Compenser la température interne du sous-jacent](#compenser-la-température-interne-du-sous-jacent)
   - [Fonctions spécifiques](#fonctions-spécifiques)
+  - [Suivre les changements de température du sous-jacent](#suivre-les-changements-de-température-du-sous-jacent)
 
 ## Pré-requis
 
@@ -88,3 +89,17 @@ Les fonctions spécifiques sont paramétrables avec une option dédiée du menu.
 Les fonctions spécifiques qui nécessite un paramétrage à ce type de VTherm sont :
 1. l'auto-start/stop : arrêt et démarrage automatique du VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
 2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf ([algorithmes](algorithms.md))
+
+## Suivre les changements de température du sous-jacent
+
+Certains utilisateurs veulent continuer à utiliser leur équipement comme avant (sans _VTherm_). Par exemple vous pouvez vouloir utiliser la télécommande de votre _PAC_ ou tourner le bouton de votre _TRV_.
+Si vous êtes dans ce cas, une entité a été ajoutée dans l'appareil _VTherm_ nommée `Follow underlying temp changes` :
+
+![Suivre les changements de température](images/entity-follow-under-temp-change.png)
+
+Lorsque cette entité est 'On', tous les changements de température ou d'état faits directement sur l'équipement sous-jacents sont répercutés sur le _VTherm_.
+
+Attention, si vous utilisez cette fonction, votre équipement est maintenant contrôlé par 2 moyens : _VTherm_ et par vous même directement. Les ordres peuvent être contradictoires et cela peut induire une incompréhension sur l'état de l'équipement. _VTherm_ est équipé d'un mécanisme de temporisation qui évite les boucles : l'utilisateur donne une consigne qui est captée par _VTherm_ qui change la consigne, ... Cette temporisation peut faire que le changement fait directement sur l'équipement est ignoré si ces changements sont trop rapprochés dans le temps.
+
+Certains équipements (Daikin par exemple), changent d'état tout seul. Si la case est cochée, cela peut éteindre le _VTherm_ alors que ce n'est pas ce que vous souhaitiez.
+C'est pour ça qu'il est préférable de ne pas l'utiliser. Cela génère beaucoup d'incompréhensions et de nombreuses demandes de support.
