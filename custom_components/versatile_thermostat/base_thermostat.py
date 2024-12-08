@@ -1329,8 +1329,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._attr_preset_mode = PRESET_ACTIVITY
             await self._async_update_motion_temp()
         else:
-            if self._attr_preset_mode == PRESET_NONE:
-                self._saved_target_temp = self._target_temp
+            # if self._attr_preset_mode == PRESET_NONE:
+            #    self._saved_target_temp = self._target_temp
             self._attr_preset_mode = preset_mode
             await self._async_internal_set_temperature(
                 self.find_preset_temp(preset_mode)

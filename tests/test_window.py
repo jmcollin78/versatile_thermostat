@@ -1802,7 +1802,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     event_timestamp = event_timestamp + timedelta(minutes=1)
     await send_temperature_change_event(entity, 19, event_timestamp)
 
-    # 2. Make the temperature down
+    # 2. Make the temperature down -> no change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -1824,7 +1824,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.window_state is STATE_OFF
         assert entity.window_auto_state is STATE_OFF
 
-    # 3. send one degre down in one minute
+    # 3. send one degre down in one minute -> window is on
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -1852,6 +1852,8 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.preset_mode is PRESET_BOOST
         # The eco temp
         assert entity.target_temperature == 10
+        # The last temp is saved
+        assert entity._saved_target_temp == 21
 
         mock_send_event.assert_has_calls(
             [
@@ -1889,6 +1891,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.preset_mode is PRESET_BOOST
         # The eco temp
         assert entity.target_temperature == 10
+        assert entity._saved_target_temp == 21
 
     # 5. send another plus 1.1 degre in one minute -> restore state
     with patch(
@@ -1929,6 +1932,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.preset_mode is PRESET_BOOST
         # The eco temp
         assert entity.target_temperature == 21
+        assert entity._saved_target_temp == 21
 
     # Clean the entity
     entity.remove_thermostat()
