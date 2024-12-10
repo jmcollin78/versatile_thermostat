@@ -218,7 +218,7 @@
         }
       },
       "valve_regulation": {
-        "title": "Auto-régulation par vanne - {name}",
+        "title": "Auto-régulation par vanne",
         "description": "Configuration de l'auto-régulation par controle direct de la vanne",
         "data": {
           "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
@@ -257,7 +257,7 @@
         }
       },
       "menu": {
-        "title": "Menu - {name}",
+        "title": "Menu",
         "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
         "menu_options": {
           "main": "Principaux Attributs",
