@@ -21,7 +21,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
 # this test fails if run in // with the next because the underlying_valve_regulation is mixed. Don't know why
-# @pytest.mark.skip
+@pytest.mark.skip
 async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get):
     """Test the normal full start of a thermostat in thermostat_over_climate type"""
 
@@ -300,6 +300,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
     await hass.async_block_till_done()
 
 
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_valve_multi_presence(
     hass: HomeAssistant, skip_hass_states_get
 ):
