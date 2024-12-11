@@ -309,7 +309,7 @@ async def test_over_climate_regulation_limitations(
         assert entity.hvac_action == HVACAction.HEATING
 
         # the regulated temperature will not change because when we set temp manually it is forced
-        assert entity.regulated_target_temp == 17  # 19.5
+        assert entity.regulated_target_temp == 19.5
 
         # 2. set manual target temp (at now - 18) -> the regulation should be taken into account
         event_timestamp = now - timedelta(minutes=18)
