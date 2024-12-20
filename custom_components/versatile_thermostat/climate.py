@@ -118,7 +118,7 @@ async def async_setup_entry(
         SERVICE_SET_AUTO_REGULATION_MODE,
         {
             vol.Required("auto_regulation_mode"): vol.In(
-                ["None", "Light", "Medium", "Strong", "Slow"]
+                ["None", "Light", "Medium", "Strong", "Slow", "Expert"]
             ),
         },
         "service_set_auto_regulation_mode",
