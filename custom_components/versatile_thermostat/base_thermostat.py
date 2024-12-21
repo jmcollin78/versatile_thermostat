@@ -82,6 +82,10 @@ T = TypeVar("T", bound=UnderlyingEntity)
 class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
 
+    # breaking change with 2024.12 climate workaround
+    _attr_swing_horizontal_modes = []
+    _attr_swing_horizontal_mode = ""
+
     _entity_component_unrecorded_attributes = (
         ClimateEntity._entity_component_unrecorded_attributes.union(
             frozenset(
