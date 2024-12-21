@@ -277,12 +277,15 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         return self.valve_open_percent > 0
 
     @property
-    def nb_device_actives(self) -> int:
+    def device_actives(self) -> int:
         """Calculate the number of active devices"""
         if self.is_device_active:
-            return len(self._underlyings_valve_regulation)
+            return [
+                under.opening_degree_entity_id
+                for under in self._underlyings_valve_regulation
+            ]
         else:
-            return 0
+            return []
 
     @property
     def activable_underlying_entities(self) -> list | None:

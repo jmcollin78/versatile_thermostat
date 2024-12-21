@@ -579,6 +579,7 @@ class MockNumber(NumberEntity):
     def set_native_value(self, value: float):
         """Change the value"""
         self._attr_native_value = value
+        self.async_write_ha_state()
 
 
 async def create_thermostat(
