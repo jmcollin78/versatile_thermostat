@@ -37,6 +37,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 "tpi_coef_int",
                 "tpi_coef_ext",
                 "power_percent",
+                "min_opening_degrees",
             }
         )
     )
@@ -51,6 +52,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._last_calculation_timestamp: datetime | None = None
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
+        self._min_opening_degress: list[int] = []
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -86,6 +88,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
+
+        self._min_opening_degrees = config_entry.get(CONF_MIN_OPENING_DEGREES, None)
+        min_opening_degrees_list = []
+        if self._min_opening_degrees:
+            min_opening_degrees_list = [
+                int(x.strip()) for x in self._min_opening_degrees.split(",")
+            ]
+
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
             offset = offset_list[idx] if idx < len(offset_list) else None
             # number of opening should equal number of underlying
@@ -98,6 +108,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 opening_degree_entity_id=opening,
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
+                min_opening_degree=(
+                    min_opening_degrees_list[idx]
+                    if idx < len(min_opening_degrees_list)
+                    else 0
+                ),
             )
             self._underlyings_valve_regulation.append(under)
 
@@ -129,6 +144,10 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._attr_extra_state_attributes["function"] = self._proportional_function
         self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
         self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
+
+        self._attr_extra_state_attributes["min_opening_degrees"] = (
+            self._min_opening_degrees
+        )
 
         self._attr_extra_state_attributes["valve_open_percent"] = (
             self.valve_open_percent
