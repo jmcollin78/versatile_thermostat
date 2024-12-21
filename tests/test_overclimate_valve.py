@@ -18,10 +18,10 @@ from .const import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 # this test fails if run in // with the next because the underlying_valve_regulation is mixed. Don't know why
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get):
     """Test the normal full start of a thermostat in thermostat_over_climate type"""
 
@@ -138,13 +138,13 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert mock_service_call.call_count == 3
         mock_service_call.assert_has_calls(
             [
+                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
+                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}),
                 call("climate","set_temperature",{
                         "entity_id": "climate.mock_climate",
                         "temperature": 15,  # temp-min
                     },
                 ),
-                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
-                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}),
                 # we have no current_temperature yet
                 # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration'}),
             ]
