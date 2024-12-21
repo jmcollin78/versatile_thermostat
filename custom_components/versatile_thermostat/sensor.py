@@ -653,6 +653,14 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_unique_id = "nb_device_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
+        self._attr_active_device_names = []  # Holds the names of active devices
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return additional attributes for the sensor."""
+        return {
+            "active_device_names": self._attr_active_device_names,
+        }
 
     @property
     def icon(self) -> str | None:
@@ -718,19 +726,19 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 self.calculate_nb_active_devices,
             )
             _LOGGER.info(
-                "%s - the underlyings that could controls the central boiler are %s",
+                "%s - the underlyings that could control the central boiler are %s",
                 self,
                 underlying_entities_id,
             )
             self.async_on_remove(listener_cancel)
         else:
-            _LOGGER.debug("%s - no VTherm could controls the central boiler", self)
+            _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
         await self.calculate_nb_active_devices(None)
 
     async def calculate_nb_active_devices(self, event: Event):
         """Calculate the number of active VTherm that have an
-        influence on central boiler"""
+        influence on the central boiler and update the list of active device names."""
 
         # _LOGGER.debug("%s- calculate_nb_active_devices - the event is %s ", self, event)
 
@@ -774,6 +782,8 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
             )
 
         nb_active = 0
+        active_device_names = []
+
         for entity in self._entities:
             nb_active += entity.nb_device_actives
             _LOGGER.debug(
@@ -781,13 +791,21 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 entity.name,
                 nb_active,
             )
+            
+            if (
+                entity.hvac_mode in [HVACMode.HEAT, HVACMode.AUTO]
+                and entity.hvac_action == HVACAction.HEATING
+            ):
+                for under in entity.underlying_entities:
+                    if under.is_device_active:
+                        nb_active += 1
+                        active_device_names.append(under.entity_id)
 
         self._attr_native_value = nb_active
-        _LOGGER.debug(
-            "%s - Number of active underlying entities is %s", self, nb_active
-        )
+        self._attr_active_device_names = active_device_names
 
         self.async_write_ha_state()
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
+
