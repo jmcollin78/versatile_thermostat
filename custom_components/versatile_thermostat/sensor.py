@@ -769,6 +769,8 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 old_state is not None
                 and new_state.state == old_state.state
                 and new_hvac_action == old_hvac_action
+                # issue 698 - force recalculation when underlying climate doesn't have any hvac_action
+                and new_hvac_action is not None
             ):
                 # A false state change
                 return
