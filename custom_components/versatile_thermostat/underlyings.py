@@ -1029,6 +1029,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         opening_degree_entity_id: str,
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
+        min_opening_degree: int = 0,
     ) -> None:
         """Initialize the underlying TRV with valve regulation"""
         super().__init__(
@@ -1045,6 +1046,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_opening_degree: float = None
         self._min_offset_calibration: float = None
         self._max_offset_calibration: float = None
+        self._min_opening_degree: int = min_opening_degree
 
     async def send_percent_open(self):
         """Send the percent open to the underlying valve"""
@@ -1079,6 +1081,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
             return
 
         # Send opening_degree
+        if 0 < self._percent_open < self._min_opening_degree:
+            self._percent_open = self._min_opening_degree
+
         await super().send_percent_open()
 
         # Send closing_degree if set
@@ -1137,6 +1142,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def closing_degree_entity_id(self) -> str:
         """The offset_calibration_entity_id"""
         return self._closing_degree_entity_id
+
+    @property
+    def min_opening_degree(self) -> int:
+        """The minimum opening degree"""
+        return self._min_opening_degree
 
     @property
     def have_closing_degree_entity(self) -> bool:

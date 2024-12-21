@@ -259,6 +259,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if not self.check_valve_regulation_nb_entities(data, step_id):
             raise ValveRegulationNbEntitiesIncorrect()
 
+        # Check that the min_opening_degrees is correctly set
+        raw_list = data.get(CONF_MIN_OPENING_DEGREES, None)
+        if raw_list:
+            try:
+                # Validation : Convertir la liste saisie
+                int_list = [int(x.strip()) for x in raw_list.split(",")]
+
+                # Optionnel : Vérifiez des conditions supplémentaires sur la liste
+                if any(x < 0 for x in int_list):
+                    raise ValueError
+            except ValueError as exc:
+                raise ValveRegulationMinOpeningDegreesIncorrect(
+                    CONF_MIN_OPENING_DEGREES
+                ) from exc
+
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
         is_central_config = (
@@ -399,6 +414,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors["base"] = "configuration_not_complete"
             except ValveRegulationNbEntitiesIncorrect as err:
                 errors["base"] = "valve_regulation_nb_entities_incorrect"
+            except ValveRegulationMinOpeningDegreesIncorrect as err:
+                errors[str(err)] = "min_opening_degrees_format"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
