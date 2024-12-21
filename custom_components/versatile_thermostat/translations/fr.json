@@ -224,15 +224,13 @@
           "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
           "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
-          "proportional_function": "Algorithme",
-          "min_opening_degrees": "Ouvertures minimales"
+          "proportional_function": "Algorithme"
         },
         "data_description": {
           "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
           "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
-          "min_opening_degrees": "Une liste séparée par des virgules de minimum d'ouverture. Valeur par défaut : 0. Exemple : 20, 25, 30"
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
         }
       }
     },
@@ -464,15 +462,13 @@
           "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
           "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
-          "proportional_function": "Algorithme",
-          "min_opening_degrees": "Ouvertures minimales"
+          "proportional_function": "Algorithme"
         },
         "data_description": {
           "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
           "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
-          "min_opening_degrees": "Une liste séparée par des virgules de minimum d'ouverture. Valeur par défaut : 0. Exemple : 20, 25, 30"
+          "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)"
         }
       }
     },
@@ -482,8 +478,7 @@
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
-      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
-      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30"
+      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes"
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"

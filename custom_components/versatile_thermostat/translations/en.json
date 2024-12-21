@@ -224,15 +224,13 @@
           "offset_calibration_entity_ids": "Offset calibration entities",
           "opening_degree_entity_ids": "Opening degree entities",
           "closing_degree_entity_ids": "Closing degree entities",
-          "proportional_function": "Algorithm",
-          "min_opening_degrees": "Min opening degrees"
+          "proportional_function": "Algorithm"
         },
         "data_description": {
           "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
           "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
           "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "min_opening_degrees": "A comma seperated list of minimal opening degrees. Default to 0. Example: 20, 25, 30"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
         }
       }
     },
@@ -470,15 +468,13 @@
           "offset_calibration_entity_ids": "Offset calibration entities",
           "opening_degree_entity_ids": "Opening degree entities",
           "closing_degree_entity_ids": "Closing degree entities",
-          "proportional_function": "Algorithm",
-          "min_opening_degrees": "Min opening degrees"
+          "proportional_function": "Algorithm"
         },
         "data_description": {
           "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
           "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
           "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV have the entity for better regulation. There should be one per underlying climate entities",
-          "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "min_opening_degrees": "A comma seperated list of minimal opening degrees. Default to 0. Example: 20, 25, 30"
+          "proportional_function": "Algorithm to use (TPI is the only one for now)"
         }
       }
     },
