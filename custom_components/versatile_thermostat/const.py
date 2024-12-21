@@ -123,6 +123,7 @@ CONF_STEP_TEMPERATURE = "step_temperature"
 CONF_OFFSET_CALIBRATION_LIST = "offset_calibration_entity_ids"
 CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
+CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 
 # Deprecated
 CONF_HEATER = "heater_entity_id"
@@ -550,6 +551,10 @@ class ConfigurationNotCompleteError(HomeAssistantError):
 class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
     """Error to indicate there is an error in the configuration of the TRV with valve regulation.
     The number of specific entities is incorrect."""
+
+
+class ValveRegulationMinOpeningDegreesIncorrect(HomeAssistantError):
+    """Error to indicate that the minimal opening degrees is not a list of int separated by coma"""
 
 
 class overrides:  # pylint: disable=invalid-name

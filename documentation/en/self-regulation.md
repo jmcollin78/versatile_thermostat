@@ -32,6 +32,7 @@ You need to provide:
 1. As many valve opening control entities as there are underlying devices, and in the same order. These parameters are mandatory.
 2. As many temperature calibration entities as there are underlying devices, and in the same order. These parameters are optional; they must either all be provided or none.
 3. As many valve closure control entities as there are underlying devices, and in the same order. These parameters are optional; they must either all be provided or none.
+4. A list of minimum opening values ​​for the valve when it needs to be opened. This field is a list of integers. If the valve needs to be opened, it will be opened at a minimum of this opening value. This allows enough water to pass through when it needs to be opened.
 
 The opening rate calculation algorithm is based on the _TPI_ algorithm described [here](algorithms.md). This is the same algorithm used for _VTherms_ `over_switch` and `over_valve`.
 

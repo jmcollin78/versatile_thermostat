@@ -219,6 +219,7 @@ STEP_VALVE_REGULATION = vol.Schema(  # pylint: disable=invalid-name
                 PROPORTIONAL_FUNCTION_TPI,
             ]
         ),
+        vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
     }
 )
 
