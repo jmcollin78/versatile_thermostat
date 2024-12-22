@@ -1762,7 +1762,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -1927,7 +1927,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.hvac_mode is HVACMode.HEAT
         # No change on preset
         assert entity.preset_mode is PRESET_BOOST
-        # The eco temp
+        # The Boost temp
         assert entity.target_temperature == 21
 
     # Clean the entity
@@ -2091,3 +2091,223 @@ async def test_bug_66(
         assert entity.window_state == STATE_OFF
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_window_action_frost_temp_preset_change(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test the Window management with the frost_temp option and change the preset during
+    the window is open. This should restore the new preset temperature"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_WINDOW_ACTION: CONF_WINDOW_FROST_TEMP,
+            CONF_WINDOW_SENSOR: "binary_sensor.fake_window_sensor",
+            CONF_WINDOW_DELAY: 1,
+        },
+    )
+
+    vtherm: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theoverswitchmockname"
+    )
+    assert vtherm
+
+    await set_all_climate_preset_temp(
+        hass, vtherm, default_temperatures, "theoverswitchmockname"
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now = datetime.now(tz)
+
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.preset_mode is PRESET_BOOST
+    assert vtherm.target_temperature == 21
+
+    assert vtherm.window_state is STATE_OFF
+    assert vtherm.is_window_auto_enabled is False
+
+    # 1. Turn on the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, True, False, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have taken the window action
+        assert vtherm.target_temperature == 7  # Frost
+        # No change
+        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # 2. Change the preset to comfort
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+
+    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await hass.async_block_till_done()
+
+    # VTherm should have taken the new preset temperature
+    assert vtherm.target_temperature == 7  # frost (window is still open)
+    assert vtherm.preset_mode is PRESET_COMFORT
+    assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # 3.Turn off the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, False, True, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have restore the Comfort preset temperature
+        assert vtherm.target_temperature == 19  # restore comfort
+        # No change
+        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # Clean the entity
+    vtherm.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_window_action_frost_temp_temp_change(
+    hass: HomeAssistant, skip_hass_states_is_state
+):
+    """Test the Window management with the frost_temp option and change the target temp during
+    the window is open. This should restore the new temperature"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SECURITY_DELAY_MIN: 5,
+            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_WINDOW_ACTION: CONF_WINDOW_FROST_TEMP,
+            CONF_WINDOW_SENSOR: "binary_sensor.fake_window_sensor",
+            CONF_WINDOW_DELAY: 1,
+        },
+    )
+
+    vtherm: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theoverswitchmockname"
+    )
+    assert vtherm
+
+    await set_all_climate_preset_temp(
+        hass, vtherm, default_temperatures, "theoverswitchmockname"
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now = datetime.now(tz)
+
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.preset_mode is PRESET_BOOST
+    assert vtherm.target_temperature == 21
+
+    assert vtherm.window_state is STATE_OFF
+    assert vtherm.is_window_auto_enabled is False
+
+    # 1. Turn on the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, True, False, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have taken the window action
+        assert vtherm.target_temperature == 7  # Frost
+        # No change
+        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # 2. Change the target temperature
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+
+    await vtherm.async_set_temperature(temperature=18.5)
+    await hass.async_block_till_done()
+
+    # VTherm should have taken the new preset temperature
+    assert vtherm.target_temperature == 7  # frost (window is still open)
+    assert vtherm.preset_mode is PRESET_NONE
+    assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # 3.Turn off the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, False, True, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have restore the new target temperature
+        assert vtherm.target_temperature == 18.5  # restore new target temperature
+        # No change
+        assert vtherm.preset_mode is PRESET_NONE
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # Clean the entity
+    vtherm.remove_thermostat()
