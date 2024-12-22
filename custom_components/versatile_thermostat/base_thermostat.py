@@ -137,6 +137,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "temperature_slope",
                     "max_on_percent",
                     "have_valve_regulation",
+                    "last_change_time_from_vtherm",
                 }
             )
         )
@@ -219,7 +220,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
-        self._last_change_time = None
+        # Last change time is the datetime of the last change sent by VTherm to the device
+        # it is used in `over_cliamte` when a state have change from underlying to avoid loops
+        self._last_change_time_from_vtherm = None
 
         self._underlyings: list[T] = []
 
@@ -749,14 +752,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self.hass.create_task(self._check_initial_state())
 
-        self.reset_last_change_time()
-
-        # if self.hass.state == CoreState.running:
-        #     await _async_startup_internal()
-        # else:
-        #     self.hass.bus.async_listen_once(
-        #         EVENT_HOMEASSISTANT_START, _async_startup_internal
-        #     )
+        self.reset_last_change_time_from_vtherm()
 
     def init_underlyings(self):
         """Initialize all underlyings. Should be overriden if necessary"""
@@ -1223,7 +1219,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         def save_state():
-            self.reset_last_change_time()
+            self.reset_last_change_time_from_vtherm()
             self.update_custom_attributes()
             self.async_write_ha_state()
             self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
@@ -1355,12 +1351,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if self._attr_preset_mode != old_preset_mode:
             self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
-    def reset_last_change_time(
+    def reset_last_change_time_from_vtherm(
         self, old_preset_mode: str | None = None
     ):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
-        self._last_change_time = self.now
-        _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time)
+        self._last_change_time_from_vtherm = self.now
+        _LOGGER.debug(
+            "%s - last_change_time is now %s", self, self._last_change_time_from_vtherm
+        )
 
     def reset_last_temperature_time(self, old_preset_mode: str | None = None):
         """Reset to now the last temperature time if conditions are satisfied"""
@@ -1460,7 +1458,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         await self._async_internal_set_temperature(temperature)
         self._attr_preset_mode = PRESET_NONE
         self.recalculate()
-        self.reset_last_change_time()
+        self.reset_last_change_time_from_vtherm()
         await self.async_control_heating(force=True)
 
     async def _async_internal_set_temperature(self, temperature: float):
@@ -1529,7 +1527,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._last_temperature_measure = self.get_last_updated_date_or_now(
                 new_state
             )
-            self.reset_last_change_time()
+            # issue 690 - don't reset the last change time on lastSeen
+            # self.reset_last_change_time_from_vtherm()
             _LOGGER.debug(
                 "%s - new last_temperature_measure is now: %s",
                 self,
@@ -2693,6 +2692,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "hvac_off_reason": self.hvac_off_reason,
             "max_on_percent": self._max_on_percent,
             "have_valve_regulation": self.have_valve_regulation,
+            "last_change_time_from_vtherm": (
+                self._last_change_time_from_vtherm.astimezone(
+                    self._current_tz
+                ).isoformat()
+                if self._last_change_time_from_vtherm is not None
+                else None
+            ),
         }
 
         _LOGGER.debug(
