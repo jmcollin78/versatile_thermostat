@@ -1299,7 +1299,7 @@ async def test_auto_start_stop_fast_heat_window(
     now: datetime = datetime.now(tz=tz)
 
     # 2. Set mode to Heat and preset to Comfort and close the window
-    send_window_change_event(vtherm, False, False, now, False)
+    await send_window_change_event(vtherm, False, False, now, False)
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
@@ -1474,7 +1474,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     now: datetime = datetime.now(tz=tz)
 
     # 2. Set mode to Heat and preset to Comfort and close the window
-    send_window_change_event(vtherm, False, False, now, False)
+    await send_window_change_event(vtherm, False, False, now, False)
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)

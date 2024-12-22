@@ -252,7 +252,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._cancel_cycle()
 
         if self.hvac_mode != hvac_mode:
-            super().set_hvac_mode(hvac_mode)
+            await super().set_hvac_mode(hvac_mode)
             return True
         else:
             return False

@@ -949,7 +949,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     now: datetime = datetime.now(tz=tz)
 
     # 1. Set mode to Heat and preset to Comfort and close the window
-    send_window_change_event(vtherm, False, False, now, False)
+    await send_window_change_event(vtherm, False, False, now, False)
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
@@ -1123,7 +1123,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     now: datetime = datetime.now(tz=tz)
 
     # 1. Set mode to Heat and preset to Comfort
-    send_window_change_event(vtherm, False, False, now, False)
+    await send_window_change_event(vtherm, False, False, now, False)
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
