@@ -915,7 +915,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
 
-class VersatileThermostatConfigFlow(
+class VersatileThermostatConfigFlow(  # pylint: disable=abstract-method
     VersatileThermostatBaseConfigFlow, HAConfigFlow, domain=DOMAIN
 ):
     """Handle a config flow for Versatile Thermostat."""
@@ -929,6 +929,8 @@ class VersatileThermostatConfigFlow(
     @callback
     def async_get_options_flow(config_entry: ConfigEntry):
         """Get options flow for this handler"""
+        # #713 doesn't work as explained here:https://developers.home-assistant.io/blog/2024/11/12/options-flow
+        #  should be - return VersatileThermostatOptionsFlowHandler() but hass is not initialized
         return VersatileThermostatOptionsFlowHandler(config_entry)
 
     async def async_step_finalize(self, _):
@@ -947,8 +949,12 @@ class VersatileThermostatOptionsFlowHandler(
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
+
+        self._conf_app_id: str | None = None
+
         super().__init__(config_entry.data.copy())
-        self.config_entry = config_entry
+        # #713
+        # self.config_entry = config_entry
         _LOGGER.debug(
             "CTOR VersatileThermostatOptionsFlowHandler info: %s, entry_id: %s",
             self._infos,
