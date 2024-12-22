@@ -15,6 +15,7 @@
     - [Comment réparer ?](#comment-réparer-)
   - [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence)
   - [Activer les logs du Versatile Thermostat](#activer-les-logs-du-versatile-thermostat)
+  - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
 
 
 ## Utilisation d'un Heatzy
@@ -206,3 +207,7 @@ logs:
 Vous devez recharger la configuration yaml (Outils de dev / Yaml / Toute la configuration Yaml) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
 
 Attention, en mode debug Versatile Thermostat est très verbeux et peut vite ralentir Home Assistant ou saturer votre disque dur. Si vous passez en mode debug pour une analyse d'anomalie il faut s'y mettre juste le temps de reproduire le bug et désactiver le mode debug juste après.
+
+## VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)
+
+Voir le détail de cette fonction [ici](over-climate.md#suivre-les-changements-de-température-du-sous-jacent).

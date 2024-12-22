@@ -15,6 +15,7 @@
     - [How to Fix It?](#how-to-fix-it)
   - [Using a Group of People as a Presence Sensor](#using-a-group-of-people-as-a-presence-sensor)
   - [Enable Logs for the Versatile Thermostat](#enable-logs-for-the-versatile-thermostat)
+  - [VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
 
 
 ## Using a Heatzy
@@ -209,3 +210,7 @@ logs:
 You must reload the YAML configuration (Developer Tools / YAML / Reload all YAML configuration) or restart Home Assistant for this change to take effect.
 
 Be careful, in debug mode, Versatile Thermostat is very verbose and can quickly slow down Home Assistant or saturate your hard drive. If you switch to debug mode for anomaly analysis, do so only for the time needed to reproduce the bug and disable debug mode immediately afterward.
+
+## VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)
+
+See the details of this feature [here](over-climate.md#track-underlying-temperature-changes).
