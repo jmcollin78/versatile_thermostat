@@ -246,7 +246,7 @@ async def test_window_management_time_enough(
         assert entity.preset_mode is PRESET_BOOST
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity._saved_hvac_mode is HVACMode.HEAT  # No change
-        assert entity.hvac_off_reason == None
+        assert entity.hvac_off_reason is None
 
     # Clean the entity
     entity.remove_thermostat()

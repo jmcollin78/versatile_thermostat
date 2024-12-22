@@ -271,5 +271,9 @@ The custom attributes are as follows:
 | ``auto_start_stop_enable``        | Indicates if the VTherm is allowed to auto start/stop                                                                               |
 | ``auto_start_stop_level``         | Indicates the auto start/stop level                                                                                                 |
 | ``hvac_off_reason``               | Indicates the reason for the thermostat's off state (hvac_off). It can be Window, Auto-start/stop, or Manual                        |
+| ``last_change_time_from_vtherm``  | The date and time of the last change done by VTherm                                                                                 |
+| ``nb_device_actives``             | The number of underlying devices seen as active                                                                                     |
+| ``device_actives``                | The list of underlying devices seen as active                                                                                       |
+
 
 These attributes will be requested when you need assistance.

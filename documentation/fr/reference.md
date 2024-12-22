@@ -270,5 +270,8 @@ Les attributs personnalisés sont les suivants :
 | ``auto_start_stop_enable``        | Indique si le VTherm est autorisé à s'auto démarrer/arrêter                                                                                                              |
 | ``auto_start_stop_level``         | Indique le niveau d'auto start/stop                                                                                                                                      |
 | ``hvac_off_reason``               | Indique la raison de l'arrêt (hvac_off) du VTherm. Ce peut être Window, Auto-start/stop ou Manuel                                                                        |
+| ``last_change_time_from_vtherm``  | La date/heure du dernier changement fait par VTherm                                                                                                                      |
+| ``nb_device_actives``             | Le nombre de devices sous-jacents actuellement vus comme actifs                                                                                                          |
+| ``device_actives``                | La liste des devices sous-jacents actuellement vus comme actifs                                                                                                          |
 
 Ces attributs vous seront demandés lors d'une demande d'aide.

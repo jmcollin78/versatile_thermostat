@@ -766,7 +766,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         _LOGGER.debug(
             "%s - last_change_time=%s old_state_date_changed=%s old_state_date_updated=%s new_state_date_changed=%s new_state_date_updated=%s",
             self,
-            self._last_change_time,
+            self._last_change_time_from_vtherm,
             old_state_date_changed,
             old_state_date_updated,
             new_state_date_changed,
@@ -809,8 +809,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # Filter new state when received just after a change from VTherm
         # Issue #120 - Some TRV are changing target temperature a very long time (6 sec) after the change.
         # In that case a loop is possible if a user change multiple times during this 6 sec.
-        if new_state_date_updated and self._last_change_time:
-            delta = (new_state_date_updated - self._last_change_time).total_seconds()
+        if new_state_date_updated and self._last_change_time_from_vtherm:
+            delta = (
+                new_state_date_updated - self._last_change_time_from_vtherm
+            ).total_seconds()
             if delta < 10:
                 _LOGGER.info(
                     "%s - underlying event is received less than 10 sec after command. Forget it to avoid loop",
