@@ -84,6 +84,8 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     assert entity.hvac_mode == HVACMode.HEAT
 
+    last_change_time_from_vtherm = entity._last_change_time_from_vtherm
+
     # 2. activate security feature when date is expired
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -128,9 +130,13 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
 
         assert mock_heater_on.call_count == 1
 
+        assert entity._last_change_time_from_vtherm == last_change_time_from_vtherm
+
     # 3. change the last seen sensor
     event_timestamp = now - timedelta(minutes=4)
     await send_last_seen_temperature_change_event(entity, event_timestamp)
     assert entity.security_state is False
     assert entity.preset_mode is PRESET_COMFORT
     assert entity._last_temperature_measure == event_timestamp
+
+    assert entity._last_change_time_from_vtherm == last_change_time_from_vtherm
