@@ -323,7 +323,7 @@ async def test_underlying_change_follow(
         assert entity.target_temperature == entity.min_temp + 1
         assert entity.preset_mode is PRESET_NONE
 
-        # 4. Change the target temp with < 1 value. The value should not be taken
+        # 4. Change the target temp with < 0.1 (step) value. The value should not be taken
         # Wait 11 sec
         event_timestamp = now + timedelta(seconds=11)
         await send_climate_change_event_with_temperature(
@@ -333,7 +333,7 @@ async def test_underlying_change_follow(
             HVACAction.OFF,
             HVACAction.OFF,
             event_timestamp,
-            entity.min_temp + 1.5,
+            entity.min_temp + 1.09,
             True,
             "climate.mock_climate",  # the underlying climate entity id
         )
