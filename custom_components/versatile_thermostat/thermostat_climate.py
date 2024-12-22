@@ -709,7 +709,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         under_temp_diff = (
             (new_target_temp - last_sent_temperature) if new_target_temp else 0
         )
-        if -1 < under_temp_diff < 1:
+
+        step = self.target_temperature_step or 1
+        if -step < under_temp_diff < step:
             under_temp_diff = 0
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
