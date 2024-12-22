@@ -1269,7 +1269,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ):
         """Set new preset mode."""
 
-        # Wer accept a new preset when:
+        # We accept a new preset when:
         # 1. last_central_mode is not set,
         # 2. or last_central_mode is AUTO,
         # 3. or last_central_mode is CENTRAL_MODE_FROST_PROTECTION and preset_mode is PRESET_FROST_PROTECTION (to be abel to re-set the preset_mode)
@@ -1326,6 +1326,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         old_preset_mode = self._attr_preset_mode
+        recalculate = True
         if preset_mode == PRESET_NONE:
             self._attr_preset_mode = PRESET_NONE
             if self._saved_target_temp:
@@ -1337,16 +1338,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if self._attr_preset_mode == PRESET_NONE:
                 self._saved_target_temp = self._target_temp
             self._attr_preset_mode = preset_mode
-            await self._async_internal_set_temperature(
-                self.find_preset_temp(preset_mode)
-            )
+            # Switch the temperature if window is not 'on'
+            if self.window_state != STATE_ON:
+                await self._async_internal_set_temperature(
+                    self.find_preset_temp(preset_mode)
+                )
+            else:
+                # Window is on, so we just save the new expected temp
+                # so that closing the window will restore it
+                recalculate = False
+                self._saved_target_temp = self.find_preset_temp(preset_mode)
 
-        self.reset_last_temperature_time(old_preset_mode)
+        if recalculate:
+            self.reset_last_temperature_time(old_preset_mode)
 
-        if overwrite_saved_preset:
-            self.save_preset_mode()
+            if overwrite_saved_preset:
+                self.save_preset_mode()
 
-        self.recalculate()
+            self.recalculate()
         # Notify only if there was a real change
         if self._attr_preset_mode != old_preset_mode:
             self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
@@ -1455,19 +1464,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         _LOGGER.info("%s - Set target temp: %s", self, temperature)
         if temperature is None:
             return
-        await self._async_internal_set_temperature(temperature)
+
         self._attr_preset_mode = PRESET_NONE
-        self.recalculate()
-        self.reset_last_change_time_from_vtherm()
-        await self.async_control_heating(force=True)
+        if self.window_state != STATE_ON:
+            await self._async_internal_set_temperature(temperature)
+            self.recalculate()
+            self.reset_last_change_time_from_vtherm()
+            await self.async_control_heating(force=True)
+        else:
+            self._saved_target_temp = temperature
 
     async def _async_internal_set_temperature(self, temperature: float):
-        """Set the target temperature and the target temperature of underlying climate if any
-        For testing purpose you can pass an event_timestamp.
-        """
+        """Set the target temperature and the target temperature of underlying climate if any"""
         if temperature:
             self._target_temp = temperature
-        return
 
     def get_state_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
