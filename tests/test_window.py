@@ -65,7 +65,7 @@ async def test_window_management_time_not_enough(
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
 
     assert entity.window_state is STATE_OFF
@@ -154,7 +154,7 @@ async def test_window_management_time_enough(
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
 
     assert entity.window_state is STATE_OFF
@@ -304,7 +304,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
 
     assert entity.window_state is STATE_OFF
@@ -617,7 +617,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
 
     assert entity.window_state is STATE_OFF
@@ -775,7 +775,7 @@ async def test_window_auto_no_on_percent(
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 20
 
     assert entity.window_state is STATE_OFF
@@ -891,7 +891,7 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
 
     assert entity.window_state is STATE_OFF
@@ -1034,7 +1034,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
 
     assert entity.window_state is STATE_OFF
@@ -1152,7 +1152,7 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
 
     assert entity.window_state is STATE_OFF
@@ -1591,7 +1591,7 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
 
     assert entity.window_state is STATE_OFF
@@ -1788,7 +1788,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
 
     assert entity.window_state is STATE_OFF

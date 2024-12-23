@@ -148,7 +148,7 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.overpowering_state is True
+        self._attr_is_on = self.my_climate.overpowering_state is STATE_ON
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return

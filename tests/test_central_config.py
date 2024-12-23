@@ -292,8 +292,11 @@ async def test_full_over_switch_wo_central_config(
         assert entity._motion_preset == "comfort"
         assert entity._no_motion_preset == "eco"
 
-        assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
-        assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
+        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
+        assert (
+            entity.power_manager.max_power_sensor_entity_id
+            == "sensor.mock_max_power_sensor"
+        )
 
         assert (
             entity._presence_manager.presence_sensor_entity_id
@@ -409,8 +412,11 @@ async def test_full_over_switch_with_central_config(
         assert entity._motion_preset == "boost"
         assert entity._no_motion_preset == "frost"
 
-        assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
-        assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
+        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
+        assert (
+            entity.power_manager.max_power_sensor_entity_id
+            == "sensor.mock_max_power_sensor"
+        )
 
         assert (
             entity._presence_manager.presence_sensor_entity_id

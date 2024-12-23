@@ -39,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class FeaturePresenceManager(BaseFeatureManager):
-    """A base class for all feature"""
+    """The implementation of the Presence feature"""
 
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
@@ -161,7 +161,7 @@ class FeaturePresenceManager(BaseFeatureManager):
             {
                 "presence_sensor_entity_id": self._presence_sensor_entity_id,
                 "presence_state": self._presence_state,
-                "presence_configured": self._is_configured,
+                "is_presence_configured": self._is_configured,
             }
         )
 

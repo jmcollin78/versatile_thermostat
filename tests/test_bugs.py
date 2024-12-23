@@ -334,7 +334,7 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.overpowering_state is None
+        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
         await asyncio.sleep(0.1)
@@ -346,10 +346,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # Send power mesurement (theheater is already in the power measurement)
         await send_power_change_event(entity, 100, datetime.now())
         # No overpowering yet
-        assert await entity.check_overpowering() is False
+        assert await entity.power_manager.check_overpowering() is False
         # All configuration is complete and power is < power_max
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.overpowering_state is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.is_device_active is True
 
     # 2. An already active heater that switch preset will not switch to overpowering
@@ -365,10 +365,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.check_overpowering() is False
+        assert await entity.power_manager.check_overpowering() is False
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
-        assert entity.overpowering_state is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
 
@@ -385,10 +385,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.check_overpowering() is True
+        assert await entity.power_manager.check_overpowering() is True
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_POWER
-        assert entity.overpowering_state is True
+        assert entity.power_manager.overpowering_state is STATE_ON
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

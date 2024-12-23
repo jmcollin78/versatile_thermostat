@@ -409,7 +409,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
             return
 
-        if await self._thermostat.check_overpowering():
+        if await self._thermostat.power_manager.check_overpowering():
             _LOGGER.debug("%s - End of cycle (3)", self)
             return
         # safety mode could have change the on_time percent

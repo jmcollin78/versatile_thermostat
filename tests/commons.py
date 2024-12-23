@@ -746,7 +746,7 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
             )
         },
     )
-    await entity._async_power_changed(power_event)
+    await entity.power_manager._async_power_sensor_changed(power_event)
     if sleep:
         await asyncio.sleep(0.1)
 
@@ -772,7 +772,7 @@ async def send_max_power_change_event(
             )
         },
     )
-    await entity._async_max_power_changed(power_event)
+    await entity.power_manager._async_max_power_sensor_changed(power_event)
     if sleep:
         await asyncio.sleep(0.1)
 

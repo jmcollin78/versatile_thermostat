@@ -367,9 +367,6 @@ class CentralConfigTemperatureNumber(
     @property
     def native_unit_of_measurement(self) -> str | None:
         """The unit of measurement"""
-        # TODO Kelvin ? It seems not because all internal values are stored in
-        # ° Celsius but only the render in front can be in °K depending on the
-        # user configuration.
         return self.hass.config.units.temperature_unit
 
 

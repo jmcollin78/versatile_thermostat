@@ -602,13 +602,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if self.hvac_mode == HVACMode.OFF:
             return
 
+        device_power = self.power_manager.device_power
         added_energy = 0
         if (
             self.is_over_climate
             and self._underlying_climate_delta_t is not None
-            and self._device_power
+            and device_power
         ):
-            added_energy = self._device_power * self._underlying_climate_delta_t
+            added_energy = device_power * self._underlying_climate_delta_t
 
         if self._total_energy is None:
             self._total_energy = added_energy

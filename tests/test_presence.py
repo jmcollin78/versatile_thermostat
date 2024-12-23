@@ -7,7 +7,7 @@ from unittest.mock import patch, call, AsyncMock, MagicMock, PropertyMock
 # from datetime import timedelta, datetime
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.presence_manager import (
+from custom_components.versatile_thermostat.feature_presence_manager import (
     FeaturePresenceManager,
 )
 
@@ -52,7 +52,7 @@ async def test_presence_feature_manager(
     presence_manager.add_custom_attributes(custom_attributes)
     assert custom_attributes["presence_sensor_entity_id"] is None
     assert custom_attributes["presence_state"] == STATE_UNAVAILABLE
-    assert custom_attributes["presence_configured"] is False
+    assert custom_attributes["is_presence_configured"] is False
 
     # 2. post_init
     presence_manager.post_init(
@@ -72,7 +72,7 @@ async def test_presence_feature_manager(
         custom_attributes["presence_sensor_entity_id"] == "sensor.the_presence_sensor"
     )
     assert custom_attributes["presence_state"] == STATE_UNKNOWN
-    assert custom_attributes["presence_configured"] is True
+    assert custom_attributes["is_presence_configured"] is True
 
     # 3. start listening
     presence_manager.start_listening()
@@ -124,7 +124,7 @@ async def test_presence_feature_manager(
         presence_manager.add_custom_attributes(custom_attributes)
         assert custom_attributes["presence_sensor_entity_id"] == "sensor.the_presence_sensor"
         assert custom_attributes["presence_state"] == presence_state
-        assert custom_attributes["presence_configured"] is True
+        assert custom_attributes["is_presence_configured"] is True
 
     # 6. test _presence_sensor_changed with the parametrized
     fake_vtherm.find_preset_temp.return_value = temp
@@ -172,4 +172,4 @@ async def test_presence_feature_manager(
     presence_manager.add_custom_attributes(custom_attributes)
     assert custom_attributes["presence_sensor_entity_id"] == "sensor.the_presence_sensor"
     assert custom_attributes["presence_state"] == presence_state
-    assert custom_attributes["presence_configured"] is True
+    assert custom_attributes["is_presence_configured"] is True
