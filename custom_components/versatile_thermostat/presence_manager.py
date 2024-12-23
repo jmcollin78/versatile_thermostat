@@ -175,6 +175,8 @@ class FeaturePresenceManager(BaseFeatureManager):
     def presence_state(self) -> str | None:
         """Return the current presence state STATE_ON or STATE_OFF
         or STATE_UNAVAILABLE if not configured"""
+        if not self._is_configured:
+            return STATE_UNAVAILABLE
         return self._presence_state
 
     @property
@@ -184,6 +186,11 @@ class FeaturePresenceManager(BaseFeatureManager):
             STATE_NOT_HOME,
             STATE_OFF,
         ]
+
+    @property
+    def presence_sensor_entity_id(self) -> bool:
+        """Return true if the presence is configured and presence sensor is OFF"""
+        return self._presence_sensor_entity_id
 
     def __str__(self):
         return f"PresenceManager-{self.name}"

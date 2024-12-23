@@ -295,7 +295,10 @@ async def test_full_over_switch_wo_central_config(
         assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
         assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
 
-        assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
+        assert (
+            entity._presence_manager.presence_sensor_entity_id
+            == "binary_sensor.mock_presence_sensor"
+        )
 
     entity.remove_thermostat()
 
@@ -409,7 +412,10 @@ async def test_full_over_switch_with_central_config(
         assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
         assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
 
-        assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
+        assert (
+            entity._presence_manager.presence_sensor_entity_id
+            == "binary_sensor.mock_presence_sensor"
+        )
 
     entity.remove_thermostat()
 

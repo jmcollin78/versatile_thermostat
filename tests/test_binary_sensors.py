@@ -419,7 +419,7 @@ async def test_presence_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.presence_state is None
+    assert entity.presence_state is STATE_UNKNOWN
 
     await presence_binary_sensor.async_my_climate_changed()
     assert presence_binary_sensor.state is STATE_OFF
