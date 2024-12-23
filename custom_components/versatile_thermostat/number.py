@@ -28,7 +28,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
 from .vtherm_api import VersatileThermostatAPI
-from .commons import VersatileThermostatBaseEntity
+from .base_entity import VersatileThermostatBaseEntity
 
 from .const import (
     DOMAIN,

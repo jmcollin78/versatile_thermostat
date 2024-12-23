@@ -35,7 +35,7 @@ from homeassistant.components.climate import (
 
 from .base_thermostat import BaseThermostat
 from .vtherm_api import VersatileThermostatAPI
-from .commons import VersatileThermostatBaseEntity
+from .base_entity import VersatileThermostatBaseEntity
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,

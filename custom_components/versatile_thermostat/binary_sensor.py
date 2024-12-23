@@ -25,10 +25,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .vtherm_api import VersatileThermostatAPI
-from .commons import (
-    VersatileThermostatBaseEntity,
-    check_and_extract_service_configuration,
-)
+from .commons import check_and_extract_service_configuration
+from .base_entity import VersatileThermostatBaseEntity
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,

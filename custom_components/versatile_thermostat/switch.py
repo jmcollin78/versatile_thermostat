@@ -12,7 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .commons import VersatileThermostatBaseEntity
+from .base_entity import VersatileThermostatBaseEntity
 
 from .const import *  # pylint: disable=unused-wildcard-import,wildcard-import
 

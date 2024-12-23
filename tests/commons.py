@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, abstract-method, too-many-lines, redefined-builtin
+# pylint: disable=wildcard-import, unused-wildcard-import, unused-import, protected-access, unused-argument, line-too-long, abstract-method, too-many-lines, redefined-builtin
 
 """ Some common resources """
 import asyncio
@@ -8,7 +8,16 @@ from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
-from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF, ATTR_TEMPERATURE
+from homeassistant.const import (
+    UnitOfTemperature,
+    STATE_ON,
+    STATE_OFF,
+    ATTR_TEMPERATURE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+    STATE_HOME,
+    STATE_NOT_HOME,
+)
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
@@ -837,7 +846,7 @@ async def send_motion_change_event(
 
 
 async def send_presence_change_event(
-    entity: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
+    vtherm: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new presence event simulating a change on the window state"""
     _LOGGER.info(
@@ -845,26 +854,26 @@ async def send_presence_change_event(
         new_state,
         old_state,
         date,
-        entity,
+        vtherm,
     )
     presence_event = Event(
         EVENT_STATE_CHANGED,
         {
             "new_state": State(
-                entity_id=entity.entity_id,
+                entity_id=vtherm.entity_id,
                 state=STATE_ON if new_state else STATE_OFF,
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
-                entity_id=entity.entity_id,
+                entity_id=vtherm.entity_id,
                 state=STATE_ON if old_state else STATE_OFF,
                 last_changed=date,
                 last_updated=date,
             ),
         },
     )
-    ret = await entity._async_presence_changed(presence_event)
+    ret = await vtherm._presence_manager._presence_sensor_changed(presence_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret
