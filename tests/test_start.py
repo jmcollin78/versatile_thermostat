@@ -56,7 +56,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity._security_state is False
         assert entity._window_state is None
         assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
         assert entity.have_valve_regulation is False
 
@@ -115,7 +115,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity._security_state is False
         assert entity._window_state is None
         assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.presence_state is STATE_UNAVAILABLE
         assert entity.have_valve_regulation is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
@@ -183,7 +183,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity._security_state is False
         assert entity._window_state is None
         assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
 
         assert entity.nb_underlying_entities == 4

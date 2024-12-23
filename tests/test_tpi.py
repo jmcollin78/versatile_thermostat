@@ -58,7 +58,7 @@ async def test_tpi_calculation(
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
-    assert entity.mean_cycle_power is None  # no device power configured
+    assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.calculate(15, 14, 5, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.4
@@ -100,7 +100,7 @@ async def test_tpi_calculation(
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
-    assert entity.mean_cycle_power is None  # no device power configured
+    assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.set_security(0.09)
     tpi_algo.calculate(25, 30, 35, HVACMode.COOL)
@@ -108,7 +108,7 @@ async def test_tpi_calculation(
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
-    assert entity.mean_cycle_power is None  # no device power configured
+    assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.unset_security()
     # The calculated values for HVACMode.OFF are the same as for HVACMode.HEAT.

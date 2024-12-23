@@ -178,9 +178,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.calculate_hvac_action(self._underlyings)
 
     @overrides
-    async def _async_internal_set_temperature(self, temperature: float):
+    async def change_target_temperature(self, temperature: float):
         """Set the target temperature and the target temperature of underlying climate if any"""
-        await super()._async_internal_set_temperature(temperature)
+        await super().change_target_temperature(temperature)
 
         self._regulation_algo.set_target_temp(self.target_temperature)
         # Is necessary cause control_heating method will not force the update.
@@ -593,7 +593,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.info(
                 "%s - Force resent target temp cause we turn on some over climate"
             )
-            await self._async_internal_set_temperature(self._target_temp)
+            await self.change_target_temperature(self._target_temp)
 
     @overrides
     def incremente_energy(self):
@@ -602,13 +602,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if self.hvac_mode == HVACMode.OFF:
             return
 
+        device_power = self.power_manager.device_power
         added_energy = 0
         if (
             self.is_over_climate
             and self._underlying_climate_delta_t is not None
-            and self._device_power
+            and device_power
         ):
-            added_energy = self._device_power * self._underlying_climate_delta_t
+            added_energy = device_power * self._underlying_climate_delta_t
 
         if self._total_energy is None:
             self._total_energy = added_energy

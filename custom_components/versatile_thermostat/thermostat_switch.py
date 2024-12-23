@@ -182,8 +182,10 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             return
 
         added_energy = 0
-        if not self.is_over_climate and self.mean_cycle_power is not None:
-            added_energy = self.mean_cycle_power * float(self._cycle_min) / 60.0
+        if not self.is_over_climate and self.power_manager.mean_cycle_power is not None:
+            added_energy = (
+                self.power_manager.mean_cycle_power * float(self._cycle_min) / 60.0
+            )
 
         if self._total_energy is None:
             self._total_energy = added_energy

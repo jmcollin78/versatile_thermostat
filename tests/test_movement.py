@@ -76,7 +76,7 @@ async def test_movement_management_time_not_enough(
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
 
         event_timestamp = now - timedelta(minutes=5)
         await send_temperature_change_event(entity, 18, event_timestamp)
@@ -283,7 +283,7 @@ async def test_movement_management_time_enough_and_presence(
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 18, event_timestamp)
@@ -313,8 +313,7 @@ async def test_movement_management_time_enough_and_presence(
         # because motion is detected yet -> switch to Boost mode
         assert entity.target_temperature == 19
         assert entity.motion_state == "on"
-        assert entity.presence_state == "on"
-
+        assert entity.presence_state == STATE_ON
         assert mock_send_event.call_count == 0
         # Change is confirmed. Heater should be started
         assert mock_heater_on.call_count == 1
@@ -342,7 +341,7 @@ async def test_movement_management_time_enough_and_presence(
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state == "off"
-        assert entity.presence_state == "on"
+        assert entity.presence_state == STATE_ON
 
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
@@ -415,7 +414,7 @@ async def test_movement_management_time_enoughand_not_presence(
         # because no motion is detected yet and presence is unknown
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 18, event_timestamp)
@@ -445,7 +444,7 @@ async def test_movement_management_time_enoughand_not_presence(
         # because motion is detected yet -> switch to Boost away mode
         assert entity.target_temperature == 19.1
         assert entity.motion_state == "on"
-        assert entity.presence_state == "off"
+        assert entity.presence_state == STATE_OFF
 
         assert mock_send_event.call_count == 0
         # Change is confirmed. Heater should be started
@@ -474,8 +473,7 @@ async def test_movement_management_time_enoughand_not_presence(
         # because no motion is detected yet
         assert entity.target_temperature == 18.1
         assert entity.motion_state == "off"
-        assert entity.presence_state == "off"
-
+        assert entity.presence_state == STATE_OFF
         assert mock_send_event.call_count == 0
         # 18.1 starts heating with a low on_percent
         assert mock_heater_on.call_count == 1
@@ -549,7 +547,7 @@ async def test_movement_management_with_stop_during_condition(
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state is None
+        assert entity.presence_state is STATE_UNKNOWN
 
         event_timestamp = now - timedelta(minutes=6)
         await send_temperature_change_event(entity, 18, event_timestamp)
@@ -583,8 +581,7 @@ async def test_movement_management_with_stop_during_condition(
         # because motion is detected yet -> switch to Boost mode
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state == "off"
-
+        assert entity.presence_state == STATE_OFF
         # Send a stop detection
         event_timestamp = now - timedelta(minutes=4)
         try_condition = await send_motion_change_event(
@@ -596,7 +593,7 @@ async def test_movement_management_with_stop_during_condition(
         assert entity.preset_mode is PRESET_ACTIVITY
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state == "off"
+        assert entity.presence_state == STATE_OFF
 
         # Resend a start detection
         event_timestamp = now - timedelta(minutes=3)
@@ -612,13 +609,13 @@ async def test_movement_management_with_stop_during_condition(
         # still no motion detected
         assert entity.target_temperature == 18
         assert entity.motion_state is None
-        assert entity.presence_state == "off"
+        assert entity.presence_state == STATE_OFF
 
         await try_condition1(None)
         # We should have switch this time
         assert entity.target_temperature == 19  # Boost
         assert entity.motion_state == "on"  # switch to movement on
-        assert entity.presence_state == "off"  # Non change
+        assert entity.presence_state == STATE_OFF  # Non change
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

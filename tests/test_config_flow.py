@@ -1388,8 +1388,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
-# @pytest.mark.skip
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_user_config_flow_over_climate_valve(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
