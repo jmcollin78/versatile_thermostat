@@ -1126,7 +1126,7 @@ Les attributs personnalisés sont les suivants :
 | ``saved_preset_mode``             | Le dernier preset utilisé avant le basculement automatique du preset                                                                                                     |
 | ``saved_target_temp``             | La dernière température utilisée avant la commutation automatique                                                                                                        |
 | ``window_state``                  | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée                                                                                    |
-| ``window_bypass_state``           | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
+| ``is_window_bypass``              | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
 | ``motion_state``                  | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré                                                                                 |
 | ``overpowering_state``            | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée                                                                 |
 | ``presence_state``                | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée                                                                       |

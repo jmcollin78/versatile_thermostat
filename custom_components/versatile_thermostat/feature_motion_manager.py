@@ -39,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class FeatureMotionManager(BaseFeatureManager):
-    """The implementation of the Presence feature"""
+    """The implementation of the Motion feature"""
 
     unrecorded_attributes = frozenset(
         {
@@ -67,9 +67,7 @@ class FeatureMotionManager(BaseFeatureManager):
     @overrides
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
-        if self._motion_call_cancel is not None:
-            self._motion_call_cancel()  # pylint: disable="not-callable"
-            self._motion_call_cancel = None
+        self.dearm_motion_timer()
 
         self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR, None)
         self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY, 0)
@@ -130,7 +128,7 @@ class FeatureMotionManager(BaseFeatureManager):
                     self._motion_state,
                 )
                 # recalculate the right target_temp in activity mode
-                ret = await self.update_motion(motion_state.state, False)
+                ret = await self.update_motion_state(motion_state.state, False)
 
         return ret
 
@@ -193,9 +191,9 @@ class FeatureMotionManager(BaseFeatureManager):
 
             if long_enough:
                 _LOGGER.debug("%s - Motion delay condition is satisfied", self)
-                await self.update_motion(new_state.state)
+                await self.update_motion_state(new_state.state)
             else:
-                await self.update_motion(
+                await self.update_motion_state(
                     STATE_ON if new_state.state == STATE_OFF else STATE_OFF
                 )
 
@@ -242,10 +240,10 @@ class FeatureMotionManager(BaseFeatureManager):
             _LOGGER.debug("%s - Event ignored cause i'm already on", self)
             return None
 
-    async def update_motion(
+    async def update_motion_state(
         self, new_state: str = None, recalculate: bool = True
     ) -> bool:
-        """Update the value of the presence sensor and update the VTherm state accordingly
+        """Update the value of the motion sensor and update the VTherm state accordingly
         Return true if a change has been made"""
 
         _LOGGER.info("%s - Updating motion state. New state is %s", self, new_state)
@@ -261,7 +259,7 @@ class FeatureMotionManager(BaseFeatureManager):
                 new_preset,
             )
             # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-            # We take the presence into account
+            # We take the motion into account
             new_temp = self._vtherm.find_preset_temp(new_preset)
             old_temp = self._vtherm.target_temperature
             if new_temp != old_temp:
@@ -298,12 +296,12 @@ class FeatureMotionManager(BaseFeatureManager):
     @overrides
     @property
     def is_configured(self) -> bool:
-        """Return True of the presence is configured"""
+        """Return True of the motion is configured"""
         return self._is_configured
 
     @property
     def motion_state(self) -> str | None:
-        """Return the current presence state STATE_ON or STATE_OFF
+        """Return the current motion state STATE_ON or STATE_OFF
         or STATE_UNAVAILABLE if not configured"""
         if not self._is_configured:
             return STATE_UNAVAILABLE
@@ -311,14 +309,14 @@ class FeatureMotionManager(BaseFeatureManager):
 
     @property
     def is_motion_detected(self) -> bool:
-        """Return true if the presence is configured and presence sensor is OFF"""
+        """Return true if the motion is configured and motion sensor is OFF"""
         return self._is_configured and self._motion_state in [
             STATE_ON,
         ]
 
     @property
     def motion_sensor_entity_id(self) -> bool:
-        """Return true if the presence is configured and presence sensor is OFF"""
+        """Return true if the motion is configured and motion sensor is OFF"""
         return self._motion_sensor_entity_id
 
     @property

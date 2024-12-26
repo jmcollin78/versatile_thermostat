@@ -317,8 +317,8 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
         old_state = self._attr_is_on
-        if self.my_climate.window_bypass_state in [True, False]:
-            self._attr_is_on = self.my_climate.window_bypass_state
+        if self.my_climate.is_window_bypass in [True, False]:
+            self._attr_is_on = self.my_climate.is_window_bypass
             if old_state != self._attr_is_on:
                 self.async_write_ha_state()
         return

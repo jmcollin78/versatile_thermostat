@@ -248,7 +248,7 @@ The custom attributes are as follows:
 | ``saved_preset_mode``             | The last preset used before automatic preset switching                                                                              |
 | ``saved_target_temp``             | The last temperature used before automatic switching                                                                                |
 | ``window_state``                  | The last known state of the window sensor. None if the window is not configured                                                     |
-| ``window_bypass_state``           | True if the window open detection bypass is enabled                                                                                 |
+| ``is_window_bypass``              | True if the window open detection bypass is enabled                                                                                 |
 | ``motion_state``                  | The last known state of the motion sensor. None if motion detection is not configured                                               |
 | ``overpowering_state``            | The last known state of the overpower sensor. None if power management is not configured                                            |
 | ``presence_state``                | The last known state of the presence sensor. None if presence detection is not configured                                           |

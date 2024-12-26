@@ -69,7 +69,7 @@ motion_state: 'off'
 overpowering_state: false
 presence_state: 'on'
 window_auto_state: false
-window_bypass_state: false
+is_window_bypass: false
 security_delay_min: 2
 security_min_on_percent: 0.5
 security_default_on_percent: 0.1
