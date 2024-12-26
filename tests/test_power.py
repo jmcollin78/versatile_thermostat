@@ -77,7 +77,7 @@ async def test_power_feature_manager(
     assert custom_attributes["device_power"] is 0
     assert custom_attributes["power_temp"] is None
     assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_power_max"] is None
+    assert custom_attributes["current_max_power"] is None
 
     # 2. post_init
     power_manager.post_init(
@@ -104,7 +104,7 @@ async def test_power_feature_manager(
     assert custom_attributes["device_power"] == 1234
     assert custom_attributes["power_temp"] == 10
     assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_power_max"] is None
+    assert custom_attributes["current_max_power"] is None
 
     # 3. start listening
     power_manager.start_listening()
@@ -183,7 +183,7 @@ async def test_power_feature_manager(
                     [
                         call.fake_vtherm.send_event(
                             EventType.POWER_EVENT,
-                            {'type': 'end', 'current_power': power, 'device_power': 1234, 'current_power_max': max_power}),
+                            {'type': 'end', 'current_power': power, 'device_power': 1234, 'current_max_power': max_power}),
                     ]
                 )
 
@@ -214,7 +214,7 @@ async def test_power_feature_manager(
                     [
                         call.fake_vtherm.send_event(
                             EventType.POWER_EVENT,
-                            {'type': 'start', 'current_power': power, 'device_power': 1234, 'current_power_max': max_power, 'current_power_consumption': 1234.0}),
+                            {'type': 'start', 'current_power': power, 'device_power': 1234, 'current_max_power': max_power, 'current_power_consumption': 1234.0}),
                     ]
                 )
 
@@ -232,7 +232,10 @@ async def test_power_feature_manager(
         assert custom_attributes["device_power"] == 1234
         assert custom_attributes["power_temp"] == 10
         assert custom_attributes["current_power"] == power
-        assert custom_attributes["current_power_max"] == max_power
+        assert custom_attributes["current_max_power"] == max_power
+
+    power_manager.stop_listening()
+    await hass.async_block_till_done()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -410,7 +413,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
                         "type": "start",
                         "current_power": 50,
                         "device_power": 100,
-                        "current_power_max": 149,
+                        "current_max_power": 149,
                         "current_power_consumption": 100.0,
                     },
                 ),
@@ -445,7 +448,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
                         "type": "end",
                         "current_power": 48,
                         "device_power": 100,
-                        "current_power_max": 149,
+                        "current_max_power": 149,
                     },
                 ),
             ],

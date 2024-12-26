@@ -74,6 +74,7 @@ from .ema import ExponentialMovingAverage
 from .base_manager import BaseFeatureManager
 from .feature_presence_manager import FeaturePresenceManager
 from .feature_power_manager import FeaturePowerManager
+from .feature_motion_manager import FeatureMotionManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "comfort_away_temp",
                     "power_temp",
                     "ac_mode",
-                    "current_power_max",
+                    "current_max_power",
                     "saved_preset_mode",
                     "saved_target_temp",
                     "saved_hvac_mode",
@@ -112,8 +113,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "last_temperature_datetime",
                     "last_ext_temperature_datetime",
                     "minimal_activation_delay_sec",
-                    "device_power",
-                    "mean_cycle_power",
                     "last_update_datetime",
                     "timezone",
                     "window_sensor_entity_id",
@@ -123,12 +122,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "window_auto_close_threshold",
                     "window_auto_max_duration",
                     "window_action",
-                    "motion_sensor_entity_id",
-                    "presence_sensor_entity_id",
-                    "is_presence_configured",
-                    "power_sensor_entity_id",
-                    "max_power_sensor_entity_id",
-                    "is_power_configured",
                     "temperature_unit",
                     "is_device_active",
                     "device_actives",
@@ -141,6 +134,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 }
             )
         )
+        .union(FeaturePresenceManager.unrecorded_attributes)
+        .union(FeaturePowerManager.unrecorded_attributes)
+        .union(FeatureMotionManager.unrecorded_attributes)
     )
 
     def __init__(
@@ -173,10 +169,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._humidity = None
         self._swing_mode = None
         self._window_state = None
-        self._motion_state = None
+
         self._saved_hvac_mode = None
         self._window_call_cancel = None
-        self._motion_call_cancel = None
+
         self._cur_temp = None
         self._ac_mode = None
         self._temp_sensor_entity_id = None
@@ -249,9 +245,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self, hass
         )
         self._power_manager: FeaturePowerManager = FeaturePowerManager(self, hass)
+        self._motion_manager: FeatureMotionManager = FeatureMotionManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
+        self.register_manager(self._motion_manager)
 
         self.post_init(entry_infos)
 
@@ -343,9 +341,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if self._window_call_cancel is not None:
             self._window_call_cancel()
             self._window_call_cancel = None
-        if self._motion_call_cancel is not None:
-            self._motion_call_cancel()
-            self._motion_call_cancel = None
 
         self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
 
@@ -380,20 +375,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._window_auto_algo = WindowOpenDetectionAlgorithm(
             alert_threshold=self._window_auto_open_threshold,
             end_alert_threshold=self._window_auto_close_threshold,
-        )
-
-        self._motion_sensor_entity_id = entry_infos.get(CONF_MOTION_SENSOR)
-        self._motion_delay_sec = entry_infos.get(CONF_MOTION_DELAY)
-        self._motion_off_delay_sec = entry_infos.get(CONF_MOTION_OFF_DELAY)
-        if not self._motion_off_delay_sec:
-            self._motion_off_delay_sec = self._motion_delay_sec
-
-        self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
-        self._no_motion_preset = entry_infos.get(CONF_NO_MOTION_PRESET)
-        self._motion_on = (
-            self._motion_sensor_entity_id is not None
-            and self._motion_preset is not None
-            and self._no_motion_preset is not None
         )
 
         self._tpi_coef_int = entry_infos.get(CONF_TPI_COEF_INT)
@@ -461,7 +442,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             del self._prop_algorithm
 
         # Memory synthesis state
-        self._motion_state = None
         self._window_state = None
 
         self._total_energy = None
@@ -540,14 +520,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self.hass,
                     [self._window_sensor_entity_id],
                     self._async_windows_changed,
-                )
-            )
-        if self._motion_sensor_entity_id:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass,
-                    [self._motion_sensor_entity_id],
-                    self._async_motion_changed,
                 )
             )
 
@@ -645,23 +617,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self,
                     self._window_state,
                 )
-                need_write_state = True
-
-        # try to acquire motion entity state
-        if self._motion_sensor_entity_id:
-            motion_state = self.hass.states.get(self._motion_sensor_entity_id)
-            if motion_state and motion_state.state not in (
-                STATE_UNAVAILABLE,
-                STATE_UNKNOWN,
-            ):
-                self._motion_state = motion_state.state
-                _LOGGER.debug(
-                    "%s - Motion state have been retrieved: %s",
-                    self,
-                    self._motion_state,
-                )
-                # recalculate the right target_temp in activity mode
-                await self._async_update_motion_temp()
                 need_write_state = True
 
         # refresh states for all managers
@@ -976,6 +931,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._presence_manager
 
     @property
+    def motion_manager(self) -> FeatureMotionManager | None:
+        """Get the motion manager"""
+        return self._motion_manager
+
+    @property
     def window_state(self) -> str | None:
         """Get the window_state"""
         return STATE_ON if self._window_state else STATE_OFF
@@ -1003,7 +963,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def motion_state(self) -> str | None:
         """Get the motion_state"""
-        return self._motion_state
+        return self._motion_manager.motion_state
 
     @property
     def presence_state(self) -> str | None:
@@ -1248,7 +1208,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._saved_preset_mode = preset_mode
             return
 
-        old_preset_mode = self._attr_preset_mode
+        # Remove this old_preset_mode = self._attr_preset_mode
         recalculate = True
         if preset_mode == PRESET_NONE:
             self._attr_preset_mode = PRESET_NONE
@@ -1256,7 +1216,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 await self.change_target_temperature(self._saved_target_temp)
         elif preset_mode == PRESET_ACTIVITY:
             self._attr_preset_mode = PRESET_ACTIVITY
-            await self._async_update_motion_temp()
+            await self._motion_manager.update_motion(None, False)
         else:
             if self._attr_preset_mode == PRESET_NONE:
                 self._saved_target_temp = self._target_temp
@@ -1316,18 +1276,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if preset_mode == PRESET_POWER:
             return self._power_manager.power_temperature
         if preset_mode == PRESET_ACTIVITY:
+            motion_preset = self._motion_manager.get_current_motion_preset()
             if self._ac_mode and self._hvac_mode == HVACMode.COOL:
-                motion_preset = (
-                    self._motion_preset + PRESET_AC_SUFFIX
-                    if self._motion_state == STATE_ON
-                    else self._no_motion_preset + PRESET_AC_SUFFIX
-                )
-            else:
-                motion_preset = (
-                    self._motion_preset
-                    if self._motion_state == STATE_ON
-                    else self._no_motion_preset
-                )
+                motion_preset = motion_preset + PRESET_AC_SUFFIX
 
             if motion_preset in self._presets:
                 if self._presence_manager.is_absence_detected:
@@ -1560,139 +1511,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return try_window_condition
 
     @callback
-    async def _async_motion_changed(self, event):
-        """Handle motion changes."""
-        new_state = event.data.get("new_state")
-        _LOGGER.info(
-            "%s - Motion changed. Event.new_state is %s, _attr_preset_mode=%s, activity=%s",
-            self,
-            new_state,
-            self._attr_preset_mode,
-            PRESET_ACTIVITY,
-        )
-
-        if new_state is None or new_state.state not in (STATE_OFF, STATE_ON):
-            return
-
-        # Check delay condition
-        async def try_motion_condition(_):
-            try:
-                delay = (
-                    self._motion_delay_sec
-                    if new_state.state == STATE_ON
-                    else self._motion_off_delay_sec
-                )
-                long_enough = condition.state(
-                    self.hass,
-                    self._motion_sensor_entity_id,
-                    new_state.state,
-                    timedelta(seconds=delay),
-                )
-            except ConditionError:
-                long_enough = False
-
-            if not long_enough:
-                _LOGGER.debug(
-                    "Motion delay condition is not satisfied (the sensor have change its state during the delay). Check motion sensor state"
-                )
-                # Get sensor current state
-                motion_state = self.hass.states.get(self._motion_sensor_entity_id)
-                _LOGGER.debug(
-                    "%s - motion_state=%s, new_state.state=%s",
-                    self,
-                    motion_state.state,
-                    new_state.state,
-                )
-                if (
-                    motion_state.state == new_state.state
-                    and new_state.state == STATE_ON
-                ):
-                    _LOGGER.debug(
-                        "%s - the motion sensor is finally 'on' after the delay", self
-                    )
-                    long_enough = True
-                else:
-                    long_enough = False
-
-            if long_enough:
-                _LOGGER.debug("%s - Motion delay condition is satisfied", self)
-                self._motion_state = new_state.state
-                if self._attr_preset_mode == PRESET_ACTIVITY:
-
-                    new_preset = (
-                        self._motion_preset
-                        if self._motion_state == STATE_ON
-                        else self._no_motion_preset
-                    )
-                    _LOGGER.info(
-                        "%s - Motion condition have changes. New preset temp will be %s",
-                        self,
-                        new_preset,
-                    )
-                    # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-                    # We take the presence into account
-
-                    await self.change_target_temperature(
-                        self.find_preset_temp(new_preset)
-                    )
-                self.recalculate()
-                await self.async_control_heating(force=True)
-            else:
-                self._motion_state = (
-                    STATE_ON if new_state.state == STATE_OFF else STATE_OFF
-                )
-
-            self._motion_call_cancel = None
-
-        im_on = self._motion_state == STATE_ON
-        delay_running = self._motion_call_cancel is not None
-        event_on = new_state.state == STATE_ON
-
-        def arm():
-            """Arm the timer"""
-            delay = (
-                self._motion_delay_sec
-                if new_state.state == STATE_ON
-                else self._motion_off_delay_sec
-            )
-            self._motion_call_cancel = async_call_later(
-                self.hass, timedelta(seconds=delay), try_motion_condition
-            )
-
-        def desarm():
-            # restart the timer
-            self._motion_call_cancel()
-            self._motion_call_cancel = None
-
-        # if I'm off
-        if not im_on:
-            if event_on and not delay_running:
-                _LOGGER.debug(
-                    "%s - Arm delay cause i'm off and event is on and no delay is running",
-                    self,
-                )
-                arm()
-                return try_motion_condition
-            # Ignore the event
-            _LOGGER.debug("%s - Event ignored cause i'm already off", self)
-            return None
-        else:  # I'm On
-            if not event_on and not delay_running:
-                _LOGGER.info("%s - Arm delay cause i'm on and event is off", self)
-                arm()
-                return try_motion_condition
-            if event_on and delay_running:
-                _LOGGER.debug(
-                    "%s - Desarm off delay cause i'm on and event is on and a delay is running",
-                    self,
-                )
-                desarm()
-                return None
-            # Ignore the event
-            _LOGGER.debug("%s - Event ignored cause i'm already on", self)
-            return None
-
-    @callback
     async def _check_initial_state(self):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_initial_state", self)
@@ -1770,41 +1588,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 await self.check_safety()
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
-
-    async def _async_update_motion_temp(self):
-        """Update the temperature considering the ACTIVITY preset and current motion state"""
-        _LOGGER.debug(
-            "%s - Calling _update_motion_temp preset_mode=%s, motion_state=%s",
-            self,
-            self._attr_preset_mode,
-            self._motion_state,
-        )
-        if (
-            self._motion_sensor_entity_id is None
-            or self._attr_preset_mode != PRESET_ACTIVITY
-        ):
-            return
-
-        new_preset = (
-                        self._motion_preset
-                        if self._motion_state == STATE_ON
-                        else self._no_motion_preset
-                    )
-        _LOGGER.info(
-                    "%s - Motion condition have changes. New preset temp will be %s",
-                        self,
-                        new_preset,
-                    )
-        # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-        # We take the presence into account
-
-        await self.change_target_temperature(self.find_preset_temp(new_preset))
-
-        _LOGGER.debug(
-            "%s - regarding motion, target_temp have been set to %.2f",
-            self,
-            self._target_temp,
-        )
 
     async def async_underlying_entity_turn_off(self):
         """Turn heater toggleable device off. Used by Window, overpowering, control_heating to turn all off"""
@@ -2377,8 +2160,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "saved_preset_mode": self._saved_preset_mode,
             "saved_target_temp": self._saved_target_temp,
             "saved_hvac_mode": self._saved_hvac_mode,
-            "motion_sensor_entity_id": self._motion_sensor_entity_id,
-            "motion_state": self._motion_state,
             "window_state": self.window_state,
             "window_auto_state": self.window_auto_state,
             "window_bypass_state": self._window_bypass_state,
@@ -2400,7 +2181,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             ).isoformat(),
             "security_state": self._security_state,
             "minimal_activation_delay_sec": self._minimal_activation_delay,
-            ATTR_MEAN_POWER_CYCLE: self._power_manager.mean_cycle_power,
             ATTR_TOTAL_ENERGY: self.total_energy,
             "last_update_datetime": self.now.isoformat(),
             "timezone": str(self._current_tz),
@@ -2633,7 +2413,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             _LOGGER.debug("No preset_modes")
 
-        if self._motion_on:
+        if self._motion_manager.is_configured:
             self._attr_preset_modes.append(PRESET_ACTIVITY)
 
         # Re-applicate the last preset if any to take change into account

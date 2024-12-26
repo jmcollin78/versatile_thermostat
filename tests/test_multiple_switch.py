@@ -814,7 +814,7 @@ async def test_multiple_switch_power_management(
                         "type": "start",
                         "current_power": 50,
                         "device_power": 100,
-                        "current_power_max": 74,
+                        "current_max_power": 74,
                         "current_power_consumption": 25.0,
                     },
                 ),

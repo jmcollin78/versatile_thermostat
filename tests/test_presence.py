@@ -173,3 +173,6 @@ async def test_presence_feature_manager(
     assert custom_attributes["presence_sensor_entity_id"] == "sensor.the_presence_sensor"
     assert custom_attributes["presence_state"] == presence_state
     assert custom_attributes["is_presence_configured"] is True
+
+    presence_manager.stop_listening()
+    await hass.async_block_till_done()

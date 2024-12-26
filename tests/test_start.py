@@ -55,7 +55,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
         assert entity._window_state is None
-        assert entity._motion_state is None
+        assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
         assert entity.have_valve_regulation is False
@@ -114,7 +114,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
         assert entity._window_state is None
-        assert entity._motion_state is None
+        assert entity.motion_state is STATE_UNAVAILABLE
         assert entity.presence_state is STATE_UNAVAILABLE
         assert entity.have_valve_regulation is False
 
@@ -151,18 +151,6 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theover4switchmockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity: BaseThermostat = find_my_entity("climate.theover4switchmockname")
 
         assert entity
 
@@ -182,7 +170,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
         assert entity._window_state is None
-        assert entity._motion_state is None
+        assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
 

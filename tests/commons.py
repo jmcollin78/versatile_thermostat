@@ -599,12 +599,7 @@ async def create_thermostat(
     await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.LOADED
 
-    # We should reload the VTherm links
-    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-    # central_config = vtherm_api.find_central_configuration()
     entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
-    # if entity and hasattr(entity, "init_presets")::
-    #    await entity.init_presets(central_config)
 
     return entity
 
@@ -839,7 +834,7 @@ async def send_motion_change_event(
             ),
         },
     )
-    ret = await entity._async_motion_changed(motion_event)
+    ret = await entity.motion_manager._motion_sensor_changed(motion_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret
@@ -1009,7 +1004,7 @@ async def set_climate_preset_temp(
         await temp_entity.async_set_native_value(temp)
     else:
         _LOGGER.warning(
-            "commons tests set_cliamte_preset_temp: cannot find number entity with entity_id '%s'",
+            "commons tests set_climate_preset_temp: cannot find number entity with entity_id '%s'",
             number_entity_id,
         )
 
@@ -1071,9 +1066,14 @@ async def set_all_climate_preset_temp(
             NUMBER_DOMAIN,
         )
         assert temp_entity
+        if not temp_entity:
+            raise ConfigurationNotCompleteError(
+                f"'{number_entity_name}' don't exists as number entity"
+            )
         # Because set_value is not implemented in Number class (really don't understand why...)
         assert temp_entity.state == value
 
+    await hass.async_block_till_done()
 
 #
 # Side effects management

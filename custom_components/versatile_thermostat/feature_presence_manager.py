@@ -41,6 +41,13 @@ _LOGGER = logging.getLogger(__name__)
 class FeaturePresenceManager(BaseFeatureManager):
     """The implementation of the Presence feature"""
 
+    unrecorded_attributes = frozenset(
+        {
+            "presence_sensor_entity_id",
+            "is_presence_configured",
+        }
+    )
+
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
@@ -52,11 +59,12 @@ class FeaturePresenceManager(BaseFeatureManager):
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
         self._presence_sensor_entity_id = entry_infos.get(CONF_PRESENCE_SENSOR)
-        self._is_configured = (
+        if (
             entry_infos.get(CONF_USE_PRESENCE_FEATURE, False)
             and self._presence_sensor_entity_id is not None
-        )
-        self._presence_state = STATE_UNKNOWN
+        ):
+            self._is_configured = True
+            self._presence_state = STATE_UNKNOWN
 
     @overrides
     def start_listening(self):

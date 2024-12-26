@@ -35,6 +35,18 @@ _LOGGER = logging.getLogger(__name__)
 class FeaturePowerManager(BaseFeatureManager):
     """The implementation of the Power feature"""
 
+    unrecorded_attributes = frozenset(
+        {
+            "power_sensor_entity_id",
+            "max_power_sensor_entity_id",
+            "is_power_configured",
+            "device_power",
+            "power_temp",
+            "current_power",
+            "current_max_power",
+        }
+    )
+
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
@@ -55,7 +67,6 @@ class FeaturePowerManager(BaseFeatureManager):
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
-        self._overpowering_state = STATE_UNKNOWN
 
         self._device_power = entry_infos.get(CONF_DEVICE_POWER) or 0
         self._is_configured = False
@@ -68,6 +79,7 @@ class FeaturePowerManager(BaseFeatureManager):
             and self._device_power
         ):
             self._is_configured = True
+            self._overpowering_state = STATE_UNKNOWN
         else:
             _LOGGER.info("%s - Power management is not fully configured", self)
 
@@ -197,7 +209,8 @@ class FeaturePowerManager(BaseFeatureManager):
                 "device_power": self._device_power,
                 "power_temp": self._power_temp,
                 "current_power": self._current_power,
-                "current_power_max": self._current_max_power,
+                "current_max_power": self._current_max_power,
+                "mean_cycle_power": self.mean_cycle_power,
             }
         )
 
@@ -261,7 +274,7 @@ class FeaturePowerManager(BaseFeatureManager):
                     "type": "start",
                     "current_power": self._current_power,
                     "device_power": self._device_power,
-                    "current_power_max": self._current_max_power,
+                    "current_max_power": self._current_max_power,
                     "current_power_consumption": power_consumption_max,
                 },
             )
@@ -286,7 +299,7 @@ class FeaturePowerManager(BaseFeatureManager):
                     "type": "end",
                     "current_power": self._current_power,
                     "device_power": self._device_power,
-                    "current_power_max": self._current_max_power,
+                    "current_max_power": self._current_max_power,
                 },
             )
 

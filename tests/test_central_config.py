@@ -286,11 +286,14 @@ async def test_full_over_switch_wo_central_config(
         assert entity._window_auto_open_threshold == 3
         assert entity._window_auto_max_duration == 5
 
-        assert entity._motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
-        assert entity._motion_delay_sec == 10
-        assert entity._motion_off_delay_sec == 29
-        assert entity._motion_preset == "comfort"
-        assert entity._no_motion_preset == "eco"
+        assert (
+            entity.motion_manager.motion_sensor_entity_id
+            == "binary_sensor.mock_motion_sensor"
+        )
+        assert entity.motion_manager.motion_delay_sec == 10
+        assert entity.motion_manager.motion_off_delay_sec == 29
+        assert entity.motion_manager.motion_preset == "comfort"
+        assert entity.motion_manager.no_motion_preset == "eco"
 
         assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
         assert (
@@ -406,11 +409,14 @@ async def test_full_over_switch_with_central_config(
         assert entity._window_auto_open_threshold == 4
         assert entity._window_auto_max_duration == 31
 
-        assert entity._motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
-        assert entity._motion_delay_sec == 31
-        assert entity._motion_off_delay_sec == 301
-        assert entity._motion_preset == "boost"
-        assert entity._no_motion_preset == "frost"
+        assert (
+            entity.motion_manager.motion_sensor_entity_id
+            == "binary_sensor.mock_motion_sensor"
+        )
+        assert entity.motion_manager.motion_delay_sec == 31
+        assert entity.motion_manager.motion_off_delay_sec == 301
+        assert entity.motion_manager.motion_preset == "boost"
+        assert entity.motion_manager.no_motion_preset == "frost"
 
         assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
         assert (

@@ -310,6 +310,8 @@ async def test_motion_binary_sensors(
             CONF_SECURITY_MIN_ON_PERCENT: 0.3,
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
             CONF_MOTION_DELAY: 0,  # important to not been obliged to wait
+            CONF_MOTION_PRESET: PRESET_BOOST,
+            CONF_NO_MOTION_PRESET: PRESET_ECO,
         },
     )
 
@@ -329,7 +331,7 @@ async def test_motion_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.motion_state is None
+    assert entity.motion_state is STATE_UNKNOWN
 
     await motion_binary_sensor.async_my_climate_changed()
     assert motion_binary_sensor.state is STATE_OFF
