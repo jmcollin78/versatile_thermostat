@@ -8,6 +8,7 @@ from datetime import timedelta
 
 from homeassistant.const import (
     STATE_ON,
+    STATE_OFF,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
@@ -199,16 +200,15 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.debug(
                     "Window delay condition is not satisfied. Ignore window event"
                 )
-                self._window_state = old_state.state == STATE_ON
+                # TODO Why ?
+                # self._window_state = old_state.state or STATE_OFF
                 return
 
             _LOGGER.debug("%s - Window delay condition is satisfied", self)
 
-            if self._window_state == (new_state.state == STATE_ON):
+            if self._window_state == new_state.state:
                 _LOGGER.debug("%s - no change in window state. Forget the event")
                 return
-
-            self._window_state = new_state.state == STATE_ON
 
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._is_window_bypass)
             if self._is_window_bypass:
@@ -216,16 +216,14 @@ class FeatureWindowManager(BaseFeatureManager):
                     "%s - Window ByPass is activated. Ignore window event", self
                 )
             else:
-                await self.update_window_state(self._window_state)
+                await self.update_window_state(new_state.state)
 
             self._vtherm.update_custom_attributes()
 
         if new_state is None or old_state is None or new_state.state == old_state.state:
             return try_window_condition
 
-        if self._window_call_cancel:
-            self._window_call_cancel()
-            self._window_call_cancel = None
+        self.dearm_window_timer()
         self._window_call_cancel = async_call_later(
             self.hass, timedelta(seconds=self._window_delay_sec), try_window_condition
         )
@@ -248,8 +246,6 @@ class FeatureWindowManager(BaseFeatureManager):
                 self._vtherm.saved_hvac_mode,
                 self._vtherm.saved_target_temp,
             )
-
-            self._window_state = new_state
 
             if self._window_action in [
                 CONF_WINDOW_FROST_TEMP,
@@ -275,6 +271,7 @@ class FeatureWindowManager(BaseFeatureManager):
                     self,
                     self._window_action,
                 )
+                return False
         else:
             _LOGGER.info(
                 "%s - Window is open. Apply window action %s", self, self._window_action
@@ -283,9 +280,9 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.debug(
                     "%s is already off. Forget turning off VTherm due to window detection"
                 )
-                return
+                return False
 
-            self._window_state = new_state
+            # self._window_state = new_state
             if self._vtherm.last_central_mode in [CENTRAL_MODE_AUTO, None]:
                 if self._window_action in [
                     CONF_WINDOW_TURN_OFF,
@@ -306,14 +303,13 @@ class FeatureWindowManager(BaseFeatureManager):
             elif (
                 self._window_action == CONF_WINDOW_FROST_TEMP
                 and self._vtherm.is_preset_configured(PRESET_FROST_PROTECTION)
-                is not None
             ):
                 await self._vtherm.change_target_temperature(
                     self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION)
                 )
             elif (
                 self._window_action == CONF_WINDOW_ECO_TEMP
-                and self._vtherm.is_preset_configured(PRESET_ECO) is not None
+                and self._vtherm.is_preset_configured(PRESET_ECO)
             ):
                 await self._vtherm.change_target_temperature(
                     self._vtherm.find_preset_temp(PRESET_ECO)
@@ -322,6 +318,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
                 await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
 
+        self._window_state = new_state
         return True
 
     async def manage_window_auto(self, in_cycle=False) -> callable:
@@ -345,16 +342,14 @@ class FeatureWindowManager(BaseFeatureManager):
                 {"type": "end", "cause": cause, "curve_slope": slope},
             )
             # Set attributes
-            self._window_auto_state = False
+            self._window_auto_state = STATE_OFF
             await self.update_window_state(self._window_auto_state)
             # await self.restore_hvac_mode(True)
 
-            if self._window_call_cancel:
-                self._window_call_cancel()
-            self._window_call_cancel = None
+            self.dearm_window_timer()
 
         if not self._window_auto_algo:
-            return
+            return None
 
         if in_cycle:
             slope = self._window_auto_algo.check_age_last_measurement(
@@ -378,11 +373,11 @@ class FeatureWindowManager(BaseFeatureManager):
                 "%s - Window auto event is ignored because bypass is ON or window auto detection is disabled",
                 self,
             )
-            return
+            return None
 
         if (
             self._window_auto_algo.is_window_open_detected()
-            and self._window_auto_state is False
+            and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF]
             and self._vtherm.hvac_mode != HVACMode.OFF
         ):
             if (
@@ -406,15 +401,11 @@ class FeatureWindowManager(BaseFeatureManager):
                 {"type": "start", "cause": "slope alert", "curve_slope": slope},
             )
             # Set attributes
-            self._window_auto_state = True
+            self._window_auto_state = STATE_ON
             await self.update_window_state(self._window_auto_state)
-            # self.save_hvac_mode()
-            # await self.async_set_hvac_mode(HVACMode.OFF)
 
             # Arm the end trigger
-            if self._window_call_cancel:
-                self._window_call_cancel()
-                self._window_call_cancel = None
+            self.dearm_window_timer()
             self._window_call_cancel = async_call_later(
                 self.hass,
                 timedelta(minutes=self._window_auto_max_duration),
@@ -423,7 +414,7 @@ class FeatureWindowManager(BaseFeatureManager):
 
         elif (
             self._window_auto_algo.is_window_close_detected()
-            and self._window_auto_state is True
+            and self._window_auto_state == STATE_ON
         ):
             await deactivate_window_auto(False)
 
