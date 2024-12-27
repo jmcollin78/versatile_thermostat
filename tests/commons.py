@@ -800,7 +800,7 @@ async def send_window_change_event(
             ),
         },
     )
-    ret = await entity._async_windows_changed(window_event)
+    ret = await entity.window_manager._window_sensor_changed(window_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret

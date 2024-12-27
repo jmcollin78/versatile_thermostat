@@ -816,7 +816,7 @@ async def test_switch_change_central_mode_true_with_window(
 
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNKNOWN
 
     # 2 Open the window
     with patch(
@@ -973,7 +973,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNKNOWN
 
     # 2 Change central_mode to COOL_ONLY
     with patch("homeassistant.core.ServiceRegistry.async_call"):

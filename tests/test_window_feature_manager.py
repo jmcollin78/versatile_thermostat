@@ -678,7 +678,7 @@ async def test_window_feature_manager_window_auto(
     #fmt: on
         now = now + timedelta(minutes=10)
         # From 17 to new_temp in 10 minutes
-        type(fake_vtherm).ema_temp = PropertyMock(return_value=new_temp)
+        type(fake_vtherm).ema_temperature = PropertyMock(return_value=new_temp)
         type(fake_vtherm).last_temperature_measure = PropertyMock(return_value=now)
         type(fake_vtherm).now = PropertyMock(return_value=now)
         fake_vtherm.send_event = MagicMock()

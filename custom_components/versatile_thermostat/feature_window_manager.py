@@ -154,7 +154,7 @@ class FeatureWindowManager(BaseFeatureManager):
         """Tries to get the last state from sensor
         Returns True if a change has been made"""
         ret = False
-        if self._is_configured:
+        if self._is_configured and self._window_sensor_entity_id is not None:
 
             window_state = self.hass.states.get(self._window_sensor_entity_id)
             if window_state and window_state.state not in (
@@ -200,8 +200,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.debug(
                     "Window delay condition is not satisfied. Ignore window event"
                 )
-                # TODO Why ?
-                # self._window_state = old_state.state or STATE_OFF
+                self._window_state = old_state.state or STATE_OFF
                 return
 
             _LOGGER.debug("%s - Window delay condition is satisfied", self)
@@ -215,6 +214,8 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.info(
                     "%s - Window ByPass is activated. Ignore window event", self
                 )
+                # We change tne state but we don't apply the change
+                self._window_state = new_state.state
             else:
                 await self.update_window_state(new_state.state)
 
@@ -353,12 +354,12 @@ class FeatureWindowManager(BaseFeatureManager):
 
         if in_cycle:
             slope = self._window_auto_algo.check_age_last_measurement(
-                temperature=self._vtherm.ema_temp,
+                temperature=self._vtherm.ema_temperature,
                 datetime_now=self._vtherm.now,
             )
         else:
             slope = self._window_auto_algo.add_temp_measurement(
-                temperature=self._vtherm.ema_temp,
+                temperature=self._vtherm.ema_temperature,
                 datetime_measure=self._vtherm.last_temperature_measure,
             )
 

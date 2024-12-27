@@ -855,6 +855,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._motion_manager
 
     @property
+    def window_manager(self) -> FeatureWindowManager | None:
+        """Get the window manager"""
+        return self._window_manager
+
+    @property
     def window_state(self) -> str | None:
         """Get the window_state"""
         return self._window_manager.window_state
