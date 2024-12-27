@@ -960,7 +960,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     # VTherm should be heating
     assert vtherm.hvac_mode == HVACMode.HEAT
     # VTherm window_state should be off
-    assert vtherm.window_state == STATE_OFF
+    assert vtherm.window_state == STATE_UNKNOWN  # Cause try_condition is not called
 
     # 2. Open the window and wait for the delay
     now = now + timedelta(minutes=2)

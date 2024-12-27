@@ -90,8 +90,8 @@ async def test_over_switch_ac_full_start(
         ]
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False  # pylint: disable=protected-access
-        assert entity._window_state is None  # pylint: disable=protected-access
-        assert entity.motion_state is STATE_UNKNOWN  # pylint: disable=protected-access
+        assert entity.window_state is STATE_UNKNOWN
+        assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None  # pylint: disable=protected-access
 

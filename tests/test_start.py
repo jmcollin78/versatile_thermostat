@@ -54,7 +54,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         ]
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
-        assert entity._window_state is None
+        assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
@@ -113,7 +113,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         ]
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
-        assert entity._window_state is None
+        assert entity.window_state is STATE_UNAVAILABLE
         assert entity.motion_state is STATE_UNAVAILABLE
         assert entity.presence_state is STATE_UNAVAILABLE
         assert entity.have_valve_regulation is False
@@ -169,7 +169,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         ]
         assert entity.preset_mode is PRESET_NONE
         assert entity._security_state is False
-        assert entity._window_state is None
+        assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None

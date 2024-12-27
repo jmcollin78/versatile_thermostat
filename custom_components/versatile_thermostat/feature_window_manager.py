@@ -281,6 +281,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.debug(
                     "%s is already off. Forget turning off VTherm due to window detection"
                 )
+                self._window_state = new_state
                 return False
 
             # self._window_state = new_state
@@ -537,7 +538,7 @@ class FeatureWindowManager(BaseFeatureManager):
     @property
     def last_slope(self) -> float:
         """Return the last slope (in °C/hour)"""
-        if not self.is_configured:
+        if not self._window_auto_algo:
             return None
         return self._window_auto_algo.last_slope
 

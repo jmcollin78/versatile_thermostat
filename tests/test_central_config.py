@@ -282,11 +282,14 @@ async def test_full_over_switch_wo_central_config(
         assert (
             entity.window_manager.is_window_auto_configured is False
         )  # we have an entity_id
-        assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
-        assert entity._window_delay_sec == 30
-        assert entity._window_auto_close_threshold == 0.1
-        assert entity._window_auto_open_threshold == 3
-        assert entity._window_auto_max_duration == 5
+        assert (
+            entity.window_manager._window_sensor_entity_id
+            == "binary_sensor.mock_window_sensor"
+        )
+        assert entity.window_manager.window_delay_sec == 30
+        assert entity.window_manager.window_auto_close_threshold == 0.1
+        assert entity.window_manager.window_auto_open_threshold == 3
+        assert entity.window_manager.window_auto_max_duration == 5
 
         assert (
             entity.motion_manager.motion_sensor_entity_id
@@ -405,11 +408,14 @@ async def test_full_over_switch_with_central_config(
 
         # We have an entity so window auto is not enabled
         assert entity.window_manager.is_window_auto_configured is False
-        assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
-        assert entity._window_delay_sec == 15
-        assert entity._window_auto_close_threshold == 1
-        assert entity._window_auto_open_threshold == 4
-        assert entity._window_auto_max_duration == 31
+        assert (
+            entity.window_manager._window_sensor_entity_id
+            == "binary_sensor.mock_window_sensor"
+        )
+        assert entity.window_manager.window_delay_sec == 15
+        assert entity.window_manager.window_auto_close_threshold == 1
+        assert entity.window_manager.window_auto_open_threshold == 4
+        assert entity.window_manager.window_auto_max_duration == 31
 
         assert (
             entity.motion_manager.motion_sensor_entity_id

@@ -69,7 +69,7 @@ async def test_one_switch_cycle(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_UNKNOWN
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -289,7 +289,7 @@ async def test_multiple_switchs(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -426,7 +426,7 @@ async def test_multiple_climates(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -451,7 +451,7 @@ async def test_multiple_climates(
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -527,7 +527,7 @@ async def test_multiple_climates_underlying_changes(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -672,7 +672,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)

@@ -1310,7 +1310,7 @@ async def test_auto_start_stop_fast_heat_window(
     # VTherm should be heating
     assert vtherm.hvac_mode == HVACMode.HEAT
     # VTherm window_state should be off
-    assert vtherm.window_state == STATE_OFF
+    assert vtherm.window_state == STATE_UNKNOWN  # cause condition is not evaluated
 
     # 3. Set current temperature to 21 5 min later -> should turn off VTherm
     now = now + timedelta(minutes=5)
@@ -1485,7 +1485,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     # VTherm should be heating
     assert vtherm.hvac_mode == HVACMode.HEAT
     # VTherm window_state should be off
-    assert vtherm.window_state == STATE_OFF
+    assert vtherm.window_state == STATE_UNKNOWN  # cause try_condition is not evaluated
 
     # 3. Open the window and wait for the delay
     now = now + timedelta(minutes=2)
