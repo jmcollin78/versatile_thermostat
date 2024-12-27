@@ -84,8 +84,13 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
     def update_my_state_and_vtherm(self):
         """Update the auto_start_stop_enable flag in my VTherm"""
         self.async_write_ha_state()
-        if self.my_climate is not None:
-            self.my_climate.set_auto_start_stop_enable(self._attr_is_on)
+        if (
+            self.my_climate is not None
+            and self.my_climate.auto_start_stop_manager is not None
+        ):
+            self.my_climate.auto_start_stop_manager.set_auto_start_stop_enable(
+                self._attr_is_on
+            )
 
     @callback
     async def async_turn_on(self, **kwargs: Any) -> None:

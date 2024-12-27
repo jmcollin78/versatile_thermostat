@@ -938,7 +938,10 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
             == AUTO_START_STOP_LEVEL_FAST
         )
 
-        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        assert (
+            vtherm.auto_start_stop_manager.auto_start_stop_level
+            == AUTO_START_STOP_LEVEL_FAST
+        )
         enable_entity = search_entity(
             hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
         )
@@ -1112,7 +1115,10 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
             == AUTO_START_STOP_LEVEL_FAST
         )
 
-        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        assert (
+            vtherm.auto_start_stop_manager.auto_start_stop_level
+            == AUTO_START_STOP_LEVEL_FAST
+        )
         enable_entity = search_entity(
             hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
         )
@@ -1138,7 +1144,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     now = now + timedelta(minutes=5)
     vtherm._set_now(now)
     # reset accumulated error (only for testing)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:

@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, unused-variable
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, unused-variable, too-many-lines
 
 """ Test the Auto Start Stop algorithm management """
 from datetime import datetime, timedelta
@@ -363,15 +363,14 @@ async def test_auto_start_stop_none_vtherm(
         # Initialize all temps
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_NONE
-        )
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] is None
+        assert vtherm._attr_extra_state_attributes.get("auto_start_stop_level") is None
+        assert vtherm._attr_extra_state_attributes.get("auto_start_stop_dtmin") is None
 
     # 1. Vtherm auto-start/stop should be in NONE mode
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_NONE
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_NONE
+    )
 
     # 2. We should not find any switch Enable entity
     assert (
@@ -464,7 +463,10 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 15
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_MEDIUM
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_MEDIUM
+    )
     enable_entity = search_entity(
         hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
     )
@@ -488,7 +490,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     # 3. Set current temperature to 19 5 min later
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -500,7 +502,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_mode == HVACMode.HEAT
         assert mock_send_event.call_count == 0
         assert (
-            vtherm._auto_start_stop_algo.accumulated_error == 0
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0
         )  # target = current = 19
 
     # 4. Set current temperature to 20 5 min later
@@ -516,7 +518,10 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_mode == HVACMode.HEAT
         assert mock_send_event.call_count == 0
         # accumulated_error = target - current = -1 x 5 min / 2
-        assert vtherm._auto_start_stop_algo.accumulated_error == -2.5
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error
+            == -2.5
+        )
 
     # 5. Set current temperature to 21 5 min later -> should turn off
     now = now + timedelta(minutes=5)
@@ -532,7 +537,9 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
         # accumulated_error = -2.5 + target - current = -2 x 5 min / 2 capped to 5
-        assert vtherm._auto_start_stop_algo.accumulated_error == -5
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
+        )
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -577,7 +584,9 @@ async def test_auto_start_stop_medium_heat_vtherm(
         await hass.async_block_till_done()
 
         # accumulated_error = .... capped to -5
-        assert vtherm._auto_start_stop_algo.accumulated_error == -5
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
+        )
 
         # VTherm should stay stopped cause slope is too low to allow the turn to On
         assert vtherm.hvac_mode == HVACMode.OFF
@@ -593,7 +602,9 @@ async def test_auto_start_stop_medium_heat_vtherm(
         await hass.async_block_till_done()
 
         # accumulated_error = -5/2 + target - current = 1 x 20 min / 2 capped to 5
-        assert vtherm._auto_start_stop_algo.accumulated_error == 5
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 5
+        )
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == HVACMode.HEAT
@@ -717,7 +728,10 @@ async def test_auto_start_stop_fast_ac_vtherm(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -736,7 +750,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
     # 3. Set current temperature to 19 5 min later
     now = now + timedelta(minutes=5)
     # reset accumulated error for test
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -748,7 +762,8 @@ async def test_auto_start_stop_fast_ac_vtherm(
         assert vtherm.hvac_mode == HVACMode.COOL
         assert mock_send_event.call_count == 0
         assert (
-            vtherm._auto_start_stop_algo.accumulated_error == 0  # target = current = 25
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error
+            == 0  # target = current = 25
         )
 
     # 4. Set current temperature to 23 5 min later -> should turn off
@@ -764,7 +779,9 @@ async def test_auto_start_stop_fast_ac_vtherm(
         assert vtherm.hvac_mode == HVACMode.OFF
 
         # accumulated_error = target - current = 2 x 5 min / 2 capped to 2
-        assert vtherm._auto_start_stop_algo.accumulated_error == 2
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
+        )
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -809,7 +826,9 @@ async def test_auto_start_stop_fast_ac_vtherm(
         await hass.async_block_till_done()
 
         # accumulated_error = 2/2 + target - current = -1 x 20 min / 2 capped to 2
-        assert vtherm._auto_start_stop_algo.accumulated_error == -2
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
+        )
 
         # VTherm should stay stopped
         assert vtherm.hvac_mode == HVACMode.OFF
@@ -826,7 +845,9 @@ async def test_auto_start_stop_fast_ac_vtherm(
         await hass.async_block_till_done()
 
         # accumulated_error = 2/2 + target - current = -1 x 20 min / 2 capped to 2
-        assert vtherm._auto_start_stop_algo.accumulated_error == -2
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
+        )
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == HVACMode.COOL
@@ -948,7 +969,10 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -966,7 +990,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
 
     # 3. Set current temperature to 21 5 min later to auto-stop
     now = now + timedelta(minutes=5)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -977,7 +1001,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         # VTherm should have been stopped
         assert vtherm.hvac_mode == HVACMode.OFF
 
-        assert vtherm._auto_start_stop_algo.accumulated_error == -2
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
+        )
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -1032,7 +1058,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         await hass.async_block_till_done()
         assert vtherm.target_temperature == 21
 
-        assert vtherm._auto_start_stop_algo.accumulated_error == 2
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
+        )
 
         # VTherm should have been restarted
         assert vtherm.hvac_mode == HVACMode.HEAT
@@ -1154,7 +1182,10 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
     enable_entity = search_entity(
         hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
     )
@@ -1185,7 +1216,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
 
     # 3. Set current temperature to 21 5 min later to auto-stop
     now = now + timedelta(minutes=5)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -1197,7 +1228,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         assert vtherm.hvac_mode == HVACMode.HEAT
 
         # Not calculated cause enable = false
-        assert vtherm._auto_start_stop_algo.accumulated_error == 0
+        assert (
+            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0
+        )
 
         # a message should have been sent
         assert mock_send_event.call_count == 0
@@ -1288,7 +1321,10 @@ async def test_auto_start_stop_fast_heat_window(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
     enable_entity = search_entity(
         hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
     )
@@ -1315,7 +1351,7 @@ async def test_auto_start_stop_fast_heat_window(
     # 3. Set current temperature to 21 5 min later -> should turn off VTherm
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -1463,7 +1499,10 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
     enable_entity = search_entity(
         hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
     )
@@ -1513,7 +1552,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     # 4. Set current temperature to 21 5 min later -> should turn off VTherm
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
@@ -1638,6 +1677,9 @@ async def test_auto_start_stop_disable_vtherm_off(
 
         # Check correct initialization of auto_start_stop attributes
         assert (
+            vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
+        )
+        assert (
             vtherm._attr_extra_state_attributes["auto_start_stop_level"]
             == AUTO_START_STOP_LEVEL_FAST
         )
@@ -1646,7 +1688,10 @@ async def test_auto_start_stop_disable_vtherm_off(
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     vtherm._set_now(now)
-    assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    assert (
+        vtherm.auto_start_stop_manager.auto_start_stop_level
+        == AUTO_START_STOP_LEVEL_FAST
+    )
     enable_entity = search_entity(
         hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
     )

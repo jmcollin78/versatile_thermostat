@@ -125,6 +125,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeaturePresenceManager.unrecorded_attributes)
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
+        .union(FeatureWindowManager.unrecorded_attributes)
     )
 
     def __init__(
@@ -216,6 +217,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Instanciate all features manager
         self._managers: list[BaseFeatureManager] = []
+
         self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(
             self, hass
         )
@@ -1299,7 +1301,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        # TODO ce code avec du dearm est curieux. A voir après refacto
         dearm_window_auto = await self._async_update_temp(new_state)
         self.recalculate()
         await self.async_control_heating(force=False)
@@ -1866,7 +1867,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             ),
         }
 
-        self._presence_manager.add_custom_attributes(self._attr_extra_state_attributes)
+        for manager in self._managers:
+            manager.add_custom_attributes(self._attr_extra_state_attributes)
 
     @overrides
     def async_write_ha_state(self):
