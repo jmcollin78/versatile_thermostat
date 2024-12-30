@@ -38,8 +38,9 @@ A big thank you to all my beer sponsors for their donations and encouragements. 
 
 The documentation is now divided into several pages for easier reading and searching:
 1. [Introduction](documentation/en/presentation.md),
-2. [Choosing a VTherm type](documentation/en/creation.md),
-3. [Basic attributes](documentation/en/base-attributes.md)
+2. [Installation](documentation/en/installation.md),
+3. [Choosing a VTherm type](documentation/en/creation.md),
+4. [Basic attributes](documentation/en/base-attributes.md)
 3. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
 3. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
 3. [Configuring a VTherm on a valve](documentation/en/over-valve.md)
