@@ -70,9 +70,9 @@ overpowering_state: false
 presence_state: 'on'
 window_auto_state: false
 is_window_bypass: false
-security_delay_min: 2
-security_min_on_percent: 0.5
-security_default_on_percent: 0.1
+safety_delay_min: 2
+safety_min_on_percent: 0.5
+safety_default_on_percent: 0.1
 last_temperature_datetime: '2023-11-05T00:48:54.873157+01:00'
 last_ext_temperature_datetime: '2023-11-05T00:48:53.240122+01:00'
 security_state: true

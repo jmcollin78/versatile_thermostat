@@ -192,16 +192,16 @@
         "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
-          "security_delay_min": "Délai maximal entre 2 mesures de températures",
-          "security_min_on_percent": "Pourcentage minimal de puissance",
-          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "safety_delay_min": "Délai maximal entre 2 mesures de températures",
+          "safety_min_on_percent": "Pourcentage minimal de puissance",
+          "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
-          "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
-          "security_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
-          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
+          "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
+          "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -432,16 +432,16 @@
         "description": "Paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat.",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
-          "security_delay_min": "Délai maximal entre 2 mesures de températures",
-          "security_min_on_percent": "Pourcentage minimal de puissance",
-          "security_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "safety_delay_min": "Délai maximal entre 2 mesures de températures",
+          "safety_min_on_percent": "Pourcentage minimal de puissance",
+          "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
-          "security_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
-          "security_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
-          "security_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
+          "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
+          "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },

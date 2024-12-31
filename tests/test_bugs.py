@@ -37,7 +37,7 @@ async def test_bug_63(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that it should be possible to set the security_default_on_percent to 0"""
+    """Test that it should be possible to set the safety_default_on_percent to 0"""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -89,7 +89,7 @@ async def test_bug_64(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that it should be possible to set the security_default_on_percent to 0"""
+    """Test that it should be possible to set the safety_default_on_percent to 0"""
 
     entry = MockConfigEntry(
         domain=DOMAIN,

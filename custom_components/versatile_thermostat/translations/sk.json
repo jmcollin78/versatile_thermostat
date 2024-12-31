@@ -211,16 +211,16 @@
         "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
         "data": {
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
-          "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
-          "security_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
-          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
+          "safety_delay_min": "Bezpečnostné oneskorenie (v minútach)",
+          "safety_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
+          "safety_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
-          "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
-          "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
-          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
+          "safety_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
+          "safety_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
+          "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }
@@ -446,16 +446,16 @@
         "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
         "data": {
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
-          "security_delay_min": "Bezpečnostné oneskorenie (v minútach)",
-          "security_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
-          "security_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
+          "safety_delay_min": "Bezpečnostné oneskorenie (v minútach)",
+          "safety_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
+          "safety_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
           "minimal_activation_delay": "Oneskorenie v sekundách, pri ktorom sa zariadenie neaktivuje",
-          "security_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
-          "security_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
-          "security_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
+          "safety_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami teploty. Po uplynutí tohto oneskorenia sa termostat prepne do bezpečnostného vypnutého stavu",
+          "safety_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
+          "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       }

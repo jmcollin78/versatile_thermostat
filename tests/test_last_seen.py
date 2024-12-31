@@ -98,7 +98,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     ) as mock_heater_on:
         event_timestamp = now - timedelta(minutes=6)
 
-        # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
+        # set temperature to 15 so that on_percent will be > safety_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
         assert entity.safety_state is STATE_ON
         assert entity.preset_mode == PRESET_SAFETY

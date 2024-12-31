@@ -3,5 +3,5 @@
     "content_in_root": false,
     "render_readme": true,
     "hide_default_branch": false,
-    "homeassistant": "2024.12.3"
+    "homeassistant": "2024.12.4"
 }

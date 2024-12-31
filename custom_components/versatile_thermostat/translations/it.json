@@ -143,15 +143,15 @@
         "description": "Configurazione avanzata dei parametri. Lasciare i valori predefiniti se non conoscete cosa state modificando.\nQuesti parametri possono determinare una pessima gestione della temperatura e della potenza.",
         "data": {
           "minimal_activation_delay": "Ritardo minimo di accensione",
-          "security_delay_min": "Ritardo di sicurezza (in minuti)",
-          "security_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
-          "security_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
+          "safety_delay_min": "Ritardo di sicurezza (in minuti)",
+          "safety_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
+          "safety_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
         },
         "data_description": {
           "minimal_activation_delay": "Ritardo in secondi al di sotto del quale l'apparecchiatura non verrà attivata",
-          "security_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
-          "security_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
-          "security_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
+          "safety_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
+          "safety_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
+          "safety_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
         }
       }
     },
@@ -307,15 +307,15 @@
         "description": "Configurazione avanzata dei parametri. Lasciare i valori predefiniti se non conoscete cosa state modificando.\nQuesti parametri possono determinare una pessima gestione della temperatura e della potenza.",
         "data": {
           "minimal_activation_delay": "Ritardo minimo di accensione",
-          "security_delay_min": "Ritardo di sicurezza (in minuti)",
-          "security_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
-          "security_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
+          "safety_delay_min": "Ritardo di sicurezza (in minuti)",
+          "safety_min_on_percent": "Percentuale minima di potenza per la modalità di sicurezza",
+          "safety_default_on_percent": "Percentuale di potenza per la modalità di sicurezza"
         },
         "data_description": {
           "minimal_activation_delay": "Ritardo in secondi al di sotto del quale l'apparecchiatura non verrà attivata",
-          "security_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
-          "security_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
-          "security_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
+          "safety_delay_min": "Ritardo massimo consentito in minuti tra due misure di temperatura. Al di sopra di questo ritardo, il termostato passerà allo stato di sicurezza",
+          "safety_min_on_percent": "Soglia percentuale minima di riscaldamento al di sotto della quale il preset di sicurezza non verrà mai attivato",
+          "safety_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nella modalità di sicurezza. Impostare a 0 per spegnere il riscaldatore nella modalità di sicurezza"
         }
       }
     },

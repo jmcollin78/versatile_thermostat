@@ -18,9 +18,9 @@
 ## Battery-Powered Temperature Sensor
 These sensors are often sluggish and do not always send temperature readings when the temperature is stable. Therefore, the settings should be loose to avoid false positives.
 
-- security_delay_min: 60 minutes (because these sensors are sluggish)
-- security_min_on_percent: 0.7 (70% - the system goes into security mode if the heater was on more than 70% of the time)
-- security_default_on_percent: 0.4 (40% - in security mode, we maintain 40% heating time to avoid getting too cold)
+- safety_delay_min: 60 minutes (because these sensors are sluggish)
+- safety_min_on_percent: 0.7 (70% - the system goes into security mode if the heater was on more than 70% of the time)
+- safety_default_on_percent: 0.4 (40% - in security mode, we maintain 40% heating time to avoid getting too cold)
 
 These settings should be understood as follows:
 
@@ -35,9 +35,9 @@ Versatile Thermostat allows you to be notified when such an event occurs. Set up
 ## Reactive Temperature Sensor (plugged in)
 A powered thermometer is supposed to be very regular in sending temperature readings. If it doesn't send anything for 15 minutes, it most likely has an issue, and we can react faster without the risk of a false positive.
 
-- security_delay_min: 15 minutes
-- security_min_on_percent: 0.5 (50% - the system goes into ``security`` preset if the heater was on more than 50% of the time)
-- security_default_on_percent: 0.25 (25% - in ``security`` preset, we keep 25% heating time)
+- safety_delay_min: 15 minutes
+- safety_min_on_percent: 0.5 (50% - the system goes into ``security`` preset if the heater was on more than 50% of the time)
+- safety_default_on_percent: 0.25 (25% - in ``security`` preset, we keep 25% heating time)
 
 ## My Presets
 This is just an example of how I use the preset. You can adapt it to your configuration, but it may be useful to understand its functionality.

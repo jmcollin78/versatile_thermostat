@@ -123,9 +123,9 @@ versatile_thermostat:
 Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les utiliser que si vous savez ce que vous faites et que vos mesures de température ne sont pas déjà lisses.
 
 ## Pourquoi mon Versatile Thermostat se met en Securite ?
-Le mode sécurité est possible sur les types de VTherm de type `over_switch` et `over_valve` uniquement. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `security_delay_min` minutes et que le radiateur chauffait à au moins `security_min_on_percent`. Cf. [mode sécurité](feature-advanced.md#la-mise-en-sécurité)
+Le mode sécurité est possible sur les types de VTherm de type `over_switch` et `over_valve` uniquement. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `safety_delay_min` minutes et que le radiateur chauffait à au moins `safety_min_on_percent`. Cf. [mode sécurité](feature-advanced.md#la-mise-en-sécurité)
 
-Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `security_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
+Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `safety_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
 
 Tous ces paramètres se règlent dans la dernière page de la configuration du VTherm : "Paramètres avancés".
 
@@ -149,14 +149,14 @@ last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
 ...
-security_delay_min: 60
+safety_delay_min: 60
 ```
 
 On voit que :
 1. le VTherm est bien en mode sécurité (`security_state: true`),
 2. l'heure courante est le 06/12/2023 à 18h43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. l'heure de dernière réception de la température intérieure est le 06/12/2023 à 18h43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). Elle est donc récente,
-4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`security_delay_min: 60`).
+4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`safety_delay_min: 60`).
 
 ### Comment être averti lorsque cela se produit ?
 Pour être averti, le VTherm envoie un évènement dès que ça se produit et un en fin d'alerte sécurité. Vous pouvez capter ces évènements dans une automatisation et envoyer une notification par exemple, faire clignoter un voyant, déclencher une sirène, ... A vous de voir.
@@ -166,8 +166,8 @@ Pour manipuler les évènements générés par le VTherm, cf. [Eveènements](#ev
 ### Comment réparer ?
 Cela va dépendre de la cause du problème :
 1. Si un capteur est en défaut, il faut le réparer (remettre des piles, le changer, vérifier l'intégration Météo qui donne la température extérieure, ...),
-2. Si le paramètre `security_delay_min` est trop petit, cela risque de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile. Cf [mes réglages](tuning-examples.md#le-capteur-de-température-alimenté-par-batterie)
-3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple ou Zigbee), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `security_delay_min`,
+2. Si le paramètre `safety_delay_min` est trop petit, cela risque de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile. Cf [mes réglages](tuning-examples.md#le-capteur-de-température-alimenté-par-batterie)
+3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple ou Zigbee), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `safety_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
 5. Si c'est le capteur de température extérieur qui est en défaut, vous pouvez désactiver le déclenchement du mode sécurité puisqu'il influe assez peu sur le résultat. Pour ce faire, cf. [ici](feature-advanced.md#la-mise-en-sécurité)
 
