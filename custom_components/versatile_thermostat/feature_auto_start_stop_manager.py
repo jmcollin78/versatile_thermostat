@@ -211,7 +211,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
     @overrides
     @property
     def is_configured(self) -> bool:
-        """Return True of the window feature is configured"""
+        """Return True of the aiuto-start/stop feature is configured"""
         return self._is_configured
 
     @property

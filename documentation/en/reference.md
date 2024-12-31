@@ -175,7 +175,7 @@ If the thermostat is in ``security`` mode, the new settings are applied immediat
 
 To change the security settings, use the following code:
 ```yaml
-service: versatile_thermostat.set_security
+service: versatile_thermostat.set_safety
 data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"

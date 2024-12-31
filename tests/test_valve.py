@@ -60,8 +60,8 @@ async def test_over_valve_full_start(
             PRESET_BOOST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 17.3,
             CONF_PRESET_POWER: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
             CONF_AC_MODE: False,
         },
@@ -98,7 +98,9 @@ async def test_over_valve_full_start(
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False  # pylint: disable=protected-access
+        assert (
+            entity.safety_manager.is_safety_detected is False
+        )  # pylint: disable=protected-access
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
@@ -350,8 +352,8 @@ async def test_over_valve_regulation(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 60,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 60,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             # only send new valve open percent if dtemp is > 30%
             CONF_AUTO_REGULATION_DTEMP: 5,
             # only send new valve open percent last mesure was more than 5 min ago
@@ -589,7 +591,7 @@ async def test_bug_533(
             CONF_VALVE: "number.mock_valve",
             CONF_AUTO_REGULATION_DTEMP: 10,  # This parameter makes the bug
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 60,
+            CONF_SAFETY_DELAY_MIN: 60,
         },
         # | temps,
     )

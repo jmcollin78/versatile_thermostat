@@ -53,7 +53,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
+        assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
@@ -112,7 +112,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
             PRESET_BOOST,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
+        assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNAVAILABLE
         assert entity.motion_state is STATE_UNAVAILABLE
         assert entity.presence_state is STATE_UNAVAILABLE
@@ -168,7 +168,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
+        assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
@@ -230,7 +230,7 @@ async def test_over_switch_deactivate_preset(
             CONF_HEATER_3: None,
             CONF_HEATER_4: None,
             CONF_HEATER_KEEP_ALIVE: 0,
-            CONF_SECURITY_DELAY_MIN: 10,
+            CONF_SAFETY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.6,

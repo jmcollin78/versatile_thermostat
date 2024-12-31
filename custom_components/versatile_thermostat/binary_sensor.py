@@ -109,7 +109,7 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         old_state = self._attr_is_on
-        self._attr_is_on = self.my_climate.security_state is True
+        self._attr_is_on = self.my_climate.safety_manager.is_safety_detected
         if old_state != self._attr_is_on:
             self.async_write_ha_state()
         return

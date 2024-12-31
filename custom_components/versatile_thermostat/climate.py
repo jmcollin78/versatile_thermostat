@@ -97,13 +97,13 @@ async def async_setup_entry(
     )
 
     platform.async_register_entity_service(
-        SERVICE_SET_SECURITY,
+        SERVICE_SET_SAFETY,
         {
             vol.Optional("delay_min"): cv.positive_int,
             vol.Optional("min_on_percent"): vol.Coerce(float),
             vol.Optional("default_on_percent"): vol.Coerce(float),
         },
-        "service_set_security",
+        "SERVICE_SET_SAFETY",
     )
 
     platform.async_register_entity_service(

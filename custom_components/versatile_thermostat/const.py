@@ -29,7 +29,7 @@ from .prop_algorithm import (
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 0
+CONFIG_MINOR_VERSION = 1
 
 PRESET_TEMP_SUFFIX = "_temp"
 PRESET_AC_SUFFIX = "_ac"
@@ -42,10 +42,10 @@ DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
 
 PRESET_POWER = "power"
-PRESET_SECURITY = "security"
+PRESET_SAFETY = "security"
 PRESET_FROST_PROTECTION = "frost"
 
-HIDDEN_PRESETS = [PRESET_POWER, PRESET_SECURITY]
+HIDDEN_PRESETS = [PRESET_POWER, PRESET_SAFETY]
 
 DOMAIN = "versatile_thermostat"
 
@@ -84,9 +84,9 @@ CONF_PRESET_POWER = "power_temp"
 CONF_MINIMAL_ACTIVATION_DELAY = "minimal_activation_delay"
 CONF_TEMP_MIN = "temp_min"
 CONF_TEMP_MAX = "temp_max"
-CONF_SECURITY_DELAY_MIN = "security_delay_min"
-CONF_SECURITY_MIN_ON_PERCENT = "security_min_on_percent"
-CONF_SECURITY_DEFAULT_ON_PERCENT = "security_default_on_percent"
+CONF_SAFETY_DELAY_MIN = "safety_delay_min"
+CONF_SAFETY_MIN_ON_PERCENT = "safety_min_on_percent"
+CONF_SAFETY_DEFAULT_ON_PERCENT = "safety_default_on_percent"
 CONF_THERMOSTAT_TYPE = "thermostat_type"
 CONF_THERMOSTAT_CENTRAL_CONFIG = "thermostat_central_config"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
@@ -286,9 +286,9 @@ ALL_CONF = (
         CONF_MINIMAL_ACTIVATION_DELAY,
         CONF_TEMP_MIN,
         CONF_TEMP_MAX,
-        CONF_SECURITY_DELAY_MIN,
-        CONF_SECURITY_MIN_ON_PERCENT,
-        CONF_SECURITY_DEFAULT_ON_PERCENT,
+        CONF_SAFETY_DELAY_MIN,
+        CONF_SAFETY_MIN_ON_PERCENT,
+        CONF_SAFETY_DEFAULT_ON_PERCENT,
         CONF_THERMOSTAT_TYPE,
         CONF_THERMOSTAT_SWITCH,
         CONF_THERMOSTAT_CLIMATE,
@@ -374,7 +374,7 @@ SUPPORT_FLAGS = (
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
-SERVICE_SET_SECURITY = "set_security"
+SERVICE_SET_SAFETY = "set_safety"
 SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
 SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
 SERVICE_SET_AUTO_FAN_MODE = "set_auto_fan_mode"

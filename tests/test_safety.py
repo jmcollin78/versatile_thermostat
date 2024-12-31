@@ -24,17 +24,26 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     1. creates a thermostat and check that security is off
     2. activate security feature when date is expired
     3. change the preset to boost
-    4. check that security is still on
     5. resolve the date issue
     6. check that security is off and preset is changed to boost
     """
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
 
+    temps = {
+        "frost": 7,
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
         unique_id="uniqueId",
+        # With migration
+        version=CONFIG_VERSION,
+        minor_version=0,
         data={
             "name": "TheOverSwitchMockName",
             "thermostat_type": "thermostat_over_switch",
@@ -43,15 +52,11 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
             "cycle_min": 5,
             "temp_min": 15,
             "temp_max": 30,
-            "frost_temp": 7,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             "use_window_feature": False,
             "use_motion_feature": False,
             "use_power_feature": False,
             "use_presence_feature": False,
-            "heater_entity_id": "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             "proportional_function": "tpi",
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
@@ -69,8 +74,11 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     )
     assert entity
 
-    assert entity._security_state is False
-    assert entity.preset_mode is not PRESET_SECURITY
+    await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
+
+    assert entity.safety_manager.safety_state is not STATE_ON
+    assert entity.safety_manager.is_safety_detected is False
+    assert entity.preset_mode is not PRESET_SAFETY
     assert entity.preset_modes == [
         PRESET_NONE,
         PRESET_FROST_PROTECTION,
@@ -105,8 +113,8 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
         # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
-        assert entity.security_state is True
-        assert entity.preset_mode == PRESET_SECURITY
+        assert entity.safety_state is STATE_ON
+        assert entity.preset_mode == PRESET_SAFETY
         assert entity._saved_preset_mode == PRESET_COMFORT
         assert entity._prop_algorithm.on_percent == 0.1
         assert entity._prop_algorithm.calculated_on_percent == 0.9
@@ -114,7 +122,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_send_event.call_count == 3
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SECURITY}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SAFETY}),
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
@@ -151,11 +159,13 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         await entity.async_set_preset_mode(PRESET_BOOST)
 
         # 4. check that security is still on
-        assert entity._security_state is True
+        assert entity.safety_manager.safety_state is STATE_ON
+        assert entity.safety_manager.is_safety_detected is True
+
         assert entity._prop_algorithm.on_percent == 0.1
         assert entity._prop_algorithm.calculated_on_percent == 0.9
         assert entity._saved_preset_mode == PRESET_BOOST
-        assert entity.preset_mode is PRESET_SECURITY
+        assert entity.preset_mode is PRESET_SAFETY
 
     # 5. resolve the datetime issue
     with patch(
@@ -168,7 +178,9 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15.2, event_timestamp)
 
-        assert entity._security_state is False
+        assert entity.safety_manager.safety_state is not STATE_ON
+        assert entity.safety_manager.is_safety_detected is False
+
         assert entity.preset_mode == PRESET_BOOST
         assert entity._saved_preset_mode == PRESET_BOOST
         assert entity._prop_algorithm.on_percent == 1.0
@@ -215,6 +227,12 @@ async def test_security_feature_back_on_percent(
     """
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+        "frost": 10,
+    }
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -228,21 +246,18 @@ async def test_security_feature_back_on_percent(
             "cycle_min": 5,
             "temp_min": 15,
             "temp_max": 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             "use_window_feature": False,
             "use_motion_feature": False,
             "use_power_feature": False,
             "use_presence_feature": False,
-            "heater_entity_id": "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             "proportional_function": "tpi",
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
             "minimal_activation_delay": 30,
-            "security_delay_min": 5,  # 5 minutes
-            "security_min_on_percent": 0.2,
-            "security_default_on_percent": 0.1,
+            "safety_delay_min": 5,  # 5 minutes
+            "safety_min_on_percent": 0.2,
+            "safety_default_on_percent": 0.1,
         },
     )
 
@@ -253,8 +268,12 @@ async def test_security_feature_back_on_percent(
     )
     assert entity
 
-    assert entity._security_state is False
-    assert entity.preset_mode is not PRESET_SECURITY
+    await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
+
+    assert entity.safety_manager.safety_state is not STATE_ON
+    assert entity.safety_manager.is_safety_detected is False
+
+    assert entity.preset_mode is not PRESET_SAFETY
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
@@ -285,7 +304,7 @@ async def test_security_feature_back_on_percent(
         await send_temperature_change_event(entity, 17, event_timestamp)
         assert entity._prop_algorithm.calculated_on_percent == 0.6
         assert entity.preset_mode == PRESET_BOOST
-        assert entity.security_state is False
+        assert entity.safety_state is not STATE_ON
         assert mock_send_event.call_count == 0
 
     # 3. Set safety mode with a preset change
@@ -302,14 +321,14 @@ async def test_security_feature_back_on_percent(
 
         assert entity._prop_algorithm.calculated_on_percent == 0.6
 
-        assert entity.security_state is True
-        assert entity.preset_mode == PRESET_SECURITY
+        assert entity.safety_state is STATE_ON
+        assert entity.preset_mode == PRESET_SAFETY
         assert entity._saved_preset_mode == PRESET_BOOST
 
         assert mock_send_event.call_count == 3
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SECURITY}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SAFETY}),
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
@@ -343,8 +362,8 @@ async def test_security_feature_back_on_percent(
     entity._set_now(event_timestamp)  # pylint: disable=protected-access
 
     await entity.async_set_preset_mode(PRESET_ECO)
-    assert entity.security_state is True
-    assert entity.preset_mode == PRESET_SECURITY
+    assert entity.safety_state is STATE_ON
+    assert entity.preset_mode == PRESET_SAFETY
 
     # 5. resolve the datetime issue
     with patch(
@@ -359,7 +378,9 @@ async def test_security_feature_back_on_percent(
         # set temperature to 18.9 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 18.92, event_timestamp)
 
-        assert entity._security_state is False
+        assert entity.safety_manager.safety_state is not STATE_ON
+        assert entity.safety_manager.is_safety_detected is False
+
         assert entity.preset_mode == PRESET_ECO
         assert entity._saved_preset_mode == PRESET_ECO
         assert entity._prop_algorithm.on_percent == 0.0
@@ -452,7 +473,8 @@ async def test_security_over_climate(
             PRESET_BOOST,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
+        assert entity.safety_manager.safety_state is not STATE_ON
+        assert entity.safety_manager.is_safety_detected is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -506,6 +528,56 @@ async def test_security_over_climate(
 
             await send_temperature_change_event(entity, 15, event_timestamp)
             # Should stay False because a climate is never in safety mode
-            assert entity.security_state is False
+            assert entity.safety_state is not STATE_ON
             assert entity.preset_mode == "none"
             assert entity._saved_preset_mode == "none"
+
+
+async def test_migration_security_safety(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+):
+    """Tests the migration of security parameters to safety in English"""
+    central_config_entry = MockConfigEntry(
+        # Current is 2.1
+        version=CONFIG_VERSION,
+        # An old minor version
+        minor_version=0,
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data={
+            CONF_NAME: "migrationName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_UNDERLYING_LIST: ["switch.under1"],
+            "security_delay_min": 61,
+            "security_min_on_percent": 0.5,
+            "security_default_on_percent": 0.2,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        },
+    )
+
+    central_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(central_config_entry.entry_id)
+    assert central_config_entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverSwitch = search_entity(
+        hass, "climate.migrationname", "climate"
+    )
+
+    assert entity is not None
+
+    assert entity.safety_manager.safety_min_on_percent == 0.5
+    assert entity.safety_manager.safety_default_on_percent == 0.2
+    assert entity.safety_manager.safety_delay_min == 61

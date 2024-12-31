@@ -470,9 +470,9 @@ async def test_user_config_flow_over_climate(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -496,9 +496,9 @@ async def test_user_config_flow_over_climate(
         "data"
     ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
-        CONF_SECURITY_DELAY_MIN: 5,
-        CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-        CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_SAFETY_DELAY_MIN: 5,
+        CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+        CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -1077,9 +1077,9 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -1104,9 +1104,9 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "data"
     ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
-        CONF_SECURITY_DELAY_MIN: 5,
-        CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-        CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_SAFETY_DELAY_MIN: 5,
+        CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+        CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
@@ -1274,9 +1274,9 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
         },
     )
 
@@ -1359,9 +1359,9 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_TEMP_MAX: 30,
             CONF_STEP_TEMPERATURE: 0.5,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
             CONF_USE_TPI_CENTRAL_CONFIG: False,
             CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -1657,9 +1657,9 @@ async def test_user_config_flow_over_climate_valve(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -1685,9 +1685,9 @@ async def test_user_config_flow_over_climate_valve(
         "data"
     ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
-        CONF_SECURITY_DELAY_MIN: 5,
-        CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-        CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_SAFETY_DELAY_MIN: 5,
+        CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+        CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,

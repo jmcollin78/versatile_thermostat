@@ -187,7 +187,7 @@ class PropAlgorithm:
 
         self._off_time_sec = self._cycle_min * 60 - self._on_time_sec
 
-    def set_security(self, default_on_percent: float):
+    def set_safety(self, default_on_percent: float):
         """Set a default value for on_percent (used for safety mode)"""
         _LOGGER.info(
             "%s - Proportional Algo - set security to ON", self._vtherm_entity_id
@@ -196,7 +196,7 @@ class PropAlgorithm:
         self._default_on_percent = default_on_percent
         self._calculate_internal()
 
-    def unset_security(self):
+    def unset_safety(self):
         """Unset the safety mode"""
         _LOGGER.info(
             "%s - Proportional Algo - set security to OFF", self._vtherm_entity_id

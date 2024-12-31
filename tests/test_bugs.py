@@ -63,9 +63,9 @@ async def test_bug_63(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.0,  # !! here
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.0,  # !! here
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.0,  # !! here
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.0,  # !! here
             CONF_DEVICE_POWER: 200,
         },
     )
@@ -75,8 +75,8 @@ async def test_bug_63(
     )
     assert entity
 
-    assert entity._security_min_on_percent == 0
-    assert entity._security_default_on_percent == 0
+    assert entity.safety_manager.safety_min_on_percent == 0
+    assert entity.safety_manager.safety_default_on_percent == 0
 
 
 # Waiting for answer in https://github.com/jmcollin78/versatile_thermostat/issues/64
@@ -115,9 +115,9 @@ async def test_bug_64(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,  # !! here
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,  # !! here
             CONF_DEVICE_POWER: 200,
         },
     )
@@ -299,8 +299,8 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_POWER_SENSOR: "sensor.mock_power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
@@ -510,8 +510,8 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
             CONF_AC_MODE: True,
         },

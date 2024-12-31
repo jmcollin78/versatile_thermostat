@@ -42,8 +42,8 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
             CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
             CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
