@@ -53,16 +53,21 @@ class FeatureSafetyManager(BaseFeatureManager):
         self._safety_min_on_percent = (
             entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT)
             if entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT) is not None
-            else DEFAULT_SECURITY_MIN_ON_PERCENT
+            else DEFAULT_SAFETY_MIN_ON_PERCENT
         )
         self._safety_default_on_percent = (
             entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT)
             if entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT) is not None
-            else DEFAULT_SECURITY_DEFAULT_ON_PERCENT
+            else DEFAULT_SAFETY_DEFAULT_ON_PERCENT
         )
 
-        self._safety_state = STATE_UNKNOWN
-        self._is_configured = True
+        if (
+            self._safety_delay_min is not None
+            and self._safety_default_on_percent is not None
+            and self._safety_default_on_percent is not None
+        ):
+            self._safety_state = STATE_UNKNOWN
+            self._is_configured = True
 
     @overrides
     def start_listening(self):
@@ -253,15 +258,22 @@ class FeatureSafetyManager(BaseFeatureManager):
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""
+
         extra_state_attributes.update(
             {
-                "safety_delay_min": self._safety_delay_min,
-                "safety_min_on_percent": self._safety_min_on_percent,
-                "safety_default_on_percent": self._safety_default_on_percent,
-                "safety_state": self._safety_state,
                 "is_safety_configured": self._is_configured,
+                "safety_state": self._safety_state,
             }
         )
+
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "safety_delay_min": self._safety_delay_min,
+                    "safety_min_on_percent": self._safety_min_on_percent,
+                    "safety_default_on_percent": self._safety_default_on_percent,
+                }
+            )
 
     @overrides
     @property

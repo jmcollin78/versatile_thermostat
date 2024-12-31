@@ -1,8 +1,7 @@
 # pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
 """ Test the Window management """
 import logging
-from datetime import datetime, timedelta
-from unittest.mock import patch, call, PropertyMock, AsyncMock, MagicMock
+from unittest.mock import PropertyMock, MagicMock
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 

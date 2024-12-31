@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the Security featrure """
-from unittest.mock import patch, call
+from unittest.mock import patch, call, PropertyMock, MagicMock
 from datetime import timedelta, datetime
 import logging
 
@@ -11,10 +11,101 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
+from custom_components.versatile_thermostat.feature_safety_manager import (
+    FeatureSafetyManager,
+)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-
 logging.getLogger().setLevel(logging.DEBUG)
+
+
+async def test_safety_feature_manager_create(
+    hass: HomeAssistant,
+):
+    """Test the FeatureMotionManager class direclty"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # 1. creation
+    safety_manager = FeatureSafetyManager(fake_vtherm, hass)
+
+    assert safety_manager is not None
+    assert safety_manager.is_configured is False
+    assert safety_manager.is_safety_detected is False
+    assert safety_manager.safety_state is STATE_UNAVAILABLE
+    assert safety_manager.name == "the name"
+
+    assert len(safety_manager._active_listener) == 0
+
+    custom_attributes = {}
+    safety_manager.add_custom_attributes(custom_attributes)
+    assert custom_attributes["is_safety_configured"] is False
+    assert custom_attributes["safety_state"] is STATE_UNAVAILABLE
+    assert custom_attributes.get("safety_delay_min", None) is None
+    assert custom_attributes.get("safety_min_on_percent", None) is None
+    assert custom_attributes.get("safety_default_on_percent", None) is None
+
+
+@pytest.mark.parametrize(
+    "safety_delay_min, safety_min_on_percent, safety_default_on_percent, is_configured, state",
+    [
+        # fmt: off
+        ( 10, 11, 12, True, STATE_UNKNOWN),
+        ( None, 11, 12, False, STATE_UNAVAILABLE),
+        ( 10, None, 12, True, STATE_UNKNOWN),
+        ( 10, 11, None, True, STATE_UNKNOWN),
+        ( 10, None, None, True, STATE_UNKNOWN),
+        ( None, None, None, False, STATE_UNAVAILABLE),
+        # fmt: on
+    ],
+)
+async def test_safety_feature_manager_post_init(
+    hass: HomeAssistant,
+    safety_delay_min,
+    safety_min_on_percent,
+    safety_default_on_percent,
+    is_configured,
+    state,
+):
+    """Test the FeatureSafetyManager class direclty"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # 1. creation
+    safety_manager = FeatureSafetyManager(fake_vtherm, hass)
+    assert safety_manager is not None
+
+    # 2. post_init
+    safety_manager.post_init(
+        {
+            CONF_SAFETY_DELAY_MIN: safety_delay_min,
+            CONF_SAFETY_MIN_ON_PERCENT: safety_min_on_percent,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: safety_default_on_percent,
+        }
+    )
+
+    assert safety_manager.is_configured is is_configured
+    assert safety_manager.safety_state is state
+
+    custom_attributes = {}
+    safety_manager.add_custom_attributes(custom_attributes)
+    assert custom_attributes["is_safety_configured"] is is_configured
+    assert custom_attributes["safety_state"] is state
+
+    if safety_manager.is_configured:
+        assert custom_attributes.get("safety_delay_min", None) == safety_delay_min
+        assert (
+            custom_attributes.get("safety_min_on_percent", None)
+            == safety_min_on_percent
+            or DEFAULT_SAFETY_MIN_ON_PERCENT
+        )
+        assert (
+            custom_attributes.get("safety_default_on_percent", None)
+            == safety_default_on_percent
+            or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
+        )
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
