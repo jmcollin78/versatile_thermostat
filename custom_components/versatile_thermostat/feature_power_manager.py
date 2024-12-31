@@ -365,4 +365,4 @@ class FeaturePowerManager(BaseFeatureManager):
         )
 
     def __str__(self):
-        return f"PresenceManager-{self.name}"
+        return f"PowerManager-{self.name}"
