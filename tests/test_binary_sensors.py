@@ -57,8 +57,8 @@ async def test_security_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
         },
     )
 
@@ -84,17 +84,17 @@ async def test_security_binary_sensors(
     # Set temperature in the past
     event_timestamp = now - timedelta(minutes=6)
 
-    # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
+    # set temperature to 15 so that on_percent will be > safety_min_on_percent (0.2)
     await send_temperature_change_event(entity, 15, event_timestamp)
 
-    assert entity.security_state is True
+    assert entity.safety_state is STATE_ON
     # Simulate the event reception
     await security_binary_sensor.async_my_climate_changed()
     assert security_binary_sensor.state == STATE_ON
 
     # set temperature now
     await send_temperature_change_event(entity, 15, now)
-    assert entity.security_state is False
+    assert entity.safety_state is not STATE_ON
     # Simulate the event reception
     await security_binary_sensor.async_my_climate_changed()
     assert security_binary_sensor.state == STATE_OFF
@@ -134,8 +134,8 @@ async def test_overpowering_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_POWER_SENSOR: "sensor.mock_power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
@@ -159,8 +159,8 @@ async def test_overpowering_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert await entity.check_overpowering() is False
-    assert entity.overpowering_state is None
+    assert await entity.power_manager.check_overpowering() is False
+    assert entity.power_manager.overpowering_state is STATE_UNKNOWN
 
     await overpowering_binary_sensor.async_my_climate_changed()
     assert overpowering_binary_sensor.state is STATE_OFF
@@ -168,8 +168,8 @@ async def test_overpowering_binary_sensors(
 
     await send_power_change_event(entity, 100, now)
     await send_max_power_change_event(entity, 150, now)
-    assert await entity.check_overpowering() is True
-    assert entity.overpowering_state is True
+    assert await entity.power_manager.check_overpowering() is True
+    assert entity.power_manager.overpowering_state is STATE_ON
 
     # Simulate the event reception
     await overpowering_binary_sensor.async_my_climate_changed()
@@ -177,8 +177,8 @@ async def test_overpowering_binary_sensors(
 
     # set max power to a low value
     await send_max_power_change_event(entity, 201, now)
-    assert await entity.check_overpowering() is False
-    assert entity.overpowering_state is False
+    assert await entity.power_manager.check_overpowering() is False
+    assert entity.power_manager.overpowering_state is STATE_OFF
     # Simulate the event reception
     await overpowering_binary_sensor.async_my_climate_changed()
     assert overpowering_binary_sensor.state == STATE_OFF
@@ -218,8 +218,8 @@ async def test_window_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
             CONF_WINDOW_DELAY: 0,  # important to not been obliged to wait
         },
@@ -241,7 +241,7 @@ async def test_window_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.window_state is STATE_OFF
+    assert entity.window_state is STATE_UNKNOWN
 
     await window_binary_sensor.async_my_climate_changed()
     assert window_binary_sensor.state is STATE_OFF
@@ -306,10 +306,12 @@ async def test_motion_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
             CONF_MOTION_DELAY: 0,  # important to not been obliged to wait
+            CONF_MOTION_PRESET: PRESET_BOOST,
+            CONF_NO_MOTION_PRESET: PRESET_ECO,
         },
     )
 
@@ -329,7 +331,7 @@ async def test_motion_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.motion_state is None
+    assert entity.motion_state is STATE_UNKNOWN
 
     await motion_binary_sensor.async_my_climate_changed()
     assert motion_binary_sensor.state is STATE_OFF
@@ -397,8 +399,8 @@ async def test_presence_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
         },
     )
@@ -419,7 +421,7 @@ async def test_presence_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.presence_state is None
+    assert entity.presence_state is STATE_UNKNOWN
 
     await presence_binary_sensor.async_my_climate_changed()
     assert presence_binary_sensor.state is STATE_OFF
@@ -480,8 +482,8 @@ async def test_binary_sensors_over_climate_minimal(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_CLIMATE: "climate.mock_climate",
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_SECURITY_DELAY_MIN: 5,
-                CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+                CONF_SAFETY_DELAY_MIN: 5,
+                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             },
         )
 

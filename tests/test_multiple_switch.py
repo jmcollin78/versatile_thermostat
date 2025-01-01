@@ -45,8 +45,8 @@ async def test_one_switch_cycle(
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_HEATER: "switch.mock_switch1",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -69,7 +69,7 @@ async def test_one_switch_cycle(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -262,8 +262,8 @@ async def test_multiple_switchs(
             CONF_HEATER_4: "switch.mock_switch4",
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -289,7 +289,7 @@ async def test_multiple_switchs(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -402,8 +402,8 @@ async def test_multiple_climates(
             CONF_CLIMATE_3: "switch.mock_climate3",
             CONF_CLIMATE_4: "switch.mock_climate4",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
         },
     )
 
@@ -426,7 +426,7 @@ async def test_multiple_climates(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -451,7 +451,7 @@ async def test_multiple_climates(
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -503,8 +503,8 @@ async def test_multiple_climates_underlying_changes(
             CONF_CLIMATE_3: "switch.mock_climate3",
             CONF_CLIMATE_4: "switch.mock_climate4",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
         },
     )
 
@@ -527,7 +527,7 @@ async def test_multiple_climates_underlying_changes(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -648,8 +648,8 @@ async def test_multiple_climates_underlying_changes_not_aligned(
             CONF_CLIMATE_3: "switch.mock_climate3",
             CONF_CLIMATE_4: "switch.mock_climate4",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
         },
     )
 
@@ -672,7 +672,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.target_temperature == 19
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
@@ -750,8 +750,8 @@ async def test_multiple_switch_power_management(
             CONF_HEATER_4: "switch.mock_switch4",
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -776,17 +776,17 @@ async def test_multiple_switch_power_management(
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is None
+    assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
     # 1. Send power mesurement
     await send_power_change_event(entity, 50, datetime.now())
     # Send power max mesurement
     await send_max_power_change_event(entity, 300, datetime.now())
-    assert await entity.check_overpowering() is False
+    assert await entity.power_manager.check_overpowering() is False
     # All configuration is complete and power is < power_max
     assert entity.preset_mode is PRESET_BOOST
-    assert entity.overpowering_state is False
+    assert entity.power_manager.overpowering_state is STATE_OFF
 
     # 2. Send power max mesurement too low and HVACMode is on
     with patch(
@@ -798,10 +798,10 @@ async def test_multiple_switch_power_management(
     ) as mock_heater_off:
         # 100 of the device / 4 -> 25, current power 50 so max is 75
         await send_max_power_change_event(entity, 74, datetime.now())
-        assert await entity.check_overpowering() is True
+        assert await entity.power_manager.check_overpowering() is True
         # All configuration is complete and power is > power_max we switch to POWER preset
         assert entity.preset_mode is PRESET_POWER
-        assert entity.overpowering_state is True
+        assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
 
         assert mock_send_event.call_count == 2
@@ -814,7 +814,7 @@ async def test_multiple_switch_power_management(
                         "type": "start",
                         "current_power": 50,
                         "device_power": 100,
-                        "current_power_max": 74,
+                        "current_max_power": 74,
                         "current_power_consumption": 25.0,
                     },
                 ),
@@ -831,7 +831,7 @@ async def test_multiple_switch_power_management(
         await entity.async_set_preset_mode(PRESET_ECO)
         assert entity.preset_mode is PRESET_ECO
         # No change
-        assert entity.overpowering_state is True
+        assert entity.power_manager.overpowering_state is STATE_ON
 
     # 4. Send hugh power max mesurement to release overpowering
     with patch(
@@ -843,10 +843,10 @@ async def test_multiple_switch_power_management(
     ) as mock_heater_off:
         # 100 of the device / 4 -> 25, current power 50 so max is 75. With 150 no overheating
         await send_max_power_change_event(entity, 150, datetime.now())
-        assert await entity.check_overpowering() is False
+        assert await entity.power_manager.check_overpowering() is False
         # All configuration is complete and power is > power_max we switch to POWER preset
         assert entity.preset_mode is PRESET_ECO
-        assert entity.overpowering_state is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 17
 
         assert (

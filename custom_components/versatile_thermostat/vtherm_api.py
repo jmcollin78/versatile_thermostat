@@ -125,15 +125,10 @@ class VersatileThermostatAPI(dict):
     ):
         """register the two number entities needed for boiler activation"""
         self._threshold_number_entity = threshold_number_entity
-        # If sensor and threshold number are initialized, reload the listener
-        # if self._nb_active_number_entity and self._central_boiler_entity:
-        #     self._hass.async_add_job(self.reload_central_boiler_binary_listener)
 
     def register_nb_device_active_boiler(self, nb_active_number_entity):
         """register the two number entities needed for boiler activation"""
         self._nb_active_number_entity = nb_active_number_entity
-        # if self._threshold_number_entity and self._central_boiler_entity:
-        #     self._hass.async_add_job(self.reload_central_boiler_binary_listener)
 
     def register_temperature_number(
         self,
@@ -172,13 +167,6 @@ class VersatileThermostatAPI(dict):
         )
         if component:
             for entity in component.entities:
-                # if hasattr(entity, "init_presets"):
-                #     if (
-                #         only_use_central is False
-                #         or entity.use_central_config_temperature
-                #     ):
-                #         await entity.init_presets(self.find_central_configuration())
-
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
                 if (

@@ -62,8 +62,8 @@ async def test_bug_56(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_CLIMATE: "climate.mock_climate",
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_SECURITY_DELAY_MIN: 5,
-                CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+                CONF_SAFETY_DELAY_MIN: 5,
+                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             },
         )
 
@@ -151,7 +151,7 @@ async def test_bug_82(
             PRESET_BOOST,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
+        assert entity.safety_manager.is_safety_detected is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -191,10 +191,10 @@ async def test_bug_82(
         ):
             event_timestamp = now - timedelta(minutes=6)
 
-            # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
+            # set temperature to 15 so that on_percent will be > safety_min_on_percent (0.2)
             await send_temperature_change_event(entity, 15, event_timestamp)
             # Should stay False
-            assert entity.security_state is False
+            assert entity.safety_state is not STATE_ON
             assert entity.preset_mode == "none"
             assert entity._saved_preset_mode == "none"
 
@@ -641,8 +641,8 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
             CONF_AC_MODE: True,
         },
@@ -904,8 +904,8 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
             CONF_AC_MODE: True,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
@@ -938,7 +938,10 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
             == AUTO_START_STOP_LEVEL_FAST
         )
 
-        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        assert (
+            vtherm.auto_start_stop_manager.auto_start_stop_level
+            == AUTO_START_STOP_LEVEL_FAST
+        )
         enable_entity = search_entity(
             hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
         )
@@ -960,7 +963,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     # VTherm should be heating
     assert vtherm.hvac_mode == HVACMode.HEAT
     # VTherm window_state should be off
-    assert vtherm.window_state == STATE_OFF
+    assert vtherm.window_state == STATE_UNKNOWN  # Cause try_condition is not called
 
     # 2. Open the window and wait for the delay
     now = now + timedelta(minutes=2)
@@ -1078,8 +1081,8 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
             CONF_AC_MODE: True,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
@@ -1112,7 +1115,10 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
             == AUTO_START_STOP_LEVEL_FAST
         )
 
-        assert vtherm.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        assert (
+            vtherm.auto_start_stop_manager.auto_start_stop_level
+            == AUTO_START_STOP_LEVEL_FAST
+        )
         enable_entity = search_entity(
             hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
         )
@@ -1138,7 +1144,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     now = now + timedelta(minutes=5)
     vtherm._set_now(now)
     # reset accumulated error (only for testing)
-    vtherm._auto_start_stop_algo._accumulated_error = 0
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:

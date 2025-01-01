@@ -18,9 +18,9 @@
 ## Le capteur de température alimenté par batterie
 Ces capteurs sont souvent paresseux et n'envoit pas toujours de mesure de température lorsqu'elle est stable. Par conséquent, les réglages doivent être laches pour éviter les faux positifs.
 
-- security_delay_min : 60 min (parce que ces capteurs sont paresseux)
-- security_min_on_percent : 0,7 (70% - on passe en mode sécurité si le radiateur chauffait plus de 70% du temps)
-- security_default_on_percent : 0,4 (40% - en mode sécurité, on garde un fond de chauffe de 40% du temps pour éviter d'avoir trop froid)
+- safety_delay_min : 60 min (parce que ces capteurs sont paresseux)
+- safety_min_on_percent : 0,7 (70% - on passe en mode sécurité si le radiateur chauffait plus de 70% du temps)
+- safety_default_on_percent : 0,4 (40% - en mode sécurité, on garde un fond de chauffe de 40% du temps pour éviter d'avoir trop froid)
 
 Il faut comprendre ces réglages comme suit :
 
@@ -34,9 +34,9 @@ Versatile Thermostat vous permet d'être notifié lorsqu'un évènement de ce ty
 
 ## Capteur de température réactif (sur secteur)
 Un thermomètre alimenté est censé est très régulier dans l'envoi des températures. Si il n'envoie rien pendant 15 min, il a certainement un soucis et on peut réagir plus vite sans risque de faux positif.
-- security_delay_min : 15 min
-- security_min_on_percent : 0,5 (50% - on passe en preset ``security`` si le radiateur chauffait plus de 50% du temps)
-- security_default_on_percent : 0,25 (20% - en preset ``security``, on garde un fond de chauffe de 20% du temps)
+- safety_delay_min : 15 min
+- safety_min_on_percent : 0,5 (50% - on passe en preset ``security`` si le radiateur chauffait plus de 50% du temps)
+- safety_default_on_percent : 0,25 (20% - en preset ``security``, on garde un fond de chauffe de 20% du temps)
 
 
 ## Mes presets

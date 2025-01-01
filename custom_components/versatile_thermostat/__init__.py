@@ -29,6 +29,9 @@ from .const import (
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
     CONF_SAFETY_MODE,
+    CONF_SAFETY_DELAY_MIN,
+    CONF_SAFETY_MIN_ON_PERCENT,
+    CONF_SAFETY_DEFAULT_ON_PERCENT,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_THERMOSTAT_TYPE,
     CONF_USE_WINDOW_FEATURE,
@@ -289,6 +292,20 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 CONF_VALVE_3,
                 CONF_VALVE_4,
             ]:
+                new.pop(key, None)
+
+            # Migration 2.0 to 2.1 -> rename security parameters into safety
+
+        if config_entry.version == CONFIG_VERSION and config_entry.minor_version == 0:
+            for key in [
+                "security_delay_min",
+                "security_min_on_percent",
+                "security_default_on_percent",
+            ]:
+                new_key = key.replace("security_", "safety_")
+                old_value = config_entry.data.get(key, None)
+                if old_value is not None:
+                    new[new_key] = old_value
                 new.pop(key, None)
 
         hass.config_entries.async_update_entry(

@@ -67,9 +67,9 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
             CONF_MAX_POWER_SENSOR: "sensor.mock_central_max_power_sensor",
             CONF_PRESET_POWER: 14,
             CONF_MINIMAL_ACTIVATION_DELAY: 11,
-            CONF_SECURITY_DELAY_MIN: 61,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+            CONF_SAFETY_DELAY_MIN: 61,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.2,
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
         },
     )
@@ -135,9 +135,9 @@ async def test_minimal_over_switch_wo_central_config(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             # CONF_WINDOW_AUTO_OPEN_THRESHOLD: 0.1,
             # CONF_WINDOW_AUTO_CLOSE_THRESHOLD: 0.1,
             # CONF_WINDOW_AUTO_MAX_DURATION: 0,  # Should be 0 for test
@@ -167,16 +167,16 @@ async def test_minimal_over_switch_wo_central_config(
         assert entity.max_temp == 18
         assert entity.target_temperature_step == 0.3
         assert entity.preset_modes == ["none", "frost", "eco", "comfort", "boost"]
-        assert entity.is_window_auto_enabled is False
+        assert entity.window_manager.is_window_auto_configured is False
         assert entity.nb_underlying_entities == 1
         assert entity.underlying_entity_id(0) == "switch.mock_switch"
         assert entity.proportional_algorithm is not None
         assert entity.proportional_algorithm._tpi_coef_int == 0.3
         assert entity.proportional_algorithm._tpi_coef_ext == 0.01
         assert entity.proportional_algorithm._minimal_activation_delay == 30
-        assert entity._security_delay_min == 5
-        assert entity._security_min_on_percent == 0.3
-        assert entity._security_default_on_percent == 0.1
+        assert entity.safety_manager.safety_delay_min == 5
+        assert entity.safety_manager.safety_min_on_percent == 0.3
+        assert entity.safety_manager.safety_default_on_percent == 0.1
         assert entity.is_inversed
 
     entity.remove_thermostat()
@@ -220,9 +220,9 @@ async def test_full_over_switch_wo_central_config(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
             CONF_WINDOW_DELAY: 30,
             CONF_WINDOW_AUTO_OPEN_THRESHOLD: 3,
@@ -274,28 +274,42 @@ async def test_full_over_switch_wo_central_config(
         assert entity.proportional_algorithm._tpi_coef_int == 0.3
         assert entity.proportional_algorithm._tpi_coef_ext == 0.01
         assert entity.proportional_algorithm._minimal_activation_delay == 30
-        assert entity._security_delay_min == 5
-        assert entity._security_min_on_percent == 0.3
-        assert entity._security_default_on_percent == 0.1
+        assert entity.safety_manager.safety_delay_min == 5
+        assert entity.safety_manager.safety_min_on_percent == 0.3
+        assert entity.safety_manager.safety_default_on_percent == 0.1
         assert entity.is_inversed is False
 
-        assert entity.is_window_auto_enabled is False  # we have an entity_id
-        assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
-        assert entity._window_delay_sec == 30
-        assert entity._window_auto_close_threshold == 0.1
-        assert entity._window_auto_open_threshold == 3
-        assert entity._window_auto_max_duration == 5
+        assert (
+            entity.window_manager.is_window_auto_configured is False
+        )  # we have an entity_id
+        assert (
+            entity.window_manager._window_sensor_entity_id
+            == "binary_sensor.mock_window_sensor"
+        )
+        assert entity.window_manager.window_delay_sec == 30
+        assert entity.window_manager.window_auto_close_threshold == 0.1
+        assert entity.window_manager.window_auto_open_threshold == 3
+        assert entity.window_manager.window_auto_max_duration == 5
 
-        assert entity._motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
-        assert entity._motion_delay_sec == 10
-        assert entity._motion_off_delay_sec == 29
-        assert entity._motion_preset == "comfort"
-        assert entity._no_motion_preset == "eco"
+        assert (
+            entity.motion_manager.motion_sensor_entity_id
+            == "binary_sensor.mock_motion_sensor"
+        )
+        assert entity.motion_manager.motion_delay_sec == 10
+        assert entity.motion_manager.motion_off_delay_sec == 29
+        assert entity.motion_manager.motion_preset == "comfort"
+        assert entity.motion_manager.no_motion_preset == "eco"
 
-        assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
-        assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
+        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
+        assert (
+            entity.power_manager.max_power_sensor_entity_id
+            == "sensor.mock_max_power_sensor"
+        )
 
-        assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
+        assert (
+            entity._presence_manager.presence_sensor_entity_id
+            == "binary_sensor.mock_presence_sensor"
+        )
 
     entity.remove_thermostat()
 
@@ -334,9 +348,9 @@ async def test_full_over_switch_with_central_config(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
             CONF_WINDOW_DELAY: 30,
             CONF_WINDOW_AUTO_OPEN_THRESHOLD: 3,
@@ -387,29 +401,41 @@ async def test_full_over_switch_with_central_config(
         assert entity.proportional_algorithm._tpi_coef_int == 0.5
         assert entity.proportional_algorithm._tpi_coef_ext == 0.02
         assert entity.proportional_algorithm._minimal_activation_delay == 11
-        assert entity._security_delay_min == 61
-        assert entity._security_min_on_percent == 0.5
-        assert entity._security_default_on_percent == 0.2
+        assert entity.safety_manager.safety_delay_min == 61
+        assert entity.safety_manager.safety_min_on_percent == 0.5
+        assert entity.safety_manager.safety_default_on_percent == 0.2
         assert entity.is_inversed is False
 
         # We have an entity so window auto is not enabled
-        assert entity.is_window_auto_enabled is False
-        assert entity._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
-        assert entity._window_delay_sec == 15
-        assert entity._window_auto_close_threshold == 1
-        assert entity._window_auto_open_threshold == 4
-        assert entity._window_auto_max_duration == 31
+        assert entity.window_manager.is_window_auto_configured is False
+        assert (
+            entity.window_manager._window_sensor_entity_id
+            == "binary_sensor.mock_window_sensor"
+        )
+        assert entity.window_manager.window_delay_sec == 15
+        assert entity.window_manager.window_auto_close_threshold == 1
+        assert entity.window_manager.window_auto_open_threshold == 4
+        assert entity.window_manager.window_auto_max_duration == 31
 
-        assert entity._motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
-        assert entity._motion_delay_sec == 31
-        assert entity._motion_off_delay_sec == 301
-        assert entity._motion_preset == "boost"
-        assert entity._no_motion_preset == "frost"
+        assert (
+            entity.motion_manager.motion_sensor_entity_id
+            == "binary_sensor.mock_motion_sensor"
+        )
+        assert entity.motion_manager.motion_delay_sec == 31
+        assert entity.motion_manager.motion_off_delay_sec == 301
+        assert entity.motion_manager.motion_preset == "boost"
+        assert entity.motion_manager.no_motion_preset == "frost"
 
-        assert entity._power_sensor_entity_id == "sensor.mock_power_sensor"
-        assert entity._max_power_sensor_entity_id == "sensor.mock_max_power_sensor"
+        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
+        assert (
+            entity.power_manager.max_power_sensor_entity_id
+            == "sensor.mock_max_power_sensor"
+        )
 
-        assert entity._presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
+        assert (
+            entity._presence_manager.presence_sensor_entity_id
+            == "binary_sensor.mock_presence_sensor"
+        )
 
     entity.remove_thermostat()
 
@@ -469,7 +495,7 @@ async def test_migration_of_central_config(
     central_config_entry = MockConfigEntry(
         version=CONFIG_VERSION,
         # An old minor version
-        minor_version=1,
+        minor_version=0,
         domain=DOMAIN,
         title="TheCentralConfigMockName",
         unique_id="centralConfigUniqueId",
@@ -483,9 +509,9 @@ async def test_migration_of_central_config(
             CONF_TPI_COEF_INT: 0.5,
             CONF_TPI_COEF_EXT: 0.02,
             CONF_MINIMAL_ACTIVATION_DELAY: 11,
-            CONF_SECURITY_DELAY_MIN: 61,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+            CONF_SAFETY_DELAY_MIN: 61,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.2,
             # The old central_boiler parameter
             "add_central_boiler_control": True,
             CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",

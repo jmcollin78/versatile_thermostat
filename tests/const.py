@@ -89,7 +89,12 @@ MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG = {
 }
 
 MOCK_TH_OVER_4SWITCH_TYPE_CONFIG = {
-    CONF_UNDERLYING_LIST: ["switch.mock_4switch0", "switch.mock_4switch1","switch.mock_4switch2","switch.mock_4switch3"],
+    CONF_UNDERLYING_LIST: [
+        "switch.mock_4switch0",
+        "switch.mock_4switch1",
+        "switch.mock_4switch2",
+        "switch.mock_4switch3",
+    ],
     CONF_HEATER_KEEP_ALIVE: 0,
     CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
     CONF_AC_MODE: False,
@@ -195,9 +200,9 @@ MOCK_PRESENCE_AC_CONFIG = {
 
 MOCK_ADVANCED_CONFIG = {
     CONF_MINIMAL_ACTIVATION_DELAY: 10,
-    CONF_SECURITY_DELAY_MIN: 5,
-    CONF_SECURITY_MIN_ON_PERCENT: 0.4,
-    CONF_SECURITY_DEFAULT_ON_PERCENT: 0.3,
+    CONF_SAFETY_DELAY_MIN: 5,
+    CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+    CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
 }
 
 MOCK_DEFAULT_FEATURE_CONFIG = {

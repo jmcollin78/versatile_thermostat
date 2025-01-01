@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, abstract-method, too-many-lines, redefined-builtin
+# pylint: disable=wildcard-import, unused-wildcard-import, unused-import, protected-access, unused-argument, line-too-long, abstract-method, too-many-lines, redefined-builtin
 
 """ Some common resources """
 import asyncio
@@ -8,7 +8,16 @@ from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
 from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
-from homeassistant.const import UnitOfTemperature, STATE_ON, STATE_OFF, ATTR_TEMPERATURE
+from homeassistant.const import (
+    UnitOfTemperature,
+    STATE_ON,
+    STATE_OFF,
+    ATTR_TEMPERATURE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+    STATE_HOME,
+    STATE_NOT_HOME,
+)
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
@@ -188,9 +197,9 @@ FULL_CENTRAL_CONFIG = {
     CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
     CONF_PRESET_POWER: 14,
     CONF_MINIMAL_ACTIVATION_DELAY: 11,
-    CONF_SECURITY_DELAY_MIN: 61,
-    CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-    CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+    CONF_SAFETY_DELAY_MIN: 61,
+    CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+    CONF_SAFETY_DEFAULT_ON_PERCENT: 0.2,
     CONF_USE_CENTRAL_BOILER_FEATURE: False,
 }
 
@@ -229,9 +238,9 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
     CONF_PRESET_POWER: 14,
     CONF_MINIMAL_ACTIVATION_DELAY: 11,
-    CONF_SECURITY_DELAY_MIN: 61,
-    CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-    CONF_SECURITY_DEFAULT_ON_PERCENT: 0.2,
+    CONF_SAFETY_DELAY_MIN: 61,
+    CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+    CONF_SAFETY_DEFAULT_ON_PERCENT: 0.2,
     CONF_USE_CENTRAL_BOILER_FEATURE: True,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
@@ -590,12 +599,7 @@ async def create_thermostat(
     await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.LOADED
 
-    # We should reload the VTherm links
-    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-    # central_config = vtherm_api.find_central_configuration()
     entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
-    # if entity and hasattr(entity, "init_presets")::
-    #    await entity.init_presets(central_config)
 
     return entity
 
@@ -737,7 +741,7 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
             )
         },
     )
-    await entity._async_power_changed(power_event)
+    await entity.power_manager._async_power_sensor_changed(power_event)
     if sleep:
         await asyncio.sleep(0.1)
 
@@ -763,7 +767,7 @@ async def send_max_power_change_event(
             )
         },
     )
-    await entity._async_max_power_changed(power_event)
+    await entity.power_manager._async_max_power_sensor_changed(power_event)
     if sleep:
         await asyncio.sleep(0.1)
 
@@ -796,7 +800,7 @@ async def send_window_change_event(
             ),
         },
     )
-    ret = await entity._async_windows_changed(window_event)
+    ret = await entity.window_manager._window_sensor_changed(window_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret
@@ -830,14 +834,14 @@ async def send_motion_change_event(
             ),
         },
     )
-    ret = await entity._async_motion_changed(motion_event)
+    ret = await entity.motion_manager._motion_sensor_changed(motion_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret
 
 
 async def send_presence_change_event(
-    entity: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
+    vtherm: BaseThermostat, new_state: bool, old_state: bool, date, sleep=True
 ):
     """Sending a new presence event simulating a change on the window state"""
     _LOGGER.info(
@@ -845,26 +849,26 @@ async def send_presence_change_event(
         new_state,
         old_state,
         date,
-        entity,
+        vtherm,
     )
     presence_event = Event(
         EVENT_STATE_CHANGED,
         {
             "new_state": State(
-                entity_id=entity.entity_id,
+                entity_id=vtherm.entity_id,
                 state=STATE_ON if new_state else STATE_OFF,
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
-                entity_id=entity.entity_id,
+                entity_id=vtherm.entity_id,
                 state=STATE_ON if old_state else STATE_OFF,
                 last_changed=date,
                 last_updated=date,
             ),
         },
     )
-    ret = await entity._async_presence_changed(presence_event)
+    ret = await vtherm._presence_manager._presence_sensor_changed(presence_event)
     if sleep:
         await asyncio.sleep(0.1)
     return ret
@@ -1000,7 +1004,7 @@ async def set_climate_preset_temp(
         await temp_entity.async_set_native_value(temp)
     else:
         _LOGGER.warning(
-            "commons tests set_cliamte_preset_temp: cannot find number entity with entity_id '%s'",
+            "commons tests set_climate_preset_temp: cannot find number entity with entity_id '%s'",
             number_entity_id,
         )
 
@@ -1062,9 +1066,14 @@ async def set_all_climate_preset_temp(
             NUMBER_DOMAIN,
         )
         assert temp_entity
+        if not temp_entity:
+            raise ConfigurationNotCompleteError(
+                f"'{number_entity_name}' don't exists as number entity"
+            )
         # Because set_value is not implemented in Number class (really don't understand why...)
         assert temp_entity.state == value
 
+    await hass.async_block_till_done()
 
 #
 # Side effects management

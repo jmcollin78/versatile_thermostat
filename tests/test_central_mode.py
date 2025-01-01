@@ -56,9 +56,9 @@ async def test_config_with_central_mode_true(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -103,9 +103,9 @@ async def test_config_with_central_mode_false(
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -153,9 +153,9 @@ async def test_config_with_central_mode_none(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -205,9 +205,9 @@ async def test_switch_change_central_mode_true(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -347,9 +347,9 @@ async def test_switch_ac_change_central_mode_true(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_AC_MODE: True,
         },
     )
@@ -482,9 +482,9 @@ async def test_climate_ac_change_central_mode_false(
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -624,9 +624,9 @@ async def test_climate_ac_only_change_central_mode_true(
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -778,9 +778,9 @@ async def test_switch_change_central_mode_true_with_window(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
             CONF_WINDOW_DELAY: 0,  # To be not obliged to wait
             CONF_MOTION_SENSOR: "input_boolean.motion_sensor",
@@ -816,7 +816,7 @@ async def test_switch_change_central_mode_true_with_window(
 
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNKNOWN
 
     # 2 Open the window
     with patch(
@@ -935,9 +935,9 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
             CONF_WINDOW_DELAY: 0,  # To be not obliged to wait
             CONF_MOTION_SENSOR: "input_boolean.motion_sensor",
@@ -973,7 +973,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity.window_state is STATE_OFF
+        assert entity.window_state is STATE_UNKNOWN
 
     # 2 Change central_mode to COOL_ONLY
     with patch("homeassistant.core.ServiceRegistry.async_call"):

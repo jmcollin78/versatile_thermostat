@@ -62,8 +62,8 @@ async def test_sensors_over_switch(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 200,
         },
     )
@@ -222,8 +222,8 @@ async def test_sensors_over_climate(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_CLIMATE: "climate.mock_climate",
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_SECURITY_DELAY_MIN: 5,
-                CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+                CONF_SAFETY_DELAY_MIN: 5,
+                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
                 CONF_POWER_SENSOR: "sensor.mock_power_sensor",
                 CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
                 CONF_DEVICE_POWER: 1.5,
@@ -360,8 +360,8 @@ async def test_sensors_over_climate_minimal(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_CLIMATE: "climate.mock_climate",
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_SECURITY_DELAY_MIN: 5,
-                CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+                CONF_SAFETY_DELAY_MIN: 5,
+                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             },
         )
 

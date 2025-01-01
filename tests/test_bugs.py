@@ -37,7 +37,7 @@ async def test_bug_63(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that it should be possible to set the security_default_on_percent to 0"""
+    """Test that it should be possible to set the safety_default_on_percent to 0"""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -63,9 +63,9 @@ async def test_bug_63(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.0,  # !! here
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.0,  # !! here
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.0,  # !! here
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.0,  # !! here
             CONF_DEVICE_POWER: 200,
         },
     )
@@ -75,8 +75,8 @@ async def test_bug_63(
     )
     assert entity
 
-    assert entity._security_min_on_percent == 0
-    assert entity._security_default_on_percent == 0
+    assert entity.safety_manager.safety_min_on_percent == 0
+    assert entity.safety_manager.safety_default_on_percent == 0
 
 
 # Waiting for answer in https://github.com/jmcollin78/versatile_thermostat/issues/64
@@ -89,7 +89,7 @@ async def test_bug_64(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Test that it should be possible to set the security_default_on_percent to 0"""
+    """Test that it should be possible to set the safety_default_on_percent to 0"""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -115,9 +115,9 @@ async def test_bug_64(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.5,
-            CONF_SECURITY_DEFAULT_ON_PERCENT: 0.1,  # !! here
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,  # !! here
             CONF_DEVICE_POWER: 200,
         },
     )
@@ -299,8 +299,8 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_POWER_SENSOR: "sensor.mock_power_sensor",
             CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
@@ -334,7 +334,7 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.overpowering_state is None
+        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
         await asyncio.sleep(0.1)
@@ -346,10 +346,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # Send power mesurement (theheater is already in the power measurement)
         await send_power_change_event(entity, 100, datetime.now())
         # No overpowering yet
-        assert await entity.check_overpowering() is False
+        assert await entity.power_manager.check_overpowering() is False
         # All configuration is complete and power is < power_max
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.overpowering_state is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.is_device_active is True
 
     # 2. An already active heater that switch preset will not switch to overpowering
@@ -365,10 +365,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.check_overpowering() is False
+        assert await entity.power_manager.check_overpowering() is False
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
-        assert entity.overpowering_state is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
 
@@ -385,10 +385,10 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.check_overpowering() is True
+        assert await entity.power_manager.check_overpowering() is True
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_POWER
-        assert entity.overpowering_state is True
+        assert entity.power_manager.overpowering_state is STATE_ON
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -510,8 +510,8 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
             CONF_CLIMATE: "climate.mock_climate",
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
-            CONF_SECURITY_DELAY_MIN: 5,
-            CONF_SECURITY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
             CONF_AC_MODE: True,
         },

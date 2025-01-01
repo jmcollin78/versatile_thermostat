@@ -61,8 +61,8 @@
 | ``power_temp``                            | Température si délestaqe                                                          | X             | X                   | X            | X                        |
 | ``presence_sensor_entity_id``             | Capteur de présence entity id (true si quelqu'un est présent)                     | X             | X                   | X            | -                        |
 | ``minimal_activation_delay``              | Délai minimal d'activation                                                        | X             | -                   | -            | X                        |
-| ``security_delay_min``                    | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
-| ``security_min_on_percent``               | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
+| ``safety_delay_min``                      | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
+| ``safety_min_on_percent``                 | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
 | ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                         | -             | X                   | -            | -                        |
 | ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                        | -             | X                   | -            | -                        |
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -            | -                        |
@@ -173,7 +173,7 @@ Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqu�
 
 Pour changer les paramètres de sécurité utilisez le code suivant :
 ```yaml
-service : versatile_thermostat.set_security
+service : versatile_thermostat.set_safety
 data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
@@ -202,7 +202,7 @@ Les évènements notifiés sont les suivants:
 
 - ``versatile_thermostat_security_event`` : un thermostat entre ou sort du preset ``security``
 - ``versatile_thermostat_power_event`` : un thermostat entre ou sort du preset ``power``
-- ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `security_delay_min`` minutes
+- ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `safety_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_central_boiler_event`` : un évènement indiquant un changement dans l'état de la chaudière.
@@ -247,13 +247,13 @@ Les attributs personnalisés sont les suivants :
 | ``saved_preset_mode``             | Le dernier preset utilisé avant le basculement automatique du preset                                                                                                     |
 | ``saved_target_temp``             | La dernière température utilisée avant la commutation automatique                                                                                                        |
 | ``window_state``                  | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée                                                                                    |
-| ``window_bypass_state``           | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
+| ``is_window_bypass``              | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
 | ``motion_state``                  | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré                                                                                 |
 | ``overpowering_state``            | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée                                                                 |
 | ``presence_state``                | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée                                                                       |
-| ``security_delay_min``            | Le délai avant d'activer le mode de sécurité lorsque un des 2 capteurs de température n'envoie plus de mesures                                                           |
-| ``security_min_on_percent``       | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité                                                                                        |
-| ``security_default_on_percent``   | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité                                                                                                     |
+| ``safety_delay_min``              | Le délai avant d'activer le mode de sécurité lorsque un des 2 capteurs de température n'envoie plus de mesures                                                           |
+| ``safety_min_on_percent``         | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité                                                                                        |
+| ``safety_default_on_percent``     | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité                                                                                                     |
 | ``last_temperature_datetime``     | La date et l'heure au format ISO8866 de la dernière réception de température interne                                                                                     |
 | ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure                                                                                  |
 | ``security_state``                | L'état de sécurité. vrai ou faux                                                                                                                                         |

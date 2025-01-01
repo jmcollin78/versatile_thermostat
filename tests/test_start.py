@@ -53,10 +53,10 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
-        assert entity._window_state is None
-        assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.safety_manager.is_safety_detected is False
+        assert entity.window_state is STATE_UNKNOWN
+        assert entity.motion_state is STATE_UNKNOWN
+        assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
         assert entity.have_valve_regulation is False
 
@@ -112,10 +112,10 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
             PRESET_BOOST,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
-        assert entity._window_state is None
-        assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.safety_manager.is_safety_detected is False
+        assert entity.window_state is STATE_UNAVAILABLE
+        assert entity.motion_state is STATE_UNAVAILABLE
+        assert entity.presence_state is STATE_UNAVAILABLE
         assert entity.have_valve_regulation is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
@@ -151,18 +151,6 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theover4switchmockname")
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-        #
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in component.entities:
-        #         if entity.entity_id == entity_id:
-        #             return entity
-        #
-        # entity: BaseThermostat = find_my_entity("climate.theover4switchmockname")
 
         assert entity
 
@@ -180,10 +168,10 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False
-        assert entity._window_state is None
-        assert entity._motion_state is None
-        assert entity._presence_state is None
+        assert entity.safety_manager.is_safety_detected is False
+        assert entity.window_state is STATE_UNKNOWN
+        assert entity.motion_state is STATE_UNKNOWN
+        assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None
 
         assert entity.nb_underlying_entities == 4
@@ -242,7 +230,7 @@ async def test_over_switch_deactivate_preset(
             CONF_HEATER_3: None,
             CONF_HEATER_4: None,
             CONF_HEATER_KEEP_ALIVE: 0,
-            CONF_SECURITY_DELAY_MIN: 10,
+            CONF_SAFETY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.6,

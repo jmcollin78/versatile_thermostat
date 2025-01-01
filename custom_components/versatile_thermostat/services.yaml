@@ -76,7 +76,7 @@ set_preset_temperature:
                     unit_of_measurement: °
                     mode: slider
 
-set_security:
+set_safety:
     name: Set safety
     description: Change the safety parameters
     target:

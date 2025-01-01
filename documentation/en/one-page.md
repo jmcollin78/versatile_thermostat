@@ -678,14 +678,14 @@ Le formulaire de configuration avancée est le suivant :
 
 Le premier délai (minimal_activation_delay_sec) en secondes est le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint.
 
-Le deuxième délai (``security_delay_min``) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security``. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur passeront en mode ``security`` après ce délai. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
+Le deuxième délai (``safety_delay_min``) est le délai maximal entre deux mesures de température avant de régler le préréglage sur ``security``. Si le capteur de température ne donne plus de mesures de température, le thermostat et le radiateur passeront en mode ``security`` après ce délai. Ceci est utile pour éviter une surchauffe si la batterie de votre capteur de température est trop faible.
 
-Le troisième paramétre (``security_min_on_percent``) est la valeur minimal de ``on_percent`` en dessous de laquelle le préréglage sécurité ne sera pas activé. Ce paramètre permet de ne pas mettre en sécurité un thermostat, si le radiateur piloté ne chauffe pas suffisament.
+Le troisième paramétre (``safety_min_on_percent``) est la valeur minimal de ``on_percent`` en dessous de laquelle le préréglage sécurité ne sera pas activé. Ce paramètre permet de ne pas mettre en sécurité un thermostat, si le radiateur piloté ne chauffe pas suffisament.
 Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité ( ce qui revient à désactiver la fonction).
 
-Le quatrième param§tre (``security_default_on_percent``) est la valeur de ``on_percent`` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez ``0`` alors le thermostat sera coupé lorsqu'il passe en mode ``security``, mettre 0,2% par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
+Le quatrième param§tre (``safety_default_on_percent``) est la valeur de ``on_percent`` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez ``0`` alors le thermostat sera coupé lorsqu'il passe en mode ``security``, mettre 0,2% par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
 
-Note: les paramètres `security_min_on_percent` et `security_default_on_percent` ne s'applique pas aux VTherms `over_climate`.
+Note: les paramètres `safety_min_on_percent` et `safety_default_on_percent` ne s'applique pas aux VTherms `over_climate`.
 
 Depuis la version 5.3 il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
 ```
@@ -702,7 +702,7 @@ Voir [exemple de réglages](#examples-tuning) pour avoir des exemples de réglag
 > 1. Lorsque le capteur de température viendra à la vie et renverra les températures, le préréglage sera restauré à sa valeur précédente,
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Un service est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
-> 4. Pour un usage naturel, le ``security_default_on_percent`` doit être inférieur à ``security_min_on_percent``,
+> 4. Pour un usage naturel, le ``safety_default_on_percent`` doit être inférieur à ``safety_min_on_percent``,
 > 5. Les thermostats de type ``thermostat_over_climate`` ne sont pas concernés par le mode security.
 
 ## Le contrôle centralisé
@@ -875,8 +875,8 @@ context:
 | ``power_temp``                            | Température si délestaqe                                                          | X             | X                   | X            | X                        |
 | ``presence_sensor_entity_id``             | Capteur de présence entity id (true si quelqu'un est présent)                     | X             | X                   | X            | -                        |
 | ``minimal_activation_delay``              | Délai minimal d'activation                                                        | X             | -                   | -            | X                        |
-| ``security_delay_min``                    | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
-| ``security_min_on_percent``               | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
+| ``safety_delay_min``                      | Délai maximal entre 2 mesures de températures                                     | X             | -                   | X            | X                        |
+| ``safety_min_on_percent``                 | Pourcentage minimal de puissance pour passer en mode sécurité                     | X             | -                   | X            | X                        |
 | ``auto_regulation_mode``                  | Le mode d'auto-régulation                                                         | -             | X                   | -            | -                        |
 | ``auto_regulation_dtemp``                 | La seuil d'auto-régulation                                                        | -             | X                   | -            | -                        |
 | ``auto_regulation_period_min``            | La période minimale d'auto-régulation                                             | -             | X                   | -            | -                        |
@@ -902,9 +902,9 @@ context:
 - minimal_activation_delay_sec : 300 secondes (à cause du temps de réponse)
 
 ## Le capteur de température alimenté par batterie
-- security_delay_min : 60 min (parce que ces capteurs sont paresseux)
-- security_min_on_percent : 0,5 (50% - on passe en preset ``security`` si le radiateur chauffait plus de 50% du temps)
-- security_default_on_percent : 0,1 (10% - en preset ``security``, on garde un fond de chauffe de 20% du temps)
+- safety_delay_min : 60 min (parce que ces capteurs sont paresseux)
+- safety_min_on_percent : 0,5 (50% - on passe en preset ``security`` si le radiateur chauffait plus de 50% du temps)
+- safety_default_on_percent : 0,1 (10% - en preset ``security``, on garde un fond de chauffe de 20% du temps)
 
 Il faut comprendre ces réglages comme suit :
 
@@ -917,9 +917,9 @@ Ce qui est important c'est de ne pas prendre trop de risque avec ces paramètres
 Versatile Thermostat vous permet d'être notifié lorsqu'un évènement de ce type survient. Mettez en place, les alertes qui vont bien dès l'utilisation de ce thermostat. Cf. (#notifications)
 
 ## Capteur de température réactif (sur secteur)
-- security_delay_min : 15 min
-- security_min_on_percent : 0,7 (70% - on passe en preset ``security`` si le radiateur chauffait plus de 70% du temps)
-- security_default_on_percent : 0,25 (25% - en preset ``security``, on garde un fond de chauffe de 25% du temps)
+- safety_delay_min : 15 min
+- safety_min_on_percent : 0,7 (70% - on passe en preset ``security`` si le radiateur chauffait plus de 70% du temps)
+- safety_default_on_percent : 0,25 (25% - en preset ``security``, on garde un fond de chauffe de 25% du temps)
 
 ## Mes presets
 Ceci est juste un exemple de la façon dont j'utilise le préréglage. A vous de vous adapter à votre configuration mais cela peut être utile pour comprendre son fonctionnement.
@@ -1053,7 +1053,7 @@ Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqu�
 
 Pour changer les paramètres de sécurité utilisez le code suivant :
 ```
-service : versatile_thermostat.set_security
+service : versatile_thermostat.set_safety
 data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
@@ -1082,7 +1082,7 @@ Les évènements notifiés sont les suivants:
 
 - ``versatile_thermostat_security_event`` : un thermostat entre ou sort du preset ``security``
 - ``versatile_thermostat_power_event`` : un thermostat entre ou sort du preset ``power``
-- ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `security_delay_min`` minutes
+- ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `safety_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_central_boiler_event`` : un évènement indiquant un changement dans l'état de la chaudière.
@@ -1126,13 +1126,13 @@ Les attributs personnalisés sont les suivants :
 | ``saved_preset_mode``             | Le dernier preset utilisé avant le basculement automatique du preset                                                                                                     |
 | ``saved_target_temp``             | La dernière température utilisée avant la commutation automatique                                                                                                        |
 | ``window_state``                  | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée                                                                                    |
-| ``window_bypass_state``           | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
+| ``is_window_bypass``              | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
 | ``motion_state``                  | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré                                                                                 |
 | ``overpowering_state``            | Le dernier état connu du capteur surpuissant. Aucun si la gestion de l'alimentation n'est pas configurée                                                                 |
 | ``presence_state``                | Le dernier état connu du capteur de présence. Aucun si la gestion de présence n'est pas configurée                                                                       |
-| ``security_delay_min``            | Le délai avant d'activer le mode de sécurité lorsque un des 2 capteurs de température n'envoie plus de mesures                                                           |
-| ``security_min_on_percent``       | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité                                                                                        |
-| ``security_default_on_percent``   | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité                                                                                                     |
+| ``safety_delay_min``              | Le délai avant d'activer le mode de sécurité lorsque un des 2 capteurs de température n'envoie plus de mesures                                                           |
+| ``safety_min_on_percent``         | Pourcentage de chauffe en dessous duquel le thermostat ne passera pas en sécurité                                                                                        |
+| ``safety_default_on_percent``     | Pourcentage de chauffe utilisé lorsque le thermostat est en sécurité                                                                                                     |
 | ``last_temperature_datetime``     | La date et l'heure au format ISO8866 de la dernière réception de température interne                                                                                     |
 | ``last_ext_temperature_datetime`` | La date et l'heure au format ISO8866 de la dernière réception de température extérieure                                                                                  |
 | ``security_state``                | L'état de sécurité. vrai ou faux                                                                                                                                         |
@@ -1571,9 +1571,9 @@ Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les u
 <summary>Pourquoi mon Versatile Thermostat se met en Securite ?</summary>
 
 ## Pourquoi mon Versatile Thermostat se met en Securite ?
-Le mode sécurité est possible sur tous les types de VTherm . Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `security_delay_min` minutes et que le radiateur chauffait à au moins `security_min_on_percent`.
+Le mode sécurité est possible sur tous les types de VTherm . Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `safety_delay_min` minutes et que le radiateur chauffait à au moins `safety_min_on_percent`.
 
-Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `security_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
+Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `safety_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
 
 Tous ces paramètres se règlent dans la dernière page de la configuration du VTherm : "Paramètres avancés".
 
@@ -1596,14 +1596,14 @@ last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
 ...
-security_delay_min: 60
+safety_delay_min: 60
 ```
 
 On voit que :
 1. le VTherm est bien en mode sécurité (`security_state: true`),
 2. l'heure courante est le 06/12/2023 à 18h43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. l'heure de dernière réception de la température intérieure est le 06/12/2023 à 18h43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). Elle est donc récente,
-4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`security_delay_min: 60`).
+4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`safety_delay_min: 60`).
 
 ### Comment être averti lorsque cela se produit ?
 Pour être averti, le VTherm envoie un évènement dès que ça se produit et un en fin d'alerte sécurité. Vous pouvez capter ces évènements dans une automatisation et envoyer une notification par exemple, faire clignoter un voyant, déclencher une sirène, ... A vous de voir.
@@ -1613,8 +1613,8 @@ Pour manipuler les évènements générés par le VTherm, cf. [Eveènements](#ev
 ### Comment réparer ?
 Cela va dépendre de la cause du problème :
 1. Si un capteur est en défaut, il faut le réparer (remettre des piles, le changer, vérifier l'intégration Météo qui donne la température extérieure, ...),
-2. Si le paramètre `security_delay_min` est trop petit, cela rsique de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile.
-3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `security_delay_min`,
+2. Si le paramètre `safety_delay_min` est trop petit, cela rsique de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile.
+3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `safety_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
 </details>
 

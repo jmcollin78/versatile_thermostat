@@ -368,14 +368,14 @@ STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
-        vol.Required(CONF_SECURITY_DELAY_MIN, default=60): cv.positive_int,
+        vol.Required(CONF_SAFETY_DELAY_MIN, default=60): cv.positive_int,
         vol.Required(
-            CONF_SECURITY_MIN_ON_PERCENT,
-            default=DEFAULT_SECURITY_MIN_ON_PERCENT,
+            CONF_SAFETY_MIN_ON_PERCENT,
+            default=DEFAULT_SAFETY_MIN_ON_PERCENT,
         ): vol.Coerce(float),
         vol.Required(
-            CONF_SECURITY_DEFAULT_ON_PERCENT,
-            default=DEFAULT_SECURITY_DEFAULT_ON_PERCENT,
+            CONF_SAFETY_DEFAULT_ON_PERCENT,
+            default=DEFAULT_SAFETY_DEFAULT_ON_PERCENT,
         ): vol.Coerce(float),
     }
 )

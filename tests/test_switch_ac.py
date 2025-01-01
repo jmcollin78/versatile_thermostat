@@ -89,10 +89,10 @@ async def test_over_switch_ac_full_start(
             PRESET_ACTIVITY,
         ]
         assert entity.preset_mode is PRESET_NONE
-        assert entity._security_state is False  # pylint: disable=protected-access
-        assert entity._window_state is None  # pylint: disable=protected-access
-        assert entity._motion_state is None  # pylint: disable=protected-access
-        assert entity._presence_state is None  # pylint: disable=protected-access
+        assert entity.safety_manager.is_safety_detected is False
+        assert entity.window_state is STATE_UNKNOWN
+        assert entity.motion_state is STATE_UNKNOWN
+        assert entity.presence_state is STATE_UNKNOWN
         assert entity._prop_algorithm is not None  # pylint: disable=protected-access
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
@@ -114,7 +114,7 @@ async def test_over_switch_ac_full_start(
 
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)
-        assert entity._presence_state == STATE_ON  # pylint: disable=protected-access
+        assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
 
         await entity.async_set_hvac_mode(HVACMode.COOL)
         assert entity.hvac_mode is HVACMode.COOL
@@ -131,7 +131,7 @@ async def test_over_switch_ac_full_start(
         # Unset the presence
         event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, False, True, event_timestamp)
-        assert entity._presence_state == STATE_OFF  # pylint: disable=protected-access
+        assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.target_temperature == 27  # eco_ac_away
 
         # Open a window

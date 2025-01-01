@@ -25,6 +25,12 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     """
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
+    temps = {
+        "frost": 7,
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -39,22 +45,18 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
             "cycle_min": 5,
             "temp_min": 15,
             "temp_max": 30,
-            "frost_temp": 7,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             "use_window_feature": False,
             "use_motion_feature": False,
             "use_power_feature": False,
             "use_presence_feature": False,
-            "heater_entity_id": "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             "proportional_function": "tpi",
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
             "minimal_activation_delay": 30,
-            "security_delay_min": 5,  # 5 minutes
-            "security_min_on_percent": 0.2,
-            "security_default_on_percent": 0.1,
+            CONF_SAFETY_DELAY_MIN: 5,  # 5 minutes
+            CONF_SAFETY_MIN_ON_PERCENT: 0.2,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
         },
     )
 
@@ -65,8 +67,10 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     )
     assert entity
 
-    assert entity._security_state is False
-    assert entity.preset_mode is not PRESET_SECURITY
+    await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
+
+    assert entity.safety_manager.is_safety_detected is False
+    assert entity.preset_mode is not PRESET_SAFETY
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
@@ -94,15 +98,15 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     ) as mock_heater_on:
         event_timestamp = now - timedelta(minutes=6)
 
-        # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
+        # set temperature to 15 so that on_percent will be > safety_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
-        assert entity.security_state is True
-        assert entity.preset_mode == PRESET_SECURITY
+        assert entity.safety_state is STATE_ON
+        assert entity.preset_mode == PRESET_SAFETY
 
         assert mock_send_event.call_count == 3
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SECURITY}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SAFETY}),
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
@@ -135,7 +139,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     # 3. change the last seen sensor
     event_timestamp = now - timedelta(minutes=4)
     await send_last_seen_temperature_change_event(entity, event_timestamp)
-    assert entity.security_state is False
+    assert entity.safety_state is not STATE_ON
     assert entity.preset_mode is PRESET_COMFORT
     assert entity._last_temperature_measure == event_timestamp
 

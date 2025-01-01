@@ -61,8 +61,8 @@
 | ``power_temp``                            | Temperature during load shedding                           | X             | X                   | X            | X                       |
 | ``presence_sensor_entity_id``             | Presence sensor entity id (true if someone is present)     | X             | X                   | X            | -                       |
 | ``minimal_activation_delay``              | Minimum activation delay                                   | X             | -                   | -            | X                       |
-| ``security_delay_min``                    | Maximum delay between two temperature measurements         | X             | -                   | X            | X                       |
-| ``security_min_on_percent``               | Minimum power percentage to enter security mode            | X             | -                   | X            | X                       |
+| ``safety_delay_min``                      | Maximum delay between two temperature measurements         | X             | -                   | X            | X                       |
+| ``safety_min_on_percent``                 | Minimum power percentage to enter security mode            | X             | -                   | X            | X                       |
 | ``auto_regulation_mode``                  | Auto-regulation mode                                       | -             | X                   | -            | -                       |
 | ``auto_regulation_dtemp``                 | Auto-regulation threshold                                  | -             | X                   | -            | -                       |
 | ``auto_regulation_period_min``            | Minimum auto-regulation period                             | -             | X                   | -            | -                       |
@@ -175,7 +175,7 @@ If the thermostat is in ``security`` mode, the new settings are applied immediat
 
 To change the security settings, use the following code:
 ```yaml
-service: versatile_thermostat.set_security
+service: versatile_thermostat.set_safety
 data:
     min_on_percent: "0.5"
     default_on_percent: "0.1"
@@ -204,7 +204,7 @@ The following events are notified:
 
 - ``versatile_thermostat_security_event``: the thermostat enters or exits the ``security`` preset
 - ``versatile_thermostat_power_event``: the thermostat enters or exits the ``power`` preset
-- ``versatile_thermostat_temperature_event``: one or both temperature measurements of the thermostat haven't been updated for more than `security_delay_min`` minutes
+- ``versatile_thermostat_temperature_event``: one or both temperature measurements of the thermostat haven't been updated for more than `safety_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event``: the thermostat is turned on or off. This event is also broadcast at the thermostat's startup
 - ``versatile_thermostat_preset_event``: a new preset is selected on the thermostat. This event is also broadcast at the thermostat's startup
 - ``versatile_thermostat_central_boiler_event``: an event indicating a change in the boiler's state
@@ -248,13 +248,13 @@ The custom attributes are as follows:
 | ``saved_preset_mode``             | The last preset used before automatic preset switching                                                                              |
 | ``saved_target_temp``             | The last temperature used before automatic switching                                                                                |
 | ``window_state``                  | The last known state of the window sensor. None if the window is not configured                                                     |
-| ``window_bypass_state``           | True if the window open detection bypass is enabled                                                                                 |
+| ``is_window_bypass``              | True if the window open detection bypass is enabled                                                                                 |
 | ``motion_state``                  | The last known state of the motion sensor. None if motion detection is not configured                                               |
 | ``overpowering_state``            | The last known state of the overpower sensor. None if power management is not configured                                            |
 | ``presence_state``                | The last known state of the presence sensor. None if presence detection is not configured                                           |
-| ``security_delay_min``            | The delay before activating security mode when one of the two temperature sensors stops sending measurements                        |
-| ``security_min_on_percent``       | The heating percentage below which the thermostat will not switch to security                                                       |
-| ``security_default_on_percent``   | The heating percentage used when the thermostat is in security mode                                                                 |
+| ``safety_delay_min``              | The delay before activating security mode when one of the two temperature sensors stops sending measurements                        |
+| ``safety_min_on_percent``         | The heating percentage below which the thermostat will not switch to security                                                       |
+| ``safety_default_on_percent``     | The heating percentage used when the thermostat is in security mode                                                                 |
 | ``last_temperature_datetime``     | The date and time in ISO8866 format of the last internal temperature reception                                                      |
 | ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception                                                      |
 | ``security_state``                | The security state. True or false                                                                                                   |

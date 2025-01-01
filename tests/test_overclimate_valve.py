@@ -111,10 +111,10 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             PRESET_BOOST,
         ]
         assert vtherm.preset_mode is PRESET_NONE
-        assert vtherm._security_state is False
-        assert vtherm._window_state is None
-        assert vtherm._motion_state is None
-        assert vtherm._presence_state is None
+        assert vtherm.safety_manager.is_safety_detected is False
+        assert vtherm.window_state is STATE_UNAVAILABLE
+        assert vtherm.motion_state is STATE_UNAVAILABLE
+        assert vtherm.presence_state is STATE_UNAVAILABLE
 
         assert vtherm.is_device_active is False
         assert vtherm.valve_open_percent == 0
