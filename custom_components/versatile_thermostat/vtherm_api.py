@@ -18,6 +18,8 @@ from .const import (
     CONF_MAX_ON_PERCENT,
 )
 
+from .central_feature_power_manager import CentralFeaturePowerManager
+
 VTHERM_API_NAME = "vtherm_api"
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,6 +64,9 @@ class VersatileThermostatAPI(dict):
         # A dict that will store all Number entities which holds the temperature
         self._number_temperatures = dict()
         self._max_on_percent = None
+        self._central_power_manager = CentralFeaturePowerManager(
+            VersatileThermostatAPI._hass, self
+        )
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -176,6 +181,10 @@ class VersatileThermostatAPI(dict):
                     if entry_id is None or entry_id == entity.unique_id:
                         await entity.async_startup(self.find_central_configuration())
 
+        # start listening for the central power manager if not only one vtherm reload
+        if not entry_id:
+            self.central_power_manager.start_listening()
+
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""
         # Initialization of all preset for all VTherm
@@ -289,3 +298,8 @@ class VersatileThermostatAPI(dict):
     def hass(self):
         """Get the HomeAssistant object"""
         return VersatileThermostatAPI._hass
+
+    @property
+    def central_power_manager(self) -> any:
+        """Returns the central power manager"""
+        return self._central_power_manager

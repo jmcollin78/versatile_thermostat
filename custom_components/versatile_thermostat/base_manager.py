@@ -16,10 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 class BaseFeatureManager:
     """A base class for all feature"""
 
-    def __init__(self, vtherm: Any, hass: HomeAssistant):
+    def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
         """Init of a featureManager"""
         self._vtherm = vtherm
-        self._name = vtherm.name
+        self._name = vtherm.name if vtherm else name
         self._active_listener: list[CALLBACK_TYPE] = []
         self._hass = hass
 

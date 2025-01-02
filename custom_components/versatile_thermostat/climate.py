@@ -28,6 +28,7 @@ from .thermostat_switch import ThermostatOverSwitch
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_valve import ThermostatOverValve
 from .thermostat_climate_valve import ThermostatOverClimateValve
+from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,6 +52,9 @@ async def async_setup_entry(
     )
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        # Initialize the central power manager
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api(hass)
+        vtherm_api.central_power_manager.post_init(entry.data)
         return
 
     # Instantiate the right base class
