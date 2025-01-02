@@ -2,6 +2,7 @@
 
 import logging
 from typing import Any
+from functools import cmp_to_key
 
 from homeassistant.const import (
     STATE_UNAVAILABLE,
@@ -202,6 +203,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         available_power = self.current_max_power - self.current_power
 
         total_affected_power = 0
+        force_overpowering = False
 
         for vtherm in vtherms_sorted:
             device_power = vtherm.power_manager.device_power
@@ -212,8 +214,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     power_consumption_max = device_power
                 else:
                     power_consumption_max = max(
-                        device_power / self._vtherm.nb_underlying_entities,
-                        device_power * self._vtherm.proportional_algorithm.on_percent,
+                        device_power / vtherm.nb_underlying_entities,
+                        device_power * vtherm.proportional_algorithm.on_percent,
                     )
 
             _LOGGER.debug(
@@ -221,22 +223,28 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 self,
                 vtherm.name,
                 power_consumption_max,
-                vtherm.power_management.device_power,
+                device_power,
                 vtherm.is_over_climate,
             )
-            if total_affected_power + power_consumption_max >= available_power:
+            if force_overpowering or (
+                total_affected_power + power_consumption_max >= available_power
+            ):
                 _LOGGER.debug(
                     "%s - vtherm %s should be in overpowering state", self, vtherm.name
                 )
-                await vtherm.power_manager.set_overpowering(True)
-            elif vtherm.power_manager.is_overpowering_detected:
+                if not vtherm.power_manager.is_overpowering_detected:
+                    # To force all others vtherms to be in overpowering
+                    force_overpowering = True
+                    await vtherm.power_manager.set_overpowering(True)
+            else:
                 total_affected_power += power_consumption_max
-                _LOGGER.debug(
-                    "%s - vtherm %s should not be in overpowering state",
-                    self,
-                    vtherm.name,
-                )
-                await vtherm.power_manager.set_overpowering(False)
+                if vtherm.power_manager.is_overpowering_detected:
+                    _LOGGER.debug(
+                        "%s - vtherm %s should not be in overpowering state",
+                        self,
+                        vtherm.name,
+                    )
+                    await vtherm.power_manager.set_overpowering(False)
 
             _LOGGER.debug(
                 "%s - after vtherm %s total_affected_power=%s, available_power=%s",
@@ -246,10 +254,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 available_power,
             )
 
-    def find_all_vtherm_with_power_management_sorted_by_dtemp(
-        self,
-    ) -> list:
-        """Returns all the VTherms with power management activated"""
+    def get_climate_components_entities(self) -> list:
+        """Get all VTherms entitites"""
         vtherms = []
         component: EntityComponent[ClimateEntity] = self._hass.data.get(
             CLIMATE_DOMAIN, None
@@ -262,10 +268,19 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     entity.device_info
                     and entity.device_info.get("model", None) == DOMAIN
                 ):
-                    # The climate is a VTherm, we add it if it is active and power is configured
-                    vtherm = entity
-                    if vtherm.power_manager.is_configured and vtherm.is_on:
-                        vtherms.append(vtherm)
+                    vtherms.append(entity)
+        return vtherms
+
+    def find_all_vtherm_with_power_management_sorted_by_dtemp(
+        self,
+    ) -> list:
+        """Returns all the VTherms with power management activated"""
+        entities = self.get_climate_components_entities()
+        vtherms = [
+            vtherm
+            for vtherm in entities
+            if vtherm.power_manager.is_configured and vtherm.is_on
+        ]
 
         # sort the result with the min temp difference first. A and B should be BaseThermostat class
         def cmp_temps(a, b) -> int:
@@ -280,7 +295,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 return 0
             return 1 if diff_a > diff_b else -1
 
-        return vtherms.sort(key=cmp_temps)
+        vtherms.sort(key=cmp_to_key(cmp_temps))
+        return vtherms
 
     @property
     def is_configured(self) -> bool:

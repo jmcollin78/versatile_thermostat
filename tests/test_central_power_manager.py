@@ -72,222 +72,360 @@ async def test_central_power_manager_init(
 
 
 @pytest.mark.parametrize(
-    "is_over_climate, is_device_active, power, max_power, current_overpowering_state, overpowering_state, nb_call, changed, check_overpowering_ret",
+    "vtherm_configs, results",
     [
-        # don't switch to overpower (power is enough)
-        (False, False, 1000, 3000, STATE_OFF, STATE_OFF, 0, True, False),
-        # switch to overpower (power is not enough)
-        (False, False, 2000, 3000, STATE_OFF, STATE_ON, 1, True, True),
-        # don't switch to overpower (power is not enough but device is already on)
-        (False, True, 2000, 3000, STATE_OFF, STATE_OFF, 0, True, False),
-        # Same with a over_climate
-        # don't switch to overpower (power is enough)
-        (True, False, 1000, 3000, STATE_OFF, STATE_OFF, 0, True, False),
-        # switch to overpower (power is not enough)
-        (True, False, 2000, 3000, STATE_OFF, STATE_ON, 1, True, True),
-        # don't switch to overpower (power is not enough but device is already on)
-        (True, True, 2000, 3000, STATE_OFF, STATE_OFF, 0, True, False),
-        # Leave overpowering state
-        # switch to not overpower (power is enough)
-        (False, False, 1000, 3000, STATE_ON, STATE_OFF, 1, True, False),
-        # don't switch to overpower (power is still not enough)
-        (False, False, 2000, 3000, STATE_ON, STATE_ON, 0, True, True),
-        # keep overpower (power is not enough but device is already on)
-        (False, True, 3000, 3000, STATE_ON, STATE_ON, 0, True, True),
+        # simple sort
+        (
+            [
+                {
+                    "name": "vtherm1",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 13,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm2",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 18,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm3",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 12,
+                    "target_temperature": 18,
+                },
+            ],
+            ["vtherm2", "vtherm1", "vtherm3"],
+        ),
+        # Ignore power not configured and not on
+        (
+            [
+                {
+                    "name": "vtherm1",
+                    "is_configured": False,
+                    "is_on": True,
+                    "current_temperature": 13,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm2",
+                    "is_configured": True,
+                    "is_on": False,
+                    "current_temperature": 18,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm3",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 12,
+                    "target_temperature": 18,
+                },
+            ],
+            ["vtherm3"],
+        ),
+        # None current_temperature are in last
+        (
+            [
+                {
+                    "name": "vtherm1",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 13,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm2",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": None,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm3",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 12,
+                    "target_temperature": 18,
+                },
+            ],
+            ["vtherm1", "vtherm3", "vtherm2"],
+        ),
+        # None target_temperature are in last
+        (
+            [
+                {
+                    "name": "vtherm1",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 13,
+                    "target_temperature": 12,
+                },
+                {
+                    "name": "vtherm2",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 18,
+                    "target_temperature": None,
+                },
+                {
+                    "name": "vtherm3",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 12,
+                    "target_temperature": 18,
+                },
+            ],
+            ["vtherm1", "vtherm3", "vtherm2"],
+        ),
     ],
 )
-async def test_central_power_manager(
-    hass: HomeAssistant,
-    is_over_climate,
-    is_device_active,
-    power,
-    max_power,
-    current_overpowering_state,
-    overpowering_state,
-    nb_call,
-    changed,
-    check_overpowering_ret,
+async def test_central_power_manageer_find_vtherms(
+    hass: HomeAssistant, vtherm_configs, results
 ):
-    """Test the FeaturePresenceManager class direclty"""
+    """Test the find_all_vtherm_with_power_management_sorted_by_dtemp"""
+    vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
+    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
 
-    fake_vtherm = MagicMock(spec=BaseThermostat)
-    type(fake_vtherm).name = PropertyMock(return_value="the name")
-
-    # 1. creation
-    power_manager = FeaturePowerManager(fake_vtherm, hass)
-
-    assert power_manager is not None
-    assert power_manager.is_configured is False
-    assert power_manager.overpowering_state == STATE_UNAVAILABLE
-    assert power_manager.name == "the name"
-
-    assert len(power_manager._active_listener) == 0
-
-    custom_attributes = {}
-    power_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["power_sensor_entity_id"] is None
-    assert custom_attributes["max_power_sensor_entity_id"] is None
-    assert custom_attributes["overpowering_state"] == STATE_UNAVAILABLE
-    assert custom_attributes["is_power_configured"] is False
-    assert custom_attributes["device_power"] is 0
-    assert custom_attributes["power_temp"] is None
-    assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_max_power"] is None
-
-    # 2. post_init
-    power_manager.post_init(
-        {
-            CONF_POWER_SENSOR: "sensor.the_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
-            CONF_USE_POWER_FEATURE: True,
-            CONF_PRESET_POWER: 10,
-            CONF_DEVICE_POWER: 1234,
-        }
-    )
-
-    assert power_manager.is_configured is True
-    assert power_manager.overpowering_state == STATE_UNKNOWN
-
-    custom_attributes = {}
-    power_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["power_sensor_entity_id"] == "sensor.the_power_sensor"
-    assert (
-        custom_attributes["max_power_sensor_entity_id"] == "sensor.the_max_power_sensor"
-    )
-    assert custom_attributes["overpowering_state"] == STATE_UNKNOWN
-    assert custom_attributes["is_power_configured"] is True
-    assert custom_attributes["device_power"] == 1234
-    assert custom_attributes["power_temp"] == 10
-    assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_max_power"] is None
-
-    # 3. start listening
-    power_manager.start_listening()
-    assert power_manager.is_configured is True
-    assert power_manager.overpowering_state == STATE_UNKNOWN
-
-    assert len(power_manager._active_listener) == 2
-
-    # 4. test refresh and check_overpowering with the parametrized
-    side_effects = SideEffects(
-        {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", power),
-            "sensor.the_max_power_sensor": State(
-                "sensor.the_max_power_sensor", max_power
-            ),
-        },
-        State("unknown.entity_id", "unknown"),
-    )
-    # fmt:off
-    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()) as mock_get_state:
-    # fmt:on
-        # Finish the mock configuration
-        tpi_algo = PropAlgorithm(PROPORTIONAL_FUNCTION_TPI, 0.6, 0.01, 5, 0, "climate.vtherm")
-        tpi_algo._on_percent = 1 # pylint: disable="protected-access"
-        type(fake_vtherm).hvac_mode = PropertyMock(return_value=HVACMode.HEAT)
-        type(fake_vtherm).is_device_active = PropertyMock(return_value=is_device_active)
-        type(fake_vtherm).is_over_climate = PropertyMock(return_value=is_over_climate)
-        type(fake_vtherm).proportional_algorithm = PropertyMock(return_value=tpi_algo)
-        type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=1)
-        type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT if current_overpowering_state == STATE_OFF else PRESET_POWER)
-        type(fake_vtherm)._saved_preset_mode = PropertyMock(return_value=PRESET_ECO)
-
-        fake_vtherm.save_hvac_mode = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
-        fake_vtherm.save_preset_mode = MagicMock()
-        fake_vtherm.restore_preset_mode = AsyncMock()
-        fake_vtherm.async_underlying_entity_turn_off = AsyncMock()
-        fake_vtherm.async_set_preset_mode_internal = AsyncMock()
-        fake_vtherm.send_event = MagicMock()
-        fake_vtherm.update_custom_attributes = MagicMock()
-
-
-        ret = await power_manager.refresh_state()
-        assert ret == changed
-        assert power_manager.is_configured is True
-        assert power_manager.overpowering_state == STATE_UNKNOWN
-        assert power_manager.current_power == power
-        assert power_manager.current_max_power == max_power
-
-        # check overpowering
-        power_manager._overpowering_state = current_overpowering_state
-        ret2 = await power_manager.check_overpowering()
-        assert ret2 == check_overpowering_ret
-        assert power_manager.overpowering_state == overpowering_state
-        assert mock_get_state.call_count == 2
-
-        if power_manager.overpowering_state == STATE_OFF:
-            assert fake_vtherm.save_hvac_mode.call_count == 0
-            assert fake_vtherm.save_preset_mode.call_count == 0
-            assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
-            assert fake_vtherm.async_set_preset_mode_internal.call_count == 0
-            assert fake_vtherm.send_event.call_count == nb_call
-
-            if current_overpowering_state == STATE_ON:
-                assert fake_vtherm.update_custom_attributes.call_count == 1
-                assert fake_vtherm.restore_preset_mode.call_count == 1
-                if is_over_climate:
-                    assert fake_vtherm.restore_hvac_mode.call_count == 1
-                else:
-                    assert fake_vtherm.restore_hvac_mode.call_count == 0
-            else:
-                assert fake_vtherm.update_custom_attributes.call_count == 0
-
-            if nb_call == 1:
-                fake_vtherm.send_event.assert_has_calls(
-                    [
-                        call.fake_vtherm.send_event(
-                            EventType.POWER_EVENT,
-                            {'type': 'end', 'current_power': power, 'device_power': 1234, 'current_max_power': max_power}),
-                    ]
-                )
-
-
-        elif power_manager.overpowering_state == STATE_ON:
-            if is_over_climate:
-                assert fake_vtherm.save_hvac_mode.call_count == 1
-            else:
-                assert fake_vtherm.save_hvac_mode.call_count == 0
-
-            if current_overpowering_state == STATE_OFF:
-                assert fake_vtherm.save_preset_mode.call_count == 1
-                assert fake_vtherm.async_underlying_entity_turn_off.call_count == 1
-                assert fake_vtherm.async_set_preset_mode_internal.call_count == 1
-                assert fake_vtherm.send_event.call_count == 1
-                assert fake_vtherm.update_custom_attributes.call_count == 1
-            else:
-                assert fake_vtherm.save_preset_mode.call_count == 0
-                assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
-                assert fake_vtherm.async_set_preset_mode_internal.call_count == 0
-                assert fake_vtherm.send_event.call_count == 0
-                assert fake_vtherm.update_custom_attributes.call_count == 0
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.restore_preset_mode.call_count == 0
-
-            if nb_call == 1:
-                fake_vtherm.send_event.assert_has_calls(
-                    [
-                        call.fake_vtherm.send_event(
-                            EventType.POWER_EVENT,
-                            {'type': 'start', 'current_power': power, 'device_power': 1234, 'current_max_power': max_power, 'current_power_consumption': 1234.0}),
-                    ]
-                )
-
-        fake_vtherm.reset_mock()
-
-    # 5. Check custom_attributes
-        custom_attributes = {}
-        power_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["power_sensor_entity_id"] == "sensor.the_power_sensor"
-        assert (
-            custom_attributes["max_power_sensor_entity_id"] == "sensor.the_max_power_sensor"
+    vtherms = []
+    for vtherm_config in vtherm_configs:
+        vtherm = MagicMock(spec=BaseThermostat)
+        type(vtherm).name = PropertyMock(return_value=vtherm_config.get("name"))
+        type(vtherm).is_on = PropertyMock(return_value=vtherm_config.get("is_on"))
+        type(vtherm).current_temperature = PropertyMock(
+            return_value=vtherm_config.get("current_temperature")
         )
-        assert custom_attributes["overpowering_state"] == overpowering_state
-        assert custom_attributes["is_power_configured"] is True
-        assert custom_attributes["device_power"] == 1234
-        assert custom_attributes["power_temp"] == 10
-        assert custom_attributes["current_power"] == power
-        assert custom_attributes["current_max_power"] == max_power
+        type(vtherm).target_temperature = PropertyMock(
+            return_value=vtherm_config.get("target_temperature")
+        )
+        type(vtherm.power_manager).is_configured = PropertyMock(
+            return_value=vtherm_config.get("is_configured")
+        )
+        vtherms.append(vtherm)
 
-    power_manager.stop_listening()
-    await hass.async_block_till_done()
+    with patch(
+        "custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.get_climate_components_entities",
+        return_value=vtherms,
+    ):
+        vtherm_sorted = (
+            central_power_manager.find_all_vtherm_with_power_management_sorted_by_dtemp()
+        )
+
+        # extract results
+        vtherm_results = [vtherm.name for vtherm in vtherm_sorted]
+
+        assert vtherm_results == results
+
+
+@pytest.mark.parametrize(
+    "current_power, current_max_power, vtherm_configs, expected_results",
+    [
+        # simple nominal test (no shedding)
+        (
+            1000,
+            5000,
+            [
+                {
+                    "name": "vtherm1",
+                    "device_power": 100,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 0,
+                    "is_overpowering_detected": False,
+                },
+            ],
+            {},
+        ),
+        # Simple trivial shedding
+        (
+            1000,
+            2000,
+            [
+                # should be overpowering
+                {
+                    "name": "vtherm1",
+                    "device_power": 1100,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": False,
+                },
+                # should be overpowering with many underlmying entities
+                {
+                    "name": "vtherm2",
+                    "device_power": 4000,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 4,
+                    "on_percent": 0.1,
+                    "is_overpowering_detected": False,
+                },
+                # over_climate should be overpowering
+                {
+                    "name": "vtherm3",
+                    "device_power": 1000,
+                    "is_device_active": False,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                },
+                # should pass but because will be also overpowering because previous was overpowering
+                {
+                    "name": "vtherm4",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": False,
+                },
+            ],
+            {"vtherm1": True, "vtherm2": True, "vtherm3": True, "vtherm4": True},
+        ),
+        # More complex shedding
+        (
+            1000,
+            2000,
+            [
+                # already overpowering (non change)
+                {
+                    "name": "vtherm1",
+                    "device_power": 1100,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                },
+                # already overpowering and already active (can be un overpowered)
+                {
+                    "name": "vtherm2",
+                    "device_power": 1100,
+                    "is_device_active": True,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": True,
+                },
+                # should terminate the overpowering
+                {
+                    "name": "vtherm3",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                },
+                # should terminate the overpowering and active
+                {
+                    "name": "vtherm4",
+                    "device_power": 3800,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                },
+            ],
+            {"vtherm2": False, "vtherm3": False, "vtherm4": False},
+        ),
+        # More complex shedding
+        (
+            1000,
+            2000,
+            [
+                # already overpowering (non change)
+                {
+                    "name": "vtherm1",
+                    "device_power": 1100,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                },
+                # should be overpowering
+                {
+                    "name": "vtherm2",
+                    "device_power": 1800,
+                    "is_device_active": False,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                },
+                # should terminate the overpowering and active but just before is overpowering
+                {
+                    "name": "vtherm3",
+                    "device_power": 100,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": False,
+                },
+            ],
+            {"vtherm1": False, "vtherm2": True, "vtherm3": True},
+        ),
+    ],
+)
+async def test_central_power_manageer_calculate_shedding(
+    hass: HomeAssistant,
+    current_power,
+    current_max_power,
+    vtherm_configs,
+    expected_results,
+):
+    """Test the calculate_shedding of the CentralPowerManager"""
+    vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
+    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+
+    registered_calls = {}
+
+    def register_call(vtherm, overpowering):
+        """Register a call to set_overpowering"""
+        registered_calls.update({vtherm.name: overpowering})
+
+    vtherms = []
+    for vtherm_config in vtherm_configs:
+        vtherm = MagicMock(spec=BaseThermostat)
+        vtherm.name = vtherm_config.get("name")
+        vtherm.is_device_active = vtherm_config.get("is_device_active")
+        vtherm.is_over_climate = vtherm_config.get("is_over_climate")
+        vtherm.nb_underlying_entities = vtherm_config.get("nb_underlying_entities")
+        if not vtherm_config.get("is_over_climate"):
+            vtherm.proportional_algorithm = MagicMock()
+            vtherm.proportional_algorithm.on_percent = vtherm_config.get("on_percent")
+
+        vtherm.power_manager = MagicMock(spec=FeaturePowerManager)
+        vtherm.power_manager._vtherm = vtherm
+
+        vtherm.power_manager.is_overpowering_detected = vtherm_config.get(
+            "is_overpowering_detected"
+        )
+        vtherm.power_manager.device_power = vtherm_config.get("device_power")
+
+        async def mock_set_overpowering(overpowering, v=vtherm):
+            register_call(v, overpowering)
+
+        vtherm.power_manager.set_overpowering = mock_set_overpowering
+
+        vtherms.append(vtherm)
+
+    type(central_power_manager).current_max_power = PropertyMock(
+        return_value=current_max_power
+    )
+    type(central_power_manager).current_power = PropertyMock(return_value=current_power)
+    type(central_power_manager).is_configured = PropertyMock(return_value=True)
+
+    with patch(
+        "custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp",
+        return_value=vtherms,
+    ):
+
+        await central_power_manager.calculate_shedding()
+
+        # Check registered calls
+        assert registered_calls == expected_results

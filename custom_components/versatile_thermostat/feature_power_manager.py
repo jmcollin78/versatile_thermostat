@@ -310,6 +310,10 @@ class FeaturePowerManager(BaseFeatureManager):
 
         return self._overpowering_state == STATE_ON
 
+    async def set_overpowering(self, overpowering: bool):
+        """Force the overpowering state for the VTherm"""
+        raise NotImplementedError
+
     @overrides
     @property
     def is_configured(self) -> bool:
@@ -323,6 +327,11 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._is_configured:
             return STATE_UNAVAILABLE
         return self._overpowering_state
+
+    @property
+    def is_overpowering_detected(self) -> str | None:
+        """Return True if the Vtherm is in overpowering state"""
+        return self._overpowering_state == STATE_ON
 
     @property
     def max_power_sensor_entity_id(self) -> bool:
