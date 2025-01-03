@@ -3,7 +3,8 @@
 import logging
 from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback, Event
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
@@ -113,6 +114,6 @@ class VersatileThermostatBaseEntity(Entity):
         self, event: Event
     ):  # pylint: disable=unused-argument
         """Called when my climate have change
-        This method aims to be overriden to take the status change
+        This method aims to be overridden to take the status change
         """
         return
