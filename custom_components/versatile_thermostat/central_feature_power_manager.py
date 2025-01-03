@@ -27,6 +27,8 @@ from .base_manager import BaseFeatureManager
 # circular dependency
 # from .base_thermostat import BaseThermostat
 
+MIN_DTEMP_SECS = 60
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -44,6 +46,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._current_power: float = None
         self._current_max_power: float = None
         self._power_temp: float = None
+        self._last_shedding_date = None
 
     def post_init(self, entry_infos: ConfigData):
         """Gets the configuration parameters"""
@@ -103,65 +106,26 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         """Handle power changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power event", self)
         _LOGGER.debug(event)
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        if (
-            new_state is None
-            or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN)
-            or (old_state is not None and new_state.state == old_state.state)
-        ):
-            return
-
-        try:
-            current_power = float(new_state.state)
-            if math.isnan(current_power) or math.isinf(current_power):
-                raise ValueError(f"Sensor has illegal state {new_state.state}")
-            self._current_power = current_power
-
-            if self._vtherm.preset_mode == PRESET_POWER:
-                await self._vtherm.async_control_heating()
-
-        except ValueError as ex:
-            _LOGGER.error("Unable to update current_power from sensor: %s", ex)
+        self.refresh_state()
 
     @callback
     async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power Max event", self.name)
         _LOGGER.debug(event)
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        if (
-            new_state is None
-            or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN)
-            or (old_state is not None and new_state.state == old_state.state)
-        ):
-            return
-
-        try:
-            current_power_max = float(new_state.state)
-            if math.isnan(current_power_max) or math.isinf(current_power_max):
-                raise ValueError(f"Sensor has illegal state {new_state.state}")
-            self._current_max_power = current_power_max
-            if self._vtherm.preset_mode == PRESET_POWER:
-                await self._vtherm.async_control_heating()
-
-        except ValueError as ex:
-            _LOGGER.error("Unable to update current_power from sensor: %s", ex)
+        self.refresh_state()
 
     @overrides
-    async def refresh_state(self) -> bool:
+    def refresh_state(self) -> bool:
         """Tries to get the last state from sensor
         Returns True if a change has been made"""
         ret = False
         if self._is_configured:
             # try to acquire current power and power max
-            current_power_state = self.hass.states.get(self._power_sensor_entity_id)
-            if current_power_state and current_power_state.state not in (
-                STATE_UNAVAILABLE,
-                STATE_UNKNOWN,
-            ):
-                self._current_power = float(current_power_state.state)
+            if (
+                new_state := get_safe_float(self._hass, self._power_sensor_entity_id)
+            ) is not None:
+                self._current_power = new_state
                 _LOGGER.debug(
                     "%s - Current power have been retrieved: %.3f",
                     self,
@@ -170,20 +134,30 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 ret = True
 
             # Try to acquire power max
-            current_power_max_state = self.hass.states.get(
-                self._max_power_sensor_entity_id
-            )
-            if current_power_max_state and current_power_max_state.state not in (
-                STATE_UNAVAILABLE,
-                STATE_UNKNOWN,
-            ):
-                self._current_max_power = float(current_power_max_state.state)
+            if (
+                new_state := get_safe_float(
+                    self._hass, self._max_power_sensor_entity_id
+                )
+            ) is not None:
+                self._current_max_power = new_state
                 _LOGGER.debug(
                     "%s - Current power max have been retrieved: %.3f",
                     self,
                     self._current_max_power,
                 )
                 ret = True
+
+            # check if we need to re-calculate shedding
+            if ret:
+                now = self._vtherm_api.now
+                dtimestamp = (
+                    (now - self._last_shedding_date).seconds
+                    if self._last_shedding_date
+                    else 999
+                )
+                if dtimestamp >= MIN_DTEMP_SECS:
+                    self.calculate_shedding()
+                    self._last_shedding_date = now
 
         return ret
 

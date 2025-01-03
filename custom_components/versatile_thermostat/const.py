@@ -503,6 +503,8 @@ def get_safe_float(hass, entity_id: str):
     if (
         entity_id is None
         or not (state := hass.states.get(entity_id))
+        or state.state is None
+        or state.state == "None"
         or state.state == "unknown"
         or state.state == "unavailable"
     ):

@@ -1,19 +1,15 @@
 # pylint: disable=protected-access, unused-argument, line-too-long
 """ Test the Central Power management """
-from unittest.mock import patch, call, AsyncMock, MagicMock, PropertyMock
+from unittest.mock import patch, AsyncMock, MagicMock, PropertyMock
 from datetime import datetime, timedelta
 import logging
 
-from custom_components.versatile_thermostat.thermostat_switch import (
-    ThermostatOverSwitch,
-)
 from custom_components.versatile_thermostat.feature_power_manager import (
     FeaturePowerManager,
 )
 from custom_components.versatile_thermostat.central_feature_power_manager import (
     CentralFeaturePowerManager,
 )
-from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -194,17 +190,11 @@ async def test_central_power_manageer_find_vtherms(
     vtherms = []
     for vtherm_config in vtherm_configs:
         vtherm = MagicMock(spec=BaseThermostat)
-        type(vtherm).name = PropertyMock(return_value=vtherm_config.get("name"))
-        type(vtherm).is_on = PropertyMock(return_value=vtherm_config.get("is_on"))
-        type(vtherm).current_temperature = PropertyMock(
-            return_value=vtherm_config.get("current_temperature")
-        )
-        type(vtherm).target_temperature = PropertyMock(
-            return_value=vtherm_config.get("target_temperature")
-        )
-        type(vtherm.power_manager).is_configured = PropertyMock(
-            return_value=vtherm_config.get("is_configured")
-        )
+        vtherm.name = vtherm_config.get("name")
+        vtherm.is_on = vtherm_config.get("is_on")
+        vtherm.current_temperature = vtherm_config.get("current_temperature")
+        vtherm.target_temperature = vtherm_config.get("target_temperature")
+        vtherm.power_manager.is_configured = vtherm_config.get("is_configured")
         vtherms.append(vtherm)
 
     with patch(
@@ -371,6 +361,7 @@ async def test_central_power_manageer_find_vtherms(
         ),
     ],
 )
+# @pytest.mark.skip
 async def test_central_power_manageer_calculate_shedding(
     hass: HomeAssistant,
     current_power,
@@ -414,16 +405,18 @@ async def test_central_power_manageer_calculate_shedding(
 
         vtherms.append(vtherm)
 
-    type(central_power_manager).current_max_power = PropertyMock(
-        return_value=current_max_power
-    )
-    type(central_power_manager).current_power = PropertyMock(return_value=current_power)
-    type(central_power_manager).is_configured = PropertyMock(return_value=True)
+    # type(central_power_manager).current_max_power = PropertyMock(
+    #     return_value=current_max_power
+    # )
+    # type(central_power_manager).current_power = PropertyMock(return_value=current_power)
+    # type(central_power_manager).is_configured = PropertyMock(return_value=True)
 
-    with patch(
-        "custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp",
-        return_value=vtherms,
-    ):
+    # fmt:off
+    with patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp", return_value=vtherms), \
+        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_max_power", new_callable=PropertyMock, return_value=current_max_power), \
+        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_power", new_callable=PropertyMock, return_value=current_power), \
+        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.is_configured", new_callable=PropertyMock, return_value=True):
+    # fmt:on
 
         await central_power_manager.calculate_shedding()
 
@@ -431,7 +424,20 @@ async def test_central_power_manageer_calculate_shedding(
         assert registered_calls == expected_results
 
 
-async def test_central_power_manager_power_event(hass: HomeAssistant):
+@pytest.mark.parametrize(
+    "dsecs, power, nb_call",
+    [
+        (0, 1000, 1),
+        (61, 1000, 1),
+        (59, 1000, 1),
+        (0, None, 0),
+        (0, STATE_UNAVAILABLE, 0),
+        (0, STATE_UNKNOWN, 0),
+    ],
+)
+async def test_central_power_manager_power_event(
+    hass: HomeAssistant, dsecs, power, nb_call
+):
     """Tests the Power sensor event"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
     central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
@@ -443,21 +449,162 @@ async def test_central_power_manager_power_event(hass: HomeAssistant):
     # 2. post_init
     central_power_manager.post_init(
         {
-            CONF_POWER_SENSOR: power_entity_id,
-            CONF_MAX_POWER_SENSOR: max_power_entity_id,
-            CONF_USE_POWER_FEATURE: use_power_feature,
+            CONF_POWER_SENSOR: "sensor.power_entity_id",
+            CONF_MAX_POWER_SENSOR: "sensor.max_power_entity_id",
+            CONF_USE_POWER_FEATURE: True,
             CONF_PRESET_POWER: 13,
         }
     )
 
-    assert central_power_manager.is_configured == True
+    assert central_power_manager.is_configured is True
     assert central_power_manager.current_max_power is None
     assert central_power_manager.current_power is None
     assert central_power_manager.power_temperature == 13
 
-    # 3. start listening
+    # 3. start listening (not really useful but don't eat bread)
     central_power_manager.start_listening()
     assert len(central_power_manager._active_listener) == 2
 
-    tz = get_tz(hass)  # pylint: disable=invalid-name
-    now: datetime = datetime.now(tz=tz)
+    now: datetime = NowClass.get_now(hass)
+    # vtherm_api._set_now(now) vtherm_api is a MagicMock
+    vtherm_api.now = now
+
+    # 4. Call the _power_sensor_changed
+    side_effects = SideEffects(
+        {
+            "sensor.power_entity_id": State("sensor.power_entity_id", power),
+            "sensor.max_power_entity_id": State("sensor.max_power_entity_id", power),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+    # fmt:on
+        # set a default value to see if it has been replaced
+        central_power_manager._current_power = -999
+        await central_power_manager._power_sensor_changed(event=Event(
+            event_type=EVENT_STATE_CHANGED,
+            data={
+                "entity_id": "sensor.power_entity_id",
+                "new_state": State("sensor.power_entity_id", power),
+                "old_state": State("sensor.power_entity_id", STATE_UNAVAILABLE),
+            }))
+
+        expected_power = power if isinstance(power, (int, float)) else -999
+        assert central_power_manager.current_power == expected_power
+        assert mock_calculate_shedding.call_count == nb_call
+
+    # Do another call x seconds later
+    now = now + timedelta(seconds=dsecs)
+    vtherm_api.now = now
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+    # fmt:on
+        central_power_manager._current_power = -999
+
+        await central_power_manager._power_sensor_changed(event=Event(
+            event_type=EVENT_STATE_CHANGED,
+            data={
+                "entity_id": "sensor.power_entity_id",
+                "new_state": State("sensor.power_entity_id", power),
+                "old_state": State("sensor.power_entity_id", STATE_UNAVAILABLE),
+            }))
+
+        assert central_power_manager.current_power == expected_power
+        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 60 else 0)
+
+
+@pytest.mark.parametrize(
+    "dsecs, max_power, nb_call",
+    [
+        (0, 1000, 1),
+        (61, 1000, 1),
+        (59, 1000, 1),
+        (0, None, 0),
+        (0, STATE_UNAVAILABLE, 0),
+        (0, STATE_UNKNOWN, 0),
+    ],
+)
+async def test_central_power_manager_max_power_event(
+    hass: HomeAssistant, dsecs, max_power, nb_call
+):
+    """Tests the Power sensor event"""
+    vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
+    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+
+    assert central_power_manager.current_power is None
+    assert central_power_manager.power_temperature is None
+    assert central_power_manager.name == "centralPowerManager"
+
+    # 2. post_init
+    central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.power_entity_id",
+            CONF_MAX_POWER_SENSOR: "sensor.max_power_entity_id",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+        }
+    )
+
+    assert central_power_manager.is_configured is True
+    assert central_power_manager.current_max_power is None
+    assert central_power_manager.current_power is None
+    assert central_power_manager.power_temperature == 13
+
+    # 3. start listening (not really useful but don't eat bread)
+    central_power_manager.start_listening()
+    assert len(central_power_manager._active_listener) == 2
+
+    now: datetime = NowClass.get_now(hass)
+    # vtherm_api._set_now(now) vtherm_api is a MagicMock
+    vtherm_api.now = now
+
+    # 4. Call the _power_sensor_changed
+    side_effects = SideEffects(
+        {
+            "sensor.power_entity_id": State("sensor.power_entity_id", max_power),
+            "sensor.max_power_entity_id": State(
+                "sensor.max_power_entity_id", max_power
+            ),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+    # fmt:on
+        # set a default value to see if it has been replaced
+        central_power_manager._current_max_power = -999
+        await central_power_manager._power_sensor_changed(event=Event(
+            event_type=EVENT_STATE_CHANGED,
+            data={
+                "entity_id": "sensor.max_power_entity_id",
+                "new_state": State("sensor.max_power_entity_id", max_power),
+                "old_state": State("sensor.max_power_entity_id", STATE_UNAVAILABLE),
+            }))
+
+        expected_power = max_power if isinstance(max_power, (int, float)) else -999
+        assert central_power_manager.current_max_power == expected_power
+        assert mock_calculate_shedding.call_count == nb_call
+
+    # Do another call x seconds later
+    now = now + timedelta(seconds=dsecs)
+    vtherm_api.now = now
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+    # fmt:on
+        central_power_manager._current_max_power = -999
+
+        await central_power_manager._power_sensor_changed(event=Event(
+            event_type=EVENT_STATE_CHANGED,
+            data={
+                "entity_id": "sensor.max_power_entity_id",
+                "new_state": State("sensor.max_power_entity_id", max_power),
+                "old_state": State("sensor.max_power_entity_id", STATE_UNAVAILABLE),
+            }))
+
+        assert central_power_manager.current_max_power == expected_power
+        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 60 else 0)

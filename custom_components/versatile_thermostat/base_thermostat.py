@@ -191,7 +191,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._ema_temp = None
         self._ema_algo = None
-        self._now = None
 
         self._attr_fan_mode = None
 
@@ -1582,15 +1581,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
-    def _set_now(self, now: datetime):
-        """Set the now timestamp. This is only for tests purpose"""
-        self._now = now
-
-    @property
-    def now(self) -> datetime:
-        """Get now. The local datetime or the overloaded _set_now date"""
-        return self._now if self._now is not None else NowClass.get_now(self._hass)
-
     @property
     def is_initialized(self) -> bool:
         """Check if all underlyings are initialized
@@ -1965,3 +1955,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def is_preset_configured(self, preset) -> bool:
         """Returns True if the preset in argument is configured"""
         return self._presets.get(preset, None) is not None
+
+    # For testing purpose
+    @DeprecationWarning
+    def _set_now(self, now: datetime):
+        """Set the now timestamp. This is only for tests purpose
+        This method should be replaced by the vthermAPI equivalent"""
+        VersatileThermostatAPI.get_vtherm_api(self._hass).set_now(now)
+
+    @property
+    @DeprecationWarning
+    def now(self) -> datetime:
+        """Get now. The local datetime or the overloaded _set_now date
+        This method should be replaced by the vthermAPI equivalent"""
+        return VersatileThermostatAPI.get_vtherm_api(self._hass).now
