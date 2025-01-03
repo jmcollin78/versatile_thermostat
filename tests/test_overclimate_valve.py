@@ -627,11 +627,11 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
             # min is 60
-            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_opening_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 68}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 32}, target={'entity_id': 'number.mock_closing_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
-            call(domain='number', service='set_value', service_data={'value': 70}, target={'entity_id': 'number.mock_opening_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 30}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 76}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 24}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
