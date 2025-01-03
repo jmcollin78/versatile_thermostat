@@ -86,7 +86,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
             async_track_state_change_event(
                 self.hass,
                 [self._power_sensor_entity_id],
-                self._async_power_sensor_changed,
+                self._power_sensor_changed,
             )
         )
 
@@ -94,12 +94,12 @@ class CentralFeaturePowerManager(BaseFeatureManager):
             async_track_state_change_event(
                 self.hass,
                 [self._max_power_sensor_entity_id],
-                self._async_max_power_sensor_changed,
+                self._max_power_sensor_changed,
             )
         )
 
     @callback
-    async def _async_power_sensor_changed(self, event: Event[EventStateChangedData]):
+    async def _power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power event", self)
         _LOGGER.debug(event)
@@ -125,9 +125,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
             _LOGGER.error("Unable to update current_power from sensor: %s", ex)
 
     @callback
-    async def _async_max_power_sensor_changed(
-        self, event: Event[EventStateChangedData]
-    ):
+    async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power Max event", self.name)
         _LOGGER.debug(event)

@@ -429,3 +429,35 @@ async def test_central_power_manageer_calculate_shedding(
 
         # Check registered calls
         assert registered_calls == expected_results
+
+
+async def test_central_power_manager_power_event(hass: HomeAssistant):
+    """Tests the Power sensor event"""
+    vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
+    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+
+    assert central_power_manager.current_power is None
+    assert central_power_manager.power_temperature is None
+    assert central_power_manager.name == "centralPowerManager"
+
+    # 2. post_init
+    central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: power_entity_id,
+            CONF_MAX_POWER_SENSOR: max_power_entity_id,
+            CONF_USE_POWER_FEATURE: use_power_feature,
+            CONF_PRESET_POWER: 13,
+        }
+    )
+
+    assert central_power_manager.is_configured == True
+    assert central_power_manager.current_max_power is None
+    assert central_power_manager.current_power is None
+    assert central_power_manager.power_temperature == 13
+
+    # 3. start listening
+    central_power_manager.start_listening()
+    assert len(central_power_manager._active_listener) == 2
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
