@@ -1080,7 +1080,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             return
 
-        # Caclulate opening_degree
+        # Caclulate percent_open
         if self._percent_open >= 1:
             self._percent_open = round(
                 self._min_opening_degree
@@ -1090,6 +1090,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         else:
             self._percent_open = 0
 
+        # Send opening_degree
         await super().send_percent_open()
 
         # Send closing_degree if set
