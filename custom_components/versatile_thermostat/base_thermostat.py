@@ -50,11 +50,10 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
-    STATE_ON,
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData, T
+from .commons import ConfigData, T, deprecated
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -1611,10 +1610,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Check overpowering condition
         # Not necessary for switch because each switch is checking at startup
-        overpowering = await self._power_manager.check_overpowering()
-        if overpowering == STATE_ON:
-            _LOGGER.debug("%s - End of cycle (overpowering)", self)
-            return True
+        # overpowering is now centralized
+        # overpowering = await self._power_manager.check_overpowering()
+        # if overpowering == STATE_ON:
+        #    _LOGGER.debug("%s - End of cycle (overpowering)", self)
+        #    return True
 
         safety: bool = await self._safety_manager.refresh_state()
         if safety and self.is_over_climate:
@@ -1957,14 +1957,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._presets.get(preset, None) is not None
 
     # For testing purpose
-    @DeprecationWarning
+    # @deprecated
     def _set_now(self, now: datetime):
         """Set the now timestamp. This is only for tests purpose
         This method should be replaced by the vthermAPI equivalent"""
-        VersatileThermostatAPI.get_vtherm_api(self._hass).set_now(now)
+        VersatileThermostatAPI.get_vtherm_api(self._hass)._set_now(now)
 
+    # @deprecated
     @property
-    @DeprecationWarning
     def now(self) -> datetime:
         """Get now. The local datetime or the overloaded _set_now date
         This method should be replaced by the vthermAPI equivalent"""

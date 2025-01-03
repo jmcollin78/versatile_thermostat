@@ -4,10 +4,6 @@ import logging
 from typing import Any
 from functools import cmp_to_key
 
-from homeassistant.const import (
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
-)
 from homeassistant.core import HomeAssistant, Event, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -106,17 +102,17 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         """Handle power changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power event", self)
         _LOGGER.debug(event)
-        self.refresh_state()
+        await self.refresh_state()
 
     @callback
     async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
         _LOGGER.debug("Thermostat %s - Receive new Power Max event", self.name)
         _LOGGER.debug(event)
-        self.refresh_state()
+        await self.refresh_state()
 
     @overrides
-    def refresh_state(self) -> bool:
+    async def refresh_state(self) -> bool:
         """Tries to get the last state from sensor
         Returns True if a change has been made"""
         ret = False
@@ -156,7 +152,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     else 999
                 )
                 if dtimestamp >= MIN_DTEMP_SECS:
-                    self.calculate_shedding()
+                    await self.calculate_shedding()
                     self._last_shedding_date = now
 
         return ret
@@ -207,16 +203,19 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 if not vtherm.power_manager.is_overpowering_detected:
                     # To force all others vtherms to be in overpowering
                     force_overpowering = True
-                    await vtherm.power_manager.set_overpowering(True)
+                    await vtherm.power_manager.set_overpowering(
+                        True, power_consumption_max
+                    )
             else:
                 total_affected_power += power_consumption_max
-                if vtherm.power_manager.is_overpowering_detected:
-                    _LOGGER.debug(
-                        "%s - vtherm %s should not be in overpowering state",
-                        self,
-                        vtherm.name,
-                    )
-                    await vtherm.power_manager.set_overpowering(False)
+                # Always set to false
+                # if vtherm.power_manager.is_overpowering_detected:
+                _LOGGER.debug(
+                    "%s - vtherm %s should not be in overpowering state",
+                    self,
+                    vtherm.name,
+                )
+                await vtherm.power_manager.set_overpowering(False)
 
             _LOGGER.debug(
                 "%s - after vtherm %s total_affected_power=%s, available_power=%s",
@@ -289,6 +288,16 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     def power_temperature(self) -> float | None:
         """Return the power temperature"""
         return self._power_temp
+
+    @property
+    def power_sensor_entity_id(self) -> float | None:
+        """Return the power sensor entity id"""
+        return self._power_sensor_entity_id
+
+    @property
+    def max_power_sensor_entity_id(self) -> float | None:
+        """Return the max power sensor entity id"""
+        return self._max_power_sensor_entity_id
 
     def __str__(self):
         return "CentralPowerManager"

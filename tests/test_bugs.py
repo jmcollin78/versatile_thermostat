@@ -346,7 +346,7 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # Send power mesurement (theheater is already in the power measurement)
         await send_power_change_event(entity, 100, datetime.now())
         # No overpowering yet
-        assert await entity.power_manager.check_overpowering() is False
+        assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
         assert entity.preset_mode is PRESET_COMFORT
         assert entity.power_manager.overpowering_state is STATE_OFF
@@ -365,7 +365,7 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.power_manager.check_overpowering() is False
+        assert entity.power_manager.is_overpowering_detected is False
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
@@ -385,7 +385,7 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         # waits that the heater starts
         await asyncio.sleep(0.1)
 
-        assert await entity.power_manager.check_overpowering() is True
+        assert entity.power_manager.is_overpowering_detected is True
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_POWER
         assert entity.power_manager.overpowering_state is STATE_ON

@@ -159,7 +159,7 @@ async def test_overpowering_binary_sensors(
     await entity.async_set_preset_mode(PRESET_COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert await entity.power_manager.check_overpowering() is False
+    assert entity.power_manager.is_overpowering_detected is False
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
 
     await overpowering_binary_sensor.async_my_climate_changed()
@@ -168,7 +168,7 @@ async def test_overpowering_binary_sensors(
 
     await send_power_change_event(entity, 100, now)
     await send_max_power_change_event(entity, 150, now)
-    assert await entity.power_manager.check_overpowering() is True
+    assert entity.power_manager.is_overpowering_detected is True
     assert entity.power_manager.overpowering_state is STATE_ON
 
     # Simulate the event reception
@@ -177,7 +177,7 @@ async def test_overpowering_binary_sensors(
 
     # set max power to a low value
     await send_max_power_change_event(entity, 201, now)
-    assert await entity.power_manager.check_overpowering() is False
+    assert entity.power_manager.is_overpowering_detected is False
     assert entity.power_manager.overpowering_state is STATE_OFF
     # Simulate the event reception
     await overpowering_binary_sensor.async_my_climate_changed()

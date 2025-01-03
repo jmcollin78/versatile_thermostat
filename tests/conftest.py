@@ -19,6 +19,8 @@
 from unittest.mock import patch
 
 import pytest
+# https://github.com/miketheman/pytest-socket/pull/275
+from pytest_socket import socket_allow_hosts
 
 from homeassistant.core import StateMachine
 
@@ -26,6 +28,12 @@ from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 
+from custom_components.versatile_thermostat.const import (
+    CONF_POWER_SENSOR,
+    CONF_MAX_POWER_SENSOR,
+    CONF_USE_POWER_FEATURE,
+    CONF_PRESET_POWER,
+)
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
@@ -34,12 +42,6 @@ from .commons import (
     FULL_CENTRAL_CONFIG,
     FULL_CENTRAL_CONFIG_WITH_BOILER,
 )
-
-# https://github.com/miketheman/pytest-socket/pull/275
-from pytest_socket import socket_allow_hosts
-
-# ...
-
 
 # ...
 def pytest_runtest_setup():
@@ -50,16 +52,6 @@ def pytest_runtest_setup():
 
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
-
-# Permet d'exclure certains test en mode d'ex
-# sequential = pytest.mark.sequential
-
-
-# This fixture allow to execute some tests first and not in //
-# @pytest.fixture
-# def order():
-#     return 1
-#
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
@@ -165,5 +157,26 @@ async def init_central_config_with_boiler_fixture(
 ):  # pylint: disable=unused-argument
     """Initialize the VTherm API"""
     await create_central_config(hass, FULL_CENTRAL_CONFIG_WITH_BOILER)
+
+    yield
+
+
+@pytest.fixture(name="init_central_power_manager")
+async def init_central_power_manager_fixture(
+    hass, init_central_config
+):  # pylint: disable=unused-argument
+    """Initialize the central power_manager"""
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    # 1. creation / init
+    vtherm_api.central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.the_power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+        }
+    )
+    assert vtherm_api.central_power_manager.is_configured
 
     yield

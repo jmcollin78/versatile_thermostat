@@ -783,7 +783,7 @@ async def test_multiple_switch_power_management(
     await send_power_change_event(entity, 50, datetime.now())
     # Send power max mesurement
     await send_max_power_change_event(entity, 300, datetime.now())
-    assert await entity.power_manager.check_overpowering() is False
+    assert entity.power_manager.is_overpowering_detected is False
     # All configuration is complete and power is < power_max
     assert entity.preset_mode is PRESET_BOOST
     assert entity.power_manager.overpowering_state is STATE_OFF
@@ -798,7 +798,7 @@ async def test_multiple_switch_power_management(
     ) as mock_heater_off:
         # 100 of the device / 4 -> 25, current power 50 so max is 75
         await send_max_power_change_event(entity, 74, datetime.now())
-        assert await entity.power_manager.check_overpowering() is True
+        assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
         assert entity.preset_mode is PRESET_POWER
         assert entity.power_manager.overpowering_state is STATE_ON
@@ -843,7 +843,7 @@ async def test_multiple_switch_power_management(
     ) as mock_heater_off:
         # 100 of the device / 4 -> 25, current power 50 so max is 75. With 150 no overheating
         await send_max_power_change_event(entity, 150, datetime.now())
-        assert await entity.power_manager.check_overpowering() is False
+        assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is > power_max we switch to POWER preset
         assert entity.preset_mode is PRESET_ECO
         assert entity.power_manager.overpowering_state is STATE_OFF

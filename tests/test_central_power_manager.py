@@ -398,18 +398,14 @@ async def test_central_power_manageer_calculate_shedding(
         )
         vtherm.power_manager.device_power = vtherm_config.get("device_power")
 
-        async def mock_set_overpowering(overpowering, v=vtherm):
+        async def mock_set_overpowering(
+            overpowering, power_consumption_max=0, v=vtherm
+        ):
             register_call(v, overpowering)
 
         vtherm.power_manager.set_overpowering = mock_set_overpowering
 
         vtherms.append(vtherm)
-
-    # type(central_power_manager).current_max_power = PropertyMock(
-    #     return_value=current_max_power
-    # )
-    # type(central_power_manager).current_power = PropertyMock(return_value=current_power)
-    # type(central_power_manager).is_configured = PropertyMock(return_value=True)
 
     # fmt:off
     with patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp", return_value=vtherms), \

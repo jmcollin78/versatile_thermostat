@@ -592,7 +592,10 @@ class MockNumber(NumberEntity):
 
 
 async def create_thermostat(
-    hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    entity_id: str,
+    temps: dict | None = None,
 ) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
     entry.add_to_hass(hass)
@@ -600,6 +603,11 @@ async def create_thermostat(
     assert entry.state is ConfigEntryState.LOADED
 
     entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
+
+    if entity and temps:
+        await set_all_climate_preset_temp(
+            hass, entity, temps, entity.entity_id.replace("climate.", "")
+        )
 
     return entity
 
@@ -741,9 +749,10 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
             )
         },
     )
-    await entity.power_manager._async_power_sensor_changed(power_event)
+    vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+    await vtherm_api.central_power_manager._power_sensor_changed(power_event)
     if sleep:
-        await asyncio.sleep(0.1)
+        await entity.hass.async_block_till_done()
 
 
 async def send_max_power_change_event(
@@ -767,9 +776,10 @@ async def send_max_power_change_event(
             )
         },
     )
-    await entity.power_manager._async_max_power_sensor_changed(power_event)
+    vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+    await vtherm_api.central_power_manager._max_power_sensor_changed(power_event)
     if sleep:
-        await asyncio.sleep(0.1)
+        await entity.hass.async_block_till_done()
 
 
 async def send_window_change_event(

@@ -38,6 +38,10 @@ class BaseFeatureManager:
 
         self._active_listener = []
 
+    async def refresh_state(self):
+        """Refresh the state and return True if a change have been made"""
+        return False
+
     def add_listener(self, func: CALLBACK_TYPE) -> None:
         """Add a listener to the list of active listener"""
         self._active_listener.append(func)
