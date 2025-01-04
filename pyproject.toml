@@ -1,0 +1,3 @@
+[tool.black]
+# don't work. Options are in the devcontainer.yaml
+line-length = 180

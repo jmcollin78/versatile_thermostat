@@ -79,6 +79,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm2",
@@ -86,6 +88,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 18,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm3",
@@ -93,6 +97,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
             ],
             ["vtherm2", "vtherm1", "vtherm3"],
@@ -106,6 +112,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm2",
@@ -113,6 +121,8 @@ async def test_central_power_manager_init(
                     "is_on": False,
                     "current_temperature": 18,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm3",
@@ -120,6 +130,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
             ],
             ["vtherm3"],
@@ -133,6 +145,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm2",
@@ -140,6 +154,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": None,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm3",
@@ -147,6 +163,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
             ],
             ["vtherm1", "vtherm3", "vtherm2"],
@@ -160,6 +178,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm2",
@@ -167,6 +187,8 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 18,
                     "target_temperature": None,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
                 {
                     "name": "vtherm3",
@@ -174,9 +196,44 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
+                    "saved_target_temp": 18,
+                    "is_overpowering_detected": False,
                 },
             ],
             ["vtherm1", "vtherm3", "vtherm2"],
+        ),
+        # simple sort with overpowering detected
+        (
+            [
+                {
+                    "name": "vtherm1",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 13,
+                    # "target_temperature": 12,
+                    "saved_target_temp": 21,
+                    "is_overpowering_detected": True,
+                },
+                {
+                    "name": "vtherm2",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 18,
+                    # "target_temperature": 12,
+                    "saved_target_temp": 17,
+                    "is_overpowering_detected": True,
+                },
+                {
+                    "name": "vtherm3",
+                    "is_configured": True,
+                    "is_on": True,
+                    "current_temperature": 12,
+                    # "target_temperature": 18,
+                    "saved_target_temp": 16,
+                    "is_overpowering_detected": True,
+                },
+            ],
+            ["vtherm2", "vtherm3", "vtherm1"],
         ),
     ],
 )
@@ -194,7 +251,9 @@ async def test_central_power_manageer_find_vtherms(
         vtherm.is_on = vtherm_config.get("is_on")
         vtherm.current_temperature = vtherm_config.get("current_temperature")
         vtherm.target_temperature = vtherm_config.get("target_temperature")
+        vtherm.saved_target_temp = vtherm_config.get("saved_target_temp")
         vtherm.power_manager.is_configured = vtherm_config.get("is_configured")
+        vtherm.power_manager.is_overpowering_detected = vtherm_config.get("is_overpowering_detected")
         vtherms.append(vtherm)
 
     with patch(
@@ -358,6 +417,60 @@ async def test_central_power_manageer_find_vtherms(
                 },
             ],
             {"vtherm1": False, "vtherm2": True, "vtherm3": True},
+        ),
+        # Sheeding only current_power > max_power (need to gain 1000 )
+        (
+            2000,
+            1000,
+            [
+                # should be overpowering
+                {
+                    "name": "vtherm1",
+                    "device_power": 300,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": False,
+                },
+                # should be overpowering but is already
+                {
+                    "name": "vtherm2",
+                    "device_power": 600,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 4,
+                    "on_percent": 0.1,
+                    "is_overpowering_detected": True,
+                },
+                # over_climate should be not overpowering (device not active)
+                {
+                    "name": "vtherm3",
+                    "device_power": 690,
+                    "is_device_active": False,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                },
+                # over_climate should be overpowering (device active and not already overpowering)
+                {
+                    "name": "vtherm4",
+                    "device_power": 690,
+                    "is_device_active": True,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                },
+                # should not overpower (keep as is)
+                {
+                    "name": "vtherm5",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": False,
+                },
+            ],
+            {"vtherm1": True, "vtherm4": True},
         ),
     ],
 )

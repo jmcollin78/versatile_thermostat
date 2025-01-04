@@ -48,10 +48,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         """Gets the configuration parameters"""
         central_config = self._vtherm_api.find_central_configuration()
         if not central_config:
-            _LOGGER.info(
-                "%s - No central configuration is found. Power management will be deactivated.",
-                self,
-            )
+            _LOGGER.info("No central configuration is found. Power management will be deactivated")
             return
 
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
@@ -69,10 +66,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         ):
             self._is_configured = True
         else:
-            _LOGGER.info(
-                "%s - Power management is not fully configured and will be deactivated",
-                self,
-            )
+            _LOGGER.info("Power management is not fully configured and will be deactivated")
 
     def start_listening(self):
         """Start listening the power sensor"""
@@ -100,14 +94,14 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     @callback
     async def _power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power changes."""
-        _LOGGER.debug("Thermostat %s - Receive new Power event", self)
+        _LOGGER.debug("Receive new Power event")
         _LOGGER.debug(event)
         await self.refresh_state()
 
     @callback
     async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
-        _LOGGER.debug("Thermostat %s - Receive new Power Max event", self.name)
+        _LOGGER.debug("Receive new Power Max event")
         _LOGGER.debug(event)
         await self.refresh_state()
 
@@ -122,11 +116,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 new_state := get_safe_float(self._hass, self._power_sensor_entity_id)
             ) is not None:
                 self._current_power = new_state
-                _LOGGER.debug(
-                    "%s - Current power have been retrieved: %.3f",
-                    self,
-                    self._current_power,
-                )
+                _LOGGER.debug("Current power have been retrieved: %.3f", self._current_power)
                 ret = True
 
             # Try to acquire power max
@@ -136,11 +126,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                 )
             ) is not None:
                 self._current_max_power = new_state
-                _LOGGER.debug(
-                    "%s - Current power max have been retrieved: %.3f",
-                    self,
-                    self._current_max_power,
-                )
+                _LOGGER.debug("Current power max have been retrieved: %.3f", self._current_max_power)
                 ret = True
 
             # check if we need to re-calculate shedding
@@ -159,70 +145,68 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
     async def calculate_shedding(self):
         """Do the shedding calculation and set/unset VTherm into overpowering state"""
-        if (
-            not self.is_configured
-            or not self.current_max_power
-            or not self.current_power
-        ):
+        if not self.is_configured or self.current_max_power is None or self.current_power is None:
             return
 
         # Find all VTherms
-        vtherms_sorted = self.find_all_vtherm_with_power_management_sorted_by_dtemp()
         available_power = self.current_max_power - self.current_power
+        vtherms_sorted = self.find_all_vtherm_with_power_management_sorted_by_dtemp()
 
-        total_affected_power = 0
-        force_overpowering = False
-
-        for vtherm in vtherms_sorted:
-            device_power = vtherm.power_manager.device_power
-            if vtherm.is_device_active:
-                power_consumption_max = 0
-            else:
-                if vtherm.is_over_climate:
-                    power_consumption_max = device_power
-                else:
-                    power_consumption_max = max(
-                        device_power / vtherm.nb_underlying_entities,
-                        device_power * vtherm.proportional_algorithm.on_percent,
-                    )
-
+        # shedding only
+        if available_power < 0:
             _LOGGER.debug(
-                "%s - vtherm %s power_consumption_max is %s (device_power=%s, overclimate=%s)",
-                self,
-                vtherm.name,
-                power_consumption_max,
-                device_power,
-                vtherm.is_over_climate,
-            )
-            if force_overpowering or (
-                total_affected_power + power_consumption_max >= available_power
-            ):
-                _LOGGER.debug(
-                    "%s - vtherm %s should be in overpowering state", self, vtherm.name
-                )
-                if not vtherm.power_manager.is_overpowering_detected:
-                    # To force all others vtherms to be in overpowering
-                    force_overpowering = True
-                    await vtherm.power_manager.set_overpowering(
-                        True, power_consumption_max
-                    )
-            else:
-                total_affected_power += power_consumption_max
-                # Always set to false to init the state
-                _LOGGER.debug(
-                    "%s - vtherm %s should not be in overpowering state",
-                    self,
-                    vtherm.name,
-                )
-                await vtherm.power_manager.set_overpowering(False)
-
-            _LOGGER.debug(
-                "%s - after vtherm %s total_affected_power=%s, available_power=%s",
-                self,
-                vtherm.name,
-                total_affected_power,
+                "The available power is is < 0 (%s). Set overpowering only for list: %s",
                 available_power,
+                vtherms_sorted,
             )
+            # we will set overpowering for the nearest target temp first
+            total_power_gain = 0
+
+            for vtherm in vtherms_sorted:
+                device_power = vtherm.power_manager.device_power
+                if vtherm.is_device_active and not vtherm.power_manager.is_overpowering_detected:
+                    total_power_gain += device_power
+                    _LOGGER.debug("vtherm %s should be in overpowering state", vtherm.name)
+                    await vtherm.power_manager.set_overpowering(True, device_power)
+
+                _LOGGER.debug("after vtherm %s total_power_gain=%s, available_power=%s", vtherm.name, total_power_gain, available_power)
+                if total_power_gain >= -available_power:
+                    _LOGGER.debug("We have found enough vtherm to set to overpowering")
+                    break
+        else:
+            # vtherms_sorted.reverse()
+            _LOGGER.debug("The available power is is > 0 (%s). Do a complete shedding/un-shedding calculation for list: %s", available_power, vtherms_sorted)
+
+            total_affected_power = 0
+            force_overpowering = False
+
+            for vtherm in vtherms_sorted:
+                device_power = vtherm.power_manager.device_power
+                if vtherm.is_device_active:
+                    power_consumption_max = 0
+                else:
+                    if vtherm.is_over_climate:
+                        power_consumption_max = device_power
+                    else:
+                        power_consumption_max = max(
+                            device_power / vtherm.nb_underlying_entities,
+                            device_power * vtherm.proportional_algorithm.on_percent,
+                        )
+
+                _LOGGER.debug("vtherm %s power_consumption_max is %s (device_power=%s, overclimate=%s)", vtherm.name, power_consumption_max, device_power, vtherm.is_over_climate)
+                if force_overpowering or (total_affected_power + power_consumption_max >= available_power):
+                    _LOGGER.debug("vtherm %s should be in overpowering state", vtherm.name)
+                    if not vtherm.power_manager.is_overpowering_detected:
+                        # To force all others vtherms to be in overpowering
+                        force_overpowering = True
+                        await vtherm.power_manager.set_overpowering(True, power_consumption_max)
+                else:
+                    total_affected_power += power_consumption_max
+                    # Always set to false to init the state
+                    _LOGGER.debug("vtherm %s should not be in overpowering state", vtherm.name)
+                    await vtherm.power_manager.set_overpowering(False)
+
+                _LOGGER.debug("after vtherm %s total_affected_power=%s, available_power=%s", vtherm.name, total_affected_power, available_power)
 
     def get_climate_components_entities(self) -> list:
         """Get all VTherms entitites"""
@@ -256,10 +240,12 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         def cmp_temps(a, b) -> int:
             diff_a = float("inf")
             diff_b = float("inf")
-            if a.current_temperature is not None and a.target_temperature is not None:
-                diff_a = a.target_temperature - a.current_temperature
-            if b.current_temperature is not None and b.target_temperature is not None:
-                diff_b = b.target_temperature - b.current_temperature
+            a_target = a.target_temperature if not a.power_manager.is_overpowering_detected else a.saved_target_temp
+            b_target = b.target_temperature if not b.power_manager.is_overpowering_detected else b.saved_target_temp
+            if a.current_temperature is not None and a_target is not None:
+                diff_a = a_target - a.current_temperature
+            if b.current_temperature is not None and b_target is not None:
+                diff_b = b_target - b.current_temperature
 
             if diff_a == diff_b:
                 return 0

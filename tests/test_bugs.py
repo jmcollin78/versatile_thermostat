@@ -348,7 +348,7 @@ async def test_bug_407(
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 18
         # waits that the heater starts
         await hass.async_block_till_done()

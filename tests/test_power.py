@@ -98,6 +98,8 @@ async def test_power_feature_manager(
         }
     )
 
+    power_manager.start_listening()
+
     assert power_manager.is_configured is True
     assert power_manager.overpowering_state == STATE_UNKNOWN
 
@@ -196,6 +198,8 @@ async def test_power_feature_manager_set_overpowering(
             CONF_DEVICE_POWER: 1234,
         }
     )
+
+    power_manager.start_listening()
 
     assert power_manager.is_configured is True
     assert power_manager.overpowering_state == STATE_UNKNOWN
