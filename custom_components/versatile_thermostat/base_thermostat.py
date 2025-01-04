@@ -444,10 +444,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
             )
 
-        # start listening for all managers
-        for manager in self._managers:
-            manager.start_listening()
-
         self.async_on_remove(self.remove_thermostat)
 
         # issue 428. Link to others entities will start at link
@@ -479,6 +475,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
         need_write_state = False
+
+        # start listening for all managers
+        for manager in self._managers:
+            manager.start_listening()
 
         await self.get_my_previous_state()
 
@@ -1609,7 +1609,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 return False
 
         # Check overpowering condition
-        # Not necessary for switch because each switch is checking at startup
+        await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
+
+        # TODO remove this
         # overpowering is now centralized
         # overpowering = await self._power_manager.check_overpowering()
         # if overpowering == STATE_ON:

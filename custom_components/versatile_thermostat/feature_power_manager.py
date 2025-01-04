@@ -47,6 +47,7 @@ class FeaturePowerManager(BaseFeatureManager):
         self._overpowering_state = STATE_UNAVAILABLE
         self._is_configured: bool = False
         self._device_power: float = 0
+        self._use_power_feature: bool = False
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
@@ -56,16 +57,35 @@ class FeaturePowerManager(BaseFeatureManager):
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
         self._device_power = entry_infos.get(CONF_DEVICE_POWER) or 0
+        self._use_power_feature = entry_infos.get(CONF_USE_POWER_FEATURE, False)
         self._is_configured = False
-        if entry_infos.get(CONF_USE_POWER_FEATURE, False) and self._device_power:
-            self._is_configured = True
-            self._overpowering_state = STATE_UNKNOWN
-        else:
-            _LOGGER.info("%s - Power management is not fully configured", self)
 
     @overrides
     def start_listening(self):
         """Start listening the underlying entity. There is nothing to listen"""
+        central_power_configuration = (
+            VersatileThermostatAPI.get_vtherm_api().central_power_manager.is_configured
+        )
+
+        if (
+            self._use_power_feature
+            and self._device_power
+            and central_power_configuration
+        ):
+            self._is_configured = True
+            self._overpowering_state = STATE_UNKNOWN
+        else:
+            if self._use_power_feature:
+                if not central_power_configuration:
+                    _LOGGER.warning(
+                        "%s - Power management is not fully configured. You have to configure the central configuration power",
+                        self,
+                    )
+                else:
+                    _LOGGER.warning(
+                        "%s - Power management is not fully configured. You have to configure the power feature of the VTherm",
+                        self,
+                    )
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""

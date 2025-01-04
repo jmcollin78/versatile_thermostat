@@ -208,8 +208,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     )
             else:
                 total_affected_power += power_consumption_max
-                # Always set to false
-                # if vtherm.power_manager.is_overpowering_detected:
+                # Always set to false to init the state
                 _LOGGER.debug(
                     "%s - vtherm %s should not be in overpowering state",
                     self,
