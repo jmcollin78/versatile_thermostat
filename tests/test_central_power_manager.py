@@ -537,11 +537,11 @@ async def test_central_power_manageer_calculate_shedding(
     "dsecs, power, nb_call",
     [
         (0, 1000, 1),
-        (61, 1000, 1),
-        (59, 1000, 1),
         (0, None, 0),
         (0, STATE_UNAVAILABLE, 0),
         (0, STATE_UNKNOWN, 0),
+        (21, 1000, 1),
+        (19, 1000, 1),
     ],
 )
 async def test_central_power_manager_power_event(
@@ -622,18 +622,18 @@ async def test_central_power_manager_power_event(
             }))
 
         assert central_power_manager.current_power == expected_power
-        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 60 else 0)
+        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 20 else 0)
 
 
 @pytest.mark.parametrize(
     "dsecs, max_power, nb_call",
     [
         (0, 1000, 1),
-        (61, 1000, 1),
-        (59, 1000, 1),
         (0, None, 0),
         (0, STATE_UNAVAILABLE, 0),
         (0, STATE_UNKNOWN, 0),
+        (21, 1000, 1),
+        (19, 1000, 1),
     ],
 )
 async def test_central_power_manager_max_power_event(
@@ -716,4 +716,4 @@ async def test_central_power_manager_max_power_event(
             }))
 
         assert central_power_manager.current_max_power == expected_power
-        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 60 else 0)
+        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 20 else 0)

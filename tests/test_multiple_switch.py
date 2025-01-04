@@ -796,7 +796,7 @@ async def test_multiple_switch_power_management(
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
     # fmt: on
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await send_power_change_event(entity, 50, datetime.now())
@@ -817,7 +817,7 @@ async def test_multiple_switch_power_management(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
         ) as mock_heater_off:
 
-            now = now + timedelta(seconds=61)
+            now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
             # 100 of the device / 4 -> 25, current power 50 so max is 75
             await send_max_power_change_event(entity, 74, datetime.now())
@@ -851,7 +851,7 @@ async def test_multiple_switch_power_management(
         with patch(
             "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event:
-            now = now + timedelta(seconds=61)
+            now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
             await entity.async_set_preset_mode(PRESET_ECO)
@@ -869,7 +869,7 @@ async def test_multiple_switch_power_management(
         ) as mock_heater_on, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
         ) as mock_heater_off:
-            now = now + timedelta(seconds=61)
+            now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
             # 100 of the device / 4 -> 25, current power 50 so max is 75. With 150 no overheating

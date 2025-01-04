@@ -23,7 +23,7 @@ from .base_manager import BaseFeatureManager
 # circular dependency
 # from .base_thermostat import BaseThermostat
 
-MIN_DTEMP_SECS = 60
+MIN_DTEMP_SECS = 20
 
 _LOGGER = logging.getLogger(__name__)
 

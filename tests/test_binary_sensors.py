@@ -195,7 +195,7 @@ async def test_overpowering_binary_sensors(
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
     # fmt: on
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
         await send_max_power_change_event(entity, 201, now)
         assert entity.power_manager.is_overpowering_detected is False

@@ -378,7 +378,7 @@ async def test_bug_407(
         "homeassistant.core.StateMachine.get",
         side_effect=side_effects.get_side_effects(),
     ):
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         # change preset to Boost
@@ -409,7 +409,7 @@ async def test_bug_407(
         "homeassistant.core.StateMachine.get",
         side_effect=side_effects.get_side_effects(),
     ):
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         # change preset to Boost

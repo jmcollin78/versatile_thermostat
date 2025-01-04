@@ -398,7 +398,7 @@ async def test_power_management_hvac_off(
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN # due to hvac_off
 
         # Send power max mesurement
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
         await send_max_power_change_event(entity, 300, now)
         assert entity.power_manager.is_overpowering_detected is False
@@ -414,7 +414,7 @@ async def test_power_management_hvac_off(
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off:
     # fmt: on
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await send_max_power_change_event(entity, 149, datetime.now())
@@ -500,7 +500,7 @@ async def test_power_management_hvac_on(
     # fmt: on
         await send_power_change_event(entity, 50, datetime.now())
         # Send power max mesurement
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
         await send_max_power_change_event(entity, 300, datetime.now())
 
@@ -517,7 +517,7 @@ async def test_power_management_hvac_on(
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off:
     # fmt: on
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await send_max_power_change_event(entity, 149, datetime.now())
@@ -555,7 +555,7 @@ async def test_power_management_hvac_on(
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off:
     # fmt: on
-        now = now + timedelta(seconds=61)
+        now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await send_power_change_event(entity, 48, datetime.now())
