@@ -1452,7 +1452,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
          control_heating to turn all off"""
 
         for under in self._underlyings:
-            await under.turn_off()
+            await under.turn_off_and_cancel_cycle()
 
     def save_preset_mode(self):
         """Save the current preset mode to be restored later
@@ -1464,7 +1464,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         ):
             self._saved_preset_mode = self._attr_preset_mode
 
-    async def restore_preset_mode(self):
+    async def restore_preset_mode(self, force=False):
         """Restore a previous preset mode
         We never restore a hidden preset mode. Normally that is not possible
         """
@@ -1472,7 +1472,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._saved_preset_mode not in HIDDEN_PRESETS
             and self._saved_preset_mode is not None
         ):
-            await self.async_set_preset_mode_internal(self._saved_preset_mode)
+            await self.async_set_preset_mode_internal(self._saved_preset_mode, force=force)
 
     def save_hvac_mode(self):
         """Save the current hvac-mode to be restored later"""

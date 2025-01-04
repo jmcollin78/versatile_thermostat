@@ -179,7 +179,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
             self._vtherm.save_preset_mode()
             await self._vtherm.async_underlying_entity_turn_off()
-            await self._vtherm.async_set_preset_mode_internal(PRESET_POWER)
+            await self._vtherm.async_set_preset_mode_internal(PRESET_POWER, force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -198,9 +198,12 @@ class FeaturePowerManager(BaseFeatureManager):
             )
             self._overpowering_state = STATE_OFF
 
+            # restore state
             if self._vtherm.is_over_climate:
-                await self._vtherm.restore_hvac_mode(False)
+                await self._vtherm.restore_hvac_mode()
             await self._vtherm.restore_preset_mode()
+            # restart cycle
+            await self._vtherm.async_control_heating(force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {

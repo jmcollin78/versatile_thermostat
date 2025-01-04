@@ -190,6 +190,11 @@ class UnderlyingEntity:
         """capping of the value send to the underlying eqt"""
         return value
 
+    async def turn_off_and_cancel_cycle(self):
+        """Turn off and cancel eventual running cycle"""
+        self._cancel_cycle()
+        await self.turn_off()
+
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
