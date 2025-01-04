@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, unused-argument, line-too-long, protected-access
 
 """ Test the normal start of a Thermostat """
 from unittest.mock import patch
@@ -107,8 +107,15 @@ async def test_overpowering_binary_sensors(
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
+    init_central_power_manager,
 ):
     """Test the overpowering binary sensors in thermostat type"""
+
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -122,9 +129,6 @@ async def test_overpowering_binary_sensors(
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
@@ -136,15 +140,13 @@ async def test_overpowering_binary_sensors(
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-            CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
             CONF_PRESET_POWER: 12,
         },
     )
 
     entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
+        hass, entry, "climate.theoverswitchmockname", temps
     )
     assert entity
 
@@ -153,7 +155,8 @@ async def test_overpowering_binary_sensors(
     )
     assert overpowering_binary_sensor
 
-    now: datetime = datetime.now(tz=get_tz(hass))
+    now: datetime = NowClass.get_now(hass)
+    VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
     # Overpowering should be not set because poer have not been received
     await entity.async_set_preset_mode(PRESET_COMFORT)
@@ -166,22 +169,40 @@ async def test_overpowering_binary_sensors(
     assert overpowering_binary_sensor.state is STATE_OFF
     assert overpowering_binary_sensor.device_class == BinarySensorDeviceClass.POWER
 
-    await send_power_change_event(entity, 100, now)
-    await send_max_power_change_event(entity, 150, now)
-    assert entity.power_manager.is_overpowering_detected is True
-    assert entity.power_manager.overpowering_state is STATE_ON
+    # Send power mesurement
+    side_effects = SideEffects(
+        {
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", 100),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 150),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
+    # fmt: on
+        await send_power_change_event(entity, 100, now)
+        await send_max_power_change_event(entity, 150, now)
 
-    # Simulate the event reception
-    await overpowering_binary_sensor.async_my_climate_changed()
-    assert overpowering_binary_sensor.state == STATE_ON
+        assert entity.power_manager.is_overpowering_detected is True
+        assert entity.power_manager.overpowering_state is STATE_ON
+
+        # Simulate the event reception
+        await overpowering_binary_sensor.async_my_climate_changed()
+        assert overpowering_binary_sensor.state == STATE_ON
 
     # set max power to a low value
-    await send_max_power_change_event(entity, 201, now)
-    assert entity.power_manager.is_overpowering_detected is False
-    assert entity.power_manager.overpowering_state is STATE_OFF
-    # Simulate the event reception
-    await overpowering_binary_sensor.async_my_climate_changed()
-    assert overpowering_binary_sensor.state == STATE_OFF
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 201))
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
+    # fmt: on
+        now = now + timedelta(seconds=61)
+        VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+        await send_max_power_change_event(entity, 201, now)
+        assert entity.power_manager.is_overpowering_detected is False
+        assert entity.power_manager.overpowering_state is STATE_OFF
+        # Simulate the event reception
+        await overpowering_binary_sensor.async_my_climate_changed()
+        assert overpowering_binary_sensor.state == STATE_OFF
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

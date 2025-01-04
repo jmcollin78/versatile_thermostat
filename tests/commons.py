@@ -1111,3 +1111,9 @@ class SideEffects:
     def add_or_update_side_effect(self, key: str, new_value: Any):
         """Update the value of a side effect"""
         self._current_side_effects[key] = new_value
+
+
+async def do_central_power_refresh(hass):
+    """Do a central power refresh"""
+    await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
+    return hass.async_block_till_done()

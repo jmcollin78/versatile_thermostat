@@ -266,7 +266,9 @@ async def test_bug_272(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_bug_407(
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
+):
     """Test the followin case in power management:
     1. a heater is active (heating). So the power consumption takes the heater power into account. We suppose the power consumption is near the threshold,
     2. the user switch preset let's say from Comfort to Boost,
@@ -274,6 +276,12 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
     4. constated: the heater goes into shredding.
 
     """
+
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -287,9 +295,6 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
@@ -301,34 +306,43 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-            CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
             CONF_PRESET_POWER: 12,
         },
     )
 
     entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
+        hass, entry, "climate.theoverswitchmockname", temps
     )
     assert entity
 
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    tz = get_tz(hass)  # pylint: disable=invalid-name
-    now: datetime = datetime.now(tz=tz)
+    now: datetime = NowClass.get_now(hass)
+    VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
     await send_temperature_change_event(entity, 16, now)
     await send_ext_temperature_change_event(entity, 10, now)
 
     # 1. An already active heater will not switch to overpowering
+    side_effects = SideEffects(
+        {
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", 100),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 110),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=True,
+    ), patch(
+        "homeassistant.core.StateMachine.get",
+        side_effect=side_effects.get_side_effects(),
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_COMFORT)
@@ -337,14 +351,15 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
-        await asyncio.sleep(0.1)
+        await hass.async_block_till_done()
+
         assert mock_service_call.call_count >= 1
         assert entity.is_device_active is True
 
         # Send power max mesurement
-        await send_max_power_change_event(entity, 110, datetime.now())
+        await send_max_power_change_event(entity, 110, now)
         # Send power mesurement (theheater is already in the power measurement)
-        await send_power_change_event(entity, 100, datetime.now())
+        await send_power_change_event(entity, 100, now)
         # No overpowering yet
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
@@ -359,11 +374,22 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=True,
+    ), patch(
+        "homeassistant.core.StateMachine.get",
+        side_effect=side_effects.get_side_effects(),
     ):
+        now = now + timedelta(seconds=61)
+        VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
         # change preset to Boost
         await entity.async_set_preset_mode(PRESET_BOOST)
         # waits that the heater starts
         await asyncio.sleep(0.1)
+        # doesn't work for call_later
+        # await hass.async_block_till_done()
+
+        # simulate a refresh for central power (not necessary)
+        await do_central_power_refresh(hass)
 
         assert entity.power_manager.is_overpowering_detected is False
         assert entity.hvac_mode is HVACMode.HEAT
@@ -379,11 +405,20 @@ async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=False,
+    ), patch(
+        "homeassistant.core.StateMachine.get",
+        side_effect=side_effects.get_side_effects(),
     ):
+        now = now + timedelta(seconds=61)
+        VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
         # change preset to Boost
         await entity.async_set_preset_mode(PRESET_COMFORT)
         # waits that the heater starts
         await asyncio.sleep(0.1)
+
+        # simulate a refresh for central power (not necessary)
+        await do_central_power_refresh(hass)
 
         assert entity.power_manager.is_overpowering_detected is True
         assert entity.hvac_mode is HVACMode.HEAT

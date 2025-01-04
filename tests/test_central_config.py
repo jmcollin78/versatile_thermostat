@@ -188,6 +188,18 @@ async def test_full_over_switch_wo_central_config(
     hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
 ):
     """Tests that a VTherm without any central_configuration is working with its own attributes"""
+
+    temps = {
+        "frost": 10,
+        "eco": 17,
+        "comfort": 18,
+        "boost": 21,
+        "frost_away": 13,
+        "eco_away": 13,
+        "comfort_away": 13,
+        "boost_away": 13,
+    }
+
     # Add a Switch VTherm
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -202,19 +214,11 @@ async def test_full_over_switch_wo_central_config(
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
             CONF_STEP_TEMPERATURE: 0.3,
-            "frost_temp": 10,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 21,
-            "frost_away_temp": 13,
-            "eco_away_temp": 13,
-            "comfort_away_temp": 13,
-            "boost_away_temp": 13,
             CONF_USE_WINDOW_FEATURE: True,
             CONF_USE_MOTION_FEATURE: True,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: True,
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_INVERSE_SWITCH: False,
             CONF_TPI_COEF_INT: 0.3,
@@ -233,8 +237,6 @@ async def test_full_over_switch_wo_central_config(
             CONF_MOTION_PRESET: "comfort",
             CONF_NO_MOTION_PRESET: "eco",
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
-            CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
             CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
             CONF_USE_TPI_CENTRAL_CONFIG: False,
@@ -249,7 +251,7 @@ async def test_full_over_switch_wo_central_config(
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
         entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
+            hass, entry, "climate.theoverswitchmockname", temps
         )
         assert entity
         assert entity.name == "TheOverSwitchMockName"
@@ -300,10 +302,13 @@ async def test_full_over_switch_wo_central_config(
         assert entity.motion_manager.motion_preset == "comfort"
         assert entity.motion_manager.no_motion_preset == "eco"
 
-        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
         assert (
-            entity.power_manager.max_power_sensor_entity_id
-            == "sensor.mock_max_power_sensor"
+            VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id
+            is None
+        )
+        assert (
+            VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id
+            is None
         )
 
         assert (
@@ -317,7 +322,7 @@ async def test_full_over_switch_wo_central_config(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_full_over_switch_with_central_config(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
     """Tests that a VTherm with central_configuration is working with the central_config attributes"""
     # Add a Switch VTherm
@@ -334,15 +339,11 @@ async def test_full_over_switch_with_central_config(
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
             CONF_STEP_TEMPERATURE: 0.3,
-            "frost_temp": 10,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 21,
             CONF_USE_WINDOW_FEATURE: True,
             CONF_USE_MOTION_FEATURE: True,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: True,
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_INVERSE_SWITCH: False,
             CONF_TPI_COEF_INT: 0.3,
@@ -361,8 +362,6 @@ async def test_full_over_switch_with_central_config(
             CONF_MOTION_PRESET: "comfort",
             CONF_NO_MOTION_PRESET: "eco",
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
-            CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.mock_max_power_sensor",
             CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
             CONF_USE_TPI_CENTRAL_CONFIG: True,
@@ -426,10 +425,13 @@ async def test_full_over_switch_with_central_config(
         assert entity.motion_manager.motion_preset == "boost"
         assert entity.motion_manager.no_motion_preset == "frost"
 
-        assert entity.power_manager.power_sensor_entity_id == "sensor.mock_power_sensor"
         assert (
-            entity.power_manager.max_power_sensor_entity_id
-            == "sensor.mock_max_power_sensor"
+            VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id
+            == "sensor.the_power_sensor"
+        )
+        assert (
+            VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id
+            == "sensor.the_max_power_sensor"
         )
 
         assert (

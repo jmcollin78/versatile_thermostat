@@ -229,7 +229,7 @@ async def test_central_power_manageer_find_vtherms(
                     "is_overpowering_detected": False,
                 },
             ],
-            {},
+            {"vtherm1": False},
         ),
         # Simple trivial shedding
         (
