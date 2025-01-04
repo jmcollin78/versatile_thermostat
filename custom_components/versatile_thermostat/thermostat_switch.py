@@ -61,6 +61,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         """True if the switch is inversed (for pilot wire and diode)"""
         return self._is_inversed is True
 
+    @overrides
     @property
     def power_percent(self) -> float | None:
         """Get the current on_percent value"""

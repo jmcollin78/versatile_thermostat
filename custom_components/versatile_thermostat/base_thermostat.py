@@ -1971,3 +1971,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Get now. The local datetime or the overloaded _set_now date
         This method should be replaced by the vthermAPI equivalent"""
         return VersatileThermostatAPI.get_vtherm_api(self._hass).now
+
+    @property
+    def power_percent(self) -> float | None:
+        """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
+        return None

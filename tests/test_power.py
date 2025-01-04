@@ -487,6 +487,13 @@ async def test_power_management_hvac_on(
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
+    # make the heater heats
+    await send_temperature_change_event(entity, 15, now)
+    await send_ext_temperature_change_event(entity, 1, now)
+    await hass.async_block_till_done()
+
+    assert entity.power_percent > 0
+
     # Send power mesurement
     side_effects = SideEffects(
         {

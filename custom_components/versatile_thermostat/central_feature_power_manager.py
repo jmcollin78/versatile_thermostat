@@ -182,16 +182,20 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
             for vtherm in vtherms_sorted:
                 device_power = vtherm.power_manager.device_power
+                # calculate the power_consumption_max
                 if vtherm.is_device_active:
                     power_consumption_max = 0
                 else:
                     if vtherm.is_over_climate:
                         power_consumption_max = device_power
                     else:
-                        power_consumption_max = max(
-                            device_power / vtherm.nb_underlying_entities,
-                            device_power * vtherm.proportional_algorithm.on_percent,
-                        )
+                        if vtherm.proportional_algorithm.on_percent > 0:
+                            power_consumption_max = max(
+                                device_power / vtherm.nb_underlying_entities,
+                                device_power * vtherm.proportional_algorithm.on_percent,
+                            )
+                        else:
+                            power_consumption_max = 0
 
                 _LOGGER.debug("vtherm %s power_consumption_max is %s (device_power=%s, overclimate=%s)", vtherm.name, power_consumption_max, device_power, vtherm.is_over_climate)
                 if force_overpowering or (total_affected_power + power_consumption_max >= available_power):

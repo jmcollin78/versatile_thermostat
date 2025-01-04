@@ -783,6 +783,11 @@ async def test_multiple_switch_power_management(
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
+    # make the heater heats
+    await send_temperature_change_event(entity, 15, now)
+    await send_ext_temperature_change_event(entity, 1, now)
+    await hass.async_block_till_done()
+
     # 1. Send power mesurement
     side_effects = SideEffects(
         {
@@ -816,9 +821,10 @@ async def test_multiple_switch_power_management(
         ) as mock_heater_on, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
         ) as mock_heater_off:
-
             now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+            assert entity.power_percent > 0
             # 100 of the device / 4 -> 25, current power 50 so max is 75
             await send_max_power_change_event(entity, 74, datetime.now())
             assert entity.power_manager.is_overpowering_detected is True
@@ -838,7 +844,7 @@ async def test_multiple_switch_power_management(
                             "current_power": 50,
                             "device_power": 100,
                             "current_max_power": 74,
-                            "current_power_consumption": 25.0,
+                            "current_power_consumption": 100,
                         },
                     ),
                 ],
@@ -856,7 +862,7 @@ async def test_multiple_switch_power_management(
 
             await entity.async_set_preset_mode(PRESET_ECO)
             assert entity.preset_mode is PRESET_ECO
-            # No change
+            # No change cause temperature is very low
             assert entity.power_manager.overpowering_state is STATE_ON
 
     # 4. Send hugh power max mesurement to release overpowering

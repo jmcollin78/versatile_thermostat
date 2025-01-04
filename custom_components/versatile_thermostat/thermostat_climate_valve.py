@@ -263,6 +263,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """True if the Thermostat is regulated by valve"""
         return True
 
+    @overrides
     @property
     def power_percent(self) -> float | None:
         """Get the current on_percent value"""
