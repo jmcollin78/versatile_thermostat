@@ -38,6 +38,8 @@ The opening rate calculation algorithm is based on the _TPI_ algorithm described
 
 If a valve closure rate entity is configured, it will be set to 100 minus the opening rate to force the valve into a particular state.
 
+Note: for Sonoff TRVZB you should not configure the "closing degree" parameter. This leads to a bug in the TRV and the `hvac_action` is no more working.
+
 ### Other self-regulation
 
 In the second case, Versatile Thermostat calculates an offset based on the following information:
