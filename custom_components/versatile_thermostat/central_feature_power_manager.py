@@ -4,11 +4,14 @@ import logging
 from typing import Any
 from functools import cmp_to_key
 
+from datetime import timedelta
+
 from homeassistant.const import STATE_OFF
 from homeassistant.core import HomeAssistant, Event, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     EventStateChangedData,
+    async_call_later,
 )
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import (
@@ -43,6 +46,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._current_power: float = None
         self._current_max_power: float = None
         self._power_temp: float = None
+        self._cancel_calculate_shedding_call = None
+        # Not used now
         self._last_shedding_date = None
 
     def post_init(self, entry_infos: ConfigData):
@@ -69,7 +74,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         else:
             _LOGGER.info("Power management is not fully configured and will be deactivated")
 
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the power sensor"""
         if not self._is_configured:
             return
@@ -110,39 +115,47 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     async def refresh_state(self) -> bool:
         """Tries to get the last state from sensor
         Returns True if a change has been made"""
-        ret = False
-        if self._is_configured:
-            # try to acquire current power and power max
-            if (
-                new_state := get_safe_float(self._hass, self._power_sensor_entity_id)
-            ) is not None:
-                self._current_power = new_state
-                _LOGGER.debug("Current power have been retrieved: %.3f", self._current_power)
-                ret = True
 
-            # Try to acquire power max
-            if (
-                new_state := get_safe_float(
-                    self._hass, self._max_power_sensor_entity_id
-                )
-            ) is not None:
-                self._current_max_power = new_state
-                _LOGGER.debug("Current power max have been retrieved: %.3f", self._current_max_power)
-                ret = True
+        async def _calculate_shedding_internal(_):
+            _LOGGER.debug("Do the shedding calculation")
+            await self.calculate_shedding()
+            if self._cancel_calculate_shedding_call:
+                self._cancel_calculate_shedding_call()
+                self._cancel_calculate_shedding_call = None
 
-            # check if we need to re-calculate shedding
-            if ret:
-                now = self._vtherm_api.now
-                dtimestamp = (
-                    (now - self._last_shedding_date).seconds
-                    if self._last_shedding_date
-                    else 999
-                )
-                if dtimestamp >= MIN_DTEMP_SECS:
-                    await self.calculate_shedding()
-                    self._last_shedding_date = now
+        if not self._is_configured:
+            return False
 
-        return ret
+        # Retrieve current power
+        new_power = get_safe_float(self._hass, self._power_sensor_entity_id)
+        power_changed = new_power is not None and self._current_power != new_power
+        if power_changed:
+            self._current_power = new_power
+            _LOGGER.debug("New current power has been retrieved: %.3f", self._current_power)
+
+        # Retrieve max power
+        new_max_power = get_safe_float(self._hass, self._max_power_sensor_entity_id)
+        max_power_changed = new_max_power is not None and self._current_max_power != new_max_power
+        if max_power_changed:
+            self._current_max_power = new_max_power
+            _LOGGER.debug("New current max power has been retrieved: %.3f", self._current_max_power)
+
+        # Schedule shedding calculation if there's any change
+        if power_changed or max_power_changed:
+            if not self._cancel_calculate_shedding_call:
+                self._cancel_calculate_shedding_call = async_call_later(self.hass, timedelta(seconds=MIN_DTEMP_SECS), _calculate_shedding_internal)
+            return True
+
+        return False
+
+    # For testing purpose only, do an immediate shedding calculation
+    async def _do_immediate_shedding(self):
+        """Do an immmediate shedding calculation if a timer was programmed.
+        Else, do nothing"""
+        if self._cancel_calculate_shedding_call:
+            self._cancel_calculate_shedding_call()
+            self._cancel_calculate_shedding_call = None
+            await self.calculate_shedding()
 
     async def calculate_shedding(self):
         """Do the shedding calculation and set/unset VTherm into overpowering state"""
@@ -197,14 +210,15 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     )
 
                 _LOGGER.debug("vtherm %s power_consumption_max is %s (device_power=%s, overclimate=%s)", vtherm.name, power_consumption_max, device_power, vtherm.is_over_climate)
-                # if total_power_added + power_consumption_max < available_power or not vtherm.power_manager.is_overpowering_detected:
-                _LOGGER.info("vtherm %s should not be in overpowering state (power_consumption_max=%.2f)", vtherm.name, power_consumption_max)
 
-                # we count the unshedding only if the VTherm was in shedding
-                if vtherm.power_manager.is_overpowering_detected:
-                    total_power_added += power_consumption_max
+                # or not ... is for initializing the overpowering state if not already done
+                if total_power_added + power_consumption_max < available_power or not vtherm.power_manager.is_overpowering_detected:
+                    # we count the unshedding only if the VTherm was in shedding
+                    if vtherm.power_manager.is_overpowering_detected:
+                        _LOGGER.info("vtherm %s should not be in overpowering state (power_consumption_max=%.2f)", vtherm.name, power_consumption_max)
+                        total_power_added += power_consumption_max
 
-                await vtherm.power_manager.set_overpowering(False)
+                    await vtherm.power_manager.set_overpowering(False)
 
                 if total_power_added >= available_power:
                     _LOGGER.debug("We have found enough vtherm to set to non-overpowering")
@@ -212,6 +226,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
                 _LOGGER.debug("after vtherm %s total_power_added=%s, available_power=%s", vtherm.name, total_power_added, available_power)
 
+        self._last_shedding_date = self._vtherm_api.now
         _LOGGER.debug("-------- End of calculate_shedding")
 
     def get_climate_components_entities(self) -> list:

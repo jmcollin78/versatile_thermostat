@@ -53,7 +53,7 @@ from homeassistant.const import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData, T, deprecated
+from .commons import ConfigData, T
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -478,7 +478,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # start listening for all managers
         for manager in self._managers:
-            manager.start_listening()
+            await manager.start_listening()
 
         await self.get_my_previous_state()
 
@@ -1957,7 +1957,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def _set_now(self, now: datetime):
         """Set the now timestamp. This is only for tests purpose
         This method should be replaced by the vthermAPI equivalent"""
-        VersatileThermostatAPI.get_vtherm_api(self._hass)._set_now(now)
+        VersatileThermostatAPI.get_vtherm_api(self._hass)._set_now(now)  # pylint: disable=protected-access
 
     # @deprecated
     @property
@@ -1968,8 +1968,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     @property
     def power_percent(self) -> float | None:
-        """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo"""
-        """Get the current on_percent value"""
+        """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo
+        Get the current on_percent value"""
         if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
             return round(self._prop_algorithm.on_percent * 100, 0)
         else:

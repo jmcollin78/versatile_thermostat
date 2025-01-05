@@ -59,7 +59,7 @@ async def test_central_power_manager_init(
     assert central_power_manager.power_temperature == power_temp
 
     # 3. start listening
-    central_power_manager.start_listening()
+    await central_power_manager.start_listening()
     assert len(central_power_manager._active_listener) == (2 if is_configured else 0)
 
     # 4. stop listening
@@ -311,6 +311,54 @@ async def test_central_power_manageer_find_vtherms(
             # init vtherm1 to False
             {"vtherm3": False, "vtherm2": False, "vtherm1": False},
         ),
+        # Un-shedding only (will be taken in reverse order)
+        (
+            1000,
+            2000,
+            [
+                # should be not unshedded (too much power will be added)
+                {
+                    "name": "vtherm1",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # already stay unshedded cause already unshedded
+                {
+                    "name": "vtherm2",
+                    "device_power": 100,
+                    "is_device_active": True,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                    "overpowering_state": STATE_OFF,
+                },
+                # should be unshedded
+                {
+                    "name": "vtherm3",
+                    "device_power": 200,
+                    "is_device_active": False,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # should be unshedded
+                {
+                    "name": "vtherm4",
+                    "device_power": 300,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+            ],
+            {"vtherm4": False, "vtherm3": False},
+        ),
         # Shedding
         (
             2000,
@@ -390,65 +438,6 @@ async def test_central_power_manageer_find_vtherms(
                 },
             ],
             {"vtherm1": True, "vtherm2": True, "vtherm3": True, "vtherm6": True},
-        ),
-        # Un-shedding only (will be taken in reverse order)
-        (
-            1000,
-            2000,
-            [
-                # should be not unshedded (we have enough)
-                {
-                    "name": "vtherm0",
-                    "device_power": 800,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                    "overpowering_state": STATE_ON,
-                },
-                # should be unshedded
-                {
-                    "name": "vtherm1",
-                    "device_power": 800,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                    "overpowering_state": STATE_ON,
-                },
-                # already stay unshedded cause already unshedded
-                {
-                    "name": "vtherm2",
-                    "device_power": 1100,
-                    "is_device_active": True,
-                    "is_over_climate": True,
-                    "is_overpowering_detected": False,
-                    "overpowering_state": STATE_OFF,
-                },
-                # should be unshedded
-                {
-                    "name": "vtherm3",
-                    "device_power": 200,
-                    "is_device_active": False,
-                    "is_over_climate": True,
-                    "is_overpowering_detected": True,
-                    "overpowering_state": STATE_ON,
-                },
-                # should be unshedded
-                {
-                    "name": "vtherm4",
-                    "device_power": 300,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                    "overpowering_state": STATE_ON,
-                },
-            ],
-            {"vtherm4": False, "vtherm3": False, "vtherm1": False},
         ),
     ],
 )
@@ -553,7 +542,7 @@ async def test_central_power_manager_power_event(
     assert central_power_manager.power_temperature == 13
 
     # 3. start listening (not really useful but don't eat bread)
-    central_power_manager.start_listening()
+    await central_power_manager.start_listening()
     assert len(central_power_manager._active_listener) == 2
 
     now: datetime = NowClass.get_now(hass)
@@ -582,6 +571,9 @@ async def test_central_power_manager_power_event(
                 "old_state": State("sensor.power_entity_id", STATE_UNAVAILABLE),
             }))
 
+        if nb_call > 0:
+            await central_power_manager._do_immediate_shedding()
+
         expected_power = power if isinstance(power, (int, float)) else -999
         assert central_power_manager.current_power == expected_power
         assert mock_calculate_shedding.call_count == nb_call
@@ -603,8 +595,11 @@ async def test_central_power_manager_power_event(
                 "old_state": State("sensor.power_entity_id", STATE_UNAVAILABLE),
             }))
 
+        if nb_call > 0:
+            await central_power_manager._do_immediate_shedding()
+
         assert central_power_manager.current_power == expected_power
-        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 20 else 0)
+        assert mock_calculate_shedding.call_count == nb_call
 
 
 @pytest.mark.parametrize(
@@ -645,7 +640,7 @@ async def test_central_power_manager_max_power_event(
     assert central_power_manager.power_temperature == 13
 
     # 3. start listening (not really useful but don't eat bread)
-    central_power_manager.start_listening()
+    await central_power_manager.start_listening()
     assert len(central_power_manager._active_listener) == 2
 
     now: datetime = NowClass.get_now(hass)
@@ -676,6 +671,9 @@ async def test_central_power_manager_max_power_event(
                 "old_state": State("sensor.max_power_entity_id", STATE_UNAVAILABLE),
             }))
 
+        if nb_call > 0:
+            await central_power_manager._do_immediate_shedding()
+
         expected_power = max_power if isinstance(max_power, (int, float)) else -999
         assert central_power_manager.current_max_power == expected_power
         assert mock_calculate_shedding.call_count == nb_call
@@ -697,5 +695,8 @@ async def test_central_power_manager_max_power_event(
                 "old_state": State("sensor.max_power_entity_id", STATE_UNAVAILABLE),
             }))
 
+        if nb_call > 0:
+            await central_power_manager._do_immediate_shedding()
+
         assert central_power_manager.current_max_power == expected_power
-        assert mock_calculate_shedding.call_count == (nb_call if dsecs >= 20 else 0)
+        assert mock_calculate_shedding.call_count == nb_call

@@ -61,19 +61,21 @@ class FeaturePowerManager(BaseFeatureManager):
         self._is_configured = False
 
     @overrides
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity. There is nothing to listen"""
         central_power_configuration = (
             VersatileThermostatAPI.get_vtherm_api().central_power_manager.is_configured
         )
 
-        if (
-            self._use_power_feature
-            and self._device_power
-            and central_power_configuration
-        ):
+        if self._use_power_feature and self._device_power and central_power_configuration:
             self._is_configured = True
-            self._overpowering_state = STATE_UNKNOWN
+            # Try to restore _overpowering_state from previous state
+            old_state = await self._vtherm.async_get_last_state()
+            self._overpowering_state = (
+                old_state.attributes.get("overpowering_state", STATE_UNKNOWN)
+                if old_state and old_state.attributes and old_state.attributes in (STATE_OFF, STATE_ON)
+                else STATE_UNKNOWN
+            )
         else:
             if self._use_power_feature:
                 if not central_power_configuration:

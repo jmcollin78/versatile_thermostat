@@ -98,7 +98,7 @@ async def test_power_feature_manager(
         }
     )
 
-    power_manager.start_listening()
+    await power_manager.start_listening()
 
     assert power_manager.is_configured is True
     assert power_manager.overpowering_state == STATE_UNKNOWN
@@ -117,7 +117,7 @@ async def test_power_feature_manager(
     assert custom_attributes["current_max_power"] is None
 
     # 3. start listening
-    power_manager.start_listening()
+    await power_manager.start_listening()
     assert power_manager.is_configured is True
     assert power_manager.overpowering_state == STATE_UNKNOWN
 
@@ -199,7 +199,7 @@ async def test_power_feature_manager_set_overpowering(
         }
     )
 
-    power_manager.start_listening()
+    await power_manager.start_listening()
 
     assert power_manager.is_configured is True
     assert power_manager.overpowering_state == STATE_UNKNOWN
@@ -557,6 +557,7 @@ async def test_power_management_hvac_on(
 
     # Send power mesurement low to unset power preset
     side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 48))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 149))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -583,7 +584,7 @@ async def test_power_management_hvac_on(
                         "type": "end",
                         "current_power": 48,
                         "device_power": 100,
-                        "current_max_power": 49,
+                        "current_max_power": 149,
                     },
                 ),
             ],

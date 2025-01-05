@@ -188,7 +188,7 @@ class VersatileThermostatAPI(dict):
 
         # start listening for the central power manager if not only one vtherm reload
         if not entry_id:
-            self.central_power_manager.start_listening()
+            await self.central_power_manager.start_listening()
 
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""

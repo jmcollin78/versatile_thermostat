@@ -75,7 +75,7 @@ async def test_presence_feature_manager(
     assert custom_attributes["is_presence_configured"] is True
 
     # 3. start listening
-    presence_manager.start_listening()
+    await presence_manager.start_listening()
     assert presence_manager.is_configured is True
     assert presence_manager.presence_state == STATE_UNKNOWN
     assert presence_manager.is_absence_detected is False

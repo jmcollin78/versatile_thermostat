@@ -71,7 +71,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         )
 
     @overrides
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity"""
 
     @overrides

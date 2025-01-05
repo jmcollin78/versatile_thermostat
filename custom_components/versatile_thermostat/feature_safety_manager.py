@@ -70,7 +70,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             self._is_configured = True
 
     @overrides
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity"""
 
     @overrides

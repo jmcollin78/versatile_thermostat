@@ -124,7 +124,7 @@ class FeatureWindowManager(BaseFeatureManager):
             self._window_state = STATE_UNKNOWN
 
     @overrides
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity"""
         if self._is_configured:
             self.stop_listening()

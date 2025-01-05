@@ -27,7 +27,7 @@ class BaseFeatureManager:
         """Initialize the attributes of the FeatureManager"""
         raise NotImplementedError()
 
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity"""
         raise NotImplementedError()
 

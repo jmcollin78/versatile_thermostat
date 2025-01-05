@@ -751,6 +751,7 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
     )
     vtherm_api = VersatileThermostatAPI.get_vtherm_api()
     await vtherm_api.central_power_manager._power_sensor_changed(power_event)
+    await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
         await entity.hass.async_block_till_done()
 
@@ -778,6 +779,7 @@ async def send_max_power_change_event(
     )
     vtherm_api = VersatileThermostatAPI.get_vtherm_api()
     await vtherm_api.central_power_manager._max_power_sensor_changed(power_event)
+    await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
         await entity.hass.async_block_till_done()
 
