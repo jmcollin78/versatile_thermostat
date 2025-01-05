@@ -71,11 +71,7 @@ class FeaturePowerManager(BaseFeatureManager):
             self._is_configured = True
             # Try to restore _overpowering_state from previous state
             old_state = await self._vtherm.async_get_last_state()
-            self._overpowering_state = (
-                old_state.attributes.get("overpowering_state", STATE_UNKNOWN)
-                if old_state and old_state.attributes and old_state.attributes in (STATE_OFF, STATE_ON)
-                else STATE_UNKNOWN
-            )
+            self._overpowering_state = STATE_ON if old_state and old_state.attributes and old_state.attributes.get("overpowering_state") == STATE_ON else STATE_UNKNOWN
         else:
             if self._use_power_feature:
                 if not central_power_configuration:

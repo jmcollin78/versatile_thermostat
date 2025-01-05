@@ -98,7 +98,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "comfort_away_temp",
                     "power_temp",
                     "ac_mode",
-                    "current_max_power",
                     "saved_preset_mode",
                     "saved_target_temp",
                     "saved_hvac_mode",
