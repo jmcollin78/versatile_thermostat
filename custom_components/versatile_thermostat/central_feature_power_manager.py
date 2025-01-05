@@ -149,6 +149,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         if not self.is_configured or self.current_max_power is None or self.current_power is None:
             return
 
+        _LOGGER.debug("-------- Start of calculate_shedding")
         # Find all VTherms
         available_power = self.current_max_power - self.current_power
         vtherms_sorted = self.find_all_vtherm_with_power_management_sorted_by_dtemp()
@@ -210,6 +211,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     break
 
                 _LOGGER.debug("after vtherm %s total_power_added=%s, available_power=%s", vtherm.name, total_power_added, available_power)
+
+        _LOGGER.debug("-------- End of calculate_shedding")
 
     def get_climate_components_entities(self) -> list:
         """Get all VTherms entitites"""
