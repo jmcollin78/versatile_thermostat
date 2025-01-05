@@ -348,7 +348,7 @@ async def test_bug_407(
         await entity.async_set_preset_mode(PRESET_COMFORT)
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity.preset_mode is PRESET_COMFORT
-        assert entity.power_manager.overpowering_state is STATE_OFF
+        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
         await hass.async_block_till_done()
@@ -398,7 +398,8 @@ async def test_bug_407(
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
 
-    # 3. if heater is stopped (is_device_active==False), then overpowering should be started
+    # 3. if heater is stopped (is_device_active==False) and power is over max, then overpowering should be started
+    side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 150))
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
@@ -420,10 +421,10 @@ async def test_bug_407(
         # simulate a refresh for central power (not necessary)
         await do_central_power_refresh(hass)
 
-        assert entity.power_manager.is_overpowering_detected is True
+        assert entity.power_manager.is_overpowering_detected is False
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_POWER
-        assert entity.power_manager.overpowering_state is STATE_ON
+        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.power_manager.overpowering_state is STATE_OFF
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

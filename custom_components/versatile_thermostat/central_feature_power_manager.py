@@ -4,6 +4,7 @@ import logging
 from typing import Any
 from functools import cmp_to_key
 
+from homeassistant.const import STATE_OFF
 from homeassistant.core import HomeAssistant, Event, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -163,54 +164,52 @@ class CentralFeaturePowerManager(BaseFeatureManager):
             total_power_gain = 0
 
             for vtherm in vtherms_sorted:
-                device_power = vtherm.power_manager.device_power
                 if vtherm.is_device_active and not vtherm.power_manager.is_overpowering_detected:
+                    device_power = vtherm.power_manager.device_power
                     total_power_gain += device_power
-                    _LOGGER.debug("vtherm %s should be in overpowering state", vtherm.name)
+                    _LOGGER.info("vtherm %s should be in overpowering state (device_power=%.2f)", vtherm.name, device_power)
                     await vtherm.power_manager.set_overpowering(True, device_power)
 
                 _LOGGER.debug("after vtherm %s total_power_gain=%s, available_power=%s", vtherm.name, total_power_gain, available_power)
                 if total_power_gain >= -available_power:
                     _LOGGER.debug("We have found enough vtherm to set to overpowering")
                     break
+        # unshedding only
         else:
-            # vtherms_sorted.reverse()
+            vtherms_sorted.reverse()
             _LOGGER.debug("The available power is is > 0 (%s). Do a complete shedding/un-shedding calculation for list: %s", available_power, vtherms_sorted)
 
-            total_affected_power = 0
-            force_overpowering = False
+            total_power_added = 0
 
             for vtherm in vtherms_sorted:
-                device_power = vtherm.power_manager.device_power
+                # We want to do always unshedding in order to initialize the state
+                # so we cannot use is_overpowering_detected which test also UNKNOWN and UNAVAILABLE
+                if vtherm.power_manager.overpowering_state == STATE_OFF:
+                    continue
+
+                power_consumption_max = device_power = vtherm.power_manager.device_power
                 # calculate the power_consumption_max
-                if vtherm.is_device_active:
-                    power_consumption_max = 0
-                else:
-                    if vtherm.is_over_climate:
-                        power_consumption_max = device_power
-                    else:
-                        if vtherm.proportional_algorithm.on_percent > 0:
-                            power_consumption_max = max(
-                                device_power / vtherm.nb_underlying_entities,
-                                device_power * vtherm.proportional_algorithm.on_percent,
-                            )
-                        else:
-                            power_consumption_max = 0
+                if vtherm.on_percent is not None:
+                    power_consumption_max = max(
+                        device_power / vtherm.nb_underlying_entities,
+                        device_power * vtherm.on_percent,
+                    )
 
                 _LOGGER.debug("vtherm %s power_consumption_max is %s (device_power=%s, overclimate=%s)", vtherm.name, power_consumption_max, device_power, vtherm.is_over_climate)
-                if force_overpowering or (total_affected_power + power_consumption_max >= available_power):
-                    _LOGGER.debug("vtherm %s should be in overpowering state", vtherm.name)
-                    if not vtherm.power_manager.is_overpowering_detected:
-                        # To force all others vtherms to be in overpowering
-                        force_overpowering = True
-                        await vtherm.power_manager.set_overpowering(True, power_consumption_max)
-                else:
-                    total_affected_power += power_consumption_max
-                    # Always set to false to init the state
-                    _LOGGER.debug("vtherm %s should not be in overpowering state", vtherm.name)
-                    await vtherm.power_manager.set_overpowering(False)
+                # if total_power_added + power_consumption_max < available_power or not vtherm.power_manager.is_overpowering_detected:
+                _LOGGER.info("vtherm %s should not be in overpowering state (power_consumption_max=%.2f)", vtherm.name, power_consumption_max)
 
-                _LOGGER.debug("after vtherm %s total_affected_power=%s, available_power=%s", vtherm.name, total_affected_power, available_power)
+                # we count the unshedding only if the VTherm was in shedding
+                if vtherm.power_manager.is_overpowering_detected:
+                    total_power_added += power_consumption_max
+
+                await vtherm.power_manager.set_overpowering(False)
+
+                if total_power_added >= available_power:
+                    _LOGGER.debug("We have found enough vtherm to set to non-overpowering")
+                    break
+
+                _LOGGER.debug("after vtherm %s total_power_added=%s, available_power=%s", vtherm.name, total_power_added, available_power)
 
     def get_climate_components_entities(self) -> list:
         """Get all VTherms entitites"""

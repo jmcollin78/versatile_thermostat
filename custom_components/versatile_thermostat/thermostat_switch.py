@@ -62,15 +62,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         return self._is_inversed is True
 
     @overrides
-    @property
-    def power_percent(self) -> float | None:
-        """Get the current on_percent value"""
-        if self._prop_algorithm:
-            return round(self._prop_algorithm.on_percent * 100, 0)
-        else:
-            return None
-
-    @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
 

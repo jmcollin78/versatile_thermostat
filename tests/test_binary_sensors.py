@@ -172,16 +172,17 @@ async def test_overpowering_binary_sensors(
     # Send power mesurement
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 100),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 150),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", 150),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 100),
         },
         State("unknown.entity_id", "unknown"),
     )
     # fmt:off
-    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
     # fmt: on
-        await send_power_change_event(entity, 100, now)
-        await send_max_power_change_event(entity, 150, now)
+        await send_power_change_event(entity, 150, now)
+        await send_max_power_change_event(entity, 100, now)
 
         assert entity.power_manager.is_overpowering_detected is True
         assert entity.power_manager.overpowering_state is STATE_ON

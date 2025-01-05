@@ -517,17 +517,18 @@ async def test_power_management_hvac_on(
         assert entity.power_manager.overpowering_state is STATE_OFF
 
     # Send power max mesurement too low and HVACMode is on
-    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 149))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 49))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
-        patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off:
+        patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, \
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
     # fmt: on
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-        await send_max_power_change_event(entity, 149, datetime.now())
+        await send_max_power_change_event(entity, 49, now)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
         assert entity.preset_mode is PRESET_POWER
@@ -544,7 +545,7 @@ async def test_power_management_hvac_on(
                         "type": "start",
                         "current_power": 50,
                         "device_power": 100,
-                        "current_max_power": 149,
+                        "current_max_power": 49,
                         "current_power_consumption": 100.0,
                     },
                 ),
@@ -554,7 +555,7 @@ async def test_power_management_hvac_on(
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 1
 
-    # Send power mesurement low to unseet power preset
+    # Send power mesurement low to unset power preset
     side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 48))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
@@ -565,7 +566,7 @@ async def test_power_management_hvac_on(
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-        await send_power_change_event(entity, 48, datetime.now())
+        await send_power_change_event(entity, 48, now)
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max, we restore previous preset
         assert entity.preset_mode is PRESET_BOOST
@@ -582,7 +583,7 @@ async def test_power_management_hvac_on(
                         "type": "end",
                         "current_power": 48,
                         "device_power": 100,
-                        "current_max_power": 149,
+                        "current_max_power": 49,
                     },
                 ),
             ],

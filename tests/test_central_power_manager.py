@@ -273,7 +273,7 @@ async def test_central_power_manageer_find_vtherms(
 @pytest.mark.parametrize(
     "current_power, current_max_power, vtherm_configs, expected_results",
     [
-        # simple nominal test (no shedding)
+        # simple nominal test (initialize overpowering state in VTherm)
         (
             1000,
             5000,
@@ -286,139 +286,32 @@ async def test_central_power_manageer_find_vtherms(
                     "nb_underlying_entities": 1,
                     "on_percent": 0,
                     "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
                 },
-            ],
-            {"vtherm1": False},
-        ),
-        # Simple trivial shedding
-        (
-            1000,
-            2000,
-            [
-                # should be overpowering
-                {
-                    "name": "vtherm1",
-                    "device_power": 1100,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": False,
-                },
-                # should be overpowering with many underlmying entities
                 {
                     "name": "vtherm2",
-                    "device_power": 4000,
-                    "is_device_active": False,
+                    "device_power": 10000,
+                    "is_device_active": True,
                     "is_over_climate": False,
                     "nb_underlying_entities": 4,
-                    "on_percent": 0.1,
+                    "on_percent": 100,
                     "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
                 },
-                # over_climate should be overpowering
                 {
                     "name": "vtherm3",
-                    "device_power": 1000,
-                    "is_device_active": False,
-                    "is_over_climate": True,
-                    "is_overpowering_detected": False,
-                },
-                # should pass but because will be also overpowering because previous was overpowering
-                {
-                    "name": "vtherm4",
-                    "device_power": 800,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": False,
-                },
-            ],
-            {"vtherm1": True, "vtherm2": True, "vtherm3": True, "vtherm4": True},
-        ),
-        # More complex shedding
-        (
-            1000,
-            2000,
-            [
-                # already overpowering (non change)
-                {
-                    "name": "vtherm1",
-                    "device_power": 1100,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                },
-                # already overpowering and already active (can be un overpowered)
-                {
-                    "name": "vtherm2",
-                    "device_power": 1100,
+                    "device_power": 5000,
                     "is_device_active": True,
                     "is_over_climate": True,
-                    "is_overpowering_detected": True,
-                },
-                # should terminate the overpowering
-                {
-                    "name": "vtherm3",
-                    "device_power": 800,
-                    "is_device_active": False,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                },
-                # should terminate the overpowering and active
-                {
-                    "name": "vtherm4",
-                    "device_power": 3800,
-                    "is_device_active": True,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                },
-            ],
-            {"vtherm2": False, "vtherm3": False, "vtherm4": False},
-        ),
-        # More complex shedding
-        (
-            1000,
-            2000,
-            [
-                # already overpowering (non change)
-                {
-                    "name": "vtherm1",
-                    "device_power": 1100,
-                    "is_device_active": True,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": True,
-                },
-                # should be overpowering
-                {
-                    "name": "vtherm2",
-                    "device_power": 1800,
-                    "is_device_active": False,
-                    "is_over_climate": True,
                     "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
                 },
-                # should terminate the overpowering and active but just before is overpowering
-                {
-                    "name": "vtherm3",
-                    "device_power": 100,
-                    "is_device_active": True,
-                    "is_over_climate": False,
-                    "nb_underlying_entities": 1,
-                    "on_percent": 1,
-                    "is_overpowering_detected": False,
-                },
+                {"name": "vtherm4", "device_power": 1000, "is_device_active": True, "is_over_climate": True, "is_overpowering_detected": False, "overpowering_state": STATE_OFF},
             ],
-            {"vtherm1": False, "vtherm2": True, "vtherm3": True},
+            # init vtherm1 to False
+            {"vtherm3": False, "vtherm2": False, "vtherm1": False},
         ),
-        # Sheeding only current_power > max_power (need to gain 1000 )
+        # Shedding
         (
             2000,
             1000,
@@ -432,36 +325,31 @@ async def test_central_power_manageer_find_vtherms(
                     "nb_underlying_entities": 1,
                     "on_percent": 1,
                     "is_overpowering_detected": False,
+                    "overpowering_state": STATE_OFF,
                 },
-                # should be overpowering but is already
+                # should be overpowering with many underlmying entities
                 {
                     "name": "vtherm2",
-                    "device_power": 600,
+                    "device_power": 400,
                     "is_device_active": True,
                     "is_over_climate": False,
                     "nb_underlying_entities": 4,
                     "on_percent": 0.1,
-                    "is_overpowering_detected": True,
+                    "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
                 },
-                # over_climate should be not overpowering (device not active)
+                # over_climate should be overpowering
                 {
                     "name": "vtherm3",
-                    "device_power": 690,
-                    "is_device_active": False,
-                    "is_over_climate": True,
-                    "is_overpowering_detected": False,
-                },
-                # over_climate should be overpowering (device active and not already overpowering)
-                {
-                    "name": "vtherm4",
-                    "device_power": 690,
+                    "device_power": 100,
                     "is_device_active": True,
                     "is_over_climate": True,
                     "is_overpowering_detected": False,
+                    "overpowering_state": STATE_OFF,
                 },
-                # should not overpower (keep as is)
+                # should pass cause not active
                 {
-                    "name": "vtherm5",
+                    "name": "vtherm4",
                     "device_power": 800,
                     "is_device_active": False,
                     "is_over_climate": False,
@@ -469,8 +357,98 @@ async def test_central_power_manageer_find_vtherms(
                     "on_percent": 1,
                     "is_overpowering_detected": False,
                 },
+                # should be not overpowering (already overpowering)
+                {
+                    "name": "vtherm5",
+                    "device_power": 400,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 4,
+                    "on_percent": 0.1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # should be overpowering with many underluying entities
+                {
+                    "name": "vtherm6",
+                    "device_power": 400,
+                    "is_device_active": True,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 4,
+                    "on_percent": 0.1,
+                    "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
+                },
+                # should not be overpowering (we have enough)
+                {
+                    "name": "vtherm7",
+                    "device_power": 1000,
+                    "is_device_active": True,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                    "overpowering_state": STATE_UNKNOWN,
+                },
             ],
-            {"vtherm1": True, "vtherm4": True},
+            {"vtherm1": True, "vtherm2": True, "vtherm3": True, "vtherm6": True},
+        ),
+        # Un-shedding only (will be taken in reverse order)
+        (
+            1000,
+            2000,
+            [
+                # should be not unshedded (we have enough)
+                {
+                    "name": "vtherm0",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # should be unshedded
+                {
+                    "name": "vtherm1",
+                    "device_power": 800,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # already stay unshedded cause already unshedded
+                {
+                    "name": "vtherm2",
+                    "device_power": 1100,
+                    "is_device_active": True,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": False,
+                    "overpowering_state": STATE_OFF,
+                },
+                # should be unshedded
+                {
+                    "name": "vtherm3",
+                    "device_power": 200,
+                    "is_device_active": False,
+                    "is_over_climate": True,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+                # should be unshedded
+                {
+                    "name": "vtherm4",
+                    "device_power": 300,
+                    "is_device_active": False,
+                    "is_over_climate": False,
+                    "nb_underlying_entities": 1,
+                    "on_percent": 1,
+                    "is_overpowering_detected": True,
+                    "overpowering_state": STATE_ON,
+                },
+            ],
+            {"vtherm4": False, "vtherm3": False, "vtherm1": False},
         ),
     ],
 )
@@ -501,7 +479,10 @@ async def test_central_power_manageer_calculate_shedding(
         vtherm.nb_underlying_entities = vtherm_config.get("nb_underlying_entities")
         if not vtherm_config.get("is_over_climate"):
             vtherm.proportional_algorithm = MagicMock()
-            vtherm.proportional_algorithm.on_percent = vtherm_config.get("on_percent")
+            vtherm.on_percent = vtherm.proportional_algorithm.on_percent = vtherm_config.get("on_percent")
+        else:
+            vtherm.on_percent = None
+            vtherm.proportional_algorithm = None
 
         vtherm.power_manager = MagicMock(spec=FeaturePowerManager)
         vtherm.power_manager._vtherm = vtherm
@@ -510,6 +491,7 @@ async def test_central_power_manageer_calculate_shedding(
             "is_overpowering_detected"
         )
         vtherm.power_manager.device_power = vtherm_config.get("device_power")
+        vtherm.power_manager.overpowering_state = vtherm_config.get("overpowering_state")
 
         async def mock_set_overpowering(
             overpowering, power_consumption_max=0, v=vtherm

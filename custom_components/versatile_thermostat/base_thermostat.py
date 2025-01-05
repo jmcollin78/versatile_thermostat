@@ -1609,14 +1609,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 return False
 
         # Check overpowering condition
-        await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
-
-        # TODO remove this
-        # overpowering is now centralized
-        # overpowering = await self._power_manager.check_overpowering()
-        # if overpowering == STATE_ON:
-        #    _LOGGER.debug("%s - End of cycle (overpowering)", self)
-        #    return True
+        # Not usefull. Will be done at the next power refresh
+        # await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
 
         safety: bool = await self._safety_manager.refresh_state()
         if safety and self.is_over_climate:
@@ -1974,5 +1968,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     @property
     def power_percent(self) -> float | None:
+        """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo"""
+        """Get the current on_percent value"""
+        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+            return round(self._prop_algorithm.on_percent * 100, 0)
+        else:
+            return None
+
+    @property
+    def on_percent(self) -> float | None:
         """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
-        return None
+        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+            return self._prop_algorithm.on_percent
+        else:
+            return None
