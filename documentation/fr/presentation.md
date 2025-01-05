@@ -18,7 +18,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 - Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
 - Utilisations complètes du **mode préréglages**,
 - Désactiver le mode préréglé lorsque la température est **définie manuellement** sur un thermostat,
-- Éteindre/allumer un thermostat ou chager de preset lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
+- Éteindre/allumer un thermostat ou changer de preset lorsqu'une **porte ou des fenêtres sont ouvertes/fermées** après un certain délai,
 - Changer de preset lorsqu'une **activité est détectée** ou non dans une pièce pendant un temps défini,
 - Utiliser un algorithme **TPI (Time Proportional Interval)** grâce à l'algorithme [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] ,
 - Ajouter une **gestion de délestage** ou une régulation pour ne pas dépasser une puissance totale définie. Lorsque la puissance maximale est dépassée, un préréglage caché de « puissance » est défini sur l'entité climatique. Lorsque la puissance passe en dessous du maximum, le préréglage précédent est restauré.

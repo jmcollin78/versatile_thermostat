@@ -212,6 +212,13 @@ async def test_underlying_change_follow(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
+    temps = {
+        PRESET_FROST_PROTECTION: 7,
+        PRESET_ECO: 16,
+        PRESET_COMFORT: 17,
+        PRESET_BOOST: 18,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverClimateMockName",
@@ -232,7 +239,7 @@ async def test_underlying_change_follow(
     ) as mock_find_climate, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
 
         assert entity
         assert entity.name == "TheOverClimateMockName"
@@ -354,6 +361,13 @@ async def test_underlying_change_not_follow(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
+    temps = {
+        PRESET_FROST_PROTECTION: 7,
+        PRESET_ECO: 16,
+        PRESET_COMFORT: 17,
+        PRESET_BOOST: 18,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverClimateMockName",
@@ -374,7 +388,7 @@ async def test_underlying_change_not_follow(
     ) as mock_find_climate, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
 
         assert entity
 
@@ -726,6 +740,13 @@ async def test_ignore_temp_outside_minmax_range(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
+    temps = {
+        PRESET_FROST_PROTECTION: 7,
+        PRESET_ECO: 16,
+        PRESET_COMFORT: 17,
+        PRESET_BOOST: 18,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverClimateMockName",
@@ -746,7 +767,7 @@ async def test_ignore_temp_outside_minmax_range(
     ) as mock_find_climate, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
 
         assert entity
 

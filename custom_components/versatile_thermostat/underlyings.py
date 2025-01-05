@@ -190,6 +190,11 @@ class UnderlyingEntity:
         """capping of the value send to the underlying eqt"""
         return value
 
+    async def turn_off_and_cancel_cycle(self):
+        """Turn off and cancel eventual running cycle"""
+        self._cancel_cycle()
+        await self.turn_off()
+
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -409,9 +414,10 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
             return
 
-        if await self._thermostat.power_manager.check_overpowering():
-            _LOGGER.debug("%s - End of cycle (3)", self)
-            return
+        # if await self._thermostat.power_manager.check_overpowering():
+        #     _LOGGER.debug("%s - End of cycle (3)", self)
+        #     return
+
         # safety mode could have change the on_time percent
         await self._thermostat.safety_manager.refresh_state()
         time = self._on_time_sec

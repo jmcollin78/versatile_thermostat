@@ -59,8 +59,6 @@ from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG,
     MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG,
     MOCK_TH_OVER_SWITCH_TPI_CONFIG,
-    MOCK_PRESETS_CONFIG,
-    MOCK_PRESETS_AC_CONFIG,
     MOCK_WINDOW_CONFIG,
     MOCK_MOTION_CONFIG,
     MOCK_POWER_CONFIG,
@@ -89,7 +87,7 @@ FULL_SWITCH_CONFIG = (
     | MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_SWITCH_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_FULL_FEATURES
     | MOCK_WINDOW_CONFIG
     | MOCK_MOTION_CONFIG
@@ -104,7 +102,6 @@ FULL_SWITCH_AC_CONFIG = (
     | MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_SWITCH_AC_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    | MOCK_PRESETS_AC_CONFIG
     | MOCK_FULL_FEATURES
     | MOCK_WINDOW_CONFIG
     | MOCK_MOTION_CONFIG
@@ -118,7 +115,7 @@ PARTIAL_CLIMATE_CONFIG = (
     | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
 
@@ -127,7 +124,7 @@ PARTIAL_CLIMATE_CONFIG_USE_DEVICE_TEMP = (
     | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_USE_DEVICE_TEMP_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
 
@@ -136,7 +133,7 @@ PARTIAL_CLIMATE_NOT_REGULATED_CONFIG = (
     | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_TYPE_NOT_REGULATED_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
 
@@ -145,7 +142,7 @@ PARTIAL_CLIMATE_AC_CONFIG = (
     | MOCK_TH_OVER_CLIMATE_TYPE_AC_CONFIG
     | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG
     | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_ADVANCED_CONFIG
 )
 
@@ -153,7 +150,7 @@ FULL_4SWITCH_CONFIG = (
     MOCK_TH_OVER_4SWITCH_USER_CONFIG
     | MOCK_TH_OVER_4SWITCH_TYPE_CONFIG
     | MOCK_TH_OVER_SWITCH_TPI_CONFIG
-    | MOCK_PRESETS_CONFIG
+    #    | MOCK_PRESETS_CONFIG
     | MOCK_WINDOW_CONFIG
     | MOCK_MOTION_CONFIG
     | MOCK_POWER_CONFIG
@@ -592,7 +589,10 @@ class MockNumber(NumberEntity):
 
 
 async def create_thermostat(
-    hass: HomeAssistant, entry: MockConfigEntry, entity_id: str
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    entity_id: str,
+    temps: dict | None = None,
 ) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
     entry.add_to_hass(hass)
@@ -600,6 +600,11 @@ async def create_thermostat(
     assert entry.state is ConfigEntryState.LOADED
 
     entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
+
+    if entity and temps:
+        await set_all_climate_preset_temp(
+            hass, entity, temps, entity.entity_id.replace("climate.", "")
+        )
 
     return entity
 
@@ -741,9 +746,11 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
             )
         },
     )
-    await entity.power_manager._async_power_sensor_changed(power_event)
+    vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+    await vtherm_api.central_power_manager._power_sensor_changed(power_event)
+    await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
-        await asyncio.sleep(0.1)
+        await entity.hass.async_block_till_done()
 
 
 async def send_max_power_change_event(
@@ -767,9 +774,11 @@ async def send_max_power_change_event(
             )
         },
     )
-    await entity.power_manager._async_max_power_sensor_changed(power_event)
+    vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+    await vtherm_api.central_power_manager._max_power_sensor_changed(power_event)
+    await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
-        await asyncio.sleep(0.1)
+        await entity.hass.async_block_till_done()
 
 
 async def send_window_change_event(
@@ -1101,3 +1110,9 @@ class SideEffects:
     def add_or_update_side_effect(self, key: str, new_value: Any):
         """Update the value of a side effect"""
         self._current_side_effects[key] = new_value
+
+
+async def do_central_power_refresh(hass):
+    """Do a central power refresh"""
+    await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
+    return hass.async_block_till_done()

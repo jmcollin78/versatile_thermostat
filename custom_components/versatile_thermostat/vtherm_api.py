@@ -1,6 +1,7 @@
 """ The API of Versatile Thermostat"""
 
 import logging
+from datetime import datetime
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
@@ -16,7 +17,10 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_MAX_ON_PERCENT,
+    NowClass,
 )
+
+from .central_feature_power_manager import CentralFeaturePowerManager
 
 VTHERM_API_NAME = "vtherm_api"
 
@@ -62,6 +66,12 @@ class VersatileThermostatAPI(dict):
         # A dict that will store all Number entities which holds the temperature
         self._number_temperatures = dict()
         self._max_on_percent = None
+        self._central_power_manager = CentralFeaturePowerManager(
+            VersatileThermostatAPI._hass, self
+        )
+
+        # the current time (for testing purpose)
+        self._now = None
 
     def find_central_configuration(self):
         """Search for a central configuration"""
@@ -176,6 +186,10 @@ class VersatileThermostatAPI(dict):
                     if entry_id is None or entry_id == entity.unique_id:
                         await entity.async_startup(self.find_central_configuration())
 
+        # start listening for the central power manager if not only one vtherm reload
+        if not entry_id:
+            await self.central_power_manager.start_listening()
+
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""
         # Initialization of all preset for all VTherm
@@ -289,3 +303,18 @@ class VersatileThermostatAPI(dict):
     def hass(self):
         """Get the HomeAssistant object"""
         return VersatileThermostatAPI._hass
+
+    @property
+    def central_power_manager(self) -> any:
+        """Returns the central power manager"""
+        return self._central_power_manager
+
+    # For testing purpose
+    def _set_now(self, now: datetime):
+        """Set the now timestamp. This is only for tests purpose"""
+        self._now = now
+
+    @property
+    def now(self) -> datetime:
+        """Get now. The local datetime or the overloaded _set_now date"""
+        return self._now if self._now is not None else NowClass.get_now(self._hass)

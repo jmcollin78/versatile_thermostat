@@ -49,7 +49,7 @@ When your device is controlled by a `climate` entity in Home Assistant and you o
 
 This type also includes advanced self-regulation features to adjust the setpoint sent to the underlying device, helping to achieve the target temperature faster and mitigating poor internal regulation. For example, if the device's internal thermometer is too close to the heating element, it may incorrectly assume the room is warm while the setpoint is far from being achieved in other areas.
 
-Since version 6.8, this VTherm type can also regulate directly by controlling the valve. Ideal for controllable TRVs, this type is recommended if you have such devices.
+Since version 6.8, this VTherm type can also regulate directly by controlling the valve. Ideal for controllable TRVs, as Sonoff TRVZB, this type is recommended if you have such devices.
 
 The underlying entities for this VTherm type are exclusively `climate`.
 

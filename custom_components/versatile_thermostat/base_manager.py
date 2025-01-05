@@ -16,10 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 class BaseFeatureManager:
     """A base class for all feature"""
 
-    def __init__(self, vtherm: Any, hass: HomeAssistant):
+    def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
         """Init of a featureManager"""
         self._vtherm = vtherm
-        self._name = vtherm.name
+        self._name = vtherm.name if vtherm else name
         self._active_listener: list[CALLBACK_TYPE] = []
         self._hass = hass
 
@@ -27,7 +27,7 @@ class BaseFeatureManager:
         """Initialize the attributes of the FeatureManager"""
         raise NotImplementedError()
 
-    def start_listening(self):
+    async def start_listening(self):
         """Start listening the underlying entity"""
         raise NotImplementedError()
 
@@ -37,6 +37,10 @@ class BaseFeatureManager:
             self._active_listener.pop()()
 
         self._active_listener = []
+
+    async def refresh_state(self):
+        """Refresh the state and return True if a change have been made"""
+        return False
 
     def add_listener(self, func: CALLBACK_TYPE) -> None:
         """Add a listener to the list of active listener"""

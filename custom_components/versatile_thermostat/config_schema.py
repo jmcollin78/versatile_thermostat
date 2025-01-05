@@ -339,6 +339,12 @@ STEP_CENTRAL_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_NON_CENTRAL_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
+    }
+)
+
 STEP_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_POWER_CENTRAL_CONFIG, default=True): cv.boolean,

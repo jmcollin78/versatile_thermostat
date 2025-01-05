@@ -5,7 +5,7 @@
 
 ## Configure Pre-configured Temperatures
 
-The preset mode allows you to pre-configure the target temperature. Used in conjunction with Scheduler (see [scheduler](additions#the-scheduler-component)), you'll have a powerful and simple way to optimize the temperature relative to the electricity consumption in your home. The managed presets are as follows:
+The preset mode allows you to pre-configure the target temperature. Used in conjunction with Scheduler (see [scheduler](additions.md#the-scheduler-component)), you'll have a powerful and simple way to optimize the temperature relative to the electricity consumption in your home. The managed presets are as follows:
  - **Eco**: the device is in energy-saving mode
  - **Comfort**: the device is in comfort mode
  - **Boost**: the device fully opens all valves

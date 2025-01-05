@@ -90,7 +90,7 @@ async def test_motion_feature_manager_refresh(
     assert custom_attributes["motion_off_delay_sec"] == 30
 
     # 3. start listening
-    motion_manager.start_listening()
+    await motion_manager.start_listening()
     assert motion_manager.is_configured is True
     assert motion_manager.motion_state == STATE_UNKNOWN
     assert motion_manager.is_motion_detected is False
@@ -198,7 +198,7 @@ async def test_motion_feature_manager_event(
             CONF_NO_MOTION_PRESET: PRESET_ECO,
         }
     )
-    motion_manager.start_listening()
+    await motion_manager.start_listening()
 
     # 2. test _motion_sensor_changed with the parametrized
     # fmt: off

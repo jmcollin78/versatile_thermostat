@@ -50,7 +50,6 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
-    STATE_ON,
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -99,7 +98,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "comfort_away_temp",
                     "power_temp",
                     "ac_mode",
-                    "current_max_power",
                     "saved_preset_mode",
                     "saved_target_temp",
                     "saved_hvac_mode",
@@ -191,7 +189,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._ema_temp = None
         self._ema_algo = None
-        self._now = None
 
         self._attr_fan_mode = None
 
@@ -446,10 +443,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
             )
 
-        # start listening for all managers
-        for manager in self._managers:
-            manager.start_listening()
-
         self.async_on_remove(self.remove_thermostat)
 
         # issue 428. Link to others entities will start at link
@@ -481,6 +474,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
         need_write_state = False
+
+        # start listening for all managers
+        for manager in self._managers:
+            await manager.start_listening()
 
         await self.get_my_previous_state()
 
@@ -1454,7 +1451,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
          control_heating to turn all off"""
 
         for under in self._underlyings:
-            await under.turn_off()
+            await under.turn_off_and_cancel_cycle()
 
     def save_preset_mode(self):
         """Save the current preset mode to be restored later
@@ -1466,7 +1463,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         ):
             self._saved_preset_mode = self._attr_preset_mode
 
-    async def restore_preset_mode(self):
+    async def restore_preset_mode(self, force=False):
         """Restore a previous preset mode
         We never restore a hidden preset mode. Normally that is not possible
         """
@@ -1474,7 +1471,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._saved_preset_mode not in HIDDEN_PRESETS
             and self._saved_preset_mode is not None
         ):
-            await self.async_set_preset_mode_internal(self._saved_preset_mode)
+            await self.async_set_preset_mode_internal(self._saved_preset_mode, force=force)
 
     def save_hvac_mode(self):
         """Save the current hvac-mode to be restored later"""
@@ -1582,15 +1579,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 await self.async_set_hvac_mode(HVACMode.OFF)
             return
 
-    def _set_now(self, now: datetime):
-        """Set the now timestamp. This is only for tests purpose"""
-        self._now = now
-
-    @property
-    def now(self) -> datetime:
-        """Get now. The local datetime or the overloaded _set_now date"""
-        return self._now if self._now is not None else NowClass.get_now(self._hass)
-
     @property
     def is_initialized(self) -> bool:
         """Check if all underlyings are initialized
@@ -1620,11 +1608,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 return False
 
         # Check overpowering condition
-        # Not necessary for switch because each switch is checking at startup
-        overpowering = await self._power_manager.check_overpowering()
-        if overpowering == STATE_ON:
-            _LOGGER.debug("%s - End of cycle (overpowering)", self)
-            return True
+        # Not usefull. Will be done at the next power refresh
+        # await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
 
         safety: bool = await self._safety_manager.refresh_state()
         if safety and self.is_over_climate:
@@ -1965,3 +1950,34 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def is_preset_configured(self, preset) -> bool:
         """Returns True if the preset in argument is configured"""
         return self._presets.get(preset, None) is not None
+
+    # For testing purpose
+    # @deprecated
+    def _set_now(self, now: datetime):
+        """Set the now timestamp. This is only for tests purpose
+        This method should be replaced by the vthermAPI equivalent"""
+        VersatileThermostatAPI.get_vtherm_api(self._hass)._set_now(now)  # pylint: disable=protected-access
+
+    # @deprecated
+    @property
+    def now(self) -> datetime:
+        """Get now. The local datetime or the overloaded _set_now date
+        This method should be replaced by the vthermAPI equivalent"""
+        return VersatileThermostatAPI.get_vtherm_api(self._hass).now
+
+    @property
+    def power_percent(self) -> float | None:
+        """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo
+        Get the current on_percent value"""
+        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+            return round(self._prop_algorithm.on_percent * 100, 0)
+        else:
+            return None
+
+    @property
+    def on_percent(self) -> float | None:
+        """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
+        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+            return self._prop_algorithm.on_percent
+        else:
+            return None

@@ -3,6 +3,7 @@
 # pylint: disable=line-too-long
 
 import logging
+import warnings
 from types import MappingProxyType
 from typing import Any, TypeVar
 
@@ -132,3 +133,20 @@ def check_and_extract_service_configuration(service_config) -> dict:
         "check_and_extract_service_configuration(%s) gives '%s'", service_config, ret
     )
     return ret
+
+
+def deprecated(message):
+    """A decorator to indicate that the method/attribut is deprecated"""
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__} is deprecated: {message}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

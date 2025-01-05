@@ -39,6 +39,8 @@ L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décri
 
 Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné avec la valeur 100 - taux d'ouverture pour forcer la vanne dans un état.
 
+Note: pour les Sonoff TRVZB, vous ne devez pas configurer les "closing degree". Cela rend inopérant le `hvac_action` qui est utilisé par _VTherm_ et qui indique que l'équipement est en chauffe.
+
 ### autres auto-régulation
 
 Dans ce deuxième cas, le Versatile Thermostat calcule un décalage basé sur les informations suivantes :

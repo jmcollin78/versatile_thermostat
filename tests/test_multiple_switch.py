@@ -721,10 +721,14 @@ async def test_multiple_climates_underlying_changes_not_aligned(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switch_power_management(
-    hass: HomeAssistant, skip_hass_states_is_state
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
     """Test the Power management"""
-
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
@@ -737,17 +741,16 @@ async def test_multiple_switch_power_management(
             CONF_CYCLE_MIN: 8,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
-            CONF_HEATER_2: "switch.mock_switch2",
-            CONF_HEATER_3: "switch.mock_switch3",
-            CONF_HEATER_4: "switch.mock_switch4",
+            CONF_UNDERLYING_LIST: [
+                "switch.mock_switch1",
+                "switch.mock_switch2",
+                "switch.mock_switch3",
+                "switch.mock_switch4",
+            ],
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -755,15 +758,13 @@ async def test_multiple_switch_power_management(
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
-            CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
             CONF_DEVICE_POWER: 100,
             CONF_PRESET_POWER: 12,
         },
     )
 
     entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4switchmockname"
+        hass, entry, "climate.theover4switchmockname", temps
     )
     assert entity
     assert entity.is_over_climate is False
@@ -772,6 +773,9 @@ async def test_multiple_switch_power_management(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
+    now: datetime = NowClass.get_now(hass)
+    VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await entity.async_set_preset_mode(PRESET_BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
@@ -779,77 +783,109 @@ async def test_multiple_switch_power_management(
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
+    # make the heater heats
+    await send_temperature_change_event(entity, 15, now)
+    await send_ext_temperature_change_event(entity, 1, now)
+    await hass.async_block_till_done()
+
     # 1. Send power mesurement
-    await send_power_change_event(entity, 50, datetime.now())
+    side_effects = SideEffects(
+        {
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", 50),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 300),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+
     # Send power max mesurement
-    await send_max_power_change_event(entity, 300, datetime.now())
-    assert await entity.power_manager.check_overpowering() is False
-    # All configuration is complete and power is < power_max
-    assert entity.preset_mode is PRESET_BOOST
-    assert entity.power_manager.overpowering_state is STATE_OFF
+    # fmt:off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
+    # fmt: on
+        now = now + timedelta(seconds=30)
+        VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+        await send_power_change_event(entity, 50, datetime.now())
+        await send_max_power_change_event(entity, 300, datetime.now())
+        assert entity.power_manager.is_overpowering_detected is False
+        # All configuration is complete and power is < power_max
+        assert entity.preset_mode is PRESET_BOOST
+        assert entity.power_manager.overpowering_state is STATE_OFF
 
     # 2. Send power max mesurement too low and HVACMode is on
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off:
-        # 100 of the device / 4 -> 25, current power 50 so max is 75
-        await send_max_power_change_event(entity, 74, datetime.now())
-        assert await entity.power_manager.check_overpowering() is True
-        # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is PRESET_POWER
-        assert entity.power_manager.overpowering_state is STATE_ON
-        assert entity.target_temperature == 12
+        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 49))
 
-        assert mock_send_event.call_count == 2
-        mock_send_event.assert_has_calls(
-            [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_POWER}),
-                call.send_event(
-                    EventType.POWER_EVENT,
-                    {
-                        "type": "start",
-                        "current_power": 50,
-                        "device_power": 100,
-                        "current_max_power": 74,
-                        "current_power_consumption": 25.0,
-                    },
-                ),
-            ],
-            any_order=True,
-        )
-        assert mock_heater_on.call_count == 0
-        assert mock_heater_off.call_count == 4  # The fourth are shutdown
+        #fmt: off
+        with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
+            patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
+            patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, \
+            patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
+        #fmt: on
+            now = now + timedelta(seconds=30)
+            VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+            assert entity.power_percent > 0
+            # 100 of the device / 4 -> 25, current power 50 so max is 75
+            await send_max_power_change_event(entity, 49, datetime.now())
+            assert entity.power_manager.is_overpowering_detected is True
+            # All configuration is complete and power is > power_max we switch to POWER preset
+            assert entity.preset_mode is PRESET_POWER
+            assert entity.power_manager.overpowering_state is STATE_ON
+            assert entity.target_temperature == 12
+
+            assert mock_send_event.call_count == 2
+            mock_send_event.assert_has_calls(
+                [
+                    call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_POWER}),
+                    call.send_event(
+                        EventType.POWER_EVENT,
+                        {
+                            "type": "start",
+                            "current_power": 50,
+                            "device_power": 100,
+                            "current_max_power": 49,
+                            "current_power_consumption": 100,
+                        },
+                    ),
+                ],
+                any_order=True,
+            )
+            assert mock_heater_on.call_count == 0
+            assert mock_heater_off.call_count == 4  # The fourth are shutdown
 
     # 3. change PRESET
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
-        await entity.async_set_preset_mode(PRESET_ECO)
-        assert entity.preset_mode is PRESET_ECO
-        # No change
-        assert entity.power_manager.overpowering_state is STATE_ON
+        with patch(
+            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+        ) as mock_send_event:
+            now = now + timedelta(seconds=30)
+            VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+            await entity.async_set_preset_mode(PRESET_ECO)
+            assert entity.preset_mode is PRESET_ECO
+            # No change cause temperature is very low
+            assert entity.power_manager.overpowering_state is STATE_ON
 
     # 4. Send hugh power max mesurement to release overpowering
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off:
-        # 100 of the device / 4 -> 25, current power 50 so max is 75. With 150 no overheating
-        await send_max_power_change_event(entity, 150, datetime.now())
-        assert await entity.power_manager.check_overpowering() is False
-        # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is PRESET_ECO
-        assert entity.power_manager.overpowering_state is STATE_OFF
-        assert entity.target_temperature == 17
+        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 150))
 
-        assert (
-            mock_heater_on.call_count == 0
-        )  # The fourth are not restarted because temperature is enought
-        assert mock_heater_off.call_count == 0
+        with patch(
+            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+        ) as mock_send_event, patch(
+            "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+        ) as mock_heater_on, patch(
+            "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
+        ) as mock_heater_off:
+            now = now + timedelta(seconds=30)
+            VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+            # 100 of the device / 4 -> 25, current power 50 so max is 75. With 150 no overheating
+            await send_max_power_change_event(entity, 150, datetime.now())
+            assert entity.power_manager.is_overpowering_detected is False
+            # All configuration is complete and power is > power_max we switch to POWER preset
+            assert entity.preset_mode is PRESET_ECO
+            assert entity.power_manager.overpowering_state is STATE_OFF
+            assert entity.target_temperature == 17
+
+            assert (
+                mock_heater_on.call_count == 0
+            )  # The fourth are not restarted because temperature is enought
+            assert mock_heater_off.call_count == 0

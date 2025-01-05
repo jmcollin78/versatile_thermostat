@@ -170,7 +170,7 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
     )
 
     # 3. start listening
-    window_manager.start_listening()
+    await window_manager.start_listening()
     assert window_manager.is_configured is True
     assert window_manager.window_state == STATE_UNKNOWN
     assert window_manager.window_auto_state == STATE_UNAVAILABLE
@@ -288,7 +288,7 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     )
 
     # 3. start listening
-    window_manager.start_listening()
+    await window_manager.start_listening()
     assert window_manager.is_configured is True
     assert window_manager.window_state == STATE_UNKNOWN
     assert window_manager.window_auto_state == STATE_UNAVAILABLE
@@ -408,7 +408,7 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
     )
 
     # 3. start listening
-    window_manager.start_listening()
+    await window_manager.start_listening()
     assert len(window_manager._active_listener) == 1
 
     # 4. test refresh with the parametrized
@@ -535,7 +535,7 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     )
 
     # 3. start listening
-    window_manager.start_listening()
+    await window_manager.start_listening()
 
     # 4. test refresh with the parametrized
     # fmt:off
@@ -660,7 +660,7 @@ async def test_window_feature_manager_window_auto(
         }
     )
     assert window_manager.is_window_auto_configured is True
-    window_manager.start_listening()
+    await window_manager.start_listening()
 
     # 2. Call manage window auto
     tz = get_tz(hass)  # pylint: disable=invalid-name

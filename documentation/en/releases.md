@@ -2,6 +2,9 @@
 
 ![New](images/new-icon.png)
 
+> * **Release 7.1**:
+>   - Redesign of the load-shedding function (power management). Load-shedding is now handled centrally (previously, each _VTherm_ was autonomous). This allows for much more efficient management and prioritization of load-shedding on devices that are close to the setpoint. Note that you must have a centralized configuration with power management enabled for this to work. More info [here](./feature-power.md).
+
 > * **Release 6.8**:
 >   - Added a new regulation method for `over_climate` type Versatile Thermostats. This method, called 'Direct Valve Control', allows direct control of a TRV valve and possibly an offset to calibrate the internal thermometer of your TRV. This new method has been tested with Sonoff TRVZB and extended to other TRV types where the valve can be directly controlled via `number` entities. More information [here](over-climate.md#lauto-régulation) and [here](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne).
 
