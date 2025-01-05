@@ -51,8 +51,6 @@ async def test_over_valve_full_start(
             CONF_MOTION_OFF_DELAY: 30,
             CONF_MOTION_PRESET: PRESET_COMFORT,
             CONF_NO_MOTION_PRESET: PRESET_ECO,
-            CONF_POWER_SENSOR: "sensor.power_sensor",
-            CONF_MAX_POWER_SENSOR: "sensor.power_max_sensor",
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
             PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 7,
             PRESET_ECO + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: 17.1,

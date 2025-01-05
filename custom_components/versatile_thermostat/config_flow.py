@@ -90,11 +90,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_MOTION_FEATURE, False
         ) and (self._infos.get(CONF_MOTION_SENSOR) is not None or is_central_config)
 
-        self._infos[CONF_USE_POWER_FEATURE] = self._infos.get(
-            CONF_USE_POWER_CENTRAL_CONFIG, False
-        ) or (
-            self._infos.get(CONF_POWER_SENSOR) is not None
-            and self._infos.get(CONF_MAX_POWER_SENSOR) is not None
+        self._infos[CONF_USE_POWER_FEATURE] = (
+            self._infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False)
+            or self._infos.get(CONF_USE_POWER_FEATURE, False)
+            or (is_central_config and self._infos.get(CONF_POWER_SENSOR) is not None and self._infos.get(CONF_MAX_POWER_SENSOR) is not None)
         )
         self._infos[CONF_USE_PRESENCE_FEATURE] = (
             self._infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False)
@@ -184,7 +183,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         Data has the keys from STEP_*_DATA_SCHEMA with values provided by the user.
         """
 
-        # check the heater_entity_id
+        # check the entity_ids
         for conf in [
             CONF_UNDERLYING_LIST,
             CONF_TEMP_SENSOR,
@@ -330,14 +329,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if (
-                infos.get(CONF_USE_POWER_FEATURE, False) is True
-                and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False
-                and (
-                    infos.get(CONF_POWER_SENSOR, None) is None
-                    or infos.get(CONF_MAX_POWER_SENSOR, None) is None
-                )
-            ):
+            if infos.get(CONF_USE_POWER_FEATURE, False) is True and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False and infos.get(CONF_PRESET_POWER, None) is None:
                 return False
 
             if (
@@ -815,7 +807,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the specific power flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_spec_power user_input=%s", user_input)
 
-        schema = STEP_CENTRAL_POWER_DATA_SCHEMA
+        schema = STEP_NON_CENTRAL_POWER_DATA_SCHEMA
 
         self._infos[COMES_FROM] = "async_step_spec_power"
 

@@ -763,8 +763,6 @@ async def test_power_management_energy_over_climate(
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
                 CONF_SAFETY_DELAY_MIN: 5,
                 CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-                CONF_POWER_SENSOR: "sensor.mock_power_sensor",
-                CONF_MAX_POWER_SENSOR: "sensor.mock_power_max_sensor",
                 CONF_DEVICE_POWER: 100,
                 CONF_PRESET_POWER: 12,
             },

@@ -26,6 +26,23 @@ async def test_over_switch_ac_full_start(
 ):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
+    temps = {
+        PRESET_FROST_PROTECTION: 7,
+        PRESET_ECO: 17,
+        PRESET_COMFORT: 19,
+        PRESET_BOOST: 20,
+        PRESET_ECO + PRESET_AC_SUFFIX: 25,
+        PRESET_COMFORT + PRESET_AC_SUFFIX: 23,
+        PRESET_BOOST + PRESET_AC_SUFFIX: 21,
+        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: 7,
+        PRESET_ECO + PRESET_AWAY_SUFFIX: 16,
+        PRESET_COMFORT + PRESET_AWAY_SUFFIX: 17,
+        PRESET_BOOST + PRESET_AWAY_SUFFIX: 18,
+        PRESET_ECO + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 27,
+        PRESET_COMFORT + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 26,
+        PRESET_BOOST + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 25,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchACMockName",
@@ -57,21 +74,7 @@ async def test_over_switch_ac_full_start(
         assert isinstance(entity, ThermostatOverSwitch)
 
         # Initialise the preset temp
-        await set_climate_preset_temp(
-            entity, PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX, 7
-        )
-        await set_climate_preset_temp(entity, PRESET_ECO + PRESET_AWAY_SUFFIX, 16)
-        await set_climate_preset_temp(entity, PRESET_COMFORT + PRESET_AWAY_SUFFIX, 17)
-        await set_climate_preset_temp(entity, PRESET_BOOST + PRESET_AWAY_SUFFIX, 18)
-        await set_climate_preset_temp(
-            entity, PRESET_ECO + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 27
-        )
-        await set_climate_preset_temp(
-            entity, PRESET_COMFORT + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 26
-        )
-        await set_climate_preset_temp(
-            entity, PRESET_BOOST + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX, 25
-        )
+        await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
 
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_climate is False  # pylint: disable=protected-access

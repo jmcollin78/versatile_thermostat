@@ -481,8 +481,6 @@ async def test_bug_500_3(hass: HomeAssistant, init_vtherm_api) -> None:
         CONF_USE_WINDOW_CENTRAL_CONFIG: False,
         CONF_WINDOW_SENSOR: "sensor.theWindowSensor",
         CONF_USE_POWER_CENTRAL_CONFIG: False,
-        CONF_POWER_SENSOR: "sensor.thePowerSensor",
-        CONF_MAX_POWER_SENSOR: "sensor.theMaxPowerSensor",
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_PRESENCE_SENSOR: "sensor.thePresenceSensor",
         CONF_USE_MOTION_FEATURE: True,  # motion sensor need to be checked AND a motion sensor set
@@ -492,7 +490,7 @@ async def test_bug_500_3(hass: HomeAssistant, init_vtherm_api) -> None:
     flow = VersatileThermostatBaseConfigFlow(config)
 
     assert flow._infos[CONF_USE_WINDOW_FEATURE] is True
-    assert flow._infos[CONF_USE_POWER_FEATURE] is True
+    assert flow._infos[CONF_USE_POWER_FEATURE] is False
     assert flow._infos[CONF_USE_PRESENCE_FEATURE] is True
     assert flow._infos[CONF_USE_MOTION_FEATURE] is True
 
