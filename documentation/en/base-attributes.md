@@ -15,7 +15,7 @@ Provide the mandatory main attributes. These attributes are common to all VTherm
    1. For `over_switch`: VTherm will turn the radiator on/off, modulating the proportion of time it is on,
    2. For `over_valve`: VTherm will calculate a new valve opening level and send it if it has changed,
    3. For `over_climate`: The cycle performs basic controls and recalculates the self-regulation coefficients. The cycle may result in a new setpoint sent to underlying devices or a valve opening adjustment in the case of a controllable TRV.
-5. The equipment's power, which will activate power and energy consumption sensors for the device. If multiple devices are linked to the same VTherm, specify the total maximum power of all devices here,
+5. The equipment's power, which will activate power and energy consumption sensors for the device. If multiple devices are linked to the same VTherm, specify the total maximum power of all devices here. The power unit is not important here. What is important is that all _VTherm_ and all power sensors have the same unit (see: Power shedding feature),
 6. The option to use additional parameters from centralized configuration:
    1. Outdoor temperature sensor,
    2. Minimum/maximum temperature and temperature step size,
