@@ -231,16 +231,8 @@ STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
-        vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
+        vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
+        vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, mode=selector.NumberSelectorMode.BOX)),
     }
 )
 
