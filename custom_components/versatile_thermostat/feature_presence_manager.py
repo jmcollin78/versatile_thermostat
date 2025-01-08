@@ -23,12 +23,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 
-from homeassistant.components.climate import (
-    PRESET_ACTIVITY,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-)
+from homeassistant.components.climate import PRESET_ACTIVITY, PRESET_BOOST, PRESET_COMFORT, PRESET_ECO
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import ConfigData
@@ -146,6 +141,7 @@ class FeaturePresenceManager(BaseFeatureManager):
             PRESET_COMFORT,
             PRESET_ECO,
             PRESET_ACTIVITY,
+            PRESET_FROST_PROTECTION,
         ]:
             return old_presence_state != self._presence_state
 
