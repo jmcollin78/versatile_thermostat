@@ -33,6 +33,8 @@ Once the function is configured, you will now have a new `switch` type entity th
 
 Check the box to allow auto-start and auto-stop, and leave it unchecked to disable the feature.
 
+Note: The auto-start/stop function will only turn a _VTherm_ back on if it was turned off by this function. This prevents unwanted or unexpected activations. Naturally, the off state is preserved even after a Home Assistant restart.
+
 > ![Tip](images/tips.png) _*Notes*_
 > 1. The detection algorithm is described [here](algorithms.md#auto-startstop-algorithm).
 > 2. Some appliances (boilers, underfloor heating, _PAC_, etc.) may not like being started/stopped too frequently. If that's the case, it might be better to disable the function when you know the appliance will be used. For example, I disable this feature during the day when presence is detected because I know my _PAC_ will turn on often. I enable auto-start/stop at night or when no one is home, as the setpoint is lowered and it rarely triggers.

@@ -34,6 +34,8 @@ Une fois la fonction paramétrée, vous aurez maintenant une nouvelle entité de
 
 Cochez la pour autoriser le démarrage et extinction automatique et laissez là décocher si vous voulez désactiver la fonction auto-start/stop.
 
+A noter : la fonction auto-start/stop ne rallumera un _VTherm_ que si celui-ci a été éteint par cette fonction. Ca évite des allumages intempestifs non désirés. Evidement l'état d'extinction est résistant à un redémarrage de Home Assistant.
+
 
 > ![Astuce](images/tips.png) _*Notes*_
 > 1. L'algorithme de détection est décrit [ici](algorithms.md#lalgorithme-de-la-fonction-dauto-startstop).
