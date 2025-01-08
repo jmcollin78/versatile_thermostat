@@ -605,8 +605,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "saved_preset_mode", None
             )
 
-            self._hvac_off_reason = old_state.attributes.get("hvac_mode_reason", None)
-
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
             _LOGGER.debug(
