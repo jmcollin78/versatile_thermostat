@@ -632,22 +632,20 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # Issue 508 we have to take care of service set_temperature or set_range
         target_temp = self.cap_sent_value(temperature)
-        if (
-            ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
-            in self._underlying_climate.supported_features
-        ):
-            data = {
-                ATTR_ENTITY_ID: self._entity_id,
-                "target_temp_high": target_temp,
-                "target_temp_low": target_temp,
-                # issue 518 - we should send also the target temperature, even in TARGET RANGE
-                "temperature": target_temp,
-            }
-        else:
-            data = {
-                ATTR_ENTITY_ID: self._entity_id,
-                "temperature": target_temp,
-            }
+        data = {
+            ATTR_ENTITY_ID: self._entity_id,
+        }
+        # Issue 807 add TARGET_TEMPERATURE only if in the features
+        if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self._underlying_climate.supported_features:
+            data.update(
+                {
+                    "target_temp_high": target_temp,
+                    "target_temp_low": target_temp,
+                }
+            )
+
+        if ClimateEntityFeature.TARGET_TEMPERATURE in self._underlying_climate.supported_features:
+            data["temperature"] = target_temp
 
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
