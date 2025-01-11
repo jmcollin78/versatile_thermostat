@@ -123,7 +123,8 @@
         "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique.",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
-          "window_delay": "Délai avant extinction (secondes)",
+          "window_delay": "Délai de prise en compte à l'ouverture (secondes)",
+          "window_off_delay": "Délai de prise compte à la fermeture (secondes)",
           "window_auto_open_threshold": "Seuil haut de chute de température pour la détection automatique (en °/heure)",
           "window_auto_close_threshold": "Seuil bas de chute de température pour la fin de détection automatique (en °/heure)",
           "window_auto_max_duration": "Durée maximum d'une extinction automatique (en min)",
@@ -132,7 +133,8 @@
         },
         "data_description": {
           "window_sensor_entity_id": "Laissez vide si vous n'avez de détecteur et pour utiliser la détection automatique",
-          "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte",
+          "window_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte lors de la détection d'une ouverture",
+          "window_off_delay": "Le délai (en secondes) avant que le changement du détecteur soit pris en compte lors de la détection d'une fermeture. Laissez vide pour utiliser le même délai à l'ouveture et à la fermeture",
           "window_auto_open_threshold": "Valeur recommandée: entre 3 et 10. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_close_threshold": "Valeur recommandée: 0. Laissez vide si vous n'utilisez pas la détection automatique",
           "window_auto_max_duration": "Valeur recommandée: 60 (1 heure). Laissez vide si vous n'utilisez pas la détection automatique",
