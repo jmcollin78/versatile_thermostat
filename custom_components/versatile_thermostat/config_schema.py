@@ -257,12 +257,11 @@ STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_CENTRAL_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
+        vol.Optional(CONF_WINDOW_OFF_DELAY, default=30): cv.positive_int,
         vol.Optional(CONF_WINDOW_AUTO_OPEN_THRESHOLD, default=3): vol.Coerce(float),
         vol.Optional(CONF_WINDOW_AUTO_CLOSE_THRESHOLD, default=0): vol.Coerce(float),
         vol.Optional(CONF_WINDOW_AUTO_MAX_DURATION, default=30): cv.positive_int,
-        vol.Optional(
-            CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF
-        ): selector.SelectSelector(
+        vol.Optional(CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_WINDOW_ACTIONS,
                 translation_key="window_action",
@@ -275,9 +274,8 @@ STEP_CENTRAL_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_WINDOW_DELAY, default=30): cv.positive_int,
-        vol.Optional(
-            CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF
-        ): selector.SelectSelector(
+        vol.Optional(CONF_WINDOW_OFF_DELAY, default=30): cv.positive_int,
+        vol.Optional(CONF_WINDOW_ACTION, default=CONF_WINDOW_TURN_OFF): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_WINDOW_ACTIONS,
                 translation_key="window_action",

@@ -123,7 +123,8 @@
         "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
-          "window_delay": "Window sensor delay (seconds)",
+          "window_delay": "Window sensor 'on' delay (seconds)",
+          "window_off_delay": "Window sensor 'off' delay (seconds)",
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
@@ -132,7 +133,8 @@
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
-          "window_delay": "The delay in seconds before sensor detection is taken into account",
+          "window_delay": "The delay in seconds before sensor 'on' detection is taken into account",
+          "window_off_delay": "The delay in seconds before sensor 'off' detection is taken into account. Leave it empty to use the same value as window on delay",
           "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
@@ -369,7 +371,8 @@
         "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
         "data": {
           "window_sensor_entity_id": "Window sensor entity id",
-          "window_delay": "Window sensor delay (seconds)",
+          "window_delay": "Window sensor 'on' delay (seconds)",
+          "window_off_delay": "Window sensor 'off' delay (seconds)",
           "window_auto_open_threshold": "Temperature decrease threshold for automatic window open detection (in °/hours)",
           "window_auto_close_threshold": "Temperature increase threshold for end of automatic detection (in °/hours)",
           "window_auto_max_duration": "Maximum duration of automatic window open detection (in min)",
@@ -378,8 +381,8 @@
         },
         "data_description": {
           "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
-          "window_delay": "The delay in seconds before sensor detection is taken into account",
-          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
+          "window_delay": "The delay in seconds before sensor 'on' detection is taken into account",
+          "window_off_delay": "The delay in seconds before sensor 'off' detection is taken into account. Leave it empty to use the same value as window on delay",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
           "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm",
