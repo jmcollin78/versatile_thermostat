@@ -452,7 +452,7 @@ async def test_over_switch_with_central_config_but_no_central_config(
         DOMAIN, context={"source": SOURCE_USER}
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == SOURCE_USER
 
     result = await hass.config_entries.flow.async_configure(
