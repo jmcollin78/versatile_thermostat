@@ -73,7 +73,7 @@ CONF_DEVICE_POWER = "device_power"
 CONF_CYCLE_MIN = "cycle_min"
 CONF_PROP_FUNCTION = "proportional_function"
 CONF_WINDOW_DELAY = "window_delay"
-CONF_WINDOW_DELAY_OFF = "window_delay_off"
+CONF_WINDOW_OFF_DELAY = "window_off_delay"
 CONF_MOTION_DELAY = "motion_delay"
 CONF_MOTION_OFF_DELAY = "motion_off_delay"
 CONF_MOTION_PRESET = "motion_preset"
@@ -271,7 +271,7 @@ ALL_CONF = (
         CONF_MAX_POWER_SENSOR,
         CONF_WINDOW_SENSOR,
         CONF_WINDOW_DELAY,
-        CONF_WINDOW_DELAY_OFF,
+        CONF_WINDOW_OFF_DELAY,
         CONF_WINDOW_AUTO_OPEN_THRESHOLD,
         CONF_WINDOW_AUTO_CLOSE_THRESHOLD,
         CONF_WINDOW_AUTO_MAX_DURATION,

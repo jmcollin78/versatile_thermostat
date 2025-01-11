@@ -46,7 +46,7 @@ class FeatureWindowManager(BaseFeatureManager):
             "is_window_configured",
             "is_window_bypass",
             "window_delay_sec",
-            "window_delay_off_sec",
+            "window_off_delay_sec",
             "window_auto_configured",
             "window_auto_open_threshold",
             "window_auto_close_threshold",
@@ -68,7 +68,7 @@ class FeatureWindowManager(BaseFeatureManager):
         self._is_window_bypass: bool = False
         self._window_action: str = None
         self._window_delay_sec: int | None = 0
-        self._window_delay_off_sec: int | None = 0
+        self._window_off_delay_sec: int | None = 0
         self._is_configured: bool = False
         self._is_window_auto_configured: bool = False
         self._window_call_cancel: callable = None
@@ -84,7 +84,7 @@ class FeatureWindowManager(BaseFeatureManager):
         self._window_sensor_entity_id = entry_infos.get(CONF_WINDOW_SENSOR)
         self._window_delay_sec = entry_infos.get(CONF_WINDOW_DELAY)
         # default is the WINDOW_ON delay if not configured
-        self._window_delay_off_sec = entry_infos.get(CONF_WINDOW_DELAY_OFF, self._window_delay_sec)
+        self._window_off_delay_sec = entry_infos.get(CONF_WINDOW_OFF_DELAY, self._window_delay_sec)
 
         self._window_action = (
             entry_infos.get(CONF_WINDOW_ACTION) or CONF_WINDOW_TURN_OFF
@@ -225,7 +225,7 @@ class FeatureWindowManager(BaseFeatureManager):
 
             self._vtherm.update_custom_attributes()
 
-        delay = self._window_delay_sec if new_state.state == STATE_ON else self._window_delay_off_sec
+        delay = self._window_delay_sec if new_state.state == STATE_ON else self._window_off_delay_sec
         if new_state is None or old_state is None or new_state.state == old_state.state:
             return try_window_condition
 
@@ -436,7 +436,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 "is_window_bypass": self._is_window_bypass,
                 "window_sensor_entity_id": self._window_sensor_entity_id,
                 "window_delay_sec": self._window_delay_sec,
-                "window_delay_off_sec": self._window_delay_off_sec,
+                "window_off_delay_sec": self._window_off_delay_sec,
                 "is_window_configured": self._is_configured,
                 "is_window_auto_configured": self._is_window_auto_configured,
                 "window_auto_open_threshold": self._window_auto_open_threshold,
@@ -520,9 +520,9 @@ class FeatureWindowManager(BaseFeatureManager):
         return self._window_delay_sec
 
     @property
-    def window_delay_off_sec(self) -> bool:
+    def window_off_delay_sec(self) -> bool:
         """Return the window off delay"""
-        return self._window_delay_off_sec
+        return self._window_off_delay_sec
 
     @property
     def window_action(self) -> bool:
