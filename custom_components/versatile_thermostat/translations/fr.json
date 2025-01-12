@@ -499,7 +499,7 @@
         "thermostat_central_config": "Configuration centrale",
         "thermostat_over_switch": "Thermostat sur un switch",
         "thermostat_over_climate": "Thermostat sur un autre thermostat",
-        "thermostat_over_valve": "Thermostat sur une valve"
+        "thermostat_over_valve": "Thermostat sur une vanne"
       }
     },
     "auto_regulation_mode": {

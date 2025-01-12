@@ -21,7 +21,8 @@ The installation should be similar to the `over_switch` VTherm setup, except tha
 
 ## Configuration
 
-Click on the "Underlying Entities" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
+First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
+Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
 
 ![image](images/config-linked-entity3.png)
 

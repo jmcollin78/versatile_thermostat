@@ -26,7 +26,8 @@ L'installation doit ressembler à ça :
 
 ## Configuration
 
-Cliquer sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
+Configurez d'abord les paramètres principaux et communs à tous les _VTherm_ (cf. [paramètres principaux](base-attributes.md)).
+Cliquez ensuite sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
 
 ![image](images/config-linked-entity2.png)
 

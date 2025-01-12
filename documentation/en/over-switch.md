@@ -26,7 +26,8 @@ The installation should look like this:
 
 ## Configuration
 
-Click on the "Underlying Entities" option from the menu, and you will see this configuration page:
+First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
+Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
 
 ![image](images/config-linked-entity.png)
 
