@@ -256,8 +256,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 )
 
         self._last_regulation_change = self.now
+        self.reset_last_change_time_from_vtherm()
 
-        _LOGGER.debug("%s - last_regulation_change is now: %s", self, self._last_regulation_change)
+        _LOGGER.debug(
+            "%s - last_regulation_change is now: %s and last_change_from_vtherm is now: %s", self, self._last_regulation_change, self._last_change_time_from_vtherm
+        )  # pylint: disable=protected-access
 
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()

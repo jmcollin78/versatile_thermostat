@@ -833,7 +833,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             and under.last_sent_temperature is not None
         ):
             _LOGGER.debug(
-                "Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
+                "%s - Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
+                self,
                 under.last_sent_temperature,
                 new_target_temp,
             )
