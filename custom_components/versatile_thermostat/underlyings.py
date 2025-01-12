@@ -635,6 +635,9 @@ class UnderlyingClimate(UnderlyingEntity):
         data = {
             ATTR_ENTITY_ID: self._entity_id,
         }
+
+        _LOGGER.info("%s - Set setpoint temperature to: %s", self, target_temp)
+
         # Issue 807 add TARGET_TEMPERATURE only if in the features
         if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self._underlying_climate.supported_features:
             data.update(
@@ -654,6 +657,7 @@ class UnderlyingClimate(UnderlyingEntity):
         )
 
         self._last_sent_temperature = target_temp
+        _LOGGER.debug("%s - Last_sent_temperature is now: %s", self, self._last_sent_temperature)
 
     @property
     def last_sent_temperature(self) -> float | None:

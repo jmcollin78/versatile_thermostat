@@ -255,6 +255,10 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                     self._attr_min_temp,
                 )
 
+        self._last_regulation_change = self.now
+
+        _LOGGER.debug("%s - last_regulation_change is now: %s", self, self._last_regulation_change)
+
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()
 
@@ -262,11 +266,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     def have_valve_regulation(self) -> bool:
         """True if the Thermostat is regulated by valve"""
         return True
-
-    # @property
-    # def hvac_modes(self) -> list[HVACMode]:
-    #    """Get the hvac_modes"""
-    #    return self._hvac_list
 
     @property
     def valve_open_percent(self) -> int:
