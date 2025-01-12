@@ -303,6 +303,10 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
+        if not self.my_climate or not hasattr(self.my_climate, "valve_open_percent"):
+            _LOGGER.warning("%s - my_climate not found or no valve_open_percent property found. This could be normal at startup. Ignore the underlying device change.", self)
+            return
+
         old_state = self._attr_native_value
         self._attr_native_value = self.my_climate.valve_open_percent
         if old_state != self._attr_native_value:
