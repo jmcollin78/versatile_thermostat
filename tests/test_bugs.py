@@ -398,7 +398,8 @@ async def test_bug_407(
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
 
-    # 3. if heater is stopped (is_device_active==False) and power is over max, then overpowering should be started
+    # 3. Evenif heater is stopped (is_device_active==False) and power is over max, then overpowering should be started
+    # due to check before start heating
     side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 150))
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
@@ -413,18 +414,18 @@ async def test_bug_407(
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-        # change preset to Boost
+        # change preset to Comfort
         await entity.async_set_preset_mode(PRESET_COMFORT)
-        # waits that the heater starts
+        # waits the eventual heater starts
         await asyncio.sleep(0.1)
 
-        # simulate a refresh for central power (not necessary)
-        await do_central_power_refresh(hass)
+        # simulate a refresh for central power (not necessary because it is checked before start)
+        # await do_central_power_refresh(hass)
 
-        assert entity.power_manager.is_overpowering_detected is False
+        assert entity.power_manager.is_overpowering_detected is True
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_COMFORT
-        assert entity.power_manager.overpowering_state is STATE_OFF
+        assert entity.preset_mode is PRESET_POWER
+        assert entity.power_manager.overpowering_state is STATE_ON
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

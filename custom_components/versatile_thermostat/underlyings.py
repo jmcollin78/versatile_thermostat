@@ -330,7 +330,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
 
         if not await self.check_overpowering():
-            return
+            return False
 
         command = SERVICE_TURN_ON if not self.is_inversed else SERVICE_TURN_OFF
         domain = self._entity_id.split(".")[0]
@@ -339,6 +339,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 data = {ATTR_ENTITY_ID: self._entity_id}
                 await self._hass.services.async_call(domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
+                return True
             except Exception:
                 self._keep_alive.cancel()
                 raise
@@ -442,7 +443,8 @@ class UnderlyingSwitch(UnderlyingEntity):
                 time // 60,
                 time % 60,
             )
-            await self.turn_on()
+            if not await self.turn_on():
+                return
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
         self._async_cancel_cycle = self.call_later(

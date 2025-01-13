@@ -11,6 +11,7 @@ The behavior of this feature is as follows:
 1. When a new measurement of the home's power consumption or the maximum allowed power is received,
 2. If the maximum power is exceeded, the central command will shed the load of all active devices starting with those closest to the setpoint. This continues until enough _VTherms_ are shed,
 3. If there is available power reserve and some _VTherms_ are shed, the central command will re-enable as many devices as possible, starting with those furthest from the setpoint (at the time they were shed).
+4. When a _VTherm_ starts, a check is performed to determine if the declared power is available. If not, the _VTherm_ is put into shed mode.
 
 **WARNING:** This is **not a safety feature** but an optimization function to manage consumption at the expense of some heating degradation. Overconsumption is still possible depending on the frequency of your consumption sensor updates and the actual power used by your equipment. Always maintain a safety margin.
 
