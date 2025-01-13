@@ -195,6 +195,16 @@ class UnderlyingEntity:
         self._cancel_cycle()
         await self.turn_off()
 
+    async def check_overpowering(self) -> bool:
+        """Check that a underlying can be turned on, else
+        activate the overpowering state of the VTherm associated.
+        Returns True if the check is ok (no overpowering needed)"""
+        if not await self._thermostat.power_manager.check_power_available():
+            _LOGGER.debug("%s - overpowering is detected", self)
+            await self._thermostat.power_manager.set_overpowering(True)
+            return False
+        return True
+
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -318,6 +328,10 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Turn heater toggleable device on."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
+
+        if not await self.check_overpowering():
+            return
+
         command = SERVICE_TURN_ON if not self.is_inversed else SERVICE_TURN_OFF
         domain = self._entity_id.split(".")[0]
         try:
@@ -413,10 +427,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             if self.is_device_active:
                 await self.turn_off()
             return
-
-        # if await self._thermostat.power_manager.check_overpowering():
-        #     _LOGGER.debug("%s - End of cycle (3)", self)
-        #     return
 
         # safety mode could have change the on_time percent
         await self._thermostat.safety_manager.refresh_state()
@@ -555,6 +565,10 @@ class UnderlyingClimate(UnderlyingEntity):
                 self,
                 self._underlying_climate.hvac_mode,
             )
+            return False
+
+        # When turning on a climate, check that power is available
+        if hvac_mode in (HVACMode.HEAT, HVACMode.COOL) and not await self.check_overpowering():
             return False
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": hvac_mode}
