@@ -4,7 +4,10 @@ about: Create a report to help us improve
 
 ---
 
-> Please read carefuly this instructions and fill this form before writing an issue. It helps me to help you.
+# Read this carefully
+
+> Please read carefully this instructions and fill this form before writing an issue. It helps me to help you.
+> If you choose to not follow this template, you accept to have no answer from the author. The tag on the issue 'Template not respected' means you don't respect this template. Potentially, you will not have a relevant answer.
 
 <!-- This template will allow the maintainer to be efficient and post the more accurante response as possible. There is many types / modes / configuration possible, so the analysis can be very tricky. If don't follow this template, your issue could be rejected without any message. Please help me to help you. -->
 
@@ -12,7 +15,7 @@ about: Create a report to help us improve
 
 If you have a simple question or you are not sure this is an issue, don't open an issue but open a new discussion [here](https://github.com/jmcollin78/versatile_thermostat/discussions).
 
-Check also in the [Troubleshooting](#troubleshooting) paragrah of the README if the aswer is not already given.
+Check also in the [Troubleshooting] paragrah of the README if the aswer is not already given.
 
 Issues not containing the minimum requirements will be closed:
 
