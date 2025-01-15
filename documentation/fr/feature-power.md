@@ -10,6 +10,7 @@ Le comportement de cette fonction est le suivant :
 1. lorsqu'une nouvelle mesure de la puissance consommée du logement ou de la puissance maximale autorisée est reçue,
 2. si la puissance max est dépassée, la commande centrale va mettre en délestage tous les équipements actifs en commençant par ceux qui sont le plus près de la consigne. Il fait ça jusqu'à ce que suffisament de _VTherm_ soient délestés,
 3. si une réserve de puissance est disponible et que des _VTherms_ sont délestés, alors la commande centrale va délester autant d'équipements que possible en commençant par les plus loin de la consigne (au moment où il a été mis en délestage),
+4. au démarrage d'un _VTherm_, une vérification est effectuée pour savoir si la puissance déclarée est disponible. Si non, le _VTherm_ est passé en délestage.
 
 ATTENTION: ce fonctionnement **n'est pas une fonction de sécurité** mais plus une fonction permettant une optimisation de la consommation au prix d'une dégradation du chauffage. Des dépassements sont possibles selon la fréquence de remontée de vos capteurs de consommation, la puissance réellement utilisée par votre équipements. Vous devez donc toujours garder une marge de sécurité.
 
