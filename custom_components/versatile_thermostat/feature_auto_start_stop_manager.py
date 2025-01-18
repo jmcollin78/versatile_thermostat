@@ -70,6 +70,10 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
             self._auto_start_stop_level, self.name
         )
 
+        # Fix an eventual incoherent state
+        if self._vtherm.is_on and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
+            self._vtherm.hvac_off_reason = None
+
     @overrides
     async def start_listening(self):
         """Start listening the underlying entity"""
