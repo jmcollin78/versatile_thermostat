@@ -1067,9 +1067,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         save_state()
 
     @overrides
-    async def async_set_preset_mode(
-        self, preset_mode: str, overwrite_saved_preset=True
-    ):
+    async def async_set_preset_mode(self, preset_mode: str, overwrite_saved_preset=True):
         """Set new preset mode."""
 
         # We accept a new preset when:
@@ -1097,14 +1095,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             return
 
-        await self.async_set_preset_mode_internal(
-            preset_mode, force=False, overwrite_saved_preset=overwrite_saved_preset
-        )
+        await self.async_set_preset_mode_internal(preset_mode, force=False, overwrite_saved_preset=overwrite_saved_preset)
         await self.async_control_heating(force=True)
 
-    async def async_set_preset_mode_internal(
-        self, preset_mode: str, force=False, overwrite_saved_preset=True
-    ):
+    async def async_set_preset_mode_internal(self, preset_mode: str, force=False, overwrite_saved_preset=True):
         """Set new preset mode."""
         _LOGGER.info("%s - Set preset_mode: %s force=%s", self, preset_mode, force)
         if (
@@ -1573,9 +1567,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 and HVACMode.HEAT in self.hvac_modes
             ):
                 await self.async_set_hvac_mode(HVACMode.HEAT)
-                await self.async_set_preset_mode(
-                    PRESET_FROST_PROTECTION, overwrite_saved_preset=False
-                )
+                await self.async_set_preset_mode(PRESET_FROST_PROTECTION, overwrite_saved_preset=False)
             else:
                 self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
                 await self.async_set_hvac_mode(HVACMode.OFF)
@@ -1800,9 +1792,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
         if preset.startswith(self._attr_preset_mode):
-            await self.async_set_preset_mode_internal(
-                preset.rstrip(PRESET_AC_SUFFIX), force=True
-            )
+            await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX), force=True)
             await self.async_control_heating(force=True)
 
     async def SERVICE_SET_SAFETY(

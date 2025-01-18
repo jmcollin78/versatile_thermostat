@@ -3,7 +3,7 @@
 import logging
 from datetime import timedelta, datetime
 
-from homeassistant.const import STATE_ON
+from homeassistant.const import STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -614,7 +614,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         # Find the underlying which have change
-        under = self.find_underlying_by_entity_id(new_state.entity_id)
+        under: UnderlyingClimate = self.find_underlying_by_entity_id(new_state.entity_id)
 
         if not under:
             _LOGGER.warning(
@@ -626,6 +626,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         new_hvac_mode = new_state.state
 
         old_state = event.data.get("old_state")
+
+        # Issue #829 - refresh underlying command if it comes back to life
+        if old_state is not None and new_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN) and old_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            _LOGGER.warning("%s - underlying %s come back to life. New state=%s, old_state=%s. Will refresh its status", self, under.entity_id, new_state.state, old_state.state)
+            # Force hvac_mode and target temperature
+            await under.set_hvac_mode(self.hvac_mode)
+            await self._send_regulated_temperature(force=True)
+
+            return
+
         old_hvac_action = (
             old_state.attributes.get("hvac_action")
             if old_state and old_state.attributes
