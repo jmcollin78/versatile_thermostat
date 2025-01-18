@@ -1233,3 +1233,111 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL
         assert vtherm._saved_hvac_mode == HVACMode.OFF
         assert mock_send_event.call_count == 0  # nothing have change
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_underlying_from_comes_back_to_life(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when a underlying climate comes back to life (from unkwown or unavailable) the last state is send"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_NONE,
+            CONF_AC_MODE: True,
+        },  # 5 minutes security delay
+    )
+
+    # Underlying is in HEAT mode but should be shutdown at startup
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, HVACMode.COOL, HVACAction.COOLING)
+
+    # 1. initialize the vtherm in COOL with Boost
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",return_value=fake_underlying_climate) as mock_find_climate:
+    # fmt: on
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures_ac)
+
+        assert entity
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+
+        # Set hvac_mode to COOL
+        await entity.async_set_hvac_mode(HVACMode.COOL)
+        await entity.async_set_preset_mode(PRESET_BOOST)
+
+        # it is very hot today
+        await send_temperature_change_event(entity, 27, now, False)
+        await send_ext_temperature_change_event(entity, 35, now, False)
+        await hass.async_block_till_done()
+
+        assert entity.hvac_mode is HVACMode.COOL
+        # because in MockClimate HVACAction is HEATING if hvac_mode is not set
+        assert entity.hvac_action is HVACAction.COOLING
+        assert entity.preset_mode is PRESET_BOOST
+        assert entity.target_temperature == 23
+
+
+    # 2. send under state event comes back from life
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_underlying_set_hvac_mode, \
+        patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_temperature") as mock_underlying_set_temperature:
+    # fmt: on
+        now  = now + timedelta(minutes=2)
+        # 2. Change the target temp of underlying thermostat at now -> the event will be disgarded because to fast (to avoid loop cf issue 121)
+        await send_climate_change_event_with_temperature(
+            entity,
+            HVACMode.HEAT,
+            STATE_UNKNOWN,
+            HVACAction.OFF,
+            STATE_UNKNOWN,
+            now,
+            entity.min_temp + 1,
+            True,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+
+        assert mock_underlying_set_hvac_mode.call_count == 1
+        mock_underlying_set_hvac_mode.assert_has_calls(
+            [
+                call.set_hvac_mode(HVACMode.COOL),
+            ]
+        )
+
+        assert mock_underlying_set_temperature.call_count == 1
+        mock_underlying_set_temperature.assert_has_calls(
+            [
+                call.set_temperature(23, 30, 15),
+            ]
+        )
+
+
+        # Nothing should have changed
+        assert entity.target_temperature == 23
+        assert entity.preset_mode is PRESET_BOOST
+        assert entity.hvac_mode is HVACMode.COOL
