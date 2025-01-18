@@ -4,6 +4,7 @@
 - [Dépannages](#dépannages)
   - [Utilisation d'un Heatzy](#utilisation-dun-heatzy)
   - [Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)](#utilisation-dun-radiateur-avec-un-fil-pilote-nodon-sin-4-fp-21)
+  - [Utilisation d'un système Netatmo](#utilisation-dun-système-netatmo)
   - [Seul le premier radiateur chauffe](#seul-le-premier-radiateur-chauffe)
   - [Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne](#le-radiateur-chauffe-alors-que-la-température-de-consigne-est-dépassée-ou-ne-chauffe-pas-alors-que-la-température-de-la-pièce-est-bien-en-dessous-de-la-consigne)
     - [Type `over_switch` ou `over_valve`](#type-over_switch-ou-over_valve)
@@ -83,6 +84,15 @@ Exemple :
           option: eco
 ```
 Un exemple plus complet est [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+
+## Utilisation d'un système Netatmo
+Le système à base de TRV Netatmo fonctionne mal avec _VTherm_. Vous avez ici une discussion sur le fonctionnement particulier des systèmes Netatmo (en Français) : https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063
+Cependant certains ont réussi une intégration _VTerm_ Netatmo en intégrant un switch virtuel entre _VTherm_ et le `climate` Netatmo suivant :
+```
+TODO add virtual switch code
+```
+
+
 
 ## Seul le premier radiateur chauffe
 
@@ -211,3 +221,8 @@ Attention, en mode debug Versatile Thermostat est très verbeux et peut vite ral
 ## VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)
 
 Voir le détail de cette fonction [ici](over-climate.md#suivre-les-changements-de-température-du-sous-jacent).
+
+## VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'
+
+Certaine _PAC_ réversibles ont des modes qui permettent de laisser le choix à la _PAC_ de chauffer ou de réfroidir. Ces modes sont 'Auto' or 'Heat_cool' selon les marques. Ces 2 modes ne doivent pas être utilisés avec _VTherm_ car les algorithmes de _VTherm_ ont besoin de savoir si ils sont en mode chauffe ou refroidissement ce que ne permettent pas ces modes.
+Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _Vtherm)

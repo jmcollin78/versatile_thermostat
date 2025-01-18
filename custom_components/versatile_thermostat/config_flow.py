@@ -318,9 +318,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if infos.get(CONF_UNDERLYING_LIST, None) is not None and not infos.get(
-                CONF_UNDERLYING_LIST, None
-            ):
+            # checks that at least one underlying is set but not it central configuration
+            if len(infos.get(CONF_UNDERLYING_LIST, [])) < 1:
                 return False
 
             if (
@@ -901,10 +900,42 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         return await self.generic_step("advanced", schema, user_input, next_step)
 
     async def async_step_finalize(self, _):
-        """Should be implemented by Leaf classes"""
-        raise HomeAssistantError(
-            "async_finalize not implemented on VersatileThermostat sub-class"
-        )
+        """Finalize the creation. Should be overriden by underlyings"""
+        if not self._infos[CONF_USE_WINDOW_FEATURE]:
+            self._infos[CONF_USE_WINDOW_CENTRAL_CONFIG] = False
+            if CONF_WINDOW_SENSOR in self._infos:
+                del self._infos[CONF_WINDOW_SENSOR]
+            if CONF_WINDOW_AUTO_CLOSE_THRESHOLD in self._infos:
+                del self._infos[CONF_WINDOW_AUTO_CLOSE_THRESHOLD]
+            if CONF_WINDOW_AUTO_OPEN_THRESHOLD in self._infos:
+                del self._infos[CONF_WINDOW_AUTO_OPEN_THRESHOLD]
+            if CONF_WINDOW_AUTO_MAX_DURATION in self._infos:
+                del self._infos[CONF_WINDOW_AUTO_MAX_DURATION]
+        if not self._infos[CONF_USE_MOTION_FEATURE]:
+            self._infos[CONF_USE_MOTION_CENTRAL_CONFIG] = False
+            if CONF_MOTION_SENSOR in self._infos:
+                del self._infos[CONF_MOTION_SENSOR]
+        if not self._infos[CONF_USE_POWER_FEATURE]:
+            self._infos[CONF_USE_POWER_CENTRAL_CONFIG] = False
+            if CONF_POWER_SENSOR in self._infos:
+                del self._infos[CONF_POWER_SENSOR]
+            if CONF_MAX_POWER_SENSOR in self._infos:
+                del self._infos[CONF_MAX_POWER_SENSOR]
+        if not self._infos[CONF_USE_PRESENCE_FEATURE]:
+            self._infos[CONF_USE_PRESENCE_CENTRAL_CONFIG] = False
+            if CONF_PRESENCE_SENSOR in self._infos:
+                del self._infos[CONF_PRESENCE_SENSOR]
+        if not self._infos[CONF_USE_CENTRAL_BOILER_FEATURE]:
+            if CONF_CENTRAL_BOILER_ACTIVATION_SRV in self._infos:
+                del self._infos[CONF_CENTRAL_BOILER_ACTIVATION_SRV]
+            if CONF_CENTRAL_BOILER_DEACTIVATION_SRV in self._infos:
+                del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
+        if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
+            self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+
+        # Removes temporary value
+        if COMES_FROM in self._infos:
+            del self._infos[COMES_FROM]
 
 
 class VersatileThermostatConfigFlow(  # pylint: disable=abstract-method
@@ -928,9 +959,8 @@ class VersatileThermostatConfigFlow(  # pylint: disable=abstract-method
     async def async_step_finalize(self, _):
         """Finalization of the ConfigEntry creation"""
         _LOGGER.debug("ConfigFlow.async_finalize")
-        # Removes temporary value
-        if COMES_FROM in self._infos:
-            del self._infos[COMES_FROM]
+        await super().async_step_finalize(_)
+
         return self.async_create_entry(title=self._infos[CONF_NAME], data=self._infos)
 
 
@@ -968,37 +998,13 @@ class VersatileThermostatOptionsFlowHandler(
 
     async def async_step_finalize(self, _):
         """Finalization of the ConfigEntry creation"""
-        if not self._infos[CONF_USE_WINDOW_FEATURE]:
-            self._infos[CONF_USE_WINDOW_CENTRAL_CONFIG] = False
-            self._infos[CONF_WINDOW_SENSOR] = None
-            self._infos[CONF_WINDOW_AUTO_CLOSE_THRESHOLD] = None
-            self._infos[CONF_WINDOW_AUTO_OPEN_THRESHOLD] = None
-            self._infos[CONF_WINDOW_AUTO_MAX_DURATION] = None
-        if not self._infos[CONF_USE_MOTION_FEATURE]:
-            self._infos[CONF_USE_MOTION_CENTRAL_CONFIG] = False
-            self._infos[CONF_MOTION_SENSOR] = None
-        if not self._infos[CONF_USE_POWER_FEATURE]:
-            self._infos[CONF_USE_POWER_CENTRAL_CONFIG] = False
-            self._infos[CONF_POWER_SENSOR] = None
-            self._infos[CONF_MAX_POWER_SENSOR] = None
-        if not self._infos[CONF_USE_PRESENCE_FEATURE]:
-            self._infos[CONF_USE_PRESENCE_CENTRAL_CONFIG] = False
-            self._infos[CONF_PRESENCE_SENSOR] = None
-        if not self._infos[CONF_USE_CENTRAL_BOILER_FEATURE]:
-            self._infos[CONF_CENTRAL_BOILER_ACTIVATION_SRV] = None
-            self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV] = None
-        if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
-            self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
 
         _LOGGER.info(
             "Recreating entry %s due to configuration change. New config is now: %s",
             self.config_entry.entry_id,
             self._infos,
         )
-
-        # Removes temporary value
-        if COMES_FROM in self._infos:
-            del self._infos[COMES_FROM]
+        await super().async_step_finalize(_)
 
         self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
         return self.async_create_entry(title=None, data=None)

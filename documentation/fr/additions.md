@@ -5,6 +5,7 @@
   - [Composant Scheduler !](#composant-scheduler-)
   - [Courbes de régulattion avec Plotly](#courbes-de-régulattion-avec-plotly)
   - [Les notification avec l'AappDaemon NOTIFIER](#les-notification-avec-laappdaemon-notifier)
+  - [Une très belle carte (merci @Jeffodilo)](#une-très-belle-carte-merci-jeffodilo)
 
 
 ## Versatile Thermostat UI Card
@@ -212,5 +213,276 @@ action:
               persistent: true
 mode: queued
 max: 30
+```
+</details>
+
+## Une très belle carte (merci @Jeffodilo)
+
+@Jeffodilo a réalisé et partagé le code d'une très belle carte adaptée au TRV :
+
+![carte Jeffodilo](images/card-trv-jeffodilo.png)
+
+Cette carte n’utilise pas card_mod, elle utilise les cartes custom assez courante suivantes
+On garde une partie de l’interface UI, sauf pour l’horizontale de la 2ème ligne
+- custom:vertical-stack-in-card
+- custom:stack-in-card
+- custom:mini-graph-card
+- custom:mushroom-template-card
+- custom:button-card
+
+L'original est ici (En Français): [forum HACF](https://forum.hacf.fr/t/carte-mise-en-forme-vanne-avec-thermostant-versatile/56132)
+
+Evidemment, vous devez l'adapter à votre code.
+
+Le code:
+
+<details>
+
+```yaml
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:bed-double
+    heading: Parents
+    heading_style: title
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.sonde_parents_temperature
+            name: Température
+            state_adaptive_color: true
+          - entity: climate.valve_parents
+            name: Temp
+            attribute: current_temperature
+            unit: °C
+            state_adaptive_color: true
+            show_graph: false
+            show_state: true
+        hour24: true
+        hours_to_show: 24
+        points_per_hour: 2
+        font_size: 50
+        show:
+          name: false
+          icon: false
+          legend: false
+          labels: true
+          extrema: false
+        color_thresholds:
+          - color: "#33ccff"
+            value: 19
+          - color: "#00ffff"
+            value: 19.5
+          - color: "#33ffcc"
+            value: 20
+          - color: "#00ff99"
+            value: 20.5
+          - color: "#ffff99"
+            value: 21
+          - color: "#ffff33"
+            value: 21.5
+          - color: "#ff9933"
+            value: 22
+          - color: "#cc6633"
+            value: 24
+          - color: "#ff6000"
+            value: 26
+      - type: custom:stack-in-card
+        mode: horizontal
+        cards:
+          - type: custom:mushroom-template-card
+            secondary: ""
+            layout: horizontal
+            tap_action:
+              action: more-info
+            entity: sensor.sonde_parents_temperature
+            fill_container: false
+            multiline_secondary: false
+            primary: >-
+              {% if is_state_attr('climate.versatile_parents','hvac_action',
+              'idle') %}
+               🗜️ {{ states('number.valve_parents_valve_opening_degree', with_unit=True,)}} |🔋{{ states('sensor.valve_parents_battery') }} % | Inactif
+              {% elif  is_state_attr('climate.versatile_parents','hvac_action',
+              'heating') %}
+               🗜️ {{ states('number.valve_parents_valve_opening_degree', with_unit=True,)}} |🔋{{ states('sensor.valve_parents_battery') }} % | Chauffe
+              {% else %} 🗜️ {{
+              states('number.valve_parents_valve_opening_degree',
+              with_unit=True,)}} | 🔋{{ states('sensor.valve_parents_battery')
+              }} % | Off {% endif %}
+            icon: ""
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                name: Conf.
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:fire
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'comfort')
+                            return 'darkorange';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: comfort
+              - type: custom:button-card
+                name: Eco
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:leaf
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'eco')
+                            return 'lightgreen';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: eco
+              - type: custom:button-card
+                name: Manu
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:hand-back-left
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'none')
+                            return 'indianred';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: none
+              - type: custom:button-card
+                name: Abs.
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:snowflake
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'frost')
+                            return 'skyblue';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: frost
+              - type: custom:button-card
+                name: Boost
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:rocket-launch
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'boost')
+                            return 'red';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: boost
+      - type: custom:mushroom-climate-card
+        entity: climate.versatile_parents
+        show_temperature_control: true
+        hvac_modes: []
+        tap_action:
+          action: more-info
+        primary_info: state
+        icon: mdi:radiator
+        secondary_info: last-updated
+        fill_container: false
+        layout: horizontal
 ```
 </details>
