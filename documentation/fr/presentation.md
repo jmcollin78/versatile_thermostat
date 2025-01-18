@@ -33,11 +33,12 @@ Toutes ces fonctions sont configurables de façon centralisée ou individuelle e
 
 ## Incompatibilités
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
-1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le VTherm,
+1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le _VTherm_,
 2. Les thermostats « Homematic » (et éventuellement Homematic IP) sont connus pour rencontrer des problèmes avec le Versatile Thermostat en raison des limitations du protocole RF sous-jacent. Ce problème se produit particulièrement lorsque vous essayez de contrôler plusieurs thermostats Homematic à la fois dans une seule instance de VTherm. Afin de réduire la charge du cycle de service, vous pouvez par ex. regroupez les thermostats avec des procédures spécifiques à Homematic (par exemple en utilisant un thermostat mural) et laissez Versatile Thermostat contrôler uniquement le thermostat mural directement. Une autre option consiste à contrôler un seul thermostat et à propager les changements de mode CVC et de température par un automatisme,
 3. les thermostats de type Heatzy qui ne supportent pas les commandes de type set_temperature
 4. les thermostats de type Rointe ont tendance a se réveiller tout seul. Le reste fonctionne normalement.
 5. les TRV de type Aqara SRTS-A01 et MOES TV01-ZB qui n'ont pas le retour d'état `hvac_action` permettant de savoir si elle chauffe ou pas. Donc les retours d'état sont faussés, le reste à l'air fonctionnel.
 6. La clim Airwell avec l'intégration "Midea AC LAN". Si 2 commandes de VTherm sont trop rapprochées, la clim s'arrête d'elle même.
 7. Les climates basés sur l'intégration Overkiz ne fonctionnent pas. Il parait impossible d'éteindre ni même de changer la température sur ces systèmes.
+8. Les systèmes de chauffage basés sur Netatmo fonctionnent mal. Les plannings Netatmo viennent en concurrence de la programmation _VTherm_. Les sous-jacents Netatmo repasse en mode `Auto` tout le temps et ce mode est très mal géré avec _VTherm_ qui ne peut pas savoir si le sysème chauffe ou refroidit et donc quel algorithme choisir. Certains ont quand même réussi à le faire fonctionner avec un switch virtuel entre le _VTherm_ et le sous-jacent mais sans garantie de stabilité. Un exemple est donné dans la section [dépannage](troubleshooting.md)
 

@@ -4,6 +4,7 @@
 - [Troubleshooting](#troubleshooting)
   - [Using a Heatzy](#using-a-heatzy)
   - [Using a radiator with a pilot wire (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
+  - [Using a Netatmo System](#using-a-netatmo-system)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
   - [The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
     - [Type `over_switch` or `over_valve`](#type-over_switch-or-over_valve)
@@ -16,6 +17,7 @@
   - [Using a Group of People as a Presence Sensor](#using-a-group-of-people-as-a-presence-sensor)
   - [Enable Logs for the Versatile Thermostat](#enable-logs-for-the-versatile-thermostat)
   - [VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
+  - [VTherm Automatically Switches to 'Cooling' or 'Heating' Mode](#vtherm-automatically-switches-to-cooling-or-heating-mode)
 
 
 ## Using a Heatzy
@@ -84,6 +86,17 @@ Example:
 ```
 
 Another more complex example is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+
+## Using a Netatmo System
+
+The system based on Netatmo TRVs does not work well with _VTherm_. You can find a discussion about the specific behavior of Netatmo systems (in French) here: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
+
+However, some users have successfully integrated _VTherm_ with Netatmo by incorporating a virtual switch between _VTherm_ and the Netatmo `climate` entity, as follows:
+
+```
+TODO
+```
+
 
 ## Only the first radiator heats
 
@@ -214,3 +227,9 @@ Be careful, in debug mode, Versatile Thermostat is very verbose and can quickly 
 ## VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)
 
 See the details of this feature [here](over-climate.md#track-underlying-temperature-changes).
+
+## VTherm Automatically Switches to 'Cooling' or 'Heating' Mode
+
+Some reversible heat pumps have modes that allow the heat pump to decide whether to heat or cool. These modes are labeled as 'Auto' or 'Heat_cool' depending on the brand. These two modes should not be used with _VTherm_ because _VTherm_'s algorithms require explicit knowledge of whether the system is in heating or cooling mode, which these modes do not provide.
+
+You should only use the following modes: `Heat`, `Cool`, `Off`, or optionally `Fan` (although `Fan` has no practical purpose with _VTherm_).

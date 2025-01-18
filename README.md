@@ -34,6 +34,12 @@ A big thank you to all my beer sponsors for their donations and encouragements. 
 
   _AC_: Air Conditioning. An AC device cools instead of heats. Temperatures are reversed: Eco is warmer than Comfort, which is warmer than Boost. The algorithms take this information into account.
 
+  _EMA_: Exponential Moving Average. Used to smooth sensor temperature measurements. It represents a moving average of the room's temperature and is used to calculate the slope of the temperature curve, which would be too unstable on the raw data.
+
+  _slope_: The slope of the temperature curve, measured in ° (C or K)/h. It is positive when the temperature increases and negative when it decreases. This slope is calculated based on the _EMA_.
+
+  _PAC_ : Heat pump
+
 # Documentation
 
 The documentation is now divided into several pages for easier reading and searching:

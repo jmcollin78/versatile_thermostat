@@ -35,6 +35,12 @@ Un grand merci à tous mes fournisseurs de bières pour leurs dons et leurs enco
 
   _AC_ : Air conditionné. Un équipement est AC si il fait du froid. Les températures sont alors inversées : Eco est plus chaud que Confort qui est plus chaud que Boost. Les algorithmes tiennent compte de cette information.
 
+  _EMA_ : Exponential Moving Average. Utilisé pour lisser les mesures de températures de capteur. Elle correspond à une moyenne glissante de la température de la pièce. Elle est utilisée pour calculer la pente de la courbe de température (slope) qui serait trop instable sur la courbe brute.
+
+  _slope_ : la pente de la courbe de température. Elle est mesurée en °(C ou K)/h. Elle est positive si la température augmente et négative si elle diminue. Cette pente est calculée sur l'_EMA_
+
+  _PAC_ : Pompe à chaleur
+
 # Documentation
 
 La documentation est maintenant découpée en plusieurs pages pour faciliter la lecture et la recherche d'informations :
