@@ -287,6 +287,7 @@ async def test_user_config_flow_over_switch(
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
         }
     )
     assert result["result"]
@@ -492,9 +493,7 @@ async def test_user_config_flow_over_climate(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result.get("errors") is None
-    assert result[
-        "data"
-    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
+    assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
@@ -517,6 +516,7 @@ async def test_user_config_flow_over_climate(
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
+        CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1378,6 +1378,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
         }
     )
     assert result["result"]
@@ -1681,9 +1682,7 @@ async def test_user_config_flow_over_climate_valve(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result.get("errors") is None
-    assert result[
-        "data"
-    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
+    assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
@@ -1717,6 +1716,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_TPI_COEF_INT: 0.3,
         CONF_TPI_COEF_EXT: 0.1,
         CONF_MIN_OPENING_DEGREES: "10, 20,0",
+        CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
