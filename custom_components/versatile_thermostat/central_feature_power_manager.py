@@ -47,6 +47,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._current_max_power: float = None
         self._power_temp: float = None
         self._cancel_calculate_shedding_call = None
+        self._started_vtherm_total_power: float = None
         # Not used now
         self._last_shedding_date = None
 
@@ -71,6 +72,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
             and self._power_temp
         ):
             self._is_configured = True
+            self._started_vtherm_total_power = 0
         else:
             _LOGGER.info("Power management is not fully configured and will be deactivated")
 
@@ -102,6 +104,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         """Handle power changes."""
         _LOGGER.debug("Receive new Power event")
         _LOGGER.debug(event)
+
+        self._started_vtherm_total_power = 0
         await self.refresh_state()
 
     @callback
@@ -275,6 +279,12 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         vtherms.sort(key=cmp_to_key(cmp_temps))
         return vtherms
 
+    def add_started_vtherm_total_power(self, started_power: float):
+        """Add the power into the _started_vtherm_total_power which holds all VTherm started after
+        the last power measurement"""
+        self._started_vtherm_total_power += started_power
+        _LOGGER.debug("%s - started_vtherm_total_power is now %s", self, self._started_vtherm_total_power)
+
     @property
     def is_configured(self) -> bool:
         """True if the FeatureManager is fully configured"""
@@ -304,6 +314,11 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     def max_power_sensor_entity_id(self) -> float | None:
         """Return the max power sensor entity id"""
         return self._max_power_sensor_entity_id
+
+    @property
+    def started_vtherm_total_power(self) -> float | None:
+        """Return the started_vtherm_total_power"""
+        return self._started_vtherm_total_power
 
     def __str__(self):
         return "CentralPowerManager"

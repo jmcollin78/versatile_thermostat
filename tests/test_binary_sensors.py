@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, unused-argument, line-too-long, protected-access
 
 """ Test the normal start of a Thermostat """
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant
@@ -179,7 +179,7 @@ async def test_overpowering_binary_sensors(
     )
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=True):
     # fmt: on
         await send_power_change_event(entity, 150, now)
         await send_max_power_change_event(entity, 100, now)

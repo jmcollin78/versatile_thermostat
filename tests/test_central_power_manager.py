@@ -1,5 +1,6 @@
 # pylint: disable=protected-access, unused-argument, line-too-long
 """ Test the Central Power management """
+import asyncio
 from unittest.mock import patch, AsyncMock, MagicMock, PropertyMock
 from datetime import datetime, timedelta
 import logging
@@ -10,6 +11,14 @@ from custom_components.versatile_thermostat.feature_power_manager import (
 from custom_components.versatile_thermostat.central_feature_power_manager import (
     CentralFeaturePowerManager,
 )
+
+from custom_components.versatile_thermostat.thermostat_switch import (
+    ThermostatOverSwitch,
+)
+from custom_components.versatile_thermostat.thermostat_climate import (
+    ThermostatOverClimate,
+)
+
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -700,3 +709,150 @@ async def test_central_power_manager_max_power_event(
 
         assert central_power_manager.current_max_power == expected_power
         assert mock_calculate_shedding.call_count == nb_call
+
+
+async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
+    """Tests the central power start VTherm power. The objective is to starts VTherm until the power max is exceeded"""
+
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 19,
+    }
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_DEVICE_POWER: 1000,
+            CONF_PRESET_POWER: 12,
+        },
+    )
+
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
+    assert entity
+
+    now: datetime = NowClass.get_now(hass)
+    VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+    central_power_manager = VersatileThermostatAPI.get_vtherm_api().central_power_manager
+    assert central_power_manager
+
+    side_effects = SideEffects(
+        {
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", 1000),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 2100),
+        },
+        State("unknown.entity_id", "unknown"),
+    )
+
+    # 1. Make the heater heats
+    # fmt: off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False):
+    # fmt: on
+        # make the heater heats
+        await send_power_change_event(entity, 1000, now)
+        await send_max_power_change_event(entity, 2100, now)
+
+        await send_temperature_change_event(entity, 15, now)
+        await send_ext_temperature_change_event(entity, 1, now)
+
+        await entity.async_set_preset_mode(PRESET_BOOST)
+        assert entity.preset_mode is PRESET_BOOST
+        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
+        assert entity.target_temperature == 19
+        await hass.async_block_till_done()
+
+        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity.hvac_mode is HVACMode.HEAT
+
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.1)
+
+        # the power of Vtherm should have been added
+        assert central_power_manager.started_vtherm_total_power == 1000
+
+    # 2. Check that another heater cannot heat
+    entry2 = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName2",
+        unique_id="uniqueId2",
+        data={
+            CONF_NAME: "TheOverClimateMockName2",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_DEVICE_POWER: 150,
+            CONF_PRESET_POWER: 12,
+        },
+    )
+
+    entity2: ThermostatOverClimate = await create_thermostat(hass, entry2, "climate.theoverclimatemockname2", temps)
+    assert entity2
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mockUniqueId",
+        name="MockClimateName",
+    )
+
+    # fmt: off
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
+         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",return_value=fake_underlying_climate):
+    # fmt: on
+        # make the heater heats
+        await entity2.async_set_preset_mode(PRESET_COMFORT)
+        assert entity2.preset_mode is PRESET_COMFORT
+        assert entity2.power_manager.overpowering_state is STATE_UNKNOWN
+        assert entity2.target_temperature == 18
+        await entity2.async_set_hvac_mode(HVACMode.HEAT)
+        assert entity2.hvac_mode is HVACMode.HEAT
+
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.1)
+
+        # the power of Vtherm should have not been added (cause it has not started) and the entity2 should be shedding
+        assert central_power_manager.started_vtherm_total_power == 1000
+
+
+        assert entity2.power_manager.overpowering_state is STATE_ON
+
+    # 3. sends a new power sensor event
+    await send_max_power_change_event(entity, 2150, now)
+    # No change
+    assert central_power_manager.started_vtherm_total_power == 1000
+
+    await send_power_change_event(entity, 1010, now)
+    assert central_power_manager.started_vtherm_total_power == 0
