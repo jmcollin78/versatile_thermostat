@@ -1528,8 +1528,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         is_window_detected = self._window_manager.is_window_detected
         if new_central_mode == CENTRAL_MODE_AUTO:
             if not is_window_detected and not first_init:
-                await self.restore_hvac_mode()
-                await self.restore_preset_mode()
+                await self.restore_preset_mode(force=False)
+                await self.restore_hvac_mode(need_control_heating=True)
             elif is_window_detected and self.hvac_mode == HVACMode.OFF:
                 # do not restore but mark the reason of off with window detection
                 self.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)

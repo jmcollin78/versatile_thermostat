@@ -104,7 +104,8 @@ class FeaturePowerManager(BaseFeatureManager):
 
     async def check_power_available(self) -> bool:
         """Check if the Vtherm can be started considering overpowering.
-        Returns True if no overpowering conditions are found
+        Returns True if no overpowering conditions are found.
+        If True the vtherm power is written into the temporay vtherm started
         """
 
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
@@ -116,6 +117,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
+        started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
         if (
             current_power is None
             or current_max_power is None
@@ -146,7 +148,7 @@ class FeaturePowerManager(BaseFeatureManager):
                     self._device_power * self._vtherm.proportional_algorithm.on_percent,
                 )
 
-        ret = (current_power + power_consumption_max) < current_max_power
+        ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
         if not ret:
             _LOGGER.info(
                 "%s - there is not enough power available power=%.3f, max_power=%.3f heater power=%.3f",
@@ -155,6 +157,10 @@ class FeaturePowerManager(BaseFeatureManager):
                 current_max_power,
                 self._device_power,
             )
+        else:
+            # Adds the current_power_max to the started vtherm total power
+            vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
+
         return ret
 
     async def set_overpowering(self, overpowering: bool, power_consumption_max=0):

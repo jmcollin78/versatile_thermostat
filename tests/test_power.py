@@ -523,7 +523,7 @@ async def test_power_management_hvac_on(
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, \
-        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=True):
     # fmt: on
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
@@ -913,12 +913,15 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and HVACMode is on and device is active
+
+    #
+    #
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, \
-        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=True):
     # fmt: on
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
@@ -939,7 +942,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, \
-        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", return_value="True"):
+        patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=True):
     # fmt: on
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)

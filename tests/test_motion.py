@@ -347,22 +347,17 @@ async def test_motion_management_time_not_enough(
         assert entity.presence_state == STATE_ON
 
     # 2. starts detecting motion with time not enough
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=False,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=False
     ) as mock_condition, patch(
         "homeassistant.core.StateMachine.get",
-        return_value=State(
-            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
-        ),
+        return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=4)
         try_condition = await send_motion_change_event(
@@ -387,14 +382,11 @@ async def test_motion_management_time_not_enough(
         assert mock_send_event.call_count == 0
 
     # starts detecting motion with time enough this time
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=False,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -415,22 +407,17 @@ async def test_motion_management_time_not_enough(
         assert entity.presence_state == STATE_ON
 
     # stop detecting motion with off delay too low
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ) as mock_device_active, patch(
         "homeassistant.helpers.condition.state", return_value=False
     ) as mock_condition, patch(
         "homeassistant.core.StateMachine.get",
-        return_value=State(
-            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
-        ),
+        return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=2)
         try_condition = await send_motion_change_event(
@@ -454,14 +441,11 @@ async def test_motion_management_time_not_enough(
         assert mock_send_event.call_count == 0
 
     # stop detecting motion with off delay enough long
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ) as mock_device_active, patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -562,14 +546,11 @@ async def test_motion_management_time_enough_and_presence(
         assert entity.presence_state == "on"
 
     # starts detecting motion
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=False,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -590,14 +571,11 @@ async def test_motion_management_time_enough_and_presence(
         assert mock_send_event.call_count == 0
 
     # stop detecting motion with confirmation of stop
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -693,14 +671,11 @@ async def test_motion_management_time_enough_and_not_presence(
         assert entity.presence_state == STATE_OFF
 
     # starts detecting motion
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=False,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -722,14 +697,11 @@ async def test_motion_management_time_enough_and_not_presence(
         assert mock_send_event.call_count == 0
 
     # stop detecting motion with confirmation of stop
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -826,14 +798,11 @@ async def test_motion_management_with_stop_during_condition(
         assert entity.presence_state == STATE_OFF
 
     # starts detecting motion
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ), patch(
         "homeassistant.helpers.condition.state", return_value=True
@@ -959,12 +928,11 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
     # 1. starts detecting motion but the sensor is off
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ), patch("homeassistant.helpers.condition.state", return_value=False), patch(
         "homeassistant.core.StateMachine.get",
-        return_value=State(
-            entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF
-        ),
+        return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=5)
         try_condition1 = await send_motion_change_event(
@@ -982,12 +950,11 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
     # 2. starts detecting motion but the sensor is on
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ), patch("homeassistant.helpers.condition.state", return_value=False), patch(
         "homeassistant.core.StateMachine.get",
-        return_value=State(
-            entity_id="binary_sensor.mock_motion_sensor", state=STATE_ON
-        ),
+        return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_ON),
     ):
         event_timestamp = now - timedelta(minutes=5)
         try_condition1 = await send_motion_change_event(
