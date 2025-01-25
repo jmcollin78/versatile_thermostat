@@ -1050,7 +1050,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._hvac_mode in [HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL]
             and self.preset_mode != PRESET_NONE
         ):
-            if self.preset_mode != PRESET_FROST_PROTECTION:
+            if self.preset_mode != PRESET_FROST_PROTECTION or self._hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL]:
                 await self.async_set_preset_mode_internal(self.preset_mode, True)
             else:
                 await self.async_set_preset_mode_internal(PRESET_ECO, True, False)
