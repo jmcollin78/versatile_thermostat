@@ -611,7 +611,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
     async def set_humidity(self, humidity: int):
         """Set new target humidity."""
-        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
+        _LOGGER.info("%s - Set humidity: %s", self, humidity)
         if not self.is_initialized:
             return
         data = {
@@ -627,7 +627,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
     async def set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
-        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
+        _LOGGER.info("%s - Set swing mode: %s", self, swing_mode)
         if not self.is_initialized:
             return
         data = {

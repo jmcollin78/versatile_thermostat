@@ -1104,7 +1104,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
-        _LOGGER.info("%s - Set fan mode: %s", self, humidity)
+        _LOGGER.info("%s - Set humidity: %s", self, humidity)
         if humidity is None:
             return
         for under in self._underlyings:
@@ -1115,7 +1115,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
-        _LOGGER.info("%s - Set fan mode: %s", self, swing_mode)
+        _LOGGER.info("%s - Set swing mode: %s", self, swing_mode)
         if swing_mode is None:
             return
         for under in self._underlyings:
