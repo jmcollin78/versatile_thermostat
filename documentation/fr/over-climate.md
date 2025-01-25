@@ -63,6 +63,8 @@ Une fois l'écart de température redevenu faible, la ventilation se mettra dans
 
 ### Compenser la température interne du sous-jacent
 
+Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne si une entité de calibrage a été fournie.
+
 Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l' auto-régulation ne suffise pas à réguler.
 Cela arrive lorsque le thermomètre interne est trop près de la source de chaleur. La température interne monte alors beaucoup plus vite que la température de la pièce, ce qui génère des défauts dans la régulation.
 Exemple :
