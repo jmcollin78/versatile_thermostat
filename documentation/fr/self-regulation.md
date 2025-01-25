@@ -32,8 +32,8 @@ Elle permet de configurer les entités de contrôle de la vanne :
 Vous devez donner :
 1. autant d'entités de contrôle d'ouverture de la vanne qu'il y a de sous-jacents et dans le même odre. Ces paramètres sont obligatoires,
 2. autant d'entités de calibrage du décalage de température qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,
-3. autant d'entités de de contrôile du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,
-4. une liste de valeurs minimales d'ouverture de la vanne lorsqu'elle doit être ouverte. Ce champ est une liste d'entier. Si la vanne doit être ouverte, elle le sera au minimum avec cette valeur d'ouverture. Cela permet de laisser passer suffisamment d'eau lorsqu'elle doit être ouverte.
+3. autant d'entités de de contrôile du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun. Pour les Sonoff TRVZB, ils ne doivent pas être fournis,
+4. une liste de valeurs minimales d'ouverture de la vanne lorsqu'elle doit être ouverte. Ce champ est une liste d'entier. Si la vanne doit être ouverte, elle le sera au minimum avec cette valeur d'ouverture, sinon elle sera totalement close (0). Cela permet de laisser passer suffisamment d'eau lorsqu'elle doit être ouverte mais garde la fermeeture complète si il n'y a pas besoin de chauffer.
 
 L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décrit [ici](algorithms.md). C'est le même algorithme qui est utilisé pour les _VTherm_ `over_switch` et `over_valve`.
 
