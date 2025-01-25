@@ -60,6 +60,8 @@ Of course, your underlying equipment must have ventilation, and it must be contr
 
 ### Compensating for the Internal Temperature of the Underlying Equipment
 
+Warning: This option must not be used with direct valve control regulation if a calibration entity has been provided.
+
 Sometimes, the internal thermometer of the underlying equipment (TRV, air conditioner, etc.) is inaccurate to the point that self-regulation is insufficient. This happens when the internal thermometer is placed too close to the heat source. The internal temperature rises much faster than the room temperature, leading to regulation failures.
 Example:
 1. Room temperature is 18°, setpoint is 20°.
