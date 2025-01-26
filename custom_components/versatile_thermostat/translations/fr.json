@@ -71,7 +71,7 @@
       },
       "type": {
         "title": "Entité(s) liée(s)",
-        "description": "Attributs de(s) l'entité(s) liée(s)",
+        "description": "Attributs de(s) l'entité(s) liée(s)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration)",
         "data": {
           "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",
@@ -82,7 +82,11 @@
           "auto_regulation_periode_min": "Période minimale de régulation",
           "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": " Auto ventilation mode"
+          "auto_fan_mode": " Auto ventilation mode",
+          "on_command_text": "Personnalisation des commandes d'allumage",
+          "vswitch_on_command": "Commande d'allumage (optionnel)",
+          "off_command_text": "Personnalisation des commandes d'extinction",
+          "vswitch_off_command": "Commande d'extinction (optionnel)"
         },
         "data_description": {
           "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
@@ -94,7 +98,8 @@
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
-          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
+          "on_command_text": "Pour les sous-jacents de type `select` ou `climate` vous devez personnaliser les commandes."
         }
       },
       "tpi": {
@@ -319,7 +324,7 @@
       },
       "type": {
         "title": "Entité(s) liée(s) - {name}",
-        "description": "Attributs de(s) l'entité(s) liée(s)",
+        "description": "Attributs de(s) l'entité(s) liée(s)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration)",
         "data": {
           "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",
@@ -330,7 +335,10 @@
           "auto_regulation_periode_min": "Période minimale de régulation",
           "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": " Auto ventilation mode"
+          "auto_fan_mode": " Auto ventilation mode",
+          "on_command_text": "Personnalisation des commandes",
+          "vswitch_on_command": "Commande d'allumage (optionnel)",
+          "vswitch_off_command": "Commande d'extinction (optionnel)"
         },
         "data_description": {
           "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
@@ -342,7 +350,10 @@
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
-          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important"
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
+          "on_command_text": "Pour les sous-jacents de type `select` ou `climate`",
+          "vswitch_on_command": "Une liste de commande d'allumage au format: action:parameter. Exemple: select_option:comfort. Cf. README pour plus d'exmples",
+          "vswitch_off_command": "Une liste de commande d'extinction au format: action:parameter. Exemple: select_option:frost. Cf. README pour plus d'exmples"
         }
       },
       "tpi": {

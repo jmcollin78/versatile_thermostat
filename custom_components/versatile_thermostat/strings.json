@@ -82,7 +82,9 @@
           "auto_regulation_periode_min": "Regulation minimum period",
           "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
           "inverse_switch_command": "Inverse switch command",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": "Auto fan mode",
+          "vswitch_on_command": "Optional turn on commands",
+          "vswitch_off_command": "Optional turn off commands"
         },
         "data_description": {
           "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
@@ -94,7 +96,9 @@
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
           "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
+          "vswitch_on_command": "A list of turn on command in the form: action:parameter. Example: select_option:comfort. See README for more examples",
+          "vswitch_off_command": "A list of turn on command in the form: action:parameter. Example: select_option:frost. See README for more examples"
         }
       },
       "tpi": {
@@ -330,7 +334,9 @@
           "auto_regulation_periode_min": "Regulation minimum period",
           "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
           "inverse_switch_command": "Inverse switch command",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": "Auto fan mode",
+          "vswitch_on_command": "Optional turn on commands",
+          "vswitch_off_command": "Optional turn off commands"
         },
         "data_description": {
           "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
@@ -342,7 +348,9 @@
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
           "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to invert the command",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
+          "vswitch_on_command": "A list of turn on command in the form: action:parameter. Example: select_option:comfort. See README for more examples",
+          "vswitch_off_command": "A list of turn on command in the form: action:parameter. Example: select_option:frost. See README for more examples"
         }
       },
       "tpi": {

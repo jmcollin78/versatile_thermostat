@@ -1,6 +1,7 @@
 """ All the schemas for ConfigFlow validation"""
 
 import voluptuous as vol
+from voluptuous import All
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import selector
@@ -14,6 +15,10 @@ from homeassistant.components.input_boolean import (
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.input_number import (
     DOMAIN as INPUT_NUMBER_DOMAIN,
+)
+
+from homeassistant.components.select import (
+    DOMAIN as SELECT_DOMAIN,
 )
 
 from homeassistant.components.input_datetime import (
@@ -120,9 +125,7 @@ STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
 STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN], multiple=True
-            ),
+            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN, SELECT_DOMAIN, CLIMATE_DOMAIN], multiple=True),
         ),
         vol.Optional(CONF_HEATER_KEEP_ALIVE): cv.positive_int,
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
@@ -132,6 +135,10 @@ STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
         vol.Optional(CONF_INVERSE_SWITCH, default=False): cv.boolean,
+        vol.Optional("on_command_text", default=False): vol.In([]),
+        vol.Optional(CONF_VSWITCH_ON_COMMAND): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
+        vol.Optional("off_command_text", default=False): vol.In([]),
+        vol.Optional(CONF_VSWITCH_OFF_COMMAND): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
     }
 )
 
