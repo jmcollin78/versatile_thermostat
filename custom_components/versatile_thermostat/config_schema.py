@@ -1,7 +1,6 @@
 """ All the schemas for ConfigFlow validation"""
 
 import voluptuous as vol
-from voluptuous import All
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import selector
