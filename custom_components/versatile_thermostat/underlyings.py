@@ -209,17 +209,8 @@ class UnderlyingEntity:
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
 
-    _initialDelaySec: int
-    _on_time_sec: int
-    _off_time_sec: int
-
     def __init__(
-        self,
-        hass: HomeAssistant,
-        thermostat: Any,
-        switch_entity_id: str,
-        initial_delay_sec: int,
-        keep_alive_sec: float,
+        self, hass: HomeAssistant, thermostat: Any, switch_entity_id: str, initial_delay_sec: int, keep_alive_sec: float, vswitch_on: str = None, vswitch_off: str = None
     ) -> None:
         """Initialize the underlying switch"""
 
@@ -235,6 +226,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_time_sec = 0
         self._off_time_sec = 0
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
+        self._vswitch_on = vswitch_on
+        self._vswitch_off = vswitch_off
 
     @property
     def initial_delay_sec(self):

@@ -14,6 +14,8 @@ from .const import (
     CONF_UNDERLYING_LIST,
     CONF_HEATER_KEEP_ALIVE,
     CONF_INVERSE_SWITCH,
+    CONF_VSWITCH_ON_CMD_LIST,
+    CONF_VSWITCH_OFF_CMD_LIST,
     overrides,
 )
 
@@ -40,6 +42,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                 "tpi_coef_ext",
                 "power_percent",
                 "calculated_on_percent",
+                "vswitch_on_commands",
+                "vswitch_off_commands",
             }
         )
     )
@@ -47,6 +51,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     def __init__(self, hass: HomeAssistant, unique_id, name, config_entry) -> None:
         """Initialize the thermostat over switch."""
         self._is_inversed: bool | None = None
+        self._lst_vswitch_on: list[str] = []
+        self._lst_vswitch_off: list[str] = []
         super().__init__(hass, unique_id, name, config_entry)
 
     @property
@@ -76,9 +82,13 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         )
 
         lst_switches = config_entry.get(CONF_UNDERLYING_LIST)
+        self._lst_vswitch_on = config_entry.get(CONF_VSWITCH_ON_CMD_LIST, [])
+        self._lst_vswitch_off = config_entry.get(CONF_VSWITCH_OFF_CMD_LIST, [])
 
         delta_cycle = self._cycle_min * 60 / len(lst_switches)
         for idx, switch in enumerate(lst_switches):
+            vswitch_on = self._lst_vswitch_on[idx] if idx < len(self._lst_vswitch_on) else None
+            vswitch_off = self._lst_vswitch_off[idx] if idx < len(self._lst_vswitch_off) else None
             self._underlyings.append(
                 UnderlyingSwitch(
                     hass=self._hass,
@@ -86,6 +96,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                     switch_entity_id=switch,
                     initial_delay_sec=idx * delta_cycle,
                     keep_alive_sec=config_entry.get(CONF_HEATER_KEEP_ALIVE, 0),
+                    vswitch_on=vswitch_on,
+                    vswitch_off=vswitch_off,
                 )
             )
 
@@ -141,6 +153,9 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes[
             "calculated_on_percent"
         ] = self._prop_algorithm.calculated_on_percent
+
+        self._attr_extra_state_attributes["vswitch_on_commands"] = self._lst_vswitch_on
+        self._attr_extra_state_attributes["vswitch_off_commands"] = self._lst_vswitch_off
 
         self.async_write_ha_state()
         _LOGGER.debug(

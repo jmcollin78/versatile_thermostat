@@ -127,8 +127,8 @@ CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 
-CONF_VSWITCH_ON_COMMAND = "vswitch_on_command"
-CONF_VSWITCH_OFF_COMMAND = "vswitch_off_command"
+CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
+CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
 # Deprecated
 CONF_HEATER = "heater_entity_id"
