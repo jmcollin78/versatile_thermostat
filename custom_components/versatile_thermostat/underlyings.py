@@ -2,7 +2,9 @@
 
 """ Underlying entities classes """
 import logging
-from typing import Any
+import re
+from typing import Any, Dict, Tuple
+
 from enum import StrEnum
 
 from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_UNAVAILABLE
@@ -228,6 +230,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
         self._vswitch_on = vswitch_on
         self._vswitch_off = vswitch_off
+        self._domain = self._entity_id.split(".")[0]
 
     @property
     def initial_delay_sec(self):
@@ -298,18 +301,39 @@ class UnderlyingSwitch(UnderlyingEntity):
                 )
             await (self.turn_on() if self.is_device_active else self.turn_off())
 
-    # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
+    def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
+        """Build a command and returns a command and a dict as data"""
+
+        data = {ATTR_ENTITY_ID: self._entity_id}
+        vswitch = self._vswitch_on if use_on and not self.is_inversed else self._vswitch_off
+        if vswitch:
+            pattern = r"^(?P<command>[^/]+)(?:/(?P<argument>[^:]+)(?::(?P<value>.*))?)?$"
+            match = re.match(pattern, vswitch)
+
+            if match:
+                # Extraire les groupes nommés
+                command = match.group("command")
+                argument = match.group("argument")
+                value = match.group("value")
+                data.update({argument: value})
+            else:
+                raise ValueError(f"Invalid input format: {vswitch}")
+
+        else:
+            command = SERVICE_TURN_ON if use_on and not self.is_inversed else SERVICE_TURN_OFF
+
+        return command, data
+
     async def turn_off(self):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
-        command = SERVICE_TURN_OFF if not self.is_inversed else SERVICE_TURN_ON
-        domain = self._entity_id.split(".")[0]
+
+        command, data = self.build_command(use_on=False)
         # This may fails if called after shutdown
         try:
             try:
-                data = {ATTR_ENTITY_ID: self._entity_id}
-                await self._hass.services.async_call(domain, command, data)
+                await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
             except Exception:
                 self._keep_alive.cancel()
@@ -325,12 +349,10 @@ class UnderlyingSwitch(UnderlyingEntity):
         if not await self.check_overpowering():
             return False
 
-        command = SERVICE_TURN_ON if not self.is_inversed else SERVICE_TURN_OFF
-        domain = self._entity_id.split(".")[0]
+        command, data = self.build_command(use_on=True)
         try:
             try:
-                data = {ATTR_ENTITY_ID: self._entity_id}
-                await self._hass.services.async_call(domain, command, data)
+                await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
                 return True
             except Exception:

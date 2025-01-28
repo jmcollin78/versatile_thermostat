@@ -20,6 +20,10 @@ from homeassistant.components.select import (
     DOMAIN as SELECT_DOMAIN,
 )
 
+from homeassistant.components.input_select import (
+    DOMAIN as INPUT_SELECT_DOMAIN,
+)
+
 from homeassistant.components.input_datetime import (
     DOMAIN as INPUT_DATETIME_DOMAIN,
 )
@@ -124,7 +128,7 @@ STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
 STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN, SELECT_DOMAIN, CLIMATE_DOMAIN], multiple=True),
+            selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN, SELECT_DOMAIN, INPUT_SELECT_DOMAIN, CLIMATE_DOMAIN], multiple=True),
         ),
         vol.Optional(CONF_HEATER_KEEP_ALIVE): cv.positive_int,
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
