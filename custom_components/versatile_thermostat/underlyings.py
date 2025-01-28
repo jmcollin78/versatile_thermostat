@@ -7,7 +7,7 @@ from typing import Any, Dict, Tuple
 
 from enum import StrEnum
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_UNAVAILABLE
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE
 from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
@@ -231,6 +231,11 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._vswitch_on = vswitch_on
         self._vswitch_off = vswitch_off
         self._domain = self._entity_id.split(".")[0]
+        # build command
+        command, data, state_on = self.build_command(use_on=True)
+        self._on_command = {"command": command, "data": data, "state": state_on}
+        command, data, state_off = self.build_command(use_on=False)
+        self._off_command = {"command": command, "data": data, "state": state_off}
 
     @property
     def initial_delay_sec(self):
@@ -271,10 +276,11 @@ class UnderlyingSwitch(UnderlyingEntity):
     @property
     def is_device_active(self):
         """If the toggleable device is currently active."""
-        real_state = self._hass.states.is_state(self._entity_id, STATE_ON)
-        return (self.is_inversed and not real_state) or (
-            not self.is_inversed and real_state
-        )
+        # real_state = self._hass.states.is_state(self._entity_id, STATE_ON)
+        # return (self.is_inversed and not real_state) or (
+        #    not self.is_inversed and real_state
+        # )
+        return self._hass.states.is_state(self._entity_id, self._on_command.get("state"))
 
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
@@ -304,6 +310,7 @@ class UnderlyingSwitch(UnderlyingEntity):
     def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
         """Build a command and returns a command and a dict as data"""
 
+        value = None
         data = {ATTR_ENTITY_ID: self._entity_id}
         vswitch = self._vswitch_on if use_on and not self.is_inversed else self._vswitch_off
         if vswitch:
@@ -321,18 +328,22 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         else:
             command = SERVICE_TURN_ON if use_on and not self.is_inversed else SERVICE_TURN_OFF
+            value = STATE_ON if use_on and not self.is_inversed else STATE_OFF
 
-        return command, data
+        return command, data, value
 
     async def turn_off(self):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
 
-        command, data = self.build_command(use_on=False)
+        command = self._off_command.get("command")
+        data = self._off_command.get("data")
+
         # This may fails if called after shutdown
         try:
             try:
+                _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
             except Exception:
@@ -349,9 +360,11 @@ class UnderlyingSwitch(UnderlyingEntity):
         if not await self.check_overpowering():
             return False
 
-        command, data = self.build_command(use_on=True)
+        command = self._on_command.get("command")
+        data = self._on_command.get("data")
         try:
             try:
+                _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
                 return True
