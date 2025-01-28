@@ -565,6 +565,10 @@ class ValveRegulationMinOpeningDegreesIncorrect(HomeAssistantError):
     """Error to indicate that the minimal opening degrees is not a list of int separated by coma"""
 
 
+class VirtualSwitchConfigurationIncorrect(HomeAssistantError):
+    """Error when a virtual switch is not configured correctly"""
+
+
 class overrides:  # pylint: disable=invalid-name
     """An annotation to inform overrides"""
 

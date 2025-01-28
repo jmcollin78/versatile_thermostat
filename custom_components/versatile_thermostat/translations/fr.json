@@ -336,8 +336,9 @@
           "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
           "auto_fan_mode": " Auto ventilation mode",
-          "on_command_text": "Personnalisation des commandes",
+          "on_command_text": "Personnalisation des commandes d'allumage",
           "vswitch_on_command": "Commande d'allumage (optionnel)",
+          "off_command_text": "Personnalisation des commandes d'extinction",
           "vswitch_off_command": "Commande d'extinction (optionnel)"
         },
         "data_description": {
@@ -351,9 +352,7 @@
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
-          "on_command_text": "Pour les sous-jacents de type `select` ou `climate`",
-          "vswitch_on_command": "Une liste de commande d'allumage au format: action:parameter. Exemple: select_option:comfort. Cf. README pour plus d'exmples",
-          "vswitch_off_command": "Une liste de commande d'extinction au format: action:parameter. Exemple: select_option:frost. Cf. README pour plus d'exmples"
+          "on_command_text": "Pour les sous-jacents de type `select` ou `climate`"
         }
       },
       "tpi": {
@@ -498,7 +497,8 @@
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
-      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30"
+      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
     "abort": {
       "already_configured": "Le device est déjà configuré"
