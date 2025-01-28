@@ -10,8 +10,6 @@ import copy
 from collections.abc import Mapping  # pylint: disable=import-error
 import voluptuous as vol
 
-from homeassistant.exceptions import HomeAssistantError
-
 from homeassistant.core import callback
 from homeassistant.config_entries import (
     ConfigEntry,

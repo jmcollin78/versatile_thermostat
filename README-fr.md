@@ -13,15 +13,11 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et une ré
 
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
-> * **Release 6.8**:
+> * **Release 7.2**:
 >
-> Ajout d'une nouvelle méthode de régulation pour les Versatile Thermostat de type `over_climate`. Cette méthode nommée 'Contrôle direct de la vanne' permet de contrôler directement la vanne d'un TRV et éventuellement un décalage pour calibrer le thermomètre interne de votre TRV. Cette nouvelle méthode a été testée avec des Sonoff TRVZB et généralisée pour d'autre type de TRV pour lesquels la vanne est directement commandable via des entités de type `number`.
+> - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](documentation/fr/over-switch.md#la-personnalisation-des-commandes).
 >
-> Plus d'informations [ici](documentation/fr/over-climate.md) et [ici](documentation/fr/self-regulation.md).
->
-> * **Refonte de la documentation**:
->
-> Avec toutes les évolutions réalisées depuis le début de l'intégration, la documentation nécessitait une profonde re-organisation, c'est chose faite sur cette version. Tous vos retours sur cette nouvelle organisation seront les bienvenus.
+> - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration). Elle est expérimentée sur la page de configuration des sous-jacents des _VTherm_ `over_switch`.
 
 
 # 🍻 Merci pour les bières [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
