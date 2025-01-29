@@ -244,7 +244,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     @overrides
     @property
-    def is_inversed(self):
+    def is_inversed(self) -> bool:
         """Tells if the switch command should be inversed"""
         return self._thermostat.is_inversed
 
