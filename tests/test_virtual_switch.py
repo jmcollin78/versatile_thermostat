@@ -1,15 +1,15 @@
 """ Test of virtual switch """
 
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, line-too-long
 
+from unittest.mock import patch, MagicMock, PropertyMock
 import pytest
-from .commons import *
-from unittest.mock import patch, call, MagicMock, PropertyMock
 
 from homeassistant.const import STATE_ON, STATE_OFF
 
 from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
 from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from .commons import *
 
 
 @pytest.mark.parametrize(
@@ -157,8 +157,8 @@ async def test_build_command(
     with patch.object(under, "check_overpowering", return_value=True), \
          patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
     #fmt: on
-            await under.turn_on()
-            mock_service_call.assert_called_once_with("switch", expected_command_on, expected_data_on)
+        await under.turn_on()
+        mock_service_call.assert_called_once_with("switch", expected_command_on, expected_data_on)
 
     # Calling turn-off
     #fmt: off
