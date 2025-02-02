@@ -81,6 +81,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             max_on_percent=self._max_on_percent,
         )
 
+        self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
+
         lst_switches = config_entry.get(CONF_UNDERLYING_LIST)
         self._lst_vswitch_on = config_entry.get(CONF_VSWITCH_ON_CMD_LIST, [])
         self._lst_vswitch_off = config_entry.get(CONF_VSWITCH_OFF_CMD_LIST, [])
@@ -101,7 +103,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                 )
             )
 
-        self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
         self._should_relaunch_control_heating = False
 
     @overrides

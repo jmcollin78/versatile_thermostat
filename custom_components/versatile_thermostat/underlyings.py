@@ -280,7 +280,11 @@ class UnderlyingSwitch(UnderlyingEntity):
         # return (self.is_inversed and not real_state) or (
         #    not self.is_inversed and real_state
         # )
-        return self._hass.states.is_state(self._entity_id, self._on_command.get("state"))
+        is_on = self._hass.states.is_state(self._entity_id, self._on_command.get("state"))
+        if self.is_inversed:
+            return not is_on
+
+        return is_on
 
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
@@ -329,7 +333,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 raise ValueError(f"Invalid input format: {vswitch}. Must be conform to 'command[/argument[:value]]'")
 
         else:
-            command = SERVICE_TURN_ON if use_on and not self.is_inversed else SERVICE_TURN_OFF
+            command = SERVICE_TURN_ON if take_on else SERVICE_TURN_OFF
 
         if value is None:
             value = STATE_ON if take_on else STATE_OFF
