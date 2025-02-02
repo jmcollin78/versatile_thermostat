@@ -228,8 +228,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_time_sec = 0
         self._off_time_sec = 0
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
-        self._vswitch_on = vswitch_on
-        self._vswitch_off = vswitch_off
+        self._vswitch_on = vswitch_on.strip() if vswitch_on else None
+        self._vswitch_off = vswitch_off.strip() if vswitch_off else None
         self._domain = self._entity_id.split(".")[0]
         # build command
         command, data, state_on = self.build_command(use_on=True)
@@ -312,9 +312,10 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         value = None
         data = {ATTR_ENTITY_ID: self._entity_id}
-        vswitch = self._vswitch_on if use_on and not self.is_inversed else self._vswitch_off
+        take_on = (use_on and not self.is_inversed) or (not use_on and self.is_inversed)
+        vswitch = self._vswitch_on if take_on else self._vswitch_off
         if vswitch:
-            pattern = r"^(?P<command>[^/]+)(?:/(?P<argument>[^:]+)(?::(?P<value>.*))?)?$"
+            pattern = r"^(?P<command>[^\s/]+)(?:/(?P<argument>[^\s:]+)(?::(?P<value>[^\s]+))?)?$"
             match = re.match(pattern, vswitch)
 
             if match:
@@ -322,13 +323,16 @@ class UnderlyingSwitch(UnderlyingEntity):
                 command = match.group("command")
                 argument = match.group("argument")
                 value = match.group("value")
-                data.update({argument: value})
+                if argument is not None and value is not None:
+                    data.update({argument: value})
             else:
-                raise ValueError(f"Invalid input format: {vswitch}")
+                raise ValueError(f"Invalid input format: {vswitch}. Must be conform to 'command[/argument[:value]]'")
 
         else:
             command = SERVICE_TURN_ON if use_on and not self.is_inversed else SERVICE_TURN_OFF
-            value = STATE_ON if use_on and not self.is_inversed else STATE_OFF
+
+        if value is None:
+            value = STATE_ON if take_on else STATE_OFF
 
         return command, data, value
 
