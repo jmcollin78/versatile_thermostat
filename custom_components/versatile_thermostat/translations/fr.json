@@ -567,7 +567,7 @@
           "preset_mode": {
             "state": {
               "power": "Délestage",
-              "security": "Sécurité",
+              "safety": "Sécurité",
               "none": "Manuel",
               "frost": "Hors Gel"
             }
