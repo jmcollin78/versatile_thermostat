@@ -17,7 +17,9 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et une ré
 >
 > - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](documentation/fr/over-switch.md#la-personnalisation-des-commandes).
 >
-> - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration). Elle est expérimentée sur la page de configuration des sous-jacents des _VTherm_ `over_switch`.
+> - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration). Elle est expérimentée sur certaines pages de la configuration.
+>
+> - Ajout d'un chapitre dans la documentation nommé 'Démarrage rapide' permettant de mettre en oeuvre rapidement un _VTherm_ en fonction de votre équipement. La page est [ici](documentation/quick-start.md)
 
 
 # 🍻 Merci pour les bières [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
@@ -37,32 +39,38 @@ Un grand merci à tous mes fournisseurs de bières pour leurs dons et leurs enco
 
   _PAC_ : Pompe à chaleur
 
+  _HA_ : Home Assistant
+
+  _sous-jacent_ : l'équipement controlé par _VTherm_
+
+
 # Documentation
 
 La documentation est maintenant découpée en plusieurs pages pour faciliter la lecture et la recherche d'informations :
 1. [présentation](documentation/fr/presentation.md),
 2. [Installation](documentation/fr/installation.md),
-3. [choisir un type de VTherm](documentation/fr/creation.md),
-4. [les attributs de base](documentation/fr/base-attributes.md)
-5. [configurer un VTherm sur un `switch`](documentation/fr/over-switch.md)
-6. [configurer un VTherm sur un `climate`](documentation/fr/over-climate.md)
-7. [configurer un VTherm sur une vanne](documentation/fr/over-valve.md)
-8. [les pré-régages (preset)](documentation/fr/feature-presets.md)
-9. [la gestion des ouvertures](documentation/fr/feature-window.md)
-10. [la gestion de la présence](documentation/fr/feature-presence.md)
-11. [la gestion de mouvement](documentation/fr/feature-motion.md)
-12. [la gestion de la puissance](documentation/fr/feature-power.md)
-13. [l'auto start and stop](documentation/fr/feature-auto-start-stop.md)
-14. [la contrôle centralisé de tous vos VTherms](documentation/fr/feature-central-mode.md)
-15. [la commande du chauffage central](documentation/fr/feature-central-boiler.md)
-16. [aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
-17. [l'auto-régulation](documentation/fr/self-regulation.md)
-18. [exemples de réglages](documentation/fr/tuning-examples.md)
-19. [les différents algorithmes](documentation/fr/algorithms.md)
-20. [documentation de référence](documentation/fr/reference.md)
-21. [exemple de réglages](documentation/fr/tuning-examples.md)
-22. [dépannage](documentation/fr/troubleshooting.md)
-23. [notes de version](documentation/fr/releases.md)
+3. [Démarrage rapide](documentation/fr/quick-start.md)
+4. [choisir un type de VTherm](documentation/fr/creation.md),
+5. [les attributs de base](documentation/fr/base-attributes.md)
+6. [configurer un VTherm sur un `switch`](documentation/fr/over-switch.md)
+7. [configurer un VTherm sur un `climate`](documentation/fr/over-climate.md)
+8. [configurer un VTherm sur une vanne](documentation/fr/over-valve.md)
+9. [les pré-régages (preset)](documentation/fr/feature-presets.md)
+10. [la gestion des ouvertures](documentation/fr/feature-window.md)
+11. [la gestion de la présence](documentation/fr/feature-presence.md)
+12. [la gestion de mouvement](documentation/fr/feature-motion.md)
+13. [la gestion de la puissance](documentation/fr/feature-power.md)
+14. [l'auto start and stop](documentation/fr/feature-auto-start-stop.md)
+15. [la contrôle centralisé de tous vos VTherms](documentation/fr/feature-central-mode.md)
+16. [la commande du chauffage central](documentation/fr/feature-central-boiler.md)
+17. [aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
+18. [l'auto-régulation](documentation/fr/self-regulation.md)
+19. [exemples de réglages](documentation/fr/tuning-examples.md)
+20. [les différents algorithmes](documentation/fr/algorithms.md)
+21. [documentation de référence](documentation/fr/reference.md)
+22. [exemple de réglages](documentation/fr/tuning-examples.md)
+23. [dépannage](documentation/fr/troubleshooting.md)
+24. [notes de version](documentation/fr/releases.md)
 
 
 # Quelques résultats
