@@ -13,15 +13,13 @@ This custom component for Home Assistant is an upgrade and a complete rewrite of
 
 # What's new?
 ![New](images/new-icon.png)
-> * **Release 6.8**:
+# What's New?
+![New](images/new-icon.png)
+> * **Release 7.2**:
 >
-> Added a new regulation method for `over_climate` type Versatile Thermostats. This method, called 'Direct control of valve', allows direct control of a TRV valve and optionally a calibration offset for the internal thermometer of your TRV. This new method has been tested with Sonoff TRVZB and generalized for other TRV types whose valves can be directly controlled via `number` entities.
+> - Native support for devices controlled via a `select` (or `input_select`) or `climate` entity for _VTherm_ of type `over_switch`. This update makes the creation of virtual switches obsolete for integrating Nodon, Heaty, eCosy, etc. More information [here](documentation/en/over-switch.md#command-customization).
 >
-> More information [here](documentation/en/over-climate.md) and [here](documentation/en/self-regulation.md).
->
-> * **Documentation overhaul**:
->
-> With all the developments since the start of the integration, the documentation needed a major reorganization, which has been completed in this version. All feedback on this new organization is welcome.
+> - Documentation links: Version 7.2 introduces experimental links to the documentation from the configuration pages. The link is accessible via the icon [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). This feature is currently tested on some configuration pages.
 
 # 🍻 Thanks for the beers [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
 A big thank you to all my beer sponsors for their donations and encouragements. It means a lot to me and motivates me to keep going! If this integration has saved you money, buy me a beer in return; I would greatly appreciate it!
@@ -38,34 +36,39 @@ A big thank you to all my beer sponsors for their donations and encouragements. 
 
   _slope_: The slope of the temperature curve, measured in ° (C or K)/h. It is positive when the temperature increases and negative when it decreases. This slope is calculated based on the _EMA_.
 
-  _PAC_ : Heat pump
+  _PAC_: Heat pump
+
+  _HA_: Home Assistant
+
+  _underlying_: the device controlled by _VTherm_
 
 # Documentation
 
 The documentation is now divided into several pages for easier reading and searching:
 1. [Introduction](documentation/en/presentation.md),
 2. [Installation](documentation/en/installation.md),
-3. [Choosing a VTherm type](documentation/en/creation.md),
-4. [Basic attributes](documentation/en/base-attributes.md)
-3. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
-3. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
-3. [Configuring a VTherm on a valve](documentation/en/over-valve.md)
-4. [Presets](documentation/en/feature-presets.md)
-5. [Window management](documentation/en/feature-window.md)
-6. [Presence management](documentation/en/feature-presence.md)
-7. [Motion management](documentation/en/feature-motion.md)
-8. [Power management](documentation/en/feature-power.md)
-9. [Auto start and stop](documentation/en/feature-auto-start-stop.md)
-10. [Centralized control of all VTherms](documentation/en/feature-central-mode.md)
-11. [Central heating control](documentation/en/feature-central-boiler.md)
-12. [Advanced aspects, security mode](documentation/en/feature-advanced.md)
-12. [Self-regulation](documentation/en/self-regulation.md)
-13. [Tuning examples](documentation/en/tuning-examples.md)
-14. [Algorithms](documentation/en/algorithms.md)
-15. [Reference documentation](documentation/en/reference.md)
-16. [Tuning examples](documentation/en/tuning-examples.md)
-17. [Troubleshooting](documentation/en/troubleshooting.md)
-18. [Release notes](documentation/en/releases.md)
+3. [Démarrage rapide](documentation/en/quick-start.md)
+4. [Choosing a VTherm type](documentation/en/creation.md),
+5. [Basic attributes](documentation/en/base-attributes.md)
+6. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
+7. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
+8. [Configuring a VTherm on a valve](documentation/en/over-valve.md)
+9. [Presets](documentation/en/feature-presets.md)
+10. [Window management](documentation/en/feature-window.md)
+11. [Presence management](documentation/en/feature-presence.md)
+12. [Motion management](documentation/en/feature-motion.md)
+13. [Power management](documentation/en/feature-power.md)
+14. [Auto start and stop](documentation/en/feature-auto-start-stop.md)
+15. [Centralized control of all VTherms](documentation/en/feature-central-mode.md)
+16. [Central heating control](documentation/en/feature-central-boiler.md)
+17. [Advanced aspects, security mode](documentation/en/feature-advanced.md)
+18. [Self-regulation](documentation/en/self-regulation.md)
+19. [Tuning examples](documentation/en/tuning-examples.md)
+20. [Algorithms](documentation/en/algorithms.md)
+21. [Reference documentation](documentation/en/reference.md)
+22. [Tuning examples](documentation/en/tuning-examples.md)
+23. [Troubleshooting](documentation/en/troubleshooting.md)
+24. [Release notes](documentation/en/releases.md)
 
 # Some results
 

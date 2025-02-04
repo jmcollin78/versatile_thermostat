@@ -17,9 +17,14 @@
   - [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence)
   - [Activer les logs du Versatile Thermostat](#activer-les-logs-du-versatile-thermostat)
   - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
+  - [VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'](#vtherm-passe-tout-seul-en-mode-clim-ou-en-mode-chauffage)
 
 
 ## Utilisation d'un Heatzy
+
+Le Heatzy est maintenant pris en charge nativement par _VTherm_. Cf. [Démarrage rapide](quick-start.md#heatzy-ou-ecosy-ou-assimilé-entité-climate).
+
+Cette configuration est gardée pour mémoire uniquement.
 
 L'utilisation d'un Heatzy ou Nodon est possible à la condition d'utiliser un switch virtuel sur ce modèle :
 
@@ -52,6 +57,11 @@ L'utilisation d'un Heatzy ou Nodon est possible à la condition d'utiliser un sw
 Merci à @gael pour cet exemple.
 
 ## Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)
+
+Le Nodon est maintenant pris en charge nativement par _VTherm_. Cf. [Démarrage rapide](quick-start.md#nodon-sin-4-fp-21-ou-assimilé-fil-pilote).
+
+Cette configuration est gardée pour mémoire uniquement.
+
 Comme pour le Heatzy ci-dessus vous pouvez utiliser un switch virtuel qui va changer le preset de votre radiateur en fonction de l'état d'allumage du VTherm.
 Exemple :
 

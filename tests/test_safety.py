@@ -624,6 +624,7 @@ async def test_security_over_climate(
             assert entity._saved_preset_mode == "none"
 
 
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_migration_security_safety(
     hass: HomeAssistant,
     skip_hass_states_is_state,

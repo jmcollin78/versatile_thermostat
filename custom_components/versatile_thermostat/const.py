@@ -127,6 +127,9 @@ CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 
+CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
+CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
+
 # Deprecated
 CONF_HEATER = "heater_entity_id"
 CONF_HEATER_2 = "heater_entity2_id"
@@ -560,6 +563,10 @@ class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
 
 class ValveRegulationMinOpeningDegreesIncorrect(HomeAssistantError):
     """Error to indicate that the minimal opening degrees is not a list of int separated by coma"""
+
+
+class VirtualSwitchConfigurationIncorrect(HomeAssistantError):
+    """Error when a virtual switch is not configured correctly"""
 
 
 class overrides:  # pylint: disable=invalid-name

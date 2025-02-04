@@ -22,6 +22,10 @@
 
 ## Using a Heatzy
 
+The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
+
+This configuration is kept for reference only.
+
 Using a Heatzy or Nodon is possible provided you use a virtual switch with this model:
 
 ```yaml
@@ -53,6 +57,12 @@ Using a Heatzy or Nodon is possible provided you use a virtual switch with this 
 Thanks to @gael for this example.
 
 ## Using a radiator with a pilot wire (Nodon SIN-4-FP-21)
+
+The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire).
+
+This configuration is kept for reference only.
+
+
 As with the Heatzy above, you can use a virtual switch that will change the preset of your radiator based on the VTherm’s on/off state.
 Example:
 

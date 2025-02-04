@@ -8,12 +8,13 @@ recorder:
         domains:
             - input_boolean
             - input_number
+            - input_select
             - switch
             - climate
             - sensor
             - binary_sensor
             - number
-            - input_select
+            - select
             - versatile_thermostat
 
 logger:
@@ -241,6 +242,11 @@ climate:
     - platform: generic_thermostat
       name: Underlying Sonoff TRVZB2
       heater: input_boolean.fake_valve_sonoff_trvzb2
+      target_sensor: input_number.fake_temperature_sensor1
+      ac_mode: false
+    - platform: generic_thermostat
+      name: Underlying switch climate
+      heater: input_boolean.fake_heater_switch2
       target_sensor: input_number.fake_temperature_sensor1
       ac_mode: false
 

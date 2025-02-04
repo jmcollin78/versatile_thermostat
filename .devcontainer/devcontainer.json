@@ -37,7 +37,9 @@
                 "yzhang.markdown-all-in-one",
                 "github.vscode-github-actions",
                 "azuretools.vscode-docker",
-                "huizhou.githd"
+                "huizhou.githd",
+                "github.copilot",
+                "github.copilot-chat"
             ],
             "settings": {
                 "files.eol": "\n",

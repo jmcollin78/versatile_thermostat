@@ -2,8 +2,11 @@
 # L'auto-régulation
 
 - [L'auto-régulation](#lauto-régulation)
+  - [Configuration](#configuration)
+    - [auto-régulation par contrôle direct de la vanne](#auto-régulation-par-contrôle-direct-de-la-vanne)
+    - [autres auto-régulation](#autres-auto-régulation)
       - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
-      - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
+  - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
 
 Vous avez la possibilité d'activer la fonction d'auto-régulation pour les _VTherm_ de type `over_climate` uniquement.
 

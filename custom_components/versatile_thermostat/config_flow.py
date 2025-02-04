@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 from typing import Any
+import re
 import logging
 import copy
 from collections.abc import Mapping  # pylint: disable=import-error
 import voluptuous as vol
-
-from homeassistant.exceptions import HomeAssistantError
 
 from homeassistant.core import callback
 from homeassistant.config_entries import (
@@ -273,6 +272,34 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                     CONF_MIN_OPENING_DEGREES
                 ) from exc
 
+        # Check the VSWITCH configuration. There should be the same number of vswitch_on (resp. vswitch_off) than the number of underlying entity
+        if self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH and step_id == "type":
+            if not self.check_vswitch_configuration(data):
+                raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
+
+    def check_vswitch_configuration(self, data) -> bool:
+        """Check the Virtual switch configuration and return True if the configuration is correct"""
+        nb_under = len(data.get(CONF_UNDERLYING_LIST, []))
+
+        # check format of each command_on
+        for command in data.get(CONF_VSWITCH_ON_CMD_LIST, []) + data.get(CONF_VSWITCH_OFF_CMD_LIST, []):
+            pattern = r"^(?P<command>[a-zA-Z0-9_]+)(?:/(?P<argument>[a-zA-Z0-9_]+)(?::(?P<value>[a-zA-Z0-9_]+))?)?$"
+            if not re.match(pattern, command):
+                return False
+
+        nb_command_on = len(data.get(CONF_VSWITCH_ON_CMD_LIST, []))
+        nb_command_off = len(data.get(CONF_VSWITCH_OFF_CMD_LIST, []))
+        if (nb_command_on == nb_under or nb_command_on == 0) and (nb_command_off == nb_under or nb_command_off == 0):
+            # There is enough command_on and off
+            # Check if one under is not a switch (which have default command).
+            if any(
+                not thermostat_type.startswith(SWITCH_DOMAIN) and not thermostat_type.startswith(INPUT_BOOLEAN_DOMAIN) for thermostat_type in data.get(CONF_UNDERLYING_LIST, [])
+            ):
+                if nb_command_on != nb_under or nb_command_off != nb_under:
+                    return False
+            return True
+        return False
+
     def check_config_complete(self, infos) -> bool:
         """True if the config is now complete (ie all mandatory attributes are set)"""
         is_central_config = (
@@ -407,6 +434,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors["base"] = "valve_regulation_nb_entities_incorrect"
             except ValveRegulationMinOpeningDegreesIncorrect as err:
                 errors[str(err)] = "min_opening_degrees_format"
+            except VirtualSwitchConfigurationIncorrect as err:
+                errors["base"] = "vswitch_configuration_incorrect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
