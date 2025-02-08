@@ -191,6 +191,9 @@ input_boolean:
     fake_valve_sonoff_trvzb2:
         name: Valve Sonoff TRVZB2
         icon: mdi:valve
+    fake_inversed_heater:
+        name: Inversed Heater
+        icon: mdi:radiator-off
 
 climate:
     - platform: generic_thermostat
@@ -314,6 +317,21 @@ switch:
                       option: comfort-2
                   target:
                       entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
+    - platform: template
+      switches:
+          fake_inversed_switch:
+              friendly_name: "A fake inversed switch"
+              value_template: "{{ is_state('input_boolean.fake_inversed_heater', 'on') }}"
+              turn_on:
+                  action: input_boolean.turn_on
+                  data: {}
+                  target:
+                      entity_id: input_boolean.fake_inversed_heater
+              turn_off:
+                  action: input_boolean.turn_off
+                  data: {}
+                  target:
+                      entity_id: input_boolean.fake_inversed_heater
 
 frontend:
     extra_module_url:

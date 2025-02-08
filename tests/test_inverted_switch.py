@@ -18,6 +18,12 @@ logging.getLogger().setLevel(logging.DEBUG)
 async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window auto management"""
 
+    temps = {
+        "eco": 17,
+        "comfort": 18,
+        "boost": 21,
+    }
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
@@ -30,14 +36,11 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 21,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -51,14 +54,12 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         },
     )
 
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is On
+    # 0. Create the entity
+
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, patch(
+        "homeassistant.core.StateMachine.is_state", return_value=False  # switch is On so is_state(switch, 'off') is False
     ):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
         assert entity
         assert entity.is_inversed
 
@@ -78,12 +79,10 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_service_call.call_count == 0
 
     # 1. Make the temperature down to activate the switch
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is Off
+        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is Off so is_state(switch, 'off') is True
     ):
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 19, event_timestamp)

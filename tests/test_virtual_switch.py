@@ -71,6 +71,19 @@ from .commons import *
             HVACMode.HEAT,
             True,
         ),
+        # Inversed switch without command personnalisations
+        (
+            True,
+            None,
+            None,
+            "turn_off",
+            {"entity_id": "switch.test"},
+            STATE_OFF,
+            "turn_on",
+            {"entity_id": "switch.test"},
+            STATE_ON,
+            True,
+        ),
         # Error cases invalid command
         (
             False,
