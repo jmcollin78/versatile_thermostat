@@ -300,7 +300,7 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = AsyncMock()
+        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
         fake_vtherm.restore_target_temp = AsyncMock()
         fake_vtherm.change_target_temperature = AsyncMock()
@@ -542,7 +542,7 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough):
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = AsyncMock()
+        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
         fake_vtherm.restore_target_temp = AsyncMock()
         fake_vtherm.change_target_temperature = AsyncMock()
