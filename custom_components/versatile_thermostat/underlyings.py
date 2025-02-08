@@ -281,8 +281,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         #    not self.is_inversed and real_state
         # )
         is_on = self._hass.states.is_state(self._entity_id, self._on_command.get("state"))
-        if self.is_inversed:
-            return not is_on
+        # if self.is_inversed:
+        #     return not is_on
 
         return is_on
 
