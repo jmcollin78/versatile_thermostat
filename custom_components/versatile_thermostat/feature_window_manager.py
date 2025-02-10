@@ -222,7 +222,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.info(
                     "%s - Window ByPass is activated. Ignore window event", self
                 )
-                # We change tne state but we don't apply the change
+                # We change the state but we don't apply the change
                 self._window_state = new_state.state
             else:
                 await self.update_window_state(new_state.state)
@@ -450,7 +450,6 @@ class FeatureWindowManager(BaseFeatureManager):
                 "window_auto_max_duration": self._window_auto_max_duration,
             }
         )
-        
         
     async def set_window_bypass(self, window_bypass: bool) -> bool:
         """Set the window bypass flag
