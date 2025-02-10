@@ -1158,7 +1158,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self.have_closing_degree_entity:
             await self._send_value_to_number(
                 self._closing_degree_entity_id,
-                closing_degree := self._max_opening_degree - self._percent_open,
+                # Patch to fix the hvac_action always Idle issue (issue #902)
+                closing_degree := max(self._max_opening_degree - 1 - self._percent_open, 0),
             )
 
         # send offset_calibration to the difference between target temp and local temp
