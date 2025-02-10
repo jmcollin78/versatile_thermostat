@@ -504,10 +504,10 @@ class FeatureWindowManager(BaseFeatureManager):
 
     @property
     def is_window_detected(self) -> bool:
-        """Return true if the presence is configured and presence sensor is OFF"""
+        """Return true if the window is configured and open and bypass is not ON"""
         return self._is_configured and (
             self._window_state == STATE_ON or self._window_auto_state == STATE_ON
-        )
+        ) and not self._is_window_bypass
 
     @property
     def window_sensor_entity_id(self) -> bool:
