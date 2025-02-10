@@ -72,7 +72,7 @@ Les commandes possibles dépendent du type de sous-jacents :
 | type de sous-jacent         | commandes d'allumage possibles        | commandes d'extinction possibles               | S'applique à                   |
 | --------------------------- | ------------------------------------- | ---------------------------------------------- | ------------------------------ |
 | `switch` ou `input_boolean` | `turn_on`                             | `turn_off`                                     | tous les switchs               |
-| `select` ou `input_select`  | `select_option/option:comfort`        | `set_option/option:frost_protection`           | Nodon SIN-4-FP-21 et assimilés |
+| `select` ou `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`           | Nodon SIN-4-FP-21 et assimilés |
 | `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)         |
 | `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy                         |
 
