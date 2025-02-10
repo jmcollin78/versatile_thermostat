@@ -7,6 +7,7 @@ Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais o
   - [Heatzy ou eCosy ou assimilé (entité `climate`)](#heatzy-ou-ecosy-ou-assimilé-entité-climate)
   - [Simple switch comme Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-comme-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB ou assimilé (TRV avec contrôle de la vanne)](#sonoff-trvzb-ou-assimilé-trv-avec-contrôle-de-la-vanne)
+  - [_PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`](#pac-reversibles-ou-climatisation-ou-équipements-commandables-à-travers-une-entité-climate)
 - [La suite](#la-suite)
 - [Appel à contribution](#appel-à-contribution)
 
@@ -70,6 +71,19 @@ Pour l'intégrer dans _VTherm_ vous devez :
 Pour que cela fonctionne, il faut que le `closing degree` soit réglé au maximum (100%). Ne cocher pas tout de suite l'entité `Follow underlying temperature change` avant d'avoir bien vérifier que cette configuration de base fonctionne.
 
 A l'issue de ces 5 étapes vous avez un _VTherm_ opérationnel ultra simple qui commande votre équipement Sonoff TRVZB ou assimilé.
+
+## _PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`
+
+Les _PAC_ ou assimilés sont visibles sous _HA_ sous la forme d'une entité `climate` qui permet de choisir le preset de chauffage à appliquer ou le mode (Chauffe / Froid / éteint).
+
+_VTherm_ va réguler la température en commandant la consigne de l'équipement et son mode à l'aide de commandes envoyée à l'entité `climate` sous-jacente.
+
+Pour l'intégrer dans _VTherm_ vous devez :
+1. Créer un _VTherm_ de type `over_climate`. Cf. [création d'un _VTherm_](creation.md),
+2. Lui donner des principaux attributs (nom, capteur de température de la pièce et capteur de température extérieure au minimium). Cf. [principaux attributs](base-attributes.md),
+3. Lui donner un ou plusieurs équipements sous-jacents à contrôler. Le sous-jacent est ici l'entité `climate` qui contrôle la _PAC_ ou la clim... . Cf. [sous-jacent](over-climate.md),
+
+A l'issue de ces 3 étapes vous avez un _VTherm_ opérationnel ultra simple qui commande votre _PAC_, climatisation ou assimilé. Pour aller plus loin, une auto-régulation peut êrte nécessaire en fonction du bon fonctionnement de votre équipement. L'auto-régulation consiste à envoyer des consignes légèrement modifiées par _VTherm_ pour forcer l'équipement à chauffer plus ou moins jusqu'à ce que la consigne soit atteinte. L'auto-régulation est détaillée ici : [auto-régulation](self-regulation.md).
 
 # La suite
 

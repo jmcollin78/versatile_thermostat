@@ -7,6 +7,7 @@ This page outlines the steps to quickly set up a basic yet operational _VTherm_.
   - [Heatzy, eCosy, or similar (`climate` entity)](#heatzy-ecosy-or-similar-climate-entity)
   - [Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
+  - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
 - [Next Steps](#next-steps)
 - [Call for Contributions](#call-for-contributions)
 
@@ -69,6 +70,21 @@ To integrate it into _VTherm_, you must:
 For this to work, the `closing degree` must be set to the maximum (100%). Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly.
 
 After completing these five steps, you will have a fully functional _VTherm_ that controls your Sonoff TRVZB or similar device.
+
+## Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity
+
+Reversible heat pumps (HP) or similar devices are represented in _HA_ as a `climate` entity, allowing you to select the heating preset or mode (Heat / Cool / Off).)
+
+_VTherm_ will regulate the temperature by controlling the target temperature and mode of the device through commands sent to the underlying `climate` entity.
+
+To integrate it into _VTherm_, you need to:
+1. Create a _VTherm_ of type `over_climate`. See [creating a _VTherm_](creation.md),
+2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at minimum). See [main attributes](base-attributes.md),
+3. Define one or more underlying devices to control. The underlying entity here is the `climate` entity that manages the heat pump or air conditioner. See [underlying devices](over-climate.md),
+
+After these three steps, you will have a fully operational _VTherm_ to control your heat pump, air conditioner, or similar device.
+
+To go further, self-regulation may be necessary depending on how well your device operates. Self-regulation involves _VTherm_ slightly adjusting the target temperature to encourage the device to heat or cool more or less until the desired setpoint is reached. Self-regulation is explained in detail here: [self-regulation](self-regulation.md).
 
 # Next Steps
 
