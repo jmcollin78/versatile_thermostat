@@ -61,6 +61,7 @@
 | ``power_temp``                            | Temperature during load shedding                           | X             | X                   | X            | X                       |
 | ``presence_sensor_entity_id``             | Presence sensor entity id (true if someone is present)     | X             | X                   | X            | -                       |
 | ``minimal_activation_delay``              | Minimum activation delay                                   | X             | -                   | -            | X                       |
+| ``minimal_deactivation_delay``            | Minimum deactivation delay                                 | X             | -                   | -            | X                       |
 | ``safety_delay_min``                      | Maximum delay between two temperature measurements         | X             | -                   | X            | X                       |
 | ``safety_min_on_percent``                 | Minimum power percentage to enter security mode            | X             | -                   | X            | X                       |
 | ``auto_regulation_mode``                  | Auto-regulation mode                                       | -             | X                   | -            | -                       |
@@ -259,6 +260,7 @@ The custom attributes are as follows:
 | ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception                                                      |
 | ``security_state``                | The security state. True or false                                                                                                   |
 | ``minimal_activation_delay_sec``  | The minimal activation delay in seconds                                                                                             |
+| ``minimal_deactivation_delay_sec``| The minimal deactivation delay in seconds                                                                                           |
 | ``last_update_datetime``          | The date and time in ISO8866 format of this state                                                                                   |
 | ``friendly_name``                 | The name of the thermostat                                                                                                          |
 | ``supported_features``            | A combination of all features supported by this thermostat. See the official climate integration documentation for more information |

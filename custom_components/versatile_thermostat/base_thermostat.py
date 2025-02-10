@@ -104,6 +104,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "last_temperature_datetime",
                     "last_ext_temperature_datetime",
                     "minimal_activation_delay_sec",
+                    "minimal_deactivation_delay_sec",
                     "last_update_datetime",
                     "timezone",
                     "temperature_unit",
@@ -370,6 +371,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._tpi_coef_ext = 0
 
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
+        self._minimal_deactivation_delay = entry_infos.get(CONF_MINIMAL_DEACTIVATION_DELAY)
         self._last_temperature_measure = self.now
         self._last_ext_temperature_measure = self.now
 
@@ -1684,6 +1686,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._current_tz
             ).isoformat(),
             "minimal_activation_delay_sec": self._minimal_activation_delay,
+            "minimal_deactivation_delay_sec": self._minimal_deactivation_delay,
             ATTR_TOTAL_ENERGY: self.total_energy,
             "last_update_datetime": self.now.isoformat(),
             "timezone": str(self._current_tz),

@@ -372,6 +372,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 return False
 
             if (
+                infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
+                and infos.get(CONF_MINIMAL_DEACTIVATION_DELAY, -1) == -1
+            ):
+                return False
+
+            if (
                 infos.get(CONF_PROP_FUNCTION, None) == PROPORTIONAL_FUNCTION_TPI
                 and infos.get(CONF_USE_TPI_CENTRAL_CONFIG, False) is False
                 and (

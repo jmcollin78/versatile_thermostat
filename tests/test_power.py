@@ -130,7 +130,7 @@ async def test_power_feature_manager(
     # fmt:on
 
         # Finish the mock configuration
-        tpi_algo = PropAlgorithm(PROPORTIONAL_FUNCTION_TPI, 0.6, 0.01, 5, 0, "climate.vtherm")
+        tpi_algo = PropAlgorithm(PROPORTIONAL_FUNCTION_TPI, 0.6, 0.01, 5, 0, 0, "climate.vtherm")
         tpi_algo._on_percent = 1 # pylint: disable="protected-access"
         type(fake_vtherm).hvac_mode = PropertyMock(return_value=HVACMode.HEAT)
         type(fake_vtherm).is_device_active = PropertyMock(return_value=is_device_active)
@@ -354,6 +354,7 @@ async def test_power_management_hvac_off(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
@@ -462,6 +463,7 @@ async def test_power_management_hvac_on(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
@@ -629,6 +631,7 @@ async def test_power_management_energy_over_switch(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
@@ -761,6 +764,7 @@ async def test_power_management_energy_over_climate(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_UNDERLYING_LIST: ["climate.mock_climate"],
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
+                CONF_MINIMAL_DEACTIVATION_DELAY: 0,
                 CONF_SAFETY_DELAY_MIN: 5,
                 CONF_SAFETY_MIN_ON_PERCENT: 0.3,
                 CONF_DEVICE_POWER: 100,
@@ -860,6 +864,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,

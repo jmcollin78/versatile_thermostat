@@ -54,6 +54,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
             "minimal_activation_delay": 30,
+            "minimal_deactivation_delay": 0,
             CONF_SAFETY_DELAY_MIN: 5,  # 5 minutes
             CONF_SAFETY_MIN_ON_PERCENT: 0.2,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,

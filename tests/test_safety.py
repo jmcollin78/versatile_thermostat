@@ -152,6 +152,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
             "minimal_activation_delay": 30,
+            "minimal_deactivation_delay": 0,
             "security_delay_min": 5,  # 5 minutes
             "security_min_on_percent": 0.2,
             "security_default_on_percent": 0.1,
@@ -346,6 +347,7 @@ async def test_security_feature_back_on_percent(
             "tpi_coef_int": 0.3,
             "tpi_coef_ext": 0.01,
             "minimal_activation_delay": 30,
+            "minimal_deactivation_delay": 0,
             "safety_delay_min": 5,  # 5 minutes
             "safety_min_on_percent": 0.2,
             "safety_default_on_percent": 0.1,
@@ -657,6 +659,7 @@ async def test_migration_security_safety(
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         },
     )
 

@@ -199,6 +199,7 @@
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Minimum activation delay",
+          "minimal_deactivation_delay": "Minimal deactivation delay",
           "safety_delay_min": "Safety delay (in minutes)",
           "safety_min_on_percent": "Minimum power percent to enable safety mode",
           "safety_default_on_percent": "Power percent to use in safety mode",

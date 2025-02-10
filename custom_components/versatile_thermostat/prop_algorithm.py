@@ -30,18 +30,20 @@ class PropAlgorithm:
         tpi_coef_ext,
         cycle_min: int,
         minimal_activation_delay: int,
+        minimal_deactivation_delay: int,
         vtherm_entity_id: str = None,
         max_on_percent: float = None,
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d",  # pylint: disable=line-too-long
+            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d, minimal_deactivation_delay:%d",  # pylint: disable=line-too-long
             vtherm_entity_id,
             function_type,
             tpi_coef_int,
             tpi_coef_ext,
             cycle_min,
             minimal_activation_delay,
+            minimal_deactivation_delay,
         )
 
         # Issue 506 - check parameters
@@ -51,10 +53,11 @@ class PropAlgorithm:
             or not is_number(tpi_coef_ext)
             or not is_number(cycle_min)
             or not is_number(minimal_activation_delay)
+            or not is_number(minimal_deactivation_delay)
             or function_type != PROPORTIONAL_FUNCTION_TPI
         ):
             _LOGGER.error(
-                "%s - configuration is wrong. function_type=%s, entity_id is %s, tpi_coef_int is %s, tpi_coef_ext is %s, cycle_min is %s, minimal_activation_delay is %s",
+                "%s - configuration is wrong. function_type=%s, entity_id is %s, tpi_coef_int is %s, tpi_coef_ext is %s, cycle_min is %s, minimal_activation_delay is %s, minimal_deactivation_delay is %s",
                 vtherm_entity_id,
                 function_type,
                 vtherm_entity_id,
@@ -62,6 +65,7 @@ class PropAlgorithm:
                 tpi_coef_ext,
                 cycle_min,
                 minimal_activation_delay,
+                minimal_deactivation_delay,
             )
             raise TypeError(
                 "TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values"
@@ -73,6 +77,7 @@ class PropAlgorithm:
         self._tpi_coef_ext = tpi_coef_ext
         self._cycle_min = cycle_min
         self._minimal_activation_delay = minimal_activation_delay
+        self._minimal_deactivation_delay = minimal_deactivation_delay
         self._on_percent = 0
         self._calculated_on_percent = 0
         self._on_time_sec = 0
@@ -186,6 +191,18 @@ class PropAlgorithm:
             self._on_time_sec = 0
 
         self._off_time_sec = self._cycle_min * 60 - self._on_time_sec
+
+        # Do not stop heating when off time less than xx sec
+        if self._off_time_sec < self._minimal_deactivation_delay:
+            if self._off_time_sec > 0:
+                _LOGGER.info(
+                    "%s - Heating period due to heating period too small (%f < %f)",
+                    self._vtherm_entity_id,
+                    self._on_time_sec,
+                    self._minimal_activation_delay,
+                )
+            self._on_time_sec = self._cycle_min * 60
+            self._off_time_sec = 0
 
     def set_safety(self, default_on_percent: float):
         """Set a default value for on_percent (used for safety mode)"""
