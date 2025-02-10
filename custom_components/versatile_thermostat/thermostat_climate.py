@@ -625,6 +625,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         changes = False
         new_hvac_mode = new_state.state
 
+        # Issue #903 - patch AUTO mode
+        if new_hvac_mode == HVACMode.AUTO:
+            new_hvac_mode = HVACMode.HEAT if not self.ac_mode else HVACMode.COOL
+
         old_state = event.data.get("old_state")
 
         # Issue #829 - refresh underlying command if it comes back to life

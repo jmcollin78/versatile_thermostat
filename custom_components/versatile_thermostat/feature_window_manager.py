@@ -130,10 +130,10 @@ class FeatureWindowManager(BaseFeatureManager):
     async def start_listening(self):
         """Start listening the underlying entity"""
 
-        #Try to get last window bypass state
+        # Try to get last window bypass state
         old_state = await self._vtherm.async_get_last_state()
-        self._is_window_bypass = True if old_state and old_state.attributes and old_state.attributes.get("is_window_bypass") == True else False
-        
+        self._is_window_bypass = True if old_state and old_state.attributes and old_state.attributes.get("is_window_bypass") is True else False
+
         if self._is_configured:
             self.stop_listening()
             if self._window_sensor_entity_id:
@@ -453,7 +453,7 @@ class FeatureWindowManager(BaseFeatureManager):
         """Set the window bypass flag
         Return True if state have been changed"""
         self._is_window_bypass = window_bypass
-        
+
         if self._window_state == STATE_ON:
             if not self._is_window_bypass:
                 _LOGGER.info(
