@@ -44,7 +44,6 @@ class FeatureWindowManager(BaseFeatureManager):
         {
             "window_sensor_entity_id",
             "is_window_configured",
-            "is_window_bypass",
             "window_delay_sec",
             "window_off_delay_sec",
             "window_auto_configured",
