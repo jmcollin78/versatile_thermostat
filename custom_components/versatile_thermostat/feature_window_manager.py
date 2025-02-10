@@ -449,22 +449,23 @@ class FeatureWindowManager(BaseFeatureManager):
         """Set the window bypass flag
         Return True if state have been changed"""
         self._is_window_bypass = window_bypass
-        if not self._is_window_bypass and self._window_state:
-            _LOGGER.info(
-                "%s - Last window state was open & ByPass is now off. Set hvac_mode to '%s'",
-                self,
-                HVACMode.OFF,
-            )
-            self._vtherm.save_hvac_mode()
-            await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
-            return True
+        
+        if self._window_state == STATE_ON:
+            if not self._is_window_bypass:
+                _LOGGER.info(
+                    "%s - Last window state was open & ByPass is now off. Set hvac_mode to '%s'",
+                    self,
+                    HVACMode.OFF,
+                )
+                self._vtherm.save_hvac_mode()
+                await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
 
-        if self._is_window_bypass and self._window_state:
-            _LOGGER.info(
-                "%s - Last window state was open & ByPass is now on. Set hvac_mode to last available mode",
-                self,
-            )
-            await self._vtherm.restore_hvac_mode(True)
+            if self._is_window_bypass:
+                _LOGGER.info(
+                    "%s - Last window state was open & ByPass is now on. Set hvac_mode to last available mode",
+                    self,
+                )
+                await self._vtherm.restore_hvac_mode(True)
             return True
         return False
 
