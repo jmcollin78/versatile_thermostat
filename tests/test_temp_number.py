@@ -700,7 +700,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
         assert vtherm.use_central_config_temperature is True
 
         # We should try to restore all 4 temp entities and the VTherm itself
-        assert mock_restore_state.call_count == 4 + 1
+        assert mock_restore_state.call_count == 4 + 2
 
     # 1. We search for NumberEntities
     for preset_name, value in temps.items():
