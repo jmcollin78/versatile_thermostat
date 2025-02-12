@@ -196,7 +196,7 @@ class PropAlgorithm:
         if self._off_time_sec < self._minimal_deactivation_delay:
             if self._off_time_sec > 0:
                 _LOGGER.info(
-                    "%s - Force 100% heating cycle since the off duration (%f) is shorter than minimal_deactivation_delay (%f)",
+                    "%s - Force 100%% heating cycle since the off duration (%f) is shorter than minimal_deactivation_delay (%f)",
                     self._vtherm_entity_id,
                     self._off_time_sec,
                     self._minimal_deactivation_delay,

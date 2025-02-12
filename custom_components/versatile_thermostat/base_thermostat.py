@@ -371,7 +371,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._tpi_coef_ext = 0
 
         self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY)
-        self._minimal_deactivation_delay = entry_infos.get(CONF_MINIMAL_DEACTIVATION_DELAY)
+        self._minimal_deactivation_delay = entry_infos.get(CONF_MINIMAL_DEACTIVATION_DELAY, 0)
         self._last_temperature_measure = self.now
         self._last_ext_temperature_measure = self.now
 
