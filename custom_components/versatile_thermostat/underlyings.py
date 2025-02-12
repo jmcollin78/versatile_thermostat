@@ -1116,7 +1116,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         return new_opening, new_closing
 
-    async def send_percent_open(self):
+    async def send_percent_open(self, _: float = None):
         """Send the percent open to the underlying valve"""
         if not self._is_min_max_initialized:
             _LOGGER.debug(
