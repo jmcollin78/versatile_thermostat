@@ -968,10 +968,10 @@ class UnderlyingValve(UnderlyingEntity):
             # This could happens in unit test if input_number domain is not yet loaded
             # raise err
 
-    async def send_percent_open(self):
+    async def send_percent_open(self, fixed_value: float = None):
         """Send the percent open to the underlying valve"""
         # This may fails if called after shutdown
-        return await self._send_value_to_number(self._entity_id, self._percent_open)
+        return await self._send_value_to_number(self._entity_id, self._percent_open if fixed_value is None else fixed_value)
 
     async def turn_off(self):
         """Turn heater toggleable device off."""
@@ -1108,6 +1108,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_offset_calibration: float = None
         self._min_opening_degree: int = min_opening_degree
 
+    def _normalize_opening_closing_degree(self, opening: float) -> float:
+        """Issue #902 - Normalize the opening and closing degree"""
+
+        new_opening = max(opening - 1, 0)
+        new_closing = max(self._max_opening_degree - 1 - new_opening, 0)
+
+        return new_opening, new_closing
+
     async def send_percent_open(self):
         """Send the percent open to the underlying valve"""
         if not self._is_min_max_initialized:
@@ -1150,17 +1158,16 @@ class UnderlyingValveRegulation(UnderlyingValve):
         else:
             self._percent_open = 0
 
-        # Send opening_degree
-        await super().send_percent_open()
-
         # Send closing_degree if set
-        closing_degree = None
+        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open)
+        # We should not change the _percent_open because it is used to check if value has bchanged
+        # self._percent_open = opening_degree
+
+        # Send opening_degree
+        await super().send_percent_open(opening_degree)
+
         if self.have_closing_degree_entity:
-            await self._send_value_to_number(
-                self._closing_degree_entity_id,
-                # Patch to fix the hvac_action always Idle issue (issue #902)
-                closing_degree := max(self._max_opening_degree - 1 - self._percent_open, 0),
-            )
+            await self._send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
         # send offset_calibration to the difference between target temp and local temp
         offset = None
