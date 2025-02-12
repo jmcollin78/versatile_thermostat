@@ -57,6 +57,7 @@ async def test_security_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
         },
@@ -138,6 +139,7 @@ async def test_overpowering_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
@@ -240,6 +242,7 @@ async def test_window_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
@@ -328,6 +331,7 @@ async def test_motion_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
@@ -421,6 +425,7 @@ async def test_presence_binary_sensors(
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_PRESENCE_SENSOR: "binary_sensor.mock_presence_sensor",
@@ -504,6 +509,7 @@ async def test_binary_sensors_over_climate_minimal(
                 CONF_USE_PRESENCE_FEATURE: False,
                 CONF_CLIMATE: "climate.mock_climate",
                 CONF_MINIMAL_ACTIVATION_DELAY: 30,
+                CONF_MINIMAL_DEACTIVATION_DELAY: 0,
                 CONF_SAFETY_DELAY_MIN: 5,
                 CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             },
@@ -539,3 +545,4 @@ async def test_binary_sensors_over_climate_minimal(
         hass, "binary_sensor.theoverclimatemockname_presence_state", "binary_sensor"
     )
     assert presence_binary_sensor is None
+

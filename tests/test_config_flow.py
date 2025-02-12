@@ -471,6 +471,7 @@ async def test_user_config_flow_over_climate(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -495,6 +496,7 @@ async def test_user_config_flow_over_climate(
     assert result.get("errors") is None
     assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1077,6 +1079,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1104,6 +1107,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "data"
     ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1274,6 +1278,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1359,6 +1364,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_TEMP_MAX: 30,
             CONF_STEP_TEMPERATURE: 0.5,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1658,6 +1664,7 @@ async def test_user_config_flow_over_climate_valve(
         result["flow_id"],
         user_input={
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1684,6 +1691,7 @@ async def test_user_config_flow_over_climate_valve(
     assert result.get("errors") is None
     assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
+        CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,

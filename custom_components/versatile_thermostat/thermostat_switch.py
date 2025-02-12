@@ -77,6 +77,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._tpi_coef_ext,
             self._cycle_min,
             self._minimal_activation_delay,
+            self._minimal_deactivation_delay,
             self.name,
             max_on_percent=self._max_on_percent,
         )

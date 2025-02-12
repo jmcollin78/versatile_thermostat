@@ -25,6 +25,10 @@ The advanced configuration form looks like this:
 
 The first delay (`minimal_activation_delay_sec`) in seconds is the minimum acceptable delay to turn on the heating. If the calculated activation time is shorter than this value, the heating remains off. This parameter only applies to _VTherm_ with cyclic triggering `over_switch`. If the activation time is too short, rapid switching will not allow the device to heat up properly.
 
+### Minimum Deactivation Delay
+
+The delay (`minimal_deactivation_delay_sec`) in seconds is the minimum acceptable delay to turn off the heating. If the calculated deactivation time is shorter than this value, the heating remains on.
+
 ### Safety Mode
 
 The second delay (`safety_delay_min`) is the maximum time between two temperature measurements before the _VTherm_ switches to Safety Mode.
