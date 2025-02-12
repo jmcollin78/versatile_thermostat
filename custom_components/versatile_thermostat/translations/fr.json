@@ -200,7 +200,7 @@
         "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
-          "minimal_deactivation_delay": "Minimal deactivation delay",
+          "minimal_deactivation_delay": "Délai de désactivation minimal",
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
@@ -208,7 +208,7 @@
         },
         "data_description": {
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
-          "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
+          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif",
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
@@ -450,15 +450,15 @@
         "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
-          "minimal_deactivation_delay": "Minimal deactivation delay",
+          "minimal_deactivation_delay": "Délai de désactivation minimal",
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
-          "minimal_activation_delay": "Délai en seondes en-dessous duquel l'équipement ne sera pas activé",
-          "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
+          "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
+          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif",
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
