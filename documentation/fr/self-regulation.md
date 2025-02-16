@@ -34,15 +34,18 @@ Elle permet de configurer les entités de contrôle de la vanne :
 
 Vous devez donner :
 1. autant d'entités de contrôle d'ouverture de la vanne qu'il y a de sous-jacents et dans le même odre. Ces paramètres sont obligatoires,
-2. autant d'entités de calibrage du décalage de température qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,
-3. autant d'entités de de contrôile du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun. Pour les Sonoff TRVZB, ils ne doivent pas être fournis,
+2. autant d'entités de calibrage du décalage de température qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun. Leur utilisation, si disponible est fortement conseillée,
+3. autant d'entités de de contrôle du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,,
 4. une liste de valeurs minimales d'ouverture de la vanne lorsqu'elle doit être ouverte. Ce champ est une liste d'entier. Si la vanne doit être ouverte, elle le sera au minimum avec cette valeur d'ouverture, sinon elle sera totalement close (0). Cela permet de laisser passer suffisamment d'eau lorsqu'elle doit être ouverte mais garde la fermeeture complète si il n'y a pas besoin de chauffer.
 
 L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décrit [ici](algorithms.md). C'est le même algorithme qui est utilisé pour les _VTherm_ `over_switch` et `over_valve`.
 
-Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné avec la valeur 100 - taux d'ouverture pour forcer la vanne dans un état.
+Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné avec la valeur 100 - taux d'ouverture pour forcer la vanne dans un état sinon elle est positionnée à 100.
 
-Note: pour les Sonoff TRVZB, vous ne devez pas configurer les "closing degree". Cela rend inopérant le `hvac_action` qui est utilisé par _VTherm_ et qui indique que l'équipement est en chauffe.
+> ![Attention](images/tips.png) _*Notes*_
+> 1. depuis la version 7.2.2, il est possible d'utiliser l'entité "closing degree" sur les Sonoff TRVZB.
+> 2. l'attribut `hvac_action` des TRV Sonoff TRVZB est capricieux. Si la température interne du TRV est trop en décalage par rapport à la température de la pièce, l'entité `climate` peut indiquer que le _TRV_ ne chauffe pas alors que la vanne est forcée en ouverture par _VTherm_. Ce défaut n'a pas de conséquences puisque l'entité `climate` du _VTherm_ est corrigée et tient compte de l'ouverture de la vanne pour valoriser son attribut`hvac_action`. Ce défaut est minimiser mais pas totalement annulé par la configuration du calibrage du décalage.
+> 3. l'attribut du _VTherm_ `valve_open_percent` peut ne pas être égale à la valeur de 'opening degree' envoyé à la vanne. Si vous avez configuré une ouverture minimum ou si vous vous utilisez le contrôle de fermeture, un ajustement est fait. L'attribut `valve_open_percent` est alors la valeur brute calculée par _VTherm_. La valeur `opening degree` envoyée à la vanne peut être adaptée.
 
 ### autres auto-régulation
 

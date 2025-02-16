@@ -81,6 +81,10 @@ However, be aware that some internal temperatures fluctuate so quickly and inacc
 
 You will find advice on how to adjust these settings properly on the page [self-regulation](self-regulation.md).
 
+> ![Warning](images/tips.png) _*Notes*_
+> It is very rare to need to check this box. Most of the time, self-regulation solves the issues. The results highly depend on the equipment and the behavior of its internal temperature.
+> You should only use this option if all other methods have failed.
+
 ## Specific Functions
 
 Specific functions can be configured through a dedicated option in the menu.
