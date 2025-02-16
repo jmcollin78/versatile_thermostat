@@ -1263,7 +1263,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._attr_preset_mode = PRESET_NONE
         if not self._window_manager.is_window_detected:
-            await self.change_target_temperature(temperature, force=False)
+            await self.change_target_temperature(temperature, force=True)
         else:
             self._saved_target_temp = temperature
 
