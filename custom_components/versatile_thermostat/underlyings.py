@@ -1195,7 +1195,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             "%s - valve regulation - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
             self,
             offset,
-            self._percent_open,
+            opening_degree,
             closing_degree,
         )
 
