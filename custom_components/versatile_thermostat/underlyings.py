@@ -1111,8 +1111,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def _normalize_opening_closing_degree(self, opening: float) -> float:
         """Issue #902 - Normalize the opening and closing degree"""
 
-        new_opening = max(opening - 1, 0)
-        new_closing = max(self._max_opening_degree - 1 - new_opening, 0)
+        new_opening = max(opening - 1, 0) if self.has_closing_degree_entity else opening
+        new_closing = max(self._max_opening_degree - 1 - new_opening, 0) if self.has_closing_degree_entity else 100
 
         return new_opening, new_closing
 
@@ -1126,7 +1126,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._opening_degree_entity_id
             ).attributes.get("max")
 
-            if self.have_offset_calibration_entity:
+            if self.has_offset_calibration_entity:
                 self._min_offset_calibration = self._hass.states.get(
                     self._offset_calibration_entity_id
                 ).attributes.get("min")
@@ -1135,11 +1135,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 ).attributes.get("max")
 
             self._is_min_max_initialized = self._max_opening_degree is not None and (
-                not self.have_offset_calibration_entity
-                or (
-                    self._min_offset_calibration is not None
-                    and self._max_offset_calibration is not None
-                )
+                not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
             )
 
         if not self._is_min_max_initialized:
@@ -1166,12 +1162,12 @@ class UnderlyingValveRegulation(UnderlyingValve):
         # Send opening_degree
         await super().send_percent_open(opening_degree)
 
-        if self.have_closing_degree_entity:
+        if self.has_closing_degree_entity:
             await self._send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
         # send offset_calibration to the difference between target temp and local temp
         offset = None
-        if self.have_offset_calibration_entity:
+        if self.has_offset_calibration_entity:
             if (
                 (local_temp := self._climate_underlying.underlying_current_temperature)
                 is not None
@@ -1224,12 +1220,12 @@ class UnderlyingValveRegulation(UnderlyingValve):
         return self._min_opening_degree
 
     @property
-    def have_closing_degree_entity(self) -> bool:
+    def has_closing_degree_entity(self) -> bool:
         """Return True if the underlying have a closing_degree entity"""
         return self._closing_degree_entity_id is not None
 
     @property
-    def have_offset_calibration_entity(self) -> bool:
+    def has_offset_calibration_entity(self) -> bool:
         """Return True if the underlying have a offset_calibration entity"""
         return self._offset_calibration_entity_id is not None
 

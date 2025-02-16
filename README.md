@@ -11,8 +11,6 @@
 
 This custom component for Home Assistant is an upgrade and a complete rewrite of the "Awesome thermostat" component (see [Github](https://github.com/dadge/awesome_thermostat)) with added features.
 
-# What's new?
-![New](images/new-icon.png)
 # What's New?
 ![New](images/new-icon.png)
 > * **Release 7.2**:

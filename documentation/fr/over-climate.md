@@ -85,6 +85,10 @@ Attention toutefois, certaines températures internes varient tellement vite et 
 
 Vous trouverez des conseils pour régler au mieux ces paramètres dans la page [auto-regulation](self-regulation.md).
 
+> ![Attention](images/tips.png) _*Notes*_
+> Il est très rare d'avoir besoin de cocher cette case. La plupart du temps, une auto-regulation permet de résoudre les cas. Les résultats sont très dépendant de l'équipement et du comportement de la température interne de l'équipement. Vous ne devriez l'utiliser que si toutes les autres méthodes ont échouées.
+
+
 ## Fonctions spécifiques
 
 Les fonctions spécifiques sont paramétrables avec une option dédiée du menu.

@@ -28,17 +28,20 @@ This allows you to configure the valve control entities:
 
 ![Configuration Entities](images/config-self-regulation-valve-2.png)
 
-You need to provide:
-1. As many valve opening control entities as there are underlying devices, and in the same order. These parameters are mandatory.
-2. As many temperature calibration entities as there are underlying devices, and in the same order. These parameters are optional; they must either all be provided or none.
-3. As many valve closure control entities as there are underlying devices, and in the same order. These parameters are optional; they must either all be provided or none. For Sonoff TRVZB, you should not configure this entity. See the note below.
-4. A list of minimum opening values ​​for the valve when it needs to be opened. This field is a list of integers. If the valve needs to be opened, it will be opened at a minimum of this opening value, else it will be set to 0 (to ensure the valve is closed). This allows enough water to pass through when it needs to be opened.
+You must provide:
+1. As many valve opening control entities as there are underlying devices, in the same order. These parameters are mandatory.
+2. As many temperature offset calibration entities as there are underlying devices, in the same order. These parameters are optional; either all must be provided, or none. Their use, if available, is strongly recommended.
+3. As many valve closing rate control entities as there are underlying devices, in the same order. These parameters are optional; either all must be provided, or none.
+4. A list of minimum valve opening values when the valve needs to be open. This field is a list of integers. If the valve needs to be open, it will open at least to this value; otherwise, it will be fully closed (0). This ensures that enough water flows when heating is required while maintaining full closure when heating is not needed.
 
-The opening rate calculation algorithm is based on the _TPI_ algorithm described [here](algorithms.md). This is the same algorithm used for _VTherms_ `over_switch` and `over_valve`.
+The algorithm for calculating the opening rate is based on _TPI_, which is described [here](algorithms.md). It is the same algorithm used for _VTherm_ `over_switch` and `over_valve`.
 
-If a valve closure rate entity is configured, it will be set to 100 minus the opening rate to force the valve into a particular state.
+If a valve closing rate entity is configured, it will be set to `100 - opening rate` to force the valve into a specific state else it is set to 100.
 
-Note: for Sonoff TRVZB you should not configure the "closing degree" parameter. This leads to a bug in the TRV and the `hvac_action` is no more working.
+> ![Warning](images/tips.png) _*Notes*_
+> 1. Since version 7.2.2, it is possible to use the "closing degree" entity on Sonoff TRVZB.
+> 2. The `hvac_action` attribute of Sonoff TRVZB TRVs is unreliable. If the internal temperature of the TRV deviates too much from the room temperature, the `climate` entity may indicate that the _TRV_ is not heating even when the valve is forced open by _VTherm_. This issue has no impact because the `climate` entity of _VTherm_ is corrected and takes the valve opening into account to set its `hvac_action` attribute. This issue is mitigated but not entirely eliminated by configuring the temperature offset calibration.
+> 3. The `valve_open_percent` attribute of _VTherm_ may not match the `opening degree` value sent to the valve. If you have configured a minimum opening value or use the closing control, an adjustment is made. The `valve_open_percent` attribute represents the raw value calculated by _VTherm_. The `opening degree` value sent to the valve may be adapted accordingly.
 
 ### Other self-regulation
 

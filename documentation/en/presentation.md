@@ -31,6 +31,44 @@ This component, called __Versatile Thermostat__, manages the following use cases
 
 All these functions are configurable either centrally or individually depending on your needs.
 
+# Equipment
+
+To operate _VTherm_, you will need some hardware. The list below is not exhaustive but includes the most commonly used devices that are fully compatible with Home Assistant and _VTherm_. These are affiliate links to the partner store [Domadoo](https://www.domadoo.fr/fr/?domid=97), which allows me to receive a small percentage if you purchase through these links. Ordering from [Domadoo](https://www.domadoo.fr/fr/?domid=97) gives you competitive prices, a return guarantee, and a very short delivery time comparable to other major online retailers. Their 4.8/5 rating speaks for itself.
+
+⭐ : The most used and therefore the best choice.
+
+## Thermometers
+Essential in a _VTherm_ setup, an externalized temperature measurement device placed where you live ensures reliable, comfortable, and stable temperature control.
+
+- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html??domid=97)
+- [⭐ 4 x Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6968-sonoff-pack-4x-capteurs-de-temperature-et-d-humidite-zigbee-ecran.html?domid=97)
+- [ Neo Tuya Zigbee](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
+- [ Moes Tuya Zigbee](https://www.domadoo.fr/fr/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
+
+## Switches
+To directly control an electric heater. Usable with _VTherm_ [`over_switch`](over-switch.md):
+
+- [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/fr/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
+- [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/fr/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
+- [Sonoff 4-channel Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
+- [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
+
+## Pilot wire switches
+To directly control an electric heater equipped with a pilot wire. Usable with _VTherm_ [`over_switch`](over-switch.md) and [customized commands](over-switch.md#la-personnalisation-des-commandes):
+
+- [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+- [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+
+## Thermostatic valves
+To control a water radiator. Works with a _VTherm_ [`over_valve`](over-valve.md) or [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate):
+
+- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
+- [⭐ 2 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7477-sonoff-pack-de-2x-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
+- [⭐ 4 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7478-sonoff-pack-de-4x-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
+- [Shelly BLU TRV BLE](https://www.domadoo.fr/fr/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) with [`over_valve`](over-valve.md),
+- [Moes TRV Zigbee](https://www.domadoo.fr/fr/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
+- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
+
 ## Incompatibilities
 Some TRV type thermostats are known to be incompatible with Versatile Thermostat. This includes the following valves:
 1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve as it auto-regulates itself, causing conflicts with VTherm.
