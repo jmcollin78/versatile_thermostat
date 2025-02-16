@@ -335,7 +335,7 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
                 assert fake_vtherm.change_target_temperature.call_count == 1
                 fake_vtherm.change_target_temperature.assert_has_calls(
                     [
-                        call.change_target_temperature(17),
+                        call.change_target_temperature(17, True),
                     ]
                 )
                 assert fake_vtherm.find_preset_temp.call_count == 1
@@ -587,7 +587,7 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
                 assert fake_vtherm.change_target_temperature.call_count == 1
                 fake_vtherm.change_target_temperature.assert_has_calls(
                     [
-                        call.change_target_temperature(17),
+                        call.change_target_temperature(17, True),
                     ]
                 )
                 assert fake_vtherm.find_preset_temp.call_count == 1

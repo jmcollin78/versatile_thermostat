@@ -1263,18 +1263,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._attr_preset_mode = PRESET_NONE
         if not self._window_manager.is_window_detected:
-            await self.change_target_temperature(temperature)
-            self.recalculate()
-            self.reset_last_change_time_from_vtherm()
-            await self.async_control_heating(force=True)
+            await self.change_target_temperature(temperature, force=False)
         else:
             self._saved_target_temp = temperature
 
-    async def change_target_temperature(self, temperature: float):
+    async def change_target_temperature(self, temperature: float, force=False):
         """Set the target temperature and the target temperature
          of underlying climate if any"""
         if temperature:
             self._target_temp = temperature
+            if force:
+                self.recalculate()
+                self.reset_last_change_time_from_vtherm()
+                await self.async_control_heating(force=True)
 
     def get_state_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
@@ -1499,9 +1500,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Save the target temperature"""
         self._saved_target_temp = self._target_temp
 
-    async def restore_target_temp(self):
+    async def restore_target_temp(self, force=False):
         """Restore the saved target temp"""
-        await self.change_target_temperature(self._saved_target_temp)
+        await self.change_target_temperature(self._saved_target_temp, force=force)
 
     async def check_central_mode(
         self, new_central_mode: str | None, old_central_mode: str | None

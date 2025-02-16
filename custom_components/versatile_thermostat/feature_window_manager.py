@@ -130,10 +130,10 @@ class FeatureWindowManager(BaseFeatureManager):
     async def start_listening(self):
         """Start listening the underlying entity"""
 
-        #Try to get last window bypass state
+        # Try to get last window bypass state
         old_state = await self._vtherm.async_get_last_state()
-        self._is_window_bypass = True if old_state and old_state.attributes and old_state.attributes.get("is_window_bypass") == True else False
-        
+        self._is_window_bypass = old_state and old_state.attributes and old_state.attributes.get("is_window_bypass") is True
+
         if self._is_configured:
             self.stop_listening()
             if self._window_sensor_entity_id:
@@ -246,7 +246,7 @@ class FeatureWindowManager(BaseFeatureManager):
 
         if self._window_state == new_state and not bypass:
             return False
-        
+
         if new_state != STATE_ON:
             _LOGGER.info(
                 "%s - Window is closed. Restoring hvac_mode '%s' if stopped by window detection or temperature %s",
@@ -259,7 +259,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 CONF_WINDOW_FROST_TEMP,
                 CONF_WINDOW_ECO_TEMP,
             ]:
-                await self._vtherm.restore_target_temp()
+                await self._vtherm.restore_target_temp(force=True)
 
             # default to TURN_OFF
             elif self._window_action in [CONF_WINDOW_TURN_OFF]:
@@ -288,10 +288,10 @@ class FeatureWindowManager(BaseFeatureManager):
                 _LOGGER.debug(
                     "%s is already off. Forget turning off VTherm due to window detection"
                 )
-                if not bypass: 
+                if not bypass:
                     self._window_state = new_state
                 return False
-   
+
             # self._window_state = new_state
             if self._vtherm.last_central_mode in [CENTRAL_MODE_AUTO, None]:
                 if self._window_action in [
@@ -304,7 +304,7 @@ class FeatureWindowManager(BaseFeatureManager):
                     CONF_WINDOW_ECO_TEMP,
                 ]:
                     self._vtherm.save_target_temp()
-            
+
             if (
                 self._window_action == CONF_WINDOW_FAN_ONLY
                 and HVACMode.FAN_ONLY in self._vtherm.hvac_modes
@@ -314,20 +314,16 @@ class FeatureWindowManager(BaseFeatureManager):
                 self._window_action == CONF_WINDOW_FROST_TEMP
                 and self._vtherm.is_preset_configured(PRESET_FROST_PROTECTION)
             ):
-                await self._vtherm.change_target_temperature(
-                    self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION)
-                )
+                await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION), True)
             elif (
                 self._window_action == CONF_WINDOW_ECO_TEMP
                 and self._vtherm.is_preset_configured(PRESET_ECO)
             ):
-                await self._vtherm.change_target_temperature(
-                    self._vtherm.find_preset_temp(PRESET_ECO)
-                )
+                await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_ECO), True)
             else:  # default is to turn_off
                 self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
                 await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
-        
+
         if not bypass:
             self._window_state = new_state
         return True
@@ -450,18 +446,18 @@ class FeatureWindowManager(BaseFeatureManager):
                 "window_auto_max_duration": self._window_auto_max_duration,
             }
         )
-        
+
     async def set_window_bypass(self, window_bypass: bool) -> bool:
         """Set the window bypass flag
         Return True if state have been changed"""
         self._is_window_bypass = window_bypass
-        
+
         _LOGGER.info("%s - Last window state was %s & ByPass is now %s.",self,self._window_state,self._is_window_bypass,)
         if self._is_window_bypass:
             return await self.update_window_state('off', True)
         else:
-           return await self.update_window_state(self._window_state, True)
-    
+            return await self.update_window_state(self._window_state, True)
+
     @overrides
     @property
     def is_configured(self) -> bool:

@@ -156,9 +156,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.calculate_hvac_action(self._underlyings)
 
     @overrides
-    async def change_target_temperature(self, temperature: float):
+    async def change_target_temperature(self, temperature: float, force=False):
         """Set the target temperature and the target temperature of underlying climate if any"""
-        await super().change_target_temperature(temperature)
+        await super().change_target_temperature(temperature, force=force)
 
         self._regulation_algo.set_target_temp(self.target_temperature)
         # Is necessary cause control_heating method will not force the update.
