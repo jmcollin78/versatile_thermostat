@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: "Set version number"
+        run: |
+          sed -i '/  "version": /c\  "version": "${{ github.ref }}"' custom_components/versatile_thermostat/manifest.json
+          sed -i 's|heads/tags/||' custom_components/versatile_thermostat/manifest.json
+          sed -i 's|refs/tags/||' custom_components/versatile_thermostat/manifest.json
+      # Pack the HACS dir as a zip and upload to the release
+      - name: ZIP Versatile Thermostat Dir
+        run: |
+          cd /home/runner/work/versatile_thermostat/versatile_thermostat/custom_components/versatile_thermostat
+          zip versatile_thermostat.zip -r ./
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /home/runner/work/versatile_thermostat/versatile_thermostat/custom_components/versatile_thermostat/versatile_thermostat.zip
+          asset_name: versatile_thermostat.zip
+          tag: ${{ github.ref }}
+          overwrite: true
