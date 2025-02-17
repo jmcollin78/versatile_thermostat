@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: "Set version number"
+        run: |
+          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
+            "${{ github.workspace }}/custom_components/versatile_thermostat/manifest.json"
+      # Pack the HACS dir as a zip and upload to the release
+      - name: ZIP Versatile Thermostat Dir
+        run: |
+          cd "${{ github.workspace }}/custom_components/versatile_thermostat"
+          zip versatile_thermostat.zip -r ./
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          files: ${{ github.workspace }}/custom_components/versatile_thermostat/versatile_thermostat.zip
