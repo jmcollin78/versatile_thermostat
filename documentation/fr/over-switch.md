@@ -69,12 +69,14 @@ Pour personnaliser les commande, cliquez sur `Ajouter` en bas de page sur les co
 et donner la commande d'allumage et d'exinction avec le format `commande[/attribut[:valeur]]`.
 Les commandes possibles dépendent du type de sous-jacents :
 
-| type de sous-jacent         | commandes d'allumage possibles        | commandes d'extinction possibles               | S'applique à                   |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | ------------------------------ |
-| `switch` ou `input_boolean` | `turn_on`                             | `turn_off`                                     | tous les switchs               |
-| `select` ou `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`           | Nodon SIN-4-FP-21 et assimilés |
-| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)         |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy                         |
+| type de sous-jacent         | commandes d'allumage possibles        | commandes d'extinction possibles               | S'applique à                       |
+| --------------------------- | ------------------------------------- | ---------------------------------------------- | ---------------------------------- |
+| `switch` ou `input_boolean` | `turn_on`                             | `turn_off`                                     | tous les switchs                   |
+| `select` ou `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 et assimilés (*) |
+| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)             |
+| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                         |
+
+(*) vérifiez les valeurs acceptées par votre équipement dans Outils de developpement / Etat et recherchez votre équipement. Vous verrez les options qu'il accepte. Il faut qu'elles soient identiques y compris la casse.
 
 Evidemment, tous ces exemples peuvent être adaptés à votre cas.
 

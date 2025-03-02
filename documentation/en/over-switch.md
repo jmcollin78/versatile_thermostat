@@ -71,12 +71,14 @@ To customize the commands, click on `Add` at the bottom of the page for both the
 Then, specify the on and off commands using the format `command[/attribute[:value]]`.
 The available commands depend on the type of underlying device:
 
-| Underlying Device Type      | Possible On Commands                  | Possible Off Commands                          | Applies To                    |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------- |
-| `switch` or `input_boolean` | `turn_on`                             | `turn_off`                                     | All switches                  |
-| `select` or `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`           | Nodon SIN-4-FP-21 and similar |
-| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)        |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy                        |
+| Underlying Device Type      | Possible On Commands                  | Possible Off Commands                          | Applies To                        |
+| --------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
+| `switch` or `input_boolean` | `turn_on`                             | `turn_off`                                     | All switches                      |
+| `select` or `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 and similar (*) |
+| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
+| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
+
+(*) Check the values accepted by your device in **Developer Tools / States** and search for your device. You will see the options it supports. They must be identical, including case sensitivity.
 
 Of course, these examples can be adapted to your specific case.
 
