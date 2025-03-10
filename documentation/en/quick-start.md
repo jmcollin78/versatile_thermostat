@@ -65,7 +65,7 @@ To integrate it into _VTherm_, you must:
 2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
 3. Assign one or more underlying devices to control. The underlying device here is the `climate` entity that controls the TRV. See [underlying devices](over-climate.md),
 4. Specify the regulation type as `Direct valve control` only. Leave the option `Compensate for underlying temperature` unchecked. See [auto-regulation](over-climate.md#auto-regulation),
-5. Provide the `number` entities named `opening_degree` and `calibration_offset`. Do not configure the `closing_degree` entity. See [underlying devices](over-switch.md).
+5. Provide the `number` entities named `opening_degree`, `closing_degree` and `calibration_offset`. Do not configure the `closing_degree` entity. See [underlying devices](over-switch.md).
 
 For this to work, the `closing degree` must be set to the maximum (100%). Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly.
 
