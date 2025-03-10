@@ -66,7 +66,7 @@ Pour l'intégrer dans _VTherm_ vous devez :
 2. Lui donner des principaux attributs (nom, capteur de température de la pièce et capteur de température extérieure au minimium). Cf. [principaux attributs](base-attributes.md),
 3. Lui donner un ou plusieurs équipements sous-jacents à contrôler. Le sous-jacent est ici l'entité `climate` qui contrôle le TRV. Cf. [sous-jacent](over-climate.md),
 4. Spécifiez la régulation de type `Par contrôle direct de la vanne` uniquement. Laissez décochée l'option `Compenser la température interne du sous-jacent`. Cf. [sous-jacent](over-climate.md#lauto-régulation),
-5. Lui donner les entités de type `number` nommées `opening_degree` et `calibration offset`. Ne pas renseigner l'entité `closing degree` Cf. [sous-jacent](over-switch.md),
+5. Lui donner les entités de type `number` nommées `opening_degree`, `closing_degree` et `calibration offset`. Ne pas renseigner l'entité `closing degree` Cf. [sous-jacent](over-switch.md),
 
 Pour que cela fonctionne, il faut que le `closing degree` soit réglé au maximum (100%). Ne cocher pas tout de suite l'entité `Follow underlying temperature change` avant d'avoir bien vérifier que cette configuration de base fonctionne.
 
