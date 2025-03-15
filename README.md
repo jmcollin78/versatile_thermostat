@@ -84,23 +84,23 @@ The documentation is now divided into several pages for easier reading and searc
 
 # Some results
 
-**Temperature stability around the target configured by preset:**
+**Temperature stability around the target configured by preset**:
 
 ![image](documentation/en/images/results-1.png)
 
-On/off cycles calculated by the integration `over_climate`:
+**On/off cycles calculated by the integration `over_climate`**:
 
 ![image](documentation/en/images/results-2.png)
 
-**Regulation with an `over_switch`**
+**Regulation with an `over_switch`**:
 
 ![image](documentation/en/images/results-4.png)
 
-**Strong regulation in `over_climate`**
+**Strong regulation in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulation with direct valve control in `over_climate`**
+**Regulation with direct valve control in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 

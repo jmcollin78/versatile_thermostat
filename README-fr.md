@@ -86,28 +86,25 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 23. [Dépannage](documentation/fr/troubleshooting.md)
 24. [Notes de version](documentation/fr/releases.md)
 
-
 # Quelques résultats
 
-**Stabilité de la température autour de la cible configurée par preset:**
+**Stabilité de la température autour de la cible configurée par preset:** :
 
 ![image](documentation/fr/images/results-1.png)
 
-Cycle de marche/arrêt calculé par l'intégration `over_climate`:
+**Cycle de marche/arrêt calculé par l'intégration `over_climate`** :
 
 ![image](documentation/fr/images/results-2.png)
 
-**Régulation avec un `over_switch`**
+**Régulation avec un `over_switch`** :
 
 ![image](documentation/fr/images/results-4.png)
 
-Voir le code de ce composant [[ci-dessous](#even-better-with-apex-chart-to-tune-your-thermostat)]
-
-**Regulation forte en `over_climate`**
+**Regulation forte en `over_climate`** :
 
 ![image](documentation/fr/images/results-over-climate-1.png)
 
-**Regulation avec contrôle direct de la vanne en `over_climate`**
+**Regulation avec contrôle direct de la vanne en `over_climate`** :
 
 ![image](documentation/fr/images/results-over-climate-2.png)
 
