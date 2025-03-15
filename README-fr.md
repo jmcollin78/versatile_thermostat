@@ -4,12 +4,24 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-[En](README.md)|[Fr](README-fr.md)
-![Tip](images/icon.png)
+# Versatile Thermostat
+
+Ce fichier README est disponible en 
+[Anglais](README.md) | [Français](README-fr.md)
+
+<p align="center">
+<img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
+</p>
 
 > ![Tip](images/tips.png) Cette intégration de thermostat vise à simplifier considérablement vos automatisations autour de la gestion du chauffage. Parce que tous les événements autour du chauffage classiques sont gérés nativement par le thermostat (personne à la maison ?, activité détectée dans une pièce ?, fenêtre ouverte ?, délestage de puissance ?), vous n'avez pas à vous encombrer de scripts et d'automatismes compliqués pour gérer vos thermostats. ;-).
 
 Ce composant personnalisé pour Home Assistant est une mise à niveau et une réécriture complète du composant "Awesome thermostat" (voir [Github](https://github.com/dadge/awesome_thermostat)) avec l'ajout de fonctionnalités.
+
+# Captures d'écran
+
+Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
+
+![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
@@ -22,35 +34,37 @@ Ce composant personnalisé pour Home Assistant est une mise à niveau et une ré
 > - Ajout d'un chapitre dans la documentation nommé 'Démarrage rapide' permettant de mettre en oeuvre rapidement un _VTherm_ en fonction de votre équipement. La page est [ici](documentation/quick-start.md)
 
 
-# 🍻 Merci pour les bières [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
+# 🍻 Merci pour les bières 🍻
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
+
 Un grand merci à tous mes fournisseurs de bières pour leurs dons et leurs encouragments. Ca me fait très plaisir et ça m'encourage à continuer ! Si cette intégration vous a fait économiser, payez moi une p'tite bière en retour, j'en vous en serais très reconnaissant !
 
 # Glossaire
 
-  _VTherm_ : Versatile Thermostat dans la suite de ce document
+  `VTherm` : Versatile Thermostat dans la suite de ce document
 
-  _TRV_ : tête thermostatique équipée d'une vanne. La vanne s'ouvre ou se ferme permettant le passage de l'eau chaude
+  `TRV` : tête thermostatique équipée d'une vanne. La vanne s'ouvre ou se ferme permettant le passage de l'eau chaude
 
-  _AC_ : Air conditionné. Un équipement est AC si il fait du froid. Les températures sont alors inversées : Eco est plus chaud que Confort qui est plus chaud que Boost. Les algorithmes tiennent compte de cette information.
+  `AC` : Air conditionné. Un équipement est AC si il fait du froid. Les températures sont alors inversées : Eco est plus chaud que Confort qui est plus chaud que Boost. Les algorithmes tiennent compte de cette information.
 
-  _EMA_ : Exponential Moving Average. Utilisé pour lisser les mesures de températures de capteur. Elle correspond à une moyenne glissante de la température de la pièce. Elle est utilisée pour calculer la pente de la courbe de température (slope) qui serait trop instable sur la courbe brute.
+  `EMA` : Exponential Moving Average. Utilisé pour lisser les mesures de températures de capteur. Elle correspond à une moyenne glissante de la température de la pièce. Elle est utilisée pour calculer la pente de la courbe de température (slope) qui serait trop instable sur la courbe brute.
 
-  _slope_ : la pente de la courbe de température. Elle est mesurée en °(C ou K)/h. Elle est positive si la température augmente et négative si elle diminue. Cette pente est calculée sur l'_EMA_
+  `slope` : la pente de la courbe de température. Elle est mesurée en °(C ou K)/h. Elle est positive si la température augmente et négative si elle diminue. Cette pente est calculée sur l'`EMA`
 
-  _PAC_ : Pompe à chaleur
+  `PAC` : Pompe à chaleur
 
-  _HA_ : Home Assistant
+  `HA` : Home Assistant
 
-  _sous-jacent_ : l'équipement controlé par _VTherm_
+  `sous-jacent` : l'équipement controlé par `VTherm`
 
 
 # Documentation
 
 La documentation est maintenant découpée en plusieurs pages pour faciliter la lecture et la recherche d'informations :
-1. [présentation](documentation/fr/presentation.md),
-2. [Installation](documentation/fr/installation.md),
+1. [présentation](documentation/fr/presentation.md)
+2. [Installation](documentation/fr/installation.md)
 3. [Démarrage rapide](documentation/fr/quick-start.md)
-4. [choisir un type de VTherm](documentation/fr/creation.md),
+4. [choisir un type de VTherm](documentation/fr/creation.md)
 5. [les attributs de base](documentation/fr/base-attributes.md)
 6. [configurer un VTherm sur un `switch`](documentation/fr/over-switch.md)
 7. [configurer un VTherm sur un `climate`](documentation/fr/over-climate.md)
@@ -79,7 +93,8 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 
 ![image](documentation/fr/images/results-1.png)
 
-Cycle de marche/arrêt calculé par l'intégration (`over_climate`):
+Cycle de marche/arrêt calculé par l'intégration `over_climate`:
+
 ![image](documentation/fr/images/results-2.png)
 
 **Régulation avec un `over_switch`**

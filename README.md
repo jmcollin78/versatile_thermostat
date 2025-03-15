@@ -4,12 +4,24 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-[En](README.md)|[Fr](README-fr.md)
-![Tip](images/icon.png)
+# Versatile Thermostat
+
+This README file is available in 
+languages : [English](README.md) | [French](README-fr.md)
+
+<p align="center">
+<img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
+</p>
 
 > ![Tip](images/tips.png) This thermostat integration aims to greatly simplify your heating management automations. Since all typical heating events (nobody home?, activity detected in a room?, window open?, power load shedding?), are natively managed by the thermostat, you don’t need to deal with complicated scripts and automations to manage your thermostats. ;-).
 
 This custom component for Home Assistant is an upgrade and a complete rewrite of the "Awesome thermostat" component (see [Github](https://github.com/dadge/awesome_thermostat)) with added features.
+
+# Screenshots
+
+Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
+
+![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
 # What's New?
 ![New](images/new-icon.png)
@@ -19,34 +31,36 @@ This custom component for Home Assistant is an upgrade and a complete rewrite of
 >
 > - Documentation links: Version 7.2 introduces experimental links to the documentation from the configuration pages. The link is accessible via the icon [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). This feature is currently tested on some configuration pages.
 
-# 🍻 Thanks for the beers [buymecoffee](https://www.buymeacoffee.com/jmcollin78) 🍻
+# 🍻 Thanks for the beers 🍻
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78) 
+
 A big thank you to all my beer sponsors for their donations and encouragements. It means a lot to me and motivates me to keep going! If this integration has saved you money, buy me a beer in return; I would greatly appreciate it!
 
 # Glossary
 
-  _VTherm_: Versatile Thermostat as referred to in this document
+  `VTherm`: Versatile Thermostat as referred to in this document
 
-  _TRV_: Thermostatic Radiator Valve equipped with a valve. The valve opens or closes to allow hot water to pass.
+  `TRV`: Thermostatic Radiator Valve equipped with a valve. The valve opens or closes to allow hot water to pass.
 
-  _AC_: Air Conditioning. An AC device cools instead of heats. Temperatures are reversed: Eco is warmer than Comfort, which is warmer than Boost. The algorithms take this information into account.
+  `AC`: Air Conditioning. An AC device cools instead of heats. Temperatures are reversed: Eco is warmer than Comfort, which is warmer than Boost. The algorithms take this information into account.
 
-  _EMA_: Exponential Moving Average. Used to smooth sensor temperature measurements. It represents a moving average of the room's temperature and is used to calculate the slope of the temperature curve, which would be too unstable on the raw data.
+  `EMA`: Exponential Moving Average. Used to smooth sensor temperature measurements. It represents a moving average of the room's temperature and is used to calculate the slope of the temperature curve, which would be too unstable on the raw data.
 
-  _slope_: The slope of the temperature curve, measured in ° (C or K)/h. It is positive when the temperature increases and negative when it decreases. This slope is calculated based on the _EMA_.
+  `slope`: The slope of the temperature curve, measured in ° (C or K)/h. It is positive when the temperature increases and negative when it decreases. This slope is calculated based on the `EMA`.
 
-  _PAC_: Heat pump
+  `PAC`: Heat pump
 
-  _HA_: Home Assistant
+  `HA`: Home Assistant
 
-  _underlying_: the device controlled by _VTherm_
+  `underlying`: the device controlled by `VTherm`
 
 # Documentation
 
 The documentation is now divided into several pages for easier reading and searching:
-1. [Introduction](documentation/en/presentation.md),
-2. [Installation](documentation/en/installation.md),
-3. [Démarrage rapide](documentation/en/quick-start.md)
-4. [Choosing a VTherm type](documentation/en/creation.md),
+1. [Introduction](documentation/en/presentation.md)
+2. [Installation](documentation/en/installation.md)
+3. [Quick start](documentation/en/quick-start.md)
+4. [Choosing a VTherm type](documentation/en/creation.md)
 5. [Basic attributes](documentation/en/base-attributes.md)
 6. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
 7. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
@@ -74,14 +88,13 @@ The documentation is now divided into several pages for easier reading and searc
 
 ![image](documentation/en/images/results-1.png)
 
-On/off cycles calculated by the integration (`over_climate`):
+On/off cycles calculated by the integration `over_climate`:
+
 ![image](documentation/en/images/results-2.png)
 
 **Regulation with an `over_switch`**
 
 ![image](documentation/en/images/results-4.png)
-
-See the component's code [[below](#even-better-with-apex-chart-to-tune-your-thermostat)]
 
 **Strong regulation in `over_climate`**
 

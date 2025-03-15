@@ -25,7 +25,11 @@ Cliquez sur le bouton Ajouter une intégration dans la page d'intégration (ou c
 
 ![image](images/add-an-integration.png)
 
-puis
+Puis recherchez l'integration "versatile thermostat" :
+
+![image](images/choose-integration.png)
+
+et choisissez votre type de thermostat :
 
 ![image](images/config-main0.png)
 

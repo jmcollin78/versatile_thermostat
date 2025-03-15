@@ -23,7 +23,11 @@ Click on "Add Integration" on the integration page (or click 'Add device' in the
 
 ![image](images/add-an-integration.png)
 
-then:
+then search for "versatile thermostat" integration:
+
+![image](images/choose-integration.png)
+
+and choose your thermostat type:
 
 ![image](images/config-main0.png)
 
