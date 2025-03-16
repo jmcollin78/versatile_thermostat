@@ -38,7 +38,8 @@
                 "azuretools.vscode-docker",
                 "huizhou.githd",
                 "github.copilot",
-                "github.copilot-chat"
+                "github.copilot-chat",
+                "openai.chatgpt"
             ],
             "settings": {
                 "files.eol": "\n",
