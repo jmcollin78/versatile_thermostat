@@ -219,7 +219,8 @@ async def test_bug_272(
 
         # Not in the accepted interval (15-19)
         await entity.async_set_temperature(temperature=10)
-        assert mock_service_call.call_count == 1
+        # set temp recalculate now
+        assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls(
             [
                 call.async_call(

@@ -576,9 +576,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be lower
             assert entity.regulated_target_temp > entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 20 + 2.4
-            )  # In medium we could go up to +3 degre
+            assert entity.regulated_target_temp == 20 + 3.6  # In Strong we could go up to +5 degre
             assert entity.hvac_action == HVACAction.HEATING
 
         # change temperature so that the regulated temperature should slow down
@@ -592,7 +590,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 20 + 0.9
+            assert entity.regulated_target_temp == 20 + 2.1
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=13)
@@ -605,7 +603,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 20 + 0.5
+            assert entity.regulated_target_temp == 20 + 1.7
 
         old_regulated_temp = entity.regulated_target_temp
         # Test if a small temperature change is taken into account : change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
