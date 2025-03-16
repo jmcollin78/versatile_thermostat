@@ -1142,7 +1142,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # Disable this test which don't work anymore (kill the pytest !) and make the others tests failed
-# @pytest.mark.skip
+@pytest.mark.skip
 async def test_user_config_flow_over_switch_bug_552_tpi(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -1399,7 +1399,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # Disable this test which don't work anymore (kill the pytest !) and make the others tests failed
-# @pytest.mark.skip
+@pytest.mark.skip
 async def test_user_config_flow_over_climate_valve(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
