@@ -1619,16 +1619,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # A security to force stop heater if still active
             if self.is_device_active:
                 await self.async_underlying_entity_turn_off()
-            return True
-
-        for under in self._underlyings:
-            await under.start_cycle(
-                self._hvac_mode,
-                self._prop_algorithm.on_time_sec if self._prop_algorithm else None,
-                self._prop_algorithm.off_time_sec if self._prop_algorithm else None,
-                self._prop_algorithm.on_percent if self._prop_algorithm else None,
-                force,
-            )
+        else:
+            for under in self._underlyings:
+                await under.start_cycle(
+                    self._hvac_mode,
+                    self._prop_algorithm.on_time_sec if self._prop_algorithm else None,
+                    self._prop_algorithm.off_time_sec if self._prop_algorithm else None,
+                    self._prop_algorithm.on_percent if self._prop_algorithm else None,
+                    force,
+                )
 
         self.update_custom_attributes()
         return True
