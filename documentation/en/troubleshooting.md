@@ -18,6 +18,8 @@
   - [Enable Logs for the Versatile Thermostat](#enable-logs-for-the-versatile-thermostat)
   - [VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
   - [VTherm Automatically Switches to 'Cooling' or 'Heating' Mode](#vtherm-automatically-switches-to-cooling-or-heating-mode)
+  - [Open Window Detection Does Not Prevent Preset Changes](#open-window-detection-does-not-prevent-preset-changes)
+    - [Example:](#example)
 
 
 ## Using a Heatzy
@@ -243,3 +245,16 @@ See the details of this feature [here](over-climate.md#track-underlying-temperat
 Some reversible heat pumps have modes that allow the heat pump to decide whether to heat or cool. These modes are labeled as 'Auto' or 'Heat_cool' depending on the brand. These two modes should not be used with _VTherm_ because _VTherm_'s algorithms require explicit knowledge of whether the system is in heating or cooling mode, which these modes do not provide.
 
 You should only use the following modes: `Heat`, `Cool`, `Off`, or optionally `Fan` (although `Fan` has no practical purpose with _VTherm_).
+
+## Open Window Detection Does Not Prevent Preset Changes
+
+Indeed, preset changes while a window is open are taken into account, and this is the expected behavior.
+If the action mode is set to _Turn Off_ or _Fan Only_, the preset change and target temperature adjustment are applied immediately. Since the device is either turned off or in fan-only mode, there is no risk of heating the outside. When the device mode switches to Heating or Cooling, the preset and temperature will be applied and used.
+
+If the action mode is set to _Frost Protection_ or _Eco_, the preset temperature is applied, **but the preset itself remains unchanged**. This allows for preset changes while the window is open without altering the setpoint temperature, which remains as programmed in the action mode.
+
+### Example:
+1. **Initial state**: Window closed, action mode set to _Frost Protection_, preset on Comfort, and setpoint temperature at 19°C.
+2. **Window opens and system waits**: The preset remains on Comfort, **but the setpoint temperature switches to 10°C** (frost protection). This state may seem inconsistent because the displayed preset does not match the applied setpoint temperature.
+3. **Preset change to Boost** (by the user or the Scheduler): The preset switches to Boost, but the setpoint temperature remains at 10°C (frost protection). This state may also appear inconsistent.
+4. **Window closes**: The preset remains on Boost, and the setpoint temperature changes to 21°C (Boost). The inconsistency disappears, and the user's preset change is correctly applied.

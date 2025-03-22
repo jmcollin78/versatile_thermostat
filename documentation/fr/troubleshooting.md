@@ -18,6 +18,7 @@
   - [Activer les logs du Versatile Thermostat](#activer-les-logs-du-versatile-thermostat)
   - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
   - [VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'](#vtherm-passe-tout-seul-en-mode-clim-ou-en-mode-chauffage)
+  - [La détection de fenêtre ouverte n'empêche pas le changement de preset](#la-détection-de-fenêtre-ouverte-nempêche-pas-le-changement-de-preset)
 
 
 ## Utilisation d'un Heatzy
@@ -236,3 +237,16 @@ Voir le détail de cette fonction [ici](over-climate.md#suivre-les-changements-d
 
 Certaine _PAC_ réversibles ont des modes qui permettent de laisser le choix à la _PAC_ de chauffer ou de réfroidir. Ces modes sont 'Auto' or 'Heat_cool' selon les marques. Ces 2 modes ne doivent pas être utilisés avec _VTherm_ car les algorithmes de _VTherm_ ont besoin de savoir si ils sont en mode chauffe ou refroidissement ce que ne permettent pas ces modes.
 Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _Vtherm)
+
+## La détection de fenêtre ouverte n'empêche pas le changement de preset
+
+En effet, les changements de preset alors qu'une fenêtre est ouverte sont pris en compte et c'est un fonctionnement normal.
+Si le mode d'action est réglé sur _Eteindre_ ou _Ventilateur seul_ le changement de preset et de température cible est appliqué immédiatement. Comme l'équipement est éteint ou en mode ventilation seule, il n'y a de risque de chauffer l'extérieur. Lorsque le mode de l'équipement passera a Chauffage or Refroidissement, le preset et la température seront appliqués et utilisés.
+
+Si le mode d'action est un changement de preset _Hors gel_ ou _Eco_ alors la température du preset est appliquée **mais le preset reste comme il était**. Cela permet de changer de preset pendant que la fenêtre sans changer la température de consigne qui reste celle programmée dans le mode d'action.
+
+Exemple :
+1. **Etat initial** : fenêtre fermée, mode d'action sur _Hors gel_, preset sur Confort et la température de consigne sur 19°,
+2. **Ouverture de la fenêtre et attente** : preset reste sur Confort, **la température de consigne passe sur 10°** (hors gel). Cet état peut paraitre incohérent car la température de consigne n'est pas en accord avec le preset affiché,
+3. **Changement de preset en Boost** (par l'utilisateur ou par le Scheduler) : le preset change pour Boost mais la température de consigne reste à 10° (hors gel). Cet état peut aussi paraitre incohérent,
+4. **Fermeture de la fenêtre** : le preset reste sur Boost, la température de consigne passe sur 21° (Boost). L'incohérence a disparue et le changement de preset de l'utilisateur est bien appliqué.
