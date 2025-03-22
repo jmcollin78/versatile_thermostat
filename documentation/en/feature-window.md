@@ -60,5 +60,5 @@ To adjust it properly, it is recommended to display both the temperature curve a
 > 2. If you don't have a door/window sensor in your room, simply leave the sensor entity ID empty.
 > 3. **Only one mode is allowed**. You cannot configure a thermostat with both a sensor and auto detection. The two modes might contradict each other, so both modes cannot be active at the same time.
 > 4. It is not recommended to use auto mode for equipment subjected to frequent and normal temperature variations (hallways, open areas, etc.).
-> 5. To avoid interfering with your current preset settings, the actions _Frost protection_ and _Eco_ change the target temperature without changing the preset. So, you may notice a discrepancy between the selected preset and the setpoint.
+> 5. To avoid interfering with your current preset settings, the actions _Frost protection_ and _Eco_ change the target temperature without changing the preset. So, you may notice a discrepancy between the selected preset and the setpoint. See more description [here](troubleshooting.md#open-window-detection-does-not-prevent-preset-changes)
 > 6. If you use the Versatile Thermostat UI card (see [here](additions.md#even-better-with-the-versatile-thermostat-ui-card)), open detection is represented as follows: ![window](images/window-detection-icon.png).
