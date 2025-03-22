@@ -1114,4 +1114,4 @@ class SideEffects:
 async def do_central_power_refresh(hass):
     """Do a central power refresh"""
     await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
-    return hass.async_block_till_done()
+    return await hass.async_block_till_done()

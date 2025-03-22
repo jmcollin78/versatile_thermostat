@@ -54,6 +54,7 @@ async def test_power_feature_manager(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
+    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
@@ -137,6 +138,7 @@ async def test_power_feature_manager(
         type(fake_vtherm).is_over_climate = PropertyMock(return_value=is_over_climate)
         type(fake_vtherm).proportional_algorithm = PropertyMock(return_value=tpi_algo)
         type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=1)
+        fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         ret = await power_manager.check_power_available()
         assert ret == check_power_available
@@ -175,6 +177,7 @@ async def test_power_feature_manager_set_overpowering(
     """Test the set_overpowering method of FeaturePowerManager"""
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
+    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
@@ -224,6 +227,7 @@ async def test_power_feature_manager_set_overpowering(
         fake_vtherm.async_set_preset_mode_internal = AsyncMock()
         fake_vtherm.send_event = MagicMock()
         fake_vtherm.update_custom_attributes = MagicMock()
+        fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
 
         # Call set_overpowering
@@ -919,6 +923,10 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and HVACMode is on and device is active
 
+    #
+    #
+    #
+    #
     #
     #
     # fmt:off
