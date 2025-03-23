@@ -1,5 +1,5 @@
 [tool.black]
-# don't work. Options are in the devcontainer.yaml
+# Work !
 line-length = 180
 
 [tool.pytest.ini_options]
