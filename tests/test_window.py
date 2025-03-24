@@ -5,6 +5,8 @@ import logging
 from unittest.mock import patch, call, PropertyMock
 from datetime import datetime, timedelta
 
+from homeassistant.const import ATTR_TEMPERATURE
+
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
@@ -2479,3 +2481,213 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
 
     # Clean the entity
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test the Window management with the turn_off option and change the preset during
+    the window is open. This should restore the new preset and temperature when the window is closed"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_WINDOW_ACTION: CONF_WINDOW_TURN_OFF,
+            CONF_WINDOW_SENSOR: "binary_sensor.fake_window_sensor",
+            CONF_WINDOW_DELAY: 1,
+        },
+    )
+
+    vtherm: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert vtherm
+
+    await set_all_climate_preset_temp(hass, vtherm, default_temperatures, "theoverswitchmockname")
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now = datetime.now(tz)
+
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.preset_mode is PRESET_BOOST
+    assert vtherm.target_temperature == 21
+
+    assert vtherm.window_state is STATE_UNKNOWN
+    assert vtherm.window_manager.is_window_auto_configured is False
+
+    # 1. Turn on the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, True, False, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have taken the window action
+        # No change
+        assert vtherm.target_temperature == 21
+        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.hvac_mode is HVACMode.OFF
+
+    # 2. Change the preset to comfort
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+
+    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await hass.async_block_till_done()
+
+    # VTherm should have taken the new preset temperature
+    assert vtherm.target_temperature == 19
+    assert vtherm.preset_mode is PRESET_COMFORT
+    assert vtherm.hvac_mode is HVACMode.OFF
+
+    # 3.Turn off the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, False, True, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have restore the Comfort preset temperature
+        assert vtherm.target_temperature == 19  # restore comfort
+        # No change
+        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # Clean the entity
+    vtherm.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test the Window management with the turn_off option and change the temperature during
+    the window is open. This should restore the new temperature when the window is closed"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_WINDOW_ACTION: CONF_WINDOW_TURN_OFF,
+            CONF_WINDOW_SENSOR: "binary_sensor.fake_window_sensor",
+            CONF_WINDOW_DELAY: 1,
+        },
+    )
+
+    vtherm: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert vtherm
+
+    await set_all_climate_preset_temp(hass, vtherm, default_temperatures, "theoverswitchmockname")
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now = datetime.now(tz)
+
+    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.preset_mode is PRESET_BOOST
+    assert vtherm.target_temperature == 21
+
+    assert vtherm.window_state is STATE_UNKNOWN
+    assert vtherm.window_manager.is_window_auto_configured is False
+
+    # 1. Turn on the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, True, False, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have taken the window action
+        # No change
+        assert vtherm.target_temperature == 21
+        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.hvac_mode is HVACMode.OFF
+
+    # 2. Change the preset to comfort
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+
+    await vtherm.async_set_temperature(temperature=18.5)
+    await hass.async_block_till_done()
+
+    # VTherm should have taken the new preset temperature
+    assert vtherm.target_temperature == 18.5
+    assert vtherm.preset_mode is PRESET_NONE
+    assert vtherm.hvac_mode is HVACMode.OFF
+
+    # 3.Turn off the window sensor
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+
+        try_function = await send_window_change_event(vtherm, False, True, now)
+
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await try_function(None)
+
+        # VTherm should have restore the Comfort preset temperature
+        assert vtherm.target_temperature == 18.5  # restore comfort
+        # No change
+        assert vtherm.preset_mode is PRESET_NONE
+        assert vtherm.hvac_mode is HVACMode.HEAT
+
+    # Clean the entity
+    vtherm.remove_thermostat()
