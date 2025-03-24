@@ -1142,7 +1142,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self.save_target_temp()
             self._attr_preset_mode = preset_mode
             # Switch the temperature if window is not 'on'
-            if not self._window_manager.is_window_detected:
+            if not self._window_manager.is_window_detected or self._window_manager.window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
                 await self.change_target_temperature(self.find_preset_temp(preset_mode))
             else:
                 # Window is on, so we just save the new expected temp
@@ -1262,7 +1262,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         self._attr_preset_mode = PRESET_NONE
-        if not self._window_manager.is_window_detected:
+        if not self._window_manager.is_window_detected or self._window_manager.window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
             await self.change_target_temperature(temperature, force=True)
         else:
             self._saved_target_temp = temperature
