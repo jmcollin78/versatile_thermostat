@@ -1898,12 +1898,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # if self._entry_infos.get(CONF_USE_PRESENCE_FEATURE) is True:
         if self._presence_manager.is_configured:
             presets_away = calculate_presets(
-                (
-                    CONF_PRESETS_AWAY_WITH_AC.items()
-                    if self._ac_mode
-                    else CONF_PRESETS_AWAY.items()
-                ),
-                CONF_USE_PRESENCE_CENTRAL_CONFIG,
+                (CONF_PRESETS_AWAY_WITH_AC.items() if self._ac_mode else CONF_PRESETS_AWAY.items()),
+                CONF_USE_PRESETS_CENTRAL_CONFIG,
             )
 
         # aggregate all available presets now
