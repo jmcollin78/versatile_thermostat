@@ -444,6 +444,7 @@ async def test_add_number_for_over_switch_use_central(
             CONF_NAME: "TheOverSwitchVTherm",
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_central_ext_temp_sensor",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
             CONF_AC_MODE: False,
@@ -457,8 +458,7 @@ async def test_add_number_for_over_switch_use_central(
             CONF_USE_WINDOW_CENTRAL_CONFIG: True,
             CONF_USE_POWER_CENTRAL_CONFIG: True,
             CONF_USE_MOTION_CENTRAL_CONFIG: True,
-        }
-        | temps,
+        },
     )
 
     # The restore should not be used
@@ -501,23 +501,22 @@ async def test_add_number_for_over_switch_use_central_presence(
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
     temps = {
-        "frost_temp": 10,
-        "eco_temp": 17.1,
-        "comfort_temp": 18.1,
-        "boost_temp": 19.1,
-        "eco_ac_temp": 25.1,
-        "comfort_ac_temp": 23.1,
-        "boost_ac_temp": 21.1,
+        "frost": 10,
+        "eco": 17.1,
+        "comfort": 18.1,
+        "boost": 19.1,
+        "eco_ac": 25.1,
+        "comfort_ac": 23.1,
+        "boost_ac": 21.1,
+        "frost_away": 15.1,
+        "eco_away": 15.2,
+        "comfort_away": 15.3,
+        "boost_away": 15.4,
+        "eco_ac_away": 30.5,
+        "comfort_ac_away": 30.6,
+        "boost_ac_away": 30.7,
     }
-    temps_missing = {
-        "frost_away_temp": 15.1,
-        "eco_away_temp": 15.2,
-        "comfort_away_temp": 15.3,
-        "boost_away_temp": 15.4,
-        "eco_ac_away_temp": 30.5,
-        "comfort_ac_away_temp": 30.6,
-        "boost_ac_away_temp": 30.7,
-    }
+    temps_missing = {}
 
     vtherm_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -535,7 +534,7 @@ async def test_add_number_for_over_switch_use_central_presence(
             CONF_TPI_COEF_INT: 0.5,
             CONF_TPI_COEF_EXT: 0.02,
             CONF_CYCLE_MIN: 5,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
@@ -544,14 +543,10 @@ async def test_add_number_for_over_switch_use_central_presence(
             CONF_USE_WINDOW_CENTRAL_CONFIG: True,
             CONF_USE_POWER_CENTRAL_CONFIG: True,
             CONF_USE_MOTION_CENTRAL_CONFIG: True,
-        }
-        | temps
-        | temps_missing,
+        },
     )
 
-    vtherm: BaseThermostat = await create_thermostat(
-        hass, vtherm_entry, "climate.theoverswitchvtherm"
-    )
+    vtherm: BaseThermostat = await create_thermostat(hass, vtherm_entry, "climate.theoverswitchvtherm", {**temps, **temps_missing})
 
     assert vtherm.use_central_config_temperature is True
 
@@ -559,7 +554,7 @@ async def test_add_number_for_over_switch_use_central_presence(
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_preset_" + preset_name,
+            "number.theoverswitchvtherm_preset_" + preset_name + PRESET_TEMP_SUFFIX,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -576,24 +571,20 @@ async def test_add_number_for_over_switch_use_central_presence(
         )
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=vtherm_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=vtherm_entry.entry_id, preset_name=preset_name + PRESET_TEMP_SUFFIX)
         assert val == value
 
     # 2. We search for NumberEntities to be missing
     for preset_name, value in temps_missing.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_" + preset_name,
+            "number.theoverswitchvtherm_" + preset_name + PRESET_TEMP_SUFFIX,
             NUMBER_DOMAIN,
         )
         assert temp_entity is None
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=vtherm_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=vtherm_entry.entry_id, preset_name=preset_name + PRESET_TEMP_SUFFIX)
         assert val is None
 
     # 3. The VTherm should be initialized with all presets and correct temperature
@@ -608,28 +599,25 @@ async def test_add_number_for_over_switch_use_central_presence(
     ]
 
     assert vtherm._presets == {
-        PRESET_FROST_PROTECTION: temps["frost_temp"],
-        PRESET_ECO: temps["eco_temp"],
-        PRESET_COMFORT: temps["comfort_temp"],
-        PRESET_BOOST: temps["boost_temp"],
-        PRESET_ECO_AC: temps["eco_ac_temp"],
-        PRESET_COMFORT_AC: temps["comfort_ac_temp"],
-        PRESET_BOOST_AC: temps["boost_ac_temp"],
+        PRESET_FROST_PROTECTION: temps["frost"],
+        PRESET_ECO: temps["eco"],
+        PRESET_COMFORT: temps["comfort"],
+        PRESET_BOOST: temps["boost"],
+        PRESET_ECO_AC: temps["eco_ac"],
+        PRESET_COMFORT_AC: temps["comfort_ac"],
+        PRESET_BOOST_AC: temps["boost_ac"],
     }
 
     # Preset away should be initialized with the central config
     assert vtherm._presets_away == {
-        PRESET_FROST_PROTECTION
-        + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["frost_away_temp"],
-        PRESET_ECO + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["eco_away_temp"],
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["comfort_away_temp"],
-        PRESET_BOOST + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["boost_away_temp"],
-        PRESET_ECO_AC + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["eco_ac_away_temp"],
-        PRESET_COMFORT_AC
-        + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["comfort_ac_away_temp"],
-        PRESET_BOOST_AC + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["boost_ac_away_temp"],
+        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: temps["frost_away"],
+        PRESET_ECO + PRESET_AWAY_SUFFIX: temps["eco_away"],
+        PRESET_COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away"],
+        PRESET_BOOST + PRESET_AWAY_SUFFIX: temps["boost_away"],
+        PRESET_ECO_AC + PRESET_AWAY_SUFFIX: temps["eco_ac_away"],
+        PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX: temps["comfort_ac_away"],
+        PRESET_BOOST_AC + PRESET_AWAY_SUFFIX: temps["boost_ac_away"],
     }
-
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_over_switch_use_central_presets_and_restore(
@@ -642,23 +630,22 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
 
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 
-    temps = {
-        "frost_away_temp": 23,
-        "eco_away_temp": 23,
-        "comfort_away_temp": 23,  # To test absence of preset
-        "boost_away_temp": 23,
-    }
+    temps = {}
     temps_missing = {
-        "frost_temp": 10,
-        "eco_temp": 17.1,
-        "comfort_temp": 18.1,
-        "boost_temp": 19.1,
-        "eco_ac_temp": 25.1,
-        "comfort_ac_temp": 23.1,
-        "boost_ac_temp": 21.1,
-        "eco_ac_away_temp": 30.5,
-        "comfort_ac_away_temp": 30.6,
-        "boost_ac_away_temp": 30.7,
+        "frost_away": 23,
+        "eco_away": 23,
+        "comfort_away": 23,  # To test absence of preset
+        "boost_away": 23,
+        "frost": 10,
+        "eco": 17.1,
+        "comfort": 18.1,
+        "boost": 19.1,
+        "eco_ac": 25.1,
+        "comfort_ac": 23.1,
+        "boost_ac": 21.1,
+        "eco_ac_away": 30.5,
+        "comfort_ac_away": 30.6,
+        "boost_ac_away": 30.7,
     }
 
     vtherm_entry = MockConfigEntry(
@@ -677,7 +664,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
             CONF_TPI_COEF_EXT: 0.02,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
@@ -687,9 +674,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
             CONF_USE_WINDOW_CENTRAL_CONFIG: True,
             CONF_USE_POWER_CENTRAL_CONFIG: True,
             CONF_USE_MOTION_CENTRAL_CONFIG: True,
-        }
-        | temps
-        | temps_missing,
+        },
     )
 
     # The restore should be used
@@ -697,20 +682,18 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
         "homeassistant.helpers.restore_state.RestoreEntity.async_get_last_state",
         return_value=State(entity_id="number.mock_valve", state="23"),
     ) as mock_restore_state:
-        vtherm: BaseThermostat = await create_thermostat(
-            hass, vtherm_entry, "climate.theoverswitchvtherm"
-        )
+        vtherm: BaseThermostat = await create_thermostat(hass, vtherm_entry, "climate.theoverswitchvtherm", {})
 
         assert vtherm.use_central_config_temperature is True
 
-        # We should try to restore all 4 temp entities and the VTherm itself
-        assert mock_restore_state.call_count == 4 + 2
+        # We should try to restore all 0 temp entities and the VTherm itself
+        assert mock_restore_state.call_count == 0 + 2
 
     # 1. We search for NumberEntities
     for preset_name, value in temps.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_preset_" + preset_name,
+            "number.theoverswitchvtherm_preset_" + preset_name + PRESET_TEMP_SUFFIX,
             NUMBER_DOMAIN,
         )
         assert temp_entity
@@ -728,7 +711,8 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
 
         # Find temp Number into vtherm_api
         val = vtherm_api.get_temperature_number_value(
-            config_id=vtherm_entry.entry_id, preset_name=preset_name
+            config_id=vtherm_entry.entry_id,
+            preset_name=preset_name + PRESET_TEMP_SUFFIX,
         )
         assert val == value
 
@@ -736,14 +720,15 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     for preset_name, value in temps_missing.items():
         temp_entity = search_entity(
             hass,
-            "number.theoverswitchvtherm_" + preset_name,
+            "number.theoverswitchvtherm_" + preset_name + PRESET_TEMP_SUFFIX,
             NUMBER_DOMAIN,
         )
         assert temp_entity is None
 
         # Find temp Number into vtherm_api
         val = vtherm_api.get_temperature_number_value(
-            config_id=vtherm_entry.entry_id, preset_name=preset_name
+            config_id=vtherm_entry.entry_id,
+            preset_name=preset_name + PRESET_TEMP_SUFFIX,
         )
         assert val is None
 
@@ -767,10 +752,10 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     }
 
     assert vtherm._presets_away == {
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: temps["frost_away_temp"],
-        PRESET_ECO + PRESET_AWAY_SUFFIX: temps["eco_away_temp"],
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away_temp"],
-        PRESET_BOOST + PRESET_AWAY_SUFFIX: temps["boost_away_temp"],
+        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["frost_away_temp"],
+        PRESET_ECO + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["eco_away_temp"],
+        PRESET_COMFORT + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["comfort_away_temp"],
+        PRESET_BOOST + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["boost_away_temp"],
     }
 
 
@@ -800,7 +785,7 @@ async def test_change_central_config_temperature(
             CONF_TPI_COEF_EXT: 0.02,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
-            CONF_VALVE: "switch.mock_valve",
+            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
@@ -918,7 +903,7 @@ async def test_change_vtherm_temperature(
             CONF_TPI_COEF_EXT: 0.02,
             CONF_CYCLE_MIN: 5,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
-            CONF_VALVE: "switch.mock_valve",
+            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
@@ -1039,7 +1024,7 @@ async def test_change_vtherm_temperature_with_presence(
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
             CONF_AC_MODE: True,
-            CONF_VALVE: "switch.mock_valve",
+            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_PRESENCE_SENSOR: "person.presence_sensor",

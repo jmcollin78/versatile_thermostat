@@ -127,33 +127,23 @@ async def async_setup_entry(
                         )
                     )
 
-        if entry.data.get(
-            CONF_USE_PRESENCE_FEATURE, False
-        ) is True and not entry.data.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False):
-            if entry.data.get(CONF_AC_MODE, False):
-                for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
-                    _LOGGER.debug(
-                        "%s - configuring Number non central, AC, AWAY for preset %s",
-                        name,
-                        preset,
-                    )
-                    entities.append(
-                        TemperatureNumber(
-                            hass, unique_id, name, preset, True, True, entry.data
+            if entry.data.get(CONF_USE_PRESENCE_FEATURE, False) is True:
+                if entry.data.get(CONF_AC_MODE, False):
+                    for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
+                        _LOGGER.debug(
+                            "%s - configuring Number non central, AC, AWAY for preset %s",
+                            name,
+                            preset,
                         )
-                    )
-            else:
-                for preset in CONF_PRESETS_AWAY_VALUES:
-                    _LOGGER.debug(
-                        "%s - configuring Number non central, non AC, AWAY for preset %s",
-                        name,
-                        preset,
-                    )
-                    entities.append(
-                        TemperatureNumber(
-                            hass, unique_id, name, preset, False, True, entry.data
+                        entities.append(TemperatureNumber(hass, unique_id, name, preset, True, True, entry.data))
+                else:
+                    for preset in CONF_PRESETS_AWAY_VALUES:
+                        _LOGGER.debug(
+                            "%s - configuring Number non central, non AC, AWAY for preset %s",
+                            name,
+                            preset,
                         )
-                    )
+                        entities.append(TemperatureNumber(hass, unique_id, name, preset, False, True, entry.data))
 
     # For central config only
     else:
