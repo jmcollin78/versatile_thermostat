@@ -1109,10 +1109,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._min_opening_degree: int = min_opening_degree
 
     def _normalize_opening_closing_degree(self, opening: float) -> float:
-        """Issue #902 - Normalize the opening and closing degree"""
+        """Issue #902 - Normalize the opening and closing degree
+        Issue #927 - Cancel the normalization"""
 
-        new_opening = max(opening - 1, 0) if self.has_closing_degree_entity else opening
-        new_closing = max(self._max_opening_degree - 1 - new_opening, 0) if self.has_closing_degree_entity else 100
+        new_opening = max(opening, 0) if self.has_closing_degree_entity else opening
+        new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
 
         return new_opening, new_closing
 
