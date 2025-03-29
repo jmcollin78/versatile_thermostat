@@ -55,11 +55,9 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
         ),
         vol.Optional(CONF_LAST_SEEN_TEMP_SENSOR): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN]
-            ),
+            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN]),
         ),
-        vol.Required(CONF_CYCLE_MIN, default=5): cv.positive_int,
+        vol.Required(CONF_CYCLE_MIN, default=5): selector.NumberSelector(selector.NumberSelectorConfig(min=1, max=1000, step=1, mode=selector.NumberSelectorMode.BOX)),
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
         vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,

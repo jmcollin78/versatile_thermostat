@@ -312,7 +312,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._attr_preset_modes: list[str] | None
 
-        self._cycle_min = entry_infos.get(CONF_CYCLE_MIN)
+        self._cycle_min = max(1, entry_infos.get(CONF_CYCLE_MIN, 1))
 
         # Initialize underlying entities (will be done in subclasses)
         self._underlyings = []
