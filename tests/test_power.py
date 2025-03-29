@@ -681,9 +681,9 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_off.call_count == 0
 
     entity.incremente_energy()
-    assert entity.total_energy == round(100 * 5 / 60.0, 2)
+    assert entity.total_energy == round(100 * 5 / 60.0 / 2, 2)
     entity.incremente_energy()
-    assert entity.total_energy == round(2 * 100 * 5 / 60.0, 2)
+    assert entity.total_energy == round(2 * 100 * 5 / 60.0 / 2, 2)
 
     # change temperature to a higher value
     with patch(
@@ -702,10 +702,10 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_off.call_count == 0
 
     entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0, 2)
+    assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0 / 2, 2)
 
     entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
     # change temperature to a much higher value so that heater will be shut down
     with patch(
@@ -725,11 +725,11 @@ async def test_power_management_energy_over_switch(
 
     entity.incremente_energy()
     # No change on energy
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
     # Still no change
     entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0, 2)
+    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -923,6 +923,10 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and HVACMode is on and device is active
 
+    #
+    #
+    #
+    #
     #
     #
     #
