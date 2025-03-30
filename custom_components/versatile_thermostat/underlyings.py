@@ -8,7 +8,7 @@ from typing import Any, Dict, Tuple
 from enum import StrEnum
 
 from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE
-from homeassistant.core import State, HomeAssistantError
+from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
 
@@ -957,25 +957,16 @@ class UnderlyingValve(UnderlyingEntity):
             data = {"value": value}
             target = {ATTR_ENTITY_ID: number_entity_id}
             domain = number_entity_id.split(".")[0]
-            await self._hass.services.async_call(domain=domain, service=SERVICE_SET_VALUE, service_data=data, target=target, blocking=True, return_response=True)
-            _LOGGER.debug(
-                "%s - Sending value %s to %s is ok",
-                self,
-                value,
-                number_entity_id,
+            await self._hass.services.async_call(
+                domain=domain,
+                service=SERVICE_SET_VALUE,
+                service_data=data,
+                target=target,
             )
         except ServiceNotFound as err:
             _LOGGER.error(err)
             # This could happens in unit test if input_number domain is not yet loaded
             # raise err
-        except HomeAssistantError as err:
-            _LOGGER.error(
-                "%s - Cannot send value %s to %s. Error: %s",
-                self,
-                value,
-                number_entity_id,
-                err,
-            )
 
     async def send_percent_open(self, fixed_value: float = None):
         """Send the percent open to the underlying valve"""
