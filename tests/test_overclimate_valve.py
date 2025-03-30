@@ -138,8 +138,8 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert mock_service_call.call_count == 3
         mock_service_call.assert_has_calls(
             [
-                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}, blocking=True, return_response=True),
-                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}, blocking=True, return_response=True),
+                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
+                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}),
                 call("climate","set_temperature",{
                         "entity_id": "climate.mock_climate",
                         "temperature": 15,  # temp-min
@@ -187,10 +187,10 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         mock_service_call.assert_has_calls(
             [
                 call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate', 'temperature': 19.0}),
-                call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree'}, blocking=True, return_response=True),
-                call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree'}, blocking=True, return_response=True),
+                call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree'}),
+                call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree'}),
                 # 3 = 18 (room) - 15 (current of underlying) + 0 (current offset)
-                call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration'}, blocking=True, return_response=True)
+                call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration'})
             ]
         )
 
@@ -233,10 +233,10 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert mock_service_call.call_count == 3
         mock_service_call.assert_has_calls(
             [
-                call(domain='number', service='set_value', service_data={'value': 13}, target={'entity_id': 'number.mock_opening_degree'}, blocking=True, return_response=True),
-                call(domain='number', service='set_value', service_data={'value': 87}, target={'entity_id': 'number.mock_closing_degree'}, blocking=True, return_response=True),
+                call(domain='number', service='set_value', service_data={'value': 13}, target={'entity_id': 'number.mock_opening_degree'}),
+                call(domain='number', service='set_value', service_data={'value': 87}, target={'entity_id': 'number.mock_closing_degree'}),
                 # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
-                call(domain='number', service='set_value', service_data={'value': 6.899999999999999}, target={'entity_id': 'number.mock_offset_calibration'}, blocking=True, return_response=True)
+                call(domain='number', service='set_value', service_data={'value': 6.899999999999999}, target={'entity_id': 'number.mock_offset_calibration'})
             ]
         )
 
@@ -279,10 +279,10 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert mock_service_call.call_count == 3
         mock_service_call.assert_has_calls(
             [
-                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}, blocking=True, return_response=True),
-                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}, blocking=True, return_response=True),
+                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
+                call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}),
                 # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
-                call(domain='number', service='set_value', service_data={'value': 9.0}, target={'entity_id': 'number.mock_offset_calibration'}, blocking=True, return_response=True)
+                call(domain='number', service='set_value', service_data={'value': 9.0}, target={'entity_id': 'number.mock_offset_calibration'})
             ]
         )
 
@@ -430,12 +430,12 @@ async def test_over_climate_valve_multi_presence(
         mock_service_call.assert_has_calls([
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate1', 'temperature': 19.0}),
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate2', 'temperature': 19.0}),
-            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'}, blocking=True, return_response=True)
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 
@@ -461,12 +461,12 @@ async def test_over_climate_valve_multi_presence(
         mock_service_call.assert_has_calls([
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate1', 'temperature': 17.2}),
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate2', 'temperature': 17.2}),
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'}, blocking=True, return_response=True)
+            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 
@@ -615,12 +615,12 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
             # min is 60
-            call(domain='number', service='set_value', service_data={'value': 68}, target={'entity_id': 'number.mock_opening_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 32}, target={'entity_id': 'number.mock_closing_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 76}, target={'entity_id': 'number.mock_opening_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 24}, target={'entity_id': 'number.mock_closing_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'}, blocking=True, return_response=True)
+            call(domain='number', service='set_value', service_data={'value': 68}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 32}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 76}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 24}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 
@@ -644,12 +644,12 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         # the underlying set temperature call and the call to the valve
         assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}, blocking=True, return_response=True),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'}, blocking=True, return_response=True)
+            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 

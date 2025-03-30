@@ -173,8 +173,6 @@ async def test_over_valve_full_start(
                     service="set_value",
                     service_data={"value": 90},
                     target={"entity_id": "number.mock_valve"},
-                    blocking=True,
-                    return_response=True,
                     # {"entity_id": "number.mock_valve", "value": 90},
                 ),
                 call.async_call(
@@ -182,8 +180,6 @@ async def test_over_valve_full_start(
                     service="set_value",
                     service_data={"value": 98},
                     target={"entity_id": "number.mock_valve"},
-                    blocking=True,
-                    return_response=True,
                     # {"entity_id": "number.mock_valve", "value": 98},
                 ),
             ]
@@ -235,7 +231,14 @@ async def test_over_valve_full_start(
         assert mock_service_call.call_count == 1
         # The VTherm valve is 0, but the underlying have received 10 which is the min
         mock_service_call.assert_has_calls(
-            [call.async_call(domain="number", service="set_value", service_data={"value": 10}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True)]
+            [
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 10},
+                    target={"entity_id": "number.mock_valve"},
+                )
+            ]
         )
 
         await send_temperature_change_event(entity, 17, datetime.now())
@@ -247,17 +250,15 @@ async def test_over_valve_full_start(
                     domain="number",
                     service="set_value",
                     service_data={"value": 10},
-                    target={"entity_id": "number.mock_valve"},
-                    blocking=True,
-                    return_response=True,  # the min allowed value
+                    target={"entity_id": "number.mock_valve"},  # the min allowed value
                 ),
                 call.async_call(
                     domain="number",
                     service="set_value",
-                    service_data={"value": 34},  # 34 is 50 x open_percent (69%) and is the max allowed value
+                    service_data={
+                        "value": 34
+                    },  # 34 is 50 x open_percent (69%) and is the max allowed value
                     target={"entity_id": "number.mock_valve"},
-                    blocking=True,
-                    return_response=True,
                 ),
             ]
         )
@@ -456,7 +457,12 @@ async def test_over_valve_regulation(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 90}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 90},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
 
@@ -510,7 +516,12 @@ async def test_over_valve_regulation(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 96}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 96},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
         assert mock_send_event.call_count == 0
@@ -622,7 +633,12 @@ async def test_bug_533(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 100}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 100},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
 
@@ -642,7 +658,12 @@ async def test_bug_533(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 50}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 50},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
 
@@ -662,7 +683,12 @@ async def test_bug_533(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 10}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 10},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
 
@@ -682,6 +708,11 @@ async def test_bug_533(
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(domain="number", service="set_value", service_data={"value": 0}, target={"entity_id": "number.mock_valve"}, blocking=True, return_response=True),
+                call.async_call(
+                    domain="number",
+                    service="set_value",
+                    service_data={"value": 0},
+                    target={"entity_id": "number.mock_valve"},
+                ),
             ]
         )
