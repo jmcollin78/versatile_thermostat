@@ -46,7 +46,7 @@ Depending on the equipment, this internal regulation may vary in quality. It gre
 The self-regulation options are described in detail [here](self-regulation.md).
 
 To avoid overloading the underlying equipment (some may beep unpleasantly, others run on batteries, etc.), two thresholds are available to limit the number of requests:
-1. Regulation Threshold: a threshold in ° (or %) below which a new setpoint will not be sent. If the last setpoint was 22°, the next one will be 22° ± regulation threshold. If a direct valve regulation is used (`over_valve` or `over_climate` with direct valve regulation, this value should in percentage and should not below 3% for Sonoff TRVZB.
+1. Regulation Threshold: a threshold in ° (or %) below which a new setpoint will not be sent. If the last setpoint was 22°, the next one will be 22° ± regulation threshold. If a direct valve regulation is used (`over_valve` or `over_climate` with direct valve regulation, this value should in percentage and should not below 3% for Sonoff TRVZB (else the Sonoff TRVZB can lost its calibration).
 2. Minimum Regulation Period (in minutes): a minimum time interval below which a new setpoint will not be sent. If the last setpoint was sent at 11:00, the next one cannot be sent before 11:00 + minimum regulation period.
 
 Improperly setting these thresholds may prevent correct self-regulation as new setpoints won't be sent.
