@@ -224,7 +224,7 @@
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
       },
       "valve_regulation": {
@@ -474,7 +474,7 @@
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Commande à éxecuter pour étiendre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
         }
       },
       "valve_regulation": {
