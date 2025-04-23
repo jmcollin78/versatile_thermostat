@@ -253,7 +253,7 @@
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
     },
     "abort": {
-      "already_configured": "Le device est déjà configuré"
+      "already_configured": "L'appareil est déjà configuré"
     }
   },
   "options": {
@@ -507,7 +507,7 @@
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
     "abort": {
-      "already_configured": "Le device est déjà configuré"
+      "already_configured": "L'appareil est déjà configuré"
     }
   },
   "selector": {
