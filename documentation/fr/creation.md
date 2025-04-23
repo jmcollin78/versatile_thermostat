@@ -1,11 +1,11 @@
-# Choix du Vtherm
+# Choix du VTherm
 
-- [Choix du Vtherm](#choix-du-vtherm)
+- [Choix du VTherm](#choix-du-vtherm)
   - [Création d'un nouveau Versatile Thermostat](#création-dun-nouveau-versatile-thermostat)
 - [Choix d'un type de VTherm](#choix-dun-type-de-vtherm)
   - [Configuration centralisée](#configuration-centralisée)
   - [VTherm sur un switch](#vtherm-sur-un-switch)
-  - [Vtherm sur un autre thermostat](#vtherm-sur-un-autre-thermostat)
+  - [VTherm sur un autre thermostat](#vtherm-sur-un-autre-thermostat)
   - [VTherm sur une vanne](#vtherm-sur-une-vanne)
 - [Le bon choix](#le-bon-choix)
 - [Article en référence](#article-en-référence)
@@ -50,7 +50,7 @@ Ce VTherm permet de contrôler un interrupteur qui allume ou étient un radiateu
 
 Les entités sous-jacentes sont donc des `switchs` ou des `input_boolean`.
 
-## Vtherm sur un autre thermostat
+## VTherm sur un autre thermostat
 Lorsque votre équipement est contrôlé par une entité de type `climate` dans Home Assistant et que vous n'avez que ça à disposition, vous devez utiliser ce type de VTherm. Dans ce cas, le VTherm va simplement commander la température de consigne du `climate` sous-jacent.
 Ce type est aussi équipé de fonction d' auto-régulations avancées permettant de moduler la consigne donnée aux sous-jacent pour atteindre plus vite la consigne et de s'affranchir de la régulation interne de ces équipements qui est parfois mauvaise. C'est le cas, si le thermomètre interne de l'équipement est trop proche du corps de chauffe. L'équipement peut croire qu'il fait chaud alors qu'au bout de la pièce, la consigne n'est pas du tout atteinte.
 
