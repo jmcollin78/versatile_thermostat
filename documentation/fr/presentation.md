@@ -52,7 +52,7 @@ Pour commander un radiateur électrique directement. Utilisable avec les _VTherm
 - [Prise intelligente pour petit équipements de chauffage Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
 ## Switchs avec fil pilote
-Pour commander un radiateur électrique équipé d'unfil pilote directement. Utilisable avec les _VTherm_ [`over_switch`](over-switch.md) et la [personnalisation des commandes](over-switch.md#la-personnalisation-des-commandes) :
+Pour commander un radiateur électrique équipé d'un fil pilote directement. Utilisable avec les _VTherm_ [`over_switch`](over-switch.md) et la [personnalisation des commandes](over-switch.md#la-personnalisation-des-commandes) :
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
