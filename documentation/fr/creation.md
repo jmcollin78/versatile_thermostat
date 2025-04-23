@@ -25,7 +25,7 @@ Cliquez sur le bouton Ajouter une intégration dans la page d'intégration (ou c
 
 ![image](images/add-an-integration.png)
 
-Puis recherchez l'integration "versatile thermostat" :
+Puis recherchez l'integration "Versatile Thermostat" :
 
 ![image](images/choose-integration.png)
 
