@@ -196,7 +196,7 @@
         }
       },
       "advanced": {
-        "title": "Parameters avancés",
+        "title": "Paramètres avancés",
         "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
