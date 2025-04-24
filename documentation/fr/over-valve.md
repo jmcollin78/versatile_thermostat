@@ -10,7 +10,7 @@
 L'installation doit ressembler à celle pour le VTherm `over_switch` sauf que l'équipement contrôlé est directement la vanne d'un _TRV_  :
 ![installation `over_valve`](images/over-valve-schema.png)
 
-1. L'utilisateur ou une automatisation ou le Sheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
+1. L'utilisateur ou une automatisation ou le Scheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
 2. régulièrement le thermomètre intérieur (2) ou extérieur (2b) ou interne à l'équipement (2c) envoie la température mesurée. Le thermomètre intérieur doit être placé à une place pertinente pour le ressenti de l'utilisateur : idéalement au milieu du lieu de vie. Evitez de le mettre trop près d'une fenêtre ou trop proche de l'équipement,
 3. avec les valeurs de consigne, les différentes températures et des paramètres de l'algorithme TPI (cf. [TPI](algorithms.md#lalgorithme-tpi)), VTherm va calculer un pourcentage d'ouverture de la vanne,
 4. et va modifier la valeur des entités `number` sous-jacentes,

@@ -17,7 +17,7 @@ L'installation doit ressembler à ça :
 
 ![installation `over_climate`](images/over-climate-schema.png)
 
-1. L'utilisateur ou une automatisation ou le Sheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
+1. L'utilisateur ou une automatisation ou le Scheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
 2. régulièrement le thermomètre intérieur (2) ou extérieur (2b) ou interne à l'équipement (2c) envoie la température mesurée. Le thermomètre intérieur doit être placé à une place pertinente pour le ressenti de l'utilisateur : idéalement au milieu du lieu de vie. Evitez de le mettre trop près d'une fenêtre ou trop proche de l'équipement,
 3. avec les valeurs de consigne, des différents et les paramètres de l'auto-régulation (cf. [auto-regulation](self-regulation.md)), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacentes,
 4. l'entité `climate` sous-jacente contrôle l'équipement avec son propre protocole,
