@@ -236,7 +236,7 @@ Voir le détail de cette fonction [ici](over-climate.md#suivre-les-changements-d
 ## VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'
 
 Certaine _PAC_ réversibles ont des modes qui permettent de laisser le choix à la _PAC_ de chauffer ou de réfroidir. Ces modes sont 'Auto' or 'Heat_cool' selon les marques. Ces 2 modes ne doivent pas être utilisés avec _VTherm_ car les algorithmes de _VTherm_ ont besoin de savoir si ils sont en mode chauffe ou refroidissement ce que ne permettent pas ces modes.
-Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _Vtherm)
+Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _VTherm)
 
 ## La détection de fenêtre ouverte n'empêche pas le changement de preset
 

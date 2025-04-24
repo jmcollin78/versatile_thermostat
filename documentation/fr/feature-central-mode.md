@@ -8,7 +8,7 @@
 Cette fonction vous permet de contrôler tous vos _VTherm_ depuis un unique point de contrôle.
 Le cas d'usage typique est lorsque vous partez pour une longue durée, vous voulez mettre tous vos _VTherm_ en Hors-gel et lorsque vous rentrez, vous voulez les remettre dans l'état initial.
 
-Le contrôle centralisé se fait depuis un _Vtherm_ spécial nommé configuration centralisée. Cf. [ici](creation.md#configuration-centralisée) pour plus d'informations.
+Le contrôle centralisé se fait depuis un _VTherm_ spécial nommé configuration centralisée. Cf. [ici](creation.md#configuration-centralisée) pour plus d'informations.
 
 ## Configuration du contrôle centralisée
 
