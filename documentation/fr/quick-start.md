@@ -92,7 +92,7 @@ Vous pouvez aussi (facultatif mais conseillé) installer la carte dédiée pour 
 
 Une fois cette configuration minimale opérationnelle - et seulement lorsque cette configuration minimale fonctionne -, vous pourrez ajouter des fonctions supplémentaires comme la détection de présence pour éviter de chauffer lorsqu'il n'y a personne. Ajoutez les une par une, vérifiez à chaque nouvelle fonction que _VTherm_ réagit correctement avant de passer à la suivante.
 
-Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherms_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
+Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherm_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
 
 # Appel à contribution
 

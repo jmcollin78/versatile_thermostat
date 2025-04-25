@@ -13,10 +13,10 @@
 
 > ![Astuce](images/tips.png) _*Notes*_
 >
-> Trois façons de travailler avec les VTherms sont disponibles :
+> Trois façons de travailler avec les _VTherm_ sont disponibles :
 > 1. Chaque Versatile Thermostat est entièrement configurée de manière indépendante. Choisissez cette option si vous ne souhaitez avoir aucune configuration ou gestion centrale.
 > 2. Certains aspects peuvent être configurés de manière centralisée. Cela permet par ex. définir la température min/max, les paramètres de détection de fenêtre ouverte,… au niveau d'une instance centrale et unique. Pour chaque VTherm que vous configurez, vous pouvez alors choisir d'utiliser la configuration centrale ou de la remplacer par des paramètres personnalisés.
-> 3. En plus de cette configuration centralisée, tous les VTherm peuvent être contrôlées par une seule entité de type `select`. Cette fonction est nommé `central_mode`. Cela permet de stopper / démarrer / mettre en hors gel / etc tous les VTherms en une seule fois. Pour chaque VTherm, l'utilisateur indique si il est concerné par ce `central_mode`.
+> 3. En plus de cette configuration centralisée, tous les VTherm peuvent être contrôlées par une seule entité de type `select`. Cette fonction est nommé `central_mode`. Cela permet de stopper / démarrer / mettre en hors gel / etc tous les _VTherm_ en une seule fois. Pour chaque VTherm, l'utilisateur indique si il est concerné par ce `central_mode`.
 
 
 ## Création d'un nouveau Versatile Thermostat
@@ -40,8 +40,8 @@ Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'opt
 # Choix d'un type de VTherm
 
 ## Configuration centralisée
-Ce choix permet de configurer une fois pour tous les VTherms certains aspects qui peuvent être répétitifs comme :
-1. les paramètres des différents algorithmes (TPI, détection d'ouvertures, détection de mouvements, capteurs de puissance de votre habitation, la détection de présence). Tous ces paramètres sont transverses à tous les VTherms. Vous pouvez donc ne les saisir qu'une seule fois dans la `Configuration centralisée`. Cette configuration ne créé pas de VTherm à proprement parler. Elle permet juste de mettre en commun des paramètres qu'il serait fastidieux de resaisir pour chaque VTherm. Noter que vous pouvez surcharger les paramètres sur les VTherms pour les spécialisés au besoin,
+Ce choix permet de configurer une fois pour tous les _VTherm_ certains aspects qui peuvent être répétitifs comme :
+1. les paramètres des différents algorithmes (TPI, détection d'ouvertures, détection de mouvements, capteurs de puissance de votre habitation, la détection de présence). Tous ces paramètres sont transverses à tous les _VTherm_. Vous pouvez donc ne les saisir qu'une seule fois dans la `Configuration centralisée`. Cette configuration ne créé pas de VTherm à proprement parler. Elle permet juste de mettre en commun des paramètres qu'il serait fastidieux de resaisir pour chaque VTherm. Noter que vous pouvez surcharger les paramètres sur les _VTherm_ pour les spécialisés au besoin,
 2. la configuration de la commande d'un chauffage central,
 3. certains paramètre avancés comme la mise en sécurité
 

@@ -9,7 +9,7 @@ Vous aurez besoin d'un **capteur de la puissance totale instantanée consommée*
 Le comportement de cette fonction est le suivant :
 1. lorsqu'une nouvelle mesure de la puissance consommée du logement ou de la puissance maximale autorisée est reçue,
 2. si la puissance max est dépassée, la commande centrale va mettre en délestage tous les équipements actifs en commençant par ceux qui sont le plus près de la consigne. Il fait ça jusqu'à ce que suffisament de _VTherm_ soient délestés,
-3. si une réserve de puissance est disponible et que des _VTherms_ sont délestés, alors la commande centrale va délester autant d'équipements que possible en commençant par les plus loin de la consigne (au moment où il a été mis en délestage),
+3. si une réserve de puissance est disponible et que des _VTherm_ sont délestés, alors la commande centrale va délester autant d'équipements que possible en commençant par les plus loin de la consigne (au moment où il a été mis en délestage),
 4. au démarrage d'un _VTherm_, une vérification est effectuée pour savoir si la puissance déclarée est disponible. Si non, le _VTherm_ est passé en délestage.
 
 ATTENTION: ce fonctionnement **n'est pas une fonction de sécurité** mais plus une fonction permettant une optimisation de la consommation au prix d'une dégradation du chauffage. Des dépassements sont possibles selon la fréquence de remontée de vos capteurs de consommation, la puissance réellement utilisée par votre équipements. Vous devez donc toujours garder une marge de sécurité.
@@ -39,7 +39,7 @@ Dans la configuration centralisée, si vous avez choisi la fonctionnalité `Avec
 Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW ou W par exemple).
 Le fait d'avoir un **capteur de puissance maximale autorisée**, vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou d'une automatisation.
 
-A noter, dû à la centralisation du délestage, il n'est pas possible de sur-charger les capteurs de consommation et de consommation maximale sur les _VTherms_. Cette configuration se fait forcément dans la configuration centralisée. Cf. [Configuration centralisée](./creation.md#configuration-centralisée)
+A noter, dû à la centralisation du délestage, il n'est pas possible de sur-charger les capteurs de consommation et de consommation maximale sur les _VTherm_. Cette configuration se fait forcément dans la configuration centralisée. Cf. [Configuration centralisée](./creation.md#configuration-centralisée)
 
 > ![Astuce](images/tips.png) _*Notes*_
 >
