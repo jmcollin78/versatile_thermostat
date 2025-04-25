@@ -35,8 +35,8 @@ Elle permet de configurer les entités de contrôle de la vanne :
 Vous devez donner :
 1. autant d'entités de contrôle d'ouverture de la vanne qu'il y a de sous-jacents et dans le même odre. Ces paramètres sont obligatoires,
 2. autant d'entités de calibrage du décalage de température qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun. Leur utilisation, si disponible est fortement conseillée,
-3. autant d'entités de de contrôle du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,,
-4. une liste de valeurs minimales d'ouverture de la vanne lorsqu'elle doit être ouverte. Ce champ est une liste d'entier. Si la vanne doit être ouverte, elle le sera au minimum avec cette valeur d'ouverture, sinon elle sera totalement close (0). Cela permet de laisser passer suffisamment d'eau lorsqu'elle doit être ouverte mais garde la fermeeture complète si il n'y a pas besoin de chauffer.
+3. autant d'entités de contrôle du taux de fermture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous founis ou aucun,,
+4. une liste de valeurs minimales d'ouverture de la vanne lorsqu'elle doit être ouverte. Ce champ est une liste d'entier. Si la vanne doit être ouverte, elle le sera au minimum avec cette valeur d'ouverture, sinon elle sera totalement close (0). Cela permet de laisser passer suffisamment d'eau lorsqu'elle doit être ouverte mais garde la fermeture complète si il n'y a pas besoin de chauffer.
 
 L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décrit [ici](algorithms.md). C'est le même algorithme qui est utilisé pour les _VTherm_ `over_switch` et `over_valve`.
 
@@ -73,11 +73,11 @@ Ces trois paramètres permettent de moduler la régulation et éviter de multipl
 > 4. Si ce n'est toujours pas suffisant, passez en auto-régulation Forte,
 > 5. Si ce n'est toujours pas bon, il faudra passer en mode expert pour pouvoir régler les paramètres de régulation de façon fine. Voir en-dessous
 
-L'auto-régulation consiste à forcer l'équipement a aller plus loin en lui forçant sa température de consigne régulièrement. Sa consommation peut donc être augmentée, ainsi que son usure.
+L'auto-régulation consiste à forcer l'équipement à aller plus loin en lui forçant sa température de consigne régulièrement. Sa consommation peut donc être augmentée, ainsi que son usure.
 
 #### L'auto-régulation en mode Expert
 
-En mode **Expert** pouvez régler finement les paramètres de l'auto-régulation pour atteindre vos objeetifs et optimiser au mieux. L'algorithme calcule l'écart entre la consigne et la température réelle de la pièce. Cet écard est appelé erreur.
+En mode **Expert** pouvez régler finement les paramètres de l'auto-régulation pour atteindre vos objectifs et optimiser au mieux. L'algorithme calcule l'écart entre la consigne et la température réelle de la pièce. Cet écard est appelé erreur.
 Les paramètres réglables sont les suivants :
 1. `kp` : le facteur appliqué à l'erreur brute,
 2. `ki` : le facteur appliqué à l'accumulation des erreurs,
@@ -90,7 +90,7 @@ Pour le tuning il faut tenir compte de ces observations :
 1. `kp * erreur` va donner l'offset lié à l'erreur brute. Cet offset est directement proportionnel à l'erreur et sera à 0 lorsque la target sera atteinte,
 2. l'accumulation de l'erreur permet de corriger le stabilisation de la courbe alors qu'il reste une erreur. L'erreur s'accumule et l'offset augmente donc progressivement ce qui devrait finir par stabiliser sur la température cible. Pour que ce paramètre fondamental est un effet il faut qu'il soit pas trop petit. Une valeur moyenne est 30
 3. `ki * accumulated_error_threshold` va donner l'offset maximal lié à l'accumulation de l'erreur,
-4. `k_ext` permet d'appliquer tout de suite (sans attendre une accumulation des erreurs) une correction lorsque la température extérieure est très différente de la température cible. Si la stabilisation se fait trop haut lorsqu'il les écarts de température sont importants, c'est que ce paramètre est trop fort. Il devrait pouvoir être annulé totalement pour laisser faire les 2 premiers offset
+4. `k_ext` permet d'appliquer tout de suite (sans attendre une accumulation des erreurs) une correction lorsque la température extérieure est très différente de la température cible. Si la stabilisation se fait trop haut lorsque les écarts de température sont importants, c'est que ce paramètre est trop fort. Il devrait pouvoir être annulé totalement pour laisser faire les 2 premiers offset
 
 Les valeurs préprogrammées sont les suivantes :
 
