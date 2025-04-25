@@ -21,8 +21,8 @@ Cas d'usage type:
 4. vous avez 1 kW d'autres équipements en cours,
 5. vous avez déclaré un capteur (`input_number`) de puissance max autorisée à 9 kW (= 11 kW  - la réserve pour les autres équipements - marge)
 
-Si la véhicule est en charge, la puissance totale consommée est de 6 kW (5+1) et un _VTherm_ ne s'allumera que si sa puissance déclarée est de 3 kW max (9 kW - 6 kW).
-Si la véhicule est en charge et qu'un autre _VTherm_ de 2 kW est allumé, la puissance totale consommée est de 8 kW (5+1+2) et un _VTherm_ ne s'allumera que si sa puissance déclarée est de 1 kW max (9 kW - 8 kW). Sinon il passe son tour (cycle).
+Si le véhicule est en charge, la puissance totale consommée est de 6 kW (5+1) et un _VTherm_ ne s'allumera que si sa puissance déclarée est de 3 kW max (9 kW - 6 kW).
+Si le véhicule est en charge et qu'un autre _VTherm_ de 2 kW est allumé, la puissance totale consommée est de 8 kW (5+1+2) et un _VTherm_ ne s'allumera que si sa puissance déclarée est de 1 kW max (9 kW - 8 kW). Sinon il passe son tour (cycle).
 
 Si le véhicule n'est pas en charge, la puissance totale consommée est de 1 kW, un _VTherm_ ne s'allumera que si sa puissance déclarée est de 8 kW max (9 kW - 1 kW).
 
