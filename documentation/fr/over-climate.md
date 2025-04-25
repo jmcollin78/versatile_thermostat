@@ -57,15 +57,15 @@ Si ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation corr
 Ce mode introduit en 4.3 permet de forcer l'usage de la ventilation si l'écart de température est important. En effet, en activant la ventilation, la répartition se fait plus rapidement ce qui permet de gagner du temps dans l'atteinte de la température cible.
 Vous pouvez choisir quelle ventilation vous voulez activer entre les paramètres suivants : Faible, Moyenne, Forte, Turbo.
 
-Il faut évidemment que votre équipement sous-jacent soit équipée d'une ventilation et quelle soit pilotable pour que cela fonctionne.
-Si votre équipement ne comprend pas le mode Turbo, le mode Forte` sera utilisé en remplacement.
+Il faut évidemment que votre équipement sous-jacent soit équipé d'une ventilation et qu'il soit pilotable pour que cela fonctionne.
+Si votre équipement ne comprend pas le mode Turbo, le mode `Forte` sera utilisé en remplacement.
 Une fois l'écart de température redevenu faible, la ventilation se mettra dans un mode "normal" qui dépend de votre équipement à savoir (dans l'ordre) : `Silence (mute)`, `Auto (auto)`, `Faible (low)`. La première valeur qui est possible pour votre équipement sera choisie.
 
 ### Compenser la température interne du sous-jacent
 
 Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne si une entité de calibrage a été fournie.
 
-Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l' auto-régulation ne suffise pas à réguler.
+Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l'auto-régulation ne suffise pas à réguler.
 Cela arrive lorsque le thermomètre interne est trop près de la source de chaleur. La température interne monte alors beaucoup plus vite que la température de la pièce, ce qui génère des défauts dans la régulation.
 Exemple :
 1. la température de la pièce est 18°, la consigne est à 20°,

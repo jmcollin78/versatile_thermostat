@@ -46,13 +46,13 @@ Ce choix permet de configurer une fois pour tous les VTherms certains aspects qu
 3. certains paramètre avancés comme la mise en sécurité
 
 ## VTherm sur un switch
-Ce VTherm permet de contrôler un interrupteur qui allume ou étient un radiateur. Cet interrupteur peut être un interrupteur physique qui allume ou éteint directement un radiateur (souvent électrique) ou un interrupteur virtuel qui pourra effectuer les actions que vous voulez sur demande d'allumage ou extinction. Ce dernier type permet par exemple de commander des switchs avec fil pilote ou deu DIY avec diode pour fil pilote. VTherm va moduler la proportion de temps allumé vs éteint pour obtenir la température souhaitée. Si il fait froid, il allume plus souvent (jusqu'à 100%), si il fait chaud il baisse le pourcentage d'allumage. Ce pourcentage d'allumage en nommé `on_percent`.
+Ce VTherm permet de contrôler un interrupteur qui allume ou éteint un radiateur. Cet interrupteur peut être un interrupteur physique qui allume ou éteint directement un radiateur (souvent électrique) ou un interrupteur virtuel qui pourra effectuer les actions que vous voulez sur demande d'allumage ou extinction. Ce dernier type permet par exemple de commander des switchs avec fil pilote ou des DIY avec diode pour fil pilote. VTherm va moduler la proportion de temps allumé vs éteint pour obtenir la température souhaitée. Si il fait froid, il allume plus souvent (jusqu'à 100%), si il fait chaud il baisse le pourcentage d'allumage. Ce pourcentage d'allumage en nommé `on_percent`.
 
 Les entités sous-jacentes sont donc des `switchs` ou des `input_boolean`.
 
 ## VTherm sur un autre thermostat
 Lorsque votre équipement est contrôlé par une entité de type `climate` dans Home Assistant et que vous n'avez que ça à disposition, vous devez utiliser ce type de VTherm. Dans ce cas, le VTherm va simplement commander la température de consigne du `climate` sous-jacent.
-Ce type est aussi équipé de fonction d' auto-régulations avancées permettant de moduler la consigne donnée aux sous-jacent pour atteindre plus vite la consigne et de s'affranchir de la régulation interne de ces équipements qui est parfois mauvaise. C'est le cas, si le thermomètre interne de l'équipement est trop proche du corps de chauffe. L'équipement peut croire qu'il fait chaud alors qu'au bout de la pièce, la consigne n'est pas du tout atteinte.
+Ce type est aussi équipé de fonction d'auto-régulations avancées permettant de moduler la consigne donnée aux sous-jacent pour atteindre plus vite la consigne et de s'affranchir de la régulation interne de ces équipements qui est parfois mauvaise. C'est le cas, si le thermomètre interne de l'équipement est trop proche du corps de chauffe. L'équipement peut croire qu'il fait chaud alors qu'au bout de la pièce, la consigne n'est pas du tout atteinte.
 
 Depuis la version 6.8, ce type de VTherm permet aussi de réguler avec une action directe sur la vanne. Idéal pour les _TRV_ pour lesquels la vanne est commandable, comme les Sonoff TRVZB, ce type est recommandé si vous êtes équipés.
 

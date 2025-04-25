@@ -17,7 +17,7 @@ Dans ce mode, vous devez renseigner les informations suivantes:
 
 1. un **délai en secondes** avant tout changement. Cela permet d'ouvrir rapidement une fenêtre sans arrêter le chauffage,
 2. l'action a réaliser lorsque l'ouverture est détectée ouverte. Les actions possibles sont :
-   1. _Eteindre_ : le VTherm sera étient,
+   1. _Eteindre_ : le VTherm sera éteint,
    2. _Ventilateur seul_ : le chauffage ou refroidissement sera coupé mais l'équipement continuera à ventiler (pour les équipements compatibles),
    3. _Hors gel_ : la température du preset 'Hors Gel' sera alors sélectionné sur le _VTherm_ sans changement du preset courant (cf. notes ci-dessous),
    4. _Eco_ : la température du preset _Eco_ sera appliquée sur le _VTherm_ sans changement du preset courant (cf. notes ci-dessous).

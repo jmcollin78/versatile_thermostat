@@ -16,7 +16,7 @@ Une carte spéciale pour le Versatile Thermostat a été développée (sur la ba
 ## Composant Scheduler !
 
 Afin de profiter de toute la puissance du Versatile Thermostat, je vous invite à l'utiliser avec https://github.com/nielsfaber/scheduler-component
-En effet, le composant scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
+En effet, le composant Scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
 
 À partir d'ici, je suppose que vous avez installé Versatile Thermostat et Scheduler Component.
 
@@ -34,7 +34,7 @@ Définissez votre schéma de mode et enregistrez :
 
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
-Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il n'y a personne à la maison BOOST le matin et CONFORT le soir.
+Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il n'y a personne à la maison, BOOST le matin et CONFORT le soir.
 
 
 J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !

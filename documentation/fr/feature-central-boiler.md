@@ -22,7 +22,7 @@ Le principe mis en place est globalement le suivant :
 
 Vous avez donc en permanence, les informations qui permettent de piloter et régler le déclenchement de la chaudière.
 
-Toutes ces entités sont rattachés au service de configuration centrale :
+Toutes ces entités sont rattachées au service de configuration centrale :
 
 ![Les entités pilotant la chaudière](images/entitites-central-boiler.png)
 
@@ -35,7 +35,7 @@ Sur la page suivante vous pouvez donner la configuration des actions (ex service
 
 ![Ajout d'une chaudière centrale](images/config-central-boiler-2.png)
 
-Les actions (ex services) se configurent comme indiqués dans la page :
+Les actions (ex services) se configurent comme indiqué dans la page :
 1. le format général est `entity_id/service_id[/attribut:valeur]` (où `/attribut:valeur` est facultatif),
 2. `entity_id` est le nom de l'entité qui commande la chaudière sous la forme `domain.entity_name`. Par exemple: `switch.chaudiere` pour les chaudière commandée par un switch ou `climate.chaudière` pour une chaudière commandée par un thermostat ou tout autre entité qui permet le contrôle de la chaudière (il n'y a pas de limitation).  On peut aussi commuter des entrées (`helpers`) comme des `input_boolean` ou `input_number`.
 3. `service_id` est le nom du service à appeler sous la forme `domain.service_name`. Par exemple: `switch.turn_on`, `switch.turn_off`, `climate.set_temperature`, `climate.set_hvac_mode` sont des exemples valides.
