@@ -17,7 +17,7 @@ L'installation doit ressembler à ça :
 
 ![installation `over_climate`](images/over-climate-schema.png)
 
-1. L'utilisateur ou une automatisation ou le Sheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
+1. L'utilisateur ou une automatisation ou le Scheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
 2. régulièrement le thermomètre intérieur (2) ou extérieur (2b) ou interne à l'équipement (2c) envoie la température mesurée. Le thermomètre intérieur doit être placé à une place pertinente pour le ressenti de l'utilisateur : idéalement au milieu du lieu de vie. Evitez de le mettre trop près d'une fenêtre ou trop proche de l'équipement,
 3. avec les valeurs de consigne, des différents et les paramètres de l'auto-régulation (cf. [auto-regulation](self-regulation.md)), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacentes,
 4. l'entité `climate` sous-jacente contrôle l'équipement avec son propre protocole,
@@ -57,15 +57,15 @@ Si ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation corr
 Ce mode introduit en 4.3 permet de forcer l'usage de la ventilation si l'écart de température est important. En effet, en activant la ventilation, la répartition se fait plus rapidement ce qui permet de gagner du temps dans l'atteinte de la température cible.
 Vous pouvez choisir quelle ventilation vous voulez activer entre les paramètres suivants : Faible, Moyenne, Forte, Turbo.
 
-Il faut évidemment que votre équipement sous-jacent soit équipée d'une ventilation et quelle soit pilotable pour que cela fonctionne.
-Si votre équipement ne comprend pas le mode Turbo, le mode Forte` sera utilisé en remplacement.
+Il faut évidemment que votre équipement sous-jacent soit équipé d'une ventilation et qu'il soit pilotable pour que cela fonctionne.
+Si votre équipement ne comprend pas le mode Turbo, le mode `Forte` sera utilisé en remplacement.
 Une fois l'écart de température redevenu faible, la ventilation se mettra dans un mode "normal" qui dépend de votre équipement à savoir (dans l'ordre) : `Silence (mute)`, `Auto (auto)`, `Faible (low)`. La première valeur qui est possible pour votre équipement sera choisie.
 
 ### Compenser la température interne du sous-jacent
 
 Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne si une entité de calibrage a été fournie.
 
-Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l' auto-régulation ne suffise pas à réguler.
+Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l'auto-régulation ne suffise pas à réguler.
 Cela arrive lorsque le thermomètre interne est trop près de la source de chaleur. La température interne monte alors beaucoup plus vite que la température de la pièce, ce qui génère des défauts dans la régulation.
 Exemple :
 1. la température de la pièce est 18°, la consigne est à 20°,

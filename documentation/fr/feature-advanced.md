@@ -7,7 +7,7 @@
 
 Ces paramètres permettent d'affiner le fonctionnement du thermostat et notamment la mise en sécurité d'un _VTherm_. L'absence d'un capteur de température (pièce ou extérieur) peut être dangereux pour votre logement. Supposez que le capteur de température soit bloqué sur 10°. Le _VTherm_ de type `over_climate` ou `over_valve` va alors commander un chauffage maximal des équipements sous-jacents, ce qui peut conduire à une surchauffe de la pièce voire des dommages sur le logement avec au pire un début d'incendie.
 
-Pour éviter cela, _VTherm_ s'assure que les thermomètres répondent bien de façon régulière et met le _VTherm_ dans un mode particuliers nommée le mode sécurité si ce n'est plus le cas. Le mode sécurité consiste à assurer un minimum de chauffe pour éviter l'effet inverse : une habitation qui ne serait plus chauffée du tout en plein hiver par exemple.
+Pour éviter cela, _VTherm_ s'assure que les thermomètres répondent bien de façon régulière et met le _VTherm_ dans un mode particulier nommée le mode sécurité si ce n'est plus le cas. Le mode sécurité consiste à assurer un minimum de chauffe pour éviter l'effet inverse : une habitation qui ne serait plus chauffée du tout en plein hiver par exemple.
 
 Là où le problème devient compliqué, c'est que certain thermomètre - notamment à pile - n'envoie leur température que si elle change. Il est donc tout à fait possible de ne plus recevoir de mises à jour de température pendant plusieurs heures sans que le thermomètre soit en défaut. Les différents paramètres ci-dessous vont permettre de régler finement les seuils de passage en mode sécurité.
 
@@ -48,4 +48,4 @@ Par défaut, le thermomètre extérieur peut déclencher une mise en sécurité 
 > 2. Attention, deux températures sont nécessaires : la température interne et la température externe et chacune doit donner la température, sinon le thermostat sera en préréglage "security",
 > 3. Une action est disponible qui permet de régler les 3 paramètres de sécurité. Ca peut servir à adapter la fonction de sécurité à votre usage,
 > 4. Pour un usage naturel, le ``safety_default_on_percent`` doit être inférieur à ``safety_min_on_percent``,
-> 5. Si vous utilisez la carte Verstatile Thermostat UI (cf. [ici](additions.md#bien-mieux-avec-le-versatile-thermostat-ui-card)), un _Vtherm_ en mode sécurité est signalé par un voile grisatre qui donne le thermomètre en défaut et depuis combien de temps le thermomètre n'a pas remonté de valeur : ![mode sécurité](images/safety-mode-icon.png).
+> 5. Si vous utilisez la carte Verstatile Thermostat UI (cf. [ici](additions.md#bien-mieux-avec-le-versatile-thermostat-ui-card)), un _VTherm_ en mode sécurité est signalé par un voile grisatre qui donne le thermomètre en défaut et depuis combien de temps le thermomètre n'a pas remonté de valeur : ![mode sécurité](images/safety-mode-icon.png).

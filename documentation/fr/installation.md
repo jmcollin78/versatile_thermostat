@@ -16,6 +16,6 @@
 3. Dans le répertoire (dossier) `custom_components`, créez un nouveau dossier appelé `versatile_thermostat`.
 4. Téléchargez _tous_ les fichiers du répertoire `custom_components/versatile_thermostat/` (dossier) dans ce référentiel.
 5. Placez les fichiers que vous avez téléchargés dans le nouveau répertoire (dossier) que vous avez créé.
-6. Redémarrez l'assistant domestique
-7. Configurer la nouvelle intégration du Versatile Thermostat
+6. Redémarrez Home Assistant
+7. Configurez la nouvelle intégration du Versatile Thermostat
 

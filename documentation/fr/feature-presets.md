@@ -6,7 +6,7 @@
 
 ## Configurer les températures préréglées
 
-Le mode préréglé (preset) vous permet de préconfigurer la température ciblée. Utilisé en conjonction avec Scheduler (voir [scheduler](additions.md#composant-scheduler-)) vous aurez un moyen puissant et simple d'optimiser la température par rapport à la consommation électrique de votre maison. Les préréglages gérés sont les suivants :
+Le mode préréglé (preset) vous permet de préconfigurer la température ciblée. Utilisé en conjonction avec Scheduler (voir [scheduler](additions.md#composant-scheduler-)) vous aurez un moyen puissant et simple d'optimiser la température par rapport à la consommation électrique de votre maison. Les pré-réglages gérés sont les suivants :
  - **Eco** : l'appareil est en mode d'économie d'énergie
  - **Confort** : l'appareil est en mode confort
  - **Boost** : l'appareil tourne toutes les vannes à fond
