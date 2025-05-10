@@ -245,7 +245,16 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
+        if self.hvac_mode == HVACMode.OFF:
+            _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
+            return
+
         if self.target_temperature is None:
+            _LOGGER.warning(
+                "%s - don't send regulated temperature cause VTherm target_temp (%s) is None. This should be a temporary warning message.",
+                self,
+                self.target_temperature,
+            )
             return
 
         for under in self._underlyings:
