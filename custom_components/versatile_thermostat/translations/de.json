@@ -239,7 +239,7 @@
         "data_description": {
           "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities. Setzen, wenn das TRV die Entität für bessere Regelung hat. Es sollte eine pro Klima-Entity geben",
           "opening_degree_entity_ids": "Liste der 'Öffnungswinkel'-Entities. Es sollte eine pro Klima-Entity geben",
-          "closing_degree_entity_ids": "Liste der 'Geschlossenwinkel'-Entities. Setzen, wenn das TRV die Entität für bessere Regelung hat. Es sollte eine pro Klima-Entity geben",
+          "closing_degree_entity_ids": "Liste der 'Geschlossenwinkel"-Entities. Setzen, wenn das TRV die Entität für bessere Regelung hat. Es sollte eine pro Klima-Entity geben",
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
           "min_opening_degrees": "Mindestwert des Öffnungsgrads für jedes zugrunde liegende Gerät, durch Komma getrennt. Standardwert ist 0. Beispiel: 20, 25, 30"
         }
