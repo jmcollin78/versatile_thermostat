@@ -135,16 +135,17 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         mock_find_climate.assert_has_calls([call.find_underlying_vtherm()])
 
         # the underlying set temperature call but no call to valve yet because VTherm is off
-        assert mock_service_call.call_count == 3
+        assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls(
             [
                 call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
                 call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree'}),
-                call("climate","set_temperature",{
-                        "entity_id": "climate.mock_climate",
-                        "temperature": 15,  # temp-min
-                    },
-                ),
+                # issue #1012 - the set temperature is not called when the VTherm is off
+                # call("climate","set_temperature",{
+                #         "entity_id": "climate.mock_climate",
+                #         "temperature": 15,  # temp-min
+                #     },
+                # ),
                 # we have no current_temperature yet
                 # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration'}),
             ]

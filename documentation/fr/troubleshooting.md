@@ -98,7 +98,7 @@ Un exemple plus complet est [ici](https://github.com/jmcollin78/versatile_thermo
 
 ## Utilisation d'un système Netatmo
 Le système à base de TRV Netatmo fonctionne mal avec _VTherm_. Vous avez ici une discussion sur le fonctionnement particulier des systèmes Netatmo (en Français) : https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063
-Cependant certains ont réussi une intégration _VTerm_ Netatmo en intégrant un switch virtuel entre _VTherm_ et le `climate` Netatmo suivant :
+Cependant certains ont réussi une intégration _VTherm_ Netatmo en intégrant un switch virtuel entre _VTherm_ et le `climate` Netatmo suivant :
 ```
 TODO add virtual switch code
 ```
@@ -107,16 +107,16 @@ TODO add virtual switch code
 
 ## Seul le premier radiateur chauffe
 
-En mode `over_switch` si plusieurs radiateurs sont configurés pour un même VTherm, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
+En mode `over_switch` si plusieurs radiateurs sont configurés pour un même _VTherm_, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
 Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
 
 ## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
 
 ### Type `over_switch` ou `over_valve`
-Avec un VTherm de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](#algorithme-tpi) pour optimiser les réglages.
+Avec un _VTherm_ de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](#algorithme-tpi) pour optimiser les réglages.
 
 ### Type `over_climate`
-Avec un VTherm de type `over_climate`, la régulation est faite par le `climate` sous-jacent directement et VTherm se contente de lui transmettre les consignes. Donc si le radiateur chauffe alors que la température de consigne est dépassée, c'est certainement que sa mesure de température interne est biaisée. Ca arrive très souvent avec les TRV et les clims réversibles qui ont un capteur de température interne, soit trop près de l'élément de chauffe (donc trop froid l'hiver).
+Avec un _VTherm_ de type `over_climate`, la régulation est faite par le `climate` sous-jacent directement et _VTherm_ se contente de lui transmettre les consignes. Donc si le radiateur chauffe alors que la température de consigne est dépassée, c'est certainement que sa mesure de température interne est biaisée. Ca arrive très souvent avec les TRV et les clims réversibles qui ont un capteur de température interne, soit trop près de l'élément de chauffe (donc trop froid l'hiver).
 
 Exemple de discussion autour de ces sujets: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
 
@@ -144,9 +144,9 @@ versatile_thermostat:
 Ces paramètres sont sensibles et assez difficiles à régler. Merci de ne les utiliser que si vous savez ce que vous faites et que vos mesures de température ne sont pas déjà lisses.
 
 ## Pourquoi mon Versatile Thermostat se met en Securite ?
-Le mode sécurité est possible sur les types de VTherm de type `over_switch` et `over_valve` uniquement. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `safety_delay_min` minutes et que le radiateur chauffait à au moins `safety_min_on_percent`. Cf. [mode sécurité](feature-advanced.md#la-mise-en-sécurité)
+Le mode sécurité est possible sur les _VTherm_ de type `over_switch` et `over_valve` uniquement. Il survient lorsqu'un des 2 thermomètres qui donne la température de la pièce ou la température extérieure n'a pas envoyé de valeur depuis plus de `safety_delay_min` minutes et que le radiateur chauffait à au moins `safety_min_on_percent`. Cf. [mode sécurité](feature-advanced.md#la-mise-en-sécurité)
 
-Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le VTherm, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `safety_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
+Comme l'algorithme est basé sur les mesures de température, si elles ne sont plus reçues par le _VTherm_, il y a un risque de surchauffe et d'incendie. Pour éviter ça, lorsque les conditions rappelées ci-dessus sont détectées, la chauffe est limité au paramètre `safety_default_on_percent`. Cette valeur doit donc être raisonnablement faible (10% est une bonne valeur). Elle permet d'éviter un incendie tout en évitant de couper totalement le radiateur (risque de gel).
 
 Tous ces paramètres se règlent dans la dernière page de la configuration du VTherm : "Paramètres avancés".
 
@@ -156,11 +156,11 @@ Exemple:
 
 [security mode](images/security-mode-symptome1.png)
 
-Si vous avez installé la carte [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), le VTherm en question aura cette forme là :
+Si vous avez installé la carte [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), le _VTherm_ en question aura cette forme là :
 
 [security mode UI Card](images/security-mode-symptome2.png)
 
-Vous pouvez aussi vérifier dans les attributs du VTherm les dates de réception des différentes dates. **Les attributs sont disponibles dans les Outils de développement / Etats**.
+Vous pouvez aussi vérifier dans les attributs du _VTherm_ les dates de réception des différentes dates. **Les attributs sont disponibles dans les Outils de développement / Etats**.
 
 Exemple :
 
@@ -174,27 +174,27 @@ safety_delay_min: 60
 ```
 
 On voit que :
-1. le VTherm est bien en mode sécurité (`security_state: true`),
+1. le _VTherm_ est bien en mode sécurité (`security_state: true`),
 2. l'heure courante est le 06/12/2023 à 18h43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. l'heure de dernière réception de la température intérieure est le 06/12/2023 à 18h43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). Elle est donc récente,
 4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`safety_delay_min: 60`).
 
 ### Comment être averti lorsque cela se produit ?
-Pour être averti, le VTherm envoie un évènement dès que ça se produit et un en fin d'alerte sécurité. Vous pouvez capter ces évènements dans une automatisation et envoyer une notification par exemple, faire clignoter un voyant, déclencher une sirène, ... A vous de voir.
+Pour être averti, le _VTherm_ envoie un évènement dès que ça se produit et un en fin d'alerte sécurité. Vous pouvez capter ces évènements dans une automatisation et envoyer une notification par exemple, faire clignoter un voyant, déclencher une sirène, ... A vous de voir.
 
-Pour manipuler les évènements générés par le VTherm, cf. [Eveènements](#evènements).
+Pour manipuler les évènements générés par le _VTherm_, cf. [Evènements](#evènements).
 
 ### Comment réparer ?
 Cela va dépendre de la cause du problème :
 1. Si un capteur est en défaut, il faut le réparer (remettre des piles, le changer, vérifier l'intégration Météo qui donne la température extérieure, ...),
 2. Si le paramètre `safety_delay_min` est trop petit, cela risque de générer beaucoup de fausses alertes. Une valeur correcte est de l'ordre de 60 min, surtout si vous avez des capteurs de température à pile. Cf [mes réglages](tuning-examples.md#le-capteur-de-température-alimenté-par-batterie)
-3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le VTherm reçoit à nouveau une température. Sur certain thermomètre (TuYA par exemple ou Zigbee), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `safety_delay_min`,
+3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le _VTherm_ reçoit à nouveau une température. Sur certain thermomètre (Tuya par exemple ou Zigbee), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `safety_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
 5. Si c'est le capteur de température extérieur qui est en défaut, vous pouvez désactiver le déclenchement du mode sécurité puisqu'il influe assez peu sur le résultat. Pour ce faire, cf. [ici](feature-advanced.md#la-mise-en-sécurité)
 
 ## Utilisation d'un groupe de personnes comme capteur de présence
 
-Malheureusement, les groupes de personnes ne sont pas reconnus comme des capteurs de présence. On ne peut donc pas les utiliser directement dans VTherm.
+Malheureusement, les groupes de personnes ne sont pas reconnus comme des capteurs de présence. On ne peut donc pas les utiliser directement dans _VTherm_.
 Le contournement est de créer un template de binary_sensor avec le code suivant :
 
 Fichier `template.yaml` :
@@ -207,7 +207,7 @@ Fichier `template.yaml` :
       device_class: occupancy
 ```
 
-Vous noterez dans cet exemple, l'utilisation d'un input_boolean nommé force_presence qui permet de forcer le capteur à `True` et ainsi de forcer les VTherm qui l'utilise avec présence active. Ca permet par exemple, de forcer un pré-chauffage du logement lors du départ du travail, ou lorsqu'une personne non reconnue nativement dans HA est présente.
+Vous noterez dans cet exemple, l'utilisation d'un input_boolean nommé force_presence qui permet de forcer le capteur à `True` et ainsi de forcer les _VTherm_ qui l'utilise avec présence active. Ca permet par exemple, de forcer un pré-chauffage du logement lors du départ du travail, ou lorsqu'une personne non reconnue nativement dans HA est présente.
 
 Fichier `configuration.yaml`:
 
@@ -235,13 +235,13 @@ Voir le détail de cette fonction [ici](over-climate.md#suivre-les-changements-d
 
 ## VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'
 
-Certaine _PAC_ réversibles ont des modes qui permettent de laisser le choix à la _PAC_ de chauffer ou de réfroidir. Ces modes sont 'Auto' or 'Heat_cool' selon les marques. Ces 2 modes ne doivent pas être utilisés avec _VTherm_ car les algorithmes de _VTherm_ ont besoin de savoir si ils sont en mode chauffe ou refroidissement ce que ne permettent pas ces modes.
-Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _Vtherm)
+Certaine _PAC_ réversibles ont des modes qui permettent de laisser le choix à la _PAC_ de chauffer ou de refroidir. Ces modes sont 'Auto' or 'Heat_cool' selon les marques. Ces 2 modes ne doivent pas être utilisés avec _VTherm_ car les algorithmes de _VTherm_ ont besoin de savoir si ils sont en mode chauffe ou refroidissement ce que ne permettent pas ces modes.
+Vous devez donc utiliser uniquement les modes : `Heat`, `Cool`, `Off` ou `Fan` éventuellement (bien que fan n'a aucun sens avec _VTherm)
 
 ## La détection de fenêtre ouverte n'empêche pas le changement de preset
 
 En effet, les changements de preset alors qu'une fenêtre est ouverte sont pris en compte et c'est un fonctionnement normal.
-Si le mode d'action est réglé sur _Eteindre_ ou _Ventilateur seul_ le changement de preset et de température cible est appliqué immédiatement. Comme l'équipement est éteint ou en mode ventilation seule, il n'y a de risque de chauffer l'extérieur. Lorsque le mode de l'équipement passera a Chauffage or Refroidissement, le preset et la température seront appliqués et utilisés.
+Si le mode d'action est réglé sur _Eteindre_ ou _Ventilateur seul_ le changement de preset et de température cible est appliqué immédiatement. Comme l'équipement est éteint ou en mode ventilation seule, il n'y a de risque de chauffer l'extérieur. Lorsque le mode de l'équipement passera à Chauffage ou Refroidissement, le preset et la température seront appliqués et utilisés.
 
 Si le mode d'action est un changement de preset _Hors gel_ ou _Eco_ alors la température du preset est appliquée **mais le preset reste comme il était**. Cela permet de changer de preset pendant que la fenêtre sans changer la température de consigne qui reste celle programmée dans le mode d'action.
 

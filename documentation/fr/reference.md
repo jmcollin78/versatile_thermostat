@@ -84,8 +84,8 @@ Avec le thermostat sont disponibles des capteurs qui permettent de visualiser le
 
 Dans l'ordre, il y a :
 1. l'entité principale climate de commande du thermostat,
-2.  l'entité permettant d'autoriser la fonction auto-start/stop
-3.  l'entité permettant d'indiquer au _VTherm_ de suivre les changement du sous-jacents,
+2. l'entité permettant d'autoriser la fonction auto-start/stop
+3. l'entité permettant d'indiquer au _VTherm_ de suivre les changement du sous-jacents,
 4. l'énergie consommée par le thermostat (valeur qui s'incrémente en permanence),
 5. l'heure de réception de la dernière température extérieure,
 6. l'heure de réception de la dernière température intérieure,

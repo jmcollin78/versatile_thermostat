@@ -18,7 +18,7 @@ Ce module permet de commander un radiateur avec un fil pilote. Il est visible so
 
 _VTherm_ va réguler la température en changeant de preset via les commandes personnalisées régulièrement jusqu'à ce que la consigne soit atteinte.
 
-Pour que cela fonctionne, il faut le preset utiliser pour la commande de chauffage soit supérieur à la température maximale que vous aurez besoin (24° est une bonne valeur).
+Pour que cela fonctionne, il faut que le preset utilisé pour la commande de chauffage soit supérieur à la température maximale que vous aurez besoin (24° est une bonne valeur).
 
 Pour l'intégrer dans _VTherm_ vous devez :
 1. Créer un _VTherm_ de type `over_switch`. Cf. [création d'un _VTherm_](creation.md),
@@ -65,8 +65,8 @@ Pour l'intégrer dans _VTherm_ vous devez :
 1. Créer un _VTherm_ de type `over_climate`. Cf. [création d'un _VTherm_](creation.md),
 2. Lui donner des principaux attributs (nom, capteur de température de la pièce et capteur de température extérieure au minimium). Cf. [principaux attributs](base-attributes.md),
 3. Lui donner un ou plusieurs équipements sous-jacents à contrôler. Le sous-jacent est ici l'entité `climate` qui contrôle le TRV. Cf. [sous-jacent](over-climate.md),
-4. Spécifiez la régulation de type `Par contrôle direct de la vanne` uniquement. Laissez décochée l'option `Compenser la température interne du sous-jacent`. Cf. [sous-jacent](over-climate.md#lauto-régulation),
-5. Lui donner les entités de type `number` nommées `opening_degree`, `closing_degree` et `calibration offset`. Ne pas renseigner l'entité `closing degree` Cf. [sous-jacent](over-switch.md),
+4. Spécifier la régulation de type `Par contrôle direct de la vanne` uniquement. Laissez décochée l'option `Compenser la température interne du sous-jacent`. Cf. [sous-jacent](over-climate.md#lauto-régulation),
+5. Lui donner les entités de type `number` nommées `opening_degree`, `closing_degree` et `calibration offset`. Cf. [sous-jacent](over-switch.md),
 
 Pour que cela fonctionne, il faut que le `closing degree` soit réglé au maximum (100%). Ne cocher pas tout de suite l'entité `Follow underlying temperature change` avant d'avoir bien vérifier que cette configuration de base fonctionne.
 
@@ -87,12 +87,12 @@ A l'issue de ces 3 étapes vous avez un _VTherm_ opérationnel ultra simple qui 
 
 # La suite
 
-Uen fois créé, vous devez paramétrer les températures des presets. Cf. [presets](feature-presets.md) pour avoir une configuration minimale.
+Une fois créé, vous devez paramétrer les températures des presets. Cf. [presets](feature-presets.md) pour avoir une configuration minimale.
 Vous pouvez aussi (facultatif mais conseillé) installer la carte dédiée pour vos dashboard. (Cf. [VTHerm UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card))
 
 Une fois cette configuration minimale opérationnelle - et seulement lorsque cette configuration minimale fonctionne -, vous pourrez ajouter des fonctions supplémentaires comme la détection de présence pour éviter de chauffer lorsqu'il n'y a personne. Ajoutez les une par une, vérifiez à chaque nouvelle fonction que _VTherm_ réagit correctement avant de passer à la suivante.
 
-Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherms_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
+Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherm_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
 
 # Appel à contribution
 
