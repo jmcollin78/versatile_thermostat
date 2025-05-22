@@ -15,7 +15,7 @@ Github wird verwendet, um Code zu hosten, um Probleme und Funktionsanfragen zu v
 
 Pull Requests sind der beste Weg, um Änderungen an der Codebasis vorzuschlagen.
 
-1. Forken Sie das Repo und erstellen Sie Ihren Zweig von  `master`.
+1. Forken Sie das Repo und erstellen Sie Ihren Zweig von `master`.
 2. Wenn Sie etwas geändert haben, aktualisieren Sie die Dokumentation.
 3. Vergewissern Sie sich, dass sich Ihr Code färbt (in Schwarz).
 4. Testen Sie Ihren Beitrag.
@@ -39,7 +39,7 @@ Melden Sie einen Fehler, indem Sie [ein neues Problem öffnen](../../issues/new/
   - Seien Sie genau!
   - Geben Sie, wenn möglich, Beispielcode an.
 - Was Sie erwartet haben
-- Was tatsächlich passiert
+- Was tatsächlich passiert ist
 - Notizen (möglicherweise einschließlich der Gründe, warum Sie glauben, dass das Problem auftritt, oder Dinge, die Sie ausprobiert haben und die nicht funktioniert haben)
 
 Die Leute *lieben* gründliche Fehlerberichte. Das ist kein Scherz.
