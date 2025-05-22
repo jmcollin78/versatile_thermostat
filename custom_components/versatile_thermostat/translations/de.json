@@ -16,7 +16,7 @@
         "title": "Menü",
         "description": "Konfigurieren Sie Ihr Thermostat. Wenn Sie alle erforderlichen Parameter eingegeben haben, können Sie die Konfiguration abschließen.",
         "menu_options": {
-          "main": "Hauptmerkmale",
+          "main": "Hauptattribute",
           "central_boiler": "Zentralheizungsanlage",
           "type": "Basiswerte",
           "tpi": "TPI-Parameter (Time Proportional Integral)",

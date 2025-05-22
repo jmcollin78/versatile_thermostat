@@ -22,61 +22,61 @@ Diese Komponente mit der Bezeichnung __Versatile Thermostat__ verwaltet die folg
 - Ändert die Voreinstellung, wenn **Aktivität erkannt** wird oder niemand für eine bestimmte Zeit im Raum ist,
 - Verwendung eines **TPI (Time Proportional Interval/Zeitproportionales Intervall)**-Algorithmus, dank an [[Argonaute] (https://forum.hacf.fr/u/argonaute/summary)],
 - Fügt ein **Lastabwurf**-Management oder eine Regelung hinzu, um eine bestimmte Gesamtleistung nicht zu überschreiten. Wenn die maximale Leistung überschritten wird, wird eine verborgene Voreinstellung von „Leistung“ auf die Entität `climate` gesetzt. Wenn die Leistung unter das Maximum sinkt, wird die vorherige Voreinstellung wiederhergestellt.
-- **Presence management**. This feature allows dynamically modifying the preset temperature based on the presence sensor in your home.
-- **Actions to interact with the thermostat** from other integrations: you can force presence/non-presence using a service, and you can dynamically change preset temperatures and modify security settings.
-- Add sensors to view the thermostat's internal states,
-- Centralized control of all Versatile Thermostats to stop them all, set them all to frost protection, force them all to heating mode (in winter), force them all to cooling mode (in summer).
-- Control of a central heating boiler and VTherms that must control this boiler.
-- Automatic start/stop based on usage prediction for `over_climate`.
+- **Präsenzverwaltung**. Diese Funktion ermöglicht die dynamische Änderung der voreingestellten Temperatur auf Grundlage des Präsenzsensors in Ihrer Wohnung.
+- **Aktionen zur Interaktion mit dem Thermostat** aus anderen Integrationen: Sie können die Anwesenheit/Nicht-Anwesenheit über einen Dienst erzwingen und Sie können die voreingestellten Temperaturen dynamisch ändern und die Sicherheitseinstellungen modifizieren.
+- Fügt Sensoren hinzu, die die internen Zustände des Thermostats anzeigen,
+- Zentrale Steuerung aller Versatile Thermostate, um sie alle zu stoppen, auf Frostschutz zu stellen, in den Heizmodus zu zwingen (im Winter), in den Kühlmodus zu zwingen (im Sommer).
+- Steuerung eines Zentralheizungskessels und VTherms, die diesen Kessel steuern müssen.
+- Automatischer Start/Stopp auf der Grundlage der Nutzungsvorhersage für `over_climate`.
 
-All these functions are configurable either centrally or individually depending on your needs.
+Alle diese Funktionen sind je nach Bedarf entweder zentral oder individuell konfigurierbar.
 
 # Equipment
 
-To operate _VTherm_, you will need some hardware. The list below is not exhaustive but includes the most commonly used devices that are fully compatible with Home Assistant and _VTherm_. These are affiliate links to the partner store [Domadoo](https://www.domadoo.fr/fr/?domid=97), which allows me to receive a small percentage if you purchase through these links. Ordering from [Domadoo](https://www.domadoo.fr/fr/?domid=97) gives you competitive prices, a return guarantee, and a very short delivery time comparable to other major online retailers. Their 4.8/5 rating speaks for itself.
+Für den Betrieb von _VTherm_ werden einige Geräte benötigt. Die folgende Liste ist nicht vollständig, enthält aber die am häufigsten verwendeten Geräte, die vollständig mit Home Assistant und _VTherm_ kompatibel sind. Dies sind Affiliate-Links zum Partnershop [Domadoo](https://www.domadoo.fr/fr/?domid=97), wodurch ich einen kleinen Prozentsatz erhalte, wenn Sie über diese Links einkaufen. Sollten Sie bei [Domadoo](https://www.domadoo.fr/fr/?domid=97) bestellen, erhalten Sie günstige Preise, eine Rückgabegarantie und eine sehr kurze Lieferzeit, die mit der anderer großer Online-Händler vergleichbar ist. Ihre 4.8/5 Bewertung spricht für sich selbst.
 
-⭐ : The most used and therefore the best choice.
+⭐ : Die meistgenutzte und daher beste Wahl.
 
-## Thermometers
-Essential in a _VTherm_ setup, an externalized temperature measurement device placed where you live ensures reliable, comfortable, and stable temperature control.
+## Thermometer
+Um ein zuverlässige, komfortable und stabile Temperaturregelung zu gewährleisten, ist für eine _VTherm_-Einrichtung ein externes Temperaturmessgerät, welches dort ist, wo sie leben, unerlässlich.
 
 - [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html??domid=97)
 - [⭐ 4 x Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6968-sonoff-pack-4x-capteurs-de-temperature-et-d-humidite-zigbee-ecran.html?domid=97)
 - [ Neo Tuya Zigbee](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 - [ Moes Tuya Zigbee](https://www.domadoo.fr/fr/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
 
-## Switches
-To directly control an electric heater. Usable with _VTherm_ [`over_switch`](over-switch.md):
+## Schalter (Switches)
+Zur direkten Steuerung einer elektrischen Heizung. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md):
 
 - [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/fr/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
 - [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/fr/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
 - [Sonoff 4-channel Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Pilot wire switches
-To directly control an electric heater equipped with a pilot wire. Usable with _VTherm_ [`over_switch`](over-switch.md) and [customized commands](over-switch.md#la-personnalisation-des-commandes):
+## Pilotdraht (Pilot wire) Schalter
+Zur direkten Steuerung eines elektrischen Heizgeräts mit Pilotdraht. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md) und [individuelle Befehle](over-switch.md#la-personnalisation-des-commandes):
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
-## Thermostatic valves
-To control a water radiator. Works with a _VTherm_ [`over_valve`](over-valve.md) or [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate):
+## Thermostatventile
+Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_valve`](over-valve.md) oder [`over_climate` mit direkter Ventilsteuerung](over-climate.md#thermostat-de-type-over_climate):
 
-- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
-- [⭐ 2 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7477-sonoff-pack-de-2x-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
-- [⭐ 4 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7478-sonoff-pack-de-4x-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
-- [Shelly BLU TRV BLE](https://www.domadoo.fr/fr/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) with [`over_valve`](over-valve.md),
-- [Moes TRV Zigbee](https://www.domadoo.fr/fr/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
-- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
+- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#thermostat-de-type-over_climate),
+- [⭐ 2 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7477-sonoff-pack-de-2x-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#thermostat-de-type-over_climate),
+- [⭐ 4 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7478-sonoff-pack-de-4x-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#thermostat-de-type-over_climate),
+- [Shelly BLU TRV BLE](https://www.domadoo.fr/fr/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) mit [`over_valve`](over-valve.md),
+- [Moes TRV Zigbee](https://www.domadoo.fr/fr/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#thermostat-de-type-over_climate)
+- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#thermostat-de-type-over_climate)
 
-## Incompatibilities
-Some TRV type thermostats are known to be incompatible with Versatile Thermostat. This includes the following valves:
-1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve as it auto-regulates itself, causing conflicts with VTherm.
-2. "Homematic" thermostats (and possibly Homematic IP) are known to have issues with Versatile Thermostat due to the limitations of the underlying RF protocol. This problem particularly arises when trying to control multiple Homematic thermostats at once in a single VTherm instance. To reduce service cycle load, you can, for example, group thermostats using Homematic-specific procedures (e.g., using a wall-mounted thermostat) and let Versatile Thermostat control only the wall-mounted thermostat directly. Another option is to control a single thermostat and propagate mode and temperature changes via automation.
-3. Heatzy type thermostats that do not support `set_temperature` commands.
-4. Rointe type thermostats tend to wake up on their own. The rest works normally.
-5. TRVs like Aqara SRTS-A01 and MOES TV01-ZB, which lack the `hvac_action` state feedback to determine whether they are heating or not. Therefore, state feedback is inaccurate, but the rest seems functional.
-6. Airwell air conditioners with the "Midea AC LAN" integration. If two VTherm commands are too close together, the air conditioner stops itself.
-7. Climates based on the Overkiz integration do not work. It seems impossible to turn off or even change the temperature on these systems.
-8. Heating systems based on Netatmo perform poorly. Netatmo schedules conflict with _VTherm_ programming. Netatmo devices constantly revert to `Auto` mode, which is poorly managed with _VTherm_. In this mode, _VTherm_ cannot determine whether the system is heating or cooling, making it impossible to select the correct algorithm. Some users have managed to make it work using a virtual switch between _VTherm_ and the underlying system, but stability is not guaranteed. An example is provided in the [troubleshooting](troubleshooting.md) section.
+## Inkompatibilitäten
+Einige Thermostate vom Typ TRV sind bekanntermaßen nicht mit dem Versatile Thermostat kompatibel. Dazu gehören die folgenden Ventile:
+1. Danfoss POPP-Ventile mit Temperaturrückführung. Es ist nicht möglich, dieses Ventil abzuschalten, da es sich selbst reguliert und dadurch Konflikte mit VTherm verursacht.
+2. "Homematic"-Thermostate (und möglicherweise Homematic IP) sind dafür bekannt, dass sie aufgrund der Einschränkungen des zugrunde liegenden RF-Protokolls Probleme mit Versatile Thermostat haben. Dieses Problem tritt insbesondere dann auf, wenn versucht wird, mehrere Homematic-Thermostate gleichzeitig in einer einzigen VTherm-Instanz zu steuern. Um die Belastung des Servicezyklus zu reduzieren, können Sie beispielsweise Thermostate mit Homematic-spezifischen Verfahren gruppieren (z. B. mit einem an der Wand montierten Thermostat) und nur den an der Wand montierten Thermostat direkt von Versatile Thermostat steuern lassen. Eine andere Möglichkeit ist die Steuerung eines einzelnen Thermostats und die Weitergabe von Modus- und Temperaturänderungen über die Automatisierung.
+3. Thermostate vom Typ Heatzy, die den Befehl `set_temperature` nicht unterstützen.
+4. Thermostate vom Typ Rointe neigen dazu, von selbst aufzuwachen. Der Rest funktioniert normal.
+5. TRVs wie Aqara SRTS-A01 und MOES TV01-ZB, denen die `hvac_action`-Zustandsrückmeldung fehlt, um festzustellen, ob sie heizen oder nicht. Daher ist die Zustandsrückmeldung ungenau, aber der Rest scheint zu funktionieren.
+6. Airwell-Klimageräte mit der „Midea AC LAN“-Integration. Wenn zwei VTherm-Befehle zu schnell hintereinander kommen, schaltet sich das Klimagerät selbstständig ab.
+7. Klimaanlagen, die auf der Overkiz-Integration basieren, funktionieren nicht. Es scheint unmöglich zu sein, die Temperatur dieser Systeme auszuschalten oder gar zu ändern.
+8. Heizsysteme, die auf Netatmo basieren, funktionieren schlecht. Netatmo-Zeitpläne geraten in Konflikt mit der _VTherm_-Programmierung. Netatmo-Geräte schalten ständig in den `Auto´-Modus, der mit _VTherm_ schlecht verwaltet wird. In diesem Modus kann _VTherm_ nicht feststellen, ob das System heizt oder kühlt, so dass es unmöglich ist, den richtigen Algorithmus zu wählen. Einige Benutzer haben es geschafft, einen virtuellen Schalter zwischen _VTherm_ und dem zugrundeliegenden System zu verwenden, aber die Stabilität ist nicht garantiert. Ein Beispiel finden Sie im Abschnitt [troubleshooting](troubleshooting.md).
 
