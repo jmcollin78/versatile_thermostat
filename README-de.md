@@ -57,10 +57,10 @@ Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermuti
 # Dokumentation
 
 Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Suchen zu erleichtern:
-1. [Einleitung](documentation/de/presentation.md)
-2. [Installation](documentation/de/installation.md)
-3. [Schnellstart](documentation/de/quick-start.md)
-4. [Wahl eines VTherm-Typs](documentation/de/creation.md)
+1. [Einleitung](documentation/en/presentation.md)
+2. [Installation](documentation/en/installation.md)
+3. [Schnellstart](documentation/en/quick-start.md)
+4. [Wahl eines VTherm-Typs](documentation/en/creation.md)
 5. [Grundlegende Merkmale](documentation/en/base-attributes.md)
 6. [Konfiguriere ein VTherm als `Schalter`](documentation/en/over-switch.md)
 7. [Konfiguriere ein VTherm als `Klima`](documentation/en/over-climate.md)
@@ -82,33 +82,33 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 23. [Störungsbeseitigung](documentation/en/troubleshooting.md)
 24. [Hinweise zur Veröffentlichung](documentation/en/releases.md)
 
-# Einige Beispiele
+# Some results
 
-**Temperaturstabilität um den voreingestellten Zielwert**:
+**Temperature stability around the target configured by preset**:
 
 ![image](documentation/en/images/results-1.png)
 
-**Ein/Aus-Zyklen, berechnet durch die Integration `over_climate`**:
+**On/off cycles calculated by the integration `over_climate`**:
 
 ![image](documentation/en/images/results-2.png)
 
-**Regulierung mit einem `over_switch`**:
+**Regulation with an `over_switch`**:
 
 ![image](documentation/en/images/results-4.png)
 
-**Starke Regulierung in `over_climate`**:
+**Strong regulation in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulierung mit direkter Ventilsteuerung in `over_climate`**:
+**Regulation with direct valve control in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Viel Spaß!
+Enjoy!
 
-# Beiträge sind erwünscht!
+# Contributions are welcome!
 
-Wenn Sie einen Beitrag leisten möchten, lesen Sie bitte die [Leitlinien für Beiträge](CONTRIBUTING.md).
+If you wish to contribute, please read the [contribution guidelines](CONTRIBUTING.md).
 
 ***
 
