@@ -3,13 +3,13 @@
 Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, aber betriebsbereiten _VTherm_ beschrieben. Gegliedert nach Gerätetypen.
 
 - [Schnellstart](#quick-start)
-  - [Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
-  - [Heatzy, eCosy, oder ähnlich (`climate`-Entity)](#heatzy-ecosy-or-similar-climate-entity)
-  - [Einfache Schalter wie Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
-  - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-or-similar-trv-with-valve-control)
-  - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
-- [Nächste Schritte](#next-steps)
-- [Aufruf zu Beiträgen](#call-for-contributions)
+  - [Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)](#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht)
+  - [Heatzy, eCosy, oder ähnlich (`climate`-Entity)](#heatzy-ecosy-oder-ähnlich-`climate`-entity)
+  - [Einfache Schalter wie Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#einfache-schalter-wie-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
+  - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-oder-ähnlich-trv-mit-ventilsteuerung)
+  - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-wärmepumpen-klimaanlagen-oder-geräte-die-über-eine-climate-entity-gesteuert-werden)
+- [Nächste Schritte](#nächste-schritte)
+- [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
 
 ## Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)
 
@@ -54,7 +54,7 @@ Für die Integration in _VTherm_, müssen Sie:
 
 Nach Abschluss dieser drei Schritte haben Sie ein voll funktionsfähiges _VTherm_, das Ihren `Schalter` oder ein ähnliches Gerät steuert.
 
-## Sonoff TRVZB o`der ähnlich (TRV mit Ventilsteuerung)
+## Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)
 
 Diese Art von _TRV_-Gerät steuert die Öffnung eines Ventils, das mehr oder weniger heißes Wasser aus einem Heizkessel oder einer Wärmepumpe fließen lässt. Es erscheint in _HA_ als eine `climate`-Entity zusammen mit einer `number`-Entitäten die das Ventil steuern. Diese `number`-Entitäten können versteckt sein und müssen in einigen Fällen explizit hinzugefügt werden.
 

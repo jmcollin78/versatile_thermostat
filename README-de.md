@@ -60,7 +60,7 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 1. [Einleitung](documentation/de/presentation.md)
 2. [Installation](documentation/de/installation.md)
 3. [Schnellstart](documentation/de/quick-start.md)
-4. [Wahl eines VTherm-Typs](documentation/en/creation.md)
+4. [Wahl eines VTherm-Typs](documentation/de/creation.md)
 5. [Grundlegende Merkmale](documentation/en/base-attributes.md)
 6. [Konfiguriere ein VTherm als `Schalter`](documentation/en/over-switch.md)
 7. [Konfiguriere ein VTherm als `Klima`](documentation/en/over-climate.md)

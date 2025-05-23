@@ -1,75 +1,75 @@
-# Choosing a VTherm
+# Wahl eines VTherm
 
-- [Choosing a VTherm](#choosing-a-vtherm)
-  - [Creating a New Versatile Thermostat](#creating-a-new-versatile-thermostat)
-- [Choosing a VTherm Type](#choosing-a-vtherm-type)
-  - [Centralized configuration](#centralized-configuration)
-  - [VTherm over a switch](#vtherm-over-a-switch)
-  - [VTherm over another thermostat](#vtherm-over-another-thermostat)
-  - [VTherm over a valve](#vtherm-over-a-valve)
-- [Making the right choice](#making-the-right-choice)
-- [Reference Article](#reference-article)
+- [Wahl eines VTherm](#wahl-eines-vtherm)
+  - [Erstellen eines neuen Versatile Thermostats](#erstellen-eines-neuen-versatile-thermostats)
+- [Auswahl eines VTherm-Typs](#auswahl-eines-vtherm-typs)
+  - [Zentrale Konfiguration](#zentrale-konfiguration)
+  - [VTherm über einen Schalter](#vtherm-über-einen-schalter)
+  - [VTherm über anderes Thermostat](#vtherm-über-anderes-Thermostat)
+  - [VTherm über Ventil](#vtherm-über-ventil)
+- [Wähle das Richtige aus](#wähle-das-richtige-aus)
+- [Referenzartikel](#referenzartikel)
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Hinweise*_
 >
-> There are three ways to work with VTherms:
-> 1. Each Versatile Thermostat is fully configured independently. Choose this option if you do not want any centralized configuration or management.
-> 2. Some aspects are configured centrally. For example, you can define the minimum/maximum temperatures, open window detection parameters, etc., at a single central instance. For each VTherm you configure, you can then choose to use the central configuration or override it with custom parameters.
-> 3. In addition to centralized configuration, all VTherms can be controlled by a single `select` entity called `central_mode`. This feature allows you to stop/start/set frost protection/etc. for all VTherms at once. For each VTherm, you can specify if it is affected by this `central_mode`.
+> Es gibt drei Möglichkeiten, mit VTherms zu arbeiten:
+> 1. Jedes Versatile Thermostat wird völlig unabhängig konfiguriert. Wählen Sie diese Option, wenn Sie keine zentralisierte Konfiguration oder Verwaltung wünschen.
+> 2. Einige Aspekte werden zentral konfiguriert. So können Sie beispielsweise die Mindest-/Höchsttemperaturen, die Parameter für die Erkennung offener Fenster usw. in einer einzigen zentralen Instanz festlegen. Für jedes VTherm, das Sie konfigurieren, können Sie dann wählen, ob Sie die zentrale Konfiguration verwenden oder sie mit benutzerdefinierten Parametern überschreiben möchten.
+> 3. Zusätzlich zur zentralen Konfiguration können alle VTherms über eine einzige `select`-Entity mit dem Namen `central_mode` gesteuert werden. Diese Funktion ermöglicht es Ihnen, alle VTherms gleichzeitig zu stoppen/starten/einen Frostschutz einzustellen usw.. Für jedes VTherm können Sie angeben, ob es diesem `central_mode` zugeordnet  ist.
 
-## Creating a New Versatile Thermostat
+## Erstellen eines neuen Versatile Thermostats
 
-Click on "Add Integration" on the integration page (or click 'Add device' in the integration page)
+Klicken Sie auf "Integration hinzufügen" auf der Integrationsseite (oder klicken Sie auf 'Gerät hinzufügen' auf der Integrationsseite)
 
 ![image](images/add-an-integration.png)
 
-then search for "versatile thermostat" integration:
+dann nach "versatile thermostat"-Integration suchen:
 
 ![image](images/choose-integration.png)
 
-and choose your thermostat type:
+und wählen Sie Ihren Thermostattyp:
 
 ![image](images/config-main0.png)
 
-The configuration can be modified via the same interface. Simply select the thermostat to modify, press "Configure," and you will be able to change some parameters or settings.
+Die Konfiguration kann über die gleiche Schnittstelle geändert werden. Wählen Sie einfach den zu ändernden Thermostat aus, drücken Sie auf "Konfigurieren", und Sie können einige Parameter oder Einstellungen ändern.
 
-Follow the configuration steps by selecting the menu option to configure.
+Folgen Sie den Konfigurationsschritten, indem Sie die zu konfigurierende Menüoption auswählen.
 
-# Choosing a VTherm Type
+# Auswahl eines VTherm-Typs
 
-## Centralized configuration
-This option allows you to configure certain repetitive aspects for all VTherms at once, such as:
-1. Parameters for different algorithms (TPI, open window detection, motion detection, power sensors for your home, presence detection). These parameters apply across all VTherms. You only need to enter them once in `Centralized Configuration`. This configuration does not create a VTherm itself but centralizes parameters that would be tedious to re-enter for each VTherm. Note that you can override these parameters on individual VTherms to specialize them if needed.
-2. Configuration for controlling a central heating system,
-3. Certain advanced parameters, such as safety settings.
+## Zentrale Konfiguration
+Mit dieser Option können Sie bestimmte sich wiederholende Aspekte für alle VTherms auf einmal konfigurieren, z. B:
+1. Parameter für verschiedene Algorithmen (TPI, Erkennung offener Fenster, Bewegungserkennung, Stromsensoren für Ihr Haus, Präsenzerkennung). Diese Parameter gelten für alle VTherms. Sie müssen sie nur einmal in der „Zentralen Konfiguration“ eingeben. Mit dieser Konfiguration wird kein VTherm selbst erstellt, sondern es werden Parameter zentralisiert, die mühsam für jedes VTherm neu eingegeben werden müssten. Beachten Sie, dass Sie diese Parameter für einzelne VTherms außer Kraft setzen können, um sie bei Bedarf anzupassen.
+2. Konfiguration zur Steuerung einer Zentralheizungsanlage,
+3. Bestimmte erweiterte Parameter, wie z. B. Sicherheitseinstellungen.
 
-## VTherm over a switch
-This VTherm type controls a switch that turns a radiator on or off. The switch can be a physical switch directly controlling a radiator (often electric) or a virtual switch that can perform any action when turned on or off. The latter type can, for example, control pilot wire switches or DIY pilot wire solutions with diodes. VTherm modulates the proportion of time the radiator is on (`on_percent`) to achieve the desired temperature. If it is cold, it turns on more frequently (up to 100%); if it is warm, it reduces the on time.
+## VTherm über einen Schalter
+Dieser VTherm-Typ steuert einen Schalter, der einen Heizkörper ein- oder ausschaltet. Bei dem Schalter kann es sich um einen physischen Schalter handeln, der einen Heizkörper direkt steuert (häufig elektrisch), oder um einen virtuellen Schalter, der beim Ein- oder Ausschalten eine beliebige Aktion ausführen kann. Der letztere Typ kann zum Beispiel Pilotdrahtschalter oder DIY-Lösungen mit Dioden steuern. VTherm moduliert den Anteil der Zeit, in der der Heizkörper eingeschaltet ist (`on_percent`), um die gewünschte Temperatur zu erreichen. Wenn es kalt ist, schaltet er sich häufiger ein (bis zu 100 %); wenn es warm ist, wird die Einschaltzeit reduziert.
 
-The underlying entities for this type are `switches` or `input_booleans`.
+Die zugrundeliegenden Entitäten für diesen Typ sind `switches` oder `input_booleans`.
 
-## VTherm over another thermostat
-When your device is controlled by a `climate` entity in Home Assistant and you only have access to this, you should use this VTherm type. In this case, VTherm simply adjusts the target temperature of the underlying `climate` entity.
+## VTherm über anderes Thermostat
+Wenn Ihr Gerät durch eine `climate`-Entity in Home Assistant gesteuert wird und Sie nur Zugriff auf diese haben, sollten Sie diesen VTherm-Typ verwenden. In diesem Fall passt VTherm einfach die Zieltemperatur der zugrunde liegenden `climate`-Entity an.
 
-This type also includes advanced self-regulation features to adjust the setpoint sent to the underlying device, helping to achieve the target temperature faster and mitigating poor internal regulation. For example, if the device's internal thermometer is too close to the heating element, it may incorrectly assume the room is warm while the setpoint is far from being achieved in other areas.
+Dieser Typ verfügt auch über fortschrittliche Selbstregulierungsfunktionen zur Anpassung des an das zugrundeliegende Gerät gesendeten Sollwerts, was dazu beiträgt, die Zieltemperatur schneller zu erreichen und eine schlechte interne Regelung abzumildern. Befindet sich beispielsweise das interne Thermometer des Geräts zu nahe am Heizelement, kann es fälschlicherweise annehmen, dass der Raum warm ist, während der Sollwert in anderen Bereichen bei weitem nicht erreicht wird.
 
-Since version 6.8, this VTherm type can also regulate directly by controlling the valve. Ideal for controllable TRVs, as Sonoff TRVZB, this type is recommended if you have such devices.
+Seit Version 6.8 kann dieser VTherm-Typ auch direkt über die Steuerung des Ventils geregelt werden. Ideal für steuerbare TRVs, wie Sonoff TRVZB, wird dieser Typ empfohlen, wenn Sie solche Geräte haben.
 
-The underlying entities for this VTherm type are exclusively `climate`.
+Die diesem VTherm-Typ zugrunde liegenden Einheiten sind ausschließlich `climate`.
 
-## VTherm over a valve
-If the only entity available to regulate your radiator's temperature is a `number` entity, you should use the `over_valve` type. VTherm adjusts the valve opening based on the difference between the target temperature and the actual room temperature (and the outdoor temperature, if available).
+## VTherm über Ventil
+Wenn die einzige Entität, die zur Regelung der Temperatur Ihres Heizkörpers zur Verfügung steht, eine Entität des Typs `number` ist, sollten Sie den Typ `over_valve` verwenden. VTherm passt die Ventilöffnung auf der Grundlage der Differenz zwischen der Zieltemperatur und der tatsächlichen Raumtemperatur (und der Außentemperatur, falls verfügbar) an.
 
-This type can be used for TRVs without an associated `climate` entity or other DIY solutions exposing a `number` entity.
+Dieser Typ kann für TRVs ohne eine zugehörige `climate`-Entity oder andere DIY-Lösungen verwendet werden, die eine `number`-Entity aufweisen.
 
-# Making the right choice
-> ![Tip](images/tips.png) _*How to Choose the Type*_
-> Choosing the correct type is crucial. It cannot be changed later via the configuration interface. To make the right choice, consider the following questions:
-> 1. **What type of equipment will I control?** Follow this order of preference:
->    1. If you have a controllable thermostatic valve (TRV) in Home Assistant through a `number` entity (e.g., a Shelly TRV), choose the `over_valve` type. This is the most direct type and ensures the best regulation.
->    2. If you have an electric radiator (with or without a pilot wire) controlled by a `switch` entity to turn it on/off, then the `over_switch` type is preferable. Regulation will be managed by the Versatile Thermostat based on the temperature measured by your thermometer at its placement location.
->    3. In all other cases, use the `over_climate` mode. You retain your original `climate` entity, and the Versatile Thermostat "only" controls the on/off state and target temperature of your original thermostat. Regulation is handled by your original thermostat in this case. This mode is particularly suited for all-in-one reversible air conditioning systems exposed as a `climate` entity in Home Assistant. Advanced self-regulation can achieve the setpoint faster by forcing the setpoint or directly controlling the valve when possible.
-> 2. **What type of regulation do I want?** If the controlled equipment has its own built-in regulation mechanism (e.g., HVAC systems, certain TRVs) and it works well, choose `over_climate`. For TRVs with a controllable valve in Home Assistant, the `over_climate` type with `Direct Valve Control` self-regulation is the best choice.
+# Wähle das Richtige aus
+> ![Tip](images/tips.png) _*Wie man den Typ wählt*_
+> Die Wahl des richtigen Typs ist entscheidend. Sie kann später nicht über die Konfigurationsschnittstelle geändert werden. Um die richtige Wahl zu treffen, sollten Sie die folgenden Fragen berücksichtigen:
+> 1. **Welche Art von Geräten werde ich kontrollieren?** Befolgen Sie diese Reihenfolge:
+>    1. Wenn Sie ein steuerbares Thermostatventil (TRV) in Home Assistant über eine `number`-Entity haben (z. B. ein Shelly TRV), wählen Sie den Typ „over_valve“. Dies ist der direkteste Typ und gewährleistet die beste Regulierung.
+>    2. Wenn Sie einen elektrischen Heizkörper (mit oder ohne Pilotdraht) haben, der über einen Schalter ein- und ausgeschaltet wird, ist der Typ `over_switch` vorzuziehen. Die Regelung erfolgt durch das Versatile Thermostat auf der Grundlage der von Ihrem Thermometer an seinem Aufstellungsort gemessenen Temperatur.
+>    3. In allen anderen Fällen sollten Sie den `over_climate`-Modus verwenden. Sie behalten Ihre ursprüngliche `climate`-Entity bei, und das Versatile Thermostat steuert "nur" den Ein-/Aus-Zustand und die Zieltemperatur Ihres ursprünglichen Thermostats. Die Regelung wird in diesem Fall von Ihrem ursprünglichen Thermostat übernommen. Dieser Modus eignet sich besonders für reversible All-in-One-Klimaanlagen, die in Home Assistant als `climate`-Entity angezeigt werden. Die erweiterte Selbstregulierung kann den Sollwert schneller erreichen, indem sie den Sollwert erzwingt oder das Ventil direkt steuert, wenn dies möglich ist.
+> 2. **Welche Art der Regulierung möchte ich?** Wenn die gesteuerten Geräte über einen eigenen eingebauten Regulierungsmechanismus verfügen (z. B. HLK-Systeme, bestimmte TRVs) und dieser gut funktioniert, wählen Sie `over_climate`. Für TRVs mit einem steuerbaren Ventil in Home Assistant ist der Typ `over_climate` mit der Selbstregulierung `Direct Valve Control` die beste Wahl.
 
-# Reference Article
-For more information on these concepts, refer to this article (in French): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+# Referenzartikel
+Weitere Informationen zu diesen Begriffen finden Sie in diesem Artikel (auf Französisch): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
