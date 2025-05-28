@@ -57,13 +57,13 @@ Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermuti
 # Dokumentation
 
 Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Suchen zu erleichtern:
-1. [Einleitung](documentation/en/presentation.md)
-2. [Installation](documentation/en/installation.md)
-3. [Schnellstart](documentation/en/quick-start.md)
-4. [Wahl eines VTherm-Typs](documentation/en/creation.md)
-5. [Grundlegende Merkmale](documentation/en/base-attributes.md)
+1. [Einleitung](documentation/de/presentation.md)
+2. [Installation](documentation/de/installation.md)
+3. [Schnellstart](documentation/de/quick-start.md)
+4. [Wahl eines VTherm-Typs](documentation/de/creation.md)
+5. [Grundlegende Merkmale](documentation/de/base-attributes.md)
 6. [Konfiguriere ein VTherm als `Schalter`](documentation/en/over-switch.md)
-7. [Konfiguriere ein VTherm als `Klima`](documentation/en/over-climate.md)
+7. [Konfiguriere ein VTherm als `Klima`](documentation/de/over-climate.md)
 8. [Konfiguriere ein VTherm als Ventil](documentation/en/over-valve.md)
 9. [Voreinstellungen](documentation/en/feature-presets.md)
 10. [Fensterverwaltung](documentation/en/feature-window.md)
@@ -82,33 +82,33 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 23. [Störungsbeseitigung](documentation/en/troubleshooting.md)
 24. [Hinweise zur Veröffentlichung](documentation/en/releases.md)
 
-# Some results
+# Einige Beispiele
 
-**Temperature stability around the target configured by preset**:
+**Temperaturstabilität entlang des voreingestellten Zielwertes**:
 
 ![image](documentation/en/images/results-1.png)
 
-**On/off cycles calculated by the integration `over_climate`**:
+**Durch die Integration `over-climate` berechnete Ein/Aus-Zyklen**:
 
 ![image](documentation/en/images/results-2.png)
 
-**Regulation with an `over_switch`**:
+**Regulierung mit `over_switch`**:
 
 ![image](documentation/en/images/results-4.png)
 
-**Strong regulation in `over_climate`**:
+**Starke Regulierung in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulation with direct valve control in `over_climate`**:
+**Regelung mit direkter Ventilsteuerung in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Enjoy!
+Viel Spaß!
 
-# Contributions are welcome!
+# Beiträge sind willkommen!
 
-If you wish to contribute, please read the [contribution guidelines](CONTRIBUTING.md).
+Wenn Sie einen Beitrag leisten möchten, lesen Sie bitte die [Beitragsrichtlinien](CONTRIBUTING.md).
 
 ***
 
