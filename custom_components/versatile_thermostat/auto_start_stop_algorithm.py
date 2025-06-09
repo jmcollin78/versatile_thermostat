@@ -13,6 +13,7 @@ from .const import (
     AUTO_START_STOP_LEVEL_FAST,
     AUTO_START_STOP_LEVEL_MEDIUM,
     AUTO_START_STOP_LEVEL_SLOW,
+    AUTO_START_STOP_LEVEL_VERY_SLOW,
     TYPE_AUTO_START_STOP_LEVELS,
 )
 
@@ -22,6 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 # Some constant to make algorithm depending of level
 DT_MIN = {
     AUTO_START_STOP_LEVEL_NONE: 0,  # Not used
+    AUTO_START_STOP_LEVEL_VERY_SLOW: 60,
     AUTO_START_STOP_LEVEL_SLOW: 30,
     AUTO_START_STOP_LEVEL_MEDIUM: 15,
     AUTO_START_STOP_LEVEL_FAST: 7,
@@ -35,6 +37,7 @@ TEMP_HYSTERESIS = 0.5
 
 ERROR_THRESHOLD = {
     AUTO_START_STOP_LEVEL_NONE: 0,  # Not used
+    AUTO_START_STOP_LEVEL_VERY_SLOW: 20,  # 20 cycle above 1° or 10 cycle above 2°, ...
     AUTO_START_STOP_LEVEL_SLOW: 10,  # 10 cycle above 1° or 5 cycle above 2°, ...
     AUTO_START_STOP_LEVEL_MEDIUM: 5,  # 5 cycle above 1° or 3 cycle above 2°, ..., 1 cycle above 5°
     AUTO_START_STOP_LEVEL_FAST: 2,  # 2 cycle above 1° or 1 cycle above 2°

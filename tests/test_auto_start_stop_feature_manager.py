@@ -48,12 +48,14 @@ async def test_auto_start_stop_feature_manager_create(
     [
         # fmt: off
         ( True, AUTO_START_STOP_LEVEL_NONE, True),
+        ( True, AUTO_START_STOP_LEVEL_VERY_SLOW, True),
         ( True, AUTO_START_STOP_LEVEL_SLOW, True),
         ( True, AUTO_START_STOP_LEVEL_MEDIUM, True),
         ( True, AUTO_START_STOP_LEVEL_FAST, True),
         # Level is missing , will be set to None
         ( True, None, True),
         ( False, AUTO_START_STOP_LEVEL_NONE, False),
+        ( False, AUTO_START_STOP_LEVEL_VERY_SLOW, False),
         ( False, AUTO_START_STOP_LEVEL_SLOW, False),
         ( False, AUTO_START_STOP_LEVEL_MEDIUM, False),
         ( False, AUTO_START_STOP_LEVEL_FAST, False),

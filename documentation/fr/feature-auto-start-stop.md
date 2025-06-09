@@ -21,6 +21,7 @@ Pour l'utiliser, vous devez :
 
 ![image](images/config-auto-start-stop.png)
 
+Le réglage 'Très lent' permet d'avoir environ 60 min entre un arrêt et une relance,
 Le réglage 'Lent' permet d'avoir environ 30 min entre un arrêt et une relance,
 Le réglage 'Moyen' met le seuil a environ 15 min et le réglage rapide le met à 7 min.
 
