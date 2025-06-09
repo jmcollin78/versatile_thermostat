@@ -8,6 +8,7 @@
     "reportOptionalMemberAccess": false,
     "reportAssignmentType": "warning",
     "reportIncompatibleVariableOverride": "warning",
+    "reportIncompatibleMethodOverride": "warning",
     "executionEnvironments": [
         {
             "root": "tests",

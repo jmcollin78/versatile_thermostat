@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 
-from homeassistant.components.climate import HVACMode
+from homeassistant.components.climate.const import HVACMode
 
 # from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN

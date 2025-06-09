@@ -966,7 +966,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._use_central_config_temperature
 
     @property
-    def hvac_off_reason(self) -> HVAC_OFF_REASONS:
+    def hvac_off_reason(self) -> str | None:
         """Returns the reason of the last switch to HVAC_OFF
         This is useful for features that turns off the VTherm like
         window detection or auto-start-stop"""
