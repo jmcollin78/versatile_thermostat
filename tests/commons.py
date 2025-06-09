@@ -7,7 +7,7 @@ from typing import Any, Dict, Callable
 from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
 
-from homeassistant.core import HomeAssistant, Event, EVENT_STATE_CHANGED, State
+from homeassistant.core import HomeAssistant, Event, State
 from homeassistant.const import (
     UnitOfTemperature,
     STATE_ON,
@@ -17,16 +17,24 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     STATE_HOME,
     STATE_NOT_HOME,
+    EVENT_STATE_CHANGED,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
 )
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.climate import (
-    ClimateEntity,
+from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
     HVACMode,
     HVACAction,
     ClimateEntityFeature,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
+    PRESET_NONE,
+    PRESET_ACTIVITY,
 )
 
 from homeassistant.components.switch import (
@@ -39,7 +47,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from custom_components.versatile_thermostat.underlyings import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from custom_components.versatile_thermostat.underlyings import overrides, UnderlyingClimate, UnderlyingSwitch
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 
@@ -66,11 +74,6 @@ from .const import (  # pylint: disable=unused-import
     MOCK_PRESENCE_AC_CONFIG,
     MOCK_ADVANCED_CONFIG,
     # MOCK_DEFAULT_FEATURE_CONFIG,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_NONE,
-    PRESET_ECO,
-    PRESET_ACTIVITY,
     overrides,
 )
 
@@ -247,8 +250,8 @@ class MockClimate(ClimateEntity):
         entry_infos={},
         hvac_mode: HVACMode = HVACMode.OFF,
         hvac_action: HVACAction = HVACAction.OFF,
-        fan_modes: list[str] = None,
-        hvac_modes: list[str] = None,
+        fan_modes: list[str] | None = None,
+        hvac_modes: list[str] | None = None,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -621,7 +624,7 @@ async def create_central_config(  # pylint: disable=dangerous-default-value
     return central_configuration
 
 
-def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
+def search_entity(hass: HomeAssistant, entity_id, domain) -> Any | None:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
     for entity in component.entities:
@@ -631,7 +634,7 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Entity:
     return None
 
 
-def count_entities(hass: HomeAssistant, entity_id, domain) -> Entity:
+def count_entities(hass: HomeAssistant, entity_id, domain) -> int:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
     return len(list(component.entities)) if component.entities else 0

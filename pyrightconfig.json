@@ -1,7 +1,22 @@
 {
     "include": [
         "custom_components/versatile_thermostat/**",
-        "homeassistant/**"
+        "homeassistant/**",
+        "tests/**",
     ],
-    "reportShadowedImports": false
+    "reportShadowedImports": false,
+    "reportOptionalMemberAccess": false,
+    "reportAssignmentType": "warning",
+    "reportIncompatibleVariableOverride": "warning",
+    "executionEnvironments": [
+        {
+            "root": "tests",
+            "reportAttributeAccessIssue": "none",
+            "reportMissingImports": false,
+            // because import * is not supported
+            "reportUndefinedVariable": false,
+            "reportOperatorIssue": "warning",
+            "reportArgumentType": "warning",
+        }
+    ]
 }

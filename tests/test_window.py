@@ -5,8 +5,6 @@ import logging
 from unittest.mock import patch, call, PropertyMock
 from datetime import datetime, timedelta
 
-from homeassistant.const import ATTR_TEMPERATURE
-
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
@@ -406,6 +404,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
+        assert entity.last_temperature_slope is not None
         assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity.window_manager._window_auto_algo.is_window_open_detected() is True
         assert (
@@ -726,6 +725,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     dearm_window_auto = await send_temperature_change_event(
         entity, 19, event_timestamp, sleep=False
     )
+    assert entity.last_temperature_slope is not None
     assert entity.last_temperature_slope > -6.0
 
     # 5. Waits for automatic disable
@@ -1742,6 +1742,7 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
+        assert entity.last_temperature_slope is not None
         assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity.window_auto_state == STATE_ON
         assert entity.hvac_mode is HVACMode.HEAT
@@ -1940,6 +1941,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
+        assert entity.last_temperature_slope is not None
         assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity.window_auto_state == STATE_ON
         assert entity.hvac_mode is HVACMode.HEAT
