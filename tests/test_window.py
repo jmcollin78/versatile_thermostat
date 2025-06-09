@@ -2764,6 +2764,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
     assert entity.last_central_mode == CENTRAL_MODE_HEAT_ONLY
 
     # change temperature to force turning on the heater
+    await entity.async_set_preset_mode(PRESET_COMFORT)
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
@@ -2800,6 +2801,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         assert mock_condition.call_count == 1
         assert entity.hvac_mode is HVACMode.OFF
         assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity._saved_preset_mode is PRESET_COMFORT
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
 
@@ -2829,7 +2831,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
             ],
             any_order=False,
         )
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is PRESET_COMFORT
         assert entity.hvac_mode is HVACMode.HEAT
         assert entity._saved_hvac_mode is HVACMode.HEAT  # No change
         assert entity.hvac_off_reason is None
