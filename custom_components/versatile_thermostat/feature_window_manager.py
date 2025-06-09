@@ -247,6 +247,7 @@ class FeatureWindowManager(BaseFeatureManager):
         if self._window_state == new_state and not bypass:
             return False
 
+        # Windows is now closed
         if new_state != STATE_ON:
             _LOGGER.info(
                 "%s - Window is closed. Restoring hvac_mode '%s' if stopped by window detection or temperature %s",
@@ -280,6 +281,7 @@ class FeatureWindowManager(BaseFeatureManager):
                     self._window_action,
                 )
                 return False
+        # Window is now opened
         else:
             _LOGGER.info(
                 "%s - Window is open. Apply window action %s", self, self._window_action
