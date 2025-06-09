@@ -23,7 +23,7 @@ from homeassistant.helpers.event import (
     async_call_later,
 )
 
-from homeassistant.components.climate import HVACMode
+from homeassistant.components.climate.const import HVACMode
 
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
@@ -238,7 +238,7 @@ class FeatureWindowManager(BaseFeatureManager):
         # For testing purpose we need to access the inner function
         return try_window_condition
 
-    async def update_window_state(self, new_state: str = None, bypass: bool = False) -> bool:
+    async def update_window_state(self, new_state: str | None = None, bypass: bool = False) -> bool:
         """Change the window detection state.
         new_state is on if an open window have been detected or off else
         return True if the state have changed
@@ -293,17 +293,16 @@ class FeatureWindowManager(BaseFeatureManager):
                 return False
 
             # self._window_state = new_state
-            if self._vtherm.last_central_mode in [CENTRAL_MODE_AUTO, None]:
-                if self._window_action in [
-                    CONF_WINDOW_TURN_OFF,
-                    CONF_WINDOW_FAN_ONLY,
-                ]:
-                    self._vtherm.save_hvac_mode()
-                elif self._window_action in [
-                    CONF_WINDOW_FROST_TEMP,
-                    CONF_WINDOW_ECO_TEMP,
-                ]:
-                    self._vtherm.save_target_temp()
+            if self._window_action in [
+                CONF_WINDOW_TURN_OFF,
+                CONF_WINDOW_FAN_ONLY,
+            ]:
+                self._vtherm.save_hvac_mode()
+            elif self._window_action in [
+                CONF_WINDOW_FROST_TEMP,
+                CONF_WINDOW_ECO_TEMP,
+            ]:
+                self._vtherm.save_target_temp()
 
             if (
                 self._window_action == CONF_WINDOW_FAN_ONLY

@@ -101,6 +101,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "saved_preset_mode",
                     "saved_target_temp",
                     "saved_hvac_mode",
+                    "saved_preset_mode_central_mode",
+                    "saved_hvac_mode_central_mode",
                     "last_temperature_datetime",
                     "last_ext_temperature_datetime",
                     "minimal_activation_delay_sec",
@@ -206,7 +208,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._use_central_config_temperature = False
 
-        self._hvac_off_reason: HVAC_OFF_REASONS | None = None
+        self._hvac_off_reason: str | None = None
+
+        # Store the last havac_mode before central mode changes
+        # has been introduce to avoid conflict with window
+        self._saved_hvac_mode_central_mode = None
+        self._saved_preset_mode_central_mode = None
 
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
@@ -310,7 +317,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
             self._attr_target_temperature_step = step
 
-        self._attr_preset_modes: list[str] | None
+        self._attr_preset_modes = []
 
         self._cycle_min = max(1, entry_infos.get(CONF_CYCLE_MIN, 1))
 
@@ -606,6 +613,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._saved_preset_mode = old_state.attributes.get(
                 "saved_preset_mode", None
             )
+            self._saved_hvac_mode_central_mode = old_state.attributes.get("saved_hvac_mode_central_mode", None)
+            self._saved_preset_mode_central_mode = old_state.attributes.get("saved_preset_mode_central_mode", None)
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
@@ -966,7 +975,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._use_central_config_temperature
 
     @property
-    def hvac_off_reason(self) -> HVAC_OFF_REASONS:
+    def hvac_off_reason(self) -> str | None:
         """Returns the reason of the last switch to HVAC_OFF
         This is useful for features that turns off the VTherm like
         window detection or auto-start-stop"""
@@ -1155,6 +1164,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             if overwrite_saved_preset:
                 self.save_preset_mode()
+                self._saved_preset_mode_central_mode = preset_mode
 
             self.recalculate()
         # Notify only if there was a real change
@@ -1482,7 +1492,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._hvac_mode,
         )
 
-    def set_hvac_off_reason(self, hvac_off_reason: HVAC_OFF_REASONS):
+    def set_hvac_off_reason(self, hvac_off_reason: str):
         """Set the reason of hvac_off"""
         self._hvac_off_reason = hvac_off_reason
 
@@ -1525,20 +1535,28 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         def save_all():
             """save preset and hvac_mode"""
-            self.save_preset_mode()
-            self.save_hvac_mode()
+            if not is_window_detected:
+                self._saved_hvac_mode_central_mode = self._hvac_mode
+                self._saved_preset_mode_central_mode = self._attr_preset_mode
+            else:
+                self._saved_hvac_mode_central_mode = self._saved_hvac_mode
+                self._saved_preset_mode_central_mode = self._saved_preset_mode
+
+        async def restore_all():
+            """restore preset and hvac_mode"""
+            await self.async_set_preset_mode_internal(self._saved_preset_mode_central_mode, force=False)
+            await self.async_set_hvac_mode(self._saved_hvac_mode_central_mode, need_control_heating=True)
 
         is_window_detected = self._window_manager.is_window_detected
         if new_central_mode == CENTRAL_MODE_AUTO:
             if not is_window_detected and not first_init:
-                await self.restore_preset_mode(force=False)
-                await self.restore_hvac_mode(need_control_heating=True)
+                await restore_all()
             elif is_window_detected and self.hvac_mode == HVACMode.OFF:
                 # do not restore but mark the reason of off with window detection
                 self.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             return
 
-        if old_central_mode == CENTRAL_MODE_AUTO and not is_window_detected:
+        if old_central_mode == CENTRAL_MODE_AUTO:
             save_all()
 
         if new_central_mode == CENTRAL_MODE_STOPPED:
@@ -1660,31 +1678,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "eco_temp": self._presets.get(PRESET_ECO, 0),
             "boost_temp": self._presets.get(PRESET_BOOST, 0),
             "comfort_temp": self._presets.get(PRESET_COMFORT, 0),
-            "frost_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_FROST_PROTECTION), 0
-            ),
-            "eco_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_ECO), 0
-            ),
-            "boost_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_BOOST), 0
-            ),
-            "comfort_away_temp": self._presets_away.get(
-                self.get_preset_away_name(PRESET_COMFORT), 0
-            ),
+            "frost_away_temp": self._presets_away.get(self.get_preset_away_name(PRESET_FROST_PROTECTION), 0),
+            "eco_away_temp": self._presets_away.get(self.get_preset_away_name(PRESET_ECO), 0),
+            "boost_away_temp": self._presets_away.get(self.get_preset_away_name(PRESET_BOOST), 0),
+            "comfort_away_temp": self._presets_away.get(self.get_preset_away_name(PRESET_COMFORT), 0),
             "target_temperature_step": self.target_temperature_step,
             "ext_current_temperature": self._cur_ext_temp,
             "ac_mode": self._ac_mode,
-            "saved_preset_mode": self._saved_preset_mode,
             "saved_target_temp": self._saved_target_temp,
+            "saved_preset_mode": self._saved_preset_mode,
             "saved_hvac_mode": self._saved_hvac_mode,
-            "last_temperature_datetime": self._last_temperature_measure.astimezone(
-                self._current_tz
-            ).isoformat(),
-            "last_ext_temperature_datetime":
-                self._last_ext_temperature_measure.astimezone(
-                    self._current_tz
-            ).isoformat(),
+            "saved_preset_mod_central_modee": self._saved_preset_mode_central_mode,
+            "saved_hvac_mode_central_mode": self._saved_hvac_mode_central_mode,
+            "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
+            "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
             "minimal_activation_delay_sec": self._minimal_activation_delay,
             "minimal_deactivation_delay_sec": self._minimal_deactivation_delay,
             ATTR_TOTAL_ENERGY: self.total_energy,
@@ -1701,11 +1708,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "max_on_percent": self._max_on_percent,
             "have_valve_regulation": self.have_valve_regulation,
             "last_change_time_from_vtherm": (
-                self._last_change_time_from_vtherm.astimezone(
-                    self._current_tz
-                ).isoformat()
-                if self._last_change_time_from_vtherm is not None
-                else None
+                self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
             ),
         }
 
