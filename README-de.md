@@ -48,7 +48,7 @@ Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermuti
 
   `slope`: Die Steigung der Temperaturkurve, gemessen in ° (C oder K)/h. Sie ist positiv, wenn die Temperatur steigt, und negativ, wenn sie sinkt. Diese Steigung wird auf Grundlage der `EMA` brechnet.
 
-  `PAC`: Wärmepumpe
+  `WP`: Wärmepumpe
 
   `HA`: Home Assistant
 
