@@ -1,4 +1,4 @@
-# `over_switch` Typ Thermostat
+# `over_switch` Thermostattyp
 
 - [`over_switch` Typ Thermostat](#over_switch-typ-thermostat)
   - [Voraussetzungen](#voraussetzungen)
