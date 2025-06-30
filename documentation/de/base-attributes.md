@@ -38,7 +38,7 @@ Wählen Sie die Eigenschaften, die Sie für dieses VTherm verwenden möchten:
 4. **Anwesenheitserkennung**: Wenn Sie einen Sensor haben, der die An- oder Abwesenheit in Ihrer Wohnung anzeigt, können Sie damit die Zieltemperatur ändern. Siehe [Anwesenheitserkennung](feature-presence.md). Beachten Sie den Unterschied zwischen dieser Funktion und der Bewegungserkennung: Anwesenheit wird normalerweise auf Hausebene verwendet, während die Bewegungserkennung eher raumspezifisch ist.
 5. **Automatischer Start/Stopp**: Nur für `Over_climate` VTherms. Diese Funktion stoppt ein Gerät, wenn VTherm feststellt, dass es eine Zeit lang nicht benötigt wird. Anhand der Temperaturkurve wird vorhergesagt, wann das Gerät wieder benötigt wird, und es wird zu diesem Zeitpunkt wieder eingeschaltet. Siehe [Start/Stopp-Automatik](feature-auto-start-stop.md).
 
-> ![Tip](images/tips.png) _*Hinweise*_
+> ![Tip](images/tips.png) _*Notes*_
 > 1. Die Liste der verfügbaren Eigenschaften passt sich an Ihren VTherm-Typ an.
 > 2. Wenn Sie eine Eigenschaften aktivieren, wird ein neuer Menüeintrag zur Konfiguration dieser Eigenschaften hinzugefügt.
 > 3. Sie können die Erstellung eines VTherms nicht abschließen, wenn nicht alle Parameter für alle aktivierten Funktionen konfiguriert wurden.
