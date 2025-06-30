@@ -4,7 +4,7 @@ Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, 
 
 - [Schnellstart](#quick-start)
   - [Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)](#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht)
-  - [Heatzy, eCosy, oder ähnlich (`climate`-Entity)](#heatzy-ecosy-oder-ähnlich-`climate`-entity)
+  - [Heatzy, eCosy, oder ähnlich (`climate`-Entity)](#heatzy-ecosy-oder-ähnlich-climate-entity)
   - [Einfache Schalter wie Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#einfache-schalter-wie-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-oder-ähnlich-trv-mit-ventilsteuerung)
   - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-wärmepumpen-klimaanlagen-oder-geräte-die-über-eine-climate-entity-gesteuert-werden)
