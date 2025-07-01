@@ -4,7 +4,7 @@
 from unittest.mock import patch, call
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACAction, HVACMode
+from homeassistant.components.climate.const import HVACAction, HVACMode
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 

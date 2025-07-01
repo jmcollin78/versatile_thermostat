@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 
-from homeassistant.components.climate import HVACMode
+from homeassistant.components.climate.const import HVACMode
 
 # from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
@@ -704,7 +704,7 @@ async def test_climate_ac_only_change_central_mode_true(
     with patch("homeassistant.core.ServiceRegistry.async_call"):
         await select_entity.async_select_option(CENTRAL_MODE_FROST_PROTECTION)
 
-        # No change
+        # Switch to off cause was cool before and frost-protection is for heating
         assert entity.hvac_mode == HVACMode.OFF
         assert entity.preset_mode == PRESET_COMFORT
 
@@ -863,6 +863,8 @@ async def test_switch_change_central_mode_true_with_window(
         assert entity.preset_mode == PRESET_ACTIVITY
         assert entity._saved_hvac_mode == HVACMode.HEAT
         assert entity._saved_preset_mode == PRESET_ACTIVITY
+        assert entity._saved_hvac_mode_central_mode == HVACMode.HEAT
+        assert entity._saved_preset_mode_central_mode == PRESET_ACTIVITY
 
     # 4 Close the window
     with patch(
@@ -969,13 +971,6 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.is_controlled_by_central_mode
         assert entity.last_central_mode is None
 
-        # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
-
-        assert select_entity
-        assert select_entity.current_option == CENTRAL_MODE_AUTO
-        assert select_entity.options == CENTRAL_MODES
-
         # start entity
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
@@ -983,6 +978,13 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.hvac_mode == HVACMode.HEAT
         assert entity.preset_mode == PRESET_ACTIVITY
         assert entity.window_state is STATE_UNKNOWN
+
+        # Find the select entity
+        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+
+        assert select_entity
+        assert select_entity.current_option == CENTRAL_MODE_AUTO
+        assert select_entity.options == CENTRAL_MODES
 
     # 2 Change central_mode to COOL_ONLY
     with patch("homeassistant.core.ServiceRegistry.async_call"):
@@ -995,8 +997,8 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
         await entity.async_set_preset_mode(PRESET_ACTIVITY)
-        assert entity._saved_hvac_mode == HVACMode.HEAT
-        assert entity._saved_preset_mode == PRESET_ACTIVITY
+        assert entity._saved_hvac_mode_central_mode == HVACMode.HEAT
+        assert entity._saved_preset_mode_central_mode == PRESET_ACTIVITY
 
     # 3 Open the window
     with patch(
@@ -1020,8 +1022,11 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.hvac_mode == HVACMode.OFF
         assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity._saved_hvac_mode == HVACMode.HEAT
+        assert entity._saved_hvac_mode == None  # was already off by step 2
         assert entity._saved_preset_mode == PRESET_ACTIVITY
+
+        assert entity._saved_hvac_mode_central_mode == HVACMode.HEAT
+        assert entity._saved_preset_mode_central_mode == PRESET_ACTIVITY
         assert entity.window_state is STATE_ON
 
     # 4 Change central_mode to AUTO
@@ -1037,8 +1042,8 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         # We have to a reason of WINDOW_DETECTION
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity._saved_hvac_mode == HVACMode.HEAT
-        assert entity._saved_preset_mode == PRESET_ACTIVITY
+        assert entity._saved_hvac_mode_central_mode == HVACMode.HEAT
+        assert entity._saved_preset_mode_central_mode == PRESET_ACTIVITY
 
     # 5 Close the window
     with patch(
@@ -1053,16 +1058,16 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         await try_function(None)
 
-        # hvac_mode change to HEAT
-        assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT})]
-        )
-
-        # We should stay off because central is STOPPED
-        assert entity.hvac_mode == HVACMode.HEAT
+        # We should stay off because is was off when window open
+        assert entity.hvac_mode == HVACMode.OFF
         assert entity.hvac_off_reason is None
         assert entity.preset_mode == PRESET_ACTIVITY
-        assert entity._saved_hvac_mode == HVACMode.HEAT
-        assert entity._saved_preset_mode == PRESET_ACTIVITY
+        assert entity._saved_hvac_mode_central_mode == HVACMode.HEAT
+        assert entity._saved_preset_mode_central_mode == PRESET_ACTIVITY
         assert entity.window_state is STATE_OFF
+
+        # hvac_mode change to HEAT
+        assert mock_send_event.call_count == 0
+        # mock_send_event.assert_has_calls(
+        #     [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT})]
+        # )

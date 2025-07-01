@@ -558,6 +558,7 @@
     "auto_start_stop": {
       "options": {
         "auto_start_stop_none": "Kein automatischer Start/Stop",
+        "auto_start_stop_very_slow": "Sehr langsame Erkennung",
         "auto_start_stop_slow": "Langsame Erkennung",
         "auto_start_stop_medium": "Mittlere Erkennung",
         "auto_start_stop_fast": "Schnelle Erkennung"
@@ -628,4 +629,3 @@
     }
   }
 }
-

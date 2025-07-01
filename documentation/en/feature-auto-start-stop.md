@@ -20,6 +20,7 @@ To use this feature, you need to:
 
 ![image](images/config-auto-start-stop.png)
 
+The 'Very slow' setting allows about 60 minutes between a stop and a restart,
 The 'Slow' setting allows about 30 minutes between a stop and a restart,
 The 'Medium' setting sets the threshold to about 15 minutes, and the 'Fast' setting puts it at 7 minutes.
 

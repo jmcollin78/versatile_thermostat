@@ -560,6 +560,7 @@
     "auto_start_stop": {
       "options": {
         "auto_start_stop_none": "No auto start/stop",
+        "auto_start_stop_very_slow": "Very slow detection",
         "auto_start_stop_slow": "Slow detection",
         "auto_start_stop_medium": "Medium detection",
         "auto_start_stop_fast": "Fast detection"
