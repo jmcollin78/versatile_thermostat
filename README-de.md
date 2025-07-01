@@ -125,9 +125,3 @@ Wenn Sie einen Beitrag leisten möchten, lesen Sie bitte die [contribution guide
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Joakim%20Sørensen%20%40ludeeus-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/jmcollin78/versatile_thermostat.svg?style=for-the-badge
 [releases]: https://github.com/jmcollin78/versatile_thermostat/releases
-
-[![GitHub Release][releases-shield]][releases]
-[![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE)
-[![hacs][hacs_badge]][hacs]
-[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
