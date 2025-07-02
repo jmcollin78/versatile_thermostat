@@ -6,14 +6,14 @@
 
 # Versatile Thermostat
 
-This README file is available in 
-languages : [English](README.md) | [French](README-fr.md) | [German](README-de.md)
+Diese README-Datei ist verfügbar in folgenden 
+Sprachen: [English](README.md) | [French](README-fr.md) | [German](README-de.md)
 
 <p align="center">
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tip](images/tips.png) Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. ;-).
+> ![Tipp](images/tips.png) Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. ;-).
 
 Diese benutzerdefinierte Komponente für Home Assistant ist ein Upgrade und eine komplette Neufassung der Komponente "Awesome thermostat" (siehe [Github](https://github.com/dadge/awesome_thermostat)) mit zusätzlichen Funktionen.
 
@@ -48,7 +48,7 @@ Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermuti
 
   `slope`: Die Steigung der Temperaturkurve, gemessen in ° (C oder K)/h. Sie ist positiv, wenn die Temperatur steigt, und negativ, wenn sie sinkt. Diese Steigung wird auf Grundlage der `EMA` brechnet.
 
-  `PAC`: Wärmepumpe
+  `WP`: Wärmepumpe
 
   `HA`: Home Assistant
 
@@ -57,58 +57,58 @@ Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermuti
 # Dokumentation
 
 Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Suchen zu erleichtern:
-1. [Einleitung](documentation/en/presentation.md)
-2. [Installation](documentation/en/installation.md)
-3. [Schnellstart](documentation/en/quick-start.md)
-4. [Wahl eines VTherm-Typs](documentation/en/creation.md)
-5. [Grundlegende Merkmale](documentation/en/base-attributes.md)
-6. [Konfiguriere ein VTherm als `Schalter`](documentation/en/over-switch.md)
-7. [Konfiguriere ein VTherm als `Klima`](documentation/en/over-climate.md)
-8. [Konfiguriere ein VTherm als Ventil](documentation/en/over-valve.md)
-9. [Voreinstellungen](documentation/en/feature-presets.md)
-10. [Fensterverwaltung](documentation/en/feature-window.md)
-11. [Anwesenheitsverwaltung](documentation/en/feature-presence.md)
-12. [Bewegungsverwaltung](documentation/en/feature-motion.md)
-13. [Energieverwaltung](documentation/en/feature-power.md)
-14. [Auto Start und Stop](documentation/en/feature-auto-start-stop.md)
-15. [Zentrale Kontrolle aller VTherms](documentation/en/feature-central-mode.md)
-16. [Steuerung der Zentralheizung](documentation/en/feature-central-boiler.md)
-17. [Weiterführende Aspekte, Sicherheitsmodus](documentation/en/feature-advanced.md)
-18. [Selbstkontrolle](documentation/en/self-regulation.md)
-19. [Tuning-Beispiele](documentation/en/tuning-examples.md)
-20. [Algorithmen](documentation/en/algorithms.md)
-21. [Referenzdokumentation](documentation/en/reference.md)
-22. [Tuning-Beispiele](documentation/en/tuning-examples.md)
-23. [Störungsbeseitigung](documentation/en/troubleshooting.md)
-24. [Hinweise zur Veröffentlichung](documentation/en/releases.md)
+1. [Einleitung](documentation/de/presentation.md)
+2. [Installation](documentation/de/installation.md)
+3. [Schnellstart](documentation/de/quick-start.md)
+4. [Wahl eines VTherm-Typs](documentation/de/creation.md)
+5. [Grundlegende Merkmale](documentation/de/base-attributes.md)
+6. [Konfiguriere ein VTherm als `Schalter`](documentation/de/over-switch.md)
+7. [Konfiguriere ein VTherm als `Klima`](documentation/de/over-climate.md)
+8. [Konfiguriere ein VTherm als Ventil](documentation/de/over-valve.md)
+9. [Voreinstellungen](documentation/de/feature-presets.md)
+10. [Fensterverwaltung](documentation/de/feature-window.md)
+11. [Anwesenheitsverwaltung](documentation/de/feature-presence.md)
+12. [Bewegungsverwaltung](documentation/de/feature-motion.md)
+13. [Energieverwaltung](documentation/de/feature-power.md)
+14. [Auto Start und Stop](documentation/de/feature-auto-start-stop.md)
+15. [Zentrale Kontrolle aller VTherms](documentation/de/feature-central-mode.md)
+16. [Steuerung der Zentralheizung](documentation/de/feature-central-boiler.md)
+17. [Weiterführende Aspekte, Sicherheitsmodus](documentation/de/feature-advanced.md)
+18. [Selbstregulierung](documentation/de/self-regulation.md)
+19. [Tuning-Beispiele](documentation/de/tuning-examples.md)
+20. [Algorithmen](documentation/de/algorithms.md)
+21. [Referenzdokumentation](documentation/de/reference.md)
+22. [Tuning-Beispiele](documentation/de/tuning-examples.md)
+23. [Störungsbeseitigung](documentation/de/troubleshooting.md)
+24. [Veröffentlichungshinweise](documentation/de/releases.md)
 
-# Some results
+# Einige Ergebnisse
 
-**Temperature stability around the target configured by preset**:
+**Temperaturstabilität um den durch die Voreinstellung konfigurierten Zielwert**:
 
 ![image](documentation/en/images/results-1.png)
 
-**On/off cycles calculated by the integration `over_climate`**:
+**Durch die Integration `over_climate` berechnete Ein/Aus-Zyklen**:
 
 ![image](documentation/en/images/results-2.png)
 
-**Regulation with an `over_switch`**:
+**Regelung mit einem `over_switch`**:
 
 ![image](documentation/en/images/results-4.png)
 
-**Strong regulation in `over_climate`**:
+**Strenge Regulierung in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulation with direct valve control in `over_climate`**:
+**Regelung mit direkter Ventilsteuerung in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Enjoy!
+Viel Spaß!
 
-# Contributions are welcome!
+# Beiträge sind willkommen!
 
-If you wish to contribute, please read the [contribution guidelines](CONTRIBUTING.md).
+Wenn Sie einen Beitrag leisten möchten, lesen Sie bitte die [contribution guidelines](CONTRIBUTING-de.md).
 
 ***
 
