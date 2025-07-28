@@ -6,8 +6,8 @@
 
 # Versatile Thermostat
 
-This README file is available in 
-languages : [English](README.md) | [French](README-fr.md) | [German](README-de.md)
+This README file is available in
+languages : [English](README.md) | [French](README-fr.md) | [German](README-de.md) | [Czech](README-cs.md)
 
 <p align="center">
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
@@ -32,7 +32,7 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 > - Documentation links: Version 7.2 introduces experimental links to the documentation from the configuration pages. The link is accessible via the icon [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). This feature is currently tested on some configuration pages.
 
 # 🍻 Thanks for the beers 🍻
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78) 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
 A big thank you to all my beer sponsors for their donations and encouragements. It means a lot to me and motivates me to keep going! If this integration has saved you money, buy me a beer in return; I would greatly appreciate it!
 
