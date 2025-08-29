@@ -39,7 +39,7 @@ Postupujte podle konfiguračních kroků výběrem možnosti menu ke konfiguraci
 
 ## Centralizovaná konfigurace
 Tato možnost umožňuje konfigurovat určité opakující se aspekty pro všechny VTherm najednou, jako jsou:
-1. Parametry pro různé algoritmy (TPI, detekce otevřených oken, detekce pohybu, výkonové senzory pro váš domov, detekce přítomnosti). Tyto parametry platí napříč všemi VTherm. Stačí je zadat jednou v `Centralizované konfiguraci`. Tato konfigurace nevytváří VTherm sama o sobě, ale centralizuje parametry, které by bylo únavné znovu zadávat pro každý VTherm. Poznámka: tyto parametry můžete přepsat na jednotlivých VTherm, abyste je specializovali podle potřeby.
+1. Parametry pro různé algoritmy (TPI, detekce otevřených oken, detekce pohybu, výkonové senzory pro váš domov, detekce přítomnosti). Tyto parametry platí napříč všemi VTherm. Stačí je zadat jednou v `Centralizované konfiguraci`. Tato konfigurace nevytváří VTherm sama o sobě, ale centralizuje parametry, které by bylo únavné znovu zadávat pro každý VTherm. Poznámka: tyto parametry můžete přepsat na jednotlivých VTherm, abyste je upřesnili podle potřeby.
 2. Konfigurace pro ovládání centrálního topného systému,
 3. Určité pokročilé parametry, jako jsou bezpečnostní nastavení.
 

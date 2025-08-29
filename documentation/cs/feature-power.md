@@ -39,7 +39,7 @@ V centralizované konfiguraci, pokud jste vybrali funkci `S detekcí výkonu`, n
 Ujistěte se, že všechny hodnoty výkonu používají stejné jednotky (např. kW nebo W).
 Mít **senzor pro maximální povolenou spotřebu** vám umožní dynamicky upravovat maximální spotřebu pomocí scheduleru nebo automatizace.
 
-Poznamenejte, že kvůli centralizovanému omezení zátěže není možné přepsat senzory spotřeby a maximální spotřeby na jednotlivých _VTherm_. Tato konfigurace musí být provedena v centralizovaných nastaveních. Viz [Centralizovaná konfigurace](./creation.md#centralized-configuration).
+Uvědomte si, že kvůli centralizovanému omezení zátěže není možné přepsat senzory spotřeby a maximální spotřeby na jednotlivých _VTherm_. Tato konfigurace musí být provedena v centralizovaných nastaveních. Viz [Centralizovaná konfigurace](./creation.md#centralized-configuration).
 
 > ![Tip](images/tips.png) _*Poznámky*_
 >

@@ -4,7 +4,7 @@
   - [Konfigurace režimu aktivity nebo detekce pohybu](#konfigurace-režimu-aktivity-nebo-detekce-pohybu)
   - [Použití](#použití)
 
-Tato funkce umožňuje změnit preset, když je detekován pohyb v místnosti. Pokud nechcete topit vaši kancelář, když je místnost obsazena, a pouze když je místnost obsazena, potřebujete senzor pohybu (nebo přítomnosti) v místnosti a nakonfigurovat tuto funkci.
+Tato funkce umožňuje změnit preset, když je detekován pohyb v místnosti. Pokud nechcete topit vaši kancelář, když je místnost prázdná, ale pouze když je místnost obsazena, potřebujete senzor pohybu (nebo přítomnosti) v místnosti a nakonfigurovat tuto funkci.
 
 Tato funkce je často zaměňována s funkcí přítomnosti. Jsou komplementární, ale ne zaměnitelné. Funkce 'pohyb' je lokální pro místnost vybavenou senzorem pohybu, zatímco funkce 'přítomnost' je navržena jako globální pro celý domov.
 

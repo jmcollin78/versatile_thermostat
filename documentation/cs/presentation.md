@@ -10,7 +10,7 @@ Tento termostat dokáže ovládat 3 typy zařízení:
 
 Typ `over_climate` vám umožňuje přidat všechny funkce nabízené VersatileThermostat k vašemu stávajícímu vybavení. `Climate` entita VersatileThermostat bude ovládat vaši podkladovou `climate` entitu, vypne ji při otevřených oknech, přepne do Eco režimu, pokud nikdo není přítomen, atd. Viz [zde](#proč-nová-implementace-termostatu). Pro tento typ termostatu jsou všechny topné cykly ovládány podkladovou `climate` entitou a ne samotným Versatile Thermostat. Volitelná funkce auto-regulace umožňuje Versatile Thermostat upravit cílovou teplotu podkladové entity, aby dosáhl cílové teploty.
 
-Instalace s pilotnáím drátem a aktivační diodou těží z možnosti, která umožňuje obrácení ovládání zapnuto/vypnuto podkladového radiátoru. K tomu použijte typ `over_switch` a zaškrtněte možnost "Invertovat příkaz".
+Instalace s pilotním vodičem a aktivační diodou těží z možnosti, která umožňuje obrácení ovládání zapnuto/vypnuto podkladového radiátoru. K tomu použijte typ `over_switch` a zaškrtněte možnost "Invertovat příkaz".
 
 # Proč nová implementace termostatu?
 
@@ -78,4 +78,4 @@ Některé termostaty typu TRV jsou známé jako nekompatibilní s Versatile Ther
 5. TRV jako Aqara SRTS-A01 a MOES TV01-ZB, kterým chybí zpětná vazba stavu `hvac_action` pro určení, zda topí nebo ne. Proto je zpětná vazba stavu nepřesná, ale zbytek se zdá funkční.
 6. Klimatizace Airwell s integrací "Midea AC LAN". Pokud jsou dva VTherm příkazy příliš blízko u sebe, klimatizace se sama zastaví.
 7. Klimatizace založené na integraci Overkiz nefungují. Zdá se nemožné tyto systémy vypnout nebo dokonce změnit teplotu.
-8. Topné systémy založené na Netatmo fungují špatně. Rozvrhy Netatmo jsou v konfliktu s programováním _VTherm_. Zařízení Netatmo se neustále vracejí do režimu `Auto`, který je špatně spravován s _VTherm_. V tomto režimu nemůže _VTherm_ určit, zda systém topí nebo chladí, což znemožňuje výběr správného algoritmu. Někteří uživatelé se jim podařilo zprovoznit pomocí virtuálního spínače mezi _VTherm_ a podkladovým systémem, ale stabilita není zaručena. Příklad je uveden v sekci [řešení problémů](troubleshooting.md).
+8. Topné systémy založené na Netatmo fungují špatně. Rozvrhy Netatmo jsou v konfliktu s programováním _VTherm_. Zařízení Netatmo se neustále vracejí do režimu `Auto`, který je špatně spravován s _VTherm_. V tomto režimu nemůže _VTherm_ určit, zda systém topí nebo chladí, což znemožňuje výběr správného algoritmu. Některým uživatelům se podařilo zprovoznit pomocí virtuálního spínače mezi _VTherm_ a podkladovým systémem, ale stabilita není zaručena. Příklad je uveden v sekci [řešení problémů](troubleshooting.md).
