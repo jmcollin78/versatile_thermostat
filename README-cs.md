@@ -15,7 +15,7 @@ jazycích: [Angličtina](README.md) | [Francouzština](README-fr.md) | [Němčin
 
 > ![Tip](images/tips.png) Tato termostatická integrace má za cíl výrazně zjednodušit vaše automatizace kolem správy vytápění. Protože všechny typické události kolem vytápění (nikdo doma?, detekována aktivita v místnosti?, otevřené okno?, omezení spotřeby energie?) jsou nativně spravovány termostatem, nemusíte se zabývat komplikovanými skripty a automatizacemi pro správu vašich termostatů. ;-).
 
-Tato vlastní komponenta pro Home Assistant je upgrade a kompletní přepsání komponenty "Awesome thermostat" (viz [Github](https://github.com/dadge/awesome_thermostat)) s přidanými funkcemi.
+Tato vlastní komponenta pro Home Assistant je vylepšením a kompletním přepsáním komponenty "Awesome thermostat" (viz [Github](https://github.com/dadge/awesome_thermostat)) s přidanými funkcemi.
 
 # Snímky obrazovky
 
@@ -34,7 +34,7 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # 🍻 Děkuji za piva 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
-Velké díky všem mým donátorům za jejich příspěvky a povzbuzování. Je to pro mě velmi potěšující a motivuje mě to pokračovat! Pokud vám tato integrace pomohla ušetřit, kupte mi malé pivo na oplátku, byl bych vám velmi vděčný!
+Velké díky všem mým donátorům za jejich příspěvky a povzbuzování. Je to pro mě velmi potěšující a motivuje mě to pokračovat! Pokud vám tato integrace pomohla ušetřit, kupte mi malé pivo na oplátku, budu vám velmi vděčný!
 
 # Slovník
 
@@ -51,26 +51,6 @@ Velké díky všem mým donátorům za jejich příspěvky a povzbuzování. Je 
   `PAC` : tepelné čerpadlo
 
   `HA` : Home Assistant
-
-  `pod-jacent` : zařízení řízené `VTherm`"Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
-
-Velké díky všem mým pivním sponzorům za jejich dary a povzbuzení. Znamená to pro mě hodně a motivuje mě to pokračovat! Pokud vám tato integrace ušetřila peníze, kupte mi na oplátku pivo; velmi si toho vážím!
-
-# Slovník
-
-  `VTherm`: Versatile Thermostat, jak je odkazován v tomto dokumentu
-
-  `TRV`: Termostatický radiátorový ventil vybavený ventilem. Ventil se otevírá nebo zavírá, aby umožnil průchod horké vody.
-
-  `AC`: Klimatizace. AC zařízení chladí místo topení. Teploty jsou obrácené: Eco je teplejší než Comfort, který je teplejší než Boost. Algoritmy tuto informaci berou v úvahu.
-
-  `EMA`: Exponenciální klouzavý průměr. Používá se k vyhlazení měření teploty senzoru. Představuje klouzavý průměr teploty místnosti a používá se k výpočtu sklonu teplotní křivky, který by byl na surových datech příliš nestabilní.
-
-  `slope`: Sklon teplotní křivky, měřený v ° (C nebo K)/h. Je pozitivní při zvyšování teploty a negativní při snižování. Tento sklon je vypočítán na základě `EMA`.
-
-  `WP`: Tepelné čerpadlo
-
-  `HA`: Home Assistant
 
   `underlying`: zařízení ovládané `VTherm`
 
