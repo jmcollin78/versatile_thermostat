@@ -1,0 +1,636 @@
+{
+  "title": "Konfigurace Versatile Thermostat",
+  "config": {
+    "flow_title": "Konfigurace Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Typ Versatile Thermostatu",
+        "description": "Vyberte typ termostatu, který chcete vytvořit&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/creation.md)",
+        "data": {
+          "thermostat_type": "Typ termostatu"
+        },
+        "data_description": {
+          "thermostat_type": "Možný je pouze jeden termostat typu Centrální konfigurace."
+        }
+      },
+      "menu": {
+        "title": "Menu",
+        "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
+        "menu_options": {
+          "main": "Hlavní atributy",
+          "central_boiler": "Centrální kotel",
+          "type": "Podřízená zařízení",
+          "tpi": "TPI parametry",
+          "features": "Funkce",
+          "presets": "Předvolby",
+          "window": "Detekce oken",
+          "motion": "Detekce pohybu",
+          "power": "Správa výkonu",
+          "presence": "Detekce přítomnosti",
+          "advanced": "Pokročilé parametry",
+          "auto_start_stop": "Automatické spuštění a zastavení",
+          "valve_regulation": "Konfigurace regulace ventilu",
+          "finalize": "Vše hotovo",
+          "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "main": {
+        "title": "Přidat nový Versatile Thermostat",
+        "description": "Hlavní povinné atributy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "data": {
+          "name": "Název",
+          "thermostat_type": "Typ termostatu",
+          "temperature_sensor_entity_id": "Teplota místnosti",
+          "last_seen_temperature_sensor_entity_id": "Čas posledního měření teploty místnosti",
+          "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty",
+          "cycle_min": "Délka cyklu (minuty)",
+          "temp_min": "Minimální povolená teplota",
+          "temp_max": "Maximální povolená teplota",
+          "step_temperature": "Krok teploty",
+          "device_power": "Výkon zařízení",
+          "use_central_mode": "Povolit řízení centrální entitou (vyžaduje centrální konfiguraci). Zaškrtněte pro povolení řízení VTherm pomocí entit select central_mode.",
+          "use_main_central_config": "Použít dodatečnou centrální hlavní konfiguraci. Zaškrtněte pro použití centrální hlavní konfigurace (venkovní teplota, min, max, krok, ...).",
+          "used_by_controls_central_boiler": "Používán centrálním kotlem. Zaškrtněte, pokud má tento VTherm řídit centrální kotel"
+        },
+        "data_description": {
+          "temperature_sensor_entity_id": "ID entity senzoru teploty místnosti",
+          "last_seen_temperature_sensor_entity_id": "ID entity posledního času měření teploty místnosti. Měl by být datetime senzor",
+          "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace"
+        }
+      },
+      "features": {
+        "title": "Funkce",
+        "description": "Funkce termostatu",
+        "data": {
+          "use_window_feature": "Použít detekci oken",
+          "use_motion_feature": "Použít detekci pohybu",
+          "use_power_feature": "Použít správu výkonu",
+          "use_presence_feature": "Použít detekci přítomnosti",
+          "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
+          "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení"
+        }
+      },
+      "type": {
+        "title": "Propojené entity",
+        "description": "Atributy propojených entit&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "data": {
+          "underlying_entity_ids": "Zařízení, která mají být řízena",
+          "heater_keep_alive": "Interval keep-alive spínače v sekundách",
+          "proportional_function": "Algoritmus",
+          "ac_mode": "AC režim",
+          "auto_regulation_mode": "Samoregulace",
+          "auto_regulation_dtemp": "Práh regulace",
+          "auto_regulation_periode_min": "Minimální perioda regulace",
+          "auto_regulation_use_device_temp": "Použít vnitřní teplotu podřízeného zařízení",
+          "inverse_switch_command": "Invertovat příkaz spínače",
+          "auto_fan_mode": "Automatický režim ventilátoru",
+          "on_command_text": "Přizpůsobení příkazu zapnutí",
+          "vswitch_on_command": "Volitelné příkazy zapnutí",
+          "off_command_text": "Přizpůsobení příkazu vypnutí",
+          "vswitch_off_command": "Volitelné příkazy vypnutí"
+        },
+        "data_description": {
+          "underlying_entity_ids": "Zařízení, která mají být řízena - 1 je povinné",
+          "heater_keep_alive": "Volitelný interval obnovení stavu spínače vytápění. Ponechte prázdné, pokud není potřeba.",
+          "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
+          "ac_mode": "Použít režim klimatizace (AC)",
+          "auto_regulation_mode": "Automatické přizpůsobení cílové teploty",
+          "auto_regulation_dtemp": "Práh v ° (nebo % pro ventil), pod kterým nebude změna teploty odeslána",
+          "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
+          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace",
+          "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
+          "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
+          "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Atributy Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "use_tpi_central_config": "Použít centrální TPI konfiguraci"
+        },
+        "data_description": {
+          "tpi_coef_int": "Koeficient pro delta vnitřní teploty",
+          "tpi_coef_ext": "Koeficient pro delta vnější teploty",
+          "use_tpi_central_config": "Zaškrtněte pro použití centrální TPI konfigurace. Odšktněte pro použití specifické TPI konfigurace pro tento VTherm"
+        }
+      },
+      "presets": {
+        "title": "Předvolby",
+        "description": "Vyberte, zda bude termostat používat centrální předvolby - odšrkněte pro vlastní předvolby termostatu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "data": {
+          "use_presets_central_config": "Použít centrální konfiguraci předvoleb"
+        }
+      },
+      "window": {
+        "title": "Správa oken",
+        "description": "Správa otevřených oken.\nMůžete také nakonfigurovat automatickou detekci otevřených oken založenou na poklesu teploty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "data": {
+          "window_sensor_entity_id": "ID entity senzoru okna",
+          "window_delay": "Zpoždění 'zapnuto' senzoru okna (sekundy)",
+          "window_off_delay": "Zpoždění 'vypnuto' senzoru okna (sekundy)",
+          "window_auto_open_threshold": "Práh poklesu teploty pro automatickou detekci otevřeného okna (v °/hodina)",
+          "window_auto_close_threshold": "Práh zvýšení teploty pro ukončení automatické detekce (v °/hodina)",
+          "window_auto_max_duration": "Maximální doba automatické detekce otevřeného okna (v min)",
+          "use_window_central_config": "Použít centrální konfiguraci oken",
+          "window_action": "Akce"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Ponechte prázdné, pokud se nemá používat senzor okna a má se používat automatická detekce",
+          "window_delay": "Zpoždění v sekundách před zohledněním detekce 'zapnuto' senzoru",
+          "window_off_delay": "Zpoždění v sekundách před zohledněním detekce 'vypnuto' senzoru. Ponechte prázdné pro použití stejné hodnoty jako zpoždění zapnutí okna",
+          "window_auto_open_threshold": "Doporučená hodnota: mezi 3 a 10. Ponechte prázdné, pokud se automatická detekce otevřeného okna nepoužívá",
+          "window_auto_close_threshold": "Doporučená hodnota: 0. Ponechte prázdné, pokud se automatická detekce otevřeného okna nepoužívá",
+          "window_auto_max_duration": "Doporučená hodnota: 60 (jedna hodina). Ponechte prázdné, pokud se automatická detekce otevřeného okna nepoužívá",
+          "use_window_central_config": "Vyberte pro použití centrální konfigurace oken. Odšrkněte pro použití specifické konfigurace oken pro tento VTherm",
+          "window_action": "Akce, která se má provést při detekci otevřeného okna"
+        }
+      },
+      "motion": {
+        "title": "Správa pohybu",
+        "description": "Správa senzoru pohybu. Předvolba se může automaticky přepínat v závislosti na detekci pohybu\nmotion_preset a no_motion_preset by měly být nastaveny na odpovídající název předvolby&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "data": {
+          "motion_sensor_entity_id": "ID entity senzoru pohybu",
+          "motion_delay": "Zpoždění aktivace",
+          "motion_off_delay": "Zpoždění deaktivace",
+          "motion_preset": "Předvolba pohybu",
+          "no_motion_preset": "Předvolba bez pohybu",
+          "use_motion_central_config": "Použít centrální konfiguraci pohybu"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID entity senzoru pohybu",
+          "motion_delay": "Zpoždění aktivace pohybu (sekundy)",
+          "motion_off_delay": "Zpoždění deaktivace pohybu (sekundy)",
+          "motion_preset": "Předvolba k použití při detekci pohybu",
+          "no_motion_preset": "Předvolba k použití při nedetekci pohybu",
+          "use_motion_central_config": "Zaškrtněte pro použití centrální konfigurace pohybu. Odšrkněte pro použití specifické konfigurace pohybu pro tento VTherm"
+        }
+      },
+      "power": {
+        "title": "Správa výkonu",
+        "description": "Atributy správy výkonu.\nUdává výkon a maximální výkonový senzor vašeho domova.\nUveďte spotřebu energie ohřívače při zapnutí.\nVšechny senzory a výkon zařízení by měly používat stejnou jednotku (kW nebo W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "data": {
+          "power_sensor_entity_id": "Výkon",
+          "max_power_sensor_entity_id": "Maximální výkon",
+          "power_temp": "Teplota odlehčení",
+          "use_power_central_config": "Použít centrální konfiguraci výkonu"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID entity senzoru výkonu",
+          "max_power_sensor_entity_id": "ID entity senzoru maximálního výkonu",
+          "power_temp": "Teplota pro odlehčení výkonu",
+          "use_power_central_config": "Zaškrtněte pro použití centrální konfigurace výkonu. Odšrkněte pro použití specifické konfigurace výkonu pro tento VTherm"
+        }
+      },
+      "presence": {
+        "title": "Správa přítomnosti",
+        "description": "Atributy správy přítomnosti.\nUdává senzor přítomnosti vašeho domova (true znamená, že je někdo přítomen) a dává odpovídající nastavení teplotní předvolby&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "data": {
+          "presence_sensor_entity_id": "Senzor přítomnosti",
+          "use_presence_central_config": "Použít centrální konfiguraci teploty přítomnosti. Odšrkněte pro použití specifických teplotních entit"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID entity senzoru přítomnosti"
+        }
+      },
+      "advanced": {
+        "title": "Pokročilé parametry",
+        "description": "Konfigurace pokročilých parametrů. Pokud nevíte, co děláte, ponechte výchozí hodnoty.\nTyto parametry mohou vést k velmi špatné regulaci teploty nebo špatné regulaci výkonu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "data": {
+          "minimal_activation_delay": "Minimální zpoždění aktivace",
+          "minimal_deactivation_delay": "Minimální zpoždění deaktivace",
+          "safety_delay_min": "Bezpečnostní zpoždění (v minutách)",
+          "safety_min_on_percent": "Minimální procento výkonu pro povolení bezpečnostního režimu",
+          "safety_default_on_percent": "Procento výkonu k použití v bezpečnostním režimu",
+          "use_advanced_central_config": "Použít centrální pokročilou konfiguraci"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Zpoždění v sekundách, pod kterým nebude zařízení aktivováno",
+          "minimal_deactivation_delay": "Zpoždění v sekundách, po kterou bude zařízení udržováno aktivní",
+          "safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními teploty. Nad tímto zpožděním se termostat přepne do bezpečnostního vypnutého stavu",
+          "safety_min_on_percent": "Minimální hodnota procenta vytápění pro aktivaci bezpečnostní předvolby. Pod tímto množstvím procent výkonu se termostat nepřepne do bezpečnostní předvolby",
+          "safety_default_on_percent": "Výchozí hodnota procenta výkonu vytápění v bezpečnostní předvolbě. Nastavte na 0 pro vypnutí ohřívače v bezpečnostní předvolbě",
+          "use_advanced_central_config": "Zaškrtněte pro použití centrální pokročilé konfigurace. Odšrkněte pro použití specifické pokročilé konfigurace pro tento VTherm"
+        }
+      },
+      "central_boiler": {
+        "title": "Ovládání centrálního kotle",
+        "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "data": {
+          "central_boiler_activation_service": "Příkaz pro zapnutí",
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+        }
+      },
+      "valve_regulation": {
+        "title": "Samoregulace s ventilem",
+        "description": "Konfigurace pro samoregulaci s přímým ovládáním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Entity kalibrace offsetu",
+          "opening_degree_entity_ids": "Entity stupně otevření",
+          "closing_degree_entity_ids": "Entity stupně zavření",
+          "proportional_function": "Algoritmus",
+          "min_opening_degrees": "Minimální stupně otevření"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Neočekávaná chyba",
+      "unknown_entity": "Neznámé ID entity",
+      "window_open_detection_method": "Měla by se používat pouze jedna metoda detekce otevřeného okna. Použijte buď senzor okna, nebo automatickou detekci pomocí teplotního prahu, ale ne oboje",
+      "no_central_config": "Nemůžete vybrat 'použít centrální konfiguraci', protože nebyla nalezena žádná centrální konfigurace. Pro její použití musíte vytvořit Versatile Thermostat typu 'Centrální konfigurace'.",
+      "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována."
+    },
+    "abort": {
+      "already_configured": "Zařízení je již nakonfigurováno"
+    }
+  },
+  "options": {
+    "flow_title": "Konfigurace Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Typ - {name}",
+        "data": {
+          "thermostat_type": "Typ termostatu"
+        },
+        "data_description": {
+          "thermostat_type": "Možný je pouze jeden typ centrální konfigurace"
+        }
+      },
+      "menu": {
+        "title": "Menu",
+        "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
+        "menu_options": {
+          "main": "Hlavní atributy",
+          "central_boiler": "Centrální kotel",
+          "type": "Podřízená zařízení",
+          "tpi": "TPI parametry",
+          "features": "Funkce",
+          "presets": "Předvolby",
+          "window": "Detekce oken",
+          "motion": "Detekce pohybu",
+          "power": "Správa výkonu",
+          "presence": "Detekce přítomnosti",
+          "advanced": "Pokročilé parametry",
+          "auto_start_stop": "Automatické spuštění a zastavení",
+          "valve_regulation": "Konfigurace regulace ventilu",
+          "finalize": "Vše hotovo",
+          "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "main": {
+        "title": "Hlavní - {name}",
+        "description": "Hlavní povinné atributy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "data": {
+          "name": "Název",
+          "thermostat_type": "Typ termostatu",
+          "temperature_sensor_entity_id": "Teplota místnosti",
+          "last_seen_temperature_sensor_entity_id": "Čas posledního měření teploty místnosti",
+          "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty",
+          "cycle_min": "Délka cyklu (minuty)",
+          "temp_min": "Minimální povolená teplota",
+          "temp_max": "Maximální povolená teplota",
+          "step_temperature": "Krok teploty",
+          "device_power": "Výkon zařízení",
+          "use_central_mode": "Povolit řízení centrální entitou (vyžaduje centrální konfiguraci). Zaškrtněte pro povolení řízení VTherm pomocí entit select central_mode.",
+          "use_main_central_config": "Použít dodatečnou centrální hlavní konfiguraci. Zaškrtněte pro použití centrální hlavní konfigurace (venkovní teplota, min, max, krok, ...).",
+          "used_by_controls_central_boiler": "Používán centrálním kotlem. Zaškrtněte, pokud má tento VTherm řídit centrální kotel"
+        },
+        "data_description": {
+          "temperature_sensor_entity_id": "ID entity senzoru teploty místnosti",
+          "last_seen_temperature_sensor_entity_id": "ID entity posledního času měření teploty místnosti. Měl by být datetime senzor",
+          "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace"
+        }
+      },
+      "features": {
+        "title": "Funkce - {name}",
+        "description": "Funkce termostatu",
+        "data": {
+          "use_window_feature": "Použít detekci oken",
+          "use_motion_feature": "Použít detekci pohybu",
+          "use_power_feature": "Použít správu výkonu",
+          "use_presence_feature": "Použít detekci přítomnosti",
+          "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
+          "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení"
+        }
+      },
+      "type": {
+        "title": "Entity - {name}",
+        "description": "Atributy propojených entit&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "data": {
+          "underlying_entity_ids": "Zařízení, která mají být řízena",
+          "heater_keep_alive": "Interval keep-alive spínače v sekundách",
+          "proportional_function": "Algoritmus",
+          "ac_mode": "AC režim",
+          "auto_regulation_mode": "Samoregulace",
+          "auto_regulation_dtemp": "Práh regulace",
+          "auto_regulation_periode_min": "Minimální perioda regulace",
+          "auto_regulation_use_device_temp": "Použít vnitřní teplotu podřízeného zařízení",
+          "inverse_switch_command": "Invertovat příkaz spínače",
+          "auto_fan_mode": "Automatický režim ventilátoru",
+          "on_command_text": "Přizpůsobení příkazu zapnutí",
+          "vswitch_on_command": "Volitelné příkazy zapnutí",
+          "off_command_text": "Přizpůsobení příkazu vypnutí",
+          "vswitch_off_command": "Volitelné příkazy vypnutí"
+        },
+        "data_description": {
+          "underlying_entity_ids": "Zařízení, která mají být řízena - 1 je povinné",
+          "heater_keep_alive": "Volitelný interval obnovení stavu spínače vytápění. Ponechte prázdné, pokud není potřeba.",
+          "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
+          "ac_mode": "Použít režim klimatizace (AC)",
+          "auto_regulation_mode": "Automatické přizpůsobení cílové teploty",
+          "auto_regulation_dtemp": "Práh v ° (nebo % pro ventil), pod kterým nebude změna teploty odeslána",
+          "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
+          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace",
+          "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
+          "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
+          "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."
+        }
+      },
+      "tpi": {
+        "title": "TPI - {name}",
+        "description": "Atributy Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "use_tpi_central_config": "Použít centrální TPI konfiguraci"
+        },
+        "data_description": {
+          "tpi_coef_int": "Koeficient pro delta vnitřní teploty",
+          "tpi_coef_ext": "Koeficient pro delta vnější teploty",
+          "use_tpi_central_config": "Zaškrtněte pro použití centrální TPI konfigurace. Odšktněte pro použití specifické TPI konfigurace pro tento VTherm"
+        }
+      },
+      "presets": {
+        "title": "Předvolby - {name}",
+        "description": "Zaškrtněte, pokud bude termostat používat centrální předvolby. Odšrkněte a termostat bude mít vlastní entity předvoleb&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "data": {
+          "use_presets_central_config": "Použít centrální konfiguraci předvoleb"
+        }
+      },
+      "window": {
+        "title": "Okna - {name}",
+        "description": "Správa otevřených oken.\nMůžete také nakonfigurovat automatickou detekci otevřených oken založenou na poklesu teploty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "data": {
+          "window_sensor_entity_id": "ID entity senzoru okna",
+          "window_delay": "Zpoždění 'zapnuto' senzoru okna (sekundy)",
+          "window_off_delay": "Zpoždění 'vypnuto' senzoru okna (sekundy)",
+          "window_auto_open_threshold": "Práh poklesu teploty pro automatickou detekci otevřeného okna (v °/hodina)",
+          "window_auto_close_threshold": "Práh zvýšení teploty pro ukončení automatické detekce (v °/hodina)",
+          "window_auto_max_duration": "Maximální doba automatické detekce otevřeného okna (v min)",
+          "use_window_central_config": "Použít centrální konfiguraci oken",
+          "window_action": "Akce"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Ponechte prázdné, pokud se nemá používat senzor okna a má se používat automatická detekce",
+          "window_delay": "Zpoždění v sekundách před zohledněním detekce 'zapnuto' senzoru",
+          "window_off_delay": "Zpoždění v sekundách před zohledněním detekce 'vypnuto' senzoru. Ponechte prázdné pro použití stejné hodnoty jako zpoždění zapnutí okna",
+          "window_auto_close_threshold": "Doporučená hodnota: 0. Ponechte prázdné, pokud se automatická detekce otevřeného okna nepoužívá",
+          "window_auto_max_duration": "Doporučená hodnota: 60 (jedna hodina). Ponechte prázdné, pokud se automatická detekce otevřeného okna nepoužívá",
+          "use_window_central_config": "Zaškrtněte pro použití centrální konfigurace oken. Odšktněte pro použití specifické konfigurace oken pro tento VTherm",
+          "window_action": "Akce, která se má provést při detekci otevřeného okna"
+        }
+      },
+      "motion": {
+        "title": "Pohyb - {name}",
+        "description": "Správa pohybu. Předvolba se může automaticky přepínat v závislosti na detekci pohybu\nmotion_preset a no_motion_preset by měly být nastaveny na odpovídající název předvolby&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "data": {
+          "motion_sensor_entity_id": "ID entity senzoru pohybu",
+          "motion_delay": "Zpoždění aktivace",
+          "motion_off_delay": "Zpoždění deaktivace",
+          "motion_preset": "Předvolba pohybu",
+          "no_motion_preset": "Předvolba bez pohybu",
+          "use_motion_central_config": "Použít centrální konfiguraci pohybu"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID entity senzoru pohybu",
+          "motion_delay": "Zpoždění aktivace pohybu (sekundy)",
+          "motion_off_delay": "Zpoždění deaktivace pohybu (sekundy)",
+          "motion_preset": "Předvolba k použití při detekci pohybu",
+          "no_motion_preset": "Předvolba k použití při nedetekci pohybu",
+          "use_motion_central_config": "Zaškrtněte pro použití centrální konfigurace pohybu. Odšrkněte pro použití specifické konfigurace pohybu pro tento VTherm"
+        }
+      },
+      "power": {
+        "title": "Výkon - {name}",
+        "description": "Atributy správy výkonu.\nUdává výkon a maximální výkonový senzor vašeho domova.\nUveďte spotřebu energie ohřívače při zapnutí.\nVšechny senzory a výkon zařízení by měly používat stejnou jednotku (kW nebo W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "data": {
+          "power_sensor_entity_id": "Výkon",
+          "max_power_sensor_entity_id": "Maximální výkon",
+          "power_temp": "Teplota odlehčení",
+          "use_power_central_config": "Použít centrální konfiguraci výkonu"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID entity senzoru výkonu",
+          "max_power_sensor_entity_id": "ID entity senzoru maximálního výkonu",
+          "power_temp": "Teplota pro odlehčení výkonu",
+          "use_power_central_config": "Zaškrtněte pro použití centrální konfigurace výkonu. Odšrkněte pro použití specifické konfigurace výkonu pro tento VTherm"
+        }
+      },
+      "presence": {
+        "title": "Přítomnost - {name}",
+        "description": "Atributy správy přítomnosti.\nUdává senzor přítomnosti vašeho domova (true znamená, že je někdo přítomen) a dává odpovídající nastavení teplotní předvolby&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "data": {
+          "presence_sensor_entity_id": "Senzor přítomnosti",
+          "use_presence_central_config": "Použít centrální konfiguraci teploty přítomnosti. Odšrkněte pro použití specifických teplotních entit"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID entity senzoru přítomnosti"
+        }
+      },
+      "advanced": {
+        "title": "Pokročilé - {name}",
+        "description": "Konfigurace pokročilých parametrů. Pokud nevíte, co děláte, ponechte výchozí hodnoty.\nTyto parametry mohou vést k velmi špatné regulaci teploty nebo špatné regulaci výkonu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "data": {
+          "minimal_activation_delay": "Minimální zpoždění aktivace",
+          "minimal_deactivation_delay": "Minimální zpoždění deaktivace",
+          "safety_delay_min": "Bezpečnostní zpoždění (v minutách)",
+          "safety_min_on_percent": "Minimální procento výkonu pro povolení bezpečnostního režimu",
+          "safety_default_on_percent": "Procento výkonu k použití v bezpečnostním režimu",
+          "use_advanced_central_config": "Použít centrální pokročilou konfiguraci"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Zpoždění v sekundách, pod kterým nebude zařízení aktivováno",
+          "minimal_deactivation_delay": "Zpoždění v sekundách, po kterou bude zařízení udržováno aktivní",
+          "safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními teploty. Nad tímto zpožděním se termostat přepne do bezpečnostního vypnutého stavu",
+          "safety_min_on_percent": "Minimální hodnota procenta vytápění pro aktivaci bezpečnostní předvolby. Pod tímto množstvím procent výkonu se termostat nepřepne do bezpečnostní předvolby",
+          "safety_default_on_percent": "Výchozí hodnota procenta výkonu vytápění v bezpečnostní předvolbě. Nastavte na 0 pro vypnutí ohřívače v bezpečnostní předvolbě",
+          "use_advanced_central_config": "Zaškrtněte pro použití centrální pokročilé konfigurace. Odšrkněte pro použití specifické pokročilé konfigurace pro tento VTherm"
+        }
+      },
+      "central_boiler": {
+        "title": "Ovládání centrálního kotle - {name}",
+        "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "data": {
+          "central_boiler_activation_service": "Příkaz pro zapnutí",
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+        }
+      },
+      "valve_regulation": {
+        "title": "Samoregulace s ventilem - {name}",
+        "description": "Konfigurace pro samoregulaci s přímým ovládáním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Entity kalibrace offsetu",
+          "opening_degree_entity_ids": "Entity stupně otevření",
+          "closing_degree_entity_ids": "Entity stupně zavření",
+          "proportional_function": "Algoritmus",
+          "min_opening_degrees": "Minimální stupně otevření"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
+          "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+        }
+      }
+    },
+    "error": {
+      "unknown": "Neočekávaná chyba",
+      "unknown_entity": "Neznámé ID entity",
+      "window_open_detection_method": "Měla by se používat pouze jedna metoda detekce otevřeného okna. Použijte buď senzor okna, nebo automatickou detekci pomocí teplotního prahu, ale ne oboje",
+      "no_central_config": "Nemůžete zaškrtnout 'použít centrální konfiguraci', protože nebyla nalezena žádná centrální konfigurace. Pro její použití musíte vytvořit Versatile Thermostat typu 'Centrální konfigurace'.",
+      "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována.",
+      "service_configuration_format": "Formát konfigurace služby je nesprávný",
+      "valve_regulation_nb_entities_incorrect": "Počet entit ventilů pro regulaci ventilů by měl být roven počtu podřízených zařízení",
+      "min_opening_degrees_format": "Očekává se seznam kladných celých čísel oddělených čárkami. Příklad: 20, 25, 30"
+    },
+    "abort": {
+      "already_configured": "Zařízení je již nakonfigurováno"
+    }
+  },
+  "selector": {
+    "thermostat_type": {
+      "options": {
+        "thermostat_central_config": "Centrální konfigurace",
+        "thermostat_over_switch": "Termostat přes spínač",
+        "thermostat_over_climate": "Termostat přes klimatizaci",
+        "thermostat_over_valve": "Termostat přes ventil"
+      }
+    },
+    "auto_regulation_mode": {
+      "options": {
+        "auto_regulation_slow": "Pomalá",
+        "auto_regulation_strong": "Silná",
+        "auto_regulation_medium": "Střední",
+        "auto_regulation_light": "Lehká",
+        "auto_regulation_expert": "Expert",
+        "auto_regulation_none": "Žádná autoregulace",
+        "auto_regulation_valve": "Přímé ovládání ventilu"
+      }
+    },
+    "auto_fan_mode": {
+      "options": {
+        "auto_fan_none": "Žádný automatický ventilátor",
+        "auto_fan_low": "Nízká",
+        "auto_fan_medium": "Střední",
+        "auto_fan_high": "Vysoká",
+        "auto_fan_turbo": "Turbo"
+      }
+    },
+    "window_action": {
+      "options": {
+        "window_turn_off": "Vypnout",
+        "window_fan_only": "Pouze ventilátor",
+        "window_frost_temp": "Ochrana proti mrazu",
+        "window_eco_temp": "Eco"
+      }
+    },
+    "presets": {
+      "options": {
+        "frost": "Ochrana proti mrazu",
+        "eco": "Eco",
+        "comfort": "Komfort",
+        "boost": "Boost"
+      }
+    },
+    "auto_start_stop": {
+      "options": {
+        "auto_start_stop_none": "Žádné automatické spuštění/zastavení",
+        "auto_start_stop_very_slow": "Velmi pomalá detekce",
+        "auto_start_stop_slow": "Pomalá detekce",
+        "auto_start_stop_medium": "Střední detekce",
+        "auto_start_stop_fast": "Rychlá detekce"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "power": "Odlehčení",
+              "safety": "Bezpečnost",
+              "none": "Manuální",
+              "frost": "Mráz"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "frost_temp": {
+        "name": "Mráz"
+      },
+      "eco_temp": {
+        "name": "Eco"
+      },
+      "comfort_temp": {
+        "name": "Komfort"
+      },
+      "boost_temp": {
+        "name": "Boost"
+      },
+      "frost_ac_temp": {
+        "name": "Mráz AC"
+      },
+      "eco_ac_temp": {
+        "name": "Eco AC"
+      },
+      "comfort_ac_temp": {
+        "name": "Komfort AC"
+      },
+      "boost_ac_temp": {
+        "name": "Boost AC"
+      },
+      "frost_away_temp": {
+        "name": "Mráz mimo domov"
+      },
+      "eco_away_temp": {
+        "name": "Eco mimo domov"
+      },
+      "comfort_away_temp": {
+        "name": "Komfort mimo domov"
+      },
+      "boost_away_temp": {
+        "name": "Boost mimo domov"
+      },
+      "eco_ac_away_temp": {
+        "name": "Eco AC mimo domov"
+      },
+      "comfort_ac_away_temp": {
+        "name": "Komfort AC mimo domov"
+      },
+      "boost_ac_away_temp": {
+        "name": "Boost AC mimo domov"
+      }
+    }
+  }
+}
