@@ -414,6 +414,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._max_on_percent = api.max_on_percent
 
+        # Add a warning if minimal_deactivation_delay or minimal_activation_delay os greater than cycle_min
+        if self._minimal_activation_delay + self._minimal_deactivation_delay > self._cycle_min:
+            _LOGGER.warning(
+                "%s - The sum of minimal_activation_delay (%s) and "
+                "minimal_deactivation_delay (%s) is greater than cycle_min (%s). "
+                "This can create some unexpected behavior. Please review your configuration",
+                self,
+                self._minimal_activation_delay,
+                self._minimal_deactivation_delay,
+                self._cycle_min,
+            )
+
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
             self,
