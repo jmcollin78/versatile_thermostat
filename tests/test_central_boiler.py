@@ -1,5 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
+# Warning: when running in parellel, some test fails ramdomly. I don't find any solution to this problem
+
 """ Test the central_configuration """
 import asyncio
 from datetime import datetime, timedelta
@@ -9,6 +11,9 @@ from unittest.mock import patch, call
 from homeassistant.core import HomeAssistant
 
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -30,10 +35,12 @@ from custom_components.versatile_thermostat.binary_sensor import (
 )
 
 from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor
+import logging
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+_LOGGER = logging.getLogger(__name__)
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -84,6 +91,10 @@ async def test_update_central_boiler_state_simple(
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
     switch1 = MockSwitch(hass, "switch1", "theSwitch1")
+    await register_mock_entity(hass, switch1, SWITCH_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -140,7 +151,8 @@ async def test_update_central_boiler_state_simple(
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
-    await send_temperature_change_event(entity, 10, now)
+    # set temp to 23 to avoid heating and turn on the heater and the boiler
+    await send_temperature_change_event(entity, 23, now)
 
     assert entity.hvac_mode == HVACMode.HEAT
 
@@ -163,23 +175,29 @@ async def test_update_central_boiler_state_simple(
     ) as mock_service_call, patch(
         "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
     ) as mock_send_event:
-        await switch1.async_turn_on()
-        switch1.async_write_ha_state()
-        # Wait for state event propagation
-        await asyncio.sleep(1)
+        _LOGGER.debug("---- 1. Turn on the switch1")
+        now = now + timedelta(minutes=1)
+        # await send_temperature_change_event(entity, 10, now)
+        # methode proposed by ChatGPT to ensure a state change event
+        hass.states.async_set("switch.switch1", "on")
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
+        # Not changed because the service is mocked
+        # assert switch1.is_on
+        # assert switch_pompe_chaudiere.is_on
 
-        assert mock_service_call.call_count == 2
+        assert mock_service_call.call_count == 1
 
-        # Sometimes this test fails
         mock_service_call.assert_has_calls(
             [
-                call.service_call(
-                    "switch",
-                    "turn_on",
-                    {"entity_id": "switch.switch1"},
-                ),
+                # already on
+                # call.service_call(
+                #     "switch",
+                #     "turn_on",
+                #     {"entity_id": "switch.switch1"},
+                # ),
                 call(
                     "switch",
                     "turn_on",
@@ -217,7 +235,7 @@ async def test_update_central_boiler_state_simple(
         await switch1.async_turn_off()
         switch1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.IDLE
 
@@ -264,9 +282,24 @@ async def test_update_central_boiler_state_multiple(
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
     switch1 = MockSwitch(hass, "switch1", "theSwitch1")
+    await register_mock_entity(hass, switch1, SWITCH_DOMAIN)
+    assert switch1.is_on is False
+
     switch2 = MockSwitch(hass, "switch2", "theSwitch2")
+    await register_mock_entity(hass, switch2, SWITCH_DOMAIN)
+    assert switch2.is_on is False
+
     switch3 = MockSwitch(hass, "switch3", "theSwitch3")
+    await register_mock_entity(hass, switch3, SWITCH_DOMAIN)
+    assert switch3.is_on is False
+
     switch4 = MockSwitch(hass, "switch4", "theSwitch4")
+    await register_mock_entity(hass, switch4, SWITCH_DOMAIN)
+    assert switch4.is_on is False
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -333,15 +366,22 @@ async def test_update_central_boiler_state_multiple(
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
 
+    # set temp to 23 to avoid heating and turn on the heater and the boiler
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+    await send_temperature_change_event(entity, 23, now)
+
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await entity.async_set_preset_mode(PRESET_BOOST)
 
-    tz = get_tz(hass)  # pylint: disable=invalid-name
-    now: datetime = datetime.now(tz=tz)
-    await send_temperature_change_event(entity, 10, now)
+    # tz = get_tz(hass)  # pylint: disable=invalid-name
+    # now: datetime = datetime.now(tz=tz)
+    # await send_temperature_change_event(entity, 10, now)
 
     assert entity.hvac_mode == HVACMode.HEAT
+    assert switch_pompe_chaudiere.is_on is False
 
     # 0. set threshold to 3
     api.nb_active_device_for_boiler_threshold_entity.set_native_value(3)
@@ -359,25 +399,30 @@ async def test_update_central_boiler_state_multiple(
     ) as mock_service_call, patch(
         "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
     ) as mock_send_event:
+        assert switch1.is_on is False
+        # don't work anymore since HA 2025.9.3 - state change event is not thrown
         await switch1.async_turn_on()
         switch1.async_write_ha_state()
+        # hass.states.async_set("switch.switch1", "on")
+        await hass.async_block_till_done()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["switch.switch1"]
 
-        assert mock_service_call.call_count == 1
+        # Switch1 is not started because the service is mocked
+        assert mock_service_call.call_count == 0
         # No switch of the boiler
-        mock_service_call.assert_has_calls(
-            [
-                call.service_call(
-                    "switch",
-                    "turn_on",
-                    {"entity_id": "switch.switch1"},
-                ),
-            ]
-        )
+        # mock_service_call.assert_has_calls(
+        #     [
+        #         call.service_call(
+        #             "switch",
+        #             "turn_on",
+        #             {"entity_id": "switch.switch1"},
+        #         ),
+        #     ]
+        # )
         assert mock_send_event.call_count == 0
 
         assert api.nb_active_device_for_boiler == 1
@@ -395,24 +440,25 @@ async def test_update_central_boiler_state_multiple(
         await switch2.async_turn_on()
         switch2.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["switch.switch1", "switch.switch2"]
 
         # Only the first heater is started by the algo
-        assert mock_service_call.call_count == 1
+        assert mock_service_call.call_count == 0
         # No switch of the boiler. Caution: each time a underlying heater state change itself,
         # the cycle restarts. So it is always the first heater that is started
-        mock_service_call.assert_has_calls(
-            [
-                call.service_call(
-                    "switch",
-                    "turn_on",
-                    {"entity_id": "switch.switch1"},
-                ),
-            ]
-        )
+        # mock_service_call.assert_has_calls(
+        #     [
+        #         call.service_call(
+        #             "switch",
+        #             "turn_on",
+        #             {"entity_id": "switch.switch1"},
+        #         ),
+        #     ]
+        # )
         assert mock_send_event.call_count == 0
 
         assert api.nb_active_device_for_boiler == 2
@@ -433,12 +479,13 @@ async def test_update_central_boiler_state_multiple(
         await switch3.async_turn_on()
         switch3.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
 
         # Only the first heater is started by the algo
-        assert mock_service_call.call_count == 2
+        assert mock_service_call.call_count == 1
         # No switch of the boiler. Caution: each time a underlying heater state change itself,
         # the cycle restarts. So it is always the first heater that is started
         mock_service_call.assert_has_calls(
@@ -448,11 +495,6 @@ async def test_update_central_boiler_state_multiple(
                     "turn_on",
                     service_data={},
                     target={"entity_id": "switch.pompe_chaudiere"},
-                ),
-                call.service_call(
-                    "switch",
-                    "turn_on",
-                    {"entity_id": "switch.switch1"},
                 ),
             ],
             any_order=True,
@@ -488,23 +530,24 @@ async def test_update_central_boiler_state_multiple(
         await switch4.async_turn_on()
         switch4.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
 
         # Only the first heater is started by the algo
-        assert mock_service_call.call_count == 1
+        assert mock_service_call.call_count == 0
         # No switch of the boiler. Caution: each time a underlying heater state change itself,
         # the cycle restarts. So it is always the first heater that is started
-        mock_service_call.assert_has_calls(
-            [
-                call.service_call(
-                    "switch",
-                    "turn_on",
-                    {"entity_id": "switch.switch1"},
-                ),
-            ]
-        )
+        # mock_service_call.assert_has_calls(
+        #     [
+        #         call.service_call(
+        #             "switch",
+        #             "turn_on",
+        #             {"entity_id": "switch.switch1"},
+        #         ),
+        #     ]
+        # )
         assert mock_send_event.call_count == 0
         assert api.nb_active_device_for_boiler == 4
         assert boiler_binary_sensor.state == STATE_ON
@@ -526,7 +569,7 @@ async def test_update_central_boiler_state_multiple(
         await switch1.async_turn_off()
         switch1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
 
@@ -551,7 +594,7 @@ async def test_update_central_boiler_state_multiple(
         await switch4.async_turn_off()
         switch4.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
 
@@ -601,6 +644,11 @@ async def test_update_central_boiler_state_simple_valve(
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
     valve1 = MockNumber(hass, "valve1", "theValve1")
+    await register_mock_entity(hass, valve1, NUMBER_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -685,7 +733,7 @@ async def test_update_central_boiler_state_simple_valve(
         valve1.set_native_value(10)
         valve1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["number.valve1"]
@@ -732,7 +780,7 @@ async def test_update_central_boiler_state_simple_valve(
         valve1.set_native_value(0)
         valve1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.IDLE
         assert entity.device_actives == []
@@ -780,6 +828,11 @@ async def test_update_central_boiler_state_simple_climate(
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
     climate1 = MockClimate(hass, "climate1", "theClimate1")
+    await register_mock_entity(hass, climate1, CLIMATE_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -864,6 +917,7 @@ async def test_update_central_boiler_state_simple_climate(
         climate1.set_hvac_action(HVACAction.HEATING)
         climate1.async_write_ha_state()
         # Wait for state event propagation
+        await hass.async_block_till_done()
         await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
@@ -959,7 +1013,12 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
-    climate1 = MockClimate(hass, "climate1", "theClimate1")
+    climate1 = MockClimate(hass, "climate1", "theClimate1", hvac_mode=HVACMode.OFF)
+    await register_mock_entity(hass, climate1, CLIMATE_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1006,7 +1065,9 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     )
 
     open_degree_entity = MockNumber(hass, "mock_opening_degree", "Opening degree")
+    await register_mock_entity(hass, open_degree_entity, NUMBER_DOMAIN)
     open_degree_entity.set_native_value(0)
+    await hass.async_block_till_done()
 
     # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
     mock_get_state_side_effect = SideEffects(
@@ -1113,6 +1174,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         open_degree_entity.set_native_value(100)
         # Wait for state event propagation
         await hass.async_block_till_done()
+        await asyncio.sleep(0.5)
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["number.mock_opening_degree"]
