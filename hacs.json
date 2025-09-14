@@ -5,5 +5,5 @@
     "hide_default_branch": false,
     "filename": "versatile_thermostat.zip",
     "zip_release": true,
-    "homeassistant": "2025.5.1"
+    "homeassistant": "2025.9.3"
 }
