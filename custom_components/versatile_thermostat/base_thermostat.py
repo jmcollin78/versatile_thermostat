@@ -1391,7 +1391,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Prevent from starting a VTherm if window is open
         if self.is_on:
-            _LOGGER.info("%s - the window is open. Prevent starting the VTherm")
+            _LOGGER.info("%s - the heater wants to heat. Check to prevent starting the VTherm is window is open", self)
             await self._window_manager.refresh_state()
 
         # Starts the initial control loop (don't wait for an update of temperature)

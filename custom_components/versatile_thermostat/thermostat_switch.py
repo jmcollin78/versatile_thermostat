@@ -160,11 +160,11 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes["vswitch_off_commands"] = self._lst_vswitch_off
 
         self.async_write_ha_state()
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
+        # _LOGGER.debug(
+        #     "%s - Calling update_custom_attributes: %s",
+        #     self,
+        #     self._attr_extra_state_attributes,
+        # )
 
     @overrides
     def recalculate(self):

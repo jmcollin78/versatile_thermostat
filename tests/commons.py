@@ -39,9 +39,12 @@ from homeassistant.components.climate.const import (
 
 from homeassistant.components.switch import (
     SwitchEntity,
+    DOMAIN as SWITCH_DOMAIN,
 )
 
 from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
+
+from homeassistant.helpers.entity_component import EntityComponent
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -520,7 +523,7 @@ class MockSwitch(SwitchEntity):
         super().__init__()
 
         self.hass = hass
-        self.platform = "switch"
+        self.platform = SWITCH_DOMAIN
         self.entity_id = self.platform + "." + unique_id
         self._name = name
         self._attr_is_on = False
@@ -541,6 +544,19 @@ class MockSwitch(SwitchEntity):
         """Turns the switch on and notify the state change"""
         self._attr_is_on = False
         # self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs):
+        self._attr_is_on = True
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        self._attr_is_on = False
+        self.async_write_ha_state()
+
+    @property
+    def is_on(self) -> bool:
+        """True if the switch is on"""
+        return self._attr_is_on
 
 
 class MockNumber(NumberEntity):
@@ -577,7 +593,17 @@ class MockNumber(NumberEntity):
     def set_native_value(self, value: float):
         """Change the value"""
         self._attr_native_value = value
-        self.async_write_ha_state()
+        # self.async_write_ha_state generates exception if not on the main loop
+        self.schedule_update_ha_state()
+
+
+async def register_mock_entity(hass, entity: Entity, domain: str):
+    """Register the entity in HA"""
+
+    component = EntityComponent(None, domain, hass)
+
+    await component.async_add_entities([entity])
+    await entity.hass.async_block_till_done()
 
 
 async def create_thermostat(
