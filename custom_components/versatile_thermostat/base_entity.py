@@ -5,6 +5,7 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
@@ -31,6 +32,7 @@ class VersatileThermostatBaseEntity(Entity):
         self.hass = hass
         self._config_id = config_id
         self._device_name = device_name
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._my_climate = None
         self._cancel_call = None
         self._attr_has_entity_name = True
