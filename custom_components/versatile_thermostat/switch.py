@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 
+from homeassistant.const import EntityCategory
 from homeassistant.components.switch import SwitchEntity
 
 from homeassistant.config_entries import ConfigEntry
@@ -55,6 +56,7 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
         super().__init__(hass, unique_id, name)
         self._attr_name = "Enable auto start/stop"
         self._attr_unique_id = f"{self._device_name}_enable_auto_start_stop"
+        self._attr_entity_category = EntityCategory.CONFIG
         self._default_value = (
             entry_infos.data.get(CONF_AUTO_START_STOP_LEVEL)
             != AUTO_START_STOP_LEVEL_NONE
@@ -125,6 +127,7 @@ class FollowUnderlyingTemperatureChange(
         self._attr_name = "Follow underlying temp change"
         self._attr_unique_id = f"{self._device_name}_follow_underlying_temp_change"
         self._attr_is_on = False
+        self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def icon(self) -> str | None:

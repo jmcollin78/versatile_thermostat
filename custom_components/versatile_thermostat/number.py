@@ -4,6 +4,7 @@
 import logging
 
 # from homeassistant.const import EVENT_HOMEASSISTANT_START
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, CoreState  # , callback
 
 from homeassistant.components.number import (
@@ -386,6 +387,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         self._attr_unique_id = f"{self._device_name}_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
+        self._attr_entity_category = EntityCategory.CONFIG
         self._attr_native_unit_of_measurement = hass.config.units.temperature_unit
 
         self._has_central_main_attributes = entry_infos.get(
