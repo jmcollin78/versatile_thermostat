@@ -19,9 +19,9 @@ L'installation doit ressembler à ça :
 
 1. L'utilisateur ou une automatisation ou le Scheduler programme une consigne (setpoint) par le biais d'un pre-réglage ou directement d'une température,
 2. régulièrement le thermomètre intérieur (2) ou extérieur (2b) ou interne à l'équipement (2c) envoie la température mesurée. Le thermomètre intérieur doit être placé à une place pertinente pour le ressenti de l'utilisateur : idéalement au milieu du lieu de vie. Evitez de le mettre trop près d'une fenêtre ou trop proche de l'équipement,
-3. avec les valeurs de consigne, des différents et les paramètres de l'auto-régulation (cf. [auto-regulation](self-regulation.md)), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacentes,
+3. avec les valeurs de consigne, des différents thermomètres et les paramètres de l'auto-régulation (cf. [auto-regulation](self-regulation.md)), VTherm va calculer une consigne qui sera envoyée à l'entité `climate` sous-jacente,
 4. l'entité `climate` sous-jacente contrôle l'équipement avec son propre protocole,
-5. selon les options de régulation choisie le VTherm pourra potentiellement contrôler directement l'ouverture d'une vanne thermostatique ou calibrer l'équipement pour que sa température interne soit le reflet de la température de la pièce.
+5. selon les options de régulation choisies le VTherm pourra potentiellement contrôler directement l'ouverture d'une vanne thermostatique ou calibrer l'équipement pour que sa température interne soit le reflet de la température de la pièce.
 
 
 ## Configuration
@@ -31,8 +31,8 @@ Cliquez ensuite sur l'option de menu "Sous-jacents" et vous allez avoir cette pa
 
 ![image](images/config-linked-entity2.png)
 
-### les sous-jacents
-Dans la "liste des équipements à contrôler" vous mettez les entités `climate` qui vont être controllés par le VTherm. Seuls les entités de type `climate` sont acceptées.
+### Les sous-jacents
+Dans la "liste des équipements à contrôler" vous mettez les entités `climate` qui vont être controllées par le VTherm. Seules les entités de type `climate` sont acceptées.
 
 ### Le mode AC
 
@@ -50,7 +50,7 @@ Afin d'éviter de trop solliciter l'équipement sous-jacent (certain font un bip
 1. le seuil de régulation : un seuil en ° (ou en %) en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne était de 22°, alors la prochaine envoyée, sera de 22° +/- seuil de régulation. Si la régulation contrôle directement la vanne (`over_valve` ou `over_climate` avec contrôle direct de la vanne) alors la valeur doit être spécifiée en pourcentage et ne doit pas être inférieure à 3% pour les Sonoff TRVZB (sinon le calibrage peut être perdu),
 2. la période minimale de régulation en minute : un interval de temps minimal en minute en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne a été envoyée à 11h00, alors la prochaine ne pourra pas être envoyée avant 11h00 + periode minimal de régulation.
 
-Si ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation correcte puisque les nouvelles consignes ne seront pas envoyées.
+S'ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation correcte puisque les nouvelles consignes ne seront pas envoyées.
 
 ### L'auto-ventilation (auto-fan)
 
