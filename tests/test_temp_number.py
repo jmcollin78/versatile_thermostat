@@ -443,6 +443,7 @@ async def test_add_number_for_over_switch_use_central(
         data={
             CONF_NAME: "TheOverSwitchVTherm",
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_central_ext_temp_sensor",
             CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
             CONF_TEMP_MIN: 15,
@@ -469,7 +470,8 @@ async def test_add_number_for_over_switch_use_central(
         vtherm_entry.add_to_hass(hass)
         await hass.config_entries.async_setup(vtherm_entry.entry_id)
 
-        assert mock_restore_state.call_count == 0
+        # Get last state is called for the VTherm and for the window state manager
+        assert mock_restore_state.call_count == 2
 
     assert vtherm_entry.state is ConfigEntryState.LOADED
 

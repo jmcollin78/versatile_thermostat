@@ -4,6 +4,8 @@
 
 """ Test the central_configuration """
 import asyncio
+import logging
+
 from datetime import datetime, timedelta
 
 from unittest.mock import patch, call
@@ -35,7 +37,6 @@ from custom_components.versatile_thermostat.binary_sensor import (
 )
 
 from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor
-import logging
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -79,7 +80,6 @@ async def test_add_a_central_config_with_boiler(
 
     assert api.nb_active_device_for_boiler_threshold_entity is not None
     assert api.nb_active_device_for_boiler_threshold == 1  # the default value is 1
-
 
 async def test_update_central_boiler_state_simple(
     hass: HomeAssistant,
@@ -272,6 +272,7 @@ async def test_update_central_boiler_state_simple(
     entity.remove_thermostat()
 
 
+# @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_update_central_boiler_state_multiple(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
@@ -634,6 +635,7 @@ async def test_update_central_boiler_state_multiple(
     entity.remove_thermostat()
 
 
+# @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_update_central_boiler_state_simple_valve(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
@@ -818,6 +820,7 @@ async def test_update_central_boiler_state_simple_valve(
     entity.remove_thermostat()
 
 
+# @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_update_central_boiler_state_simple_climate(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
@@ -1003,6 +1006,7 @@ async def test_update_central_boiler_state_simple_climate(
     entity.remove_thermostat()
 
 
+# @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_update_central_boiler_state_simple_climate_valve_regulation(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
@@ -1280,6 +1284,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     entity.remove_thermostat()
 
 
+# @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_bug_339(
     hass: HomeAssistant,
     # skip_hass_states_is_state,

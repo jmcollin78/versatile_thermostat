@@ -134,6 +134,21 @@ def skip_send_event_fixture():
         yield
 
 
+@pytest.fixture(autouse=True)
+def isolate_singleton_state():
+    """
+    Cette fixture s'exécute AVANT et APRÈS chaque test,
+    garantissant un état propre pour MonSingleton.
+    """
+    # 1. Setup : Le test s'exécute ici.
+    yield
+
+    # 2. Teardown : Exécuté après que le test soit terminé.
+    # On force la réinitialisation de l'instance unique
+    # reset API to avoid side effects between tests
+    VersatileThermostatAPI.reset_vtherm_api()
+
+
 @pytest.fixture(name="init_vtherm_api")
 def init_vtherm_api_fixture(hass):
     """Initialize the VTherm API"""

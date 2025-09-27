@@ -721,7 +721,10 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._entities = []
         underlying_entities_id = []
 
-        component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
+        component: EntityComponent[ClimateEntity] = self.hass.data.get(CLIMATE_DOMAIN)
+        if component is None:
+            _LOGGER.warning("%s - No climate component found in hass.data", self)
+            return
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)

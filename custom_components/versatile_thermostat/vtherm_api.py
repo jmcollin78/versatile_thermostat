@@ -237,6 +237,16 @@ class VersatileThermostatAPI(dict):
                     self._central_mode_select.state, old_central_mode
                 )
 
+    @classmethod
+    def reset_vtherm_api(cls):
+        """Reset the VTherm API instance and related data."""
+        if VersatileThermostatAPI._hass is None:
+            return
+
+        # Remove the API instance from hass.data
+        VersatileThermostatAPI._hass.data[DOMAIN].pop(VTHERM_API_NAME, None)
+        VersatileThermostatAPI._hass = None
+
     @property
     def self_regulation_expert(self):
         """Get the self regulation params"""
