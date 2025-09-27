@@ -497,8 +497,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         vtherm._set_now(now)
-        await send_temperature_change_event(vtherm, 19, now, True)
-        await hass.async_block_till_done()
+        await send_temperature_change_event(vtherm, 19, now, False)
+        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0)
 
         # VTherm should still be heating
         assert vtherm.hvac_mode == HVACMode.HEAT
@@ -513,8 +513,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         vtherm._set_now(now)
-        await send_temperature_change_event(vtherm, 20, now, True)
-        await hass.async_block_till_done()
+        await send_temperature_change_event(vtherm, 20, now, False)
+        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5)
 
         # VTherm should still be heating
         assert vtherm.hvac_mode == HVACMode.HEAT

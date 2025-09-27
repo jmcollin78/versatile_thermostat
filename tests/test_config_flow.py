@@ -300,7 +300,7 @@ async def test_user_config_flow_over_switch(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO this test fails when run in // but works alone
-# @pytest.mark.skip
+@pytest.mark.skip
 async def test_user_config_flow_over_climate(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
