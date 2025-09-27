@@ -1108,11 +1108,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_offset_calibration: float = None
         self._min_opening_degree: int = min_opening_degree
 
-    def _normalize_opening_closing_degree(self, opening: float) -> float:
+    def _normalize_opening_closing_degree(self, opening: float, min_opening: float) -> float:
         """Issue #902 - Normalize the opening and closing degree
         Issue #927 - Cancel the normalization"""
 
-        new_opening = max(opening, 0) if self.has_closing_degree_entity else opening
+        new_opening = max(opening, min_opening)
         new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
 
         return new_opening, new_closing
@@ -1156,7 +1156,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             self._percent_open = 0
 
         # Send closing_degree if set
-        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open)
+        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open, self._min_opening_degree)
         # We should not change the _percent_open because it is used to check if value has bchanged
         # self._percent_open = opening_degree
 
