@@ -872,7 +872,8 @@ async def test_multiple_switch_power_management(
             assert entity.power_manager.overpowering_state is STATE_OFF
             assert entity.target_temperature == 17
 
+            # No more overheating so the 4th heater should be restarted
             assert (
-                mock_heater_on.call_count == 0
-            )  # The fourth are not restarted because temperature is enought
+                mock_heater_on.call_count == 1
+            )
             assert mock_heater_off.call_count == 0

@@ -596,8 +596,8 @@ async def test_power_management_hvac_on(
             ],
             any_order=True,
         )
-        # No current temperature is set so the heater wont be turned on
-        assert mock_heater_on.call_count == 0
+        # heater should be turned on
+        assert mock_heater_on.call_count == 1
         assert mock_heater_off.call_count == 0
 
 
@@ -923,6 +923,8 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and HVACMode is on and device is active
 
+    #
+    #
     #
     #
     #

@@ -334,8 +334,8 @@ async def test_over_climate_regulation_limitations(
         # 4. change temperature so that dtemp > 0.5 and time is > period_min (+ 3min)
         event_timestamp = now - timedelta(minutes=12)
         entity._set_now(event_timestamp)
-        await send_ext_temperature_change_event(entity, 12, event_timestamp)
         await send_temperature_change_event(entity, 15, event_timestamp)
+        await send_ext_temperature_change_event(entity, 12, event_timestamp)
 
         # the regulated should have been done
         assert entity.regulated_target_temp != old_regulated_temp

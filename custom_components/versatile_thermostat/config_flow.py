@@ -81,7 +81,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         self._infos[CONF_USE_WINDOW_FEATURE] = (
-            self._infos.get(CONF_USE_WINDOW_CENTRAL_CONFIG)
+            self._infos.get(CONF_USE_WINDOW_CENTRAL_CONFIG, False)
             or self._infos.get(CONF_WINDOW_SENSOR) is not None
             or self._infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD) is not None
         )
@@ -482,9 +482,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_menu user_input=%s", user_input)
 
-        is_central_config = (
-            self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG
-        )
+        is_central_config = self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
 
         menu_options = ["main", "features"]
         if not is_central_config:
@@ -497,34 +495,29 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             menu_options.append("tpi")
 
-        if self._infos[CONF_THERMOSTAT_TYPE] in [
+        if self._infos.get(CONF_THERMOSTAT_TYPE) in [
             CONF_THERMOSTAT_SWITCH,
             CONF_THERMOSTAT_VALVE,
             CONF_THERMOSTAT_CLIMATE,
         ]:
             menu_options.append("presets")
 
-        if (
-            is_central_config
-            and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE) is True
-        ):
+        if is_central_config and self._infos.get(CONF_USE_CENTRAL_BOILER_FEATURE, False) is True:
             menu_options.append("central_boiler")
 
-        if self._infos[CONF_USE_WINDOW_FEATURE] is True:
+        if self._infos.get(CONF_USE_WINDOW_FEATURE, False) is True:
             menu_options.append("window")
 
-        if self._infos[CONF_USE_MOTION_FEATURE] is True:
+        if self._infos.get(CONF_USE_MOTION_FEATURE, False) is True:
             menu_options.append("motion")
 
-        if self._infos[CONF_USE_POWER_FEATURE] is True:
+        if self._infos.get(CONF_USE_POWER_FEATURE, False) is True:
             menu_options.append("power")
 
-        if self._infos[CONF_USE_PRESENCE_FEATURE] is True:
+        if self._infos.get(CONF_USE_PRESENCE_FEATURE, False) is True:
             menu_options.append("presence")
 
-        if self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE) is True and self._infos[
-            CONF_THERMOSTAT_TYPE
-        ] in [
+        if self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True and self._infos[CONF_THERMOSTAT_TYPE] in [
             CONF_THERMOSTAT_CLIMATE,
         ]:
             menu_options.append("auto_start_stop")

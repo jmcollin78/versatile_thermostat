@@ -218,18 +218,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
         else:
             new_regulated_temp = self.target_temperature
-        dtemp = new_regulated_temp - self._regulated_target_temp
 
-        if not force and abs(dtemp) < self._auto_regulation_dtemp:
-            _LOGGER.info(
-                "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
-                self,
-                dtemp,
-                self._auto_regulation_dtemp,
-            )
-            return
-
-        self._regulated_target_temp = new_regulated_temp
         _LOGGER.info(
             "%s - Regulated temp have changed to %.1f. Resend it to underlyings",
             self,
@@ -251,7 +240,20 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             ):
                 offset_temp = device_temp - self.current_temperature
 
-            target_temp = round_to_nearest(self.regulated_target_temp + offset_temp, regulation_step)
+            target_temp = round_to_nearest(new_regulated_temp + offset_temp, regulation_step)
+
+            dtemp = target_temp - self._regulated_target_temp
+
+            if not force and abs(dtemp) < self._auto_regulation_dtemp:
+                _LOGGER.info(
+                    "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
+                    self,
+                    dtemp,
+                    self._auto_regulation_dtemp,
+                )
+                return
+
+            self._regulated_target_temp = new_regulated_temp
 
             _LOGGER.debug(
                 "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
