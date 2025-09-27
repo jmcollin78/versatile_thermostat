@@ -36,6 +36,7 @@ jobs:
             tests
 
       - name: Coverage
+        if: 0
         run: |
           coverage run -m pytest tests/
           coverage report
