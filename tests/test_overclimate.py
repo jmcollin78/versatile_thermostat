@@ -1171,8 +1171,9 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
-        await send_temperature_change_event(vtherm, 21, now, True)
-        await hass.async_block_till_done()
+        await send_temperature_change_event(vtherm, 21, now, False)
+
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == HVACMode.OFF)
 
         # VTherm should no more be heating
         assert vtherm.hvac_mode == HVACMode.OFF
