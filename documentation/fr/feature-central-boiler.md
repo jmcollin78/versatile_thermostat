@@ -17,8 +17,8 @@ Le principe mis en place est globalement le suivant :
 4. dès que le nombre d'équipements pilotés par le VTherm demandant du chauffage (ie son `hvac_action` passe à `Heating`) dépasse un seuil paramétrable, alors le `binary_sensor.central_boiler` passe à `on` et **si un service d'activation a été configuré, alors ce service est appelé**,
 5. si le nombre d'équipements nécessitant du chauffage repasse en dessous du seuil, alors le `binary_sensor.central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
 6. vous avez accès à deux entités :
-   - une de type `number` nommé par défaut `number.boiler_activation_threshold`, donne le seuil de déclenchement. Ce seuil est en nombre d'équipements (radiateurs) qui demande du chauffage.
-   - une de type `sensor` nommé par défaut `sensor.nb_device_active_for_boiler`, donne le nombre d'équipements qui demande du chauffage. Par exemple, un VTherm ayant 4 vannes dont 3 demandes du chauffage fera passé ce capteur à 3. Seuls les équipements des _VTherm_ qui sont marqués pour contrôler la chaudière centrale sont comptabilisés.
+   - une de type `number` nommée par défaut `number.boiler_activation_threshold`, donne le seuil de déclenchement. Ce seuil est en nombre d'équipements (radiateurs) qui demandent du chauffage.
+   - une de type `sensor` nommée par défaut `sensor.nb_device_active_for_boiler`, donne le nombre d'équipements qui demandent du chauffage. Par exemple, un VTherm ayant 4 vannes dont 3 demandent du chauffage fera passer ce capteur à 3. Seuls les équipements des _VTherm_ qui sont marqués pour contrôler la chaudière centrale sont comptabilisés.
 
 Vous avez donc en permanence, les informations qui permettent de piloter et régler le déclenchement de la chaudière.
 
@@ -27,7 +27,7 @@ Toutes ces entités sont rattachées au service de configuration centrale :
 ![Les entités pilotant la chaudière](images/entitites-central-boiler.png)
 
 ## Configuration
-Pour configurer cette fonction, vous devez avoir une configuration centralisée (cf. [Configuration](#configuration)) et cochez la case 'Ajouter une chaudière centrale' :
+Pour configurer cette fonction, vous devez avoir une configuration centralisée (cf. [Configuration](#configuration)) et cocher la case 'Ajouter une chaudière centrale' :
 
 ![Ajout d'une chaudière centrale](images/config-central-boiler-1.png)
 
