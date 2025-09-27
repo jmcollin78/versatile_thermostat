@@ -439,6 +439,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the last temperature datetime sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last temperature date"
+        self._attr_entity_registry_enabled_default = False
         self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
 
     @callback
@@ -468,6 +469,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the last temperature datetime sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last external temperature date"
+        self._attr_entity_registry_enabled_default = False
         self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
 
     @callback
