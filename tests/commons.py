@@ -432,6 +432,15 @@ class MagicMockClimate(MagicMock):
     def max_temp(self):  # pylint: disable=missing-function-docstring
         return 19
 
+    @property
+    def current_humidity(self):  # pylint: disable=missing-function-docstring
+        return 40
+
+    @property
+    def extra_restore_state_data(self) -> Dict[str, Any]:  # pylint: disable=missing-function-docstring
+        """To disable the error when restoring the state/storing the state"""
+        return {}
+
 
 class MagicMockClimateWithTemperatureRange(MagicMock):
     """A Magic Mock class for a underlying climate entity"""
