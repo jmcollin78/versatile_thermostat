@@ -54,49 +54,49 @@ async def test_tpi_calculation(
     tpi_algo: PropAlgorithm = entity._prop_algorithm  # pylint: disable=protected-access
     assert tpi_algo
 
-    tpi_algo.calculate(15, 10, 7, HVACMode.HEAT)
+    tpi_algo.calculate(15, 10, 7, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
-    tpi_algo.calculate(15, 14, 5, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14, 5, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
     assert tpi_algo.on_time_sec == 120
     assert tpi_algo.off_time_sec == 180
 
     tpi_algo.set_safety(0.1)
-    tpi_algo.calculate(15, 14, 5, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14, 5, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.1
     assert tpi_algo.calculated_on_percent == 0.4
     assert tpi_algo.on_time_sec == 30  # >= minimal_activation_delay (=30)
     assert tpi_algo.off_time_sec == 270
 
     tpi_algo.unset_safety()
-    tpi_algo.calculate(15, 14, 5, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14, 5, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
     assert tpi_algo.on_time_sec == 120
     assert tpi_algo.off_time_sec == 180
 
     # Test minimal activation delay
-    tpi_algo.calculate(15, 14.7, 15, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14.7, 15, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
     tpi_algo.set_safety(0.09)
-    tpi_algo.calculate(15, 14.7, 15, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14.7, 15, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
     tpi_algo.unset_safety()
-    tpi_algo.calculate(25, 30, 35, HVACMode.COOL)
+    tpi_algo.calculate(25, 30, 35, 0, HVACMode.COOL)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
@@ -104,7 +104,7 @@ async def test_tpi_calculation(
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.set_safety(0.09)
-    tpi_algo.calculate(25, 30, 35, HVACMode.COOL)
+    tpi_algo.calculate(25, 30, 35, 0, HVACMode.COOL)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 0
@@ -113,14 +113,14 @@ async def test_tpi_calculation(
 
     tpi_algo.unset_safety()
     # The calculated values for HVACMode.OFF are the same as for HVACMode.HEAT.
-    tpi_algo.calculate(15, 10, 7, HVACMode.OFF)
+    tpi_algo.calculate(15, 10, 7, 0, HVACMode.OFF)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
 
     # If target_temp or current_temp are None, _calculated_on_percent is set to 0.
-    tpi_algo.calculate(15, None, 7, HVACMode.OFF)
+    tpi_algo.calculate(15, None, 7, 0, HVACMode.OFF)
     assert tpi_algo.on_percent == 0
     assert tpi_algo.calculated_on_percent == 0
     assert tpi_algo.on_time_sec == 0
@@ -132,28 +132,28 @@ async def test_tpi_calculation(
     tpi_algo._max_on_percent = 0.8
 
     # no clamping
-    tpi_algo.calculate(15, 14.7, 15, HVACMode.HEAT)
+    tpi_algo.calculate(15, 14.7, 15, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
     # no clamping  (calculated_on_percent = 0.79)
-    tpi_algo.calculate(15, 12.5, 11, HVACMode.HEAT)
+    tpi_algo.calculate(15, 12.5, 11, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.79
     assert tpi_algo.calculated_on_percent == 0.79
     assert tpi_algo.on_time_sec == 237
     assert tpi_algo.off_time_sec == 63
 
     # clamping to 80%  (calculated_on_percent = 1)
-    tpi_algo.calculate(15, 10, 7, HVACMode.HEAT)
+    tpi_algo.calculate(15, 10, 7, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.8 # should be clamped to 80%
     assert tpi_algo.calculated_on_percent == 1 # calculated percentage should not be affected by clamping
     assert tpi_algo.on_time_sec == 240 # capped at 80%
     assert tpi_algo.off_time_sec == 60
 
     # clamping to 80%  (calculated_on_percent = 0.81)
-    tpi_algo.calculate(15, 12.5, 9, HVACMode.HEAT)
+    tpi_algo.calculate(15, 12.5, 9, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.80 # should be clamped to 80%
     assert tpi_algo.calculated_on_percent == 0.81 # calculated percentage should not be affected by clamping
     assert tpi_algo.on_time_sec == 240 # capped at 80%
@@ -204,28 +204,28 @@ async def test_minimal_deactivation_delay(
     assert tpi_algo
 
     # off_time is less than minimal_deactivation_delay
-    tpi_algo.calculate(9, 6, 10, HVACMode.HEAT)
+    tpi_algo.calculate(9, 6, 10, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.89
     assert tpi_algo.calculated_on_percent == 0.89
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
 
     # off_time is less than minimal_deactivation_delay
-    tpi_algo.calculate(6, 0, 104, HVACMode.HEAT)
+    tpi_algo.calculate(6, 0, 104, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.82
     assert tpi_algo.calculated_on_percent == 0.82
     assert tpi_algo.on_time_sec == 300
     assert tpi_algo.off_time_sec == 0
 
     # off_time is exactly minimal_deactivation_delay
-    tpi_algo.calculate(10, 8, -10, HVACMode.HEAT)
+    tpi_algo.calculate(10, 8, -10, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.8
     assert tpi_algo.calculated_on_percent == 0.8
     assert tpi_algo.on_time_sec == 240
     assert tpi_algo.off_time_sec == 60  # Equal to minimal_deactivation_delay
 
     # off_time is greater than minimal_deactivation_delay
-    tpi_algo.calculate(10, 9, 0, HVACMode.HEAT)
+    tpi_algo.calculate(10, 9, 0, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
     assert tpi_algo.on_time_sec == 120
@@ -233,7 +233,7 @@ async def test_minimal_deactivation_delay(
 
     # with safety mode
     tpi_algo.set_safety(0.2)
-    tpi_algo.calculate(10, 8, -10, HVACMode.HEAT)
+    tpi_algo.calculate(10, 8, -10, 0, HVACMode.HEAT)
     assert tpi_algo.on_percent == 0.2
     assert tpi_algo.calculated_on_percent == 0.8
     assert tpi_algo.on_time_sec == 60
@@ -241,7 +241,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.unset_safety()
 
     # with cooling mode
-    tpi_algo.calculate(10, 10, 90, HVACMode.COOL)
+    tpi_algo.calculate(10, 10, 90, 0, HVACMode.COOL)
     assert tpi_algo.on_percent == 0.8
     assert tpi_algo.calculated_on_percent == 0.8
     assert tpi_algo.on_time_sec == 240

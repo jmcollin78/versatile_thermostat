@@ -80,6 +80,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._minimal_deactivation_delay,
             self.name,
             max_on_percent=self._max_on_percent,
+            tpi_threshold_low=self._tpi_threshold_low,
+            tpi_threshold_high=self._tpi_threshold_high,
         )
 
         self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
@@ -176,6 +178,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._target_temp,
             self._cur_temp,
             self._cur_ext_temp,
+            self.last_temperature_slope,
             self._hvac_mode or HVACMode.OFF,
         )
         self.update_custom_attributes()
