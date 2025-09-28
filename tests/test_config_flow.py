@@ -50,6 +50,9 @@ async def test_user_config_flow_over_switch(
         "features",
         "type",
         "presets",
+        "window",
+        "power",
+        "presence",
         "advanced",
         "configuration_not_complete",
     ]
@@ -101,6 +104,9 @@ async def test_user_config_flow_over_switch(
         "type",
         "tpi",
         "presets",
+        "window",
+        "power",
+        "presence",
         "advanced",
         "finalize",  # because by default all options are "use central config"
     ]
@@ -299,7 +305,7 @@ async def test_user_config_flow_over_switch(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO this test fails when run in // but works alone
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_user_config_flow_over_climate(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -469,8 +475,6 @@ async def test_user_config_flow_over_climate(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -494,8 +498,6 @@ async def test_user_config_flow_over_climate(
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result.get("errors") is None
     assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
-        CONF_MINIMAL_ACTIVATION_DELAY: 10,
-        CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -529,7 +531,7 @@ async def test_user_config_flow_over_climate(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_user_config_flow_over_climate_auto_start_stop(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -716,8 +718,6 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -741,11 +741,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result.get("errors") is None
-    assert result[
-        "data"
-    ] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
-        CONF_MINIMAL_ACTIVATION_DELAY: 10,
-        CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+    assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -780,7 +776,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_user_config_flow_over_switch_bug_552_tpi(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -917,8 +913,6 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1037,7 +1031,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_user_config_flow_over_climate_valve(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -1305,8 +1299,6 @@ async def test_user_config_flow_over_climate_valve(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_MINIMAL_ACTIVATION_DELAY: 10,
-            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
@@ -1334,6 +1326,8 @@ async def test_user_config_flow_over_climate_valve(
     assert result["data"] == MOCK_TH_OVER_CLIMATE_USER_CONFIG | MOCK_TH_OVER_CLIMATE_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG | MOCK_TH_OVER_CLIMATE_TYPE_CONFIG | {
         CONF_MINIMAL_ACTIVATION_DELAY: 10,
         CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+        CONF_TPI_THRESHOLD_LOW: 0.0,
+        CONF_TPI_THRESHOLD_HIGH: 0.0,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,

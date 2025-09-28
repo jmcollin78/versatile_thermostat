@@ -365,15 +365,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
-            if (
-                infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
-                and infos.get(CONF_MINIMAL_ACTIVATION_DELAY, -1) == -1
-            ):
-                return False
-
-            if (
-                infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False
-                and infos.get(CONF_MINIMAL_DEACTIVATION_DELAY, -1) == -1
+            if infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False and (
+                infos.get(CONF_SAFETY_DELAY_MIN, -1) == -1 or infos.get(CONF_SAFETY_MIN_ON_PERCENT, -1) == -1 or infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT, -1) == -1
             ):
                 return False
 

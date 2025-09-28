@@ -3,6 +3,7 @@
 from homeassistant.components.climate import HVACMode
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+import pytest
 from custom_components.versatile_thermostat.prop_algorithm import (
     PropAlgorithm,
     PROPORTIONAL_FUNCTION_TPI,
@@ -389,3 +390,67 @@ async def test_wrong_tpi_parameters(
     except TypeError as e:
         # the normal case
         pass
+
+
+@pytest.mark.parametrize(
+    # fmt: off
+        "tpi_threshold_low, tpi_threshold_high, target_temp, current_temp, ext_current_temp, slope, hvac_mode,    expected_on_percent",
+    [
+        ## HEAT mode
+        # temp < target, No thresholds
+        (0.0,               0.0,                15,          14,           0,                0,     HVACMode.HEAT, 0.25), #  0.1 + 0,15
+        # temp > target, no thresholds, no slope
+        (0.0,               0.0,                14,          15,           0,                0,     HVACMode.HEAT, 0.04), # -0.1 + 0,14
+        # Slope > 0 and below high threshold (no effect)
+        (0.5,               1.1,                14,          15,           0,                1,     HVACMode.HEAT, 0.04),
+        # Slope > 0 and above high threshold (clamp to 0)
+        (0.5,               0.9,                14,          15,           0,                1,     HVACMode.HEAT, 0.0),
+        # Slope < 0 and above low threshold (clamp to 0)
+        (0.5,               1.1,                14,          15,           0,               -1,     HVACMode.HEAT, 0.0),
+        # Slope < 0 and below low threshold (no effect)
+        (1.1,               2.0,                14,          15,           0,               -1,     HVACMode.HEAT, 0.04),
+        ## COOL mode
+        # temp > target, No thresholds
+        (0.0,               0.0,                14,          15,          29,                0,     HVACMode.COOL, 0.25), #  0.1 + 0,15
+        # temp < target, no thresholds, no slope
+        (0.0,               0.0,                15,          14,          29,                0,     HVACMode.COOL, 0.04), # -0.1 + 0,14
+        # Slope < 0, below high threshold (no effect)
+        (0.5,               1.1,                15,          14,          29,               -1,     HVACMode.COOL, 0.04),
+        # Slope < 0, above high threshold (clamp to 0)
+        (0.5,               0.9,                15,          14,          29,               -1,     HVACMode.COOL, 0.0),
+        # Slope > 0, above low threshold (clamp to 0)
+        (0.5,               1.1,                15,          14,          29,                1,     HVACMode.COOL, 0.0),
+        # Slope > 0, below low threshold (no effect)
+        (1.1,               2,                  15,          14,          29,                1,     HVACMode.COOL, 0.04),
+    ],
+    # fmt: on
+)
+async def test_prop_algorithm_thresholds(
+    hass,
+    tpi_threshold_low,
+    tpi_threshold_high,
+    target_temp,
+    current_temp,
+    ext_current_temp,
+    slope,
+    hvac_mode,
+    expected_on_percent,
+):
+    """Test PropAlgorithm on_percent clamping to min/max thresholds."""
+    tpi_algo: PropAlgorithm = PropAlgorithm(
+        PROPORTIONAL_FUNCTION_TPI,
+        0.1,
+        0.01,
+        5,
+        0,
+        0,
+        "test_entity_id",
+        max_on_percent=None,
+        tpi_threshold_low=tpi_threshold_low,
+        tpi_threshold_high=tpi_threshold_high,
+    )
+
+    # Call the calculate
+    tpi_algo.calculate(target_temp, current_temp, ext_current_temp, slope, hvac_mode)
+
+    assert tpi_algo.on_percent == expected_on_percent
