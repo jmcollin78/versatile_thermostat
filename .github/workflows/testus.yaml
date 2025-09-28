@@ -42,4 +42,5 @@ jobs:
           coverage report
 
       - name: Generate HTML Coverage Report
+        if: 0
         run: coverage html

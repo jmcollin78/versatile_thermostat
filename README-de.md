@@ -6,7 +6,7 @@
 
 # Versatile Thermostat
 
-Diese README-Datei ist verfügbar in folgenden 
+Diese README-Datei ist verfügbar in folgenden
 Sprachen: [English](README.md) | [French](README-fr.md) | [German](README-de.md)
 
 <p align="center">
@@ -25,6 +25,14 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 
 # Was ist neu?
 ![New](images/new-icon.png)
+> * **Release 7.4**:
+>
+> - Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint.
+>   This prevents short on/off cycles of a radiator.
+>   See [TPI](documentation/en/algorithms.md#the-tpi-algorithm)
+>
+> (Need translation please)
+>
 > * **Release 7.2**:
 >
 > - Native Unterstützung für Geräte, die über eine `select` (oder `input_select`) oder `climate` Entität für _VTherm_ vom Typ `over_switch` gesteuert werden können. Dieses Update macht die Erstellung von virtuellen Schaltern für die Integration von Nodon, Heaty, eCosy, etc. überflüssig. Weitere Informationen [hier](documentation/de/over-switch.md#command-customization).
@@ -32,7 +40,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 > - Links zur Dokumentation: Version 7.2 führt experimentelle Links zur Dokumentation auf den Konfigurationsseiten ein. Der Link ist über das Symbol [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration) erreichbar. Diese Funktion wird derzeit auf einigen Konfigurationsseiten getestet.
 
 # 🍻 Danke für die Biere 🍻
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78) 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
 Ein großes Dankeschön an alle meine Biersponsoren für ihre Spenden und Ermutigungen. Das bedeutet mir sehr viel und motiviert mich, weiterzumachen! Wenn Sie durch diese Integration Geld gespart haben, geben Sie mir im Gegenzug ein Bier aus; ich würde mich sehr darüber freuen!
 

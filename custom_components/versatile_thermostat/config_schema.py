@@ -241,6 +241,10 @@ STEP_CENTRAL_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
         vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.001, mode=selector.NumberSelectorMode.BOX)),
+        vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
+        vol.Required(CONF_MINIMAL_DEACTIVATION_DELAY, default=0): cv.positive_int,
+        vol.Optional(CONF_TPI_THRESHOLD_LOW, default=0): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
+        vol.Optional(CONF_TPI_THRESHOLD_HIGH, default=0): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
     }
 )
 
@@ -371,8 +375,6 @@ STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
-        vol.Required(CONF_MINIMAL_DEACTIVATION_DELAY, default=0): cv.positive_int,
         vol.Required(CONF_SAFETY_DELAY_MIN, default=60): cv.positive_int,
         vol.Required(
             CONF_SAFETY_MIN_ON_PERCENT,

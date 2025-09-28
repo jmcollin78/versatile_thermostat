@@ -4,6 +4,8 @@
   - [The TPI Algorithm](#the-tpi-algorithm)
     - [Configuring the TPI Algorithm Coefficients](#configuring-the-tpi-algorithm-coefficients)
     - [Principle](#principle)
+    - [Minimum Activation or Deactivation Delay](#minimum-activation-or-deactivation-delay)
+    - [Upper and Lower Activation Thresholds of the Algorithm](#upper-and-lower-activation-thresholds-of-the-algorithm)
   - [The Self-Regulation Algorithm (Without Valve Control)](#the-self-regulation-algorithm-without-valve-control)
   - [The Auto-Start/Stop Function Algorithm](#the-auto-startstop-function-algorithm)
 
@@ -15,9 +17,13 @@ If you have selected a thermostat of type `over_switch`, `over_valve`, or `over_
 
 ![image](images/config-tpi.png)
 
-You need to provide:
-1. the coefficient `coef_int` for the TPI algorithm,
-2. the coefficient `coef_ext` for the TPI algorithm.
+You must provide:
+1. the `coef_int` coefficient of the TPI algorithm,
+2. the `coef_ext` coefficient of the TPI algorithm,
+3. a minimum activation time in seconds,
+4. a minimum deactivation time in seconds,
+5. a high cut-off threshold in °C (or °K) for the temperature deviation above which the algorithm will be disabled,
+6. a low re-activation threshold in °C (or °K) for the temperature deviation below which the algorithm will be enabled again.
 
 ### Principle
 
@@ -37,6 +43,38 @@ When adjusting these coefficients, keep the following in mind:
 4. **If reaching the target temperature is too fast and oscillations occur** around the target, decrease `coef_int` to provide less power to the radiator.
 
 In `over_valve` mode, the `on_percent` value is converted to a percentage (0 to 100%) and directly controls the valve's opening level.
+
+### Minimum Activation or Deactivation Delay
+
+The first delay (`minimal_activation_delay_sec`), in seconds, is the minimum acceptable delay to turn on the heater.
+When the calculation results in a power-on delay shorter than this value, the heater remains off.
+If the activation time is too short, rapid switching will not allow the equipment to reach operating temperature.
+
+Similarly, the second delay (`minimal_deactivation_delay_sec`), also in seconds, defines the minimum acceptable off-time.
+If the off-time is shorter than this value, the heater will not be turned off.
+This prevents rapid flickering that provides little benefit for temperature regulation.
+
+### Upper and Lower Activation Thresholds of the Algorithm
+
+Since version 7.4, two additional thresholds are available.
+They allow you to disable (or re-enable) the TPI algorithm itself, based on the difference between the target setpoint and the current temperature.
+
+- If the temperature rises and the difference is greater than the upper threshold, the heater is switched off (i.e., `on_percent` is forced to 0).
+- If the temperature drops and the difference is smaller than the lower threshold, the heater is turned back on (i.e., `on_percent` is calculated by the algorithm as described above).
+
+These two thresholds stop the on/off cycling when the temperature overshoots the target.
+A hysteresis prevents rapid toggling.
+
+Examples:
+1. Suppose the target setpoint is 20°C, the upper threshold is 2°C, and the lower threshold is 1°C.
+2. When the temperature rises above 22°C (setpoint + upper threshold), `on_percent` is forced to 0.
+3. When the temperature drops below 21°C (setpoint + lower threshold), `on_percent` is recalculated.
+
+> ![Tip](images/tips.png) _*Notes*_
+> 1. Leave both values at 0 if you do not want to use thresholds. This restores the behavior from before version 7.4.
+> 2. Both values are required. If you leave one at 0, no threshold will be applied. Indeed, both are necessary for correct operation.
+> 3. In cooling mode, the tests are reversed, but the principle remains the same.
+> 4. The upper threshold should always be greater than the lower threshold, even in cooling mode.
 
 ## The Self-Regulation Algorithm (Without Valve Control)
 

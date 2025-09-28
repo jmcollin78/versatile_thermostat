@@ -84,6 +84,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._minimal_activation_delay,
             self._minimal_deactivation_delay,
             self.name,
+            max_on_percent=self._max_on_percent,
+            tpi_threshold_low=self._tpi_threshold_low,
+            tpi_threshold_high=self._tpi_threshold_high,
         )
 
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
@@ -199,6 +202,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._target_temp,
             self._cur_temp,
             self._cur_ext_temp,
+            self.last_temperature_slope,
             self._hvac_mode or HVACMode.OFF,
         )
 

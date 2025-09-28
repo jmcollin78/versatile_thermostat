@@ -33,10 +33,12 @@ class PropAlgorithm:
         minimal_deactivation_delay: int,
         vtherm_entity_id: str = None,
         max_on_percent: float = None,
+        tpi_threshold_low: float = 0.0,
+        tpi_threshold_high: float = 0.0,
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d, minimal_deactivation_delay:%d",  # pylint: disable=line-too-long
+            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d, minimal_deactivation_delay:%d, tpi_threshold_low=%s, tpi_threshold_high=%s",  # pylint: disable=line-too-long
             vtherm_entity_id,
             function_type,
             tpi_coef_int,
@@ -44,6 +46,8 @@ class PropAlgorithm:
             cycle_min,
             minimal_activation_delay,
             minimal_deactivation_delay,
+            tpi_threshold_low,
+            tpi_threshold_high,
         )
 
         # Issue 506 - check parameters
@@ -85,12 +89,16 @@ class PropAlgorithm:
         self._security = False
         self._default_on_percent = 0
         self._max_on_percent = max_on_percent
+        self._tpi_threshold_low = tpi_threshold_low
+        self._tpi_threshold_high = tpi_threshold_high
+        self._apply_threshold = tpi_threshold_low > 0.0 and tpi_threshold_high > 0.0
 
     def calculate(
         self,
         target_temp: float | None,
         current_temp: float | None,
         ext_current_temp: float | None,
+        slope: float | None,
         hvac_mode: HVACMode,
     ):
         """Do the calculation of the duration"""
@@ -106,31 +114,40 @@ class PropAlgorithm:
         else:
             if hvac_mode == HVACMode.COOL:
                 delta_temp = current_temp - target_temp
-                delta_ext_temp = (
-                    ext_current_temp - target_temp
-                    if ext_current_temp is not None
-                    else 0
-                )
+                delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
+                slope = -slope
             else:
                 delta_temp = target_temp - current_temp
-                delta_ext_temp = (
-                    target_temp - ext_current_temp
-                    if ext_current_temp is not None
-                    else 0
-                )
+                delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
 
-            if self._function == PROPORTIONAL_FUNCTION_TPI:
-                self._calculated_on_percent = (
-                    self._tpi_coef_int * delta_temp
-                    + self._tpi_coef_ext * delta_ext_temp
-                )
-            else:
-                _LOGGER.warning(
-                    "%s - Proportional algorithm: unknown %s function. Heating will be disabled",
+            if (
+                # fmt: off
+                self._apply_threshold
+                and slope is not None
+                and ((slope > 0.0 and -delta_temp > self._tpi_threshold_high)
+                or (slope < 0.0 and -delta_temp > self._tpi_threshold_low))
+                # fmt: on
+            ):
+                _LOGGER.debug(
+                    "%s - Proportional algorithm: on_percent is forced to 0 cause current_temp (%.1f) is outside the thresholds (slope=%.1f, target_temp=%.1f, tpi_threshold_low=%.1f, tpi_threshold_high=%.1f). Heating/cooling will be disabled.",  # pylint: disable=line-too-long
                     self._vtherm_entity_id,
-                    self._function,
+                    current_temp,
+                    slope,
+                    target_temp,
+                    self._tpi_threshold_low,
+                    self._tpi_threshold_high,
                 )
                 self._calculated_on_percent = 0
+            else:
+                if self._function == PROPORTIONAL_FUNCTION_TPI:
+                    self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
+                else:
+                    _LOGGER.warning(
+                        "%s - Proportional algorithm: unknown %s function. Heating will be disabled",
+                        self._vtherm_entity_id,
+                        self._function,
+                    )
+                    self._calculated_on_percent = 0
 
         self._calculate_internal()
 

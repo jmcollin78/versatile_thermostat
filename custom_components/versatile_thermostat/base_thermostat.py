@@ -333,6 +333,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._tpi_coef_int = entry_infos.get(CONF_TPI_COEF_INT)
         self._tpi_coef_ext = entry_infos.get(CONF_TPI_COEF_EXT)
+        self._tpi_threshold_low = entry_infos.get(CONF_TPI_THRESHOLD_LOW, 0.0)
+        self._tpi_threshold_high = entry_infos.get(CONF_TPI_THRESHOLD_HIGH, 0.0)
+        # If one is 0 then both are 0
+        if self._tpi_threshold_low == 0.0 or self._tpi_threshold_high == 0.0:
+            self._tpi_threshold_low = 0.0
+            self._tpi_threshold_high = 0.0
 
         if self._ac_mode:
             # Added by https://github.com/jmcollin78/versatile_thermostat/pull/144
@@ -559,6 +565,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._target_temp,
                     self._cur_temp,
                     self._cur_ext_temp,
+                    self.last_temperature_slope,
                     self._hvac_mode or HVACMode.OFF,
                 )
 

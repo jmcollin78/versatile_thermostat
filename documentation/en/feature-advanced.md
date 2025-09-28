@@ -2,7 +2,6 @@
 
 - [Advanced Configuration](#advanced-configuration)
   - [Advanced Settings](#advanced-settings)
-    - [Minimum Activation Delay](#minimum-activation-delay)
     - [Safety Mode](#safety-mode)
 
 These settings refine the thermostat's operation, particularly the safety mechanism for a _VTherm_. Missing temperature sensors (room or outdoor) can pose a risk to your home. For instance, if the temperature sensor gets stuck at 10°C, the `over_climate` or `over_valve` _VTherm_ types will command maximum heating of the underlying devices, which could lead to room overheating or even property damage, at worst resulting in a fire hazard.
@@ -20,14 +19,6 @@ For `over_climate` _VTherms_, which self-regulate, Safety Mode is disabled. In t
 The advanced configuration form looks like this:
 
 ![image](images/config-advanced.png)
-
-### Minimum Activation Delay
-
-The first delay (`minimal_activation_delay_sec`) in seconds is the minimum acceptable delay to turn on the heating. If the calculated activation time is shorter than this value, the heating remains off. This parameter only applies to _VTherm_ with cyclic triggering `over_switch`. If the activation time is too short, rapid switching will not allow the device to heat up properly.
-
-### Minimum Deactivation Delay
-
-The delay (`minimal_deactivation_delay_sec`) in seconds is the minimum acceptable delay to turn off the heating. If the calculated deactivation time is shorter than this value, the heating remains on.
 
 ### Safety Mode
 
