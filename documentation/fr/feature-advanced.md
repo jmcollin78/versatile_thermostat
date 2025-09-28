@@ -21,10 +21,6 @@ Le formulaire de configuration avancée est le suivant :
 
 ![image](images/config-advanced.png)
 
-### Délai minimal d'activation
-
-Le premier délai (`minimal_activation_delay_sec`) en secondes est le délai minimum acceptable pour allumer le chauffage. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint. Ce paramètre ne sert qu'au _VTherm_ avec un déclenchement cyclique `over_switch`. Si le temps d'allumage est trop court, la, commutation rapide ne permettra pas à l'équipement de monter en température.
-
 ### La mise en sécurité
 
 Le deuxième délai (`safety_delay_min`) est le délai maximal entre deux mesures de température avant de passer le _VTherm_ en mode sécurité.

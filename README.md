@@ -25,6 +25,12 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 
 # What's New?
 ![New](images/new-icon.png)
+> * **Release 7.4**:
+>
+> - Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint.
+>   This prevents short on/off cycles of a radiator.
+>   See [TPI](documentation/en/algorithms.md#the-tpi-algorithm)
+>
 > * **Release 7.2**:
 >
 > - Native support for devices controlled via a `select` (or `input_select`) or `climate` entity for _VTherm_ of type `over_switch`. This update makes the creation of virtual switches obsolete for integrating Nodon, Heaty, eCosy, etc. More information [here](documentation/en/over-switch.md#command-customization).

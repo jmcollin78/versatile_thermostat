@@ -4,6 +4,8 @@
   - [L'algorithme TPI](#lalgorithme-tpi)
     - [Configurez les coefficients de l'algorithme TPI](#configurez-les-coefficients-de-lalgorithme-tpi)
     - [Principe](#principe)
+    - [Délai minimal d'activation ou de désactivation](#délai-minimal-dactivation-ou-de-désactivation)
+    - [Seuils haut et bas d'activation de l'algorithme](#seuils-haut-et-bas-dactivation-de-lalgorithme)
   - [L'algorithme d'auto-régulation (sans contrôle de la vanne)](#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
   - [L'algorithme de la fonction d'auto-start/stop](#lalgorithme-de-la-fonction-dauto-startstop)
 
@@ -17,7 +19,11 @@ Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve```
 
 Vous devez donner :
 1. le coefficient coef_int de l'algorithme TPI,
-2. le coefficient coef_ext de l'algorithme TPI
+2. le coefficient coef_ext de l'algorithme TPI,
+3. une durée minimale d'activation en secondes,
+4. une durée minimale d'extinction en secondes,
+5. un seuil haut en °C (ou °K) d'écart de température en dessus duquel l'algorithme sera éteint,
+6. un seuil bas en °C (ou °K) d'écart de température en dessous duquel l'algorithme sera activé
 
 
 ### Principe
@@ -38,6 +44,32 @@ Pour régler ces coefficients, gardez à l'esprit que :
 4. **si l'atteinte de la température cible est trop rapide et que des oscillations apparaissent** autour de la cible, vous pouvez diminuer le ``coef_int`` pour donner moins de puissance au radiateur.
 
 En type `over_valve` le `on_percent` est ramené à une valeur entre 0 et 100% et sert directement à commander l'ouverture de la vanne.
+
+### Délai minimal d'activation ou de désactivation
+
+Le premier délai (`minimal_activation_delay_sec`) en secondes est le délai minimum acceptable pour allumer le radiateur. Lorsque le calcul donne un délai de mise sous tension inférieur à cette valeur, le chauffage reste éteint. Si le temps d'allumage est trop court, la, commutation rapide ne permettra pas à l'équipement de monter en température.
+
+Idem avec le deuxième délai (`minimal_deactivation_delay_sec`) en secondes lui aussi mais pour la durée d'extinction. Si la durée d'extinction est inférieure à cette durée, le radiateur ne sera pas éteint. Ca évite les clignotements rapides qui servent très peu à la régulation de température.
+
+### Seuils haut et bas d'activation de l'algorithme
+
+Depuis la version 7.4, deux seuils supplémentaires sont disponibles. Ils permettent de couper (resp. mettre en marche) l'algorithme TPI lui même en fonction de l'écart entre la consigne et la température courante.
+
+Si la température monte et que l'écart est supérieur au seuil haut alors le radiateur est coupé (ie. le on_percent est forcé à 0).
+Si la température descend et que l'écart est inférieur au seuil bas alors le radiateur est relancé (ie le on_percent est calculé avec l'algo tel que présenté ci-dessus).
+
+Ces deux seuils permettent de couper le cycle d'extinction / allumage lorsque la température dépasse la consigne. Un hystéresis permet d'éviter un bagottement rapide.
+
+Exemples:
+1. supposons que la consigne soit réglée sur 20°, le seuil haut sur 2° et le seuil bas sur 1°,
+2. lorsque la température monte et dépasse les 22° (consigne + seuil haut), le on_percent est forcé à 0,
+3. lorsque la température redescend et passe en dessous des 21° (consigne + seuil bas), le on_percent est de nouveau calculé
+
+> ![Astuce](images/tips.png) _*Notes*_
+> 1. laissez les 2 valeurs à 0, si vous ne voulez pas utiliser les seuils. Cela permet d'avoir le comportement d'avant la version 7.4,
+> 2. les 2 valeurs sont nécessaires. Si vous laissez une à 0, aucun seuils ne sera appliqué. En effet, les 2 sont nécessaires pour avoir un fonctionnement correct.
+> 3. en cas de pilotage (mode Refroidissement), les tests sont inversés mais le principe reste le même.
+> 4. le seuil haut devrait toujours est supérieur au seuil bas. Même en cas de refroidissement
 
 ## L'algorithme d'auto-régulation (sans contrôle de la vanne)
 

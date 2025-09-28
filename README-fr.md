@@ -6,7 +6,7 @@
 
 # Versatile Thermostat
 
-Ce fichier README est disponible en 
+Ce fichier README est disponible en
 [Anglais](README.md) | [Français](README-fr.md) | [Allemand](README-de.md)
 
 <p align="center">
@@ -25,6 +25,10 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
+> * **Release 7.4**:
+>
+> - Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi)
+>
 > * **Release 7.2**:
 >
 > - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](documentation/fr/over-switch.md#la-personnalisation-des-commandes).
