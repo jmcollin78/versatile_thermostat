@@ -92,6 +92,9 @@ Specific functions can be configured through a dedicated option in the menu.
 The specific functions that require configuration for this type of VTherm are:
 1. Auto-Start/Stop: Automatic start and stop of VTherm based on usage forecasts. This is described here: [auto-start/stop function](feature-auto-start-stop.md).
 2. If valve regulation is chosen, the TPI algorithm configuration is accessible from the menu. See ([algorithms](algorithms.md)).
+3. if valve regulation is selected, you can set the _VTherm_ to dormant (sleep) mode. The dormant mode is specific to this type of thermostat and allows you to turn off the _VTherm_ while keeping the valve fully 100% open. There are two ways to activate the dormant mode:
+   1. either with the [VTherm UI Card](additions.md#versatile-thermostat-ui-card) by pressing the 'Zzz' button mode,
+   2. or by calling an action named `service_set_hvac_mode_sleep`. See [Actions](reference.md#actions-services)
 
 ## Follow Underlying Temperature Changes
 

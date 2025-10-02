@@ -3,7 +3,7 @@
 - [Thermostat de type `over_climate`](#thermostat-de-type-over_climate)
   - [Pré-requis](#pré-requis)
   - [Configuration](#configuration)
-    - [les sous-jacents](#les-sous-jacents)
+    - [Les sous-jacents](#les-sous-jacents)
     - [Le mode AC](#le-mode-ac)
     - [L'auto-régulation](#lauto-régulation)
     - [L'auto-ventilation (auto-fan)](#lauto-ventilation-auto-fan)
@@ -94,8 +94,11 @@ Vous trouverez des conseils pour régler au mieux ces paramètres dans la page [
 Les fonctions spécifiques sont paramétrables avec une option dédiée du menu.
 
 Les fonctions spécifiques qui nécessite un paramétrage à ce type de VTherm sont :
-1. l'auto-start/stop : arrêt et démarrage automatique du VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
+1. l'auto-start/stop : arrêt et démarrage automatique du _VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
 2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf ([algorithmes](algorithms.md))
+3. si la régulation par vanne est choisie, vous pouvez mettre le _VTherm_ en mode dormant (sleep). Le mode dormant est un mode réservé à ce type de thermostat qui permet de couper le _VTherm_ tout en maintenant la vanne totalement 100% ouverte. Pour appliquer le mode dormant vous avez 2 moyens :
+   1. soit avec la [VTherm UI Card](additions.md#versatile-thermostat-ui-card) en appuyant sur le bouton du mode 'Zzz',
+   2. soit en appelant une action nommée `service_set_hvac_mode_sleep`. Cf. [Actions](reference.md#actions-services)
 
 ## Suivre les changements de température du sous-jacent
 

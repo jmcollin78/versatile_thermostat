@@ -459,10 +459,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
         )
 
-        # init auto_regulation_mode
-        # Issue 325 - do only once (in post_init and not here)
-        # self.choose_auto_regulation_mode(self._auto_regulation_mode)
-
     @overrides
     def restore_specific_previous_state(self, old_state: State):
         """Restore my specific attributes from previous state"""
@@ -918,13 +914,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Check if the ThermostatOverClimate is regulated"""
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
-    @property
-    def hvac_modes(self) -> list[HVACMode]:
-        """List of available operation modes."""
+    @overrides
+    # TODO ne fonctionne pas car underlying_entity n'est pas initialisé au moment de l'appel
+    def build_hvac_list(self) -> list[HVACMode]:
+        """Build the hvac list depending on ac_mode"""
         if self.underlying_entity(0):
             return self.underlying_entity(0).hvac_modes
         else:
-            return super.hvac_modes
+            if self._ac_mode:
+                return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+            else:
+                return [HVACMode.HEAT, HVACMode.OFF]
 
     @property
     def mean_cycle_power(self) -> float | None:
@@ -1051,6 +1051,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     def init_underlyings(self):
         """Init the underlyings if not already done"""
+        changed = False
         for under in self._underlyings:
             if not under.is_initialized:
                 _LOGGER.info(
@@ -1060,10 +1061,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
                 try:
                     under.startup()
+                    changed = True
                 except UnknownEntity:
                     # still not found, we an stop here
                     return False
         self.choose_auto_fan_mode(self._auto_fan_mode)
+
+        if changed:
+            # Reinitialize the hvac list because we have one underlying at least now
+            self.set_hvac_list()
 
     @overrides
     def turn_aux_heat_on(self) -> None:

@@ -624,11 +624,13 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
 
     assert vtherm.window_state is STATE_ON
     assert vtherm.hvac_mode == HVACMode.OFF
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
 
     # 8. call toggle -> we should stay in OFF (command is ignored)
     await vtherm.async_toggle()
     await hass.async_block_till_done()
     assert vtherm.hvac_mode == HVACMode.OFF
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
 
     # 9. Close the window (we should come back to Cool this time)
     now = now + timedelta(minutes=2)

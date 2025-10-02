@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACMode, HVACAction
 
 from .underlyings import UnderlyingValveRegulation
@@ -53,6 +53,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
         self._min_opening_degress: list[int] = []
+        # if mode sleep is activated, the valve is fully open but the hvac_mode is off
+        self._is_sleeping: bool = False
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -121,6 +123,15 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._underlyings_valve_regulation.append(under)
 
     @overrides
+    def restore_specific_previous_state(self, old_state: State):
+        """Restore my specific attributes from previous state"""
+        super().restore_specific_previous_state(old_state)
+
+        self._is_sleeping = self.hvac_mode == HVACMode.OFF and old_state.attributes.get("is_sleeping", False)
+        if self._is_sleeping:
+            self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
+
+    @overrides
     def update_custom_attributes(self):
         """Custom attributes"""
         super().update_custom_attributes()
@@ -168,6 +179,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             if self._last_calculation_timestamp
             else None
         )
+        self._attr_extra_state_attributes["is_sleeping"] = self._is_sleeping
 
         self.async_write_ha_state()
         _LOGGER.debug(
@@ -279,6 +291,38 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()
 
+    @overrides
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode, need_control_heating=True):
+        """Set new hvac mode"""
+        _LOGGER.info("%s - Calling async_set_hvac_mode to %s", self, hvac_mode)
+
+        if hvac_mode == HVACMODE_SLEEP:
+            _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
+            self._is_sleeping = True
+            hvac_mode = HVACMode.OFF
+            self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
+        else:
+            self._is_sleeping = False
+
+        # When turning off, we need to close the valve
+        if self._is_sleeping:
+            self._valve_open_percent = 100
+            for under in self._underlyings_valve_regulation:
+                await under.set_valve_open_percent()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+
+        # set hvac mode save the state at the end
+        await super().async_set_hvac_mode(hvac_mode, need_control_heating)
+
+    @overrides
+    def build_hvac_list(self) -> list[HVACMode]:
+        """Build the hvac list depending on ac_mode"""
+        if self._ac_mode:
+            return [HVACMode.COOL, HVACMODE_SLEEP, HVACMode.OFF]
+        else:
+            return [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
+
     @property
     def have_valve_regulation(self) -> bool:
         """True if the Thermostat is regulated by valve"""
@@ -287,7 +331,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self._hvac_mode == HVACMode.OFF or self._valve_open_percent is None:
+        if (self._hvac_mode == HVACMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent
@@ -296,12 +340,18 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     def hvac_action(self) -> HVACAction | None:
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
-        return self.calculate_hvac_action(self._underlyings_valve_regulation)
+        if self._is_sleeping:
+            return HVACAction.OFF
+        else:
+            return self.calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
     def is_device_active(self) -> bool:
         """A hack to overrides the state from underlyings"""
-        return self.valve_open_percent > 0
+        if self._is_sleeping:
+            return False
+        else:
+            return self.valve_open_percent > 0
 
     @property
     def device_actives(self) -> int:
@@ -320,6 +370,22 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         return self._underlyings_valve_regulation
 
     @overrides
+    @property
+    def is_sleeping(self) -> bool:
+        """True if the thermostat is in sleep mode"""
+        return self._is_sleeping
+
+    @overrides
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
         """This should not be possible in valve regulation mode"""
         return
+
+    @overrides
+    async def service_set_hvac_mode_sleep(self):
+        """Set the hvac_mode to SLEEP mode (valid only for over_climate with valve regulation):
+        service: versatile_thermostat.set_hvac_mode_sleep
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info("%s - Calling service_set_hvac_mode_sleep", self)
+        await self.async_set_hvac_mode(hvac_mode=HVACMODE_SLEEP, need_control_heating=False)

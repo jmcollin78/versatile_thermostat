@@ -649,6 +649,7 @@ async def test_climate_ac_only_change_central_mode_true(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
         assert entity.is_controlled_by_central_mode is True
+        # Should take the hvac_modes of the underlying climate
         assert entity.hvac_modes == [HVACMode.OFF, HVACMode.COOL]
 
         # Find the select entity

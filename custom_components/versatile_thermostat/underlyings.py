@@ -34,7 +34,7 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from .const import UnknownEntity, overrides, get_safe_float
+from .const import UnknownEntity, overrides, get_safe_float, HVACMODE_SLEEP
 from .keep_alive import IntervalCaller
 
 _LOGGER = logging.getLogger(__name__)
@@ -1077,6 +1077,11 @@ class UnderlyingValve(UnderlyingEntity):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()
 
+    @property
+    def percent_open(self) -> int:
+        """The current percent open"""
+        return self._percent_open
+
 
 class UnderlyingValveRegulation(UnderlyingValve):
     """A specific underlying class for Valve regulation"""
@@ -1235,7 +1240,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """Get the hvac_modes"""
         if not self.is_initialized:
             return []
-        return [HVACMode.OFF, HVACMode.HEAT]
+        return [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
 
     @overrides
     async def start_cycle(
@@ -1270,3 +1275,17 @@ class UnderlyingValveRegulation(UnderlyingValve):
             if entity:
                 ret.append(entity)
         return ret
+
+    @overrides
+    async def check_initial_state(self, hvac_mode: HVACMode):
+        """Check the initial state of the underlying valve"""
+        if hvac_mode == HVACMode.OFF and self._thermostat.is_sleeping and self.percent_open < 100:
+            _LOGGER.info(
+                "%s - The hvac mode is OFF (sleep mode), but the underlying device is not fully open. Setting to 100%% device %s",
+                self,
+                self._entity_id,
+            )
+            self._percent_open = 100
+            await self.send_percent_open()
+        else:
+            await super().check_initial_state(hvac_mode)

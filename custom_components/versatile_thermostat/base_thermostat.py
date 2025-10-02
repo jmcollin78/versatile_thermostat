@@ -209,6 +209,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._use_central_config_temperature = False
 
         self._hvac_off_reason: str | None = None
+        self._hvac_list: list[HVACMode] = []
+
 
         # Store the last havac_mode before central mode changes
         # has been introduce to avoid conflict with window
@@ -340,12 +342,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._tpi_threshold_low = 0.0
             self._tpi_threshold_high = 0.0
 
-        if self._ac_mode:
-            # Added by https://github.com/jmcollin78/versatile_thermostat/pull/144
-            # Some over_switch can do both heating and cooling
-            self._hvac_list = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
-        else:
-            self._hvac_list = [HVACMode.HEAT, HVACMode.OFF]
+        self.set_hvac_list()
 
         self._unit = self._hass.config.units.temperature_unit
         # Will be restored if possible
@@ -683,6 +680,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
+    def set_hvac_list(self):
+        """Set the hvac list depending on ac_mode"""
+        self._hvac_list = self.build_hvac_list()
+
+    def build_hvac_list(self) -> list[HVACMode]:
+        """Build the hvac list depending on ac_mode"""
+        if self._ac_mode:
+            return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+        else:
+            return [HVACMode.HEAT, HVACMode.OFF]
+
     @property
     def is_over_climate(self) -> bool:
         """True if the Thermostat is over_climate"""
@@ -1000,6 +1008,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         window detection or auto-start-stop"""
         return self._hvac_off_reason
 
+    @property
+    def is_sleeping(self) -> bool:
+        """True if the thermostat is in sleep mode. Only for over_climate with valve regulation"""
+        return False
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1050,18 +1063,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # If we already are in OFF, the manual OFF should just
         # overwrite the reason and saved_hvac_mode
         if self._hvac_mode == HVACMode.OFF and hvac_mode == HVACMode.OFF:
-            _LOGGER.info(
-                "%s - already in OFF. Change the reason to MANUAL "
-                "and erase the saved_havc_mode"
-            )
-            self._hvac_off_reason = HVAC_OFF_REASON_MANUAL
+            _LOGGER.info("%s - already in OFF. Change the reason to MANUAL " "and erase the saved_havc_mode")
+            self._hvac_off_reason = HVAC_OFF_REASON_MANUAL if not self.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE
             self._saved_hvac_mode = HVACMode.OFF
 
             save_state()
 
             return
 
-        # Remove eventual overpoering if we want to turn-off
+        # Remove eventual overpowering if we want to turn-off
         if hvac_mode == HVACMode.OFF and self.power_manager.is_overpowering_detected:
             await self.power_manager.set_overpowering(False)
 
@@ -1820,7 +1830,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX), force=True)
             await self.async_control_heating(force=True)
 
-    async def SERVICE_SET_SAFETY(
+    async def service_set_safety(
         self,
         delay_min: int | None,
         min_on_percent: float | None,
@@ -1873,6 +1883,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         )
         if await self._window_manager.set_window_bypass(window_bypass):
             self.update_custom_attributes()
+
+    async def service_set_hvac_mode_sleep(self):
+        """Set the hvac_mode to SLEEP mode (valid only for over_climate with valve regulation):
+        service: versatile_thermostat.set_hvac_mode_sleep
+        target:
+            entity_id: climate.thermostat_1
+        """
+        _LOGGER.info("%s - Calling service_set_hva_mode_sleep", self)
+        raise NotImplementedError("service_set_hva_mode_sleep not implemented for this kind of thermostat. Only for over_climate with valve regulation is supported")
 
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""
