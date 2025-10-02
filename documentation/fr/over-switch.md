@@ -36,7 +36,7 @@ Dans la "liste des équipements à contrôler" vous mettez les switchs qui vont 
 
 Si un des sous-jacents n'est pas un `switch` alors la personnalisation des commandes est obligatoire. Par défaut pour les `switch` les commandes sont les commandes classique d'allumage / extinction du switch (`turn_on`, `turn_off`)
 
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
+L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](algorithms.md#lalgorithme-tpi).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 
 VTherm va donc lisser la puissance consommée le plus possible en alternant les activations. Exemple d'activations décalées :
