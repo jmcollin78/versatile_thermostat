@@ -83,9 +83,10 @@ async def test_window_management_time_not_enough(
         "homeassistant.helpers.condition.state", return_value=False
     ) as mock_condition:
         await send_temperature_change_event(entity, 15, datetime.now())
-        await send_window_change_event(entity, True, False, datetime.now())
-        # simulate the call to try_window_condition. No need due to 0 WINDOW_DELAY and sleep after event is sent
-        # await try_window_condition(None)
+        try_function = await send_window_change_event(entity, True, False, datetime.now(), sleep=False)
+
+        await try_function(None)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_OFF)
 
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 1
@@ -195,7 +196,10 @@ async def test_window_management_time_enough(
         new_callable=PropertyMock,
         return_value=True,
     ):
-        await send_window_change_event(entity, True, False, datetime.now())
+        try_function = await send_window_change_event(entity, True, False, datetime.now(), sleep=False)
+
+        await try_function(None)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
@@ -1247,7 +1251,10 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
         new_callable=PropertyMock,
         return_value=True,
     ):
-        await send_window_change_event(entity, True, False, datetime.now())
+        try_function = await send_window_change_event(entity, True, False, datetime.now(), sleep=False)
+
+        await try_function(None)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
@@ -2789,7 +2796,10 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         new_callable=PropertyMock,
         return_value=True,
     ):
-        await send_window_change_event(entity, True, False, datetime.now())
+        try_function = await send_window_change_event(entity, True, False, datetime.now(), sleep=False)
+
+        await try_function(None)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})])
@@ -2935,7 +2945,10 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         patch("homeassistant.helpers.condition.state", return_value=True) as mock_condition, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",new_callable=PropertyMock,return_value=False):
     # fmt:on
-        await send_window_change_event(entity, True, False, datetime.now())
+        try_function = await send_window_change_event(entity, True, False, datetime.now(), sleep=False)
+
+        await try_function(None)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         # no motion -> Frost away temp
         assert entity.target_temperature == 8
