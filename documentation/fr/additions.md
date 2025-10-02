@@ -40,7 +40,7 @@ Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il 
 J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !
 
 ## Courbes de régulattion avec Plotly
-Vous pouvez obtenir une courbe comme celle présentée dans [some results](#some-results) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](#custom-attributes) :
+Vous pouvez obtenir une courbe comme celle présentée dans [some results](../../README-fr.md#quelques-résultats) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
 
 Remplacez les valeurs entre [[ ]] par les votres.
 <details>
@@ -129,7 +129,7 @@ Exemple de courbes obtenues avec Plotly :
 ## Les notification avec l'AappDaemon NOTIFIER
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.
 
-C'est un excellent exemple de l'utilisation des notifications décrites ici [notification](#notifications).
+C'est un excellent exemple de l'utilisation des notifications décrites ici [Evènement](reference.md#evènements).
 
 <details>
 
