@@ -54,6 +54,7 @@ async def async_setup_entry(
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         # Initialize the central power manager
         vtherm_api = VersatileThermostatAPI.get_vtherm_api(hass)
+        vtherm_api.reset_central_config()
         vtherm_api.central_power_manager.post_init(entry.data)
         return
 
