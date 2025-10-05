@@ -88,6 +88,10 @@ class VersatileThermostatAPI(dict):
                     # return self._central_configuration
         return self._central_configuration
 
+    def reset_central_config(self):
+        """Reset the central configuration"""
+        self._central_configuration = None
+
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
         _LOGGER.debug("Add the entry %s", entry.entry_id)
