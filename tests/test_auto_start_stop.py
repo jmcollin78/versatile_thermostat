@@ -292,7 +292,7 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
-@ pytest.mark.parametrize("expected_lingering_timers", [True]) @ pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_none_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
