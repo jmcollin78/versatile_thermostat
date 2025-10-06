@@ -1058,6 +1058,7 @@ class UnderlyingValve(UnderlyingEntity):
 
     async def set_valve_open_percent(self):
         """Update the valve open percent"""
+
         caped_val = self.cap_sent_value(self._thermostat.valve_open_percent)
         if self._percent_open == caped_val:
             # No changes
@@ -1108,11 +1109,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_offset_calibration: float = None
         self._min_opening_degree: int = min_opening_degree
 
-    def _normalize_opening_closing_degree(self, opening: float, min_opening: float) -> float:
+    def _normalize_opening_closing_degree(self, opening: float) -> float:
         """Issue #902 - Normalize the opening and closing degree
         Issue #927 - Cancel the normalization"""
 
-        new_opening = max(opening, min_opening)
+        new_opening = max(opening, 0) if self.has_closing_degree_entity else opening
         new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
 
         return new_opening, new_closing
@@ -1153,10 +1154,10 @@ class UnderlyingValveRegulation(UnderlyingValve):
                    * (100 - self._min_opening_degree) / 100)
                 )
         else:
-            self._percent_open = 0
+            self._percent_open = self._min_opening_degree
 
         # Send closing_degree if set
-        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open, self._min_opening_degree)
+        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open)
         # We should not change the _percent_open because it is used to check if value has bchanged
         # self._percent_open = opening_degree
 
@@ -1250,11 +1251,20 @@ class UnderlyingValveRegulation(UnderlyingValve):
         # if force:
         await self.set_valve_open_percent()
 
+    @overrides
+    async def turn_off(self):
+        _LOGGER.debug("%s - ValveRegulation turn_off -> enforce min_opening_degree", self)
+        self._percent_open = 0
+        await self.send_percent_open()
+
     @property
     def is_device_active(self):
         """If the opening valve is open."""
         try:
-            return get_safe_float(self._hass, self._opening_degree_entity_id) > 0
+            #return get_safe_float(self._hass, self._opening_degree_entity_id) > 0
+            if self.hvac_mode == HVACMode.OFF:
+                return False
+            return self._thermostat.valve_open_percent > 0
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
