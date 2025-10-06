@@ -26,7 +26,7 @@ from homeassistant.helpers.event import (
 from homeassistant.components.climate import PRESET_ACTIVITY, PRESET_BOOST, PRESET_COMFORT, PRESET_ECO
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData
+from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 

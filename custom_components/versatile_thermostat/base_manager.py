@@ -6,7 +6,7 @@ from typing import Any
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData
+from .commons_type import ConfigData
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
