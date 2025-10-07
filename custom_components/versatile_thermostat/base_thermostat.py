@@ -53,7 +53,7 @@ from homeassistant.const import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData, T
+from .commons_type import ConfigData, T
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 

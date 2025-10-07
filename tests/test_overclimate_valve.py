@@ -239,7 +239,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
                 call(domain='number', service='set_value', service_data={'value': 13}, target={'entity_id': 'number.mock_opening_degree'}),
                 call(domain='number', service='set_value', service_data={'value': 87}, target={'entity_id': 'number.mock_closing_degree'}),
                 # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
-                call(domain='number', service='set_value', service_data={'value': 6.899999999999999}, target={'entity_id': 'number.mock_offset_calibration'})
+                call(domain='number', service='set_value', service_data={'value': 6.9}, target={'entity_id': 'number.mock_offset_calibration'})
             ]
         )
 

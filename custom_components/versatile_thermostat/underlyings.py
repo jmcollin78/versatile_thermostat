@@ -36,6 +36,7 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .const import UnknownEntity, overrides, get_safe_float, HVACMODE_SLEEP
 from .keep_alive import IntervalCaller
+from .commons import round_to_nearest
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1111,6 +1112,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_opening_degree: float = None
         self._min_offset_calibration: float = None
         self._max_offset_calibration: float = None
+        self._step_calibration: float = 0.1
         self._min_opening_degree: int = min_opening_degree
 
     def _normalize_opening_closing_degree(self, opening: float) -> float:
@@ -1139,6 +1141,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._max_offset_calibration = self._hass.states.get(
                     self._offset_calibration_entity_id
                 ).attributes.get("max")
+                self._step_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("step") or 0.1  # default step is 0.1
 
             self._is_min_max_initialized = self._max_opening_degree is not None and (
                 not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
@@ -1185,12 +1188,15 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 )
                 is not None
             ):
-                offset = min(
-                    self._max_offset_calibration,
-                    max(
-                        self._min_offset_calibration,
-                        room_temp - (local_temp - current_offset),
+                offset = round_to_nearest(
+                    min(
+                        self._max_offset_calibration,
+                        max(
+                            self._min_offset_calibration,
+                            room_temp - (local_temp - current_offset),
+                        ),
                     ),
+                    self._step_calibration,
                 )
 
                 await self._send_value_to_number(

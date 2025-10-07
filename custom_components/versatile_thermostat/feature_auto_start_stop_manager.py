@@ -11,7 +11,7 @@ from homeassistant.core import (
 from homeassistant.components.climate import HVACMode
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData
+from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 
