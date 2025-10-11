@@ -30,7 +30,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 > - Es wurden Schwellenwerte hinzugefügt, um den TPI-Algorithmus zu aktivieren oder zu deaktivieren, wenn die Temperatur den Sollwert überschreitet.
 > Dadurch werden kurze Ein-/Ausschaltzyklen eines Heizkörpers verhindert.
 >   Siehe [TPI](documentation/de/algorithms.md#the-tpi-algorithm)
->
+> - Added a sleep mode for VTherms of type `over_climate` with regulation by direct valve control. This mode allows you to set the thermostat to off mode but with the valve 100% open. It is useful for long periods without heating if the boiler circulates water from time to time. Note: you must update the VTHerm UI Card to view this new mode. See [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
 >
 > * **Release 7.2**:
 >
