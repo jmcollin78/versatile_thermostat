@@ -879,9 +879,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await end_climate_changed(changes)
 
     @overrides
-    async def async_control_heating(self, force=False, _=None) -> bool:
+    async def async_control_heating(self, _=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(force, _)
+        ret = await super().async_control_heating(_=_, force=force)
 
         # Check if we need to auto start/stop the Vtherm
         continu = await self.auto_start_stop_manager.refresh_state()
@@ -929,7 +929,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
     @overrides
-    # TODO ne fonctionne pas car underlying_entity n'est pas initialisé au moment de l'appel
     def build_hvac_list(self) -> list[HVACMode]:
         """Build the hvac list depending on ac_mode"""
         if self.underlying_entity(0):

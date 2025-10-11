@@ -211,7 +211,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._hvac_off_reason: str | None = None
         self._hvac_list: list[HVACMode] = []
 
-
         # Store the last havac_mode before central mode changes
         # has been introduce to avoid conflict with window
         self._saved_hvac_mode_central_mode = None
@@ -1063,7 +1062,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # If we already are in OFF, the manual OFF should just
         # overwrite the reason and saved_hvac_mode
         if self._hvac_mode == HVACMode.OFF and hvac_mode == HVACMode.OFF:
-            _LOGGER.info("%s - already in OFF. Change the reason to MANUAL " "and erase the saved_havc_mode")
+            _LOGGER.info("%s - already in OFF. Change the reason to MANUAL and erase the saved_havc_mode")
             self._hvac_off_reason = HVAC_OFF_REASON_MANUAL if not self.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE
             self._saved_hvac_mode = HVACMode.OFF
 
@@ -1630,15 +1629,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         should have found the underlying climate to be operational"""
         return True
 
-    async def async_control_heating(self, force=False, _=None) -> bool:
+    async def async_control_heating(self, _=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
 
         _LOGGER.debug(
-            "%s - Checking new cycle. hvac_mode=%s, safety_state=%s, preset_mode=%s",
+            "%s - Checking new cycle. hvac_mode=%s, safety_state=%s, preset_mode=%s, force=%s",
             self,
             self._hvac_mode,
             self._safety_manager.safety_state,
             self._attr_preset_mode,
+            force,
         )
 
         # check auto_window conditions
