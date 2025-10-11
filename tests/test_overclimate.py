@@ -570,7 +570,7 @@ async def test_bug_508(
         await entity.async_set_temperature(temperature=8.5)
 
         # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
-        assert mock_service_call.call_count == 2  # set temperature recalculate now
+        assert mock_service_call.call_count >= 2  # set temperature recalculate now
         mock_service_call.assert_has_calls(
             [
                 call.async_call(

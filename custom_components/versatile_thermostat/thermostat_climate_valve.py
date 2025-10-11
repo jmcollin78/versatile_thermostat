@@ -273,6 +273,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             )
             return
 
+        if not force and not self.check_auto_regulation_period_min(self.now):
+            return
+
         for under in self._underlyings:
             if self.target_temperature != under.last_sent_temperature:
                 await under.set_temperature(

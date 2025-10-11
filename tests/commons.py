@@ -356,6 +356,12 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
 
+    @property
+    def supported_features(self) -> int:
+        """The supported feature of this climate entity"""
+        ret = ClimateEntityFeature.TARGET_TEMPERATURE
+        return ret
+
 
 class MagicMockClimate(MagicMock):
     """A Magic Mock class for a underlying climate entity"""

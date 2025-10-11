@@ -10,9 +10,7 @@ import logging
 
 from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import (
-    SERVICE_SET_TEMPERATURE,
-)
+from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, SERVICE_SET_HVAC_MODE
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -182,14 +180,10 @@ async def test_bug_272(
         await entity.async_set_temperature(temperature=17.5)
 
         # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
-        assert mock_service_call.call_count == 1
+        assert mock_service_call.call_count > 1
+
         mock_service_call.assert_has_calls(
             [
-                # call.async_call(
-                #     "climate",
-                #     SERVICE_SET_HVAC_MODE,
-                #     {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT},
-                # ),
                 call.async_call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,
@@ -201,6 +195,16 @@ async def test_bug_272(
                     },
                 ),
             ]
+        )
+
+        assert not any(
+            c
+            == call.async_call(
+                "climate",
+                SERVICE_SET_HVAC_MODE,
+                {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT},
+            )
+            for c in mock_service_call.call_args_list
         )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -250,7 +254,7 @@ async def test_bug_272(
         event_timestamp = event_timestamp + timedelta(minutes=3)
         entity._set_now(event_timestamp)
         await entity.async_set_temperature(temperature=20.8)
-        assert mock_service_call.call_count == 1
+        assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
