@@ -315,11 +315,10 @@ async def test_over_climate_regulation_limitations(
         event_timestamp = now - timedelta(minutes=18)
         entity._set_now(event_timestamp)
 
+        # Set_target_temperature force the update
         await entity.async_set_temperature(temperature=17)
         assert entity.regulated_target_temp > entity.target_temperature
-        assert (
-            entity.regulated_target_temp == 18 + 0
-        )  # In strong we could go up to +3 degre. 0.7 without round_to_nearest
+        assert entity.regulated_target_temp == 18 + 0.5  # In strong we could go up to +3 degre. 0.7 without round_to_nearest
         old_regulated_temp = entity.regulated_target_temp
 
         # 3. change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
@@ -340,7 +339,7 @@ async def test_over_climate_regulation_limitations(
         # the regulated should have been done
         assert entity.regulated_target_temp != old_regulated_temp
         assert entity.regulated_target_temp >= entity.target_temperature
-        assert entity.regulated_target_temp == 17 + 1.5  # 0.7 without round_to_nearest
+        assert entity.regulated_target_temp == 17 + 2  # 0.7 without round_to_nearest
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

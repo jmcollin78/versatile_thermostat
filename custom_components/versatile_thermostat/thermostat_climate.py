@@ -187,18 +187,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             force,
         )
 
-        if self._last_regulation_change is not None:
-            period = (
-                float((self.now - self._last_regulation_change).total_seconds()) / 60.0
-            )
-            if not force and period < self._auto_regulation_period_min:
-                _LOGGER.info(
-                    "%s - period (%.1f) min is < %.0f min -> forget the regulation send",
-                    self,
-                    period,
-                    self._auto_regulation_period_min,
-                )
-                return
+        if not force and not self.check_auto_regulation_period_min(self.now):
+            return
 
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
@@ -268,6 +258,30 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_max_temp,
                 self._attr_min_temp,
             )
+
+    def check_auto_regulation_period_min(self, now):
+        """Check if minimal auto_regulation period is exceeded
+        Returns true if it is not exceeded (so auto regulation can continue)"""
+        if self._last_regulation_change is None:
+            return True
+
+        period = float((now - self._last_regulation_change).total_seconds()) / 60.0
+        if period < self._auto_regulation_period_min:
+            _LOGGER.info(
+                "%s - period (%.1f) min is < %.0f min -> forget the auto-regulation send",
+                self,
+                period,
+                self._auto_regulation_period_min,
+            )
+            return False
+
+        _LOGGER.debug(
+            "%s - period (%.1f) min is >= %.0f min -> auto-regulation is available",
+            self,
+            period,
+            self._auto_regulation_period_min,
+        )
+        return True
 
     async def _send_auto_fan_mode(self):
         """Send the fan mode if auto_fan_mode and temperature gap is > threshold"""
@@ -877,7 +891,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # Continue the normal async_control_heating
 
         # Send the regulated temperature to the underlyings
-        await self._send_regulated_temperature()
+        await self._send_regulated_temperature(force=force)
 
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
             await self._send_auto_fan_mode()
