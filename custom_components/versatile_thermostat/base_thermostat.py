@@ -32,17 +32,6 @@ from homeassistant.components.climate.const import (
     # ATTR_FAN_MODE,
     HVACMode,
     HVACAction,
-    # HVAC_MODE_COOL,
-    # HVAC_MODE_HEAT,
-    # HVAC_MODE_OFF,
-    PRESET_ACTIVITY,
-    # PRESET_AWAY,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    # PRESET_HOME,
-    PRESET_NONE,
-    # PRESET_SLEEP,
     ClimateEntityFeature,
 )
 
@@ -69,6 +58,14 @@ from .feature_power_manager import FeaturePowerManager
 from .feature_motion_manager import FeatureMotionManager
 from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
+from .state_manager import StateManager
+from .vtherm_preset import VThermPreset
+from .vtherm_hvac_mode import VThermHvacMode
+
+ATTR_CURRENT_STATE = "current_state"
+ATTR_REQUESTED_STATE = "requested_state"
+ATTR_SAVED_HVAC_MODE_CENTRAL_MODE = "saved_hvac_mode_central_mode"
+ATTR_SAVED_PRESET_MODE_CENTRAL_MODE = "saved_preset_mode_central_mode"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -149,24 +146,28 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._name = name
         self._prop_algorithm = None
         self._async_cancel_cycle = None
-        self._hvac_mode = None
-        self._target_temp = None
-        self._saved_target_temp = None
-        self._saved_preset_mode = None
+
+        self._state_manager = StateManager()
+        # self._hvac_mode = None
+        # self._target_temp = None
+        # self._saved_target_temp = None
+        # self._saved_preset_mode = None
+        # self._saved_hvac_mode = None
+
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
-
-        self._saved_hvac_mode = None
+        self._ac_mode = None
 
         self._cur_temp = None
-        self._ac_mode = None
+
         self._temp_sensor_entity_id = None
         self._last_seen_temp_sensor_entity_id = None
         self._ext_temp_sensor_entity_id = None
         self._last_ext_temperature_measure = None
         self._last_temperature_measure = None
         self._cur_ext_temp = None
+
         self._should_relaunch_control_heating = None
 
         self._thermostat_type = None
@@ -344,9 +345,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.set_hvac_list()
 
         self._unit = self._hass.config.units.temperature_unit
+
         # Will be restored if possible
-        self._hvac_mode = None  # HVAC_MODE_OFF
-        self._saved_hvac_mode = self._hvac_mode
+        self._state_manager = StateManager()
+
+        # TODO c'est sur ça ?
+        # self._hvac_mode = None  # HVAC_MODE_OFF
+        # self._saved_hvac_mode = self._hvac_mode
+        # self._target_temp = None
+        # self._saved_target_temp = PRESET_NONE
+        # self._attr_preset_mode = PRESET_NONE
+        # self._saved_preset_mode = PRESET_NONE
 
         self._support_flags = SUPPORT_FLAGS
 
@@ -354,13 +363,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._presets: dict[str, Any] = {}  # presets
         self._presets_away: dict[str, Any] = {}  # presets_away
 
-        # Will be restored if possible
-        self._attr_preset_mode = PRESET_NONE
-        self._saved_preset_mode = PRESET_NONE
-
-        # will be restored if possible
-        self._target_temp = None
-        self._saved_target_temp = PRESET_NONE
         self._humidity = None
         self._fan_mode = None
         self._swing_mode = None
@@ -496,7 +498,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         _LOGGER.debug("%s - Calling async_startup", self)
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
-        need_write_state = False
+        # need_write_state = False
 
         # start listening for all managers
         for manager in self._managers:
@@ -520,7 +522,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 float(temperature_state.state),
             )
             await self._async_update_temp(temperature_state)
-            need_write_state = True
 
         if self._ext_temp_sensor_entity_id:
             ext_temperature_state = self.hass.states.get(
@@ -549,25 +550,36 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
             )
 
+        # Then we:
+        # - refresh all managers states,
+        # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
+        # - check if the initial conditions are met
+        # - force the first cycle if changes has been detected
+
         # refresh states for all managers
         for manager in self._managers:
-            if await manager.refresh_state():
-                need_write_state = True
+            await manager.refresh_state()
+            #    need_write_state = True
 
-        if need_write_state:
+        if changed := await self._state_manager.calculate_current_state(self):
             self.async_write_ha_state()
             if self._prop_algorithm:
                 self._prop_algorithm.calculate(
-                    self._target_temp,
+                    self.target_temperature,
                     self._cur_temp,
                     self._cur_ext_temp,
                     self.last_temperature_slope,
-                    self._hvac_mode or HVACMode.OFF,
+                    self.hvac_mode or HVACMode.OFF,
                 )
 
-        self.hass.create_task(self._check_initial_state())
-
+        # check initial state should be done after the current state has been calculated and so after the manager has been updated
+        await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
+
+        # force the first cycle
+        if changed:
+            _LOGGER.info("%s - Changes has been detected during startup, forcing first cycle", self)
+            await self.async_control_heating(force=True)
 
     def init_underlyings(self):
         """Initialize all underlyings. Should be overridden if necessary"""
@@ -586,50 +598,70 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "%s - Calling get_my_previous_state old_state is %s", self, old_state
         )
         if old_state is not None:
-            # If we have no initial temperature, restore
-            if self._target_temp is None:
-                # If we have a previously saved temperature
-                if old_state.attributes.get(ATTR_TEMPERATURE) is None:
-                    if self._ac_mode:
-                        await self.change_target_temperature(self.max_temp)
-                    else:
-                        await self.change_target_temperature(self.min_temp)
-                    _LOGGER.warning(
-                        "%s - Undefined target temperature, falling back to %s",
-                        self,
-                        self._target_temp,
-                    )
-                else:
-                    await self.change_target_temperature(
-                        float(old_state.attributes[ATTR_TEMPERATURE])
-                    )
-
-            old_preset_mode = old_state.attributes.get(ATTR_PRESET_MODE)
-            # Never restore a Power or Security preset
-            if old_preset_mode is not None and old_preset_mode not in HIDDEN_PRESETS:
-                # old_preset_mode in self._attr_preset_modes
-                self._attr_preset_mode = old_preset_mode
-                self.save_preset_mode()
+            # Restore current_state
+            if current_state := old_state.attributes.get(ATTR_CURRENT_STATE, None):
+                self._state_manager.current_state.set_state(
+                    hvac_mode=current_state.get("hvac_mode", None) or VThermHvacMode.OFF,
+                    target_temperature=current_state.get("target_temperature", None),
+                    preset=current_state.get("preset", None) or VThermPreset.NONE,
+                )
             else:
-                self._attr_preset_mode = PRESET_NONE
+                # Try to init current_state with old temperature, preset and mode
+                self._state_manager.current_state.set_state(
+                    target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
+                    preset=old_state.attributes.get(ATTR_PRESET_MODE, None),
+                    hvac_mode=old_state.state,
+                )
+            # If we have no initial temperature set with min (or max depending on ac_mode)
+            if self._state_manager.current_state.target_temperature is None:
+                self._state_manager.current_state.set_target_temperature(self.max_temp if self._ac_mode else self.min_temp)
+                _LOGGER.warning(
+                    "%s - Undefined target temperature, falling back to %s",
+                    self,
+                    self._state_manager.current_state.target_temperature,
+                )
+
+            # Restore requested_state or default with current_state
+            if requested_state := old_state.attributes.get(ATTR_REQUESTED_STATE, None):
+                self._state_manager.requested_state.set_state(
+                    hvac_mode=requested_state.get("hvac_mode", None) or VThermHvacMode.OFF,
+                    target_temperature=requested_state.get("target_temperature", None),
+                    preset=requested_state.get("preset", None) or VThermPreset.NONE,
+                )
+            else:
+                # Try to init requested_state with old temperature, preset and mode
+                self._state_manager.requested_state.set_state(
+                    target_temperature=self._state_manager.current_state.target_temperature,
+                    preset=self._state_manager.current_state.preset,
+                    hvac_mode=self._state_manager.current_state.hvac_mode,
+                )
+
+            # TODO has been removed
+            # Never restore a Power or Security preset
+            # if old_preset_mode is not None and old_preset_mode not in HIDDEN_PRESETS:
+            #     old_preset_mode in self._attr_preset_modes
+            #     self._attr_preset_mode = old_preset_mode
+            #     self.save_preset_mode()
+            # else:
+            #     self._attr_preset_mode = PRESET_NONE
 
             # Restore old hvac_off_reason
             self._hvac_off_reason = old_state.attributes.get(HVAC_OFF_REASON_NAME, None)
 
-            if old_state.state in [
-                HVACMode.OFF,
-                HVACMode.HEAT,
-                HVACMode.COOL,
-            ]:
-                self._hvac_mode = old_state.state
+            # if old_state.state in [
+            #     HVACMode.OFF,
+            #     HVACMode.HEAT,
+            #     HVACMode.COOL,
+            # ]:
+            #     self._hvac_mode = old_state.state
 
             # restore also saved info so that window detection will work
-            self._saved_hvac_mode = old_state.attributes.get("saved_hvac_mode", None)
-            self._saved_preset_mode = old_state.attributes.get(
-                "saved_preset_mode", None
-            )
-            self._saved_hvac_mode_central_mode = old_state.attributes.get("saved_hvac_mode_central_mode", None)
-            self._saved_preset_mode_central_mode = old_state.attributes.get("saved_preset_mode_central_mode", None)
+            # self._saved_hvac_mode = old_state.attributes.get("saved_hvac_mode", None)
+            # self._saved_preset_mode = old_state.attributes.get(
+            #     "saved_preset_mode", None
+            # )
+            self._saved_hvac_mode_central_mode = old_state.attributes.get(ATTR_SAVED_HVAC_MODE_CENTRAL_MODE, None)
+            self._saved_preset_mode_central_mode = old_state.attributes.get(ATTR_SAVED_PRESET_MODE_CENTRAL_MODE, None)
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
@@ -642,14 +674,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self.restore_specific_previous_state(old_state)
         else:
             # No previous state, try and restore defaults
-            if self._target_temp is None:
-                if self._ac_mode:
-                    await self.change_target_temperature(self.max_temp)
-                else:
-                    await self.change_target_temperature(self.min_temp)
-            _LOGGER.warning(
-                "No previously saved temperature, setting to %s", self._target_temp
-            )
+            if self._state_manager.current_state.target_temperature is None:
+                await self._state_manager.current_state.set_target_temperature(self.max_temp if self._ac_mode else self.min_temp)
+            _LOGGER.warning("No previously saved temperature, setting to %s", self._state_manager.current_state.target_temperature)
             self._total_energy = 0
             _LOGGER.debug(
                 "%s - get_my_previous_state  no previous state energy is %s",
@@ -657,23 +684,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._total_energy,
             )
 
-        if not self._hvac_mode:
-            self._hvac_mode = HVACMode.OFF
+        # if not self._hvac_mode:
+        #     self._hvac_mode = HVACMode.OFF
 
         if not self.is_on and self.hvac_off_reason is None:
             self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
 
-        self.save_target_temp()
-
-        self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
-        self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
+        # self.save_target_temp()
 
         _LOGGER.info(
-            "%s - restored state is target_temp=%s, preset_mode=%s, hvac_mode=%s",
+            "%s - restored current state is %s, requested state is %s",
             self,
-            self._target_temp,
-            self._attr_preset_mode,
-            self._hvac_mode,
+            self._state_manager.current_state,
+            self._state_manager.requested_state,
         )
 
     def __str__(self) -> str:
@@ -783,18 +806,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        return self._hvac_mode
+        return self._state_manager.current_state.hvac_mode
 
     @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation if supported.
         Need to be one of CURRENT_HVAC_*.
         """
-        if self._hvac_mode == HVACMode.OFF:
+        if self.hvac_mode == HVACMode.OFF:
             action = HVACAction.OFF
         elif not self.is_device_active:
             action = HVACAction.IDLE
-        elif self._hvac_mode == HVACMode.COOL:
+        elif self.hvac_mode == HVACMode.COOL:
             action = HVACAction.COOLING
         else:
             action = HVACAction.HEATING
@@ -809,7 +832,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
-        return self._target_temp
+        return self._state_manager.current_state.target_temperature
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
@@ -942,7 +965,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def preset_mode(self) -> str | None:
         """Return the current preset mode comfort, eco, boost,...,"""
-        return self._attr_preset_mode
+        return self._state_manager.current_state.preset
 
     @property
     def preset_modes(self) -> list[str] | None:
@@ -1045,6 +1068,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Turn auxiliary heater off."""
         raise NotImplementedError()
 
+    async def update_states(self, force=False):
+        """Update the states of the thermostat."""
+        if self._state_manager.requested_state.is_changed:
+            if await self._state_manager.calculate_current_state(self):
+                await self.async_write_ha_state()
+                await self.async_control_heating(force=force)
+
     @overrides
     async def async_set_hvac_mode(self, hvac_mode: HVACMode, need_control_heating=True):
         """Set new target hvac mode."""
@@ -1053,28 +1083,31 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if hvac_mode is None:
             return
 
-        def save_state():
+        self._state_manager.requested_state.hvac_mode = hvac_mode
+        if self._state_manager.requested_state.is_changed:
             self.reset_last_change_time_from_vtherm()
-            self.update_custom_attributes()
-            self.async_write_ha_state()
-            self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self._hvac_mode})
+
+        # def save_state():
+        #     self.reset_last_change_time_from_vtherm()
+        #     self.update_custom_attributes()
+        #     self.async_write_ha_state()
+        #     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self.hvac_mode})
 
         # If we already are in OFF, the manual OFF should just
         # overwrite the reason and saved_hvac_mode
-        if self._hvac_mode == HVACMode.OFF and hvac_mode == HVACMode.OFF:
+        if self.hvac_mode == HVACMode.OFF and hvac_mode == HVACMode.OFF:
             _LOGGER.info("%s - already in OFF. Change the reason to MANUAL and erase the saved_havc_mode")
             self._hvac_off_reason = HVAC_OFF_REASON_MANUAL if not self.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE
-            self._saved_hvac_mode = HVACMode.OFF
+            # self._saved_hvac_mode = HVACMode.OFF
 
-            save_state()
-
+            await self.update_states(force=True)
             return
 
         # Remove eventual overpowering if we want to turn-off
-        if hvac_mode == HVACMode.OFF and self.power_manager.is_overpowering_detected:
-            await self.power_manager.set_overpowering(False)
+        # if hvac_mode == HVACMode.OFF and self.power_manager.is_overpowering_detected:
+        #     await self.power_manager.set_overpowering(False)
 
-        self._hvac_mode = hvac_mode
+        # self.hvac_mode = hvac_mode
 
         # Delegate to all underlying
         sub_need_control_heating = False
@@ -1085,25 +1118,23 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # If AC is on maybe we have to change the temperature in force mode,
         # but not in frost mode (there is no Frost protection possible in AC mode)
-        if (
-            self._hvac_mode in [HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL]
-            and self.preset_mode != PRESET_NONE
-        ):
-            if self.preset_mode != PRESET_FROST_PROTECTION or self._hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL]:
+        if self.hvac_mode in [HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL] and self.preset_mode != PRESET_NONE:
+            if self.preset_mode != PRESET_FROST_PROTECTION or self.hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL]:
                 await self.async_set_preset_mode_internal(self.preset_mode, True)
             else:
-                await self.async_set_preset_mode_internal(PRESET_ECO, True, False)
+                await self.async_set_preset_mode_internal(PRESET_ECO, False)
 
-        if need_control_heating and sub_need_control_heating:
-            await self.async_control_heating(force=True)
+        # if need_control_heating and sub_need_control_heating:
+        #     await self.async_control_heating(force=True)
 
         # Ensure we update the current operation after changing the mode
         self.reset_last_temperature_time()
 
-        if self._hvac_mode != HVACMode.OFF:
+        if self.hvac_mode != HVACMode.OFF:
             self.set_hvac_off_reason(None)
 
-        save_state()
+        # save_state()
+        await self.update_states(force=(need_control_heating and sub_need_control_heating))
 
     @overrides
     async def async_set_preset_mode(self, preset_mode: str, overwrite_saved_preset=True):
@@ -1134,12 +1165,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             return
 
-        await self.async_set_preset_mode_internal(preset_mode, force=False, overwrite_saved_preset=overwrite_saved_preset)
-        await self.async_control_heating(force=True)
+        await self.async_set_preset_mode_internal(preset_mode, overwrite_saved_preset=overwrite_saved_preset)
+        await self.update_states(force=True)
 
-    async def async_set_preset_mode_internal(self, preset_mode: str, force=False, overwrite_saved_preset=True):
+    async def async_set_preset_mode_internal(self, preset_mode: str, overwrite_saved_preset=True):
         """Set new preset mode."""
-        _LOGGER.info("%s - Set preset_mode: %s force=%s", self, preset_mode, force)
+        _LOGGER.info("%s - Set preset_mode: %s", self, preset_mode)
         if (
             preset_mode not in (self._attr_preset_modes or [])
             and preset_mode not in HIDDEN_PRESETS
@@ -1149,96 +1180,90 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._attr_preset_modes}"  # pylint: disable=line-too-long
             )
 
-        old_preset_mode = self._attr_preset_mode
-        if preset_mode == old_preset_mode and not force:
-            # I don't think we need to call async_write_ha_state
-            # if we didn't change the state
-            return
+        self._state_manager.requested_state.preset = preset_mode
+
+        # TODO valid ?
+        # old_preset_mode = self._state_manager.current_state.preset
+        # if preset_mode == old_preset_mode and not force:
+        # I don't think we need to call async_write_ha_state
+        # if we didn't change the state
+        #    return
 
         # In safety mode don't change preset but memorise
         # the new expected preset when safety will be off
-        if preset_mode != PRESET_SAFETY and self._safety_manager.is_safety_detected:
-            _LOGGER.debug(
-                "%s - is in safety mode. Just memorise the new expected ", self
-            )
-            if preset_mode not in HIDDEN_PRESETS:
-                self._saved_preset_mode = preset_mode
-            return
+        # if preset_mode != PRESET_SAFETY and self._safety_manager.is_safety_detected:
+        #    _LOGGER.debug(
+        #        "%s - is in safety mode. Just memorise the new expected ", self
+        #    )
+        #    if preset_mode not in HIDDEN_PRESETS:
+        #       self._saved_preset_mode = preset_mode
+        #    return
 
         # Remove this old_preset_mode = self._attr_preset_mode
-        recalculate = True
-        if preset_mode == PRESET_NONE:
-            self._attr_preset_mode = PRESET_NONE
-            if self._saved_target_temp:
-                await self.restore_target_temp()
-        elif preset_mode == PRESET_ACTIVITY:
-            self._attr_preset_mode = PRESET_ACTIVITY
-            await self._motion_manager.update_motion_state(None, False)
-        else:
-            if self._attr_preset_mode == PRESET_NONE:
-                self.save_target_temp()
-            self._attr_preset_mode = preset_mode
-            # Switch the temperature if window is not 'on'
-            if not self._window_manager.is_window_detected or self._window_manager.window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
-                await self.change_target_temperature(self.find_preset_temp(preset_mode))
-            else:
-                # Window is on, so we just save the new expected temp
-                # so that closing the window will restore it
-                recalculate = False
-                self._saved_target_temp = self.find_preset_temp(preset_mode)
+        # recalculate = True
+        # if preset_mode == PRESET_NONE:
+        #     self._attr_preset_mode = PRESET_NONE
+        #     if self._saved_target_temp:
+        #         await self.restore_target_temp()
+        # elif preset_mode == PRESET_ACTIVITY:
+        #     self._attr_preset_mode = PRESET_ACTIVITY
+        #     await self._motion_manager.update_motion_state(None, False)
+        # else:
+        #     if self._attr_preset_mode == PRESET_NONE:
+        #         self.save_target_temp()
+        #     self._attr_preset_mode = preset_mode
+        #     # Switch the temperature if window is not 'on'
+        #     if not self._window_manager.is_window_detected or self._window_manager.window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
+        #         await self.change_target_temperature(self.find_preset_temp(preset_mode))
+        #     else:
+        #         # Window is on, so we just save the new expected temp
+        #         # so that closing the window will restore it
+        #         recalculate = False
+        #         self._saved_target_temp = self.find_preset_temp(preset_mode)
 
-        if recalculate:
-            self.reset_last_temperature_time(old_preset_mode)
+    #
+    # if recalculate:
+    #     self.reset_last_temperature_time(old_preset_mode)
+    #
+    #     if overwrite_saved_preset:
+    #         self.save_preset_mode()
+    #         self._saved_preset_mode_central_mode = preset_mode
+    #
+    #     self.recalculate()
+    # # Notify only if there was a real change
+    # if self._attr_preset_mode != old_preset_mode:
+    #     self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
 
-            if overwrite_saved_preset:
-                self.save_preset_mode()
-                self._saved_preset_mode_central_mode = preset_mode
-
-            self.recalculate()
-        # Notify only if there was a real change
-        if self._attr_preset_mode != old_preset_mode:
-            self.send_event(EventType.PRESET_EVENT, {"preset": self._attr_preset_mode})
-
-    def reset_last_change_time_from_vtherm(
-        self, old_preset_mode: str | None = None
-    ):  # pylint: disable=unused-argument
+    def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
         self._last_change_time_from_vtherm = self.now
         _LOGGER.debug(
             "%s - last_change_time is now %s", self, self._last_change_time_from_vtherm
         )
 
-    def reset_last_temperature_time(self, old_preset_mode: str | None = None):
+    def reset_last_temperature_time(self, old_preset_mode: VThermPreset | None = None):
         """Reset to now the last temperature time if conditions are satisfied"""
-        if (
-            self._attr_preset_mode not in HIDDEN_PRESETS
-            and old_preset_mode not in HIDDEN_PRESETS
-        ):
+        if self._state_manager.current_state.preset not in HIDDEN_PRESETS and old_preset_mode not in HIDDEN_PRESETS:
             self._last_temperature_measure = self._last_ext_temperature_measure = (
                 self.now
             )
 
-    def find_preset_temp(self, preset_mode: str):
+    def find_preset_temp(self, preset_mode: VThermPreset):
         """Find the right temperature of a preset considering
          the presence if configured"""
         if preset_mode is None or preset_mode == "none":
-            return (
-                self._attr_max_temp
-                if self._ac_mode and self._hvac_mode == HVACMode.COOL
-                else self._attr_min_temp
-            )
+            return self._attr_max_temp if self._ac_mode and self.hvac_mode == HVACMode.COOL else self._attr_min_temp
 
-        if preset_mode == PRESET_SAFETY:
-            return (
-                self._target_temp
-            )
+        if preset_mode == VThermPreset.SAFETY:
+            return self._state_manager.current_state.target_temperature
             # In safety just keep the current target temperature,
             # the thermostat should be off
-        if preset_mode == PRESET_POWER:
+
+        if preset_mode == VThermPreset.POWER:
             return self._power_manager.power_temperature
-        if preset_mode == PRESET_ACTIVITY:
+        if preset_mode == VThermPreset.ACTIVITY:
             motion_preset = self._motion_manager.get_current_motion_preset()
-            if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+            if self._ac_mode and self.hvac_mode == VThermHvacMode.COOL:
                 motion_preset = motion_preset + PRESET_AC_SUFFIX
 
             if motion_preset in self._presets:
@@ -1250,7 +1275,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 return None
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
-            if self._ac_mode and self._hvac_mode == HVACMode.COOL:
+            if self._ac_mode and self.hvac_mode == VThermHvacMode.COOL:
                 preset_mode = preset_mode + PRESET_AC_SUFFIX
 
             _LOGGER.info("%s - find preset temp: %s", self, preset_mode)
@@ -1308,12 +1333,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def change_target_temperature(self, temperature: float, force=False):
         """Set the target temperature and the target temperature
          of underlying climate if any"""
+        # TODO que faire de force ici ?
         if temperature:
-            self._target_temp = temperature
-            if force:
-                self.recalculate()
-                self.reset_last_change_time_from_vtherm()
-                await self.async_control_heating(force=True)
+            self._state_manager.requested_state.set_target_temperature(temperature)
+            # TODO put that elsewhere
+            # if force:
+            #     self.recalculate()
+            #     self.reset_last_change_time_from_vtherm()
+            #     await self.async_control_heating(force=True)
 
     def get_state_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
@@ -1415,15 +1442,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Prevent the device from keep running if HVAC_MODE_OFF."""
         _LOGGER.debug("%s - Calling _check_initial_state", self)
         for under in self._underlyings:
-            await under.check_initial_state(self._hvac_mode)
+            await under.check_initial_state(self.hvac_mode)
 
+        # TODO has been removed. Valid ?
         # Prevent from starting a VTherm if window is open
-        if self.is_on:
-            _LOGGER.info("%s - the heater wants to heat. Check to prevent starting the VTherm is window is open", self)
-            await self._window_manager.refresh_state()
+        # if self.is_on:
+        #     _LOGGER.info("%s - the heater wants to heat. Check to prevent starting the VTherm is window is open", self)
+        #     await self._window_manager.refresh_state()
 
         # Starts the initial control loop (don't wait for an update of temperature)
-        await self.async_control_heating(force=True)
+        # await self.async_control_heating(force=True)
 
     @callback
     async def _async_update_temp(self, state: State):
@@ -1504,20 +1532,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Restore a previous preset mode
         We never restore a hidden preset mode. Normally that is not possible
         """
-        if (
-            self._saved_preset_mode not in HIDDEN_PRESETS
-            and self._saved_preset_mode is not None
-        ):
-            await self.async_set_preset_mode_internal(self._saved_preset_mode, force=force)
+        # if (
+        #     self._saved_preset_mode not in HIDDEN_PRESETS
+        #     and self._saved_preset_mode is not None
+        # ):
+        #     await self.async_set_preset_mode_internal(self._saved_preset_mode, force=force)
 
     def save_hvac_mode(self):
         """Save the current hvac-mode to be restored later"""
-        self._saved_hvac_mode = self._hvac_mode
+        self._saved_hvac_mode = self.hvac_mode
         _LOGGER.debug(
             "%s - Saved hvac mode - saved_hvac_mode is %s, hvac_mode is %s",
             self,
             self._saved_hvac_mode,
-            self._hvac_mode,
+            self.hvac_mode,
         )
 
     def set_hvac_off_reason(self, hvac_off_reason: str):
@@ -1531,12 +1559,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "%s - Restored hvac_mode - saved_hvac_mode is %s, hvac_mode is %s",
             self,
             self._saved_hvac_mode,
-            self._hvac_mode,
+            self.hvac_mode,
         )
 
     def save_target_temp(self):
         """Save the target temperature"""
-        self._saved_target_temp = self._target_temp
+        self._saved_target_temp = self._state_manager.current_state.target_temperature
 
     async def restore_target_temp(self, force=False):
         """Restore the saved target temp"""
@@ -1564,7 +1592,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         def save_all():
             """save preset and hvac_mode"""
             if not is_window_detected:
-                self._saved_hvac_mode_central_mode = self._hvac_mode
+                self._saved_hvac_mode_central_mode = self.hvac_mode
                 self._saved_preset_mode_central_mode = self._attr_preset_mode
             else:
                 self._saved_hvac_mode_central_mode = self._saved_hvac_mode
@@ -1572,7 +1600,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         async def restore_all():
             """restore preset and hvac_mode"""
-            await self.async_set_preset_mode_internal(self._saved_preset_mode_central_mode, force=False)
+            await self.async_set_preset_mode_internal(self._saved_preset_mode_central_mode)
             await self.async_set_hvac_mode(self._saved_hvac_mode_central_mode, need_control_heating=True)
 
         is_window_detected = self._window_manager.is_window_detected
@@ -1635,9 +1663,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         _LOGGER.debug(
             "%s - Checking new cycle. hvac_mode=%s, safety_state=%s, preset_mode=%s, force=%s",
             self,
-            self._hvac_mode,
+            self.hvac_mode,
             self._safety_manager.safety_state,
-            self._attr_preset_mode,
+            self.preset_mode,
             force,
         )
 
@@ -1661,7 +1689,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return True
 
         # Stop here if we are off
-        if self._hvac_mode == HVACMode.OFF:
+        if self.hvac_mode == HVACMode.OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
             # A security to force stop heater if still active
             if self.is_device_active:
@@ -1669,7 +1697,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             for under in self._underlyings:
                 await under.start_cycle(
-                    self._hvac_mode,
+                    self.hvac_mode,
                     self._prop_algorithm.on_time_sec if self._prop_algorithm else None,
                     self._prop_algorithm.off_time_sec if self._prop_algorithm else None,
                     self._prop_algorithm.on_percent if self._prop_algorithm else None,
@@ -1696,10 +1724,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Update the custom extra attributes for the entity"""
 
         self._attr_extra_state_attributes: dict[str, Any] = {
+            ATTR_CURRENT_STATE: self._state_manager.current_state.to_dict(),
+            ATTR_REQUESTED_STATE: self._state_manager.requested_state.to_dict(),
             "is_on": self.is_on,
             "hvac_action": self.hvac_action,
-            "hvac_mode": self.hvac_mode,
-            "preset_mode": self.preset_mode,
+            # "hvac_mode": self.hvac_mode,
+            # "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
             "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
             "last_central_mode": self.last_central_mode,
@@ -1714,11 +1744,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "target_temperature_step": self.target_temperature_step,
             "ext_current_temperature": self._cur_ext_temp,
             "ac_mode": self._ac_mode,
-            "saved_target_temp": self._saved_target_temp,
-            "saved_preset_mode": self._saved_preset_mode,
-            "saved_hvac_mode": self._saved_hvac_mode,
-            "saved_preset_mod_central_modee": self._saved_preset_mode_central_mode,
-            "saved_hvac_mode_central_mode": self._saved_hvac_mode_central_mode,
+            # "saved_target_temp": self._saved_target_temp,
+            # "saved_preset_mode": self._saved_preset_mode,
+            # "saved_hvac_mode": self._saved_hvac_mode,
+            ATTR_SAVED_PRESET_MODE_CENTRAL_MODE: self._saved_preset_mode_central_mode,
+            ATTR_SAVED_HVAC_MODE_CENTRAL_MODE: self._saved_hvac_mode_central_mode,
             "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
             "minimal_activation_delay_sec": self._minimal_activation_delay,
@@ -1827,7 +1857,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
         if preset.startswith(self._attr_preset_mode):
-            await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX), force=True)
+            await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX))
             await self.async_control_heating(force=True)
 
     async def service_set_safety(
@@ -1948,7 +1978,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._presets_away: dict[str, Any] = presets_away
 
         # Calculate all possible presets
-        self._attr_preset_modes = [PRESET_NONE]
+        self._attr_preset_modes = [VThermPreset.NONE]
         if len(self._presets):
             self._support_flags = SUPPORT_FLAGS | ClimateEntityFeature.PRESET_MODE
 
@@ -1964,20 +1994,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.debug("No preset_modes")
 
         if self._motion_manager.is_configured:
-            self._attr_preset_modes.append(PRESET_ACTIVITY)
+            self._attr_preset_modes.append(VThermPreset.ACTIVITY)
 
         # Re-applicate the last preset if any to take change into account
-        if self._attr_preset_mode:
-            await self.async_set_preset_mode_internal(self._attr_preset_mode, True)
+        if self._state_manager.current_state.preset and self._state_manager.current_state.preset != VThermPreset.NONE:
+            await self.async_set_preset_mode_internal(self._state_manager.current_state.preset)
 
     async def async_turn_off(self) -> None:
-        await self.async_set_hvac_mode(HVACMode.OFF)
+        await self.async_set_hvac_mode(VThermHvacMode.OFF)
 
     async def async_turn_on(self) -> None:
         if self._ac_mode:
-            await self.async_set_hvac_mode(HVACMode.COOL)
+            await self.async_set_hvac_mode(VThermHvacMode.COOL)
         else:
-            await self.async_set_hvac_mode(HVACMode.HEAT)
+            await self.async_set_hvac_mode(VThermHvacMode.HEAT)
 
     def is_preset_configured(self, preset) -> bool:
         """Returns True if the preset in argument is configured"""

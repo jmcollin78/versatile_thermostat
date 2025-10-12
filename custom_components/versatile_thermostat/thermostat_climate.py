@@ -561,7 +561,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.info(
                 "%s - Force resent target temp cause we turn on some over climate"
             )
-            await self.change_target_temperature(self._target_temp)
+            await self.change_target_temperature(self.target_temperature)
 
     @overrides
     def incremente_energy(self):
@@ -700,12 +700,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         #    new_hvac_mode = HVACMode.OFF
 
         # Forget event when the event holds no real changes
-        if (
-            new_hvac_mode == self._hvac_mode
-            and new_hvac_action == old_hvac_action
-            and under_temp_diff == 0
-            and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode)
-        ):
+        if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode):
             _LOGGER.debug(
                 "%s - a underlying state change event is received but no real change have been found. Forget the event",
                 self,
@@ -735,7 +730,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self,
             under.entity_id,
             new_hvac_mode,
-            self._hvac_mode,
+            self.hvac_mode,
             new_hvac_action,
             old_hvac_action,
             new_target_temp,
@@ -815,20 +810,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 HVACMode.FAN_ONLY,
                 None,
             ]
-            and self._hvac_mode != new_hvac_mode
+            and self.hvac_mode != new_hvac_mode
         ):
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
-                    if (
-                        under.entity_id != new_state.entity_id
-                        and under.hvac_mode != self._hvac_mode
-                    ):
+                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.hvac_mode:
                         _LOGGER.info(
                             "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
                             under,
                             under.hvac_mode,
-                            self._hvac_mode,
+                            self.hvac_mode,
                         )
                         return
 
@@ -840,7 +832,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
             changes = True
-            self._hvac_mode = new_hvac_mode
+            self.hvac_mode = new_hvac_mode
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode != self._attr_fan_mode:

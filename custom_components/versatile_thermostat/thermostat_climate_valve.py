@@ -211,11 +211,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 return
 
         self._prop_algorithm.calculate(
-            self._target_temp,
+            self.target_temperature,
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or HVACMode.OFF,
+            self.hvac_mode or HVACMode.OFF,
         )
 
         new_valve_percent = round(
@@ -334,7 +334,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if (self._hvac_mode == HVACMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
+        if (self.hvac_mode == HVACMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent

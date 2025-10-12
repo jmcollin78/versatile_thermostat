@@ -198,10 +198,11 @@ class FeatureSafetyManager(BaseFeatureManager):
                 self._vtherm.proportional_algorithm.set_safety(
                     self._safety_default_on_percent
                 )
-            await self._vtherm.async_set_preset_mode_internal(PRESET_SAFETY)
+            # TODO is state_manager yet
+            # await self._vtherm.async_set_preset_mode_internal(PRESET_SAFETY)
             # Turn off the underlying climate or heater if safety default on_percent is 0
-            if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
-                await self._vtherm.async_set_hvac_mode(HVACMode.OFF, False)
+            # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
+            #     await self._vtherm.async_set_hvac_mode(HVACMode.OFF, False)
 
             self._vtherm.send_event(
                 EventType.SECURITY_EVENT,

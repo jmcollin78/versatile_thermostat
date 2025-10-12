@@ -11,11 +11,12 @@ from enum import Enum
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
-from homeassistant.components.climate import (
-    # PRESET_ACTIVITY,
+from homeassistant.components.climate import (  # pylint: disable=unused-import
+    PRESET_ACTIVITY,
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
+    PRESET_NONE,
     ClimateEntityFeature,
 )
 
@@ -45,6 +46,16 @@ PRESET_POWER = "power"
 PRESET_SAFETY = "security"
 PRESET_FROST_PROTECTION = "frost"
 
+VALID_PRESETS = [
+    PRESET_NONE,
+    PRESET_FROST_PROTECTION,
+    PRESET_ECO,
+    PRESET_COMFORT,
+    PRESET_BOOST,
+    PRESET_SAFETY,
+    PRESET_POWER,
+    PRESET_ACTIVITY,
+]
 HIDDEN_PRESETS = [PRESET_POWER, PRESET_SAFETY]
 
 DOMAIN = "versatile_thermostat"
@@ -197,11 +208,9 @@ HVAC_OFF_REASON_MANUAL = "manual"
 HVAC_OFF_REASON_AUTO_START_STOP = "auto_start_stop"
 HVAC_OFF_REASON_WINDOW_DETECTION = "window_detection"
 HVAC_OFF_REASON_SLEEP_MODE = "sleep_mode"
+HVAC_OFF_REASON_SAFETY = "safety_detection"
 HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
-    HVAC_OFF_REASON_MANUAL,
-    HVAC_OFF_REASON_AUTO_START_STOP,
-    HVAC_OFF_REASON_WINDOW_DETECTION,
-    HVAC_OFF_REASON_SLEEP_MODE,
+    HVAC_OFF_REASON_MANUAL, HVAC_OFF_REASON_AUTO_START_STOP, HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_SLEEP_MODE, HVAC_OFF_REASON_SAFETY
 ]
 
 DEFAULT_SHORT_EMA_PARAMS = {

@@ -25,6 +25,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
+> * **Release 8.0**:
+> - Pour chaque VTherm vous devez resetter le preset, le hvac_mode et éventuellement la target_temperature
+>
 > * **Release 7.4**:
 >
 > - Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Idéal pour les poeles à bois qui mettent beaucoup de temps à monter en température. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi),
