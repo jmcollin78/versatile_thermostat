@@ -49,4 +49,3 @@ class VThermPreset:
         if not isinstance(other, VThermPreset):
             return NotImplemented
         return self._preset == other._preset
-

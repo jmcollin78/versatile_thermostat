@@ -28,7 +28,9 @@ class VthermState:
         self._hvac_mode: VThermHvacMode = hvac_mode
         self._target_temperature: Optional[float] = target_temperature
         self._preset: Optional[VThermPreset] = preset
-        self._is_changed: bool = False
+        self._is_hvac_mode_changed: bool = True
+        self._is_target_temperature_changed: bool = True
+        self._is_preset_changed: bool = True
 
     def set_state(
         self,
@@ -56,7 +58,7 @@ class VthermState:
         Args:
             hvac_mode: New HVAC mode to set (e.g. 'heat', 'off', 'cool', 'sleep').
         """
-        self._is_changed = self._is_changed or self._hvac_mode != hvac_mode
+        self._is_hvac_mode_changed = self._is_hvac_mode_changed or self._hvac_mode != hvac_mode
         self._hvac_mode = hvac_mode
 
     def set_target_temperature(self, target_temperature: Optional[float]) -> None:
@@ -65,7 +67,7 @@ class VthermState:
         Args:
             target_temperature: New target temperature to set, or None.
         """
-        self._is_changed = self._is_changed or self._target_temperature != target_temperature
+        self._is_target_temperature_changed = self._is_target_temperature_changed or self._target_temperature != target_temperature
         self._target_temperature = target_temperature
 
     def set_preset(self, preset: Optional[VThermPreset]) -> None:
@@ -74,7 +76,7 @@ class VthermState:
         Args:
             preset: New preset name to set, or None.
         """
-        self._is_changed = self._is_changed or self._preset != preset
+        self._is_preset_changed = self._is_preset_changed or self._preset != preset
         self._preset = preset
 
     @property
@@ -95,11 +97,28 @@ class VthermState:
     @property
     def is_changed(self) -> bool:
         """Check if the state has changed."""
-        return self._is_changed
+        return self._is_hvac_mode_changed or self._is_target_temperature_changed or self._is_preset_changed
+
+    @property
+    def is_hvac_mode_changed(self) -> bool:
+        """Check if the HVAC mode has changed."""
+        return self._is_hvac_mode_changed
+
+    @property
+    def is_target_temperature_changed(self) -> bool:
+        """Check if the target temperature has changed."""
+        return self._is_target_temperature_changed
+
+    @property
+    def is_preset_changed(self) -> bool:
+        """Check if the preset has changed."""
+        return self._is_preset_changed
 
     def reset_changed(self) -> None:
         """Reset the changed state."""
-        self._is_changed = False
+        self._is_hvac_mode_changed = False
+        self._is_target_temperature_changed = False
+        self._is_preset_changed = False
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the state to a dictionary."""
@@ -111,12 +130,6 @@ class VthermState:
 
     def __str__(self) -> str:
         """Return a human readable representation of the state."""
-        return (
-            f"VthermState("
-            f"hvac_mode={self._hvac_mode}, "
-            f"target_temperature={self._target_temperature}, "
-            f"preset={self._preset}, "
-            f"is_changed={self._is_changed})"
-        )
+        return f"VthermState(" f"hvac_mode={self._hvac_mode}, " f"target_temperature={self._target_temperature}, " f"preset={self._preset}, " f"is_changed={self.is_changed})"
 
     __repr__ = __str__

@@ -216,14 +216,14 @@ async def test_power_feature_manager_set_overpowering(
     # fmt:on
         # Finish mocking
         fake_vtherm.is_over_climate = is_over_climate
-        fake_vtherm.preset_mode = MagicMock(return_value=PRESET_COMFORT if current_overpowering_state == STATE_OFF else PRESET_POWER)
-        fake_vtherm._saved_preset_mode = PRESET_ECO
+        fake_vtherm.preset_mode = MagicMock(return_value=PRESET_COMFORT if current_overpowering_state == STATE_OFF else VThermPreset.POWER)
+        #fake_vtherm._saved_preset_mode = PRESET_ECO
 
-        fake_vtherm.save_hvac_mode = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
-        fake_vtherm.save_preset_mode = MagicMock()
-        fake_vtherm.restore_preset_mode = AsyncMock()
-        fake_vtherm.async_underlying_entity_turn_off = AsyncMock()
+        #fake_vtherm.save_hvac_mode = MagicMock()
+        #fake_vtherm.restore_hvac_mode = AsyncMock()
+        #fake_vtherm.save_preset_mode = MagicMock()
+        #fake_vtherm.restore_preset_mode = AsyncMock()
+        #fake_vtherm.async_underlying_entity_turn_off = AsyncMock()
         fake_vtherm.async_set_preset_mode_internal = AsyncMock()
         fake_vtherm.send_event = MagicMock()
         fake_vtherm.update_custom_attributes = MagicMock()
@@ -237,18 +237,18 @@ async def test_power_feature_manager_set_overpowering(
 
         if not is_overpowering:
             assert power_manager.overpowering_state == STATE_OFF
-            assert fake_vtherm.save_hvac_mode.call_count == 0
-            assert fake_vtherm.save_preset_mode.call_count == 0
-            assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
+            #assert fake_vtherm.save_hvac_mode.call_count == 0
+            #assert fake_vtherm.save_preset_mode.call_count == 0
+            #assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
             assert fake_vtherm.async_set_preset_mode_internal.call_count == 0
 
             if current_overpowering_state == STATE_ON:
                 assert fake_vtherm.update_custom_attributes.call_count == 1
-                assert fake_vtherm.restore_preset_mode.call_count == 1
-                if is_over_climate:
-                    assert fake_vtherm.restore_hvac_mode.call_count == 1
-                else:
-                    assert fake_vtherm.restore_hvac_mode.call_count == 0
+                #assert fake_vtherm.restore_preset_mode.call_count == 1
+                # if is_over_climate:
+                #     assert fake_vtherm.restore_hvac_mode.call_count == 1
+                # else:
+                #     assert fake_vtherm.restore_hvac_mode.call_count == 0
             else:
                 assert fake_vtherm.update_custom_attributes.call_count == 0
 
@@ -269,25 +269,25 @@ async def test_power_feature_manager_set_overpowering(
         # is_overpowering is True
         else:
             assert power_manager.overpowering_state == STATE_ON
-            if is_over_climate and current_overpowering_state == STATE_OFF:
-                assert fake_vtherm.save_hvac_mode.call_count == 1
-            else:
-                assert fake_vtherm.save_hvac_mode.call_count == 0
+            # if is_over_climate and current_overpowering_state == STATE_OFF:
+            #     assert fake_vtherm.save_hvac_mode.call_count == 1
+            # else:
+            #     assert fake_vtherm.save_hvac_mode.call_count == 0
 
             if current_overpowering_state == STATE_OFF:
-                assert fake_vtherm.save_preset_mode.call_count == 1
-                assert fake_vtherm.async_underlying_entity_turn_off.call_count == 1
+                #assert fake_vtherm.save_preset_mode.call_count == 1
+                #assert fake_vtherm.async_underlying_entity_turn_off.call_count == 1
                 assert fake_vtherm.async_set_preset_mode_internal.call_count == 1
                 assert fake_vtherm.send_event.call_count == 1
                 assert fake_vtherm.update_custom_attributes.call_count == 1
             else:
-                assert fake_vtherm.save_preset_mode.call_count == 0
-                assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
+                #assert fake_vtherm.save_preset_mode.call_count == 0
+                #assert fake_vtherm.async_underlying_entity_turn_off.call_count == 0
                 assert fake_vtherm.async_set_preset_mode_internal.call_count == 0
                 assert fake_vtherm.send_event.call_count == 0
                 assert fake_vtherm.update_custom_attributes.call_count == 0
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.restore_preset_mode.call_count == 0
+            #assert fake_vtherm.restore_hvac_mode.call_count == 0
+            #assert fake_vtherm.restore_preset_mode.call_count == 0
 
             if msg_sent:
                 fake_vtherm.send_event.assert_has_calls(
@@ -537,14 +537,14 @@ async def test_power_management_hvac_on(
         await send_max_power_change_event(entity, 49, now)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is PRESET_POWER
+        assert entity.preset_mode is VThermPreset.POWER
         assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
 
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_POWER}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.POWER}),
                 call.send_event(
                     EventType.POWER_EVENT,
                     {
@@ -935,6 +935,20 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     #
     #
     #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \
@@ -948,7 +962,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         await send_max_power_change_event(entity, 49, now)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is PRESET_POWER
+        assert entity.preset_mode is VThermPreset.POWER
         assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
 

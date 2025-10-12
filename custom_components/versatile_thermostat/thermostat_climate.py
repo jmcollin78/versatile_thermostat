@@ -162,7 +162,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self._regulation_algo.set_target_temp(self.target_temperature)
         # Is necessary cause control_heating method will not force the update.
-        await self._send_regulated_temperature(force=True)
+        # TODO no more needed ?
+        # await self._send_regulated_temperature(force=True)
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""

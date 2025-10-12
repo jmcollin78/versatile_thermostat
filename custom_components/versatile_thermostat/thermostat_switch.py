@@ -175,13 +175,13 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         """
         _LOGGER.debug("%s - recalculate all", self)
         self._prop_algorithm.calculate(
-            self._target_temp,
+            self.target_temperature,
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or HVACMode.OFF,
+            self.hvac_mode or HVACMode.OFF,
         )
-        self.update_custom_attributes()
+        # self.update_custom_attributes()
         # already done bu update_custom_attributes
         # self.async_write_ha_state()
 

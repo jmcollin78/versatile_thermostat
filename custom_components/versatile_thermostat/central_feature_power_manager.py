@@ -166,6 +166,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         if not self.is_configured or self.current_max_power is None or self.current_power is None:
             return
 
+        changed_vtherm = []
+
         _LOGGER.debug("-------- Start of calculate_shedding")
         # Find all VTherms
         available_power = self.current_max_power - self.current_power
@@ -187,6 +189,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     total_power_gain += device_power
                     _LOGGER.info("vtherm %s should be in overpowering state (device_power=%.2f)", vtherm.name, device_power)
                     await vtherm.power_manager.set_overpowering(True, device_power)
+                    changed_vtherm.append(vtherm)
 
                 _LOGGER.debug("after vtherm %s total_power_gain=%s, available_power=%s", vtherm.name, total_power_gain, available_power)
                 if total_power_gain >= -available_power:
@@ -223,6 +226,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                         total_power_added += power_consumption_max
 
                     await vtherm.power_manager.set_overpowering(False)
+                    changed_vtherm.append(vtherm)
 
                 if total_power_added >= available_power:
                     _LOGGER.debug("We have found enough vtherm to set to non-overpowering")
@@ -230,6 +234,9 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
                 _LOGGER.debug("after vtherm %s total_power_added=%s, available_power=%s", vtherm.name, total_power_added, available_power)
 
+        # We have set the evenual new state, fr
+        for vtherm in changed_vtherm:
+            await vtherm.update_states(force=True)
         self._last_shedding_date = self._vtherm_api.now
         _LOGGER.debug("-------- End of calculate_shedding")
 

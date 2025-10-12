@@ -23,8 +23,8 @@ class StateManager:
     def __init__(self):
         """Initialize the StateManager with empty initial states.
         """
-        self._current_state = VthermState(hvac_mode=VThermHvacMode.OFF)
-        self._requested_state = VthermState(hvac_mode=VThermHvacMode.OFF)
+        self._current_state = VthermState(hvac_mode=VThermHvacMode.OFF, preset=VThermPreset.NONE)
+        self._requested_state = VthermState(hvac_mode=VThermHvacMode.OFF, preset=VThermPreset.NONE)
 
     @property
     def current_state(self) -> Optional[VthermState]:
@@ -48,30 +48,39 @@ class StateManager:
         if not vtherm:
             return False
 
-        old_state = self._current_state
+        # vtherm_api = VersatileThermostatAPI.get_vtherm_api()
 
-        # Check safety mode first
-        if vtherm.safety_manager.is_safety_detected:
+        # check overpowering first
+        if vtherm.power_manager.is_overpowering_detected:
+            await vtherm.async_underlying_entity_turn_off()
+            self._current_state.set_preset(VThermPreset.POWER)
+
+        # then check safety
+        elif vtherm.safety_manager.is_safety_detected:
             await self._current_state.set_preset(VThermPreset.SAFETY)
             if vtherm.is_over_climate or vtherm.safety_default_on_percent <= 0.0:
                 self._current_state.set_hvac_mode(VThermHvacMode.OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
-        elif vtherm.power_manager.is_overpowering_detected:
-            # TODO pas bien ici, devrait dans le metier du power
-            if vtherm.hvac_mode == VThermHvacMode.OFF and vtherm.power_manager.is_overpowering_detected:
-                await vtherm.power_manager.set_overpowering(False)
 
-        # Send events if something have changed
-        if old_state != self._current_state:
-            if old_state.hvac_mode != self._current_state.hvac_mode:
-                vtherm.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": vtherm.hvac_mode})
-            if old_state.preset != self._current_state.preset:
-                vtherm.send_event(EventType.PRESET_EVENT, {"preset": vtherm.preset_mode})
+        # all is fine set current_state = requested_state
+        else:
+            self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
+            self._current_state.set_preset(self._requested_state.preset)
 
-            if old_state.target_temperature != self._current_state.target_temperature:
-                vtherm.reset_last_temperature_time(old_state.preset)
+        # Send events if preset or hvac_mode have changed
+        if self._current_state.is_preset_changed:
+            vtherm.send_event(EventType.PRESET_EVENT, {"preset": vtherm.preset_mode})
+        if self._current_state.is_hvac_mode_changed:
+            vtherm.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": vtherm.hvac_mode})
+
+        # calculate the temperature of the preset
+        if self._current_state.preset != VThermPreset.NONE:
+            self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
+            self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
+
+        if self._current_state.is_target_temperature_changed:
+            await vtherm.change_target_temperature(self._current_state.target_temperature)
 
         is_changed = self._current_state.is_changed
         self._current_state.reset_changed()
         return is_changed
-

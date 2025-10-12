@@ -165,7 +165,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
         return ret
 
-    async def set_overpowering(self, overpowering: bool, power_consumption_max=0):
+    async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""
 
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
@@ -180,12 +180,12 @@ class FeaturePowerManager(BaseFeatureManager):
 
             self._overpowering_state = STATE_ON
 
-            if self._vtherm.is_over_climate:
-                self._vtherm.save_hvac_mode()
+            # if self._vtherm.is_over_climate:
+            #     self._vtherm.save_hvac_mode()
 
-            self._vtherm.save_preset_mode()
-            await self._vtherm.async_underlying_entity_turn_off()
-            await self._vtherm.async_set_preset_mode_internal(PRESET_POWER, force=True)
+            # self._vtherm.save_preset_mode()
+            # await self._vtherm.async_underlying_entity_turn_off()
+            # await self._vtherm.async_set_preset_mode_internal(PRESET_POWER, force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -198,18 +198,17 @@ class FeaturePowerManager(BaseFeatureManager):
             )
         elif not overpowering and self.is_overpowering_detected:
             _LOGGER.warning(
-                "%s - end of overpowering is detected. Heater preset will be restored to '%s'",
+                "%s - end of overpowering is detected. Heater preset will be restored.",
                 self,
-                self._vtherm._saved_preset_mode,  # pylint: disable=protected-access
             )
             self._overpowering_state = STATE_OFF
 
             # restore state
-            if self._vtherm.is_over_climate:
-                await self._vtherm.restore_hvac_mode()
-            await self._vtherm.restore_preset_mode()
-            # restart cycle
-            await self._vtherm.async_control_heating(force=True)
+            # if self._vtherm.is_over_climate:
+            #     await self._vtherm.restore_hvac_mode()
+            # await self._vtherm.restore_preset_mode()
+            # # restart cycle
+            # await self._vtherm.async_control_heating(force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -225,7 +224,7 @@ class FeaturePowerManager(BaseFeatureManager):
         else:
             # Nothing to do (already in the right state)
             return
-        self._vtherm.update_custom_attributes()
+        # self._vtherm.update_custom_attributes()
 
     @overrides
     @property

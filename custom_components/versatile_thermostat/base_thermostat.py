@@ -675,7 +675,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             # No previous state, try and restore defaults
             if self._state_manager.current_state.target_temperature is None:
-                await self._state_manager.current_state.set_target_temperature(self.max_temp if self._ac_mode else self.min_temp)
+                self._state_manager.current_state.set_target_temperature(self.max_temp if self._ac_mode else self.min_temp)
             _LOGGER.warning("No previously saved temperature, setting to %s", self._state_manager.current_state.target_temperature)
             self._total_energy = 0
             _LOGGER.debug(
@@ -1072,7 +1072,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Update the states of the thermostat."""
         if self._state_manager.requested_state.is_changed:
             if await self._state_manager.calculate_current_state(self):
-                await self.async_write_ha_state()
+                self.async_write_ha_state()
+                self.update_custom_attributes()
                 await self.async_control_heating(force=force)
 
     @overrides
@@ -1083,7 +1084,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if hvac_mode is None:
             return
 
-        self._state_manager.requested_state.hvac_mode = hvac_mode
+        self._state_manager.requested_state.set_hvac_mode(hvac_mode)
         if self._state_manager.requested_state.is_changed:
             self.reset_last_change_time_from_vtherm()
 
@@ -1100,14 +1101,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._hvac_off_reason = HVAC_OFF_REASON_MANUAL if not self.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE
             # self._saved_hvac_mode = HVACMode.OFF
 
-            await self.update_states(force=True)
+            await self.update_states(force=False)
             return
 
         # Remove eventual overpowering if we want to turn-off
-        # if hvac_mode == HVACMode.OFF and self.power_manager.is_overpowering_detected:
-        #     await self.power_manager.set_overpowering(False)
+        if hvac_mode == HVACMode.OFF and self.power_manager.is_overpowering_detected:
+            await self.power_manager.set_overpowering(False)
 
-        # self.hvac_mode = hvac_mode
+        # Change the requested state
+        self._state_manager.requested_state.set_hvac_mode(hvac_mode)
 
         # Delegate to all underlying
         sub_need_control_heating = False
@@ -1118,7 +1120,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # If AC is on maybe we have to change the temperature in force mode,
         # but not in frost mode (there is no Frost protection possible in AC mode)
-        if self.hvac_mode in [HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL] and self.preset_mode != PRESET_NONE:
+        if hvac_mode in [HVACMode.COOL, HVACMode.HEAT, HVACMode.HEAT_COOL] and self.preset_mode != PRESET_NONE:
             if self.preset_mode != PRESET_FROST_PROTECTION or self.hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL]:
                 await self.async_set_preset_mode_internal(self.preset_mode, True)
             else:
@@ -1127,8 +1129,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # if need_control_heating and sub_need_control_heating:
         #     await self.async_control_heating(force=True)
 
-        # Ensure we update the current operation after changing the mode
-        self.reset_last_temperature_time()
+        # TODO don't understand why this was here
+        # self.reset_last_temperature_time()
 
         if self.hvac_mode != HVACMode.OFF:
             self.set_hvac_off_reason(None)
@@ -1180,7 +1182,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._attr_preset_modes}"  # pylint: disable=line-too-long
             )
 
-        self._state_manager.requested_state.preset = preset_mode
+        self._state_manager.requested_state.set_preset(preset_mode)
 
         # TODO valid ?
         # old_preset_mode = self._state_manager.current_state.preset
@@ -1241,6 +1243,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "%s - last_change_time is now %s", self, self._last_change_time_from_vtherm
         )
 
+    # TODO see when you should call this. It was when we change preset or change hvac_mode but I don't understand why. It is used only for ema calculation
     def reset_last_temperature_time(self, old_preset_mode: VThermPreset | None = None):
         """Reset to now the last temperature time if conditions are satisfied"""
         if self._state_manager.current_state.preset not in HIDDEN_PRESETS and old_preset_mode not in HIDDEN_PRESETS:
@@ -1336,10 +1339,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # TODO que faire de force ici ?
         if temperature:
             self._state_manager.requested_state.set_target_temperature(temperature)
-            # TODO put that elsewhere
-            # if force:
-            #     self.recalculate()
-            #     self.reset_last_change_time_from_vtherm()
+            if self._state_manager.requested_state.is_target_temperature_changed:
+                self.recalculate()
+                self.reset_last_change_time_from_vtherm()
             #     await self.async_control_heating(force=True)
 
     def get_state_date_or_now(self, state: State) -> datetime:
@@ -1704,7 +1706,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     force,
                 )
 
-        self.update_custom_attributes()
+        # self.update_custom_attributes()
         return True
 
     def recalculate(self):
@@ -1856,7 +1858,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
-        if preset.startswith(self._attr_preset_mode):
+        if preset.startswith(self.preset_mode):
             await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX))
             await self.async_control_heating(force=True)
 
