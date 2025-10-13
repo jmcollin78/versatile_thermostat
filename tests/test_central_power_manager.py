@@ -839,7 +839,10 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         assert entity2.preset_mode is PRESET_COMFORT
         assert entity2.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity2.target_temperature == 18
+
+        # set the HVAC mode to heat
         await entity2.async_set_hvac_mode(HVACMode.HEAT)
+        await wait_for_local_condition(lambda: entity2.hvac_mode is HVACMode.HEAT)
         assert entity2.hvac_mode is HVACMode.HEAT
 
         await hass.async_block_till_done()

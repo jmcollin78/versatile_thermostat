@@ -52,7 +52,9 @@ class StateManager:
 
         # check overpowering first
         if vtherm.power_manager.is_overpowering_detected:
+            # turn off underlying and take the hvac_mode
             await vtherm.async_underlying_entity_turn_off()
+            self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
             self._current_state.set_preset(VThermPreset.POWER)
 
         # then check safety
