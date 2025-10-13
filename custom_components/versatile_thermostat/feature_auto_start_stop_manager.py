@@ -49,6 +49,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         self._auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
         self._is_configured: bool = False
         self._is_auto_start_stop_enabled: bool = False
+        self._is_auto_stop_detected: bool = False
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
@@ -108,8 +109,9 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                 "%s - Turning OFF the Vtherm due to auto-start-stop conditions",
                 self,
             )
-            self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
-            await self._vtherm.async_turn_off()
+            self._is_auto_stop_detected = True
+            # self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
+            # await self._vtherm.async_turn_off()
 
             # Send an event
             self._vtherm.send_event(
@@ -137,7 +139,9 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
             _LOGGER.info(
                 "%s - Turning ON the Vtherm due to auto-start-stop conditions", self
             )
-            await self._vtherm.async_turn_on()
+            self._is_auto_stop_detected = True
+
+            # await self._vtherm.async_turn_on()
 
             # Send an event
             self._vtherm.send_event(
@@ -209,8 +213,14 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     "auto_start_stop_accumulated_error": self._auto_start_stop_algo.accumulated_error,
                     "auto_start_stop_accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
                     "auto_start_stop_last_switch_date": self._auto_start_stop_algo.last_switch_date,
+                    "is_auto_stop_detected": self.is_auto_stop_detected,
                 }
             )
+
+    @property
+    def is_auto_stop_detected(self) -> bool:
+        """Return True if the auto-start/stop feature is detected"""
+        return self._is_auto_stop_detected
 
     @overrides
     @property

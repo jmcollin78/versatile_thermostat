@@ -58,6 +58,7 @@ from .feature_power_manager import FeaturePowerManager
 from .feature_motion_manager import FeatureMotionManager
 from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
+from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .state_manager import StateManager
 from .vtherm_preset import VThermPreset
 from .vtherm_hvac_mode import VThermHvacMode
@@ -916,6 +917,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def safety_manager(self) -> FeatureSafetyManager | None:
         """Get the safety manager"""
         return self._safety_manager
+
+    @property
+    def auto_start_stop_manager(self) -> FeatureAutoStartStopManager | None:
+        """Get the auto start/stop manager (only implemented in over_climate)"""
+        return None
 
     @property
     def window_state(self) -> str | None:

@@ -256,31 +256,31 @@ class FeatureWindowManager(BaseFeatureManager):
                 self._vtherm.saved_target_temp,
             )
 
-            if self._window_action in [
-                CONF_WINDOW_FROST_TEMP,
-                CONF_WINDOW_ECO_TEMP,
-            ]:
-                await self._vtherm.restore_target_temp(force=True)
+            # if self._window_action in [
+            #     CONF_WINDOW_FROST_TEMP,
+            #     CONF_WINDOW_ECO_TEMP,
+            # ]:
+            #     await self._vtherm.restore_target_temp(force=True)
 
             # default to TURN_OFF
-            elif self._window_action in [CONF_WINDOW_TURN_OFF]:
-                if (
-                    self._vtherm.last_central_mode != CENTRAL_MODE_STOPPED
-                    and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
-                ):
-                    self._vtherm.set_hvac_off_reason(None)
-                    await self._vtherm.restore_hvac_mode(True)
-            elif self._window_action in [CONF_WINDOW_FAN_ONLY]:
-                if self._vtherm.last_central_mode != CENTRAL_MODE_STOPPED:
-                    self._vtherm.set_hvac_off_reason(None)
-                    await self._vtherm.restore_hvac_mode(True)
-            else:
-                _LOGGER.error(
-                    "%s - undefined window_action %s. Please open a bug in the github of this project with this log",
-                    self,
-                    self._window_action,
-                )
-                return False
+            # elif self._window_action in [CONF_WINDOW_TURN_OFF]:
+            #     if (
+            #         self._vtherm.last_central_mode != CENTRAL_MODE_STOPPED
+            #         and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+            #     ):
+            #         self._vtherm.set_hvac_off_reason(None)
+            #         await self._vtherm.restore_hvac_mode(True)
+            # elif self._window_action in [CONF_WINDOW_FAN_ONLY]:
+            #     if self._vtherm.last_central_mode != CENTRAL_MODE_STOPPED:
+            #         self._vtherm.set_hvac_off_reason(None)
+            #         await self._vtherm.restore_hvac_mode(True)
+            # else:
+            #     _LOGGER.error(
+            #         "%s - undefined window_action %s. Please open a bug in the github of this project with this log",
+            #         self,
+            #         self._window_action,
+            #     )
+            #     return False
         # Window is now opened
         else:
             _LOGGER.info(

@@ -23,10 +23,9 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 
-from homeassistant.components.climate import PRESET_ACTIVITY, PRESET_BOOST, PRESET_COMFORT, PRESET_ECO
-
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
+from .vtherm_preset import VThermPreset
 
 from .base_manager import BaseFeatureManager
 
@@ -103,29 +102,28 @@ class FeaturePresenceManager(BaseFeatureManager):
             self,
             new_state,
             self._vtherm.preset_mode,
-            PRESET_ACTIVITY,
+            VThermPreset.ACTIVITY,
         )
         if new_state is None:
             return
 
-        if await self.update_presence(new_state.state):
-            await self._vtherm.async_control_heating(force=True)
+        await self.update_presence(new_state.state)
+        #    await self._vtherm.async_control_heating(force=True)
 
-    async def update_presence(self, new_state: str) -> bool:
-        """Update the value of the presence sensor and update the VTherm state accordingly
-        Return true if a change has been made"""
+    async def update_presence(self, new_state: str):
+        """Update the value of the presence sensor and update the VTherm state accordingly"""
 
         _LOGGER.info("%s - Updating presence. New state is %s", self, new_state)
-        old_presence_state = self._presence_state
+        # old_presence_state = self._presence_state
         self._presence_state = (
             STATE_ON if new_state in (STATE_ON, STATE_HOME) else STATE_OFF
         )
-        if self._vtherm.preset_mode in HIDDEN_PRESETS or self._is_configured is False:
-            _LOGGER.info(
-                "%s - Ignoring presence change cause in Power or Security preset or presence not configured",
-                self,
-            )
-            return old_presence_state != self._presence_state
+        # if self._vtherm.preset_mode in HIDDEN_PRESETS or self._is_configured is False:
+        #     _LOGGER.info(
+        #         "%s - Ignoring presence change cause in Power or Security preset or presence not configured",
+        #         self,
+        #     )
+        #     return # old_presence_state != self._presence_state
 
         if new_state is None or new_state not in (
             STATE_OFF,
@@ -134,30 +132,30 @@ class FeaturePresenceManager(BaseFeatureManager):
             STATE_NOT_HOME,
         ):
             self._presence_state = STATE_UNKNOWN
-            return old_presence_state != self._presence_state
+            return  # old_presence_state != self._presence_state
 
-        if self._vtherm.preset_mode not in [
-            PRESET_BOOST,
-            PRESET_COMFORT,
-            PRESET_ECO,
-            PRESET_ACTIVITY,
-            PRESET_FROST_PROTECTION,
-        ]:
-            return old_presence_state != self._presence_state
+            # if self._vtherm.preset_mode not in [
+            #    PRESET_BOOST,
+            #    PRESET_COMFORT,
+            #    PRESET_ECO,
+            #    PRESET_ACTIVITY,
+            #    PRESET_FROST_PROTECTION,
+            # ]:
+            # return  # old_presence_state != self._presence_state
 
-        new_temp = self._vtherm.find_preset_temp(self._vtherm.preset_mode)
-        if new_temp is not None:
-            _LOGGER.debug(
-                "%s - presence change in temperature mode new_temp will be: %.2f",
-                self,
-                new_temp,
-            )
-            await self._vtherm.change_target_temperature(new_temp)
-            self._vtherm.recalculate()
+        # new_temp = self._vtherm.find_preset_temp(self._vtherm.preset_mode)
+        # if new_temp is not None:
+        #    _LOGGER.debug(
+        #        "%s - presence change in temperature mode new_temp will be: %.2f",
+        #        self,
+        #        new_temp,
+        #    )
+        #    await self._vtherm.change_target_temperature(new_temp)
+        #    self._vtherm.recalculate()
+        #
+        #    return True
 
-            return True
-
-        return old_presence_state != self._presence_state
+        return  # old_presence_state != self._presence_state
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""
