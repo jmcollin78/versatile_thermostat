@@ -8,8 +8,10 @@ from typing import Optional, TYPE_CHECKING
 from .const import (
     EventType,
     HVAC_OFF_REASON_SAFETY,
+    HVAC_OFF_REASON_MANUAL,
     HVAC_OFF_REASON_WINDOW_DETECTION,
     HVAC_OFF_REASON_AUTO_START_STOP,
+    HVAC_OFF_REASON_SLEEP_MODE,
     CONF_WINDOW_ECO_TEMP,
     CONF_WINDOW_FAN_ONLY,
     CONF_WINDOW_FROST_TEMP,
@@ -60,8 +62,6 @@ class StateManager:
         if not vtherm:
             return False
 
-        # vtherm_api = VersatileThermostatAPI.get_vtherm_api()
-
         change_hvac_mode = await self.calculate_current_hvac_mode(vtherm)
         change_preset = await self.calculate_current_preset(vtherm)
         change_target_temp = await self.calculate_current_target_temperature(vtherm)
@@ -72,7 +72,6 @@ class StateManager:
         if change_hvac_mode:
             vtherm.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": vtherm.hvac_mode})
 
-        self._current_state.reset_changed()
         return change_hvac_mode or change_preset or change_target_temp
 
     async def calculate_current_hvac_mode(self, vtherm: "BaseThermostat") -> bool:
@@ -121,7 +120,14 @@ class StateManager:
 
         # all is fine set current_state = requested_state
         else:
+            if self._current_state.hvac_mode == VThermHvacMode.OFF and self._requested_state.hvac_mode == VThermHvacMode.OFF:
+                _LOGGER.info("%s - already in OFF. Change the reason to MANUAL and erase the saved_hvac_mode", vtherm)
+                vtherm.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL if not vtherm.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE)
+
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
+
+        if self._current_state.hvac_mode != VThermHvacMode.OFF:
+            vtherm.set_hvac_off_reason(None)
 
         # Send events if preset or hvac_mode have changed
         if self._current_state.is_hvac_mode_changed:
@@ -157,10 +163,6 @@ class StateManager:
         # all is fine set current_state = requested_state
         else:
             self._current_state.set_preset(self._requested_state.preset)
-
-        # Send events if preset or hvac_mode have changed
-        if self._current_state.is_preset_changed:
-            vtherm.send_event(EventType.PRESET_EVENT, {"preset": vtherm.preset_mode})
 
         return self._current_state.is_preset_changed
 
@@ -212,8 +214,5 @@ class StateManager:
                 self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
             if self._requested_state.preset != VThermPreset.NONE:
                 self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
-
-        if self._current_state.is_target_temperature_changed:
-            await vtherm.change_target_temperature(self._current_state.target_temperature)
 
         return self._current_state.is_target_temperature_changed

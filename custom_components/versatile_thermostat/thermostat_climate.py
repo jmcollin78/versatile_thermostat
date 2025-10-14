@@ -155,15 +155,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Returns the current hvac_action by checking all hvac_action of the underlyings"""
         return self.calculate_hvac_action(self._underlyings)
 
-    @overrides
-    async def change_target_temperature(self, temperature: float, force=False):
-        """Set the target temperature and the target temperature of underlying climate if any"""
-        await super().change_target_temperature(temperature, force=force)
-
-        self._regulation_algo.set_target_temp(self.target_temperature)
-        # Is necessary cause control_heating method will not force the update.
-        # TODO no more needed ?
-        # await self._send_regulated_temperature(force=True)
+    # @overrides
+    # async def change_target_temperature(self, temperature: float, force=False):
+    #    """Set the target temperature and the target temperature of underlying climate if any"""
+    #    await super().change_target_temperature(temperature, force=force)
+    #
+    #    self._regulation_algo.set_target_temp(self.target_temperature)
+    #    # Is necessary cause control_heating method will not force the update.
+    #    # TODO no more needed ?
+    #    # await self._send_regulated_temperature(force=True)
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
@@ -550,19 +550,19 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self.update_custom_attributes()
         self.async_write_ha_state()
 
-    @overrides
-    async def restore_hvac_mode(self, need_control_heating=False):
-        """Restore a previous hvac_mod"""
-        old_hvac_mode = self.hvac_mode
-
-        await super().restore_hvac_mode(need_control_heating=need_control_heating)
-
-        # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
-        if old_hvac_mode == HVACMode.OFF and self.hvac_mode != HVACMode.OFF:
-            _LOGGER.info(
-                "%s - Force resent target temp cause we turn on some over climate"
-            )
-            await self.change_target_temperature(self.target_temperature)
+    # @overrides
+    # async def restore_hvac_mode(self, need_control_heating=False):
+    #    """Restore a previous hvac_mod"""
+    #    old_hvac_mode = self.hvac_mode
+    #
+    #    await super().restore_hvac_mode(need_control_heating=need_control_heating)
+    #
+    #    # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
+    #    if old_hvac_mode == HVACMode.OFF and self.hvac_mode != HVACMode.OFF:
+    #        _LOGGER.info(
+    #            "%s - Force resent target temp cause we turn on some over climate"
+    #        )
+    #        await self.change_target_temperature(self.target_temperature)
 
     @overrides
     def incremente_energy(self):

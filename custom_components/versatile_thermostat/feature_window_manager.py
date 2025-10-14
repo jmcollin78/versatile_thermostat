@@ -244,17 +244,13 @@ class FeatureWindowManager(BaseFeatureManager):
         return True if the state have changed
         """
 
+        # No changes
         if self._window_state == new_state and not bypass:
             return False
 
         # Windows is now closed
         if new_state != STATE_ON:
-            _LOGGER.info(
-                "%s - Window is closed. Restoring hvac_mode '%s' if stopped by window detection or temperature %s",
-                self,
-                self._vtherm.saved_hvac_mode,
-                self._vtherm.saved_target_temp,
-            )
+            _LOGGER.info("%s - Window is detected as closed.", self)
 
             # if self._window_action in [
             #     CONF_WINDOW_FROST_TEMP,
@@ -283,50 +279,51 @@ class FeatureWindowManager(BaseFeatureManager):
             #     return False
         # Window is now opened
         else:
-            _LOGGER.info(
-                "%s - Window is open. Apply window action %s", self, self._window_action
-            )
-            if self._window_action == CONF_WINDOW_TURN_OFF and not self._vtherm.is_on:
-                _LOGGER.debug(
-                    "%s is already off. Forget turning off VTherm due to window detection"
-                )
-                if not bypass:
-                    self._window_state = new_state
-                return False
+            _LOGGER.info("%s - Window is detected as open. Eventually apply window action %s", self, self._window_action)
+            # if self._window_action == CONF_WINDOW_TURN_OFF and not self._vtherm.is_on:
+            #    _LOGGER.debug(
+            #        "%s is already off. Forget turning off VTherm due to window detection"
+            #    )
+            #    if not bypass:
+            #        self._window_state = new_state
+            #    return False
+            #
+            ## self._window_state = new_state
+            # if self._window_action in [
+            #    CONF_WINDOW_TURN_OFF,
+            #    CONF_WINDOW_FAN_ONLY,
+            # ]:
+            #    self._vtherm.save_hvac_mode()
+            # elif self._window_action in [
+            #    CONF_WINDOW_FROST_TEMP,
+            #    CONF_WINDOW_ECO_TEMP,
+            # ]:
+            #    self._vtherm.save_target_temp()
+            #
+            # if (
+            #    self._window_action == CONF_WINDOW_FAN_ONLY
+            #    and HVACMode.FAN_ONLY in self._vtherm.hvac_modes
+            # ):
+            #    await self._vtherm.async_set_hvac_mode(HVACMode.FAN_ONLY)
+            # elif (
+            #    self._window_action == CONF_WINDOW_FROST_TEMP
+            #    and self._vtherm.is_preset_configured(PRESET_FROST_PROTECTION)
+            # ):
+            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION), True)
+            # elif (
+            #    self._window_action == CONF_WINDOW_ECO_TEMP
+            #    and self._vtherm.is_preset_configured(PRESET_ECO)
+            # ):
+            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_ECO), True)
+            # else:  # default is to turn_off
+            #    self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
+            #    await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
 
-            # self._window_state = new_state
-            if self._window_action in [
-                CONF_WINDOW_TURN_OFF,
-                CONF_WINDOW_FAN_ONLY,
-            ]:
-                self._vtherm.save_hvac_mode()
-            elif self._window_action in [
-                CONF_WINDOW_FROST_TEMP,
-                CONF_WINDOW_ECO_TEMP,
-            ]:
-                self._vtherm.save_target_temp()
+        if bypass:
+            _LOGGER.info("%s - Window is bypassed. Forget the window detection", self)
+            return False
 
-            if (
-                self._window_action == CONF_WINDOW_FAN_ONLY
-                and HVACMode.FAN_ONLY in self._vtherm.hvac_modes
-            ):
-                await self._vtherm.async_set_hvac_mode(HVACMode.FAN_ONLY)
-            elif (
-                self._window_action == CONF_WINDOW_FROST_TEMP
-                and self._vtherm.is_preset_configured(PRESET_FROST_PROTECTION)
-            ):
-                await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION), True)
-            elif (
-                self._window_action == CONF_WINDOW_ECO_TEMP
-                and self._vtherm.is_preset_configured(PRESET_ECO)
-            ):
-                await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_ECO), True)
-            else:  # default is to turn_off
-                self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
-                await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
-
-        if not bypass:
-            self._window_state = new_state
+        self._window_state = new_state
         return True
 
     async def manage_window_auto(self, in_cycle=False) -> callable:

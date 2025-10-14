@@ -128,7 +128,7 @@ class FeatureMotionManager(BaseFeatureManager):
                     self._motion_state,
                 )
                 # recalculate the right target_temp in activity mode
-                ret = await self.update_motion_state(motion_state.state, False)
+                ret = await self.update_motion_state(motion_state.state)  # , False)
 
         return ret
 
@@ -240,9 +240,7 @@ class FeatureMotionManager(BaseFeatureManager):
             _LOGGER.debug("%s - Event ignored cause i'm already on", self)
             return None
 
-    async def update_motion_state(
-        self, new_state: str = None, recalculate: bool = True
-    ) -> bool:
+    async def update_motion_state(self, new_state: str = None) -> bool:  # , recalculate: bool = True) -> bool:
         """Update the value of the motion sensor and update the VTherm state accordingly
         Return true if a change has been made"""
 
@@ -251,23 +249,23 @@ class FeatureMotionManager(BaseFeatureManager):
         if new_state is not None:
             self._motion_state = STATE_ON if new_state == STATE_ON else STATE_OFF
 
-        if self._vtherm.preset_mode == PRESET_ACTIVITY:
-            new_preset = self.get_current_motion_preset()
-            _LOGGER.info(
-                "%s - Motion condition have changes. New preset temp will be %s",
-                self,
-                new_preset,
-            )
-            # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-            # We take the motion into account
-            new_temp = self._vtherm.find_preset_temp(new_preset)
-            old_temp = self._vtherm.target_temperature
-            if new_temp != old_temp:
-                await self._vtherm.change_target_temperature(new_temp)
-
-            if new_temp != old_temp and recalculate:
-                self._vtherm.recalculate()
-                await self._vtherm.async_control_heating(force=True)
+        # if self._vtherm.preset_mode == PRESET_ACTIVITY:
+        #     new_preset = self.get_current_motion_preset()
+        #     _LOGGER.info(
+        #         "%s - Motion condition have changes. New preset temp will be %s",
+        #         self,
+        #         new_preset,
+        #     )
+        #     # We do not change the preset which is kept to ACTIVITY but only the target_temperature
+        #     # We take the motion into account
+        #     new_temp = self._vtherm.find_preset_temp(new_preset)
+        #     old_temp = self._vtherm.target_temperature
+        #     if new_temp != old_temp:
+        #         await self._vtherm.change_target_temperature(new_temp)
+        #
+        #     if new_temp != old_temp and recalculate:
+        #         self._vtherm.recalculate()
+        #         await self._vtherm.async_control_heating(force=True)
 
         return old_motion_state != self._motion_state
 
