@@ -158,7 +158,7 @@ class StateManager:
 
         # then check safety
         elif vtherm.safety_manager.is_safety_detected:
-            await self._current_state.set_preset(VThermPreset.SAFETY)
+            self._current_state.set_preset(VThermPreset.SAFETY)
 
         # all is fine set current_state = requested_state
         else:
@@ -205,7 +205,7 @@ class StateManager:
             _LOGGER.debug(
                 "%s - motion will set new target temperature: %.2f",
                 self,
-                new_temp,
+                new_preset,
             )
             self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
         else:

@@ -60,7 +60,7 @@ from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .state_manager import StateManager
-from .vtherm_preset import VThermPreset
+from .vtherm_preset import VThermPreset, HIDDEN_PRESETS
 from .vtherm_hvac_mode import VThermHvacMode
 
 ATTR_CURRENT_STATE = "current_state"
@@ -315,8 +315,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         )
 
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
-        self._attr_max_temp = entry_infos.get(CONF_TEMP_MAX)
-        self._attr_min_temp = entry_infos.get(CONF_TEMP_MIN)
+        self._attr_max_temp = float(entry_infos.get(CONF_TEMP_MAX, 0.0))
+        self._attr_min_temp = float(entry_infos.get(CONF_TEMP_MIN, 0.0))
         if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
             self._attr_target_temperature_step = step
 
@@ -800,17 +800,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._unit
 
     @property
-    def ema_temperature(self) -> str:
+    def ema_temperature(self) -> float | None:
         """Return the EMA temperature."""
         return self._ema_temp
 
     @property
-    def hvac_mode(self) -> HVACMode | None:
+    def hvac_mode(self) -> str | None:
         """Return current operation."""
-        return self._state_manager.current_state.hvac_mode
+        return self._state_manager.current_state.hvac_mode.value
 
     @property
-    def hvac_action(self) -> HVACAction | None:
+    def hvac_action(self) -> HVACAction | None:  # pyright: ignore[reportIncompatibleVariableOverride]
         """Return the current running hvac operation if supported.
         Need to be one of CURRENT_HVAC_*.
         """
@@ -969,7 +969,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._last_ext_temperature_measure
 
     @property
-    def preset_mode(self) -> str | None:
+    def preset_mode(self) -> VThermPreset | None:
         """Return the current preset mode comfort, eco, boost,...,"""
         return self._state_manager.current_state.preset
 
@@ -1290,7 +1290,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def find_preset_temp(self, preset_mode: VThermPreset):
         """Find the right temperature of a preset considering
          the presence if configured"""
-        if preset_mode is None or preset_mode == "none":
+        if preset_mode is None or preset_mode == VThermPreset.NONE:
             return self._attr_max_temp if self._ac_mode and self.hvac_mode == HVACMode.COOL else self._attr_min_temp
 
         if preset_mode == VThermPreset.SAFETY:
@@ -1314,12 +1314,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 return None
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
+            preset_name = preset_mode.value
             if self._ac_mode and self.hvac_mode == VThermHvacMode.COOL:
-                preset_mode = preset_mode + PRESET_AC_SUFFIX
+                preset_name += PRESET_AC_SUFFIX
 
             _LOGGER.info("%s - find preset temp: %s", self, preset_mode)
 
-            temp_val = self._presets.get(preset_mode, 0)
+            temp_val = self._presets.get(preset_name, 0)
             # if not self._presence_on or self._presence_state in [
             #     None,
             #     STATE_ON,
@@ -1681,10 +1682,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         if new_central_mode == CENTRAL_MODE_FROST_PROTECTION:
-            if (
-                PRESET_FROST_PROTECTION in self.preset_modes
-                and HVACMode.HEAT in self.hvac_modes
-            ):
+            if VThermPreset.FROST.value in self.preset_modes and HVACMode.HEAT.value in self.hvac_modes:  # pyright: ignore[reportOperatorIssue]
                 await self.async_set_hvac_mode(HVACMode.HEAT)
                 await self.async_set_preset_mode(PRESET_FROST_PROTECTION, overwrite_saved_preset=False)
             else:
@@ -1904,9 +1902,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def service_set_safety(
         self,
-        delay_min: int | None,
-        min_on_percent: float | None,
-        default_on_percent: float | None,
+        delay_min: int,
+        min_on_percent: float,
+        default_on_percent: float,
     ):
         """Called by a service call:
         service: versatile_thermostat.set_safety

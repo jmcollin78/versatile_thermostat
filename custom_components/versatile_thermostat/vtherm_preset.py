@@ -1,12 +1,24 @@
 """ A custom data class to manage specific presets for VTherm. """
 
-from .const import PRESET_SAFETY, PRESET_BOOST, PRESET_ECO, PRESET_COMFORT, PRESET_ACTIVITY, PRESET_POWER, PRESET_NONE, PRESET_FROST_PROTECTION, HIDDEN_PRESETS, VALID_PRESETS
+from enum import Enum
+from homeassistant.components.climate.const import PRESET_NONE, PRESET_BOOST, PRESET_ECO, PRESET_COMFORT, PRESET_ACTIVITY
+
+# from .const import PRESET_SAFETY, PRESET_POWER, PRESET_FROST_PROTECTION
+
 # Liste des presets valides (à adapter selon ton projet)
+PRESET_POWER = "power"
+PRESET_SAFETY = "security"
+PRESET_FROST_PROTECTION = "frost"
 
-class VThermPreset:
-    """Data class to encapsulate a single preset value."""
+PRESET_TEMP_SUFFIX = "_temp"
+PRESET_AC_SUFFIX = "_ac"
+PRESET_AWAY_SUFFIX = "_away"
 
-    # Constants for all valid presets
+
+# Constants for all VTherm presets
+class VThermPreset(Enum):
+    """The List of Preset used by VTherm"""
+
     NONE = PRESET_NONE
     FROST = PRESET_FROST_PROTECTION
     ECO = PRESET_ECO
@@ -16,36 +28,31 @@ class VThermPreset:
     POWER = PRESET_POWER
     ACTIVITY = PRESET_ACTIVITY
 
-    def __init__(self, preset: str) -> None:
-        self.preset = preset  # Utilise le setter pour valider
+    def __str__(self):
+        return self.value
 
-    @property
-    def preset(self) -> str:
-        """Get the current preset."""
-        return self._preset
 
-    @preset.setter
-    def preset(self, value: str) -> None:
-        """Set the preset, validating against allowed values.
+class VThermPresetWithAC(Enum):
+    """Supplementary preset for AC hvac mode"""
 
-        Args:
-            value: New preset (str).
+    ECO_AC = VThermPreset.ECO.value + PRESET_AC_SUFFIX
+    COMFORT_AC = VThermPreset.COMFORT.value + PRESET_AC_SUFFIX
+    BOOST_AC = VThermPreset.BOOST.value + PRESET_AC_SUFFIX
 
-        Raises:
-            ValueError: If value is not a valid preset.
-        """
-        if value not in VALID_PRESETS:
-            raise ValueError(
-                f"Invalid preset '{value}'. Must be one of: {sorted(VALID_PRESETS)}"
-            )
-        self._preset = value
+    def __str__(self):
+        return self.value
 
-    def is_hidden(self) -> bool:
-        """Check if the preset is hidden."""
-        return self._preset in HIDDEN_PRESETS
 
-    def __eq__(self, other: object) -> bool:
-        """Compare two VThermPreset objects for equality based on their preset."""
-        if not isinstance(other, VThermPreset):
-            return NotImplemented
-        return self._preset == other._preset
+class VThermPresetAway(Enum):
+    """The List of Preset used by VTherm"""
+
+    FROST = PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX
+    ECO = PRESET_ECO + PRESET_AWAY_SUFFIX
+    COMFORT = PRESET_COMFORT + PRESET_AWAY_SUFFIX
+    BOOST = PRESET_BOOST + PRESET_AWAY_SUFFIX
+
+    def __str__(self):
+        return self.value
+
+
+HIDDEN_PRESETS = [VThermPreset.POWER, VThermPreset.SAFETY]

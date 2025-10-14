@@ -11,12 +11,10 @@ from enum import Enum
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
-from homeassistant.components.climate import (  # pylint: disable=unused-import
-    PRESET_ACTIVITY,
+from homeassistant.components.climate.const import (  # pylint: disable=unused-import
     PRESET_BOOST,
     PRESET_COMFORT,
     PRESET_ECO,
-    PRESET_NONE,
     ClimateEntityFeature,
 )
 
@@ -27,36 +25,15 @@ from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
 
+from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetAway, PRESET_TEMP_SUFFIX, PRESET_AC_SUFFIX, PRESET_AWAY_SUFFIX
+
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
 CONFIG_MINOR_VERSION = 1
 
-PRESET_TEMP_SUFFIX = "_temp"
-PRESET_AC_SUFFIX = "_ac"
-PRESET_ECO_AC = PRESET_ECO + PRESET_AC_SUFFIX
-PRESET_COMFORT_AC = PRESET_COMFORT + PRESET_AC_SUFFIX
-PRESET_BOOST_AC = PRESET_BOOST + PRESET_AC_SUFFIX
-
-
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
-
-PRESET_POWER = "power"
-PRESET_SAFETY = "security"
-PRESET_FROST_PROTECTION = "frost"
-
-VALID_PRESETS = [
-    PRESET_NONE,
-    PRESET_FROST_PROTECTION,
-    PRESET_ECO,
-    PRESET_COMFORT,
-    PRESET_BOOST,
-    PRESET_SAFETY,
-    PRESET_POWER,
-    PRESET_ACTIVITY,
-]
-HIDDEN_PRESETS = [PRESET_POWER, PRESET_SAFETY]
 
 DOMAIN = "versatile_thermostat"
 
@@ -221,59 +198,56 @@ DEFAULT_SHORT_EMA_PARAMS = {
 }
 
 CONF_PRESETS = {
-    p: f"{p}{PRESET_TEMP_SUFFIX}"
+    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
     for p in (
-        PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        PRESET_COMFORT,
-        PRESET_BOOST,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        VThermPreset.COMFORT,
+        VThermPreset.BOOST,
     )
 }
 
 CONF_PRESETS_WITH_AC = {
-    p: f"{p}{PRESET_TEMP_SUFFIX}"
+    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
     for p in (
-        PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        PRESET_COMFORT,
-        PRESET_BOOST,
-        PRESET_ECO_AC,
-        PRESET_COMFORT_AC,
-        PRESET_BOOST_AC,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        VThermPreset.COMFORT,
+        VThermPreset.BOOST,
+        VThermPresetWithAC.ECO_AC,
+        VThermPresetWithAC.COMFORT_AC,
+        VThermPresetWithAC.BOOST_AC,
     )
 }
 
-
-PRESET_AWAY_SUFFIX = "_away"
-
 CONF_PRESETS_AWAY = {
-    p: f"{p}{PRESET_TEMP_SUFFIX}"
+    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
     for p in (
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
-        PRESET_ECO + PRESET_AWAY_SUFFIX,
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX,
-        PRESET_BOOST + PRESET_AWAY_SUFFIX,
+        VThermPresetAway.FROST,
+        VThermPresetAway.ECO,
+        VThermPresetAway.COMFORT,
+        VThermPresetAway.BOOST,
     )
 }
 
 CONF_PRESETS_AWAY_WITH_AC = {
-    p: f"{p}{PRESET_TEMP_SUFFIX}"
+    p: f"{p}{PRESET_AWAY_SUFFIX}{PRESET_TEMP_SUFFIX}"
     for p in (
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX,
-        PRESET_ECO + PRESET_AWAY_SUFFIX,
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX,
-        PRESET_BOOST + PRESET_AWAY_SUFFIX,
-        PRESET_ECO_AC + PRESET_AWAY_SUFFIX,
-        PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX,
-        PRESET_BOOST_AC + PRESET_AWAY_SUFFIX,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        VThermPreset.COMFORT,
+        VThermPreset.BOOST,
+        VThermPresetWithAC.ECO_AC,
+        VThermPresetWithAC.COMFORT_AC,
+        VThermPresetWithAC.BOOST_AC,
     )
 }
 
 CONF_PRESETS_SELECTIONABLE = [
-    PRESET_FROST_PROTECTION,
-    PRESET_ECO,
-    PRESET_COMFORT,
-    PRESET_BOOST,
+    VThermPreset.FROST,
+    VThermPreset.ECO,
+    VThermPreset.COMFORT,
+    VThermPreset.BOOST,
 ]
 
 CONF_PRESETS_VALUES = list(CONF_PRESETS.values())
@@ -503,14 +477,14 @@ class RegulationParamVeryStrong:
 class EventType(Enum):
     """The event type that can be sent"""
 
-    SECURITY_EVENT: str = "versatile_thermostat_security_event"
-    POWER_EVENT: str = "versatile_thermostat_power_event"
-    TEMPERATURE_EVENT: str = "versatile_thermostat_temperature_event"
-    HVAC_MODE_EVENT: str = "versatile_thermostat_hvac_mode_event"
-    CENTRAL_BOILER_EVENT: str = "versatile_thermostat_central_boiler_event"
-    PRESET_EVENT: str = "versatile_thermostat_preset_event"
-    WINDOW_AUTO_EVENT: str = "versatile_thermostat_window_auto_event"
-    AUTO_START_STOP_EVENT: str = "versatile_thermostat_auto_start_stop_event"
+    SECURITY_EVENT = "versatile_thermostat_security_event"
+    POWER_EVENT = "versatile_thermostat_power_event"
+    TEMPERATURE_EVENT = "versatile_thermostat_temperature_event"
+    HVAC_MODE_EVENT = "versatile_thermostat_hvac_mode_event"
+    CENTRAL_BOILER_EVENT = "versatile_thermostat_central_boiler_event"
+    PRESET_EVENT = "versatile_thermostat_preset_event"
+    WINDOW_AUTO_EVENT = "versatile_thermostat_window_auto_event"
+    AUTO_START_STOP_EVENT = "versatile_thermostat_auto_start_stop_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
