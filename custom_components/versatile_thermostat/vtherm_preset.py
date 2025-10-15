@@ -15,7 +15,7 @@ PRESET_AWAY_SUFFIX = "_away"
 
 
 # Constants for all VTherm presets
-class VThermPreset:
+class VThermPreset(str):
     """The List of Preset used by VTherm"""
 
     NONE = PRESET_NONE
@@ -28,7 +28,7 @@ class VThermPreset:
     ACTIVITY = PRESET_ACTIVITY
 
 
-class VThermPresetWithAC:
+class VThermPresetWithAC(str):
     """Supplementary preset for AC hvac mode"""
 
     ECO_AC = VThermPreset.ECO + PRESET_AC_SUFFIX
@@ -36,7 +36,7 @@ class VThermPresetWithAC:
     BOOST_AC = VThermPreset.BOOST + PRESET_AC_SUFFIX
 
 
-class VThermPresetAway:
+class VThermPresetAway(str):
     """The List of Preset used by VTherm"""
 
     FROST = PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX

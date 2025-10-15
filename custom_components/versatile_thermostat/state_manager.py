@@ -66,12 +66,6 @@ class StateManager:
         change_preset = await self.calculate_current_preset(vtherm)
         change_target_temp = await self.calculate_current_target_temperature(vtherm)
 
-        # Send events if preset or hvac_mode have changed
-        if change_preset:
-            vtherm.send_event(EventType.PRESET_EVENT, {"preset": vtherm.preset_mode})
-        if change_hvac_mode:
-            vtherm.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": vtherm.hvac_mode})
-
         return change_hvac_mode or change_preset or change_target_temp
 
     async def calculate_current_hvac_mode(self, vtherm: "BaseThermostat") -> bool:
@@ -128,10 +122,6 @@ class StateManager:
 
         if self._current_state.hvac_mode != VThermHvacMode.OFF:
             vtherm.set_hvac_off_reason(None)
-
-        # Send events if preset or hvac_mode have changed
-        if self._current_state.is_hvac_mode_changed:
-            vtherm.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": vtherm.hvac_mode})
 
         return self._current_state.is_hvac_mode_changed
 

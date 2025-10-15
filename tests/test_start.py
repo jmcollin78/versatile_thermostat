@@ -72,7 +72,8 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
                 ),
-            ]
+            ],
+            # any_order=True,
         )
 
 
