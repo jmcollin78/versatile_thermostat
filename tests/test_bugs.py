@@ -353,9 +353,9 @@ async def test_bug_407(
         side_effect=side_effects.get_side_effects(),
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_COMFORT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.preset_mode is VThermPreset.COMFORT
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
@@ -371,7 +371,7 @@ async def test_bug_407(
         # No overpowering yet
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.preset_mode is VThermPreset.COMFORT
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.is_device_active is True
 
@@ -390,7 +390,7 @@ async def test_bug_407(
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         # change preset to Boost
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
         # waits that the heater starts
         await asyncio.sleep(0.1)
         # doesn't work for call_later
@@ -401,7 +401,7 @@ async def test_bug_407(
 
         assert entity.power_manager.is_overpowering_detected is False
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
@@ -423,7 +423,7 @@ async def test_bug_407(
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         # change preset to Comfort
-        await entity.async_set_preset_mode(PRESET_COMFORT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
         # waits the eventual heater starts
         await asyncio.sleep(0.1)
 
@@ -584,7 +584,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     # 1. Set mode to Heat and preset to Comfort
     await send_presence_change_event(vtherm, True, False, datetime.now())
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 21.0

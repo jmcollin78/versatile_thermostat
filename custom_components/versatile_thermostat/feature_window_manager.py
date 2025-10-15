@@ -307,14 +307,14 @@ class FeatureWindowManager(BaseFeatureManager):
             #    await self._vtherm.async_set_hvac_mode(HVACMode.FAN_ONLY)
             # elif (
             #    self._window_action == CONF_WINDOW_FROST_TEMP
-            #    and self._vtherm.is_preset_configured(PRESET_FROST_PROTECTION)
+            #    and self._vtherm.is_preset_configured(VThermPreset.FROST)
             # ):
-            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_FROST_PROTECTION), True)
+            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(VThermPreset.FROST), True)
             # elif (
             #    self._window_action == CONF_WINDOW_ECO_TEMP
-            #    and self._vtherm.is_preset_configured(PRESET_ECO)
+            #    and self._vtherm.is_preset_configured(VThermPreset.ECO)
             # ):
-            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(PRESET_ECO), True)
+            #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(VThermPreset.ECO), True)
             # else:  # default is to turn_off
             #    self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             #    await self._vtherm.async_set_hvac_mode(HVACMode.OFF)

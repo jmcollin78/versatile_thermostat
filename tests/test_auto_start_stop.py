@@ -487,7 +487,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -749,7 +749,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 27, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.COOL)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 25.0
@@ -992,7 +992,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 16, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_ECO)
+    await vtherm.async_set_preset_mode(VThermPreset.ECO)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 17.0
@@ -1066,7 +1066,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         vtherm._set_now(now)
-        await vtherm.async_set_preset_mode(PRESET_BOOST)
+        await vtherm.async_set_preset_mode(VThermPreset.BOOST)
         await hass.async_block_till_done()
         assert vtherm.target_temperature == 21
 
@@ -1223,7 +1223,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 16, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_ECO)
+    await vtherm.async_set_preset_mode(VThermPreset.ECO)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 17.0
@@ -1357,7 +1357,7 @@ async def test_auto_start_stop_fast_heat_window(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -1541,7 +1541,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -1736,7 +1736,7 @@ async def test_auto_start_stop_disable_vtherm_off(
     vtherm._set_now(now)
     await send_temperature_change_event(vtherm, 25, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_ECO)
+    await vtherm.async_set_preset_mode(VThermPreset.ECO)
     await hass.async_block_till_done()
 
     with patch(

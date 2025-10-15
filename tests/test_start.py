@@ -45,14 +45,14 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-            PRESET_ACTIVITY,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
+            VThermPreset.ACTIVITY,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
@@ -67,7 +67,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -107,13 +107,13 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNAVAILABLE
         assert entity.motion_state is STATE_UNAVAILABLE
@@ -127,7 +127,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -165,14 +165,14 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-            PRESET_ACTIVITY,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
+            VThermPreset.ACTIVITY,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
@@ -194,7 +194,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -251,20 +251,20 @@ async def test_over_switch_deactivate_preset(
     assert isinstance(entity, ThermostatOverSwitch)
 
     assert entity.preset_modes == [
-        PRESET_NONE,
-        # PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        # PRESET_COMFORT,
-        PRESET_BOOST,
+        VThermPreset.NONE,
+        # VThermPreset.FROST,
+        VThermPreset.ECO,
+        # VThermPreset.COMFORT,
+        VThermPreset.BOOST,
     ]
-    assert entity.preset_mode is PRESET_NONE
+    assert entity.preset_mode is VThermPreset.NONE
 
     # try to set the COMFORT Preset which is absent
     try:
-        await entity.async_set_preset_mode(PRESET_COMFORT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
     except ValueError as err:
         print(err)
     else:
         assert False
     finally:
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE

@@ -35,7 +35,7 @@ async def test_presence_feature_manager(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
 
     # 1. creation
     presence_manager = FeaturePresenceManager(fake_vtherm, hass)
@@ -104,7 +104,7 @@ async def test_presence_feature_manager(
         if nb_call == 1:
             fake_vtherm.find_preset_temp.assert_has_calls(
                 [
-                    call.find_preset_temp(PRESET_COMFORT),
+                    call.find_preset_temp(VThermPreset.COMFORT),
                 ]
             )
 
@@ -149,7 +149,7 @@ async def test_presence_feature_manager(
     if nb_call == 1:
         fake_vtherm.find_preset_temp.assert_has_calls(
             [
-                call.find_preset_temp(PRESET_COMFORT),
+                call.find_preset_temp(VThermPreset.COMFORT),
             ]
         )
 

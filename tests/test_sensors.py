@@ -133,7 +133,7 @@ async def test_sensors_over_switch(
     event_timestamp = now - timedelta(minutes=1)
 
     # Start the heater to get some values
-    await entity.async_set_preset_mode(PRESET_COMFORT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, event_timestamp)
     await send_ext_temperature_change_event(entity, 5, event_timestamp)
@@ -270,7 +270,7 @@ async def test_sensors_over_climate(
     event_timestamp = now - timedelta(minutes=1)
 
     # Start the heater to get some values
-    await entity.async_set_preset_mode(PRESET_COMFORT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
     await entity.async_set_hvac_mode(HVACMode.HEAT)
     await send_temperature_change_event(entity, 15, event_timestamp)
     await send_ext_temperature_change_event(entity, 5, event_timestamp)

@@ -135,11 +135,11 @@ class FeaturePresenceManager(BaseFeatureManager):
             return  # old_presence_state != self._presence_state
 
             # if self._vtherm.preset_mode not in [
-            #    PRESET_BOOST,
-            #    PRESET_COMFORT,
-            #    PRESET_ECO,
-            #    PRESET_ACTIVITY,
-            #    PRESET_FROST_PROTECTION,
+            #    VThermPreset.BOOST,
+            #    VThermPreset.COMFORT,
+            #    VThermPreset.ECO,
+            #    VThermPreset.ACTIVITY,
+            #    VThermPreset.FROST,
             # ]:
             # return  # old_presence_state != self._presence_state
 

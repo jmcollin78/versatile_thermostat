@@ -145,20 +145,20 @@ async def test_bug_82(
         # assert entity.hvac_mode is None
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -214,10 +214,10 @@ async def test_underlying_change_follow(
     now: datetime = datetime.now(tz=tz)
 
     temps = {
-        PRESET_FROST_PROTECTION: 7,
-        PRESET_ECO: 16,
-        PRESET_COMFORT: 17,
-        PRESET_BOOST: 18,
+        VThermPreset.FROST: 7,
+        VThermPreset.ECO: 16,
+        VThermPreset.COMFORT: 17,
+        VThermPreset.BOOST: 18,
     }
 
     entry = MockConfigEntry(
@@ -273,13 +273,13 @@ async def test_underlying_change_follow(
         )
 
         assert entity.target_temperature == entity.min_temp
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -294,8 +294,8 @@ async def test_underlying_change_follow(
         # 1. Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
 
         # 2. Change the target temp of underlying thermostat at now -> the event will be disgarded because to fast (to avoid loop cf issue 121)
         await send_climate_change_event_with_temperature(
@@ -311,7 +311,7 @@ async def test_underlying_change_follow(
         )
         # Should NOT have been switched to Manual preset
         assert entity.target_temperature == 17
-        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.preset_mode is VThermPreset.COMFORT
 
         # 3. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
         # Wait 11 sec
@@ -329,7 +329,7 @@ async def test_underlying_change_follow(
             "climate.mock_climate",  # the underlying climate entity id
         )
         assert entity.target_temperature == entity.min_temp + 1
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # 4. Change the target temp with < 0.1 (step) value. The value should not be taken
         # Wait 11 sec
@@ -346,7 +346,7 @@ async def test_underlying_change_follow(
             "climate.mock_climate",  # the underlying climate entity id
         )
         assert entity.target_temperature == entity.min_temp + 1
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -363,10 +363,10 @@ async def test_underlying_change_not_follow(
     now: datetime = datetime.now(tz=tz)
 
     temps = {
-        PRESET_FROST_PROTECTION: 7,
-        PRESET_ECO: 16,
-        PRESET_COMFORT: 17,
-        PRESET_BOOST: 18,
+        VThermPreset.FROST: 7,
+        VThermPreset.ECO: 16,
+        VThermPreset.COMFORT: 17,
+        VThermPreset.BOOST: 18,
     }
 
     entry = MockConfigEntry(
@@ -399,7 +399,7 @@ async def test_underlying_change_not_follow(
         # because in MockClimate HVACAction is HEATING if hvac_mode is not set
         assert entity.hvac_action is HVACAction.HEATING
         assert entity.target_temperature == 15
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # default value
         assert entity.follow_underlying_temp_change is False
@@ -421,8 +421,8 @@ async def test_underlying_change_not_follow(
         # 1. Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 17
 
         # 2. Change the target temp of underlying thermostat at 11 sec later to avoid temporal filter
@@ -440,7 +440,7 @@ async def test_underlying_change_not_follow(
         )
         # Should NOT have been switched to Manual preset
         assert entity.target_temperature == 17
-        assert entity.preset_mode is PRESET_COMFORT
+        assert entity.preset_mode is VThermPreset.COMFORT
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -487,10 +487,10 @@ async def test_bug_615(
         assert vtherm.hvac_action is HVACAction.HEATING
 
         # Force a preset_mode without sending a temperature (as it was restored with a preset)
-        vtherm._attr_preset_mode = PRESET_BOOST
+        vtherm._attr_preset_mode = VThermPreset.BOOST
 
         assert vtherm.target_temperature == vtherm.min_temp
-        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.preset_mode is VThermPreset.BOOST
 
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
@@ -510,7 +510,7 @@ async def test_bug_615(
         )
         # Should NOT have been taken the new target temp nor have change the preset
         assert vtherm.target_temperature == vtherm.min_temp
-        assert vtherm.preset_mode is PRESET_BOOST
+        assert vtherm.preset_mode is VThermPreset.BOOST
 
         mock_underlying_set_hvac_mode.assert_not_called()
 
@@ -697,7 +697,7 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
     # 1. Set mode to Heat and preset to Comfort
     await send_presence_change_event(vtherm, True, False, datetime.now())
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -741,10 +741,10 @@ async def test_ignore_temp_outside_minmax_range(
     now: datetime = datetime.now(tz=tz)
 
     temps = {
-        PRESET_FROST_PROTECTION: 7,
-        PRESET_ECO: 16,
-        PRESET_COMFORT: 17,
-        PRESET_BOOST: 18,
+        VThermPreset.FROST: 7,
+        VThermPreset.ECO: 16,
+        VThermPreset.COMFORT: 17,
+        VThermPreset.BOOST: 18,
     }
 
     entry = MockConfigEntry(
@@ -785,13 +785,13 @@ async def test_ignore_temp_outside_minmax_range(
         )
 
         assert entity.target_temperature == entity.min_temp
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
                     {"hvac_mode": HVACMode.OFF},
@@ -819,8 +819,8 @@ async def test_ignore_temp_outside_minmax_range(
         # 2. Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
 
         # 3. Try to set the target temperature to a below min_temp -> should be ignored
         # Wait 11 sec
@@ -978,7 +978,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -1156,7 +1156,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     await send_presence_change_event(vtherm, True, False, now)
     await send_temperature_change_event(vtherm, 18, now, True)
     await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 19.0
@@ -1295,7 +1295,7 @@ async def test_underlying_from_comes_back_to_life(
 
         # Set hvac_mode to COOL
         await entity.async_set_hvac_mode(HVACMode.COOL)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         # it is very hot today
         await send_temperature_change_event(entity, 27, now, False)
@@ -1305,7 +1305,7 @@ async def test_underlying_from_comes_back_to_life(
         assert entity.hvac_mode is HVACMode.COOL
         # because in MockClimate HVACAction is HEATING if hvac_mode is not set
         assert entity.hvac_action is HVACAction.COOLING
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 23
 
 
@@ -1345,5 +1345,5 @@ async def test_underlying_from_comes_back_to_life(
 
         # Nothing should have changed
         assert entity.target_temperature == 23
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.hvac_mode is HVACMode.COOL

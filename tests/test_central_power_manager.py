@@ -778,8 +778,8 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         await send_temperature_change_event(entity, 15, now)
         await send_ext_temperature_change_event(entity, 1, now)
 
-        await entity.async_set_preset_mode(PRESET_BOOST)
-        assert entity.preset_mode is PRESET_BOOST
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 19
         await hass.async_block_till_done()
@@ -835,8 +835,8 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
          patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",return_value=fake_underlying_climate):
     # fmt: on
         # make the heater heats
-        await entity2.async_set_preset_mode(PRESET_COMFORT)
-        assert entity2.preset_mode is PRESET_COMFORT
+        await entity2.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity2.preset_mode is VThermPreset.COMFORT
         assert entity2.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity2.target_temperature == 18
 

@@ -185,7 +185,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
             # self._vtherm.save_preset_mode()
             await self._vtherm.async_underlying_entity_turn_off()
-            # await self._vtherm.async_set_preset_mode_internal(PRESET_POWER, force=True)
+            # await self._vtherm.async_set_preset_mode_internal(VThermPreset.POWER, force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {

@@ -146,11 +146,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             mode_cond and not is_safety_detected and should_be_in_security
         )
         # attr_preset_mode is not necessary normaly. It is just here to be sure
-        should_stop_security = (
-            is_safety_detected
-            and not should_be_in_security
-            and self._vtherm.preset_mode == PRESET_SAFETY
-        )
+        should_stop_security = is_safety_detected and not should_be_in_security and self._vtherm.preset_mode == VThermPreset.SAFETY
 
         # Logging and event
         if should_start_security:
@@ -199,7 +195,7 @@ class FeatureSafetyManager(BaseFeatureManager):
                     self._safety_default_on_percent
                 )
             # TODO is state_manager yet
-            # await self._vtherm.async_set_preset_mode_internal(PRESET_SAFETY)
+            # await self._vtherm.async_set_preset_mode_internal(VThermPreset.SAFETY)
             # Turn off the underlying climate or heater if safety default on_percent is 0
             # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
             #     await self._vtherm.async_set_hvac_mode(HVACMode.OFF, False)

@@ -593,32 +593,32 @@ async def test_add_number_for_over_switch_use_central_presence(
     assert vtherm
     assert isinstance(vtherm, ThermostatOverSwitch)
     assert vtherm.preset_modes == [
-        PRESET_NONE,
-        PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        PRESET_COMFORT,
-        PRESET_BOOST,
+        VThermPreset.NONE,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        VThermPreset.COMFORT,
+        VThermPreset.BOOST,
     ]
 
     assert vtherm._presets == {
-        PRESET_FROST_PROTECTION: temps["frost"],
-        PRESET_ECO: temps["eco"],
-        PRESET_COMFORT: temps["comfort"],
-        PRESET_BOOST: temps["boost"],
-        PRESET_ECO_AC: temps["eco_ac"],
-        PRESET_COMFORT_AC: temps["comfort_ac"],
-        PRESET_BOOST_AC: temps["boost_ac"],
+        VThermPreset.FROST: temps["frost"],
+        VThermPreset.ECO: temps["eco"],
+        VThermPreset.COMFORT: temps["comfort"],
+        VThermPreset.BOOST: temps["boost"],
+        VThermPresetWithAC.ECO_AC: temps["eco_ac"],
+        VThermPresetWithAC.COMFORT_AC: temps["comfort_ac"],
+        VThermPresetWithAC.BOOST_AC: temps["boost_ac"],
     }
 
     # Preset away should be initialized with the central config
     assert vtherm._presets_away == {
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: temps["frost_away"],
-        PRESET_ECO + PRESET_AWAY_SUFFIX: temps["eco_away"],
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away"],
-        PRESET_BOOST + PRESET_AWAY_SUFFIX: temps["boost_away"],
-        PRESET_ECO_AC + PRESET_AWAY_SUFFIX: temps["eco_ac_away"],
-        PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX: temps["comfort_ac_away"],
-        PRESET_BOOST_AC + PRESET_AWAY_SUFFIX: temps["boost_ac_away"],
+        VThermPreset.FROST + PRESET_AWAY_SUFFIX: temps["frost_away"],
+        VThermPreset.ECO + PRESET_AWAY_SUFFIX: temps["eco_away"],
+        VThermPreset.COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away"],
+        VThermPreset.BOOST + PRESET_AWAY_SUFFIX: temps["boost_away"],
+        VThermPresetWithAC.ECO_AC + PRESET_AWAY_SUFFIX: temps["eco_ac_away"],
+        VThermPresetWithAC.COMFORT_AC + PRESET_AWAY_SUFFIX: temps["comfort_ac_away"],
+        VThermPresetWithAC.BOOST_AC + PRESET_AWAY_SUFFIX: temps["boost_ac_away"],
     }
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -738,26 +738,26 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     assert vtherm
     assert isinstance(vtherm, ThermostatOverSwitch)
     assert vtherm.preset_modes == [
-        PRESET_NONE,
-        PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        # PRESET_COMFORT, because temp is 0
-        PRESET_BOOST,
+        VThermPreset.NONE,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        # VThermPreset.COMFORT, because temp is 0
+        VThermPreset.BOOST,
     ]
 
     # Preset away should be empty cause we use central config for presets
     assert vtherm._presets == {
-        PRESET_FROST_PROTECTION: FULL_CENTRAL_CONFIG["frost_temp"],
-        PRESET_ECO: FULL_CENTRAL_CONFIG["eco_temp"],
-        PRESET_COMFORT: FULL_CENTRAL_CONFIG["comfort_temp"],
-        PRESET_BOOST: FULL_CENTRAL_CONFIG["boost_temp"],
+        VThermPreset.FROST: FULL_CENTRAL_CONFIG["frost_temp"],
+        VThermPreset.ECO: FULL_CENTRAL_CONFIG["eco_temp"],
+        VThermPreset.COMFORT: FULL_CENTRAL_CONFIG["comfort_temp"],
+        VThermPreset.BOOST: FULL_CENTRAL_CONFIG["boost_temp"],
     }
 
     assert vtherm._presets_away == {
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["frost_away_temp"],
-        PRESET_ECO + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["eco_away_temp"],
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["comfort_away_temp"],
-        PRESET_BOOST + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["boost_away_temp"],
+        VThermPreset.FROST + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["frost_away_temp"],
+        VThermPreset.ECO + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["eco_away_temp"],
+        VThermPreset.COMFORT + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["comfort_away_temp"],
+        VThermPreset.BOOST + PRESET_AWAY_SUFFIX: FULL_CENTRAL_CONFIG["boost_away_temp"],
     }
 
 
@@ -1045,7 +1045,7 @@ async def test_change_vtherm_temperature_with_presence(
     )
     assert vtherm.use_central_config_temperature is False
     await vtherm.async_set_hvac_mode(HVACMode.COOL)
-    await vtherm.async_set_preset_mode(PRESET_BOOST)
+    await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await send_presence_change_event(
         vtherm, STATE_ON, STATE_OFF, NowClass.get_now(hass), True
     )

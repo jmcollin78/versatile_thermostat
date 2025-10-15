@@ -65,13 +65,13 @@ async def test_over_climate_regulation(
         assert entity.hvac_action is HVACAction.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # Activate the heating by changing HVACMode and temperature
         # Select a hvacmode, presence and preset
@@ -96,7 +96,7 @@ async def test_over_climate_regulation(
                 HVACAction.HEATING
             )  # simulate under heating
             assert entity.hvac_action == HVACAction.HEATING
-            assert entity.preset_mode == PRESET_NONE  # Manual mode
+            assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
@@ -162,13 +162,13 @@ async def test_over_climate_regulation_ac_mode(
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
 
         # Activate the heating by changing HVACMode and temperature
         # Select a hvacmode, presence and preset
@@ -192,7 +192,7 @@ async def test_over_climate_regulation_ac_mode(
                 HVACAction.COOLING
             )  # simulate under heating
             assert entity.hvac_action == HVACAction.COOLING
-            assert entity.preset_mode == PRESET_NONE  # Manual mode
+            assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
             # the regulated temperature should be lower
             assert entity.regulated_target_temp < entity.target_temperature
@@ -414,7 +414,7 @@ async def test_over_climate_regulation_use_device_temp(
                 HVACAction.HEATING
             )  # simulate under heating
             assert entity.hvac_action == HVACAction.HEATING
-            assert entity.preset_mode == PRESET_NONE  # Manual mode
+            assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
             # the regulated temperature should be higher
             assert entity.regulated_target_temp < entity.target_temperature
@@ -571,7 +571,7 @@ async def test_over_climate_regulation_dtemp_null(
                 HVACAction.HEATING
             )  # simulate under cooling
             assert entity.hvac_action == HVACAction.HEATING
-            assert entity.preset_mode == PRESET_NONE  # Manual mode
+            assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
             # the regulated temperature should be lower
             assert entity.regulated_target_temp > entity.target_temperature

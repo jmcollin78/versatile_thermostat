@@ -71,9 +71,9 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         assert tpi_algo
 
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 21
         assert entity.is_device_active is False
 

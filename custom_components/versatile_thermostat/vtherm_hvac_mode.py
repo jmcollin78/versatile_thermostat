@@ -1,13 +1,11 @@
 """ A custom data class to manage specific HVAC modes for VTherm. """
 
-from enum import Enum
-
 from homeassistant.components.climate.const import HVACMode
 
 from .const import HVACMODE_SLEEP
 
 
-class VThermHvacMode(Enum):
+class VThermHvacMode:
     """
     Enumeration of supported HVAC operating modes
     """

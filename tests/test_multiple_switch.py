@@ -65,10 +65,10 @@ async def test_one_switch_cycle(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -272,10 +272,10 @@ async def test_multiple_switchs(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -405,10 +405,10 @@ async def test_multiple_climates(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -433,7 +433,7 @@ async def test_multiple_climates(
         await entity.async_set_hvac_mode(HVACMode.OFF)
 
         assert entity.hvac_mode is HVACMode.OFF
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -507,10 +507,10 @@ async def test_multiple_climates_underlying_changes(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -653,10 +653,10 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -764,9 +764,9 @@ async def test_multiple_switch_power_management(
     VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
     await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
     assert entity.hvac_mode is HVACMode.HEAT
-    assert entity.preset_mode is PRESET_BOOST
+    assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
@@ -795,7 +795,7 @@ async def test_multiple_switch_power_management(
         await send_max_power_change_event(entity, 300, datetime.now())
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode is VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
 
     # 2. Send power max mesurement too low and HVACMode is on
@@ -815,14 +815,14 @@ async def test_multiple_switch_power_management(
             await send_max_power_change_event(entity, 49, datetime.now())
             assert entity.power_manager.is_overpowering_detected is True
             # All configuration is complete and power is > power_max we switch to POWER preset
-            assert entity.preset_mode is PRESET_POWER
+            assert entity.preset_mode is VThermPreset.POWER
             assert entity.power_manager.overpowering_state is STATE_ON
             assert entity.target_temperature == 12
 
             assert mock_send_event.call_count == 2
             mock_send_event.assert_has_calls(
                 [
-                    call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_POWER}),
+                    call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.POWER}),
                     call.send_event(
                         EventType.POWER_EVENT,
                         {
@@ -846,8 +846,8 @@ async def test_multiple_switch_power_management(
             now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-            await entity.async_set_preset_mode(PRESET_ECO)
-            assert entity.preset_mode is PRESET_ECO
+            await entity.async_set_preset_mode(VThermPreset.ECO)
+            assert entity.preset_mode is VThermPreset.ECO
             # No change cause temperature is very low
             assert entity.power_manager.overpowering_state is STATE_ON
 
@@ -868,7 +868,7 @@ async def test_multiple_switch_power_management(
             await send_max_power_change_event(entity, 150, datetime.now())
             assert entity.power_manager.is_overpowering_detected is False
             # All configuration is complete and power is > power_max we switch to POWER preset
-            assert entity.preset_mode is PRESET_ECO
+            assert entity.preset_mode is VThermPreset.ECO
             assert entity.power_manager.overpowering_state is STATE_OFF
             assert entity.target_temperature == 17
 

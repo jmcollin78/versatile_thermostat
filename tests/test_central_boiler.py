@@ -147,7 +147,7 @@ async def test_update_central_boiler_state_simple(
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -375,7 +375,7 @@ async def test_update_central_boiler_state_multiple(
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     # tz = get_tz(hass)  # pylint: disable=invalid-name
     # now: datetime = datetime.now(tz=tz)
@@ -703,7 +703,7 @@ async def test_update_central_boiler_state_simple_valve(
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -894,7 +894,7 @@ async def test_update_central_boiler_state_simple_climate(
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -1126,7 +1126,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         await hass.async_block_till_done()
 
         await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         # the VTherm should not heat now
         assert entity.hvac_mode == HVACMode.HEAT

@@ -71,7 +71,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
 
     assert entity.safety_manager.is_safety_detected is False
-    assert entity.preset_mode is not PRESET_SAFETY
+    assert entity.preset_mode is not VThermPreset.SAFETY
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
@@ -80,9 +80,9 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     ).total_seconds() < 1
 
     # set a preset
-    assert entity.preset_mode is PRESET_NONE
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    assert entity.preset_mode is PRESET_COMFORT
+    assert entity.preset_mode is VThermPreset.NONE
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    assert entity.preset_mode is VThermPreset.COMFORT
 
     # Turn On the thermostat
     assert entity.hvac_mode == HVACMode.OFF
@@ -102,12 +102,12 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
         # set temperature to 15 so that on_percent will be > safety_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
         assert entity.safety_state is STATE_ON
-        assert entity.preset_mode == PRESET_SAFETY
+        assert entity.preset_mode == VThermPreset.SAFETY
 
         assert mock_send_event.call_count == 3
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_SAFETY}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.SAFETY}),
                 call.send_event(
                     EventType.TEMPERATURE_EVENT,
                     {
@@ -141,7 +141,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     event_timestamp = now - timedelta(minutes=4)
     await send_last_seen_temperature_change_event(entity, event_timestamp)
     assert entity.safety_state is not STATE_ON
-    assert entity.preset_mode is PRESET_COMFORT
+    assert entity.preset_mode is VThermPreset.COMFORT
     assert entity._last_temperature_measure == event_timestamp
 
     assert entity._last_change_time_from_vtherm == last_change_time_from_vtherm

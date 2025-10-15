@@ -11,13 +11,7 @@ from enum import Enum
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
-from homeassistant.components.climate.const import (  # pylint: disable=unused-import
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    ClimateEntityFeature,
-)
-
+from homeassistant.components.climate.const import ClimateEntityFeature  # pylint: disable=unused-import
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
@@ -198,7 +192,7 @@ DEFAULT_SHORT_EMA_PARAMS = {
 }
 
 CONF_PRESETS = {
-    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         VThermPreset.FROST,
         VThermPreset.ECO,
@@ -208,7 +202,7 @@ CONF_PRESETS = {
 }
 
 CONF_PRESETS_WITH_AC = {
-    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         VThermPreset.FROST,
         VThermPreset.ECO,
@@ -221,7 +215,7 @@ CONF_PRESETS_WITH_AC = {
 }
 
 CONF_PRESETS_AWAY = {
-    p: f"{p.value}{PRESET_TEMP_SUFFIX}"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
         VThermPresetAway.FROST,
         VThermPresetAway.ECO,

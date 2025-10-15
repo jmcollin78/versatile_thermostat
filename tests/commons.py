@@ -30,11 +30,6 @@ from homeassistant.components.climate.const import (
     HVACMode,
     HVACAction,
     ClimateEntityFeature,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    PRESET_NONE,
-    PRESET_ACTIVITY,
 )
 
 from homeassistant.components.switch import (

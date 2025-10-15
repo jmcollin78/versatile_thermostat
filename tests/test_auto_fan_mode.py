@@ -241,8 +241,8 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         # Force preset mode
         await entity.async_set_hvac_mode(HVACMode.HEAT)
         assert entity.hvac_mode == HVACMode.HEAT
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 18
 
         # Change the current temperature to 16 which is 2° under
@@ -311,7 +311,7 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
     ) as mock_send_fan_mode:
         await entity.async_set_hvac_mode(HVACMode.COOL)
         assert entity.hvac_mode == HVACMode.COOL
-        assert entity.preset_mode == PRESET_COMFORT
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 23
 
         assert entity.current_temperature == 21

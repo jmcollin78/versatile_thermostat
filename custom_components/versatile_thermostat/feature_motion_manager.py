@@ -23,9 +23,7 @@ from homeassistant.helpers.event import (
     async_call_later,
 )
 
-from homeassistant.components.climate import (
-    PRESET_ACTIVITY,
-)
+from .vtherm_preset import VThermPreset
 
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
@@ -141,7 +139,7 @@ class FeatureMotionManager(BaseFeatureManager):
             self,
             new_state,
             self._vtherm.preset_mode,
-            PRESET_ACTIVITY,
+            VThermPreset.ACTIVITY,
         )
 
         if new_state is None or new_state.state not in (STATE_OFF, STATE_ON):
@@ -249,7 +247,7 @@ class FeatureMotionManager(BaseFeatureManager):
         if new_state is not None:
             self._motion_state = STATE_ON if new_state == STATE_ON else STATE_OFF
 
-        # if self._vtherm.preset_mode == PRESET_ACTIVITY:
+        # if self._vtherm.preset_mode == VThermPreset.ACTIVITY:
         #     new_preset = self.get_current_motion_preset()
         #     _LOGGER.info(
         #         "%s - Motion condition have changes. New preset temp will be %s",

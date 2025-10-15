@@ -1,12 +1,5 @@
 """ The commons const for all tests """
 
-from homeassistant.components.climate.const import (  # pylint: disable=unused-import
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    PRESET_NONE,
-    PRESET_ACTIVITY,
-)
 
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -165,8 +158,8 @@ MOCK_MOTION_CONFIG = {
     CONF_MOTION_SENSOR: "input_boolean.motion_sensor",
     CONF_MOTION_DELAY: 10,
     CONF_MOTION_OFF_DELAY: 30,
-    CONF_MOTION_PRESET: PRESET_COMFORT,
-    CONF_NO_MOTION_PRESET: PRESET_ECO,
+    CONF_MOTION_PRESET: VThermPreset.COMFORT,
+    CONF_NO_MOTION_PRESET: VThermPreset.ECO,
 }
 
 MOCK_CENTRAL_POWER_CONFIG = {
