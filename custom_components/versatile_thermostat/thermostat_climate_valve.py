@@ -5,7 +5,8 @@ import logging
 from datetime import datetime
 
 from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import HVACMode, HVACAction
+from homeassistant.components.climate import HVACAction
+
 
 from .underlyings import UnderlyingValveRegulation
 
@@ -15,6 +16,7 @@ from .thermostat_climate import ThermostatOverClimate
 from .prop_algorithm import PropAlgorithm
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .vtherm_hvac_mode import VThermHvacMode
 
 # from .vtherm_api import VersatileThermostatAPI
 
@@ -127,7 +129,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Restore my specific attributes from previous state"""
         super().restore_specific_previous_state(old_state)
 
-        self._is_sleeping = self.hvac_mode == HVACMode.OFF and old_state.attributes.get("is_sleeping", False)
+        self._is_sleeping = self.hvac_mode == VThermHvacMode.OFF and old_state.attributes.get("is_sleeping", False)
         if self._is_sleeping:
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
@@ -215,7 +217,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self.hvac_mode or HVACMode.OFF,
+            self.hvac_mode or VThermHvacMode.OFF,
         )
 
         new_valve_percent = round(
@@ -261,7 +263,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
-        if self.hvac_mode == HVACMode.OFF:
+        if self.hvac_mode == VThermHvacMode.OFF:
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
             return
 
@@ -295,14 +297,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             await under.set_valve_open_percent()
 
     @overrides
-    async def async_set_hvac_mode(self, hvac_mode: HVACMode, need_control_heating=True):
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, need_control_heating=True):
         """Set new hvac mode"""
         _LOGGER.info("%s - Calling async_set_hvac_mode to %s", self, hvac_mode)
 
         if hvac_mode == HVACMODE_SLEEP:
             _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
             self._is_sleeping = True
-            hvac_mode = HVACMode.OFF
+            hvac_mode = VThermHvacMode.OFF
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
         else:
             self._is_sleeping = False
@@ -316,15 +318,15 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self.async_write_ha_state()
 
         # set hvac mode save the state at the end
-        await super().async_set_hvac_mode(hvac_mode, need_control_heating)
+        await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
-    def build_hvac_list(self) -> list[HVACMode]:
+    def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
-            return [HVACMode.COOL, HVACMODE_SLEEP, HVACMode.OFF]
+            return [VThermHvacMode.COOL, VThermHvacMode.SLEEP, VThermHvacMode.OFF]
         else:
-            return [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
+            return [VThermHvacMode.HEAT, VThermHvacMode.SLEEP, VThermHvacMode.OFF]
 
     @property
     def have_valve_regulation(self) -> bool:
@@ -334,7 +336,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if (self.hvac_mode == HVACMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
+        if (self.hvac_mode == VThermHvacMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent

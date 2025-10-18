@@ -3,7 +3,7 @@ from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACAction, HVACMode
+from homeassistant.components.climate import HVACAction, VThermHvacMode
 from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
@@ -80,8 +80,8 @@ async def test_over_switch_ac_full_start(
         assert entity.is_over_climate is False  # pylint: disable=protected-access
         assert entity.ac_mode is True
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.hvac_modes == [VThermHvacMode.HEAT, VThermHvacMode.COOL, VThermHvacMode.OFF]
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
@@ -106,21 +106,21 @@ async def test_over_switch_ac_full_start(
                 call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode.OFF},
                 ),
             ]
         )
 
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode is HVACMode.COOL
+        await entity.async_set_hvac_mode(VThermHvacMode.COOL)
+        assert entity.hvac_mode is VThermHvacMode.COOL
 
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)
         assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
 
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode is HVACMode.COOL
+        await entity.async_set_hvac_mode(VThermHvacMode.COOL)
+        assert entity.hvac_mode is VThermHvacMode.COOL
 
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode is VThermPreset.COMFORT
@@ -147,7 +147,7 @@ async def test_over_switch_ac_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is HVACMode.OFF
+            assert entity.hvac_mode is VThermHvacMode.OFF
             assert entity.hvac_action is HVACAction.OFF
             assert entity.target_temperature == 27  # eco_ac_away (no change)
 
@@ -161,15 +161,15 @@ async def test_over_switch_ac_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is HVACMode.COOL
+            assert entity.hvac_mode is VThermHvacMode.COOL
             assert (
                 entity.hvac_action is HVACAction.OFF
                 or entity.hvac_action is HVACAction.IDLE
             )
             assert entity.target_temperature == 27  # eco_ac_away
 
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode is HVACMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
         # switch to comfort
         await entity.async_set_preset_mode(VThermPreset.COMFORT)

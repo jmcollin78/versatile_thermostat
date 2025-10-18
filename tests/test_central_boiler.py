@@ -146,7 +146,7 @@ async def test_update_central_boiler_state_simple(
     assert api.nb_active_device_for_boiler == 0
 
     # Force the VTherm to heat
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -154,7 +154,7 @@ async def test_update_central_boiler_state_simple(
     # set temp to 23 to avoid heating and turn on the heater and the boiler
     await send_temperature_change_event(entity, 23, now)
 
-    assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode.HEAT
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
         hass, "binary_sensor.central_boiler", "binary_sensor"
@@ -374,14 +374,14 @@ async def test_update_central_boiler_state_multiple(
     await send_temperature_change_event(entity, 23, now)
 
     # Force the VTherm to heat
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     # tz = get_tz(hass)  # pylint: disable=invalid-name
     # now: datetime = datetime.now(tz=tz)
     # await send_temperature_change_event(entity, 10, now)
 
-    assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode.HEAT
     assert switch_pompe_chaudiere.is_on is False
 
     # 0. set threshold to 3
@@ -702,13 +702,13 @@ async def test_update_central_boiler_state_simple_valve(
     assert api.nb_active_device_for_boiler == 0
 
     # Force the VTherm to heat
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode.HEAT
     assert entity.device_actives == []
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
@@ -893,13 +893,13 @@ async def test_update_central_boiler_state_simple_climate(
     assert nb_device_active_sensor.active_device_ids == []
 
     # Force the VTherm to heat
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode.HEAT
     assert entity.device_actives == []
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
@@ -916,7 +916,7 @@ async def test_update_central_boiler_state_simple_climate(
     ) as mock_send_event:
         await send_temperature_change_event(entity, 10, now)
         # we have to simulate the climate also else the test don't work
-        climate1.set_hvac_mode(HVACMode.HEAT)
+        climate1.set_hvac_mode(VThermHvacMode.HEAT)
         climate1.set_hvac_action(HVACAction.HEATING)
         climate1.async_write_ha_state()
         # Wait for state event propagation
@@ -964,7 +964,7 @@ async def test_update_central_boiler_state_simple_climate(
         "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
     ) as mock_send_event:
         await send_temperature_change_event(entity, 25, now)
-        climate1.set_hvac_mode(HVACMode.HEAT)
+        climate1.set_hvac_mode(VThermHvacMode.HEAT)
         climate1.set_hvac_action(HVACAction.IDLE)
         climate1.async_write_ha_state()
         # Wait for state event propagation
@@ -1017,7 +1017,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
-    climate1 = MockClimate(hass, "climate1", "theClimate1", hvac_mode=HVACMode.OFF)
+    climate1 = MockClimate(hass, "climate1", "theClimate1", hvac_mode=VThermHvacMode.OFF)
     await register_mock_entity(hass, climate1, CLIMATE_DOMAIN)
 
     switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
@@ -1125,11 +1125,11 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         await send_ext_temperature_change_event(entity, 30, now)
         await hass.async_block_till_done()
 
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
         await entity.async_set_preset_mode(VThermPreset.BOOST)
 
         # the VTherm should not heat now
-        assert entity.hvac_mode == HVACMode.HEAT
+        assert entity.hvac_mode == VThermHvacMode.HEAT
         assert entity.hvac_action == HVACAction.OFF
         assert entity.activable_underlying_entities[0]._percent_open == 0
         assert entity.device_actives == []
@@ -1172,7 +1172,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
 
         await send_temperature_change_event(entity, 10, now)
         # we have to simulate the climate also else the test don't work
-        climate1.set_hvac_mode(HVACMode.HEAT)
+        climate1.set_hvac_mode(VThermHvacMode.HEAT)
         climate1.set_hvac_action(HVACAction.HEATING)
         climate1.async_write_ha_state()
         open_degree_entity.set_native_value(100)
@@ -1241,7 +1241,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         side_effect=mock_get_state_side_effect.get_side_effects(),
     ):
         await send_temperature_change_event(entity, 25, now)
-        climate1.set_hvac_mode(HVACMode.HEAT)
+        climate1.set_hvac_mode(VThermHvacMode.HEAT)
         climate1.set_hvac_action(HVACAction.IDLE)
         climate1.async_write_ha_state()
         open_degree_entity.set_native_value(0)
@@ -1300,8 +1300,8 @@ async def test_bug_339(
         hass=hass,
         unique_id="climate1",
         name="theClimate1",
-        hvac_mode=HVACMode.AUTO,
-        hvac_modes=[HVACMode.AUTO, HVACMode.OFF, HVACMode.HEAT, HVACMode.COOL],
+        hvac_mode=VThermHvacModeAUTO,
+        hvac_modes=[VThermHvacModeAUTO, VThermHvacMode.OFF, VThermHvacMode.HEAT, VThermHvacMode.COOL],
         hvac_action=HVACAction.HEATING,
     )
 
@@ -1351,7 +1351,7 @@ async def test_bug_339(
         assert entity.underlying_entities[0].entity_id == "climate.climate1"
         assert api.nb_active_device_for_boiler_threshold == 1
 
-    await entity.async_set_hvac_mode(HVACMode.AUTO)
+    await entity.async_set_hvac_mode(VThermHvacModeAUTO)
     # Simulate a state change in underelying
     await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices(None)
 

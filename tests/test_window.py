@@ -63,9 +63,9 @@ async def test_window_management_time_not_enough(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
@@ -154,9 +154,9 @@ async def test_window_management_time_enough(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
@@ -202,17 +202,15 @@ async def test_window_management_time_enough(
         await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
-        )
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF})])
 
         # Heater should not be on
         assert mock_heater_on.call_count == 0
         # One call in set_hvac_mode turn_off and one call in the control_heating for security
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
-        assert entity.hvac_mode is HVACMode.OFF
-        assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
 
@@ -244,15 +242,13 @@ async def test_window_management_time_enough(
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
-                ),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
             ],
             any_order=False,
         )
         assert entity.preset_mode is VThermPreset.BOOST
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity._saved_hvac_mode is HVACMode.HEAT  # No change
+        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT  # No change
         assert entity.hvac_off_reason is None
 
     # Clean the entity
@@ -308,9 +304,9 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -351,7 +347,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         assert (
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # send one degre down in one minute
     with patch(
@@ -378,11 +374,11 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
         assert entity.window_auto_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_mode is VThermHvacMode.OFF
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF}),
                 call.send_event(
                     EventType.WINDOW_AUTO_EVENT,
                     {"type": "start", "cause": "slope alert", "curve_slope": -6.24},
@@ -417,7 +413,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
         assert entity.window_auto_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_mode is VThermHvacMode.OFF
 
     # send another plus 1.1 degre in one minute -> restore state
     with patch(
@@ -438,9 +434,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
-                ),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
                 call.send_event(
                     EventType.WINDOW_AUTO_EVENT,
                     {
@@ -462,7 +456,7 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
             entity.window_manager._window_auto_algo.is_window_close_detected() is True
         )
         assert entity.window_auto_state == STATE_OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     entity.remove_thermostat()
@@ -521,9 +515,9 @@ async def test_window_auto_fast_and_sensor(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.target_temperature == 21
 
@@ -565,7 +559,7 @@ async def test_window_auto_fast_and_sensor(
         assert (
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # send one degre down in one minute
     with patch(
@@ -593,7 +587,7 @@ async def test_window_auto_fast_and_sensor(
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
         assert entity.window_auto_state == STATE_UNAVAILABLE
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     entity.remove_thermostat()
@@ -645,9 +639,9 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     tpi_algo = entity._prop_algorithm
     assert tpi_algo is None
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -685,7 +679,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         assert (
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # 3. send one degre down in one minute
     with patch(
@@ -710,7 +704,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         # The heater turns off
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF}),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF}),
                 call.send_event(
                     EventType.WINDOW_AUTO_EVENT,
                     {
@@ -724,7 +718,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         )
         assert mock_set_hvac_mode.call_count >= 1
         assert entity.window_auto_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_mode is VThermHvacMode.OFF
 
     # 4. This is to avoid that the slope stay under 6, else we will reactivate the window immediatly
     event_timestamp = event_timestamp + timedelta(minutes=1)
@@ -747,7 +741,7 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
         # simulate the expiration of the delay
         await dearm_window_auto(None)
 
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.BOOST
         assert entity.window_auto_state == STATE_OFF
 
@@ -815,9 +809,9 @@ async def test_window_auto_no_on_percent(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 20
@@ -857,7 +851,7 @@ async def test_window_auto_no_on_percent(
         assert (
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.proportional_algorithm.on_percent == 0.0
 
     # send one degre down in one minute
@@ -888,7 +882,7 @@ async def test_window_auto_no_on_percent(
         )
         # But the entity is still on and window_auto is not detected
         assert entity.window_auto_state == STATE_UNKNOWN
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     entity.remove_thermostat()
@@ -939,9 +933,9 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
@@ -998,7 +992,7 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
         # One call in set_hvac_mode turn_off and one call in the control_heating for security
         assert mock_heater_off.call_count == 0
         assert mock_condition.call_count > 0
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.window_state == STATE_ON
 
     # Close the window
@@ -1027,7 +1021,7 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.window_state == STATE_OFF
         assert mock_heater_on.call_count == 0
         assert mock_send_event.call_count == 0
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.BOOST
 
     # Clean the entity
@@ -1084,9 +1078,9 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -1126,7 +1120,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
         assert (
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # send one degre down in one minute with window bypass on
     await entity.service_set_window_bypass_state(True)
@@ -1157,7 +1151,7 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
             entity.window_manager._window_auto_algo.is_window_close_detected() is False
         )
         assert entity.window_auto_state == STATE_UNKNOWN
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     entity.remove_thermostat()
@@ -1209,9 +1203,9 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
@@ -1257,16 +1251,14 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
         await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
-        )
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF})])
 
         # Heater should not be on
         assert mock_heater_on.call_count == 0
         # One call in set_hvac_mode turn_off and one call in the control_heating for security
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_mode is VThermHvacMode.OFF
         assert entity.window_state == STATE_ON
 
     # Call the set bypass service to set bypass ON
@@ -1285,14 +1277,12 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
 
         assert entity.window_state == STATE_ON
         assert entity.preset_mode is VThermPreset.BOOST
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # assert mock_heater_on.call_count == 1
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
-                ),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
             ],
             any_order=False,
         )
@@ -1344,7 +1334,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         hass=hass,
         unique_id="mockUniqueId",
         name="MockClimateName",
-        hvac_modes=[HVACMode.HEAT, HVACMode.COOL, HVACMode.FAN_ONLY],
+        hvac_modes=[VThermHvacMode.HEAT, VThermHvacMode.COOL, VThermHvacModeFAN_ONLY],
     )
 
     # 1. intialize climate entity
@@ -1365,8 +1355,8 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.is_over_climate is True
         assert entity.window_manager.window_action == CONF_WINDOW_FAN_ONLY
 
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode == HVACMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        assert entity.hvac_mode == VThermHvacMode.HEAT
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 18
@@ -1388,26 +1378,20 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         await try_window_condition(None)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.FAN_ONLY}
-                )
-            ]
-        )
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacModeFAN_ONLY})])
 
         # The underlying should be in OFF hvac_mode
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.FAN_ONLY),
+                call.set_hvac_mode(VThermHvacModeFAN_ONLY),
             ]
         )
 
         assert entity.window_state == STATE_ON
         # The underlying should be in FAN_ONLY hvac_mode
-        assert entity.hvac_mode is HVACMode.FAN_ONLY
-        assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacModeFAN_ONLY
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT
         assert entity.hvac_off_reason is None  # Hvac is not off
         assert entity.preset_mode is VThermPreset.COMFORT
 
@@ -1433,9 +1417,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
-                ),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
             ],
             any_order=False,
         )
@@ -1444,10 +1426,10 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode.HEAT),
             ]
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.COMFORT
         assert entity.hvac_off_reason is None
 
@@ -1501,7 +1483,7 @@ async def test_window_action_fan_only_ko(
         hass=hass,
         unique_id="mockUniqueId",
         name="MockClimateName",
-        hvac_modes=[HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO],
+        hvac_modes=[VThermHvacMode.HEAT, VThermHvacMode.COOL, VThermHvacModeAUTO],
     )
 
     # 1. intialize climate entity
@@ -1522,8 +1504,8 @@ async def test_window_action_fan_only_ko(
         assert entity.is_over_climate is True
         assert entity.window_manager.window_action == CONF_WINDOW_FAN_ONLY
 
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode == HVACMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        assert entity.hvac_mode == VThermHvacMode.HEAT
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 18
@@ -1545,21 +1527,19 @@ async def test_window_action_fan_only_ko(
         await try_window_condition(None)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls(
-            [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})]
-        )
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF})])
 
         assert entity.window_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.hvac_mode is VThermHvacMode.OFF
         # The underlying should be in OFF hvac_mode
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.OFF),
+                call.set_hvac_mode(VThermHvacMode.OFF),
             ]
         )
 
-        assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.COMFORT
 
     # 3. Close the window
@@ -1584,9 +1564,7 @@ async def test_window_action_fan_only_ko(
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(
-                    EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}
-                ),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
             ],
             any_order=False,
         )
@@ -1595,10 +1573,10 @@ async def test_window_action_fan_only_ko(
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode.HEAT),
             ]
         )
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.COMFORT
 
     # Clean the entity
@@ -1652,9 +1630,9 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -1688,7 +1666,7 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
         # The heater turns on
         assert mock_send_event.call_count == 0
         assert entity.is_device_active is True
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.window_state is STATE_UNKNOWN
         assert entity.window_auto_state is STATE_UNKNOWN
 
@@ -1715,8 +1693,8 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.last_temperature_slope == -6.24
         assert entity.window_auto_state == STATE_ON
         assert entity.window_state == STATE_ON
-        # No change on HVACMode
-        assert entity.hvac_mode is HVACMode.HEAT
+        # No change on VThermHvacMode
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The eco temp
@@ -1754,7 +1732,7 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.last_temperature_slope is not None
         assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity.window_auto_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The eco temp
@@ -1794,7 +1772,7 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_heater_off.call_count == 0
         assert entity.last_temperature_slope == 0.42
         assert entity.window_auto_state == STATE_OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The eco temp
@@ -1852,9 +1830,9 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -1888,7 +1866,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         # The heater turns on
         assert mock_send_event.call_count == 0
         assert entity.is_device_active is True
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.window_state is STATE_UNKNOWN
         assert entity.window_auto_state is STATE_UNKNOWN
 
@@ -1914,8 +1892,8 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.last_temperature_slope == -6.24
         assert entity.window_auto_state == STATE_ON
         assert entity.window_state == STATE_ON
-        # No change on HVACMode
-        assert entity.hvac_mode is HVACMode.HEAT
+        # No change on VThermHvacMode
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The eco temp
@@ -1953,7 +1931,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert entity.last_temperature_slope is not None
         assert round(entity.last_temperature_slope, 3) == -7.49
         assert entity.window_auto_state == STATE_ON
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The eco temp
@@ -1993,7 +1971,7 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_off.call_count == 0
         assert entity.last_temperature_slope == 0.42
         assert entity.window_auto_state == STATE_OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         # No change on preset
         assert entity.preset_mode is VThermPreset.BOOST
         # The Boost temp
@@ -2055,10 +2033,10 @@ async def test_bug_66(
     )
     assert entity
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.target_temperature == 19
     assert entity.window_state is STATE_UNKNOWN
@@ -2126,7 +2104,7 @@ async def test_bug_66(
 
         # still no change
         assert entity.window_state == STATE_ON
-        assert entity.hvac_mode == HVACMode.OFF
+        assert entity.hvac_mode == VThermHvacMode.OFF
 
     # Close the window but with sufficient time this time
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -2147,7 +2125,7 @@ async def test_bug_66(
 
         # window state should be Off this time and old state should have been restored
         assert entity.window_state == STATE_OFF
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.BOOST
 
 
@@ -2201,11 +2179,11 @@ async def test_window_action_frost_temp_preset_change(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
     assert vtherm.preset_mode is VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2227,7 +2205,7 @@ async def test_window_action_frost_temp_preset_change(
         assert vtherm.target_temperature == 7  # Frost
         # No change
         assert vtherm.preset_mode is VThermPreset.BOOST
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
@@ -2239,7 +2217,7 @@ async def test_window_action_frost_temp_preset_change(
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 7  # frost (window is still open)
     assert vtherm.preset_mode is VThermPreset.COMFORT
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2256,7 +2234,7 @@ async def test_window_action_frost_temp_preset_change(
         assert vtherm.target_temperature == 19  # restore comfort
         # No change
         assert vtherm.preset_mode is VThermPreset.COMFORT
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2312,11 +2290,11 @@ async def test_window_action_frost_temp_temp_change(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
     assert vtherm.preset_mode is VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2338,7 +2316,7 @@ async def test_window_action_frost_temp_temp_change(
         assert vtherm.target_temperature == 7  # Frost
         # No change
         assert vtherm.preset_mode is VThermPreset.BOOST
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # 2. Change the target temperature
     now = now + timedelta(minutes=1)
@@ -2350,7 +2328,7 @@ async def test_window_action_frost_temp_temp_change(
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 7  # frost (window is still open)
     assert vtherm.preset_mode is VThermPreset.NONE
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2367,7 +2345,7 @@ async def test_window_action_frost_temp_temp_change(
         assert vtherm.target_temperature == 18.5  # restore new target temperature
         # No change
         assert vtherm.preset_mode is VThermPreset.NONE
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2414,9 +2392,9 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 21
@@ -2453,7 +2431,7 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
         await hass.async_block_till_done()
 
         # The preset is kept to BOOST but target temp is changed to frost
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.BOOST
         assert entity.saved_target_temp == 21
         assert entity.target_temperature == 7
@@ -2476,7 +2454,7 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
 
         assert entity.window_state == STATE_ON
         assert entity.preset_mode is VThermPreset.BOOST
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.target_temperature == 21
         assert entity.saved_target_temp == 21
 
@@ -2538,11 +2516,11 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
     assert vtherm.preset_mode is VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2564,7 +2542,7 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
         # No change
         assert vtherm.target_temperature == 21
         assert vtherm.preset_mode is VThermPreset.BOOST
-        assert vtherm.hvac_mode is HVACMode.OFF
+        assert vtherm.hvac_mode is VThermHvacMode.OFF
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
@@ -2576,7 +2554,7 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 19
     assert vtherm.preset_mode is VThermPreset.COMFORT
-    assert vtherm.hvac_mode is HVACMode.OFF
+    assert vtherm.hvac_mode is VThermHvacMode.OFF
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2593,7 +2571,7 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
         assert vtherm.target_temperature == 19  # restore comfort
         # No change
         assert vtherm.preset_mode is VThermPreset.COMFORT
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2643,11 +2621,11 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now = datetime.now(tz)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is HVACMode.HEAT
+    assert vtherm.hvac_mode is VThermHvacMode.HEAT
     assert vtherm.preset_mode is VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2669,7 +2647,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
         # No change
         assert vtherm.target_temperature == 21
         assert vtherm.preset_mode is VThermPreset.BOOST
-        assert vtherm.hvac_mode is HVACMode.OFF
+        assert vtherm.hvac_mode is VThermHvacMode.OFF
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
@@ -2681,7 +2659,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 18.5
     assert vtherm.preset_mode is VThermPreset.NONE
-    assert vtherm.hvac_mode is HVACMode.OFF
+    assert vtherm.hvac_mode is VThermHvacMode.OFF
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2698,7 +2676,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
         assert vtherm.target_temperature == 18.5  # restore comfort
         # No change
         assert vtherm.preset_mode is VThermPreset.NONE
-        assert vtherm.hvac_mode is HVACMode.HEAT
+        assert vtherm.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2749,9 +2727,9 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNAVAILABLE
     assert entity.target_temperature == 19
@@ -2802,15 +2780,15 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.OFF})])
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.OFF})])
 
         # Heater should not be on
         assert mock_heater_on.call_count == 0
         # One call in set_hvac_mode turn_off and one call in the control_heating for security
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
-        assert entity.hvac_mode is HVACMode.OFF
-        assert entity._saved_hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT
         assert entity._saved_preset_mode is VThermPreset.COMFORT
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
@@ -2837,13 +2815,13 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": HVACMode.HEAT}),
+                call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode.HEAT}),
             ],
             any_order=False,
         )
         assert entity.preset_mode is VThermPreset.COMFORT
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity._saved_hvac_mode is HVACMode.HEAT  # No change
+        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity._saved_hvac_mode is VThermHvacMode.HEAT  # No change
         assert entity.hvac_off_reason is None
 
     # Clean the entity
@@ -2908,9 +2886,9 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
-    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.hvac_mode is VThermHvacMode.HEAT
     assert entity.preset_mode is VThermPreset.ACTIVITY
     # no motion and presence -> ECO temp
     assert entity.target_temperature == 18
@@ -2932,7 +2910,7 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.preset_mode is VThermPreset.ACTIVITY
         # no motion -> ECO away temp
         assert entity.target_temperature == 15
@@ -2961,7 +2939,7 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
         assert mock_condition.call_count == 1
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
         assert entity.window_state == STATE_ON
 
     # 3. Close the window
@@ -2983,7 +2961,7 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         assert mock_heater_on.call_count == 0
         assert mock_send_event.call_count == 0
         assert entity.preset_mode is VThermPreset.ACTIVITY
-        assert entity.hvac_mode is HVACMode.HEAT
+        assert entity.hvac_mode is VThermHvacMode.HEAT
 
     # Clean the entity
     entity.remove_thermostat()

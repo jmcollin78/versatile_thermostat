@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Literal
 
-from homeassistant.components.climate import HVACMode
+from .vtherm_hvac_mode import VThermHvacMode
 
 from .const import (
     AUTO_START_STOP_LEVEL_NONE,
@@ -83,8 +83,8 @@ class AutoStartStopDetectionAlgorithm:
 
     def calculate_action(
         self,
-        hvac_mode: HVACMode | None,
-        saved_hvac_mode: HVACMode | None,
+        hvac_mode: VThermHvacMode | None,
+        saved_hvac_mode: VThermHvacMode | None,
         target_temp: float,
         current_temp: float,
         slope_min: float | None,
@@ -158,7 +158,7 @@ class AutoStartStopDetectionAlgorithm:
 
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
-        if hvac_mode == HVACMode.HEAT:
+        if hvac_mode == VThermHvacMode.HEAT:
             if (
                 self._accumulated_error <= -self._error_threshold
                 and temp_at_dt >= target_temp + TEMP_HYSTERESIS
@@ -174,7 +174,7 @@ class AutoStartStopDetectionAlgorithm:
                 _LOGGER.debug("%s - nothing to do, we are heating", self)
                 return AUTO_START_STOP_ACTION_NOTHING
 
-        if hvac_mode == HVACMode.COOL:
+        if hvac_mode == VThermHvacMode.COOL:
             if (
                 self._accumulated_error >= self._error_threshold
                 and temp_at_dt <= target_temp - TEMP_HYSTERESIS
@@ -194,7 +194,7 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         # check to turn on
-        if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.HEAT:
+        if hvac_mode == VThermHvacMode.OFF and saved_hvac_mode == VThermHvacMode.HEAT:
             if (
                 temp_at_dt <= target_temp - TEMP_HYSTERESIS
                 and nb_minutes_since_last_switch >= self._dt
@@ -212,7 +212,7 @@ class AutoStartStopDetectionAlgorithm:
                 )
                 return AUTO_START_STOP_ACTION_NOTHING
 
-        if hvac_mode == HVACMode.OFF and saved_hvac_mode == HVACMode.COOL:
+        if hvac_mode == VThermHvacMode.OFF and saved_hvac_mode == VThermHvacMode.COOL:
             if (
                 temp_at_dt >= target_temp + TEMP_HYSTERESIS
                 and nb_minutes_since_last_switch >= self._dt

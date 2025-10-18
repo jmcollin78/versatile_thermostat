@@ -19,7 +19,8 @@ from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
 
-from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetAway, PRESET_TEMP_SUFFIX, PRESET_AC_SUFFIX, PRESET_AWAY_SUFFIX
+from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX
+from .vtherm_hvac_mode import VThermHvacMode  # pylint: disable=unused-import
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -394,8 +395,6 @@ CENTRAL_MODES = [
     CENTRAL_MODE_COOL_ONLY,
     CENTRAL_MODE_FROST_PROTECTION,
 ]
-
-HVACMODE_SLEEP = "sleep"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:

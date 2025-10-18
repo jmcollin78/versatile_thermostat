@@ -85,9 +85,9 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     assert entity.preset_mode is VThermPreset.COMFORT
 
     # Turn On the thermostat
-    assert entity.hvac_mode == HVACMode.OFF
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
-    assert entity.hvac_mode == HVACMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode.OFF
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+    assert entity.hvac_mode == VThermHvacMode.HEAT
 
     last_change_time_from_vtherm = entity._last_change_time_from_vtherm
 

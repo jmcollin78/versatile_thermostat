@@ -4,7 +4,7 @@
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACMode
+from .vtherm_hvac_mode import VThermHvacMode
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -134,7 +134,7 @@ async def test_sensors_over_switch(
 
     # Start the heater to get some values
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, event_timestamp)
     await send_ext_temperature_change_event(entity, 5, event_timestamp)
 
@@ -271,7 +271,7 @@ async def test_sensors_over_climate(
 
     # Start the heater to get some values
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, event_timestamp)
     await send_ext_temperature_change_event(entity, 5, event_timestamp)
 
@@ -280,8 +280,8 @@ async def test_sensors_over_climate(
     event_timestamp = now - timedelta(minutes=60)
     await send_climate_change_event(
         entity,
-        new_hvac_mode=HVACMode.HEAT,
-        old_hvac_mode=HVACMode.HEAT,
+        new_hvac_mode=VThermHvacMode.HEAT,
+        old_hvac_mode=VThermHvacMode.HEAT,
         new_hvac_action=HVACAction.HEATING,
         old_hvac_action=HVACAction.OFF,
         date=event_timestamp,
@@ -291,8 +291,8 @@ async def test_sensors_over_climate(
     # Send a climate_change event with HVACAction=IDLE (end of heating)
     await send_climate_change_event(
         entity,
-        new_hvac_mode=HVACMode.HEAT,
-        old_hvac_mode=HVACMode.HEAT,
+        new_hvac_mode=VThermHvacMode.HEAT,
+        old_hvac_mode=VThermHvacMode.HEAT,
         new_hvac_action=HVACAction.IDLE,
         old_hvac_action=HVACAction.HEATING,
         date=now,

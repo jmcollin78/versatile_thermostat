@@ -23,13 +23,13 @@ from homeassistant.helpers.event import (
     async_call_later,
 )
 
-from homeassistant.components.climate.const import HVACMode
 
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
+from .vtherm_hvac_mode import VThermHvacMode
 
 from .base_manager import BaseFeatureManager
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
@@ -302,9 +302,9 @@ class FeatureWindowManager(BaseFeatureManager):
             #
             # if (
             #    self._window_action == CONF_WINDOW_FAN_ONLY
-            #    and HVACMode.FAN_ONLY in self._vtherm.hvac_modes
+            #    and VThermHvacModeFAN_ONLY in self._vtherm.hvac_modes
             # ):
-            #    await self._vtherm.async_set_hvac_mode(HVACMode.FAN_ONLY)
+            #    await self._vtherm.async_set_hvac_mode(VThermHvacModeFAN_ONLY)
             # elif (
             #    self._window_action == CONF_WINDOW_FROST_TEMP
             #    and self._vtherm.is_preset_configured(VThermPreset.FROST)
@@ -317,7 +317,7 @@ class FeatureWindowManager(BaseFeatureManager):
             #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(VThermPreset.ECO), True)
             # else:  # default is to turn_off
             #    self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
-            #    await self._vtherm.async_set_hvac_mode(HVACMode.OFF)
+            #    await self._vtherm.async_set_hvac_mode(VThermHvacMode.OFF)
 
         if bypass:
             _LOGGER.info("%s - Window is bypassed. Forget the window detection", self)
@@ -380,11 +380,7 @@ class FeatureWindowManager(BaseFeatureManager):
             )
             return None
 
-        if (
-            self._window_auto_algo.is_window_open_detected()
-            and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF]
-            and self._vtherm.hvac_mode != HVACMode.OFF
-        ):
+        if self._window_auto_algo.is_window_open_detected() and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF] and self._vtherm.hvac_mode != VThermHvacMode.OFF:
             if (
                 self._vtherm.proportional_algorithm
                 and self._vtherm.proportional_algorithm.on_percent <= 0.0

@@ -5,7 +5,7 @@ from unittest.mock import patch, PropertyMock
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACMode
+from .vtherm_hvac_mode import VThermHvacMode
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
@@ -77,7 +77,7 @@ async def test_security_binary_sensors(
 
     # Security should be disabled
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
 
     assert security_binary_sensor.state == STATE_OFF
     assert security_binary_sensor.device_class == BinarySensorDeviceClass.SAFETY
@@ -162,7 +162,7 @@ async def test_overpowering_binary_sensors(
 
     # Overpowering should be not set because poer have not been received
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.power_manager.is_overpowering_detected is False
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
@@ -264,7 +264,7 @@ async def test_window_binary_sensors(
 
     # Overpowering should be not set because poer have not been received
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.window_state is STATE_UNKNOWN
 
@@ -355,7 +355,7 @@ async def test_motion_binary_sensors(
 
     # Overpowering should be not set because poer have not been received
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.motion_state is STATE_UNKNOWN
 
@@ -446,7 +446,7 @@ async def test_presence_binary_sensors(
 
     # Overpowering should be not set because poer have not been received
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.presence_state is STATE_UNKNOWN
 
