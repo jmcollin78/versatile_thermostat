@@ -9,18 +9,11 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 from homeassistant.core import Event, HomeAssistant, callback
-from .vtherm_hvac_mode import VThermHvacMode
 
 from .base_thermostat import BaseThermostat, ConfigData
 from .prop_algorithm import PropAlgorithm
 
-from .const import (
-    CONF_UNDERLYING_LIST,
-    # This is not really self-regulation but regulation here
-    CONF_AUTO_REGULATION_DTEMP,
-    CONF_AUTO_REGULATION_PERIOD_MIN,
-    overrides,
-)
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .underlyings import UnderlyingValve
 
@@ -68,7 +61,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self._hvac_mode == VThermHvacMode_OFF:
+        if self.vtherm_hvac_mode is VThermHvacMode_OFF:
             return 0
         else:
             return self._valve_open_percent
@@ -202,6 +195,13 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
 
+        if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
+            _LOGGER.warning(
+                "%s - auto_regulation_period_min or auto_regulation_dpercent is not set. Stopping TPI calculation.",
+                self,
+            )
+            return
+
         # For testing purpose. Should call _set_now() before
         now = self.now
 
@@ -216,11 +216,11 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                 return
 
         self._prop_algorithm.calculate(
-            self._target_temp,
+            self.target_temperature,
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or VThermHvacMode_OFF,
+            self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
 
         new_valve_percent = round(

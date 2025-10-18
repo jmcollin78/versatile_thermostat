@@ -614,7 +614,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._state_manager.current_state.set_state(
                     target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
                     preset=old_state.attributes.get(ATTR_PRESET_MODE, None),
-                    hvac_mode=old_state.state,
+                    hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
             # If we have no initial temperature set with min (or max depending on ac_mode)
             if self._state_manager.current_state.target_temperature is None:
@@ -1924,8 +1924,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
         if preset.startswith(self.preset_mode):
-            await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX))
-            await self.async_control_heating(force=True)
+            self.requested_state.force_changed()
+            await self.update_states(force=True)
+            # await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX))
+            # await self.async_control_heating(force=True)
 
     async def service_set_safety(
         self,

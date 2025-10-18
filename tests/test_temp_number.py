@@ -606,20 +606,20 @@ async def test_add_number_for_over_switch_use_central_presence(
         VThermPreset.ECO: temps["eco"],
         VThermPreset.COMFORT: temps["comfort"],
         VThermPreset.BOOST: temps["boost"],
-        VThermPresetWithAC.ECO_AC: temps["eco_ac"],
-        VThermPresetWithAC.COMFORT_AC: temps["comfort_ac"],
-        VThermPresetWithAC.BOOST_AC: temps["boost_ac"],
+        VThermPresetWithAC.ECO: temps["eco_ac"],
+        VThermPresetWithAC.COMFORT: temps["comfort_ac"],
+        VThermPresetWithAC.BOOST: temps["boost_ac"],
     }
 
     # Preset away should be initialized with the central config
     assert vtherm._presets_away == {
-        VThermPreset.FROST + PRESET_AWAY_SUFFIX: temps["frost_away"],
-        VThermPreset.ECO + PRESET_AWAY_SUFFIX: temps["eco_away"],
-        VThermPreset.COMFORT + PRESET_AWAY_SUFFIX: temps["comfort_away"],
-        VThermPreset.BOOST + PRESET_AWAY_SUFFIX: temps["boost_away"],
-        VThermPresetWithAC.ECO_AC + PRESET_AWAY_SUFFIX: temps["eco_ac_away"],
-        VThermPresetWithAC.COMFORT_AC + PRESET_AWAY_SUFFIX: temps["comfort_ac_away"],
-        VThermPresetWithAC.BOOST_AC + PRESET_AWAY_SUFFIX: temps["boost_ac_away"],
+        VThermPresetWithAway.FROST: temps["frost_away"],
+        VThermPresetWithAway.ECO: temps["eco_away"],
+        VThermPresetWithAway.COMFORT: temps["comfort_away"],
+        VThermPresetWithAway.BOOST: temps["boost_away"],
+        VThermPresetWithACAway.ECO: temps["eco_ac_away"],
+        VThermPresetWithACAway.COMFORT: temps["comfort_ac_away"],
+        VThermPresetWithACAway.BOOST: temps["boost_ac_away"],
     }
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -1027,7 +1027,7 @@ async def test_change_vtherm_temperature_with_presence(
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
             CONF_AC_MODE: True,
-            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
@@ -1068,7 +1068,7 @@ async def test_change_vtherm_temperature_with_presence(
             CONF_TPI_COEF_EXT: 0.02,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
-            CONF_VALVE: "switch.mock_valve",
+            CONF_VALVE: "number.mock_valve",
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,

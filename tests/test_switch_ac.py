@@ -192,3 +192,4 @@ async def test_over_switch_ac_full_start(
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 18
+

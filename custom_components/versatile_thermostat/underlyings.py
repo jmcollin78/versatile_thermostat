@@ -3,7 +3,7 @@
 """ Underlying entities classes """
 import logging
 import re
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 from enum import StrEnum
 
@@ -590,7 +590,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return False
 
-        if self._underlying_climate.hvac_mode == hvac_mode.to_ha_hvac_mode():
+        if self._underlying_climate.hvac_mode == to_ha_hvac_mode(hvac_mode):
             _LOGGER.debug(
                 "%s - hvac_mode is already is requested state %s. Do not send any command",
                 self,
@@ -881,6 +881,8 @@ class UnderlyingClimate(UnderlyingEntity):
     def cap_sent_value(self, value) -> float:
         """Try to adapt the target temp value to the min_temp / max_temp found
         in the underlying entity (if any)"""
+        min_val = None
+        max_val = None
 
         if not self.is_initialized:
             return value
@@ -998,7 +1000,7 @@ class UnderlyingValve(UnderlyingEntity):
     def is_device_active(self):
         """If the toggleable device is currently active."""
         try:
-            return self._percent_open > 0
+            return self._percent_open > 0 if isinstance(self._percent_open, (int, float)) else False
             # To test if real device is open but this is causing some side effect
             # because the activation can be deferred -
             # or float(self._hass.states.get(self._entity_id).state) > 0
@@ -1022,6 +1024,8 @@ class UnderlyingValve(UnderlyingEntity):
     def cap_sent_value(self, value) -> float:
         """Try to adapt the open_percent value to the min / max found
         in the underlying entity (if any)"""
+        min_val = None
+        max_val = None
 
         # Gets the last number state
         valve_state: State = self._hass.states.get(self._valve_entity_id)
@@ -1257,12 +1261,13 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def is_device_active(self):
         """If the opening valve is open."""
         try:
-            return get_safe_float(self._hass, self._opening_degree_entity_id) > 0
+            value = get_safe_float(self._hass, self._opening_degree_entity_id)
+            return value > 0 if value is not None else False
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
     @property
-    def valve_entity_ids(self) -> [str]:
+    def valve_entity_ids(self) -> List[str]:
         """get an arrary with all entityd id of the valve"""
         ret = []
         for entity in [
