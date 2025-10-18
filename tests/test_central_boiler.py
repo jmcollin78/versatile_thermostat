@@ -1300,8 +1300,8 @@ async def test_bug_339(
         hass=hass,
         unique_id="climate1",
         name="theClimate1",
-        hvac_mode=VThermHvacModeAUTO,
-        hvac_modes=[VThermHvacModeAUTO, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL],
+        hvac_mode=VThermHvacMode_AUTO,
+        hvac_modes=[VThermHvacMode_AUTO, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL],
         hvac_action=HVACAction.HEATING,
     )
 
@@ -1351,7 +1351,7 @@ async def test_bug_339(
         assert entity.underlying_entities[0].entity_id == "climate.climate1"
         assert api.nb_active_device_for_boiler_threshold == 1
 
-    await entity.async_set_hvac_mode(VThermHvacModeAUTO)
+    await entity.async_set_hvac_mode(VThermHvacMode_AUTO)
     # Simulate a state change in underelying
     await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices(None)
 

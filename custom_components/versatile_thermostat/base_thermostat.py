@@ -217,8 +217,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Store the last havac_mode before central mode changes
         # has been introduce to avoid conflict with window
-        self._saved_hvac_mode_central_mode = None
-        self._saved_preset_mode_central_mode = None
+        # self._saved_hvac_mode_central_mode = None
+        # self._saved_preset_mode_central_mode = None
 
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
@@ -1393,6 +1393,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._state_manager.requested_state.set_target_temperature(temperature)
         self._state_manager.requested_state.set_preset(VThermPreset.NONE)
+        await self.update_states(force=True)
 
         # self._attr_preset_mode = VThermPreset.NONE
         # if not self._window_manager.is_window_detected or self._window_manager.window_action in [CONF_WINDOW_TURN_OFF, CONF_WINDOW_FAN_ONLY]:
@@ -1814,8 +1815,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # "saved_target_temp": self._saved_target_temp,
             # "saved_preset_mode": self._saved_preset_mode,
             # "saved_hvac_mode": self._saved_hvac_mode,
-            ATTR_SAVED_PRESET_MODE_CENTRAL_MODE: self._saved_preset_mode_central_mode,
-            ATTR_SAVED_HVAC_MODE_CENTRAL_MODE: self._saved_hvac_mode_central_mode,
+            # ATTR_SAVED_PRESET_MODE_CENTRAL_MODE: self._saved_preset_mode_central_mode,
+            # ATTR_SAVED_HVAC_MODE_CENTRAL_MODE: self._saved_hvac_mode_central_mode,
             "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
             "minimal_activation_delay_sec": self._minimal_activation_delay,

@@ -17,7 +17,7 @@ from .const import (
     CONF_WINDOW_TURN_OFF,
 )
 from .vtherm_state import VThermState
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY
+from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY
 from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
@@ -97,15 +97,14 @@ class StateManager:
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
 
         # then check if window is open
-        elif vtherm.window_manager.is_window_detected and (
-            (vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY in vtherm.hvac_modes)
-            or vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF
-        ):
-            if vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF:  # default is to turn_off
+        elif vtherm.window_manager.is_window_detected:
+            if vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY in vtherm.hvac_modes:
+                self._current_state.set_hvac_mode(VThermHvacMode_FAN_ONLY)
+            elif vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF or (
+                vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY not in vtherm.hvac_modes
+            ):  # default is to turn_off
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
-            else:
-                self._current_state.set_hvac_mode(VThermHvacMode_FAN_ONLY)
 
         elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
@@ -202,6 +201,14 @@ class StateManager:
             # calculate the temperature of the preset
             if self._current_state.preset != VThermPreset.NONE:
                 self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
+            elif self._requested_state.target_temperature is not None:
+                self._current_state.set_target_temperature(self._requested_state.target_temperature)
+            else:
+                # affect the min or max temp according to is_ac
+                if vtherm.ac_mode:
+                    self._current_state.set_target_temperature(vtherm.max_temp)
+                else:
+                    self._current_state.set_target_temperature(vtherm.min_temp)
             if self._requested_state.preset != VThermPreset.NONE:
                 self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
 

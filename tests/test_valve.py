@@ -10,7 +10,6 @@ from homeassistant.components.climate import HVACAction
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 

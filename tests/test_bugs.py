@@ -565,7 +565,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
         hass=hass,
         unique_id="mock_climate",
         name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacModeFAN_ONLY],
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_FAN_ONLY],
     )
 
     with patch(

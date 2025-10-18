@@ -235,7 +235,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             dtemp = target_temp - self._regulated_target_temp
 
-            if not force and abs(dtemp) < self._auto_regulation_dtemp:
+            if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
                 _LOGGER.info(
                     "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
                     self,
@@ -267,7 +267,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return True
 
         period = float((now - self._last_regulation_change).total_seconds()) / 60.0
-        if period < self._auto_regulation_period_min:
+        if period < (self._auto_regulation_period_min or 0):
             _LOGGER.info(
                 "%s - period (%.1f) min is < %.0f min -> forget the auto-regulation send",
                 self,
@@ -407,7 +407,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._current_auto_fan_mode = auto_fan_mode
 
         # Get the supported feature of the first underlying. We suppose each underlying have the same fan attributes
-        fan_supported = self.supported_features & ClimateEntityFeature.FAN_MODE > 0
+        fan_supported = (self.supported_features or 0) & ClimateEntityFeature.FAN_MODE > 0
 
         if auto_fan_mode == CONF_AUTO_FAN_NONE or not fan_supported:
             self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
@@ -802,8 +802,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 VThermHvacMode_HEAT,
                 VThermHvacMode_COOL,
                 VThermHvacMode_HEAT_COOL,
-                VThermHvacMode.DRY,
-                VThermHvacMode.AUTO,
+                VThermHvacMode_DRY,
+                VThermHvacMode_AUTO,
                 VThermHvacMode_FAN_ONLY,
                 None,
             ]

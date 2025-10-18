@@ -210,7 +210,7 @@ async def test_window_management_time_enough(
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
 
@@ -248,7 +248,7 @@ async def test_window_management_time_enough(
         )
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT  # No change
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT  # No change
         assert entity.hvac_off_reason is None
 
     # Clean the entity
@@ -1334,7 +1334,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         hass=hass,
         unique_id="mockUniqueId",
         name="MockClimateName",
-        hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacModeFAN_ONLY],
+        hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_FAN_ONLY],
     )
 
     # 1. intialize climate entity
@@ -1378,20 +1378,20 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         await try_window_condition(None)
 
         assert mock_send_event.call_count == 1
-        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacModeFAN_ONLY})])
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode_FAN_ONLY})])
 
         # The underlying should be in OFF hvac_mode
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacModeFAN_ONLY),
+                call.set_hvac_mode(VThermHvacMode_FAN_ONLY),
             ]
         )
 
         assert entity.window_state == STATE_ON
         # The underlying should be in FAN_ONLY hvac_mode
-        assert entity.vtherm_hvac_mode is VThermHvacModeFAN_ONLY
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_FAN_ONLY
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT
         assert entity.hvac_off_reason is None  # Hvac is not off
         assert entity.preset_mode == VThermPreset.COMFORT
 
@@ -1483,7 +1483,7 @@ async def test_window_action_fan_only_ko(
         hass=hass,
         unique_id="mockUniqueId",
         name="MockClimateName",
-        hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacModeAUTO],
+        hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_AUTO],
     )
 
     # 1. intialize climate entity
@@ -1526,6 +1526,8 @@ async def test_window_action_fan_only_ko(
         )
         await try_window_condition(None)
 
+        await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
+
         assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode_OFF})])
 
@@ -1539,7 +1541,7 @@ async def test_window_action_fan_only_ko(
             ]
         )
 
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.COMFORT
 
     # 3. Close the window
@@ -2183,7 +2185,7 @@ async def test_window_action_frost_temp_preset_change(
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.preset_mode == VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2205,7 +2207,7 @@ async def test_window_action_frost_temp_preset_change(
         assert vtherm.target_temperature == 7  # Frost
         # No change
         assert vtherm.preset_mode == VThermPreset.BOOST
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
@@ -2217,7 +2219,7 @@ async def test_window_action_frost_temp_preset_change(
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 7  # frost (window is still open)
     assert vtherm.preset_mode == VThermPreset.COMFORT
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2234,7 +2236,7 @@ async def test_window_action_frost_temp_preset_change(
         assert vtherm.target_temperature == 19  # restore comfort
         # No change
         assert vtherm.preset_mode == VThermPreset.COMFORT
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2294,7 +2296,7 @@ async def test_window_action_frost_temp_temp_change(
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.preset_mode == VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2316,7 +2318,7 @@ async def test_window_action_frost_temp_temp_change(
         assert vtherm.target_temperature == 7  # Frost
         # No change
         assert vtherm.preset_mode == VThermPreset.BOOST
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 2. Change the target temperature
     now = now + timedelta(minutes=1)
@@ -2328,7 +2330,7 @@ async def test_window_action_frost_temp_temp_change(
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 7  # frost (window is still open)
     assert vtherm.preset_mode is VThermPreset.NONE
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2345,7 +2347,7 @@ async def test_window_action_frost_temp_temp_change(
         assert vtherm.target_temperature == 18.5  # restore new target temperature
         # No change
         assert vtherm.preset_mode is VThermPreset.NONE
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2520,7 +2522,7 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.preset_mode == VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2542,19 +2544,19 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
         # No change
         assert vtherm.target_temperature == 21
         assert vtherm.preset_mode == VThermPreset.BOOST
-        assert vtherm.hvac_mode is VThermHvacMode_OFF
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
 
     await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
-    await hass.async_block_till_done()
+    await wait_for_local_condition(lambda: vtherm.target_temperature == 19)
 
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 19
     assert vtherm.preset_mode == VThermPreset.COMFORT
-    assert vtherm.hvac_mode is VThermHvacMode_OFF
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2571,7 +2573,7 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
         assert vtherm.target_temperature == 19  # restore comfort
         # No change
         assert vtherm.preset_mode == VThermPreset.COMFORT
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2625,7 +2627,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
-    assert vtherm.hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.preset_mode == VThermPreset.BOOST
     assert vtherm.target_temperature == 21
 
@@ -2647,7 +2649,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
         # No change
         assert vtherm.target_temperature == 21
         assert vtherm.preset_mode == VThermPreset.BOOST
-        assert vtherm.hvac_mode is VThermHvacMode_OFF
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
 
     # 2. Change the preset to comfort
     now = now + timedelta(minutes=1)
@@ -2659,7 +2661,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
     # VTherm should have taken the new preset temperature
     assert vtherm.target_temperature == 18.5
     assert vtherm.preset_mode is VThermPreset.NONE
-    assert vtherm.hvac_mode is VThermHvacMode_OFF
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
 
     # 3.Turn off the window sensor
     now = now + timedelta(minutes=1)
@@ -2676,7 +2678,7 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
         assert vtherm.target_temperature == 18.5  # restore comfort
         # No change
         assert vtherm.preset_mode is VThermPreset.NONE
-        assert vtherm.hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # Clean the entity
     vtherm.remove_thermostat()
@@ -2788,8 +2790,8 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         assert mock_heater_off.call_count == 2
         assert mock_condition.call_count == 1
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT
-        assert entity._saved_preset_mode is VThermPreset.COMFORT
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT
+        # assert entity._saved_preset_mode is VThermPreset.COMFORT
         assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.window_state == STATE_ON
 
@@ -2821,7 +2823,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         )
         assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        assert entity._saved_hvac_mode is VThermHvacMode_HEAT  # No change
+        # assert entity._saved_hvac_mode is VThermHvacMode_HEAT  # No change
         assert entity.hvac_off_reason is None
 
     # Clean the entity
