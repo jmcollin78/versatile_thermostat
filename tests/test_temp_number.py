@@ -19,6 +19,7 @@ from custom_components.versatile_thermostat.thermostat_switch import (
 )
 from custom_components.versatile_thermostat.const import NowClass
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_preset import PRESET_AC_SUFFIX
 
 from .commons import *
 
@@ -1044,7 +1045,7 @@ async def test_change_vtherm_temperature_with_presence(
         hass, vtherm_entry, "climate.theovervalvevtherm"
     )
     assert vtherm.use_central_config_temperature is False
-    await vtherm.async_set_hvac_mode(VThermHvacMode.COOL)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await send_presence_change_event(
         vtherm, STATE_ON, STATE_OFF, NowClass.get_now(hass), True

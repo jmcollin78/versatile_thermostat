@@ -17,15 +17,19 @@ from typing import Optional, Any
 from .vtherm_hvac_mode import VThermHvacMode
 from .vtherm_preset import VThermPreset
 
-class VthermState:
+
+class VThermState:
     """Simple state snapshot for a VTherm.
 
     The object is mutable; use set_state for a bulk update or assign
     attributes individually via properties. to_dict / from_dict help (de)serialization.
     """
 
-    def __init__(self, hvac_mode: VThermHvacMode, target_temperature: Optional[float] = None, preset: Optional[VThermPreset] = None) -> None:
-        self._hvac_mode: VThermHvacMode = hvac_mode
+    def __init__(self, hvac_mode: Any, target_temperature: Optional[float] = None, preset: Optional[VThermPreset] = None) -> None:
+        if preset is not None and not isinstance(preset, str):
+            raise ValueError(f"Invalid preset: {preset}. Should be an instance of VThermPreset.")
+
+        self._hvac_mode: VThermHvacMode = hvac_mode if isinstance(hvac_mode, VThermHvacMode) else VThermHvacMode(str(hvac_mode))
         self._target_temperature: Optional[float] = target_temperature
         self._preset: Optional[VThermPreset] = preset
         self._is_hvac_mode_changed: bool = True
@@ -58,6 +62,9 @@ class VthermState:
         Args:
             hvac_mode: New HVAC mode to set (e.g. 'heat', 'off', 'cool', 'sleep').
         """
+        if not isinstance(hvac_mode, VThermHvacMode):
+            raise ValueError(f"Invalid HVAC mode: {hvac_mode}. Should be an instance of VThermHvacMode.")
+
         self._is_hvac_mode_changed = self._is_hvac_mode_changed or self._hvac_mode != hvac_mode
         self._hvac_mode = hvac_mode
 
@@ -76,8 +83,17 @@ class VthermState:
         Args:
             preset: New preset name to set, or None.
         """
+        if preset is not None and not isinstance(preset, str):
+            raise ValueError(f"Invalid preset: {preset}. Should be an instance of VThermPreset.")
+
         self._is_preset_changed = self._is_preset_changed or self._preset != preset
         self._preset = preset
+
+    def force_changed(self) -> None:
+        """Forcefully mark the state as changed."""
+        self._is_hvac_mode_changed = True
+        self._is_target_temperature_changed = True
+        self._is_preset_changed = True
 
     @property
     def hvac_mode(self) -> VThermHvacMode:
@@ -130,6 +146,6 @@ class VthermState:
 
     def __str__(self) -> str:
         """Return a human readable representation of the state."""
-        return f"VthermState(" f"hvac_mode={self._hvac_mode}, " f"target_temperature={self._target_temperature}, " f"preset={self._preset}, " f"is_changed={self.is_changed})"
+        return f"VThermState(" f"hvac_mode={self._hvac_mode}, " f"target_temperature={self._target_temperature}, " f"preset={self._preset}, " f"is_changed={self.is_changed})"
 
     __repr__ = __str__

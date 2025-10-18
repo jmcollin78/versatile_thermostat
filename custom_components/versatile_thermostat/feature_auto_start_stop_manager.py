@@ -167,7 +167,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
     def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""
         self._is_auto_start_stop_enabled = is_enabled
-        if self._vtherm.hvac_mode == VThermHvacMode.OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
+        if self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
             _LOGGER.debug(
                 "%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm"
             )
@@ -238,7 +238,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
     @property
     def is_auto_stopped(self) -> bool:
         """Returns the is vtherm is stopped and reason is AUTO_START_STOP"""
-        return self._vtherm.hvac_mode == VThermHvacMode.OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        return self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
     def __str__(self):
         return f"AutoStartStopManager-{self.name}"

@@ -2,7 +2,7 @@
 # pylint: disable='line-too-long'
 import logging
 
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ class PropAlgorithm:
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
-            log = _LOGGER.debug if hvac_mode == VThermHvacMode.OFF else _LOGGER.warning
+            log = _LOGGER.debug if hvac_mode == VThermHvacMode_OFF else _LOGGER.warning
             log(
                 "%s - Proportional algorithm: calculation is not possible cause target_temp (%s) or current_temp (%s) is null. Heating/cooling will be disabled. This could be normal at startup",  # pylint: disable=line-too-long
                 self._vtherm_entity_id,
@@ -112,7 +112,7 @@ class PropAlgorithm:
             )
             self._calculated_on_percent = 0
         else:
-            if hvac_mode == VThermHvacMode.COOL:
+            if hvac_mode == VThermHvacMode_COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
                 slope = -slope

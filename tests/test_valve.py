@@ -5,11 +5,12 @@ from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import HVACAction, VThermHvacMode
+from homeassistant.components.climate import HVACAction
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -84,9 +85,9 @@ async def test_over_valve_full_start(
         assert entity.is_over_switch is False
         assert entity.is_over_valve is True
         assert entity.ac_mode is False
-        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_modes == [VThermHvacMode.HEAT, VThermHvacMode.OFF]
+        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
@@ -113,7 +114,7 @@ async def test_over_valve_full_start(
                 call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": VThermHvacMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
@@ -123,9 +124,9 @@ async def test_over_valve_full_start(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event:
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         #
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         # No heating now
         assert entity.valve_open_percent == 0
         assert entity.hvac_action == HVACAction.IDLE
@@ -134,7 +135,7 @@ async def test_over_valve_full_start(
             [
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": VThermHvacMode.HEAT},
+                    {"hvac_mode": VThermHvacMode_HEAT},
                 ),
             ]
         )
@@ -202,7 +203,7 @@ async def test_over_valve_full_start(
         event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, True, False, event_timestamp)
         assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
-        assert entity.preset_mode is VThermPreset.COMFORT
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 19
         assert entity.valve_open_percent == 100  # Full heating
         assert entity.is_device_active is True
@@ -264,7 +265,7 @@ async def test_over_valve_full_start(
         )
         # switch to Eco
         await entity.async_set_preset_mode(VThermPreset.ECO)
-        assert entity.preset_mode is VThermPreset.ECO
+        assert entity.preset_mode == VThermPreset.ECO
         assert entity.target_temperature == 17
         assert entity.valve_open_percent == 7
 
@@ -299,7 +300,7 @@ async def test_over_valve_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is VThermHvacMode.OFF
+            assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
             assert entity.hvac_action is HVACAction.OFF
             assert entity.target_temperature == 17.1  # eco
             assert entity.valve_open_percent == 0
@@ -314,7 +315,7 @@ async def test_over_valve_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is VThermHvacMode.HEAT
+            assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
             assert entity.hvac_action is HVACAction.HEATING
             assert entity.target_temperature == 17.1  # eco
             assert entity.valve_open_percent == 10
@@ -390,8 +391,8 @@ async def test_over_valve_regulation(
         entity._set_now(now)
 
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         # No heating now
         assert entity.valve_open_percent == 0
         assert entity.hvac_action == HVACAction.IDLE
@@ -400,7 +401,7 @@ async def test_over_valve_regulation(
             [
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": VThermHvacMode.HEAT},
+                    {"hvac_mode": VThermHvacMode_HEAT},
                 ),
             ]
         )
@@ -428,8 +429,8 @@ async def test_over_valve_regulation(
             ]
         )
 
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         # Still no heating because we don't have temperature
         assert entity.valve_open_percent == 0
         assert entity.hvac_action == HVACAction.IDLE
@@ -617,7 +618,7 @@ async def test_bug_533(
     await send_ext_temperature_change_event(vtherm, 15, now)
 
     # 1. Set mode to Heat and preset to Comfort
-    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     with patch(
         "homeassistant.core.StateMachine.get",
         return_value=State(

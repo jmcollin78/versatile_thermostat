@@ -19,8 +19,21 @@ from .prop_algorithm import (
     PROPORTIONAL_FUNCTION_TPI,
 )
 
-from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX
-from .vtherm_hvac_mode import VThermHvacMode  # pylint: disable=unused-import
+from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX  # pylint: disable=unused-import
+from .vtherm_hvac_mode import (
+    VThermHvacMode,
+    VThermHvacMode_COOL,
+    VThermHvacMode_HEAT,
+    VThermHvacMode_DRY,
+    VThermHvacMode_OFF,
+    VThermHvacMode_HEAT_COOL,
+    VThermHvacMode_SLEEP,
+    VThermHvacMode_AUTO,
+    VThermHvacMode_FAN_ONLY,
+    to_ha_hvac_mode,
+    from_ha_hvac_mode,
+)  # pylint: disable=unused-import
+from .vtherm_state import VThermState  # pylint: disable=unused-import
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -209,32 +222,32 @@ CONF_PRESETS_WITH_AC = {
         VThermPreset.ECO,
         VThermPreset.COMFORT,
         VThermPreset.BOOST,
-        VThermPresetWithAC.ECO_AC,
-        VThermPresetWithAC.COMFORT_AC,
-        VThermPresetWithAC.BOOST_AC,
+        VThermPresetWithAC.ECO,
+        VThermPresetWithAC.COMFORT,
+        VThermPresetWithAC.BOOST,
     )
 }
 
 CONF_PRESETS_AWAY = {
     p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
-        VThermPresetAway.FROST,
-        VThermPresetAway.ECO,
-        VThermPresetAway.COMFORT,
-        VThermPresetAway.BOOST,
+        VThermPresetWithAway.FROST,
+        VThermPresetWithAway.ECO,
+        VThermPresetWithAway.COMFORT,
+        VThermPresetWithAway.BOOST,
     )
 }
 
 CONF_PRESETS_AWAY_WITH_AC = {
-    p: f"{p}{PRESET_AWAY_SUFFIX}{PRESET_TEMP_SUFFIX}"
+    p: f"{p}{PRESET_TEMP_SUFFIX}"
     for p in (
-        VThermPreset.FROST,
-        VThermPreset.ECO,
-        VThermPreset.COMFORT,
-        VThermPreset.BOOST,
-        VThermPresetWithAC.ECO_AC,
-        VThermPresetWithAC.COMFORT_AC,
-        VThermPresetWithAC.BOOST_AC,
+        VThermPresetWithAway.FROST,
+        VThermPresetWithAway.ECO,
+        VThermPresetWithAway.COMFORT,
+        VThermPresetWithAway.BOOST,
+        VThermPresetWithACAway.ECO,
+        VThermPresetWithACAway.COMFORT,
+        VThermPresetWithACAway.BOOST,
     )
 }
 

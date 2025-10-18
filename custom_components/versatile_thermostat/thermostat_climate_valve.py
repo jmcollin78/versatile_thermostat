@@ -129,7 +129,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Restore my specific attributes from previous state"""
         super().restore_specific_previous_state(old_state)
 
-        self._is_sleeping = self.hvac_mode == VThermHvacMode.OFF and old_state.attributes.get("is_sleeping", False)
+        self._is_sleeping = self.vtherm_hvac_mode == VThermHvacMode_OFF and old_state.attributes.get("is_sleeping", False)
         if self._is_sleeping:
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
@@ -217,7 +217,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self.hvac_mode or VThermHvacMode.OFF,
+            self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
 
         new_valve_percent = round(
@@ -263,7 +263,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
-        if self.hvac_mode == VThermHvacMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
             return
 
@@ -304,7 +304,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         if hvac_mode == HVACMODE_SLEEP:
             _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
             self._is_sleeping = True
-            hvac_mode = VThermHvacMode.OFF
+            hvac_mode = VThermHvacMode_OFF
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
         else:
             self._is_sleeping = False
@@ -324,9 +324,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
-            return [VThermHvacMode.COOL, VThermHvacMode.SLEEP, VThermHvacMode.OFF]
+            return [VThermHvacMode_COOL, VThermHvacMode.SLEEP, VThermHvacMode_OFF]
         else:
-            return [VThermHvacMode.HEAT, VThermHvacMode.SLEEP, VThermHvacMode.OFF]
+            return [VThermHvacMode_HEAT, VThermHvacMode.SLEEP, VThermHvacMode_OFF]
 
     @property
     def have_valve_regulation(self) -> bool:
@@ -336,7 +336,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if (self.hvac_mode == VThermHvacMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
+        if (self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent

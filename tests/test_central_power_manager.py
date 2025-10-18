@@ -779,13 +779,13 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         await send_ext_temperature_change_event(entity, 1, now)
 
         await entity.async_set_preset_mode(VThermPreset.BOOST)
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 19
         await hass.async_block_till_done()
 
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
         await asyncio.sleep(0.1)
@@ -841,9 +841,9 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         assert entity2.target_temperature == 18
 
         # set the HVAC mode to heat
-        await entity2.async_set_hvac_mode(VThermHvacMode.HEAT)
-        await wait_for_local_condition(lambda: entity2.hvac_mode is VThermHvacMode.HEAT)
-        assert entity2.hvac_mode is VThermHvacMode.HEAT
+        await entity2.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await wait_for_local_condition(lambda: entity2.hvac_mode is VThermHvacMode_HEAT)
+        assert entity2.hvac_mode is VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
         await asyncio.sleep(0.1)

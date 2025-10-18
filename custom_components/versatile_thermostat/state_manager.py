@@ -6,7 +6,6 @@ This class manages both the current and the requested state of a VTherm.
 import logging
 from typing import Optional, TYPE_CHECKING
 from .const import (
-    EventType,
     HVAC_OFF_REASON_SAFETY,
     HVAC_OFF_REASON_MANUAL,
     HVAC_OFF_REASON_WINDOW_DETECTION,
@@ -17,8 +16,8 @@ from .const import (
     CONF_WINDOW_FROST_TEMP,
     CONF_WINDOW_TURN_OFF,
 )
-from .vtherm_state import VthermState
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_state import VThermState
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY
 from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,16 +36,16 @@ class StateManager:
     def __init__(self):
         """Initialize the StateManager with empty initial states.
         """
-        self._current_state = VthermState(hvac_mode=VThermHvacMode.OFF, preset=VThermPreset.NONE)
-        self._requested_state = VthermState(hvac_mode=VThermHvacMode.OFF, preset=VThermPreset.NONE)
+        self._current_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
+        self._requested_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
 
     @property
-    def current_state(self) -> Optional[VthermState]:
+    def current_state(self) -> Optional[VThermState]:
         """Get or set the current state."""
         return self._current_state
 
     @property
-    def requested_state(self) -> Optional[VthermState]:
+    def requested_state(self) -> Optional[VThermState]:
         """Get or set the requested state."""
         return self._requested_state
 
@@ -94,33 +93,33 @@ class StateManager:
 
         # First check safety
         if vtherm.safety_manager.is_safety_detected and (vtherm.is_over_climate or vtherm.safety_default_on_percent <= 0.0):
-            self._current_state.set_hvac_mode(VThermHvacMode.OFF)
+            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
 
         # then check if window is open
         elif vtherm.window_manager.is_window_detected and (
-            (vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode.FAN_ONLY in vtherm.hvac_modes)
+            (vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY in vtherm.hvac_modes)
             or vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF
         ):
             if vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF:  # default is to turn_off
-                self._current_state.set_hvac_mode(VThermHvacMode.OFF)
+                self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             else:
-                self._current_state.set_hvac_mode(VThermHvacMode.FAN_ONLY)
+                self._current_state.set_hvac_mode(VThermHvacMode_FAN_ONLY)
 
         elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected:
-            self._current_state.set_hvac_mode(VThermHvacMode.OFF)
+            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
         # all is fine set current_state = requested_state
         else:
-            if self._current_state.hvac_mode == VThermHvacMode.OFF and self._requested_state.hvac_mode == VThermHvacMode.OFF:
+            if self._current_state.hvac_mode == VThermHvacMode_OFF and self._requested_state.hvac_mode == VThermHvacMode_OFF:
                 _LOGGER.info("%s - already in OFF. Change the reason to MANUAL and erase the saved_hvac_mode", vtherm)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL if not vtherm.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE)
 
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
-        if self._current_state.hvac_mode != VThermHvacMode.OFF:
+        if self._current_state.hvac_mode != VThermHvacMode_OFF:
             vtherm.set_hvac_off_reason(None)
 
         return self._current_state.is_hvac_mode_changed
@@ -175,14 +174,15 @@ class StateManager:
 
         window_action = vtherm.window_manager.window_action
 
-        if vtherm.window_manager.is_window_detected and (
-            (window_action == CONF_WINDOW_FROST_TEMP and vtherm.is_preset_configured(VThermPreset.FROST))
-            or (window_action == CONF_WINDOW_ECO_TEMP and vtherm.is_preset_configured(VThermPreset.ECO))
-        ):
-            self._current_state.set_target_temperature(vtherm.find_preset_temp(VThermPreset.ECO if window_action == CONF_WINDOW_ECO_TEMP else VThermPreset.FROST))
+        if vtherm.window_manager.is_window_detected:
+            if (window_action == CONF_WINDOW_FROST_TEMP and vtherm.is_preset_configured(VThermPreset.FROST)) or (
+                window_action == CONF_WINDOW_ECO_TEMP and vtherm.is_preset_configured(VThermPreset.ECO)
+            ):
+                self._current_state.set_target_temperature(vtherm.find_preset_temp(VThermPreset.ECO if window_action == CONF_WINDOW_ECO_TEMP else VThermPreset.FROST))
+            # else don't touche the temperature (window is open with TURN_OFF should keep the current temperature)
 
         elif vtherm.presence_manager.is_absence_detected:
-            new_temp = vtherm.find_preset_temp(vtherm.preset_mode)
+            new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
             _LOGGER.debug(
                 "%s - presence will set new target temperature: %.2f",
                 self,

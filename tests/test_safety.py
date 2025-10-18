@@ -188,12 +188,12 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     # set a preset
     assert entity.preset_mode is VThermPreset.NONE
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    assert entity.preset_mode is VThermPreset.COMFORT
+    assert entity.preset_mode == VThermPreset.COMFORT
 
     # Turn On the thermostat
-    assert entity.hvac_mode == VThermHvacMode.OFF
-    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-    assert entity.hvac_mode == VThermHvacMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert entity.hvac_mode == VThermHvacMode_HEAT
 
     # 2. activate security feature when date is expired
     with patch(
@@ -373,12 +373,12 @@ async def test_security_feature_back_on_percent(
     # set a preset
     assert entity.preset_mode is VThermPreset.NONE
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.preset_mode is VThermPreset.BOOST
+    assert entity.preset_mode == VThermPreset.BOOST
 
     # Turn On the thermostat
-    assert entity.hvac_mode == VThermHvacMode.OFF
-    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-    assert entity.hvac_mode == VThermHvacMode.HEAT
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert entity.hvac_mode == VThermHvacMode_HEAT
 
     # 2. activate on_percent
     with patch(
@@ -518,7 +518,7 @@ async def test_security_over_climate(
         data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode.HEAT, HVACAction.HEATING)
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -546,7 +546,7 @@ async def test_security_over_climate(
 
         # Because the underlying is HEATING. In real life the underlying will be shut-off
         assert entity.hvac_action is HVACAction.HEATING
-        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
@@ -567,7 +567,7 @@ async def test_security_over_climate(
                 call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": VThermHvacMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
@@ -587,8 +587,8 @@ async def test_security_over_climate(
         ).total_seconds() < 1
 
         # Tries to turns on the Thermostat
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode == VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.hvac_mode == VThermHvacMode_HEAT
 
         # One call more
         assert mock_send_event.call_count == 3
@@ -596,7 +596,7 @@ async def test_security_over_climate(
             [
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": VThermHvacMode.HEAT},
+                    {"hvac_mode": VThermHvacMode_HEAT},
                 ),
             ]
         )

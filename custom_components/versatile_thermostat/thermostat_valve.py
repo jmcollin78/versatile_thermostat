@@ -68,7 +68,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self._hvac_mode == VThermHvacMode.OFF:
+        if self._hvac_mode == VThermHvacMode_OFF:
             return 0
         else:
             return self._valve_open_percent
@@ -220,7 +220,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or VThermHvacMode.OFF,
+            self._hvac_mode or VThermHvacMode_OFF,
         )
 
         new_valve_percent = round(
@@ -265,7 +265,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
-        if self.hvac_mode == VThermHvacMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
         added_energy = 0

@@ -212,7 +212,7 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
                 assert fake_vtherm.async_set_hvac_mode.call_count == 1
                 fake_vtherm.async_set_hvac_mode.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(VThermHvacMode.OFF),
+                        call.async_set_hvac_mode(VThermHvacMode_OFF),
                     ]
                 )
                 assert fake_vtherm.restore_hvac_mode.call_count == 0
@@ -461,7 +461,7 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
                 assert fake_vtherm.async_set_hvac_mode.call_count == 1
                 fake_vtherm.async_set_hvac_mode.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(VThermHvacMode.OFF),
+                        call.async_set_hvac_mode(VThermHvacMode_OFF),
                     ]
                 )
                 assert fake_vtherm.restore_hvac_mode.call_count == 0
@@ -652,7 +652,7 @@ async def test_window_feature_manager_window_auto(
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
     type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
-    type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode.HEAT)
+    type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
     type(fake_vtherm).proportional_algorithm = PropertyMock(return_value=None)
     fake_vtherm.async_get_last_state = AsyncMock(return_value=None)

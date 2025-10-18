@@ -8,7 +8,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 from homeassistant.core import HomeAssistant
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode_OFF
 
 from .const import (
     CONF_UNDERLYING_LIST,
@@ -179,7 +179,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self.hvac_mode or VThermHvacMode.OFF,
+            self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
         # self.update_custom_attributes()
         # already done bu update_custom_attributes
@@ -188,7 +188,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
-        if self.hvac_mode == VThermHvacMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
         added_energy = 0

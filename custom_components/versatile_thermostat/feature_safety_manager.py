@@ -101,7 +101,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             now - self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz)
         ).total_seconds() / 60.0
 
-        mode_cond = self._vtherm.hvac_mode != VThermHvacMode.OFF
+        mode_cond = self._vtherm.hvac_mode != VThermHvacMode_OFF
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
         is_outdoor_checked = (
@@ -201,7 +201,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             # await self._vtherm.async_set_preset_mode_internal(VThermPreset.SAFETY)
             # Turn off the underlying climate or heater if safety default on_percent is 0
             # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
-            #     await self._vtherm.async_set_hvac_mode(VThermHvacMode.OFF, False)
+            #     await self._vtherm.async_set_hvac_mode(VThermHvacMode_OFF, False)
 
             self._vtherm.send_event(
                 EventType.SECURITY_EVENT,

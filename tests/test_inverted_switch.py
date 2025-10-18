@@ -70,10 +70,10 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         tpi_algo = entity._prop_algorithm
         assert tpi_algo
 
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.BOOST)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 21
         assert entity.is_device_active is False
 
@@ -89,7 +89,7 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         await send_temperature_change_event(entity, 19, event_timestamp)
 
         # The heater turns on
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         # not updated cause mocked assert entity.is_device_active is True
 
         assert mock_service_call.call_count == 1
@@ -114,7 +114,7 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         await send_temperature_change_event(entity, 25, event_timestamp)
 
         # The heater turns on
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         # not updated cause mocked assert entity.is_device_active is False
 
         # there is no change because the cycle is currenlty running.

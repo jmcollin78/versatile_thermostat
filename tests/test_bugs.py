@@ -165,7 +165,7 @@ async def test_bug_272(
 
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
-        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         # The VTherm value and not the underlying value
         assert entity.target_temperature_step == 0.1
         assert entity.target_temperature == entity.min_temp
@@ -174,7 +174,7 @@ async def test_bug_272(
         assert mock_service_call.call_count == 0
 
         # Set the hvac_mode to HEAT
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
 
         # In the accepted interval
         await entity.async_set_temperature(temperature=17.5)
@@ -202,7 +202,7 @@ async def test_bug_272(
             == call.async_call(
                 "climate",
                 SERVICE_SET_HVAC_MODE,
-                {"entity_id": "climate.mock_climate", "hvac_mode": VThermHvacMode.HEAT},
+                {"entity_id": "climate.mock_climate", "hvac_mode": VThermHvacMode_HEAT},
             )
             for c in mock_service_call.call_args_list
         )
@@ -352,10 +352,10 @@ async def test_bug_407(
         "homeassistant.core.StateMachine.get",
         side_effect=side_effects.get_side_effects(),
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.COMFORT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity.target_temperature == 18
         # waits that the heater starts
@@ -371,7 +371,7 @@ async def test_bug_407(
         # No overpowering yet
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is VThermPreset.COMFORT
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.is_device_active is True
 
@@ -400,8 +400,8 @@ async def test_bug_407(
         await do_central_power_refresh(hass)
 
         assert entity.power_manager.is_overpowering_detected is False
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
         assert mock_service_call.call_count >= 1
@@ -431,7 +431,7 @@ async def test_bug_407(
         # await do_central_power_refresh(hass)
 
         assert entity.power_manager.is_overpowering_detected is True
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode is PRESET_POWER
         assert entity.power_manager.overpowering_state is STATE_ON
 
@@ -565,7 +565,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
         hass=hass,
         unique_id="mock_climate",
         name="mock_climate",
-        hvac_modes=[VThermHvacMode.OFF, VThermHvacMode.COOL, VThermHvacMode.HEAT, VThermHvacModeFAN_ONLY],
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacModeFAN_ONLY],
     )
 
     with patch(
@@ -583,7 +583,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 1. Set mode to Heat and preset to Comfort
     await send_presence_change_event(vtherm, True, False, datetime.now())
-    await vtherm.async_set_hvac_mode(VThermHvacMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
     await hass.async_block_till_done()
 
@@ -592,15 +592,15 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     # 2. Toggle the VTherm state
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.OFF
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
 
     # 3. (re)Toggle the VTherm state
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.HEAT
+    assert vtherm.hvac_mode == VThermHvacMode_HEAT
 
     # 4. Toggle from COOL
-    await vtherm.async_set_hvac_mode(VThermHvacMode.COOL)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
     await hass.async_block_till_done()
 
     assert vtherm.target_temperature == 23.0
@@ -608,12 +608,12 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     # 5. Toggle the VTherm state
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.OFF
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
 
     # 6. (re)Toggle the VTherm state
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.COOL
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
 
     ###
     # Same test with an open window and initial state is COOL
@@ -627,13 +627,13 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
         await hass.async_block_till_done()
 
     assert vtherm.window_state is STATE_ON
-    assert vtherm.hvac_mode == VThermHvacMode.OFF
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
     assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
 
     # 8. call toggle -> we should stay in OFF (command is ignored)
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.OFF
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
     assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
 
     # 9. Close the window (we should come back to Cool this time)
@@ -646,9 +646,9 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
         await hass.async_block_till_done()
 
     assert vtherm.window_state is STATE_OFF
-    assert vtherm.hvac_mode == VThermHvacMode.COOL
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
 
     # 9. call toggle -> we should come back in OFF
     await vtherm.async_toggle()
     await hass.async_block_till_done()
-    assert vtherm.hvac_mode == VThermHvacMode.OFF
+    assert vtherm.hvac_mode == VThermHvacMode_OFF

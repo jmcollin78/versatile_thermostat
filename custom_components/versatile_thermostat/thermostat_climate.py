@@ -168,7 +168,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
 
-        if self.hvac_mode == VThermHvacMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
             )
@@ -301,8 +301,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
         # deal with ac / non ac mode
-        hvac_mode = self.hvac_mode
-        if (hvac_mode == VThermHvacMode.COOL and dtemp > 0) or (hvac_mode == VThermHvacMode.HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode.OFF):
+        hvac_mode = self.vtherm_hvac_mode
+        if (hvac_mode == VThermHvacMode_COOL and dtemp > 0) or (hvac_mode == VThermHvacMode_HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode_OFF):
             should_activate_auto_fan = False
 
         if should_activate_auto_fan and self.fan_mode != self._auto_activated_fan_mode:
@@ -554,7 +554,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     #    await super().restore_hvac_mode(need_control_heating=need_control_heating)
     #
     #    # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
-    #    if old_hvac_mode == VThermHvacMode.OFF and self.hvac_mode != VThermHvacMode.OFF:
+    #    if old_hvac_mode == VThermHvacMode_OFF and self.hvac_mode != VThermHvacMode_OFF:
     #        _LOGGER.info(
     #            "%s - Force resent target temp cause we turn on some over climate"
     #        )
@@ -564,7 +564,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def incremente_energy(self):
         """increment the energy counter if device is active"""
 
-        if self.hvac_mode == VThermHvacMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
         device_power = self.power_manager.device_power
@@ -632,7 +632,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         changes = False
-        new_hvac_mode = new_state.state
+        new_hvac_mode = VThermHvacMode(new_state.state)
 
         old_state = event.data.get("old_state")
 
@@ -640,7 +640,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if old_state is not None and new_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN) and old_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             _LOGGER.warning("%s - underlying %s come back to life. New state=%s, old_state=%s. Will refresh its status", self, under.entity_id, new_state.state, old_state.state)
             # Force hvac_mode and target temperature
-            await under.set_hvac_mode(self.hvac_mode)
+            await under.set_hvac_mode(self.vtherm_hvac_mode)
             await self._send_regulated_temperature(force=True)
 
             return
@@ -692,9 +692,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a VThermHvacMode_OFF command
         # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
-        # if self._hvac_mode == VThermHvacMode.OFF and new_hvac_action == HVACAction.IDLE:
+        # if self._hvac_mode == VThermHvacMode_OFF and new_hvac_action == HVACAction.IDLE:
         #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
-        #    new_hvac_mode = VThermHvacMode.OFF
+        #    new_hvac_mode = VThermHvacMode_OFF
 
         # Forget event when the event holds no real changes
         if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode):
@@ -727,7 +727,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self,
             under.entity_id,
             new_hvac_mode,
-            self.hvac_mode,
+            self.vtherm_hvac_mode,
             new_hvac_action,
             old_hvac_action,
             new_target_temp,
@@ -798,26 +798,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if (
             new_hvac_mode
             in [
-                VThermHvacMode.OFF,
-                VThermHvacMode.HEAT,
-                VThermHvacMode.COOL,
-                VThermHvacMode.HEAT_COOL,
-                VThermHvacModeDRY,
-                VThermHvacModeAUTO,
-                VThermHvacModeFAN_ONLY,
+                VThermHvacMode_OFF,
+                VThermHvacMode_HEAT,
+                VThermHvacMode_COOL,
+                VThermHvacMode_HEAT_COOL,
+                VThermHvacMode.DRY,
+                VThermHvacMode.AUTO,
+                VThermHvacMode_FAN_ONLY,
                 None,
             ]
-            and self.hvac_mode != new_hvac_mode
+            and self.vtherm_hvac_mode != new_hvac_mode
         ):
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
-                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.hvac_mode:
+                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.vtherm_hvac_mode:
                         _LOGGER.info(
                             "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
                             under,
                             under.hvac_mode,
-                            self.hvac_mode,
+                            self.vtherm_hvac_mode,
                         )
                         return
 
@@ -829,7 +829,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 for under in self._underlyings:
                     await under.set_hvac_mode(new_hvac_mode)
             changes = True
-            self.hvac_mode = new_hvac_mode
+            self.vtherm_hvac_mode = new_hvac_mode
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode != self._attr_fan_mode:
@@ -924,9 +924,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return self.underlying_entity(0).hvac_modes
         else:
             if self._ac_mode:
-                return [VThermHvacMode.HEAT, VThermHvacMode.COOL, VThermHvacMode.OFF]
+                return [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
             else:
-                return [VThermHvacMode.HEAT, VThermHvacMode.OFF]
+                return [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
     @property
     def mean_cycle_power(self) -> float | None:
@@ -1200,7 +1200,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # if window is open, don't overwrite the saved_hvac_mode
         if self.window_state != STATE_ON:
             self.save_hvac_mode()
-        await self.async_set_hvac_mode(VThermHvacMode.OFF)
+        await self.async_set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     async def async_turn_on(self) -> None:
@@ -1213,10 +1213,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             return
 
-        if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
-            await self.restore_hvac_mode(True)
+        # if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
+        #     await self.restore_hvac_mode(True)
+        # else:
+        if self._ac_mode:
+            await self.async_set_hvac_mode(VThermHvacMode_COOL)
         else:
-            if self._ac_mode:
-                await self.async_set_hvac_mode(VThermHvacMode.COOL)
-            else:
-                await self.async_set_hvac_mode(VThermHvacMode.HEAT)
+            await self.async_set_hvac_mode(VThermHvacMode_HEAT)

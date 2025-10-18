@@ -330,11 +330,11 @@ async def test_motion_management_time_not_enough(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -368,8 +368,8 @@ async def test_motion_management_time_not_enough(
         # Will return False -> we will stay on movement False
         await try_condition(None)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         # state is not changed if time is not enough
@@ -400,8 +400,8 @@ async def test_motion_management_time_not_enough(
         # Will return True -> we will switch to movement On
         await try_condition(None)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because motion is detected yet
         assert entity.target_temperature == 19
         assert entity.motion_state == STATE_ON
@@ -428,8 +428,8 @@ async def test_motion_management_time_not_enough(
         # Will return False -> we will stay to movement On
         await try_condition(None)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 19
         assert entity.motion_state == STATE_ON
@@ -459,8 +459,8 @@ async def test_motion_management_time_not_enough(
         # Will return True -> we will switch to movement Off
         await try_condition(None)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state == STATE_OFF
@@ -530,11 +530,11 @@ async def test_motion_management_time_enough_and_presence(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -560,8 +560,8 @@ async def test_motion_management_time_enough_and_presence(
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because motion is detected yet -> switch to Boost mode
         assert entity.target_temperature == 19
         assert entity.motion_state == STATE_ON
@@ -585,8 +585,8 @@ async def test_motion_management_time_enough_and_presence(
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state == STATE_OFF
@@ -656,11 +656,11 @@ async def test_motion_management_time_enough_and_not_presence(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet and presence is unknown
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -686,8 +686,8 @@ async def test_motion_management_time_enough_and_not_presence(
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because motion is detected yet -> switch to Boost away mode
         assert entity.target_temperature == 19.1
         assert entity.motion_state == STATE_ON
@@ -712,8 +712,8 @@ async def test_motion_management_time_enough_and_not_presence(
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18.1
         assert entity.motion_state == STATE_OFF
@@ -784,11 +784,11 @@ async def test_motion_management_with_stop_during_condition(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -818,8 +818,8 @@ async def test_motion_management_with_stop_during_condition(
 
         assert try_condition1 is not None
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because motion is detected yet -> switch to Boost mode
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -831,8 +831,8 @@ async def test_motion_management_with_stop_during_condition(
         )
         assert try_condition is None  # The timer should not have been stopped
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state == STATE_OFF
@@ -846,8 +846,8 @@ async def test_motion_management_with_stop_during_condition(
             try_condition is None
         )  # The timer should not have been restarted (we keep the first one)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # still no motion detected
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN
@@ -917,11 +917,11 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.ACTIVITY
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
         # because no motion is detected yet
         assert entity.target_temperature == 18
         assert entity.motion_state is STATE_UNKNOWN

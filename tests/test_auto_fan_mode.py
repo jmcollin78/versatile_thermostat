@@ -7,7 +7,7 @@ from datetime import datetime  # , timedelta
 
 from homeassistant.core import HomeAssistant
 
-# from homeassistant.components.climate import HVACAction, VThermHvacMode
+# from homeassistant.components.climate import HVACAction
 from homeassistant.config_entries import ConfigEntryState
 
 # from homeassistant.helpers.entity_component import EntityComponent
@@ -19,6 +19,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -239,8 +240,8 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
     ) as mock_send_fan_mode:
         # Force preset mode
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode == VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.hvac_mode == VThermHvacMode_HEAT
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 18
@@ -309,8 +310,8 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
     ) as mock_send_fan_mode:
-        await entity.async_set_hvac_mode(VThermHvacMode.COOL)
-        assert entity.hvac_mode == VThermHvacMode.COOL
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+        assert entity.hvac_mode == VThermHvacMode_COOL
         assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 23
 

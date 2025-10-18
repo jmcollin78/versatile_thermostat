@@ -5,7 +5,7 @@ from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACAction, VThermHvacMode
+from homeassistant.components.climate import HVACAction
 from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
@@ -17,6 +17,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -61,7 +62,7 @@ async def test_over_climate_regulation(
         assert entity.is_over_climate is True
         assert entity.is_regulated is True
         assert entity.auto_regulation_use_device_temp is False
-        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.hvac_action is HVACAction.OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
@@ -75,8 +76,8 @@ async def test_over_climate_regulation(
 
         # Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.hvac_action == HVACAction.OFF
 
         assert entity.regulated_target_temp == entity.min_temp
@@ -159,7 +160,7 @@ async def test_over_climate_regulation_ac_mode(
         assert entity.is_over_climate is True
         assert entity.is_regulated is True
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is VThermHvacMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
@@ -172,8 +173,8 @@ async def test_over_climate_regulation_ac_mode(
 
         # Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.hvac_action == HVACAction.OFF
 
         # change temperature so that the heating will start
@@ -290,8 +291,8 @@ async def test_over_climate_regulation_limitations(
         # Will initialize the _last_regulation_change
         # Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         await entity.async_set_temperature(temperature=17)
 
         # it is cold today
@@ -391,8 +392,8 @@ async def test_over_climate_regulation_use_device_temp(
 
         # 1.  Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.regulated_target_temp == entity.min_temp
 
         await send_temperature_change_event(entity, 18, event_timestamp)
@@ -479,7 +480,7 @@ async def test_over_climate_regulation_use_device_temp(
         # room temp is 25
         # target is 23
         # internal heater temp is 27
-        await entity.async_set_hvac_mode(VThermHvacMode.COOL)
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
         await entity.async_set_temperature(temperature=23)
         fake_underlying_climate.set_current_temperature(26.9)
         await send_ext_temperature_change_event(entity, 30, event_timestamp)
@@ -551,8 +552,8 @@ async def test_over_climate_regulation_dtemp_null(
 
         # Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
-        assert entity.hvac_mode is VThermHvacMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.hvac_action == HVACAction.OFF
 
         # change temperature so that the heating will start

@@ -158,7 +158,7 @@ class AutoStartStopDetectionAlgorithm:
 
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
-        if hvac_mode == VThermHvacMode.HEAT:
+        if hvac_mode == VThermHvacMode_HEAT:
             if (
                 self._accumulated_error <= -self._error_threshold
                 and temp_at_dt >= target_temp + TEMP_HYSTERESIS
@@ -174,7 +174,7 @@ class AutoStartStopDetectionAlgorithm:
                 _LOGGER.debug("%s - nothing to do, we are heating", self)
                 return AUTO_START_STOP_ACTION_NOTHING
 
-        if hvac_mode == VThermHvacMode.COOL:
+        if hvac_mode == VThermHvacMode_COOL:
             if (
                 self._accumulated_error >= self._error_threshold
                 and temp_at_dt <= target_temp - TEMP_HYSTERESIS
@@ -194,7 +194,7 @@ class AutoStartStopDetectionAlgorithm:
                 return AUTO_START_STOP_ACTION_NOTHING
 
         # check to turn on
-        if hvac_mode == VThermHvacMode.OFF and saved_hvac_mode == VThermHvacMode.HEAT:
+        if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_HEAT:
             if (
                 temp_at_dt <= target_temp - TEMP_HYSTERESIS
                 and nb_minutes_since_last_switch >= self._dt
@@ -212,7 +212,7 @@ class AutoStartStopDetectionAlgorithm:
                 )
                 return AUTO_START_STOP_ACTION_NOTHING
 
-        if hvac_mode == VThermHvacMode.OFF and saved_hvac_mode == VThermHvacMode.COOL:
+        if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_COOL:
             if (
                 temp_at_dt >= target_temp + TEMP_HYSTERESIS
                 and nb_minutes_since_last_switch >= self._dt

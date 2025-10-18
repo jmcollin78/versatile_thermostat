@@ -46,23 +46,23 @@ from .const import (
     CONF_USE_MAIN_CENTRAL_CONFIG,
 )
 
-from .vtherm_preset import VThermPreset, VThermPresetWithAC, PRESET_AWAY_SUFFIX, PRESET_TEMP_SUFFIX
+from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX
 
 PRESET_ICON_MAPPING = {
     VThermPreset.FROST + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
     VThermPreset.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
     VThermPreset.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
     VThermPreset.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
-    VThermPresetWithAC.ECO_AC + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
-    VThermPresetWithAC.COMFORT_AC + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
-    VThermPresetWithAC.BOOST_AC + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
-    VThermPreset.FROST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
-    VThermPreset.ECO + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf",
-    VThermPreset.COMFORT + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa",
-    VThermPreset.BOOST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
-    VThermPresetWithAC.ECO_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
-    VThermPresetWithAC.COMFORT_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
-    VThermPresetWithAC.BOOST_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
+    VThermPresetWithAC.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    VThermPresetWithAC.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    VThermPresetWithAC.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
+    VThermPresetWithAway.FROST + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
+    VThermPresetWithAway.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
+    VThermPresetWithAway.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
+    VThermPresetWithAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
+    VThermPresetWithACAway.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    VThermPresetWithACAway.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    VThermPresetWithACAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
 }
 
 _LOGGER = logging.getLogger(__name__)

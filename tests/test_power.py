@@ -133,7 +133,7 @@ async def test_power_feature_manager(
         # Finish the mock configuration
         tpi_algo = PropAlgorithm(PROPORTIONAL_FUNCTION_TPI, 0.6, 0.01, 5, 0, 0, "climate.vtherm")
         tpi_algo._on_percent = 1 # pylint: disable="protected-access"
-        type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode.HEAT)
+        type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
         type(fake_vtherm).is_device_active = PropertyMock(return_value=is_device_active)
         type(fake_vtherm).is_over_climate = PropertyMock(return_value=is_over_climate)
         type(fake_vtherm).proportional_algorithm = PropertyMock(return_value=tpi_algo)
@@ -311,10 +311,10 @@ async def test_power_management_hvac_off(
     assert tpi_algo
 
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.preset_mode is VThermPreset.BOOST
+    assert entity.preset_mode == VThermPreset.BOOST
     assert entity.target_temperature == 19
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
-    assert entity.hvac_mode == VThermHvacMode.OFF
+    assert entity.hvac_mode == VThermHvacMode_OFF
 
     now: datetime = NowClass.get_now(hass)
     VersatileThermostatAPI.get_vtherm_api()._set_now(now)
@@ -335,7 +335,7 @@ async def test_power_management_hvac_off(
         assert entity.power_manager.is_overpowering_detected is False
 
         # All configuration is not complete
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN # due to hvac_off
 
         # Send power max mesurement
@@ -344,7 +344,7 @@ async def test_power_management_hvac_off(
         await send_max_power_change_event(entity, 300, now)
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN # # due to hvac_off
 
     # Send power max mesurement too low but VThermHvacMode is off
@@ -361,7 +361,7 @@ async def test_power_management_hvac_off(
         await send_max_power_change_event(entity, 149, datetime.now())
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is > power_max but we stay in Boost cause thermostat if Off
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN
 
         assert mock_send_event.call_count == 0
@@ -422,10 +422,10 @@ async def test_power_management_hvac_on(
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is VThermHvacMode.HEAT
-    assert entity.preset_mode is VThermPreset.BOOST
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert entity.preset_mode == VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
@@ -455,7 +455,7 @@ async def test_power_management_hvac_on(
 
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
 
     # Send power max mesurement too low and VThermHvacMode is on
@@ -473,7 +473,7 @@ async def test_power_management_hvac_on(
         await send_max_power_change_event(entity, 49, now)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is VThermPreset.POWER
+        assert entity.preset_mode == VThermPreset.POWER
         assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
 
@@ -512,7 +512,7 @@ async def test_power_management_hvac_on(
         await send_power_change_event(entity, 48, now)
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max, we restore previous preset
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
 
@@ -598,14 +598,14 @@ async def test_power_management_energy_over_switch(
     ) as mock_heater_on, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
     ) as mock_heater_off:
-        await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         await send_temperature_change_event(entity, 15, datetime.now())
 
         await hass.async_block_till_done()
 
-        assert entity.hvac_mode is VThermHvacMode.HEAT
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.current_temperature == 15
         assert tpi_algo.on_percent == 1
@@ -720,12 +720,12 @@ async def test_power_management_energy_over_climate(
 
     now = datetime.now(tz=get_tz(hass))
     await send_temperature_change_event(entity, 15, now)
-    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-    assert entity.hvac_mode is VThermHvacMode.HEAT
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert entity.hvac_action is HVACAction.IDLE
-    assert entity.preset_mode is VThermPreset.BOOST
+    assert entity.preset_mode == VThermPreset.BOOST
     assert entity.target_temperature == 19
     assert entity.current_temperature == 15
 
@@ -737,8 +737,8 @@ async def test_power_management_energy_over_climate(
     event_timestamp = now - timedelta(minutes=3)
     await send_climate_change_event(
         entity,
-        new_hvac_mode=VThermHvacMode.HEAT,
-        old_hvac_mode=VThermHvacMode.HEAT,
+        new_hvac_mode=VThermHvacMode_HEAT,
+        old_hvac_mode=VThermHvacMode_HEAT,
         new_hvac_action=HVACAction.HEATING,
         old_hvac_action=HVACAction.OFF,
         date=event_timestamp,
@@ -753,8 +753,8 @@ async def test_power_management_energy_over_climate(
     # Send a climate_change event with HVACAction=IDLE (end of heating)
     await send_climate_change_event(
         entity,
-        new_hvac_mode=VThermHvacMode.HEAT,
-        old_hvac_mode=VThermHvacMode.HEAT,
+        new_hvac_mode=VThermHvacMode_HEAT,
+        old_hvac_mode=VThermHvacMode_HEAT,
         new_hvac_action=HVACAction.IDLE,
         old_hvac_action=HVACAction.HEATING,
         date=now,
@@ -821,10 +821,10 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
 
-    await entity.async_set_hvac_mode(VThermHvacMode.HEAT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.hvac_mode is VThermHvacMode.HEAT
-    assert entity.preset_mode is VThermPreset.BOOST
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert entity.preset_mode == VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
@@ -853,12 +853,22 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     #
     #     assert entity.power_manager.is_overpowering_detected is False
     #     # All configuration is complete and power is < power_max
-    #     assert entity.preset_mode is VThermPreset.BOOST
+    #     assert entity.preset_mode == VThermPreset.BOOST
     #     assert entity.power_manager.overpowering_state is STATE_OFF
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
 
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     #
     #
     #
@@ -912,7 +922,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         await send_max_power_change_event(entity, 49, now)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
-        assert entity.preset_mode is VThermPreset.POWER
+        assert entity.preset_mode == VThermPreset.POWER
         assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
 
@@ -930,13 +940,13 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-        await entity.async_set_hvac_mode(VThermHvacMode.OFF)
+        await entity.async_set_hvac_mode(VThermHvacMode_OFF)
         await VersatileThermostatAPI.get_vtherm_api().central_power_manager._do_immediate_shedding()
         await hass.async_block_till_done()
 
         # VTherm is off and overpowering if off also
-        assert entity.hvac_mode == VThermHvacMode.OFF
+        assert entity.hvac_mode == VThermHvacMode_OFF
         assert entity.power_manager.is_overpowering_detected is False
-        assert entity.preset_mode is VThermPreset.BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19

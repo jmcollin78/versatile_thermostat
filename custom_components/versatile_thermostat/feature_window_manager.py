@@ -185,11 +185,10 @@ class FeatureWindowManager(BaseFeatureManager):
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
         _LOGGER.info(
-            "%s - Window changed. Event.new_state is %s, _hvac_mode=%s, _saved_hvac_mode=%s",
+            "%s - Window changed. Event.new_state is %s, _hvac_mode=%s",
             self,
             new_state,
             self._vtherm.hvac_mode,
-            self._vtherm.saved_hvac_mode,
         )
 
         # Check delay condition
@@ -245,7 +244,7 @@ class FeatureWindowManager(BaseFeatureManager):
         """
 
         # No changes
-        if self._window_state == new_state and not bypass:
+        if (old_state := self._window_state) == new_state and not bypass:
             return False
 
         # Windows is now closed
@@ -317,14 +316,19 @@ class FeatureWindowManager(BaseFeatureManager):
             #    await self._vtherm.change_target_temperature(self._vtherm.find_preset_temp(VThermPreset.ECO), True)
             # else:  # default is to turn_off
             #    self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
-            #    await self._vtherm.async_set_hvac_mode(VThermHvacMode.OFF)
+            #    await self._vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
 
         if bypass:
             _LOGGER.info("%s - Window is bypassed. Forget the window detection", self)
             return False
 
         self._window_state = new_state
-        return True
+        if old_state != new_state:
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(True)
+            return True
+
+        return False
 
     async def manage_window_auto(self, in_cycle=False) -> callable:
         """The management of the window auto feature
@@ -380,7 +384,7 @@ class FeatureWindowManager(BaseFeatureManager):
             )
             return None
 
-        if self._window_auto_algo.is_window_open_detected() and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF] and self._vtherm.hvac_mode != VThermHvacMode.OFF:
+        if self._window_auto_algo.is_window_open_detected() and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF] and self._vtherm.hvac_mode != VThermHvacMode_OFF:
             if (
                 self._vtherm.proportional_algorithm
                 and self._vtherm.proportional_algorithm.on_percent <= 0.0
