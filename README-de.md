@@ -31,6 +31,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 > Dadurch werden kurze Ein-/Ausschaltzyklen eines Heizkörpers verhindert.
 >   Siehe [TPI](documentation/de/algorithms.md#the-tpi-algorithm)
 >
+> - Es wurde ein Schlafmodus für VTherms vom Typ `over_climate` mit Regelung durch direkte Ventilsteuerung hinzugefügt. In diesem Modus können Sie den Thermostat auf "Aus" stellen, dabei bleibt das Ventil jedoch zu 100 % geöffnet. Dies ist nützlich für längere Zeiträume ohne Heizung, wenn der Heizkessel von Zeit zu Zeit Wasser zirkulieren lässt. Hinweis: Sie müssen die VTHerm-UI-Karte aktualisieren, um diesen neuen Modus anzuzeigen. Siehe [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
 >
 > * **Release 7.2**:
 >
