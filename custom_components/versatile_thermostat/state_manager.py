@@ -18,7 +18,7 @@ from .const import (
 )
 from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY
-from .vtherm_preset import VThermPreset
+from .vtherm_preset import VThermPreset, HIDDEN_PRESETS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class StateManager:
         # if vtherm.power_manager.is_overpowering_detected:
 
         # First check safety
-        if vtherm.safety_manager.is_safety_detected and (vtherm.is_over_climate or vtherm.safety_default_on_percent <= 0.0):
+        if vtherm.safety_manager.is_safety_detected and (vtherm.is_over_climate or vtherm.safety_manager.safety_default_on_percent <= 0.0):
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
 
@@ -113,7 +113,7 @@ class StateManager:
         # all is fine set current_state = requested_state
         else:
             if self._current_state.hvac_mode == VThermHvacMode_OFF and self._requested_state.hvac_mode == VThermHvacMode_OFF:
-                _LOGGER.info("%s - already in OFF. Change the reason to MANUAL and erase the saved_hvac_mode", vtherm)
+                _LOGGER.info("%s - already in OFF. Change the reason to MANUAL", vtherm)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL if not vtherm.is_sleeping else HVAC_OFF_REASON_SLEEP_MODE)
 
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
@@ -216,7 +216,9 @@ class StateManager:
 
     def update_current_temp_from_requested(self, vtherm: "BaseThermostat"):
         """Update the current temperature from the requested state preset if any."""
-        if self._current_state.preset != VThermPreset.NONE:
+        if self._current_state.preset in HIDDEN_PRESETS:
+            self._current_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
+        elif self._current_state.preset != VThermPreset.NONE:
             self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
         elif self._requested_state.target_temperature is not None:
             self._current_state.set_target_temperature(self._requested_state.target_temperature)

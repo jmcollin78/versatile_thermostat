@@ -27,6 +27,7 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ![Nouveau](images/new-icon.png)
 > * **Release 8.0**:
 > - Pour chaque VTherm vous devez resetter le preset, le hvac_mode et éventuellement la target_temperature
+> versatile_thermostat_security_event renommé en versatile_thermostat_safety_event
 >
 > * **Release 7.4**:
 >

@@ -86,7 +86,7 @@ class PropAlgorithm:
         self._calculated_on_percent = 0
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
-        self._security = False
+        self._safety = False
         self._default_on_percent = 0
         self._max_on_percent = max_on_percent
         self._tpi_threshold_low = tpi_threshold_low
@@ -171,7 +171,7 @@ class PropAlgorithm:
         if self._calculated_on_percent < 0:
             self._calculated_on_percent = 0
 
-        if self._security:
+        if self._safety:
             self._on_percent = self._default_on_percent
             _LOGGER.info(
                 "%s - Security is On using the default_on_percent %f",
@@ -226,7 +226,7 @@ class PropAlgorithm:
         _LOGGER.info(
             "%s - Proportional Algo - set security to ON", self._vtherm_entity_id
         )
-        self._security = True
+        self._safety = True
         self._default_on_percent = default_on_percent
         self._calculate_internal()
 
@@ -235,7 +235,7 @@ class PropAlgorithm:
         _LOGGER.info(
             "%s - Proportional Algo - set security to OFF", self._vtherm_entity_id
         )
-        self._security = False
+        self._safety = False
         self._calculate_internal()
 
     @property

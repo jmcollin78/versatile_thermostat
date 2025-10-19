@@ -119,7 +119,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
                     },
                 ),
                 call.send_event(
-                    EventType.SECURITY_EVENT,
+                    EventType.SAFETY_EVENT,
                     {
                         "type": "start",
                         "last_temperature_measure": event_timestamp.isoformat(),

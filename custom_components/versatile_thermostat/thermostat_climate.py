@@ -1206,20 +1206,20 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_turn_off(self) -> None:
         # if window is open, don't overwrite the saved_hvac_mode
-        if self.window_state != STATE_ON:
-            self.save_hvac_mode()
+        # if self.window_state != STATE_ON:
+        #     self.save_hvac_mode()
         await self.async_set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     async def async_turn_on(self) -> None:
 
         # don't turn_on if window is open
-        if self.window_state == STATE_ON:
-            _LOGGER.info(
-                "%s - refuse to turn on because window is open. We keep the save_hvac_mode",
-                self,
-            )
-            return
+        # if self.window_state == STATE_ON:
+        #     _LOGGER.info(
+        #         "%s - refuse to turn on because window is open. We keep the save_hvac_mode",
+        #         self,
+        #     )
+        #     return
 
         # if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
         #     await self.restore_hvac_mode(True)

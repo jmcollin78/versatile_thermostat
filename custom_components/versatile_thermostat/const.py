@@ -483,7 +483,7 @@ class RegulationParamVeryStrong:
 class EventType(Enum):
     """The event type that can be sent"""
 
-    SECURITY_EVENT = "versatile_thermostat_security_event"
+    SAFETY_EVENT = "versatile_thermostat_safety_event"
     POWER_EVENT = "versatile_thermostat_power_event"
     TEMPERATURE_EVENT = "versatile_thermostat_temperature_event"
     HVAC_MODE_EVENT = "versatile_thermostat_hvac_mode_event"

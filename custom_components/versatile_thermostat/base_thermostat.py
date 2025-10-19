@@ -97,11 +97,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "comfort_away_temp",
                     "power_temp",
                     "ac_mode",
-                    "saved_preset_mode",
-                    "saved_target_temp",
-                    "saved_hvac_mode",
-                    "saved_preset_mode_central_mode",
-                    "saved_hvac_mode_central_mode",
+                    # "saved_preset_mode",
+                    # "saved_target_temp",
+                    # "saved_hvac_mode",
+                    # "saved_preset_mode_central_mode",
+                    # "saved_hvac_mode_central_mode",
                     "last_temperature_datetime",
                     "last_ext_temperature_datetime",
                     "minimal_activation_delay_sec",
@@ -664,8 +664,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # self._saved_preset_mode = old_state.attributes.get(
             #     "saved_preset_mode", None
             # )
-            self._saved_hvac_mode_central_mode = old_state.attributes.get(ATTR_SAVED_HVAC_MODE_CENTRAL_MODE, None)
-            self._saved_preset_mode_central_mode = old_state.attributes.get(ATTR_SAVED_PRESET_MODE_CENTRAL_MODE, None)
+            # self._saved_hvac_mode_central_mode = old_state.attributes.get(ATTR_SAVED_HVAC_MODE_CENTRAL_MODE, None)
+            # self._saved_preset_mode_central_mode = old_state.attributes.get(ATTR_SAVED_PRESET_MODE_CENTRAL_MODE, None)
 
             old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
@@ -1450,9 +1450,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
+        old_safety: bool = self._safety_manager.is_safety_detected
         dearm_window_auto = await self._async_update_temp(new_state)
         self.recalculate()
-        await self.async_control_heating(force=False)
+
+        # Potentially it generates a safety event
+        safety: bool = await self._safety_manager.refresh_state()
+        if safety != old_safety:
+            _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
+            self.requested_state.force_changed()
+            await self.update_states(force=True)
+
         return dearm_window_auto
 
     @callback
@@ -1505,9 +1513,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
+        old_safety: bool = self._safety_manager.is_safety_detected
         await self._async_update_ext_temp(new_state)
         self.recalculate()
-        await self.async_control_heating(force=False)
+
+        safety: bool = await self._safety_manager.refresh_state()
+        if safety != old_safety:
+            _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
+            self.requested_state.force_changed()
+            await self.update_states(force=True)
 
     @callback
     async def _check_initial_state(self):
@@ -1550,8 +1564,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
 
             # try to restart if we were in safety mode
-            if self._safety_manager.is_safety_detected:
-                await self._safety_manager.refresh_state()
+            # if self._safety_manager.is_safety_detected:
+            #     await self._safety_manager.refresh_state()
 
             # check window_auto
             return await self._window_manager.manage_window_auto()
@@ -1578,8 +1592,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
 
             # try to restart if we were in safety mode
-            if self._safety_manager.is_safety_detected:
-                await self._safety_manager.refresh_state()
+            # if self._safety_manager.is_safety_detected:
+            #     await self._safety_manager.refresh_state()
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
 
@@ -1755,6 +1769,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         safety: bool = await self._safety_manager.refresh_state()
         if safety and self.is_over_climate:
             _LOGGER.debug("%s - End of cycle (safety and over climate)", self)
+
             return True
 
         # Stop here if we are off

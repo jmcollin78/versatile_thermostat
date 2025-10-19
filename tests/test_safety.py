@@ -205,6 +205,8 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
         # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15, event_timestamp)
+        await wait_for_local_condition(lambda: entity.safety_state is STATE_ON)
+
         assert entity.safety_state is STATE_ON
         assert entity.preset_mode == VThermPreset.SAFETY
         # assert entity._saved_preset_mode == VThermPreset.COMFORT
@@ -226,7 +228,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
                     },
                 ),
                 call.send_event(
-                    EventType.SECURITY_EVENT,
+                    EventType.SAFETY_EVENT,
                     {
                         "type": "start",
                         "last_temperature_measure": event_timestamp.isoformat(),
@@ -242,7 +244,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
         assert mock_heater_on.call_count == 1
 
-    # 3. Change the preset to Boost (we should stay in SECURITY)
+    # 3. Change the preset to Boost (we should stay in SAFETY)
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -255,9 +257,10 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.safety_manager.is_safety_detected is True
 
         assert entity._prop_algorithm.on_percent == 0.1
-        assert entity._prop_algorithm.calculated_on_percent == 0.9
+        assert entity._prop_algorithm.calculated_on_percent == 1
         # assert entity._saved_preset_mode == VThermPreset.BOOST
         assert entity.preset_mode is VThermPreset.SAFETY
+        assert entity.target_temperature == 19  # Boost
 
     # 5. resolve the datetime issue
     with patch(
@@ -270,11 +273,13 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         # set temperature to 15 so that on_percent will be > security_min_on_percent (0.2)
         await send_temperature_change_event(entity, 15.2, event_timestamp)
 
+        await wait_for_local_condition(lambda: entity.safety_manager.safety_state is not STATE_ON)
+
         assert entity.safety_manager.safety_state is not STATE_ON
         assert entity.safety_manager.is_safety_detected is False
 
         assert entity.preset_mode == VThermPreset.BOOST
-        # assert entity._saved_preset_mode == VThermPreset.BOOST
+        assert entity.target_temperature == 19  # Boost
         assert entity._prop_algorithm.on_percent == 1.0
         assert entity._prop_algorithm.calculated_on_percent == 1.0
 
@@ -283,14 +288,14 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
             [
                 call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.BOOST}),
                 call.send_event(
-                    EventType.SECURITY_EVENT,
+                    EventType.SAFETY_EVENT,
                     {
                         "type": "end",
                         "last_temperature_measure": event_timestamp.astimezone(tz).isoformat(),
                         "last_ext_temperature_measure": entity._last_ext_temperature_measure.astimezone(tz).isoformat(),
                         "current_temp": 15.2,
                         "current_ext_temp": None,
-                        "target_temp": 19,
+                        "target_temp": 19,  # Boost
                     },
                 ),
             ],
@@ -317,7 +322,7 @@ async def test_security_feature_back_on_percent(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     temps = {
         "eco": 17,
-        "comfort": 18,
+        "comfort": 18.9,
         "boost": 19,
         "frost": 10,
     }
@@ -396,6 +401,9 @@ async def test_security_feature_back_on_percent(
         assert entity.safety_state is not STATE_ON
         assert mock_send_event.call_count == 0
 
+        # Heating should not be turned on because the changing temp don't force a control_heating
+        assert mock_heater_on.call_count == 0
+
     # 3. Set safety mode with a preset change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -429,7 +437,7 @@ async def test_security_feature_back_on_percent(
                     },
                 ),
                 call.send_event(
-                    EventType.SECURITY_EVENT,
+                    EventType.SAFETY_EVENT,
                     {
                         "type": "start",
                         "last_temperature_measure": event_timestamp.isoformat(),
@@ -443,14 +451,15 @@ async def test_security_feature_back_on_percent(
             any_order=True,
         )
 
-        # heating have been started on the previous call
-        assert mock_heater_on.call_count == 0
+        # heating have been started due to safety change
+        assert mock_heater_on.call_count == 1
 
     # 4. change preset so that on_percent will be low
     event_timestamp = event_timestamp + timedelta(minutes=1)
     entity._set_now(event_timestamp)  # pylint: disable=protected-access
 
-    await entity.async_set_preset_mode(VThermPreset.ECO)
+    # try to change the preset but still stay in safety so that when the safety will be off this temp mode will be restored
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
     assert entity.safety_state is STATE_ON
     assert entity.preset_mode == VThermPreset.SAFETY
 
@@ -470,7 +479,7 @@ async def test_security_feature_back_on_percent(
         assert entity.safety_manager.safety_state is not STATE_ON
         assert entity.safety_manager.is_safety_detected is False
 
-        assert entity.preset_mode == VThermPreset.ECO
+        assert entity.preset_mode == VThermPreset.COMFORT
         # assert entity._saved_preset_mode == VThermPreset.ECO
         assert entity._prop_algorithm.on_percent == 0.0
         assert entity._prop_algorithm.calculated_on_percent == 0.0
@@ -478,16 +487,16 @@ async def test_security_feature_back_on_percent(
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.ECO}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.COMFORT}),
                 call.send_event(
-                    EventType.SECURITY_EVENT,
+                    EventType.SAFETY_EVENT,
                     {
                         "type": "end",
                         "last_temperature_measure": event_timestamp.astimezone(tz).isoformat(),
                         "last_ext_temperature_measure": entity._last_ext_temperature_measure.astimezone(tz).isoformat(),
                         "current_temp": 18.92,
                         "current_ext_temp": None,
-                        "target_temp": 17,
+                        "target_temp": 18.9,  # comfort
                     },
                 ),
             ],

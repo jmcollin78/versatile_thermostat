@@ -66,7 +66,6 @@ current_power: 450
 current_power_max: 910
 saved_preset_mode: none
 saved_target_temp: 22
-saved_hvac_mode: heat
 window_state: 'on'
 motion_state: 'off'
 overpowering_state: false

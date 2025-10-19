@@ -139,21 +139,17 @@ class FeatureSafetyManager(BaseFeatureManager):
         )
 
         # Issue 99 - a climate is regulated by the device itself and not by VTherm. So a VTherm should never be in safety !
-        should_climate_be_in_security = False  # temp_cond and climate_cond
-        should_switch_be_in_security = temp_cond and switch_cond
-        should_be_in_security = (
-            should_climate_be_in_security or should_switch_be_in_security
-        )
+        should_climate_be_in_safety = False  # temp_cond and climate_cond
+        should_switch_be_in_safety = temp_cond and switch_cond
+        should_be_in_safety = should_climate_be_in_safety or should_switch_be_in_safety
 
-        should_start_security = (
-            mode_cond and not is_safety_detected and should_be_in_security
-        )
+        should_start_safety = mode_cond and not is_safety_detected and should_be_in_safety
         # attr_preset_mode is not necessary normaly. It is just here to be sure
-        should_stop_security = is_safety_detected and not should_be_in_security and self._vtherm.preset_mode == VThermPreset.SAFETY
+        should_stop_safety = is_safety_detected and not should_be_in_safety and self._vtherm.preset_mode == VThermPreset.SAFETY
 
         # Logging and event
-        if should_start_security:
-            if should_climate_be_in_security:
+        if should_start_safety:
+            if should_climate_be_in_safety:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and underlying climate is %s. Setting it into safety mode",
                     self,
@@ -162,7 +158,7 @@ class FeatureSafetyManager(BaseFeatureManager):
                     delta_ext_temp,
                     self.hvac_action,
                 )
-            elif should_switch_be_in_security:
+            elif should_switch_be_in_safety:
                 _LOGGER.warning(
                     "%s - No temperature received for more than %.1f minutes (dt=%.1f, dext=%.1f) and on_percent (%.2f %%) is over defined value (%.2f %%). Set it into safety mode",
                     self,
@@ -189,10 +185,10 @@ class FeatureSafetyManager(BaseFeatureManager):
             )
 
         # Start safety mode
-        if should_start_security:
+        if should_start_safety:
             self._safety_state = STATE_ON
-            self._vtherm.save_hvac_mode()
-            self._vtherm.save_preset_mode()
+            # self._vtherm.save_hvac_mode()
+            # self._vtherm.save_preset_mode()
             if self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.set_safety(
                     self._safety_default_on_percent
@@ -204,15 +200,11 @@ class FeatureSafetyManager(BaseFeatureManager):
             #     await self._vtherm.async_set_hvac_mode(VThermHvacMode_OFF, False)
 
             self._vtherm.send_event(
-                EventType.SECURITY_EVENT,
+                EventType.SAFETY_EVENT,
                 {
                     "type": "start",
-                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
-                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
+                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(tzinfo=current_tz).isoformat(),
+                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz).isoformat(),
                     "current_temp": self._vtherm.current_temperature,
                     "current_ext_temp": self._vtherm.current_outdoor_temperature,
                     "target_temp": self._vtherm.target_temperature,
@@ -220,30 +212,21 @@ class FeatureSafetyManager(BaseFeatureManager):
             )
 
         # Stop safety mode
-        elif should_stop_security:
-            _LOGGER.warning(
-                "%s - End of safety mode. restoring hvac_mode to %s and preset_mode to %s",
-                self,
-                self._vtherm.saved_hvac_mode,
-                self._vtherm.saved_preset_mode,
-            )
+        elif should_stop_safety:
+            _LOGGER.warning("%s - End of safety mode.", self)
             self._safety_state = STATE_OFF
             if self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.unset_safety()
             # Restore hvac_mode if previously saved
-            if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
-                await self._vtherm.restore_hvac_mode(False)
-            await self._vtherm.restore_preset_mode()
+            # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
+            #     await self._vtherm.restore_hvac_mode(False)
+            # await self._vtherm.restore_preset_mode()
             self._vtherm.send_event(
-                EventType.SECURITY_EVENT,
+                EventType.SAFETY_EVENT,
                 {
                     "type": "end",
-                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
-                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
+                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(tzinfo=current_tz).isoformat(),
+                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz).isoformat(),
                     "current_temp": self._vtherm.current_temperature,
                     "current_ext_temp": self._vtherm.current_outdoor_temperature,
                     "target_temp": self._vtherm.target_temperature,
@@ -251,10 +234,10 @@ class FeatureSafetyManager(BaseFeatureManager):
             )
 
         # Initialize the safety_state if not already done
-        elif not should_be_in_security and self._safety_state in [STATE_UNKNOWN]:
+        elif not should_be_in_safety and self._safety_state in [STATE_UNKNOWN]:
             self._safety_state = STATE_OFF
 
-        return should_be_in_security
+        return should_be_in_safety
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""

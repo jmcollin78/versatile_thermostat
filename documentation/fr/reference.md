@@ -200,7 +200,7 @@ target:
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
 Les évènements notifiés sont les suivants:
 
-- ``versatile_thermostat_security_event`` : un thermostat entre ou sort du preset ``security``
+- ``versatile_thermostat_safety_event`` : un thermostat entre ou sort du preset ``security``
 - ``versatile_thermostat_power_event`` : un thermostat entre ou sort du preset ``power``
 - ``versatile_thermostat_temperature_event`` : une ou les deux mesures de température d'un thermostat n'ont pas été mis à jour depuis plus de `safety_delay_min`` minutes
 - ``versatile_thermostat_hvac_mode_event`` : le thermostat est allumé ou éteint. Cet évènement est aussi diffusé au démarrage du thermostat

@@ -13,69 +13,69 @@
 
 ## Přehled parametrů
 
-| Parametr                                  | Označení                                                   | "over switch" | "over climate"      | "over valve" | "central configuration" |
-| ----------------------------------------- | ---------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
-| ``name``                                  | Název                                                      | X             | X                   | X            | -                       |
-| ``thermostat_type``                       | Typ termostatu                                             | X             | X                   | X            | -                       |
-| ``temperature_sensor_entity_id``          | ID entity teplotního senzoru                              | X             | X (auto-regulace)   | X            | -                       |
-| ``external_temperature_sensor_entity_id`` | ID entity externího teplotního senzoru                    | X             | X (auto-regulace)   | X            | X                       |
-| ``cycle_min``                             | Doba cyklu (minuty)                                        | X             | X                   | X            | -                       |
-| ``temp_min``                              | Minimální povolená teplota                                 | X             | X                   | X            | X                       |
-| ``temp_max``                              | Maximální povolená teplota                                 | X             | X                   | X            | X                       |
-| ``device_power``                          | Výkon zařízení                                             | X             | X                   | X            | -                       |
-| ``use_central_mode``                      | Povolit centralizované ovládání                           | X             | X                   | X            | -                       |
-| ``use_window_feature``                    | S detekcí okna                                             | X             | X                   | X            | -                       |
-| ``use_motion_feature``                    | S detekcí pohybu                                           | X             | X                   | X            | -                       |
-| ``use_power_feature``                     | Se správou výkonu                                          | X             | X                   | X            | -                       |
-| ``use_presence_feature``                  | S detekcí přítomnosti                                      | X             | X                   | X            | -                       |
-| ``heater_entity1_id``                     | 1. topné těleso                                            | X             | -                   | -            | -                       |
-| ``heater_entity2_id``                     | 2. topné těleso                                            | X             | -                   | -            | -                       |
-| ``heater_entity3_id``                     | 3. topné těleso                                            | X             | -                   | -            | -                       |
-| ``heater_entity4_id``                     | 4. topné těleso                                            | X             | -                   | -            | -                       |
-| ``heater_keep_alive``                     | Interval obnovení spínače                                  | X             | -                   | -            | -                       |
-| ``proportional_function``                 | Algoritmus                                                 | X             | -                   | -            | -                       |
-| ``climate_entity1_id``                    | Podkladový termostat                                       | -             | X                   | -            | -                       |
-| ``climate_entity2_id``                    | 2. podkladový termostat                                    | -             | X                   | -            | -                       |
-| ``climate_entity3_id``                    | 3. podkladový termostat                                    | -             | X                   | -            | -                       |
-| ``climate_entity4_id``                    | 4. podkladový termostat                                    | -             | X                   | -            | -                       |
-| ``valve_entity1_id``                      | Podkladový ventil                                          | -             | -                   | X            | -                       |
-| ``valve_entity2_id``                      | 2. podkladový ventil                                       | -             | -                   | X            | -                       |
-| ``valve_entity3_id``                      | 3. podkladový ventil                                       | -             | -                   | X            | -                       |
-| ``valve_entity4_id``                      | 4. podkladový ventil                                       | -             | -                   | X            | -                       |
-| ``ac_mode``                               | Použití klimatizace (AC)?                                  | X             | X                   | X            | -                       |
-| ``tpi_coef_int``                          | Koeficient pro rozdíl vnitřní teploty                     | X             | -                   | X            | X                       |
-| ``tpi_coef_ext``                          | Koeficient pro rozdíl vnější teploty                      | X             | -                   | X            | X                       |
-| ``frost_temp``                            | Teplota protimrazového presetem                           | X             | X                   | X            | X                       |
-| ``window_sensor_entity_id``               | Senzor okna (id entity)                                    | X             | X                   | X            | -                       |
-| ``window_delay``                          | Prodleva před vypnutím (sekundy)                          | X             | X                   | X            | X                       |
-| ``window_auto_open_threshold``            | Vysoký práh poklesu pro automatickou detekci (°/min)      | X             | X                   | X            | X                       |
-| ``window_auto_close_threshold``           | Nízký práh poklesu pro automatickou detekci uzavření (°/min)| X             | X                   | X            | X                       |
-| ``window_auto_max_duration``              | Maximální doba automatického vypnutí (minuty)             | X             | X                   | X            | X                       |
-| ``motion_sensor_entity_id``               | ID entity senzoru pohybu                                   | X             | X                   | X            | -                       |
-| ``motion_delay``                          | Prodleva před zvážením pohybu (sekundy)                   | X             | X                   | X            | -                       |
-| ``motion_off_delay``                      | Prodleva před koncem pohybu (sekundy)                     | X             | X                   | X            | X                       |
-| ``motion_preset``                         | Preset pro použití při detekci pohybu                     | X             | X                   | X            | X                       |
-| ``no_motion_preset``                      | Preset pro použití při žádném pohybu                      | X             | X                   | X            | X                       |
-| ``power_sensor_entity_id``                | Senzor celkového výkonu (id entity)                       | X             | X                   | X            | X                       |
-| ``max_power_sensor_entity_id``            | Senzor max výkonu (id entity)                             | X             | X                   | X            | X                       |
-| ``power_temp``                            | Teplota během odlehčení zátěže                            | X             | X                   | X            | X                       |
-| ``presence_sensor_entity_id``             | ID entity senzoru přítomnosti (true pokud je někdo přítomen)| X             | X                   | X            | -                       |
-| ``minimal_activation_delay``              | Minimální doba aktivace                                   | X             | -                   | -            | X                       |
-| ``minimal_deactivation_delay``            | Minimální doba deaktivace                                 | X             | -                   | -            | X                       |
-| ``safety_delay_min``                      | Maximální prodleva mezi dvěma teplotními měřeními        | X             | -                   | X            | X                       |
-| ``safety_min_on_percent``                 | Minimální procento výkonu pro vstup do bezpečnostního režimu| X             | -                   | X            | X                       |
-| ``auto_regulation_mode``                  | Režim auto-regulace                                       | -             | X                   | -            | -                       |
-| ``auto_regulation_dtemp``                 | Práh auto-regulace                                        | -             | X                   | -            | -                       |
-| ``auto_regulation_period_min``            | Minimální období auto-regulace                            | -             | X                   | -            | -                       |
-| ``inverse_switch_command``                | Invertovat příkaz spínače (pro spínače s pilotem)         | X             | -                   | -            | -                       |
-| ``auto_fan_mode``                         | Automatický režim ventilátoru                             | -             | X                   | -            | -                       |
-| ``auto_regulation_use_device_temp``       | Použití vnitřní teploty podkladového zařízení             | -             | X                   | -            | -                       |
-| ``use_central_boiler_feature``            | Přidat ovládání centrálního kotle                         | -             | -                   | -            | X                       |
-| ``central_boiler_activation_service``     | Služba aktivace kotle                                     | -             | -                   | -            | X                       |
-| ``central_boiler_deactivation_service``   | Služba deaktivace kotle                                   | -             | -                   | -            | X                       |
-| ``used_by_controls_central_boiler``       | Indikuje, zda VTherm ovládá centrální kotel               | X             | X                   | X            | -                       |
-| ``use_auto_start_stop_feature``           | Indikuje, zda je povolena funkce auto start/stop          | -             | X                   | -            | -                       |
-| ``auto_start_stop_level``                 | Úroveň detekce pro auto start/stop                        | -             | X                   | -            | -                       |
+| Parametr                                  | Označení                                                     | "over switch" | "over climate"    | "over valve" | "central configuration" |
+| ----------------------------------------- | ------------------------------------------------------------ | ------------- | ----------------- | ------------ | ----------------------- |
+| ``name``                                  | Název                                                        | X             | X                 | X            | -                       |
+| ``thermostat_type``                       | Typ termostatu                                               | X             | X                 | X            | -                       |
+| ``temperature_sensor_entity_id``          | ID entity teplotního senzoru                                 | X             | X (auto-regulace) | X            | -                       |
+| ``external_temperature_sensor_entity_id`` | ID entity externího teplotního senzoru                       | X             | X (auto-regulace) | X            | X                       |
+| ``cycle_min``                             | Doba cyklu (minuty)                                          | X             | X                 | X            | -                       |
+| ``temp_min``                              | Minimální povolená teplota                                   | X             | X                 | X            | X                       |
+| ``temp_max``                              | Maximální povolená teplota                                   | X             | X                 | X            | X                       |
+| ``device_power``                          | Výkon zařízení                                               | X             | X                 | X            | -                       |
+| ``use_central_mode``                      | Povolit centralizované ovládání                              | X             | X                 | X            | -                       |
+| ``use_window_feature``                    | S detekcí okna                                               | X             | X                 | X            | -                       |
+| ``use_motion_feature``                    | S detekcí pohybu                                             | X             | X                 | X            | -                       |
+| ``use_power_feature``                     | Se správou výkonu                                            | X             | X                 | X            | -                       |
+| ``use_presence_feature``                  | S detekcí přítomnosti                                        | X             | X                 | X            | -                       |
+| ``heater_entity1_id``                     | 1. topné těleso                                              | X             | -                 | -            | -                       |
+| ``heater_entity2_id``                     | 2. topné těleso                                              | X             | -                 | -            | -                       |
+| ``heater_entity3_id``                     | 3. topné těleso                                              | X             | -                 | -            | -                       |
+| ``heater_entity4_id``                     | 4. topné těleso                                              | X             | -                 | -            | -                       |
+| ``heater_keep_alive``                     | Interval obnovení spínače                                    | X             | -                 | -            | -                       |
+| ``proportional_function``                 | Algoritmus                                                   | X             | -                 | -            | -                       |
+| ``climate_entity1_id``                    | Podkladový termostat                                         | -             | X                 | -            | -                       |
+| ``climate_entity2_id``                    | 2. podkladový termostat                                      | -             | X                 | -            | -                       |
+| ``climate_entity3_id``                    | 3. podkladový termostat                                      | -             | X                 | -            | -                       |
+| ``climate_entity4_id``                    | 4. podkladový termostat                                      | -             | X                 | -            | -                       |
+| ``valve_entity1_id``                      | Podkladový ventil                                            | -             | -                 | X            | -                       |
+| ``valve_entity2_id``                      | 2. podkladový ventil                                         | -             | -                 | X            | -                       |
+| ``valve_entity3_id``                      | 3. podkladový ventil                                         | -             | -                 | X            | -                       |
+| ``valve_entity4_id``                      | 4. podkladový ventil                                         | -             | -                 | X            | -                       |
+| ``ac_mode``                               | Použití klimatizace (AC)?                                    | X             | X                 | X            | -                       |
+| ``tpi_coef_int``                          | Koeficient pro rozdíl vnitřní teploty                        | X             | -                 | X            | X                       |
+| ``tpi_coef_ext``                          | Koeficient pro rozdíl vnější teploty                         | X             | -                 | X            | X                       |
+| ``frost_temp``                            | Teplota protimrazového presetem                              | X             | X                 | X            | X                       |
+| ``window_sensor_entity_id``               | Senzor okna (id entity)                                      | X             | X                 | X            | -                       |
+| ``window_delay``                          | Prodleva před vypnutím (sekundy)                             | X             | X                 | X            | X                       |
+| ``window_auto_open_threshold``            | Vysoký práh poklesu pro automatickou detekci (°/min)         | X             | X                 | X            | X                       |
+| ``window_auto_close_threshold``           | Nízký práh poklesu pro automatickou detekci uzavření (°/min) | X             | X                 | X            | X                       |
+| ``window_auto_max_duration``              | Maximální doba automatického vypnutí (minuty)                | X             | X                 | X            | X                       |
+| ``motion_sensor_entity_id``               | ID entity senzoru pohybu                                     | X             | X                 | X            | -                       |
+| ``motion_delay``                          | Prodleva před zvážením pohybu (sekundy)                      | X             | X                 | X            | -                       |
+| ``motion_off_delay``                      | Prodleva před koncem pohybu (sekundy)                        | X             | X                 | X            | X                       |
+| ``motion_preset``                         | Preset pro použití při detekci pohybu                        | X             | X                 | X            | X                       |
+| ``no_motion_preset``                      | Preset pro použití při žádném pohybu                         | X             | X                 | X            | X                       |
+| ``power_sensor_entity_id``                | Senzor celkového výkonu (id entity)                          | X             | X                 | X            | X                       |
+| ``max_power_sensor_entity_id``            | Senzor max výkonu (id entity)                                | X             | X                 | X            | X                       |
+| ``power_temp``                            | Teplota během odlehčení zátěže                               | X             | X                 | X            | X                       |
+| ``presence_sensor_entity_id``             | ID entity senzoru přítomnosti (true pokud je někdo přítomen) | X             | X                 | X            | -                       |
+| ``minimal_activation_delay``              | Minimální doba aktivace                                      | X             | -                 | -            | X                       |
+| ``minimal_deactivation_delay``            | Minimální doba deaktivace                                    | X             | -                 | -            | X                       |
+| ``safety_delay_min``                      | Maximální prodleva mezi dvěma teplotními měřeními            | X             | -                 | X            | X                       |
+| ``safety_min_on_percent``                 | Minimální procento výkonu pro vstup do bezpečnostního režimu | X             | -                 | X            | X                       |
+| ``auto_regulation_mode``                  | Režim auto-regulace                                          | -             | X                 | -            | -                       |
+| ``auto_regulation_dtemp``                 | Práh auto-regulace                                           | -             | X                 | -            | -                       |
+| ``auto_regulation_period_min``            | Minimální období auto-regulace                               | -             | X                 | -            | -                       |
+| ``inverse_switch_command``                | Invertovat příkaz spínače (pro spínače s pilotem)            | X             | -                 | -            | -                       |
+| ``auto_fan_mode``                         | Automatický režim ventilátoru                                | -             | X                 | -            | -                       |
+| ``auto_regulation_use_device_temp``       | Použití vnitřní teploty podkladového zařízení                | -             | X                 | -            | -                       |
+| ``use_central_boiler_feature``            | Přidat ovládání centrálního kotle                            | -             | -                 | -            | X                       |
+| ``central_boiler_activation_service``     | Služba aktivace kotle                                        | -             | -                 | -            | X                       |
+| ``central_boiler_deactivation_service``   | Služba deaktivace kotle                                      | -             | -                 | -            | X                       |
+| ``used_by_controls_central_boiler``       | Indikuje, zda VTherm ovládá centrální kotel                  | X             | X                 | X            | -                       |
+| ``use_auto_start_stop_feature``           | Indikuje, zda je povolena funkce auto start/stop             | -             | X                 | -            | -                       |
+| ``auto_start_stop_level``                 | Úroveň detekce pro auto start/stop                           | -             | X                 | -            | -                       |
 
 # Senzory
 
@@ -203,7 +203,7 @@ target:
 Klíčové události termostatu jsou oznámeny prostřednictvím sběrnice zpráv.
 Jsou oznámeny následující události:
 
-- ``versatile_thermostat_security_event``: termostat vstupuje nebo opouští preset ``security``
+- ``versatile_thermostat_safety_event``: termostat vstupuje nebo opouští preset ``security``
 - ``versatile_thermostat_power_event``: termostat vstupuje nebo opouští preset ``power``
 - ``versatile_thermostat_temperature_event``: jedno nebo obě teplotní měření termostatu nebyly aktualizovány po dobu více než `safety_delay_min`` minut
 - ``versatile_thermostat_hvac_mode_event``: termostat je zapnut nebo vypnut. Tato událost je také vysílána při spuštění termostatu
@@ -226,56 +226,56 @@ Pro úpravu algoritmu máte přístup k celému kontextu viděnému a vypočíta
 ![image](images/dev-tools-climate.png)
 
 Vlastní atributy jsou následující:
-| Atribut                           | Význam                                                                                                                              |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| ``hvac_modes``                    | Seznam režimů podporovaných termostatem                                                                                            |
-| ``temp_min``                      | Minimální teplota                                                                                                                  |
-| ``temp_max``                      | Maximální teplota                                                                                                                  |
-| ``preset_modes``                  | Presety viditelné pro tento termostat. Skryté presety zde nejsou zobrazeny                                                        |
-| ``temperature_actuelle``          | Aktuální teplota jak je hlášena senzorem                                                                                          |
-| ``temperature``                   | Cílová teplota                                                                                                                     |
-| ``action_hvac``                   | Akce aktuálně prováděná topným tělesem. Může být idle, heating                                                                    |
-| ``preset_mode``                   | Aktuálně vybraný preset. Může být jeden z 'preset_modes' nebo skrytý preset jako power                                           |
-| ``[eco/confort/boost]_temp``      | Teplota nakonfigurovaná pro preset xxx                                                                                            |
-| ``[eco/confort/boost]_away_temp`` | Teplota nakonfigurovaná pro preset xxx při deaktivované přítomnosti nebo not_home                                                |
-| ``temp_power``                    | Teplota používaná během detekce ztráty                                                                                            |
-| ``on_percent``                    | Vypočítané procento zapnutí algoritmem TPI                                                                                        |
-| ``on_time_sec``                   | Doba zapnutí v sekundách. Měla by být ```on_percent * cycle_min```                                                                |
-| ``off_time_sec``                  | Doba vypnutí v sekundách. Měla by být ```(1 - on_percent) * cycle_min```                                                         |
-| ``cycle_min``                     | Výpočetní cyklus v minutách                                                                                                       |
-| ``function``                      | Algoritmus používaný pro výpočet cyklu                                                                                            |
-| ``tpi_coef_int``                  | ``coef_int`` algoritmu TPI                                                                                                        |
-| ``tpi_coef_ext``                  | ``coef_ext`` algoritmu TPI                                                                                                        |
-| ``saved_preset_mode``             | Poslední preset používaný před automatickým přepnutím presetem                                                                    |
-| ``saved_target_temp``             | Poslední teplota používaná před automatickým přepnutím                                                                            |
-| ``window_state``                  | Poslední známý stav senzoru okna. None pokud okno není nakonfigurováno                                                            |
-| ``is_window_bypass``              | True pokud je povoleno obejití detekce otevřeného okna                                                                            |
-| ``motion_state``                  | Poslední známý stav senzoru pohybu. None pokud detekce pohybu není nakonfigurována                                                |
-| ``overpowering_state``            | Poslední známý stav senzoru přetížení. None pokud správa výkonu není nakonfigurována                                              |
-| ``presence_state``                | Poslední známý stav senzoru přítomnosti. None pokud detekce přítomnosti není nakonfigurována                                      |
-| ``safety_delay_min``              | Prodleva před aktivací bezpečnostního režimu při přestání posílat měření jedním ze dvou teplotních senzorů                       |
-| ``safety_min_on_percent``         | Procento vytápění, pod kterým termostat nepřepne do bezpečnostního režimu                                                         |
-| ``safety_default_on_percent``     | Procento vytápění používané při bezpečnostním režimu termostatu                                                                   |
-| ``last_temperature_datetime``     | Datum a čas v ISO8866 formátu posledního přijetí vnitřní teploty                                                                  |
-| ``last_ext_temperature_datetime`` | Datum a čas v ISO8866 formátu posledního přijetí vnější teploty                                                                   |
-| ``security_state``                | Bezpečnostní stav. True nebo false                                                                                                |
-| ``minimal_activation_delay_sec``  | Minimální doba aktivace v sekundách                                                                                               |
-| ``minimal_deactivation_delay_sec``| Minimální doba deaktivace v sekundách                                                                                             |
-| ``last_update_datetime``          | Datum a čas v ISO8866 formátu tohoto stavu                                                                                        |
-| ``friendly_name``                 | Název termostatu                                                                                                                  |
-| ``supported_features``            | Kombinace všech funkcí podporovaných tímto termostatem. Viz oficiální dokumentace climate integrace pro více informací          |
-| ``valve_open_percent``            | Procento otevření ventilu                                                                                                         |
-| ``regulated_target_temperature``  | Cílová teplota vypočítaná samo-regulací                                                                                           |
-| ``is_inversed``                   | True pokud je ovládání invertováno (pilot s diodou)                                                                               |
-| ``is_controlled_by_central_mode`` | True pokud lze VTherm centrálně ovládat                                                                                           |
-| ``last_central_mode``             | Poslední použitý centrální režim (None pokud VTherm není centrálně ovládán)                                                       |
-| ``is_used_by_central_boiler``     | Indikuje, zda VTherm může ovládat centrální kotel                                                                                 |
-| ``auto_start_stop_enable``        | Indikuje, zda má VTherm povoleno auto start/stop                                                                                  |
-| ``auto_start_stop_level``         | Indikuje úroveň auto start/stop                                                                                                   |
-| ``hvac_off_reason``               | Indikuje důvod vypnutého stavu termostatu (hvac_off). Může být Window, Auto-start/stop, nebo Manual                              |
-| ``last_change_time_from_vtherm``  | Datum a čas poslední změny provedené VTherm                                                                                       |
-| ``nb_device_actives``             | Počet podkladových zařízení viděných jako aktivní                                                                                 |
-| ``device_actives``                | Seznam podkladových zařízení viděných jako aktivní                                                                                |
+| Atribut                            | Význam                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| ``hvac_modes``                     | Seznam režimů podporovaných termostatem                                                                                |
+| ``temp_min``                       | Minimální teplota                                                                                                      |
+| ``temp_max``                       | Maximální teplota                                                                                                      |
+| ``preset_modes``                   | Presety viditelné pro tento termostat. Skryté presety zde nejsou zobrazeny                                             |
+| ``temperature_actuelle``           | Aktuální teplota jak je hlášena senzorem                                                                               |
+| ``temperature``                    | Cílová teplota                                                                                                         |
+| ``action_hvac``                    | Akce aktuálně prováděná topným tělesem. Může být idle, heating                                                         |
+| ``preset_mode``                    | Aktuálně vybraný preset. Může být jeden z 'preset_modes' nebo skrytý preset jako power                                 |
+| ``[eco/confort/boost]_temp``       | Teplota nakonfigurovaná pro preset xxx                                                                                 |
+| ``[eco/confort/boost]_away_temp``  | Teplota nakonfigurovaná pro preset xxx při deaktivované přítomnosti nebo not_home                                      |
+| ``temp_power``                     | Teplota používaná během detekce ztráty                                                                                 |
+| ``on_percent``                     | Vypočítané procento zapnutí algoritmem TPI                                                                             |
+| ``on_time_sec``                    | Doba zapnutí v sekundách. Měla by být ```on_percent * cycle_min```                                                     |
+| ``off_time_sec``                   | Doba vypnutí v sekundách. Měla by být ```(1 - on_percent) * cycle_min```                                               |
+| ``cycle_min``                      | Výpočetní cyklus v minutách                                                                                            |
+| ``function``                       | Algoritmus používaný pro výpočet cyklu                                                                                 |
+| ``tpi_coef_int``                   | ``coef_int`` algoritmu TPI                                                                                             |
+| ``tpi_coef_ext``                   | ``coef_ext`` algoritmu TPI                                                                                             |
+| ``saved_preset_mode``              | Poslední preset používaný před automatickým přepnutím presetem                                                         |
+| ``saved_target_temp``              | Poslední teplota používaná před automatickým přepnutím                                                                 |
+| ``window_state``                   | Poslední známý stav senzoru okna. None pokud okno není nakonfigurováno                                                 |
+| ``is_window_bypass``               | True pokud je povoleno obejití detekce otevřeného okna                                                                 |
+| ``motion_state``                   | Poslední známý stav senzoru pohybu. None pokud detekce pohybu není nakonfigurována                                     |
+| ``overpowering_state``             | Poslední známý stav senzoru přetížení. None pokud správa výkonu není nakonfigurována                                   |
+| ``presence_state``                 | Poslední známý stav senzoru přítomnosti. None pokud detekce přítomnosti není nakonfigurována                           |
+| ``safety_delay_min``               | Prodleva před aktivací bezpečnostního režimu při přestání posílat měření jedním ze dvou teplotních senzorů             |
+| ``safety_min_on_percent``          | Procento vytápění, pod kterým termostat nepřepne do bezpečnostního režimu                                              |
+| ``safety_default_on_percent``      | Procento vytápění používané při bezpečnostním režimu termostatu                                                        |
+| ``last_temperature_datetime``      | Datum a čas v ISO8866 formátu posledního přijetí vnitřní teploty                                                       |
+| ``last_ext_temperature_datetime``  | Datum a čas v ISO8866 formátu posledního přijetí vnější teploty                                                        |
+| ``security_state``                 | Bezpečnostní stav. True nebo false                                                                                     |
+| ``minimal_activation_delay_sec``   | Minimální doba aktivace v sekundách                                                                                    |
+| ``minimal_deactivation_delay_sec`` | Minimální doba deaktivace v sekundách                                                                                  |
+| ``last_update_datetime``           | Datum a čas v ISO8866 formátu tohoto stavu                                                                             |
+| ``friendly_name``                  | Název termostatu                                                                                                       |
+| ``supported_features``             | Kombinace všech funkcí podporovaných tímto termostatem. Viz oficiální dokumentace climate integrace pro více informací |
+| ``valve_open_percent``             | Procento otevření ventilu                                                                                              |
+| ``regulated_target_temperature``   | Cílová teplota vypočítaná samo-regulací                                                                                |
+| ``is_inversed``                    | True pokud je ovládání invertováno (pilot s diodou)                                                                    |
+| ``is_controlled_by_central_mode``  | True pokud lze VTherm centrálně ovládat                                                                                |
+| ``last_central_mode``              | Poslední použitý centrální režim (None pokud VTherm není centrálně ovládán)                                            |
+| ``is_used_by_central_boiler``      | Indikuje, zda VTherm může ovládat centrální kotel                                                                      |
+| ``auto_start_stop_enable``         | Indikuje, zda má VTherm povoleno auto start/stop                                                                       |
+| ``auto_start_stop_level``          | Indikuje úroveň auto start/stop                                                                                        |
+| ``hvac_off_reason``                | Indikuje důvod vypnutého stavu termostatu (hvac_off). Může být Window, Auto-start/stop, nebo Manual                    |
+| ``last_change_time_from_vtherm``   | Datum a čas poslední změny provedené VTherm                                                                            |
+| ``nb_device_actives``              | Počet podkladových zařízení viděných jako aktivní                                                                      |
+| ``device_actives``                 | Seznam podkladových zařízení viděných jako aktivní                                                                     |
 
 
 Tyto atributy budou vyžadovány, když budete potřebovat pomoc.
