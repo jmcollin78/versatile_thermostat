@@ -1460,6 +1460,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
             self.requested_state.force_changed()
             await self.update_states(force=True)
+        else:
+            await self.async_control_heating(force=False)
 
         return dearm_window_auto
 
@@ -1522,6 +1524,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
             self.requested_state.force_changed()
             await self.update_states(force=True)
+        else:
+            await self.async_control_heating(force=False)
 
     @callback
     async def _check_initial_state(self):

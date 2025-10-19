@@ -401,8 +401,8 @@ async def test_security_feature_back_on_percent(
         assert entity.safety_state is not STATE_ON
         assert mock_send_event.call_count == 0
 
-        # Heating should not be turned on because the changing temp don't force a control_heating
-        assert mock_heater_on.call_count == 0
+        # Heating should be turned on because the changing temp do a control_heating
+        assert mock_heater_on.call_count == 1
 
     # 3. Set safety mode with a preset change
     with patch(
