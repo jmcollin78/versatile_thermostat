@@ -158,7 +158,7 @@ class TestKeepAlive:
 
         thermostat = common_mocks.thermostat
         await thermostat.async_set_hvac_mode(VThermHvacMode_HEAT)
-        assert thermostat.hvac_mode is VThermHvacMode_HEAT
+        assert thermostat.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert thermostat.target_temperature == 15
         assert thermostat.is_device_active is False
 
@@ -193,7 +193,7 @@ class TestKeepAlive:
         thermostat = common_mocks.thermostat
 
         await thermostat.async_set_hvac_mode(VThermHvacMode_HEAT)
-        assert thermostat.hvac_mode is VThermHvacMode_HEAT
+        assert thermostat.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert thermostat.target_temperature == 15
         assert thermostat.is_device_active is False
 
