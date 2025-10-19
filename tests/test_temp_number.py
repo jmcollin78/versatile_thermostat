@@ -595,7 +595,7 @@ async def test_add_number_for_over_switch_use_central_presence(
     assert isinstance(vtherm, ThermostatOverSwitch)
     assert vtherm.preset_modes == [
         VThermPreset.NONE,
-        VThermPreset.FROST,
+        # VThermPreset.FROST, no frost is AC mode
         VThermPreset.ECO,
         VThermPreset.COMFORT,
         VThermPreset.BOOST,

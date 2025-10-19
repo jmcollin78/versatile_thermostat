@@ -191,9 +191,9 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     assert entity.preset_mode == VThermPreset.COMFORT
 
     # Turn On the thermostat
-    assert entity.hvac_mode == VThermHvacMode_OFF
+    assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-    assert entity.hvac_mode == VThermHvacMode_HEAT
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 2. activate security feature when date is expired
     with patch(
