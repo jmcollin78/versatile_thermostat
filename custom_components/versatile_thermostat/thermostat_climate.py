@@ -165,6 +165,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     #    # TODO no more needed ?
     #    # await self._send_regulated_temperature(force=True)
 
+    @overrides
+    async def update_states(self, force=False):
+        """Update the states of the thermostat and its underlyings."""
+        if self._state_manager.requested_state.is_target_temperature_changed:
+            self._regulation_algo.set_target_temp(self.target_temperature)
+
+        await super().update_states(force=force)
+
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
 

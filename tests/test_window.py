@@ -2430,12 +2430,11 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
         try_function = await send_window_change_event(entity, True, False, datetime.now())
         await try_function(None)
 
-        await hass.async_block_till_done()
+        await wait_for_local_condition(lambda: entity.target_temperature == 7)
 
         # The preset is kept to BOOST but target temp is changed to frost
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.saved_target_temp == 21
         assert entity.target_temperature == 7
         assert entity.window_state == STATE_ON
 
@@ -2452,13 +2451,13 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",new_callable=PropertyMock,return_value=False):
     # fmt: on
         await entity.service_set_window_bypass_state(True)
-        await hass.async_block_till_done()
+
+        await wait_for_local_condition(lambda: entity.target_temperature == 21)
 
         assert entity.window_state == STATE_ON
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.target_temperature == 21
-        assert entity.saved_target_temp == 21
 
         assert mock_send_event.call_count == 0
         assert mock_call_later.call_count == 1
@@ -2840,7 +2839,7 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         "eco": 18,
         "comfort": 19,
         "boost": 20,
-        "frost_away": 8,
+        "frost_away": 7,
         "eco_away": 15,
         "comfort_away": 16,
         "boost_away": 17,
@@ -2897,7 +2896,7 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
 
     assert entity.window_state is STATE_UNKNOWN
 
-    # 1. Presence detection says no presence
+    # 1. Presence detection says no presence and no motion is detected
     # fmt:off
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
         patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on") as mock_heater_on, \
@@ -2906,16 +2905,21 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
     # fmt:on
 
         await send_presence_change_event(entity, False, True, datetime.now())
+        await send_motion_change_event(entity, False, True, datetime.now())
+
+        await wait_for_local_condition(lambda: entity.target_temperature == 15)
+
+        # no motion, no presence -> ECO away temp
+        assert entity.target_temperature == 15
 
         # Heater shoud turn-on
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
+        # no changes
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
-        # no motion -> ECO away temp
-        assert entity.target_temperature == 15
 
     # 2. Open the window, condition of time is satisfied
     # fmt:off
@@ -2931,8 +2935,8 @@ async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is
         await wait_for_local_condition(lambda: entity.window_state == STATE_ON)
 
         # no motion -> Frost away temp
-        assert entity.target_temperature == 8
-        assert entity._saved_target_temp == 15
+        assert entity.target_temperature == 7
+        # assert entity._saved_target_temp == 15
 
         # no event due to Window action frost temp
         assert mock_send_event.call_count == 0

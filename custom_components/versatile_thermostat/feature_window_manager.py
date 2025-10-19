@@ -318,9 +318,9 @@ class FeatureWindowManager(BaseFeatureManager):
             #    self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             #    await self._vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
 
-        if bypass:
-            _LOGGER.info("%s - Window is bypassed. Forget the window detection", self)
-            return False
+        # if bypass:
+        #     _LOGGER.info("%s - Window is bypassed. Forget the window detection", self)
+        #     return False
 
         self._window_state = new_state
         if old_state != new_state:
@@ -451,10 +451,12 @@ class FeatureWindowManager(BaseFeatureManager):
         self._is_window_bypass = window_bypass
 
         _LOGGER.info("%s - Last window state was %s & ByPass is now %s.",self,self._window_state,self._is_window_bypass,)
-        if self._is_window_bypass:
-            return await self.update_window_state('off', True)
-        else:
-            return await self.update_window_state(self._window_state, True)
+        self._vtherm.requested_state.force_changed()
+        await self._vtherm.update_states(True)
+        # if self._is_window_bypass:
+        #     return await self.update_window_state(STATE_OFF, True)
+        # else:
+        #     return await self.update_window_state(self._window_state, True)
 
     @overrides
     @property

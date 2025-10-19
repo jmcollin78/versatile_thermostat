@@ -171,45 +171,58 @@ class StateManager:
             bool: True or False according to rules to be preceeding rules
         """
 
+        updated = False
         window_action = vtherm.window_manager.window_action
 
+        # note that window_manager.is_window_detected is False if bypass is on (so no need to test it here)
         if vtherm.window_manager.is_window_detected:
             if (window_action == CONF_WINDOW_FROST_TEMP and vtherm.is_preset_configured(VThermPreset.FROST)) or (
                 window_action == CONF_WINDOW_ECO_TEMP and vtherm.is_preset_configured(VThermPreset.ECO)
             ):
                 self._current_state.set_target_temperature(vtherm.find_preset_temp(VThermPreset.ECO if window_action == CONF_WINDOW_ECO_TEMP else VThermPreset.FROST))
-            # else don't touche the temperature (window is open with TURN_OFF should keep the current temperature)
+                updated = True
 
         elif vtherm.presence_manager.is_absence_detected:
-            new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
-            _LOGGER.debug(
-                "%s - presence will set new target temperature: %.2f",
-                self,
-                new_temp,
-            )
-            self._current_state.set_target_temperature(new_temp)
+            if vtherm.vtherm_preset_mode is not None:
+                new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
+                _LOGGER.debug(
+                    "%s - presence will set new target temperature: %.2f",
+                    self,
+                    new_temp,
+                )
+                self._current_state.set_target_temperature(new_temp)
+                updated = True
 
         elif vtherm.motion_manager.is_motion_detected:
-            new_preset = vtherm.motion_manager.get_current_motion_preset()
-            _LOGGER.debug(
-                "%s - motion will set new target temperature: %.2f",
-                self,
-                new_preset,
-            )
-            self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
-        else:
+            if self._current_state.preset == VThermPreset.ACTIVITY:
+                new_preset = vtherm.motion_manager.get_current_motion_preset()
+                _LOGGER.debug(
+                    "%s - motion will set new target temperature: %.2f",
+                    self,
+                    new_preset,
+                )
+                self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
+                updated = True
+
+        if not updated:
             # calculate the temperature of the preset
-            if self._current_state.preset != VThermPreset.NONE:
-                self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
-            elif self._requested_state.target_temperature is not None:
-                self._current_state.set_target_temperature(self._requested_state.target_temperature)
-            else:
-                # affect the min or max temp according to is_ac
-                if vtherm.ac_mode:
-                    self._current_state.set_target_temperature(vtherm.max_temp)
-                else:
-                    self._current_state.set_target_temperature(vtherm.min_temp)
-            if self._requested_state.preset != VThermPreset.NONE:
-                self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
+            self.update_current_temp_from_requested(vtherm)
+
+        # update requested state temperature to set it in concordance with preset
+        if self._requested_state.preset != VThermPreset.NONE:
+            self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
 
         return self._current_state.is_target_temperature_changed
+
+    def update_current_temp_from_requested(self, vtherm: "BaseThermostat"):
+        """Update the current temperature from the requested state preset if any."""
+        if self._current_state.preset != VThermPreset.NONE:
+            self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))
+        elif self._requested_state.target_temperature is not None:
+            self._current_state.set_target_temperature(self._requested_state.target_temperature)
+        else:
+            # affect the min or max temp according to is_ac
+            if vtherm.ac_mode:
+                self._current_state.set_target_temperature(vtherm.max_temp)
+            else:
+                self._current_state.set_target_temperature(vtherm.min_temp)
