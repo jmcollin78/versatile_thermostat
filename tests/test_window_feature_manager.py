@@ -183,9 +183,7 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.async_set_hvac_mode = AsyncMock()
-        fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -202,31 +200,19 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
         assert window_manager.window_state == new_state
         assert mock_get_state.call_count == 1
 
-        assert fake_vtherm.set_hvac_off_reason.call_count == nb_call
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_hvac_mode.call_count == 1
-                assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.async_set_hvac_mode.call_count == 1
-                fake_vtherm.async_set_hvac_mode.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(VThermHvacMode_OFF),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.restore_hvac_mode.call_count == 0
-
-            reason = None if current_state == STATE_ON and new_state == STATE_OFF else HVAC_OFF_REASON_WINDOW_DETECTION
-            fake_vtherm.set_hvac_off_reason.assert_has_calls(
-                [
-                    call.set_hvac_off_reason(reason),
-                ]
-            )
-
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
@@ -303,12 +289,8 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_target_temp = AsyncMock()
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.find_preset_temp = MagicMock()
-        fake_vtherm.find_preset_temp.return_value = 17
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -328,26 +310,17 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
         assert fake_vtherm.set_hvac_off_reason.call_count == 0
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_target_temp.call_count == 1
-                assert fake_vtherm.save_target_temp.call_count == 0
-                assert fake_vtherm.change_target_temperature.call_count == 0
-                assert fake_vtherm.find_preset_temp.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.restore_target_temp.call_count == 0
-                assert fake_vtherm.save_target_temp.call_count == 1
-                assert fake_vtherm.change_target_temperature.call_count == 1
-                fake_vtherm.change_target_temperature.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.change_target_temperature(17, True),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.find_preset_temp.call_count == 1
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.save_target_temp.call_count == 0
-            assert fake_vtherm.change_target_temperature.call_count == 0
-            assert fake_vtherm.find_preset_temp.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
@@ -421,9 +394,7 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough):
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.async_set_hvac_mode = AsyncMock()
-        fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -451,31 +422,19 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
         else:
             assert window_manager.window_state == current_state
 
-        assert fake_vtherm.set_hvac_off_reason.call_count == nb_call
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_hvac_mode.call_count == 1
-                assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.async_set_hvac_mode.call_count == 1
-                fake_vtherm.async_set_hvac_mode.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(VThermHvacMode_OFF),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.restore_hvac_mode.call_count == 0
-
-            reason = None if current_state == STATE_ON and new_state == STATE_OFF else HVAC_OFF_REASON_WINDOW_DETECTION
-            fake_vtherm.set_hvac_off_reason.assert_has_calls(
-                [
-                    call.set_hvac_off_reason(reason),
-                ]
-            )
-
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
@@ -549,12 +508,8 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough):
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_target_temp = AsyncMock()
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.find_preset_temp = MagicMock()
-        fake_vtherm.find_preset_temp.return_value = 17
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value={})
 
         # force old state for the test
@@ -584,26 +539,17 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
         assert fake_vtherm.set_hvac_off_reason.call_count == 0
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_target_temp.call_count == 1
-                assert fake_vtherm.save_target_temp.call_count == 0
-                assert fake_vtherm.change_target_temperature.call_count == 0
-                assert fake_vtherm.find_preset_temp.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.restore_target_temp.call_count == 0
-                assert fake_vtherm.save_target_temp.call_count == 1
-                assert fake_vtherm.change_target_temperature.call_count == 1
-                fake_vtherm.change_target_temperature.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.change_target_temperature(17, True),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.find_preset_temp.call_count == 1
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.save_target_temp.call_count == 0
-            assert fake_vtherm.change_target_temperature.call_count == 0
-            assert fake_vtherm.find_preset_temp.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
