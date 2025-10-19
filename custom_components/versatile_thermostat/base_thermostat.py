@@ -1346,7 +1346,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             # Select _ac presets if in COOL Mode (or over_switch with _ac_mode)
             preset_name = preset_mode
-            if self._ac_mode and self.vtherm_hvac_mode == VThermHvacMode_COOL:
+            if (self.is_over_switch and self._ac_mode) or self.vtherm_hvac_mode == VThermHvacMode_COOL:
+                # if self._ac_mode and self.vtherm_hvac_mode == VThermHvacMode_COOL:
                 preset_name += PRESET_AC_SUFFIX
 
             _LOGGER.info("%s - find preset temp: %s", self, preset_mode)
