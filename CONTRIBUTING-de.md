@@ -50,7 +50,7 @@ Verwenden Sie [schwarz](https://github.com/ambv/black), um sicherzustellen, dass
 
 ## Testen Sie Ihre Codeänderung
 
-Diese benutzerdefinierte Komponente basiert auf den hier beschriebenen bewährten Praktiken [integration_blueprint template] (https://github.com/custom-components/integration_blueprint).
+Diese benutzerdefinierte Komponente basiert auf den hier beschriebenen bewährten Praktiken [integration_blueprint template](https://github.com/custom-components/integration_blueprint).
 
 Es wird mit einer Entwicklungsumgebung in einem Container geliefert, die leicht zu starten ist
 wenn Sie Visual Studio Code verwenden. Mit diesem Container haben Sie eine eigenständige
