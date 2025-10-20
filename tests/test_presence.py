@@ -87,8 +87,7 @@ async def test_presence_feature_manager(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_presence_sensor", state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.find_preset_temp.return_value = temp
-        fake_vtherm.change_target_temperature = AsyncMock()
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_control_heating = AsyncMock()
 
         ret = await presence_manager.refresh_state()
@@ -99,19 +98,11 @@ async def test_presence_feature_manager(
 
         assert mock_get_state.call_count == 1
 
-        assert fake_vtherm.find_preset_temp.call_count == nb_call
-
         if nb_call == 1:
-            fake_vtherm.find_preset_temp.assert_has_calls(
+            assert fake_vtherm.update_states.call_count == nb_call
+            fake_vtherm.update_states.assert_has_calls(
                 [
-                    call.find_preset_temp(VThermPreset.COMFORT),
-                ]
-            )
-
-            assert fake_vtherm.change_target_temperature.call_count == nb_call
-            fake_vtherm.change_target_temperature.assert_has_calls(
-                [
-                    call.find_preset_temp(temp),
+                    call.update_states(True),
                 ]
             )
 
@@ -127,11 +118,11 @@ async def test_presence_feature_manager(
         assert custom_attributes["is_presence_configured"] is True
 
     # 6. test _presence_sensor_changed with the parametrized
-    fake_vtherm.find_preset_temp.return_value = temp
-    fake_vtherm.change_target_temperature = AsyncMock()
+    fake_vtherm.update_states = AsyncMock()
     fake_vtherm.async_control_heating = AsyncMock()
 
-    await presence_manager._presence_sensor_changed(
+    new_changed = (presence_manager.presence_state == 'on' and state not in [STATE_ON, STATE_HOME]) or (presence_manager.presence_state == 'off' and state in [STATE_ON, STATE_HOME])
+    ret = await presence_manager._presence_sensor_changed(
         event=Event(
             event_type=EVENT_STATE_CHANGED,
             data={
@@ -139,31 +130,20 @@ async def test_presence_feature_manager(
                 "new_state": State("sensor.the_presence_sensor", state),
                 "old_state": State("sensor.the_presence_sensor", STATE_UNAVAILABLE),
             }))
-    assert ret == changed
+    assert ret == new_changed
     assert presence_manager.is_configured is True
     assert presence_manager.presence_state == presence_state
     assert presence_manager.is_absence_detected is absence
 
-    assert fake_vtherm.find_preset_temp.call_count == nb_call
-
-    if nb_call == 1:
-        fake_vtherm.find_preset_temp.assert_has_calls(
+    if new_changed:
+        assert fake_vtherm.update_states.call_count == nb_call
+        fake_vtherm.update_states.assert_has_calls(
             [
-                call.find_preset_temp(VThermPreset.COMFORT),
+                call.update_states(force=True),
             ]
         )
 
-        assert fake_vtherm.change_target_temperature.call_count == nb_call
-        fake_vtherm.change_target_temperature.assert_has_calls(
-            [
-                call.find_preset_temp(temp),
-            ]
-        )
-
-        assert fake_vtherm.async_control_heating.call_count == 1
-        fake_vtherm.async_control_heating.assert_has_calls([
-            call.async_control_heating(force=True)
-        ])
+        assert fake_vtherm.async_control_heating.call_count == 0
 
     fake_vtherm.reset_mock()
 

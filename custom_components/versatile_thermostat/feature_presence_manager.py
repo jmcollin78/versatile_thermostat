@@ -107,10 +107,10 @@ class FeaturePresenceManager(BaseFeatureManager):
         if new_state is None:
             return
 
-        if await self.update_presence(new_state.state):
-            self._vtherm.requested_state.force_changed()
-            await self._vtherm.update_states(force=True)
-        #    await self._vtherm.async_control_heating(force=True)
+        return await self.update_presence(new_state.state)
+    #            self._vtherm.requested_state.force_changed()
+    #            await self._vtherm.update_states(force=True)
+    #    await self._vtherm.async_control_heating(force=True)
 
     async def update_presence(self, new_state: str):
         """Update the value of the presence sensor and update the VTherm state accordingly"""
@@ -134,7 +134,6 @@ class FeaturePresenceManager(BaseFeatureManager):
             STATE_NOT_HOME,
         ):
             self._presence_state = STATE_UNKNOWN
-            return old_presence_state != self._presence_state
 
             # if self._vtherm.preset_mode not in [
             #    VThermPreset.BOOST,
@@ -157,7 +156,12 @@ class FeaturePresenceManager(BaseFeatureManager):
         #
         #    return True
 
-        return old_presence_state != self._presence_state
+        if old_presence_state != self._presence_state:
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(True)
+            return True
+
+        return False
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""
