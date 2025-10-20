@@ -471,8 +471,10 @@ async def test_power_management_hvac_on(
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await send_max_power_change_event(entity, 49, now)
+        await wait_for_local_condition(lambda: entity.power_manager.is_overpowering_detected is True)
         assert entity.power_manager.is_overpowering_detected is True
         # All configuration is complete and power is > power_max we switch to POWER preset
+        assert entity.vtherm_preset_mode == VThermPreset.POWER
         assert entity.preset_mode == VThermPreset.POWER
         assert entity.power_manager.overpowering_state is STATE_ON
         assert entity.target_temperature == 12
@@ -909,6 +911,14 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     #
     #
     #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \
@@ -942,7 +952,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
         await entity.async_set_hvac_mode(VThermHvacMode_OFF)
         await VersatileThermostatAPI.get_vtherm_api().central_power_manager._do_immediate_shedding()
-        await hass.async_block_till_done()
+        await wait_for_local_condition(lambda: entity.power_manager.is_overpowering_detected is False)
 
         # VTherm is off and overpowering if off also
         assert entity.hvac_mode == VThermHvacMode_OFF

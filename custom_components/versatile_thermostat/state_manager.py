@@ -216,7 +216,7 @@ class StateManager:
 
     def update_current_temp_from_requested(self, vtherm: "BaseThermostat"):
         """Update the current temperature from the requested state preset if any."""
-        if self._current_state.preset in HIDDEN_PRESETS:
+        if self._current_state.preset == VThermPreset.SAFETY:
             self._current_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
         elif self._current_state.preset != VThermPreset.NONE:
             self._current_state.set_target_temperature(vtherm.find_preset_temp(self._current_state.preset))

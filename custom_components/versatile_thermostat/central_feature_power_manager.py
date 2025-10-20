@@ -41,13 +41,13 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._hass: HomeAssistant = hass
         self._vtherm_api = vtherm_api  # no type due to circular reference
         self._is_configured: bool = False
-        self._power_sensor_entity_id: str = None
-        self._max_power_sensor_entity_id: str = None
-        self._current_power: float = None
-        self._current_max_power: float = None
-        self._power_temp: float = None
+        self._power_sensor_entity_id: str | None = None
+        self._max_power_sensor_entity_id: str | None = None
+        self._current_power: float | None = None
+        self._current_max_power: float | None = None
+        self._power_temp: float | None = None
         self._cancel_calculate_shedding_call = None
-        self._started_vtherm_total_power: float = None
+        self._started_vtherm_total_power: float | None = None
         # Not used now
         self._last_shedding_date = None
 
@@ -236,6 +236,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
         # We have set the evenual new state, fr
         for vtherm in changed_vtherm:
+            vtherm.requested_state.force_changed()
             await vtherm.update_states(force=True)
         self._last_shedding_date = self._vtherm_api.now
         _LOGGER.debug("-------- End of calculate_shedding")

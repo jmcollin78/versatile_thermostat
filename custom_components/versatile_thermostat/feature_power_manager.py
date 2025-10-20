@@ -43,8 +43,8 @@ class FeaturePowerManager(BaseFeatureManager):
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
-        self._power_temp = None
-        self._overpowering_state = STATE_UNAVAILABLE
+        self._power_temp: float | None = None
+        self._overpowering_state: str | None = None
         self._is_configured: bool = False
         self._device_power: float = 0
         self._use_power_feature: bool = False
@@ -94,8 +94,8 @@ class FeaturePowerManager(BaseFeatureManager):
             {
                 "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
                 "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
-                "overpowering_state": self._overpowering_state,
-                "is_power_configured": self._is_configured,
+                "overpowering_state": self.overpowering_state,
+                "is_power_configured": self.is_configured,
                 "device_power": self._device_power,
                 "power_temp": self._power_temp,
                 "current_power": vtherm_api.central_power_manager.current_power,
@@ -241,17 +241,17 @@ class FeaturePowerManager(BaseFeatureManager):
         return self._overpowering_state
 
     @property
-    def is_overpowering_detected(self) -> str | None:
+    def is_overpowering_detected(self) -> bool:
         """Return True if the Vtherm is in overpowering state"""
         return self._overpowering_state == STATE_ON
 
     @property
-    def power_temperature(self) -> bool:
+    def power_temperature(self) -> float | None:
         """Return the power temperature"""
         return self._power_temp
 
     @property
-    def device_power(self) -> bool:
+    def device_power(self) -> float:
         """Return the device power"""
         return self._device_power
 
