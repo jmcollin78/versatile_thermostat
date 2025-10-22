@@ -860,58 +860,6 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
-
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
     #
     #
     #
@@ -951,12 +899,17 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
         await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: entity.hvac_mode == VThermHvacMode_OFF)
+        assert entity.hvac_mode == VThermHvacMode_OFF
+        assert entity.preset_mode == VThermPreset.BOOST
+        assert entity.power_manager.is_overpowering_detected is False
+
         await VersatileThermostatAPI.get_vtherm_api().central_power_manager._do_immediate_shedding()
         await wait_for_local_condition(lambda: entity.power_manager.is_overpowering_detected is False)
 
         # VTherm is off and overpowering if off also
         assert entity.hvac_mode == VThermHvacMode_OFF
-        assert entity.power_manager.is_overpowering_detected is False
         assert entity.preset_mode == VThermPreset.BOOST
+        assert entity.power_manager.is_overpowering_detected is False
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19

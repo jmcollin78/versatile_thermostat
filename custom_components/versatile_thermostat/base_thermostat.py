@@ -62,7 +62,7 @@ from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
 
 ATTR_CURRENT_STATE = "current_state"
 ATTR_REQUESTED_STATE = "requested_state"
@@ -1135,6 +1135,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._attr_hvac_mode = str(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self.vtherm_hvac_mode})
                     self.reset_last_change_time_from_vtherm()
+                    # Remove eventual overpowering if we want to turn-off
+                    if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
+                        await self.power_manager.set_overpowering(False)
 
                 if changed:
                     self.update_custom_attributes()

@@ -140,12 +140,12 @@ class StateManager:
         """
 
         # check overpowering first
-        if vtherm.power_manager.is_overpowering_detected:
+        if vtherm.power_manager.is_overpowering_detected and self._current_state.hvac_mode != VThermHvacMode_OFF:
             # turn off underlying and take the hvac_mode
             self._current_state.set_preset(VThermPreset.POWER)
 
         # then check safety
-        elif vtherm.safety_manager.is_safety_detected:
+        elif vtherm.safety_manager.is_safety_detected and self._current_state.hvac_mode != VThermHvacMode_OFF:
             self._current_state.set_preset(VThermPreset.SAFETY)
 
         # all is fine set current_state = requested_state

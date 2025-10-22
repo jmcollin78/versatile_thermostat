@@ -159,7 +159,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         if self._cancel_calculate_shedding_call:
             self._cancel_calculate_shedding_call()
             self._cancel_calculate_shedding_call = None
-            await self.calculate_shedding()
+        await self.calculate_shedding()
 
     async def calculate_shedding(self):
         """Do the shedding calculation and set/unset VTherm into overpowering state"""
