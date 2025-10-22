@@ -18,7 +18,7 @@ from .const import (
 )
 from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY
-from .vtherm_preset import VThermPreset, HIDDEN_PRESETS
+from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
 

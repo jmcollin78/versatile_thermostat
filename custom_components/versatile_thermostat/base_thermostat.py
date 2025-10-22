@@ -1454,13 +1454,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         old_safety: bool = self._safety_manager.is_safety_detected
+        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
         dearm_window_auto = await self._async_update_temp(new_state)
         self.recalculate()
 
         # Potentially it generates a safety event
         safety: bool = await self._safety_manager.refresh_state()
-        if safety != old_safety:
-            _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
+        await self.auto_start_stop_manager.refresh_state()
+        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+
+        if safety != old_safety or auto_start_stop != old_auto_start_stop:
+            _LOGGER.debug("%s - Change in safety alert or auto_start_stopis detected. Force update states", self)
             self.requested_state.force_changed()
             await self.update_states(force=True)
         else:
@@ -1519,12 +1523,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         old_safety: bool = self._safety_manager.is_safety_detected
+        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+
         await self._async_update_ext_temp(new_state)
         self.recalculate()
 
         safety: bool = await self._safety_manager.refresh_state()
-        if safety != old_safety:
-            _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
+        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+        if safety != old_safety or auto_start_stop != old_auto_start_stop:
+            _LOGGER.debug("%s - Change in safety alert or auto_start_stop is detected. Force update states", self)
             self.requested_state.force_changed()
             await self.update_states(force=True)
         else:

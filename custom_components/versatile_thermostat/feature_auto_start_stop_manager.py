@@ -96,8 +96,8 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
             self._vtherm.last_temperature_slope or 0
         ) / 60  # to have the slope in °/min
         action = self._auto_start_stop_algo.calculate_action(
-            self._vtherm.hvac_mode,
-            self._vtherm.saved_hvac_mode,
+            self._vtherm.vtherm_hvac_mode,
+            self._vtherm.requested_state.hvac_mode,
             self._vtherm.target_temperature,
             self._vtherm.current_temperature,
             slope,
@@ -120,8 +120,8 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     "type": "stop",
                     "name": self.name,
                     "cause": "Auto stop conditions reached",
-                    "hvac_mode": self._vtherm.hvac_mode,
-                    "saved_hvac_mode": self._vtherm.saved_hvac_mode,
+                    "hvac_mode": VThermHvacMode_OFF,
+                    "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
                     "target_temperature": self._vtherm.target_temperature,
                     "current_temperature": self._vtherm.current_temperature,
                     "temperature_slope": round(slope, 3),
@@ -150,8 +150,8 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     "type": "start",
                     "name": self.name,
                     "cause": "Auto start conditions reached",
-                    "hvac_mode": self._vtherm.hvac_mode,
-                    "saved_hvac_mode": self._vtherm.saved_hvac_mode,
+                    "hvac_mode": self._vtherm.requested_state.hvac_mode,
+                    "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
                     "target_temperature": self._vtherm.target_temperature,
                     "current_temperature": self._vtherm.current_temperature,
                     "temperature_slope": round(slope, 3),
@@ -181,12 +181,10 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     "name": self.name,
                     "cause": "Auto start stop disabled",
                     "hvac_mode": self._vtherm.hvac_mode,
-                    "saved_hvac_mode": self._vtherm.saved_hvac_mode,
+                    "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
                     "target_temperature": self._vtherm.target_temperature,
                     "current_temperature": self._vtherm.current_temperature,
-                    "temperature_slope": round(
-                        self._vtherm.last_temperature_slope or 0, 3
-                    ),
+                    "temperature_slope": round(self._vtherm.last_temperature_slope or 0, 3),
                     "accumulated_error": self._auto_start_stop_algo.accumulated_error,
                     "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
                 },
