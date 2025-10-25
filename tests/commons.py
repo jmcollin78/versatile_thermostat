@@ -28,6 +28,7 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
+    HVACMode,
     ClimateEntityFeature,
 )
 
@@ -251,7 +252,7 @@ class MockClimate(ClimateEntity):
         unique_id,
         name,
         entry_infos={},
-        hvac_mode: VThermHvacMode = VThermHvacMode_OFF,
+        hvac_mode: HVACMode = HVACMode.OFF,
         hvac_action: HVACAction = HVACAction.OFF,
         fan_modes: list[str] | None = None,
         hvac_modes: list[str] | None = None,

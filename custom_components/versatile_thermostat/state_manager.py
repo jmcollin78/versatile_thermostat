@@ -97,7 +97,7 @@ class StateManager:
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
 
         # then check if window is open
-        elif vtherm.window_manager.is_window_detected:
+        elif vtherm.window_manager.is_window_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY in vtherm.hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_FAN_ONLY)
             elif vtherm.window_manager.window_action == CONF_WINDOW_TURN_OFF or (
@@ -106,7 +106,7 @@ class StateManager:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
 
-        elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected:
+        elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
@@ -118,6 +118,7 @@ class StateManager:
 
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
+        # Calculate hvac_off_reason
         if self._current_state.hvac_mode != VThermHvacMode_OFF:
             vtherm.set_hvac_off_reason(None)
 
