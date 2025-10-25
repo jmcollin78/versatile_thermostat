@@ -1053,11 +1053,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Get the follow underlying temp change flag"""
         return self._follow_underlying_temp_change
 
-    @property
-    def auto_start_stop_manager(self) -> FeatureAutoStartStopManager:
-        """Return the auto-start-stop Manager"""
-        return self._auto_start_stop_manager
-
     @overrides
     def init_underlyings(self):
         """Init the underlyings if not already done"""

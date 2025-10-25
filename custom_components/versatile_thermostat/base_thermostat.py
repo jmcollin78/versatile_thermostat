@@ -230,6 +230,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._motion_manager: FeatureMotionManager = FeatureMotionManager(self, hass)
         self._window_manager: FeatureWindowManager = FeatureWindowManager(self, hass)
         self._safety_manager: FeatureSafetyManager = FeatureSafetyManager(self, hass)
+        # Auto start/stop is only for over_climate
+        self._auto_start_stop_manager: FeatureAutoStartStopManager = None
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
@@ -929,7 +931,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def auto_start_stop_manager(self) -> FeatureAutoStartStopManager | None:
         """Get the auto start/stop manager (only implemented in over_climate)"""
-        return None
+        return self._auto_start_stop_manager
 
     @property
     def current_state(self) -> VThermState | None:
@@ -1454,14 +1456,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         old_safety: bool = self._safety_manager.is_safety_detected
-        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected if self.auto_start_stop_manager else False
         dearm_window_auto = await self._async_update_temp(new_state)
         self.recalculate()
 
         # Potentially it generates a safety event
         safety: bool = await self._safety_manager.refresh_state()
-        await self.auto_start_stop_manager.refresh_state()
-        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+
+        if self.auto_start_stop_manager:
+            await self.auto_start_stop_manager.refresh_state()
+
+        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected if self.auto_start_stop_manager else False
 
         if safety != old_safety or auto_start_stop != old_auto_start_stop:
             _LOGGER.debug("%s - Change in safety alert or auto_start_stopis detected. Force update states", self)
@@ -1523,13 +1528,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         old_safety: bool = self._safety_manager.is_safety_detected
-        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+        old_auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected if self.auto_start_stop_manager else False
 
         await self._async_update_ext_temp(new_state)
         self.recalculate()
 
         safety: bool = await self._safety_manager.refresh_state()
-        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected
+        auto_start_stop: bool = self.auto_start_stop_manager.is_auto_stop_detected if self.auto_start_stop_manager else False
         if safety != old_safety or auto_start_stop != old_auto_start_stop:
             _LOGGER.debug("%s - Change in safety alert or auto_start_stop is detected. Force update states", self)
             self.requested_state.force_changed()
