@@ -5,6 +5,7 @@
     "step": {
       "user": {
         "title": "Tipo di Versatile Thermostat",
+	"description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)", 
         "data": {
           "thermostat_type": "Tipo di termostato"
         },
@@ -110,9 +111,9 @@
           "tpi_coef_ext": "coef_ext",
           "tpi_threshold_low": "Soglia minima TPI",
           "tpi_threshold_high": "Soglia massima TPI",
-          "use_tpi_central_config": "Utilizzare configurazione TPI centrale",
-          "minimal_activation_delay": "Ritardo minimo di attivazione",
-          "minimal_deactivation_delay": "Ritardo minimo di disattivazione"
+	  "minimal_activation_delay": "Délai minimal d'activation",
+          "minimal_deactivation_delay": "Délai de désactivation minimal", 	
+          "use_tpi_central_config": "Utilizzare configurazione TPI centrale"
         },
         "data_description": {
           "tpi_coef_int": "Coefficiente da utilizzare per il delta della temperatura interna",
@@ -263,7 +264,8 @@
     "flow_title": "Configurazione Versatile Thermostat",
     "step": {
       "user": {
-        "title": "Tipo - {nome}",
+        "title": "Tipo - {name}",
+	"description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)", 
         "data": {
           "thermostat_type": "Tipo di termostato"
         },
@@ -293,7 +295,7 @@
         }
       },
       "main": {
-        "title": "Principale - {nome}",
+        "title": "Principale - {name}",
         "description": "Principali attributi obbligatori&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
         "data": {
           "name": "Nome",
@@ -317,7 +319,7 @@
         }
       },
       "features": {
-        "title": "Carateristiche - {nome}",
+        "title": "Carateristiche - {name}",
         "description": "Caratteristiche del termostato",
         "data": {
           "use_window_feature": "Utilizzare il rilevamento finestra aperta",
@@ -329,7 +331,7 @@
         }
       },
       "type": {
-        "title": "Carateristiche - {nome}",
+        "title": "Carateristiche - {name}",
         "description": "Attributi delle entità collegate&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
         "data": {
           "underlying_entity_ids": "Dispositivo(i) da controllare",
@@ -362,7 +364,7 @@
         }
       },
       "tpi": {
-        "title": "TPI - {nome}",
+        "title": "TPI - {name}",
         "description": "Attributi dell'integrale proporzionale al tempo&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
         "data": {
           "tpi_coef_int": "coef_int",
@@ -384,7 +386,7 @@
         }
       },
       "presets": {
-        "title": "Preimpostazioni - {nome}",
+        "title": "Preimpostazioni - {name}",
         "description": "Selezionare se il termostato utilizza le impostazioni predefinite centralizzate. Deselezionare se il termostato ha le proprie entità predefinite&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Utilizzare preimpostazioni centralizzate"
@@ -407,6 +409,7 @@
           "window_sensor_entity_id": "Lasciare vuoto se non si desidera utilizzare alcun sensore finestra e si desidera utilizzare il rilevamento automatico",
           "window_delay": "Rtardo in secondi prima che lo stato “on” del sensore venga preso in considerazione",
           "window_off_delay": "Rtardo in secondi prima che lo stato “off\" del sensore venga preso in considerazione. Lasciare vuoto per utilizzare lo stesso valore della stato \"on\"",
+          "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra", 
           "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
           "window_auto_max_duration": "Valore consigliato: 60 (1 ora). Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
           "use_window_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm.",
@@ -434,7 +437,7 @@
         }
       },
       "power": {
-        "title": "Potenza- {nome}",
+        "title": "Potenza- {name}",
         "description": "Attributi di gestione dell'eneregia elettrica.\nIndica la potenza e il sensore della potenza massima della tua abitazione.\nSpecifica il consumo energetico del riscaldatore quando è acceso.\nTutti i sensori e l'alimentazione dei dispositivi devono utilizzare la stessa unità di misura (kW o W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
         "data": {
           "power_sensor_entity_id": "Potenza",
@@ -450,7 +453,7 @@
         }
       },
       "presence": {
-        "title": "Presenza - {nome}",
+        "title": "Presenza - {name}",
         "description": "Attributi di gestione della presenza.\nFornisce un sensore di presenza della tua casa (vero se qualcuno è presente) e fornisce l'impostazione predefinita della temperatura corrispondente&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensore di presenza",
@@ -461,7 +464,7 @@
         }
       },
       "advanced": {
-        "title": "Avanzate - {nome}",
+        "title": "Avanzate - {name}",
         "description": "Configurazione dei parametri avanzati. Lascia i valori predefiniti se non sai cosa stai facendo.\nQuesti parametri possono causare un controllo della temperatura molto scarso o una cattiva regolazione della potenza&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Ritardo minimo di attivazione",
@@ -481,7 +484,7 @@
         }
       },
       "central_boiler": {
-        "title": "Controllo della caldaia centralizzata - {nome}",
+        "title": "Controllo della caldaia centralizzata - {name}",
         "description": "Inserire i servizi da chiamare per accendere/spegnere la caldaia centralizzata. Il servizio chiamato deve essere formattato come segue: `entity_id/nome_servizi[/attributo:valore]` (/attributo:valore è facoltativo)\nAd esempio:\n- per accendere un interruttore: `switch.controle_chaudiere/switch.turn_on`\n- per spegnere un interruttore: `switch.controle_chaudiere/switch.turn_off`\n- per programmare la caldaia a 25° e quindi forzarne l'accensione: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- per inviare 10° alla caldaia e quindi forzarne lo spegnimento: `climate. thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?]https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Comando per accendere",
@@ -493,7 +496,7 @@
         }
       },
       "valve_regulation": {
-        "title": "Auto-regolazione con valvola - {nome}",
+        "title": "Auto-regolazione con valvola - {name}",
         "description": "Configurazione per l'autoregolazione con controllo diretto della valvola&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md# auto-regolazione-tramite-controllo-diretto-della-valvola)",
         "data": {
           "offset_calibration_entity_ids": "Entità di calibrazione offset",
@@ -519,6 +522,7 @@
       "service_configuration_format": "Il formato della configurazione del servizio è errato",
       "valve_regulation_nb_entities_incorrect": "Il numero di entità della valvola per la regolazione delle valvole deve essere pari al numero dei sottostanti",
       "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30"
+      "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README." 
     },
     "abort": {
       "already_configured": "Il dispositivo è gia configurato"
