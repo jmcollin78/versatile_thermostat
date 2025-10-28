@@ -100,7 +100,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
 
-        assert vtherm.hvac_modes == [VThermHvacMode_HEAT, HVACMODE_SLEEP, VThermHvacMode_OFF]
+        assert vtherm.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
@@ -661,7 +661,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_states_get):
+async def test_over_climate_valve_VThermHvacMode_SLEEP(hass: HomeAssistant, skip_hass_states_get):
     """Test the HVAMODE_SLEEP of a thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -729,7 +729,7 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
         assert vtherm.name == "TheOverClimateMockName"
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
-        assert vtherm.hvac_modes == [VThermHvacMode_HEAT, HVACMODE_SLEEP, VThermHvacMode_OFF]
+        assert vtherm.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
         assert vtherm.valve_open_percent == 0
@@ -741,11 +741,12 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
         await send_temperature_change_event(vtherm, 18, now, True)
         await send_ext_temperature_change_event(vtherm, 18, now, True)
 
-    # 2. Starts heating slowly (18 vs 19)
-    now = now + timedelta(minutes=2)  # avoid temporal filter
-    vtherm._set_now(now)
+        # 2. Starts heating slowly (18 vs 19)
+        now = now + timedelta(minutes=2)  # avoid temporal filter
+        vtherm._set_now(now)
 
-    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+
     # fmt: off
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
          patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
@@ -778,7 +779,7 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
     # fmt: off
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
     # fmt: on
-        await vtherm.async_set_hvac_mode(HVACMODE_SLEEP)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
 
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF

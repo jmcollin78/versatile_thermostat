@@ -1282,13 +1282,22 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @overrides
     async def check_initial_state(self, hvac_mode: VThermHvacMode):
         """Check the initial state of the underlying valve"""
-        if hvac_mode == VThermHvacMode_OFF and self._thermostat.is_sleeping and self.percent_open < 100:
+        if hvac_mode == VThermHvacMode_OFF and self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open < 100):
             _LOGGER.info(
                 "%s - The hvac mode is OFF (sleep mode), but the underlying device is not fully open. Setting to 100%% device %s",
                 self,
                 self._entity_id,
             )
             self._percent_open = 100
+            await self.send_percent_open()
+        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > self._min_opening_degree):
+            _LOGGER.info(
+                "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
+                self,
+                self._min_opening_degree,
+                self._entity_id,
+            )
+            self._percent_open = self._min_opening_degree
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)
