@@ -48,7 +48,7 @@ from custom_components.versatile_thermostat.const import *  # pylint: disable=wi
 from custom_components.versatile_thermostat.underlyings import overrides, UnderlyingClimate, UnderlyingSwitch
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 from custom_components.versatile_thermostat.vtherm_preset import VThermPreset
 
 from .const import (  # pylint: disable=unused-import

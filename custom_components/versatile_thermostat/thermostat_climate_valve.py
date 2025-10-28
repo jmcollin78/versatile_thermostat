@@ -16,7 +16,7 @@ from .thermostat_climate import ThermostatOverClimate
 from .prop_algorithm import PropAlgorithm
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
 
 # from .vtherm_api import VersatileThermostatAPI
 
@@ -301,7 +301,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Set new hvac mode"""
         _LOGGER.info("%s - Calling async_set_hvac_mode to %s", self, hvac_mode)
 
-        if hvac_mode == HVACMODE_SLEEP:
+        if hvac_mode == VThermHvacMode_SLEEP:
             _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
             self._is_sleeping = True
             hvac_mode = VThermHvacMode_OFF
@@ -324,9 +324,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
-            return [VThermHvacMode_COOL, VThermHvacMode.SLEEP, VThermHvacMode_OFF]
+            return [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         else:
-            return [VThermHvacMode_HEAT, VThermHvacMode.SLEEP, VThermHvacMode_OFF]
+            return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
     @property
     def have_valve_regulation(self) -> bool:
@@ -393,4 +393,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             entity_id: climate.thermostat_1
         """
         _LOGGER.info("%s - Calling service_set_hvac_mode_sleep", self)
-        await self.async_set_hvac_mode(hvac_mode=HVACMODE_SLEEP, need_control_heating=False)
+        await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP, need_control_heating=False)
+
+    @overrides
+    async def _check_initial_state(self):
+        """Check the initial state of the thermostat and its underlyings"""
+        await super()._check_initial_state()
+        for under in self._underlyings_valve_regulation:
+            await under.check_initial_state(self.vtherm_hvac_mode)
