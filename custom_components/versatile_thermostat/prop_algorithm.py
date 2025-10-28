@@ -91,7 +91,7 @@ class PropAlgorithm:
         self._max_on_percent = max_on_percent
         self._tpi_threshold_low = tpi_threshold_low
         self._tpi_threshold_high = tpi_threshold_high
-        self._apply_threshold = tpi_threshold_low > 0.0 and tpi_threshold_high > 0.0
+        self._apply_threshold = tpi_threshold_low != 0.0 and tpi_threshold_high != 0.0
 
     def calculate(
         self,

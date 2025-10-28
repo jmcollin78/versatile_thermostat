@@ -35,7 +35,7 @@ In this example, I set ECO mode during the night and when no one is home during 
 I hope this example helps; feel free to share your feedback!
 
 ## Regulation curves with Plotly to Fine-Tune Your Thermostat
-You can obtain a curve similar to the one shown in [some results](#some-results) using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](#custom-attributes):
+You can obtain a curve similar to the one shown in [some results](../../README.md#some-results) using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
 
 Replace the values between `[[ ]]` with your own.
 <details>
@@ -124,7 +124,7 @@ Example of curves obtained with Plotly:
 ## Event notification with the AppDaemon NOTIFIER
 This automation leverages the excellent AppDaemon app named NOTIFIER, developed by Horizon Domotique, demonstrated [here](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), and the code is available [here](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). It allows users to be notified of security-related events occurring on any Versatile Thermostat.
 
-This is a great example of using the notifications described here: [notification](#notifications).
+This is a great example of using the notifications described here: [events](reference.md#events).
 <details>
 
 ```yaml

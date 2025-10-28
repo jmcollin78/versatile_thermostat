@@ -54,6 +54,7 @@ async def async_setup_entry(
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         # Initialize the central power manager
         vtherm_api = VersatileThermostatAPI.get_vtherm_api(hass)
+        vtherm_api.reset_central_config()
         vtherm_api.central_power_manager.post_init(entry.data)
         return
 
@@ -107,7 +108,7 @@ async def async_setup_entry(
             vol.Optional("min_on_percent"): vol.Coerce(float),
             vol.Optional("default_on_percent"): vol.Coerce(float),
         },
-        "SERVICE_SET_SAFETY",
+        "service_set_safety",
     )
 
     platform.async_register_entity_service(
@@ -136,4 +137,10 @@ async def async_setup_entry(
             ),
         },
         "service_set_auto_fan_mode",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_HVAC_MODE_SLEEP,
+        {},
+        "service_set_hvac_mode_sleep",
     )

@@ -187,18 +187,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             force,
         )
 
-        if self._last_regulation_change is not None:
-            period = (
-                float((self.now - self._last_regulation_change).total_seconds()) / 60.0
-            )
-            if not force and period < self._auto_regulation_period_min:
-                _LOGGER.info(
-                    "%s - period (%.1f) min is < %.0f min -> forget the regulation send",
-                    self,
-                    period,
-                    self._auto_regulation_period_min,
-                )
-                return
+        if not force and not self.check_auto_regulation_period_min(self.now):
+            return
 
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
@@ -268,6 +258,30 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_max_temp,
                 self._attr_min_temp,
             )
+
+    def check_auto_regulation_period_min(self, now):
+        """Check if minimal auto_regulation period is exceeded
+        Returns true if it is not exceeded (so auto regulation can continue)"""
+        if self._last_regulation_change is None:
+            return True
+
+        period = float((now - self._last_regulation_change).total_seconds()) / 60.0
+        if period < self._auto_regulation_period_min:
+            _LOGGER.info(
+                "%s - period (%.1f) min is < %.0f min -> forget the auto-regulation send",
+                self,
+                period,
+                self._auto_regulation_period_min,
+            )
+            return False
+
+        _LOGGER.debug(
+            "%s - period (%.1f) min is >= %.0f min -> auto-regulation is available",
+            self,
+            period,
+            self._auto_regulation_period_min,
+        )
+        return True
 
     async def _send_auto_fan_mode(self):
         """Send the fan mode if auto_fan_mode and temperature gap is > threshold"""
@@ -458,10 +472,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 interval=timedelta(minutes=self._cycle_min),
             )
         )
-
-        # init auto_regulation_mode
-        # Issue 325 - do only once (in post_init and not here)
-        # self.choose_auto_regulation_mode(self._auto_regulation_mode)
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):
@@ -869,9 +879,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await end_climate_changed(changes)
 
     @overrides
-    async def async_control_heating(self, force=False, _=None) -> bool:
+    async def async_control_heating(self, _=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(force, _)
+        ret = await super().async_control_heating(_=_, force=force)
 
         # Check if we need to auto start/stop the Vtherm
         continu = await self.auto_start_stop_manager.refresh_state()
@@ -881,7 +891,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # Continue the normal async_control_heating
 
         # Send the regulated temperature to the underlyings
-        await self._send_regulated_temperature()
+        await self._send_regulated_temperature(force=force)
 
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
             await self._send_auto_fan_mode()
@@ -918,13 +928,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Check if the ThermostatOverClimate is regulated"""
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
-    @property
-    def hvac_modes(self) -> list[HVACMode]:
-        """List of available operation modes."""
+    @overrides
+    def build_hvac_list(self) -> list[HVACMode]:
+        """Build the hvac list depending on ac_mode"""
         if self.underlying_entity(0):
             return self.underlying_entity(0).hvac_modes
         else:
-            return super.hvac_modes
+            if self._ac_mode:
+                return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+            else:
+                return [HVACMode.HEAT, HVACMode.OFF]
 
     @property
     def mean_cycle_power(self) -> float | None:
@@ -1051,6 +1064,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     def init_underlyings(self):
         """Init the underlyings if not already done"""
+        changed = False
         for under in self._underlyings:
             if not under.is_initialized:
                 _LOGGER.info(
@@ -1060,10 +1074,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
                 try:
                     under.startup()
+                    changed = True
                 except UnknownEntity:
                     # still not found, we an stop here
                     return False
         self.choose_auto_fan_mode(self._auto_fan_mode)
+
+        if changed:
+            # Reinitialize the hvac list because we have one underlying at least now
+            self.set_hvac_list()
 
     @overrides
     def turn_aux_heat_on(self) -> None:

@@ -98,22 +98,16 @@ Un exemple plus complet est [ici](https://github.com/jmcollin78/versatile_thermo
 
 ## Utilisation d'un système Netatmo
 Le système à base de TRV Netatmo fonctionne mal avec _VTherm_. Vous avez ici une discussion sur le fonctionnement particulier des systèmes Netatmo (en Français) : https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063
-Cependant certains ont réussi une intégration _VTherm_ Netatmo en intégrant un switch virtuel entre _VTherm_ et le `climate` Netatmo suivant :
-```
-TODO add virtual switch code
-```
-
-
 
 ## Seul le premier radiateur chauffe
 
 En mode `over_switch` si plusieurs radiateurs sont configurés pour un même _VTherm_, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
-Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](#pour-un-thermostat-de-type-thermostat_over_switch)
+Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](over-switch.md#thermostat-de-type-over_switch
 
 ## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
 
 ### Type `over_switch` ou `over_valve`
-Avec un _VTherm_ de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](#algorithme-tpi) pour optimiser les réglages.
+Avec un _VTherm_ de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](algorithms#lalgorithme-tpi) pour optimiser les réglages.
 
 ### Type `over_climate`
 Avec un _VTherm_ de type `over_climate`, la régulation est faite par le `climate` sous-jacent directement et _VTherm_ se contente de lui transmettre les consignes. Donc si le radiateur chauffe alors que la température de consigne est dépassée, c'est certainement que sa mesure de température interne est biaisée. Ca arrive très souvent avec les TRV et les clims réversibles qui ont un capteur de température interne, soit trop près de l'élément de chauffe (donc trop froid l'hiver).
@@ -182,7 +176,7 @@ On voit que :
 ### Comment être averti lorsque cela se produit ?
 Pour être averti, le _VTherm_ envoie un évènement dès que ça se produit et un en fin d'alerte sécurité. Vous pouvez capter ces évènements dans une automatisation et envoyer une notification par exemple, faire clignoter un voyant, déclencher une sirène, ... A vous de voir.
 
-Pour manipuler les évènements générés par le _VTherm_, cf. [Evènements](#evènements).
+Pour manipuler les évènements générés par le _VTherm_, cf. [Evènements](reference.md#evènements).
 
 ### Comment réparer ?
 Cela va dépendre de la cause du problème :

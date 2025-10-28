@@ -27,7 +27,8 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ![Nouveau](images/new-icon.png)
 > * **Release 7.4**:
 >
-> - Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi)
+> - Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Idéal pour les poeles à bois qui mettent beaucoup de temps à monter en température. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi),
+> - Ajout d'un mode sleep pour les VTherm de type `over_climate` avec régulation par contrôle direct de la vanne. Ce mode permet de mettre le thermostat en mode éteint mais avec la vanne 100% ouverte. C'est utile pour les longues périodes sans utiisation du chauffage si la chaudière fait circuler un peu d'eau de temps en temps. Attention, vous devez mettre à jour la VTHerm UI Card pour visualiser ce nouveau mode. Cf. [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card).
 >
 > * **Release 7.2**:
 >
@@ -83,12 +84,11 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 16. [La commande du chauffage central](documentation/fr/feature-central-boiler.md)
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
-19. [Exemples de réglages](documentation/fr/tuning-examples.md)
-20. [Les différents algorithmes](documentation/fr/algorithms.md)
-21. [Documentation de référence](documentation/fr/reference.md)
-22. [Exemple de réglages](documentation/fr/tuning-examples.md)
-23. [Dépannage](documentation/fr/troubleshooting.md)
-24. [Notes de version](documentation/fr/releases.md)
+19. [Les différents algorithmes](documentation/fr/algorithms.md)
+20. [Documentation de référence](documentation/fr/reference.md)
+21. [Exemple de réglages](documentation/fr/tuning-examples.md)
+22. [Dépannage](documentation/fr/troubleshooting.md)
+23. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 

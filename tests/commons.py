@@ -356,6 +356,12 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
 
+    @property
+    def supported_features(self) -> int:
+        """The supported feature of this climate entity"""
+        ret = ClimateEntityFeature.TARGET_TEMPERATURE
+        return ret
+
 
 class MagicMockClimate(MagicMock):
     """A Magic Mock class for a underlying climate entity"""
@@ -855,6 +861,8 @@ async def send_window_change_event(
         },
     )
     ret = await entity.window_manager._window_sensor_changed(window_event)
+    # For test we need to desarm the window timer
+    entity.window_manager.dearm_window_timer()
     if sleep:
         await entity.hass.async_block_till_done()
         await asyncio.sleep(0.1)

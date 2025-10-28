@@ -409,6 +409,8 @@ async def test_wrong_tpi_parameters(
         (0.5,               1.1,                14,          15,           0,               -1,     HVACMode.HEAT, 0.0),
         # Slope < 0 and below low threshold (no effect)
         (1.1,               2.0,                14,          15,           0,               -1,     HVACMode.HEAT, 0.04),
+        # Slope < 0 and above low negative threshold (clamp to 0)
+        (-1,                2.0,                15,          14.1,         0,               -1,     HVACMode.HEAT, 0.0),
         ## COOL mode
         # temp > target, No thresholds
         (0.0,               0.0,                14,          15,          29,                0,     HVACMode.COOL, 0.25), #  0.1 + 0,15
@@ -422,6 +424,9 @@ async def test_wrong_tpi_parameters(
         (0.5,               1.1,                15,          14,          29,                1,     HVACMode.COOL, 0.0),
         # Slope > 0, below low threshold (no effect)
         (1.1,               2,                  15,          14,          29,                1,     HVACMode.COOL, 0.04),
+        # Slope > 0 and above high negative threshold (clamp to 0)
+        (-1,                2.0,                14,          16.1,        29,               1,      HVACMode.HEAT, 0.0),
+
     ],
     # fmt: on
 )

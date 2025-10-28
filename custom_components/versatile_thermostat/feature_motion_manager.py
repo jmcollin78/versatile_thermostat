@@ -31,7 +31,7 @@ from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import ConfigData
+from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 

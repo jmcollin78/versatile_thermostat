@@ -102,12 +102,12 @@ async def test_sensors_over_switch(
     last_temperature_sensor: LastTemperatureSensor = search_entity(
         hass, "sensor.theoverswitchmockname_last_temperature_date", "sensor"
     )
-    assert last_temperature_sensor
+    assert last_temperature_sensor is None  # Not crearted by default now
 
     last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
         hass, "sensor.theoverswitchmockname_last_external_temperature_date", "sensor"
     )
-    assert last_ext_temperature_sensor
+    assert last_ext_temperature_sensor is None  # Not crearted by default now
 
     # Simulate the event reception
     await energy_sensor.async_my_climate_changed()
@@ -120,12 +120,12 @@ async def test_sensors_over_switch(
     assert on_time_sensor.state == 0.0
     await off_time_sensor.async_my_climate_changed()
     assert off_time_sensor.state == 300.0
-    await last_temperature_sensor.async_my_climate_changed()
-    assert last_temperature_sensor.state is not None
-    await last_ext_temperature_sensor.async_my_climate_changed()
-    assert last_ext_temperature_sensor.state is not None
+    # await last_temperature_sensor.async_my_climate_changed()
+    # assert last_temperature_sensor.state is not None
+    # await last_ext_temperature_sensor.async_my_climate_changed()
+    # assert last_ext_temperature_sensor.state is not None
 
-    last_temp_date = last_temperature_sensor.state
+    # last_temp_date = last_temperature_sensor.state
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -170,19 +170,19 @@ async def test_sensors_over_switch(
     assert off_time_sensor.state_class == SensorStateClass.MEASUREMENT
     assert off_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
 
-    await last_temperature_sensor.async_my_climate_changed()
-    assert (
-        last_temperature_sensor.state is not None
-        and last_temperature_sensor.state != last_temp_date
-    )
-    assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
-
-    await last_ext_temperature_sensor.async_my_climate_changed()
-    assert (
-        last_ext_temperature_sensor.state is not None
-        and last_ext_temperature_sensor.state != last_temp_date
-    )
-    assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+    # await last_temperature_sensor.async_my_climate_changed()
+    # assert (
+    #     last_temperature_sensor.state is not None
+    #     and last_temperature_sensor.state != last_temp_date
+    # )
+    # assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+    #
+    # await last_ext_temperature_sensor.async_my_climate_changed()
+    # assert (
+    #     last_ext_temperature_sensor.state is not None
+    #     and last_ext_temperature_sensor.state != last_temp_date
+    # )
+    # assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
 
     cancel_switchs_cycles(entity)
 
@@ -245,22 +245,24 @@ async def test_sensors_over_climate(
     last_temperature_sensor: LastTemperatureSensor = search_entity(
         hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor"
     )
-    assert last_temperature_sensor
+    # last_temperature_sensor is not created by default now
+    assert last_temperature_sensor is None
 
     last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
         hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor"
     )
-    assert last_ext_temperature_sensor
+    # last_ext_temperature_sensor is not created by default now
+    assert last_ext_temperature_sensor is None
 
     # Simulate the event reception
     await energy_sensor.async_my_climate_changed()
     assert energy_sensor.state == 0.0
-    await last_temperature_sensor.async_my_climate_changed()
-    assert last_temperature_sensor.state is not None
-    await last_ext_temperature_sensor.async_my_climate_changed()
-    assert last_ext_temperature_sensor.state is not None
+    # await last_temperature_sensor.async_my_climate_changed()
+    # assert last_temperature_sensor.state is not None
+    # await last_ext_temperature_sensor.async_my_climate_changed()
+    # assert last_ext_temperature_sensor.state is not None
 
-    last_temp_date = last_temperature_sensor.state
+    # last_temp_date = last_temperature_sensor.state
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -309,19 +311,20 @@ async def test_sensors_over_climate(
     await energy_sensor.async_my_climate_changed()
     assert energy_sensor.state == 3.0
 
-    await last_temperature_sensor.async_my_climate_changed()
-    assert (
-        last_temperature_sensor.state is not None
-        and last_temperature_sensor.state != last_temp_date
-    )
-    assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
-
-    await last_ext_temperature_sensor.async_my_climate_changed()
-    assert (
-        last_ext_temperature_sensor.state is not None
-        and last_ext_temperature_sensor.state != last_temp_date
-    )
-    assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+    # disabled by default now
+    # await last_temperature_sensor.async_my_climate_changed()
+    # assert (
+    #     last_temperature_sensor.state is not None
+    #     and last_temperature_sensor.state != last_temp_date
+    # )
+    # assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+    #
+    # await last_ext_temperature_sensor.async_my_climate_changed()
+    # assert (
+    #     last_ext_temperature_sensor.state is not None
+    #     and last_ext_temperature_sensor.state != last_temp_date
+    # )
+    # assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -377,12 +380,13 @@ async def test_sensors_over_climate_minimal(
     )
     assert energy_sensor is None
 
+    # LastTemperatureSensor and LastExtTemperatureSensor are now not created by default
     last_temperature_sensor: LastTemperatureSensor = search_entity(
         hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor"
     )
-    assert last_temperature_sensor
+    assert last_temperature_sensor is None
 
     last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
         hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor"
     )
-    assert last_ext_temperature_sensor
+    assert last_ext_temperature_sensor is None

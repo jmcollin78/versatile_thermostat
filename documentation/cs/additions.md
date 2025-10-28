@@ -35,7 +35,7 @@ V tomto příkladu nastavuji ECO režim během noci a když nikdo není doma bě
 Doufám, že tento příklad pomůže; neváhejte se podělit o svou zpětnou vazbu!
 
 ## Regulační křivky s Plotly pro doladění vašeho termostatu
-Můžete získat křivku podobnou té ukázané v [některé výsledky](#some-results) pomocí konfigurace grafu Plotly využitím vlastních atributů termostatu popsaných [zde](#custom-attributes):
+Můžete získat křivku podobnou té ukázané v [některé výsledky](../../README-cs.md#některé-výsledky) pomocí konfigurace grafu Plotly využitím vlastních atributů termostatu popsaných [zde](reference#vlastní-atributy):
 
 Nahraďte hodnoty mezi `[[ ]]` vašimi vlastními.
 <details>
@@ -124,7 +124,7 @@ Příklad křivek získaných s Plotly:
 ## Oznámení událostí s AppDaemon NOTIFIER
 Tato automatizace využívá vynikající aplikaci AppDaemon s názvem NOTIFIER, vyvinutou Horizon Domotique, demonstrovanou [zde](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a kód je k dispozici [zde](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umožňuje uživatelům být upozorněni na bezpečnostní události probíhající na jakémkoli Versatile Thermostatu.
 
-Toto je skvělý příklad použití oznámení popsaných zde: [notification](#notifications).
+Toto je skvělý příklad použití oznámení popsaných zde: [event](#notifications).
 <details>
 
 ```yaml
