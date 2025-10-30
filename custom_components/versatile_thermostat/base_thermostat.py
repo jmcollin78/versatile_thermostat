@@ -1137,6 +1137,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._attr_hvac_mode = str(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self.vtherm_hvac_mode})
                     self.reset_last_change_time_from_vtherm()
+                    self.recalculate()
                     # Remove eventual overpowering if we want to turn-off
                     if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
                         await self.power_manager.set_overpowering(False)
