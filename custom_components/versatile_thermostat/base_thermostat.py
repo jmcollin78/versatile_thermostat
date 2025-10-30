@@ -1124,8 +1124,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if self._state_manager.current_state.is_target_temperature_changed:
                     _LOGGER.info("%s - Applying new target temperature: %s", self, self.target_temperature)
                     # recalculate the PI algorithm
-                    self.recalculate()
-                    self.reset_last_change_time_from_vtherm()
+                    # self.recalculate()
+                    # self.reset_last_change_time_from_vtherm()
                     self._attr_target_temperature = self.target_temperature
 
                 # Apply hvac_mode
@@ -1136,13 +1136,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                         sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
                     self._attr_hvac_mode = str(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self.vtherm_hvac_mode})
-                    self.reset_last_change_time_from_vtherm()
-                    self.recalculate()
+                    # self.recalculate()
+                    # self.reset_last_change_time_from_vtherm()
                     # Remove eventual overpowering if we want to turn-off
                     if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
                         await self.power_manager.set_overpowering(False)
 
                 if changed:
+                    self.recalculate()
+                    self.reset_last_change_time_from_vtherm()
+
                     self.update_custom_attributes()
                     self.async_write_ha_state()
                     await self.async_control_heating(force=force or sub_need_control_heating)
