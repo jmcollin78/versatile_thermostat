@@ -198,6 +198,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         _LOGGER.debug("%s - recalculate the open percent", self)
 
         # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
+        if self._is_sleeping:
+            self._valve_open_percent = 100
+            return
 
         # For testing purpose. Should call _set_now() before
         now = self.now
@@ -263,7 +266,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping:
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
             return
 
@@ -310,12 +313,12 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._is_sleeping = False
 
         # When turning off, we need to close the valve
-        if self._is_sleeping:
-            self._valve_open_percent = 100
-            for under in self._underlyings_valve_regulation:
-                await under.set_valve_open_percent()
-            self.update_custom_attributes()
-            self.async_write_ha_state()
+        # if self._is_sleeping:
+        #     self._valve_open_percent = 100
+        #     for under in self._underlyings_valve_regulation:
+        #         await under.set_valve_open_percent()
+        #     self.update_custom_attributes()
+        #     self.async_write_ha_state()
 
         # set hvac mode save the state at the end
         await super().async_set_hvac_mode(hvac_mode)
