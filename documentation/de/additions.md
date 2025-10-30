@@ -1,41 +1,42 @@
-# Einige wichtige Add-ons
+# Einige unverzichtbare Ergänzungen
 
-- [Einige wichtige Add-ons](#einige-wichtige-add-ons)
+- [Einige unverzichtbare Ergänzungen](#einige-unverzichtbare-ergänzungen)
   - [Die Versatile Thermostat UI Card](#die-versatile-thermostat-ui-card)
   - [Die Scheduler-Komponente!](#die-scheduler-komponente)
-  - [Regelungskurven mit Plotly zur Feinabstimmung Ihres Thermostats](#regelungskurven-mit-plotly-zur-feinabstimmung-ihres-thermostats)
-  - [Ereignisbenachrichtigung mit dem AppDaemon NOTIFIER](#ereignisbenachrichtigung-mit-dem-appdaemon-notifier)
+  - [Regelungskurven mit Plotly](#regelungskurven-mit-plotly)
+  - [Benachrichtigung mit dem AppDaemon NOTIFIER](#benachrichtigung-mit-dem-appdaemon-notifier)
+  - [Eine sehr schöne Karte (Danke @Jeffodilo)](#eine-sehr-schöne-karte-danke-jeffodilo)
 
 ## Die Versatile Thermostat UI Card
-Es wurde eine spezielle Karte für den Versatile Thermostat entwickelt (basierend auf Better Thermostat). Sie ist hier verfügbar: [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) und bietet eine moderne Ansicht aller VTherm-Status:
+Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basierend auf Better Thermostat). Sie ist hier verfügbar: [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) und bietet einen modernen Überblick über aller VTherm-Statie:
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
 ## Die Scheduler Komponente!
 
-Um das Potenzial des Versatile Thermostatvoll auszuschöpfen, empfehle ich, ihn zusammen mit der [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) zu verwenden. Die Scheduler-Komponente ermöglicht die Klimasteuerung auf Basis vordefinierter Modi. Während diese Funktion bei einem herkömmlichen Thermostat nur eingeschränkt verfügbar ist, entfaltet sie in Kombination mit dem vielseitigen Thermostat ihr volles Potenzial.
+Um die volle Leistungsfähigkeit von Versatile Thermostat voll auszuschöpfen, empfehle ich es zusammen mit der [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) zu verwenden. Die Scheduler-Komponente ermöglicht die Klimasteuerung anhand vordefinierter Modi. Diese Funktion ist bei einem herkömmlichen Thermostat nur von begrenztem Nutzen, wird jedoch mit dem Versatile Thermostat zu einem leistungsstarken Werkzeug:
 
-Angenommen, Sie haben sowohl den Versatile Thermostat als auch die Scheduler-Komponente installiert, hier ist ein Beispiel:
+Angenommen, es ist sowohl Versatile Thermostat als auch die Scheduler-Komponente installiert.
 
 Fügen Sie im Scheduler einen Zeitplan hinzu:
 
 ![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
 
-Wählen Sie die Gruppe "Klima", wählen Sie eine (oder mehrere) Entität(en) aus, wählen Sie "MAKE SCHEME" und klicken Sie auf "Weiter":
-(Sie können auch "SET PRESET" wählen, aber ich bevorzuge "MAKE SCHEME".)
+Zuerst die Gruppe "Klima" auswählen, dann eine (oder mehrere) Entität(en) wählen, "MAKE SCHEME" anwählen und auf "Weiter" klicken:
+(Man kann auch "SET PRESET" wählen, aber ich bevorzuge "MAKE SCHEME".)
 
 ![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
 
-Definieren Sie Ihr Modusschema und speichern Sie es:
+Nun Modusschema definieren und speichern:
 
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
-In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag, wenn niemand zu Hause ist, den BOOST-Modus für den Morgen und den COMFORT-Modus für den Abend eingestellt.
+In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag eingestellt, wenn niemand zu Hause ist, den BOOST-Modus für den Morgen und den KOMFORT-Modus für den Abend.
 
 Ich hoffe, dieses Beispiel hilft weiter. Über Feedback freuen wir uns!
 
-## Regelungskurven mit Plotly zur Feinabstimmung Ihres Thermostats
-Sie können eine Kurve ähnlich der in [einigen Ergebnissen](#some-results) gezeigten erhalten, indem Sie eine Plotly-Diagrammkonfiguration verwenden und die [hier](#custom-attributes) beschriebenen benutzerdefinierten Attribute des Thermostats nutzen:
+## Regelungskurven mit Plotly
+Man kann eine Kurve ähnlich der in [einige Ergebnisse](#../../README-de.md#einige-ergebnisse) gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
 
 Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
 <details>
@@ -46,7 +47,7 @@ Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
     - entity: '[[climate]]'
       attribute: temperature
       yaxis: y1
-      name: Consigne
+      name: Anweisung
     - entity: '[[climate]]'
       attribute: current_temperature
       yaxis: y1
@@ -58,7 +59,7 @@ Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
     - entity: '[[climate]]'
       attribute: on_percent
       yaxis: y2
-      name: Power percent
+      name: Leistungsprozentsatz
       fill: tozeroy
       fillcolor: rgba(200, 10, 10, 0.3)
       line:
@@ -121,14 +122,14 @@ Beispiel für mit Plotly erstellte Kurven:
 
 ![image](images/plotly-curves.png)
 
-## Ereignisbenachrichtigung mit dem AppDaemon NOTIFIER
-Diese Automatisierung nutzt die hervorragende AppDaemon-App namens NOTIFIER, die von Horizon Domotique entwickelt wurde und [hier](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) vorgestellt wird. und der Code ist [hier](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py) verfügbar. Damit können Benutzer über sicherheitsrelevante Ereignisse benachrichtigt werden, die an einem beliebigen Versatile Thermostat auftreten.
+## Benachrichtigung mit dem AppDaemon NOTIFIER
+Diese Automatisierung nutzt die hervorragende AppDaemon-App namens NOTIFIER, die von Horizon Domotique entwickelt wurde und [hier](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) vorgestellt wird. Der Code ist [hier](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py) verfügbar. Damit können Benutzer über sicherheitsrelevante Ereignisse benachrichtigt werden, die an einem beliebigen Versatile Thermostat auftreten.
 
-Dies ist ein hervorragendes Beispiel für die Verwendung der hier beschriebenen Benachrichtigungen: [Benachrichtigung](#notifications).
+Dies ist ein hervorragendes Beispiel für die Verwendung der hier beschriebenen Benachrichtigungen: [Ereignis](reference.md#ereignisse).
 <details>
 
 ```yaml
-alias: Überwachung Sicherheitsmodus Heizung
+alias: Überwachung Heizungsicherheitsmodus 
 description: Sendet eine Benachrichtigung, wenn ein Thermostat in den Sicherheits- oder Power-Modus wechselt.
 trigger:
   - platform: event
@@ -152,14 +153,14 @@ action:
               action: send_to_jmc
               title: >-
                 Heizkörper {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Sécurité
+                trigger.event.data.type }} Sicherheit
               message: >-
                 Der Heizkörper {{ trigger.event.data.name }} wurde in den Sicherheitsmodus {{
                 trigger.event.data.type }} versetzt, da das Thermometer nicht mehr reagiert
                 .\n{{ trigger.event.data }}
               callback:
-                - title: Heizungsventil
-                  event: heizungsventil
+                - title: Heizungsstopp
+                  event: heizungsstopp
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-off
@@ -174,18 +175,18 @@ action:
               action: send_to_jmc
               title: >-
                 Heizkörper {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Délestage
+                trigger.event.data.type }} Lastabwurf
               message: >-
                 Der Heizkörper {{ trigger.event.data.name }} wurde auf {{
                 trigger.event.data.type }} Lastabwurf umgeschaltet, da die maximale Leistung
                 überschritten wurde.\n{{ trigger.event.data }}
               callback:
-                - title: Heizungsventil
-                  event: heizungsventil
+                - title: Heizungsstopp
+                  event: heizungsstopp
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-off
-              tag: Heizkörper_Stromausfall_Alarm
+              tag: Heizkörper_Lastabwurf_Alarm
               persistent: true
       - conditions:
           - condition: trigger
@@ -207,5 +208,276 @@ action:
               persistent: true
 mode: queued
 max: 30
+```
+</details>
+
+## Eine sehr schöne Karte (Danke @Jeffodilo)
+
+@Jeffodilo hat den Code für eine sehr schöne Karte erstellt und geteilt, die für das TRV geeignet ist:
+
+![carte Jeffodilo](images/card-trv-jeffodilo.png)
+
+Diese Karte verwendet nicht card_mod, sondern die folgenden gängigen benutzerdefinierten Karten
+Ein Teil der Benutzeroberfläche bleibt erhalten, mit Ausnahme der horizontalen Ausrichtung der zweiten Zeile
+- custom:vertical-stack-in-card
+- custom:stack-in-card
+- custom:mini-graph-card
+- custom:mushroom-template-card
+- custom:button-card
+
+Das Original finden Sie hier (auf Französisch): [forum HACF](https://forum.hacf.fr/t/carte-mise-en-forme-vanne-avec-thermostant-versatile/56132)
+
+Natürlich müssen Sie es an Ihren Code anpassen.
+
+Der Code:
+
+<details>
+
+```yaml
+type: vertical-stack
+cards:
+  - type: heading
+    icon: mdi:bed-double
+    heading: Parents
+    heading_style: title
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.sonde_parents_temperature
+            name: Température
+            state_adaptive_color: true
+          - entity: climate.valve_parents
+            name: Temp
+            attribute: current_temperature
+            unit: °C
+            state_adaptive_color: true
+            show_graph: false
+            show_state: true
+        hour24: true
+        hours_to_show: 24
+        points_per_hour: 2
+        font_size: 50
+        show:
+          name: false
+          icon: false
+          legend: false
+          labels: true
+          extrema: false
+        color_thresholds:
+          - color: "#33ccff"
+            value: 19
+          - color: "#00ffff"
+            value: 19.5
+          - color: "#33ffcc"
+            value: 20
+          - color: "#00ff99"
+            value: 20.5
+          - color: "#ffff99"
+            value: 21
+          - color: "#ffff33"
+            value: 21.5
+          - color: "#ff9933"
+            value: 22
+          - color: "#cc6633"
+            value: 24
+          - color: "#ff6000"
+            value: 26
+      - type: custom:stack-in-card
+        mode: horizontal
+        cards:
+          - type: custom:mushroom-template-card
+            secondary: ""
+            layout: horizontal
+            tap_action:
+              action: more-info
+            entity: sensor.sonde_parents_temperature
+            fill_container: false
+            multiline_secondary: false
+            primary: >-
+              {% if is_state_attr('climate.versatile_parents','hvac_action',
+              'idle') %}
+               🗜️ {{ states('number.valve_parents_valve_opening_degree', with_unit=True,)}} |🔋{{ states('sensor.valve_parents_battery') }} % | Inactif
+              {% elif  is_state_attr('climate.versatile_parents','hvac_action',
+              'heating') %}
+               🗜️ {{ states('number.valve_parents_valve_opening_degree', with_unit=True,)}} |🔋{{ states('sensor.valve_parents_battery') }} % | Chauffe
+              {% else %} 🗜️ {{
+              states('number.valve_parents_valve_opening_degree',
+              with_unit=True,)}} | 🔋{{ states('sensor.valve_parents_battery')
+              }} % | Off {% endif %}
+            icon: ""
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                name: Conf.
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:fire
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'comfort')
+                            return 'darkorange';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: comfort
+              - type: custom:button-card
+                name: Eco
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:leaf
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'eco')
+                            return 'lightgreen';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: eco
+              - type: custom:button-card
+                name: Manu
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:hand-back-left
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'none')
+                            return 'indianred';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: none
+              - type: custom:button-card
+                name: Abs.
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:snowflake
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'frost')
+                            return 'skyblue';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: frost
+              - type: custom:button-card
+                name: Boost
+                entity: climate.versatile_parents
+                show_state: false
+                show_icon: true
+                show_name: false
+                icon: mdi:rocket-launch
+                size: 80%
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          if (states['climate.versatile_parents']) {
+                          if (states['climate.versatile_parents'].attributes.preset_mode == 'boost')
+                            return 'red';
+                          else
+                            return 'white'; }
+                        ]]]
+                  name:
+                    - color: white
+                    - font-size: 60%
+                  card:
+                    - height: 40px
+                    - width: 30px
+                tap_action:
+                  action: perform-action
+                  perform_action: climate.set_preset_mode
+                  target:
+                    entity_id:
+                      - climate.versatile_parents
+                  data:
+                    preset_mode: boost
+      - type: custom:mushroom-climate-card
+        entity: climate.versatile_parents
+        show_temperature_control: true
+        hvac_modes: []
+        tap_action:
+          action: more-info
+        primary_info: state
+        icon: mdi:radiator
+        secondary_info: last-updated
+        fill_container: false
+        layout: horizontal
 ```
 </details>
