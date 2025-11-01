@@ -621,9 +621,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             """To end the event management"""
             if changes:
                 # already done by update_custom_attribute
-                # self.async_write_ha_state()
-                self.update_custom_attributes()
-                await self.async_control_heating()
+                # self.update_custom_attributes()
+                # await self.async_control_heating()
+                await self.update_states()
 
         new_state = event.data.get("new_state")
         _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
@@ -834,10 +834,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     self,
                     new_hvac_mode,
                 )
-                for under in self._underlyings:
-                    await under.set_hvac_mode(new_hvac_mode)
+                # now done in update_states
+                # for under in self._underlyings:
+                #     await under.set_hvac_mode(new_hvac_mode)
             changes = True
-            self.vtherm_hvac_mode = new_hvac_mode
+            # self.vtherm_hvac_mode = new_hvac_mode
+            self.requested_state.set_hvac_mode(new_hvac_mode)
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode != self._attr_fan_mode:

@@ -68,6 +68,8 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     )
     assert entity
 
+    entity._set_now(now)
+
     await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
 
     assert entity.safety_manager.is_safety_detected is False

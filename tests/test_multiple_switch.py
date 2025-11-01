@@ -703,7 +703,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
 async def test_multiple_switch_power_management(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
-    """Test the Power management"""
+    """Test the Power management with 4 underlyings switch"""
     temps = {
         "eco": 17,
         "comfort": 18,
@@ -833,7 +833,7 @@ async def test_multiple_switch_power_management(
             assert mock_heater_on.call_count == 0
             assert mock_heater_off.call_count == 4  # The fourth are shutdown
 
-    # 3. change PRESET
+    # 3. change PRESET to ECO. But overpowering is still on cause temp is very low
         with patch(
             "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event:
@@ -841,9 +841,11 @@ async def test_multiple_switch_power_management(
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
             await entity.async_set_preset_mode(VThermPreset.ECO)
-            assert entity.preset_mode == VThermPreset.ECO
+            # before refacto: assert entity.preset_mode == VThermPreset.ECO
+            await wait_for_local_condition(lambda: entity.preset_mode == VThermPreset.POWER)
             # No change cause temperature is very low
             assert entity.power_manager.overpowering_state is STATE_ON
+            assert entity.target_temperature == 12
 
     # 4. Send hugh power max mesurement to release overpowering
         side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 150))
