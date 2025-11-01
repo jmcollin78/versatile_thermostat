@@ -88,7 +88,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -97,7 +97,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 18,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -106,7 +106,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
             ],
@@ -121,7 +121,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -130,7 +130,7 @@ async def test_central_power_manager_init(
                     "is_on": False,
                     "current_temperature": 18,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -139,7 +139,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
             ],
@@ -154,7 +154,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -163,7 +163,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": None,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -172,7 +172,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
             ],
@@ -187,7 +187,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     "target_temperature": 12,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -196,7 +196,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 18,
                     "target_temperature": None,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
                 {
@@ -205,7 +205,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     "target_temperature": 18,
-                    "saved_target_temp": 18,
+                    "requested_target_temp": 18,
                     "is_overpowering_detected": False,
                 },
             ],
@@ -220,7 +220,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 13,
                     # "target_temperature": 12,
-                    "saved_target_temp": 21,
+                    "requested_target_temp": 21,
                     "is_overpowering_detected": True,
                 },
                 {
@@ -229,7 +229,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 18,
                     # "target_temperature": 12,
-                    "saved_target_temp": 17,
+                    "requested_target_temp": 17,
                     "is_overpowering_detected": True,
                 },
                 {
@@ -238,7 +238,7 @@ async def test_central_power_manager_init(
                     "is_on": True,
                     "current_temperature": 12,
                     # "target_temperature": 18,
-                    "saved_target_temp": 16,
+                    "requested_target_temp": 16,
                     "is_overpowering_detected": True,
                 },
             ],
@@ -260,7 +260,7 @@ async def test_central_power_manageer_find_vtherms(
         vtherm.is_on = vtherm_config.get("is_on")
         vtherm.current_temperature = vtherm_config.get("current_temperature")
         vtherm.target_temperature = vtherm_config.get("target_temperature")
-        vtherm.saved_target_temp = vtherm_config.get("saved_target_temp")
+        vtherm.requested_state = VThermState(VThermHvacMode_HEAT, vtherm_config.get("requested_target_temp"), VThermPreset.COMFORT)
         vtherm.power_manager.is_configured = vtherm_config.get("is_configured")
         vtherm.power_manager.is_overpowering_detected = vtherm_config.get("is_overpowering_detected")
         vtherms.append(vtherm)
@@ -836,14 +836,14 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
     # fmt: on
         # make the heater heats
         await entity2.async_set_preset_mode(VThermPreset.COMFORT)
-        assert entity2.preset_mode is VThermPreset.COMFORT
+        assert entity2.preset_mode == VThermPreset.COMFORT
         assert entity2.power_manager.overpowering_state is STATE_UNKNOWN
         assert entity2.target_temperature == 18
 
         # set the HVAC mode to heat
         await entity2.async_set_hvac_mode(VThermHvacMode_HEAT)
-        await wait_for_local_condition(lambda: entity2.hvac_mode is VThermHvacMode_HEAT)
-        assert entity2.hvac_mode is VThermHvacMode_HEAT
+        await wait_for_local_condition(lambda: entity2.hvac_mode == VThermHvacMode_HEAT)
+        assert entity2.hvac_mode == VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
         await asyncio.sleep(0.1)

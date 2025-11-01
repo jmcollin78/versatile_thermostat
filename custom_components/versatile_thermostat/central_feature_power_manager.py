@@ -273,8 +273,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         def cmp_temps(a, b) -> int:
             diff_a = float("inf")
             diff_b = float("inf")
-            a_target = a.target_temperature if not a.power_manager.is_overpowering_detected else a.saved_target_temp
-            b_target = b.target_temperature if not b.power_manager.is_overpowering_detected else b.saved_target_temp
+            a_target = a.target_temperature if not a.power_manager.is_overpowering_detected else a.requested_state.target_temperature
+            b_target = b.target_temperature if not b.power_manager.is_overpowering_detected else b.requested_state.target_temperature
             if a.current_temperature is not None and a_target is not None:
                 diff_a = a_target - a.current_temperature
             if b.current_temperature is not None and b_target is not None:
