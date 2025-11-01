@@ -246,8 +246,6 @@ The custom attributes are as follows:
 | ``function``                       | The algorithm used for the cycle calculation                                                                                        |
 | ``tpi_coef_int``                   | The ``coef_int`` of the TPI algorithm                                                                                               |
 | ``tpi_coef_ext``                   | The ``coef_ext`` of the TPI algorithm                                                                                               |
-| ``saved_preset_mode``              | The last preset used before automatic preset switching                                                                              |
-| ``saved_target_temp``              | The last temperature used before automatic switching                                                                                |
 | ``window_state``                   | The last known state of the window sensor. None if the window is not configured                                                     |
 | ``is_window_bypass``               | True if the window open detection bypass is enabled                                                                                 |
 | ``motion_state``                   | The last known state of the motion sensor. None if motion detection is not configured                                               |

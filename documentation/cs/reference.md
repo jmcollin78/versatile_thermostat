@@ -246,8 +246,6 @@ Vlastní atributy jsou následující:
 | ``function``                       | Algoritmus používaný pro výpočet cyklu                                                                                 |
 | ``tpi_coef_int``                   | ``coef_int`` algoritmu TPI                                                                                             |
 | ``tpi_coef_ext``                   | ``coef_ext`` algoritmu TPI                                                                                             |
-| ``saved_preset_mode``              | Poslední preset používaný před automatickým přepnutím presetem                                                         |
-| ``saved_target_temp``              | Poslední teplota používaná před automatickým přepnutím                                                                 |
 | ``window_state``                   | Poslední známý stav senzoru okna. None pokud okno není nakonfigurováno                                                 |
 | ``is_window_bypass``               | True pokud je povoleno obejití detekce otevřeného okna                                                                 |
 | ``motion_state``                   | Poslední známý stav senzoru pohybu. None pokud detekce pohybu není nakonfigurována                                     |

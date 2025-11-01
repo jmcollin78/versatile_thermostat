@@ -244,8 +244,6 @@ Les attributs personnalisés sont les suivants :
 | ``function``                      | L'algorithme utilisé pour le calcul du cycle                                                                                                                             |
 | ``tpi_coef_int``                  | Le ``coef_int`` de l'algorithme TPI                                                                                                                                      |
 | ``tpi_coef_ext``                  | Le ``coef_ext`` de l'algorithme TPI                                                                                                                                      |
-| ``saved_preset_mode``             | Le dernier preset utilisé avant le basculement automatique du preset                                                                                                     |
-| ``saved_target_temp``             | La dernière température utilisée avant la commutation automatique                                                                                                        |
 | ``window_state``                  | Le dernier état connu du capteur de fenêtre. Aucun si la fenêtre n'est pas configurée                                                                                    |
 | ``is_window_bypass``              | True si le bypass de la détection d'ouverture et activé                                                                                                                  |
 | ``motion_state``                  | Le dernier état connu du capteur de mouvement. Aucun si le mouvement n'est pas configuré                                                                                 |
