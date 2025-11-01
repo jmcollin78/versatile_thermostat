@@ -433,14 +433,14 @@ async def test_switch_ac_change_central_mode_true(
         assert entity.hvac_mode == VThermHvacMode_COOL
         assert entity.preset_mode == VThermPreset.COMFORT
 
-    # 8 change central_mode to FROST_PROTECTION
+    # 8 change central_mode to FROST_PROTECTION -> no frost exists for Over switch with ac_mode
     with patch("homeassistant.core.ServiceRegistry.async_call"):
         await select_entity.async_select_option(CENTRAL_MODE_FROST_PROTECTION)
 
         # hvac_mode should stay in COOL mode
-        assert entity.hvac_mode == VThermHvacMode_HEAT
-        # change to Frost
-        assert entity.preset_mode == VThermPreset.FROST
+        assert entity.hvac_mode == VThermHvacMode_OFF
+        # no change
+        assert entity.preset_mode == VThermPreset.COMFORT
 
     # 9 change back central_mode to AUTO
     with patch("homeassistant.core.ServiceRegistry.async_call"):
@@ -991,12 +991,12 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         assert entity.last_central_mode is CENTRAL_MODE_COOL_ONLY
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
-        assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_CENTRAL_MODE
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
         # assert entity._saved_hvac_mode_central_mode == VThermHvacMode_HEAT
         # assert entity._saved_preset_mode_central_mode == VThermPreset.ACTIVITY
 
-    # 3 Open the window
+    # 3 Open the window -> still off but reason change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -1016,7 +1016,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         # )
 
         assert entity.hvac_mode == VThermHvacMode_OFF
-        assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         assert entity.preset_mode == VThermPreset.ACTIVITY
         # assert entity._saved_hvac_mode == None  # was already off by step 2
         # assert entity._saved_preset_mode == VThermPreset.ACTIVITY
@@ -1054,8 +1054,8 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
         await try_function(None)
 
-        # We should stay off because is was off when window open
-        assert entity.hvac_mode == VThermHvacMode_OFF
+        # We should switch to HEAT which is the requested mode
+        assert entity.hvac_mode == VThermHvacMode_HEAT
         assert entity.hvac_off_reason is None
         assert entity.preset_mode == VThermPreset.ACTIVITY
         # assert entity._saved_hvac_mode_central_mode == VThermHvacMode_HEAT
@@ -1063,7 +1063,5 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         assert entity.window_state is STATE_OFF
 
         # hvac_mode change to HEAT
-        assert mock_send_event.call_count == 0
-        # mock_send_event.assert_has_calls(
-        #     [call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode_HEAT})]
-        # )
+        assert mock_send_event.call_count == 1
+        mock_send_event.assert_has_calls([call.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode_HEAT})])
