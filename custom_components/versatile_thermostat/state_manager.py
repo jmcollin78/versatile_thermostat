@@ -198,7 +198,7 @@ class StateManager:
             if self._current_state.preset == VThermPreset.ACTIVITY:
                 new_preset = vtherm.motion_manager.get_current_motion_preset()
                 _LOGGER.debug(
-                    "%s - motion will set new target temperature: %.2f",
+                    "%s - motion will set new target preset: %s",
                     self,
                     new_preset,
                 )
