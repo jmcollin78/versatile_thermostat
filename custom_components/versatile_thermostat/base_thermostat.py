@@ -1495,6 +1495,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # try to extract the datetime (from state)
         try:
+            old_safety: bool = self._safety_manager.is_safety_detected
+
             # Convert ISO 8601 string to datetime object
             self._last_temperature_measure = self.get_last_updated_date_or_now(
                 new_state
@@ -1509,7 +1511,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             # try to restart if we were in safety mode
             if self._safety_manager.is_safety_detected:
-                await self._safety_manager.refresh_state()
+                safety: bool = await self._safety_manager.refresh_state()
+
+            if safety != old_safety:
+                _LOGGER.debug("%s - Change in safety alert is detected. Force update states", self)
+                self.requested_state.force_changed()
+                await self.update_states(force=True)
 
         except ValueError as err:
             # La conversion a échoué, la chaîne n'est pas au format ISO 8601
