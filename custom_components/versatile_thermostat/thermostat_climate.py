@@ -171,8 +171,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         await super().update_states(force=force)
 
-        self._regulation_algo.set_target_temp(self._state_manager.current_state.target_temperature)
-
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
 
@@ -198,6 +196,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if not force and not self.check_auto_regulation_period_min(self.now):
             return
+
+        self._regulation_algo.set_target_temp(self.target_temperature)
 
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
