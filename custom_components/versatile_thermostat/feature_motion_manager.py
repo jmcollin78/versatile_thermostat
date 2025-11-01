@@ -265,7 +265,12 @@ class FeatureMotionManager(BaseFeatureManager):
         #         self._vtherm.recalculate()
         #         await self._vtherm.async_control_heating(force=True)
 
-        return old_motion_state != self._motion_state
+        if old_motion_state != self._motion_state:
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(True)
+            return True
+
+        return False
 
     def get_current_motion_preset(self) -> str:
         """Calculate and return the current motion preset"""

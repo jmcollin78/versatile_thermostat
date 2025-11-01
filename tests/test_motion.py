@@ -101,12 +101,6 @@ async def test_motion_feature_manager_refresh(
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
-        # Configurer les méthodes mockées
-        fake_vtherm.find_preset_temp.return_value = temp
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.async_control_heating = AsyncMock()
-        fake_vtherm.recalculate = MagicMock()
-
         # force old state for the test
         motion_manager._motion_state = current_state
 
@@ -118,26 +112,6 @@ async def test_motion_feature_manager_refresh(
         assert motion_manager.is_motion_detected is is_motion_detected
 
         assert mock_get_state.call_count == 1
-
-        assert fake_vtherm.find_preset_temp.call_count == nb_call
-
-        if nb_call == 1:
-            fake_vtherm.find_preset_temp.assert_has_calls(
-                [
-                    call.find_preset_temp(preset_refresh),
-                ]
-            )
-
-            assert fake_vtherm.change_target_temperature.call_count == nb_call
-            fake_vtherm.change_target_temperature.assert_has_calls(
-                [
-                    call.find_preset_temp(temp),
-                ]
-            )
-
-            # We do not call control_heating at startup
-            assert fake_vtherm.recalculate.call_count == 0
-            assert fake_vtherm.async_control_heating.call_count == 0
 
         fake_vtherm.reset_mock()
 
@@ -205,10 +179,6 @@ async def test_motion_feature_manager_event(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough), \
         patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)):
     # fmt: on
-        fake_vtherm.find_preset_temp.return_value = temp
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.async_control_heating = AsyncMock()
-        fake_vtherm.recalculate = MagicMock()
 
         # force old state for the test
         motion_manager._motion_state = current_state
@@ -228,27 +198,6 @@ async def test_motion_feature_manager_event(
         assert motion_manager.motion_state == motion_state
         assert motion_manager.is_motion_detected is is_motion_detected
 
-        assert fake_vtherm.find_preset_temp.call_count == nb_call
-
-        if nb_call == 1:
-            fake_vtherm.find_preset_temp.assert_has_calls(
-                [
-                    call.find_preset_temp(preset_event),
-                ]
-            )
-
-            assert fake_vtherm.change_target_temperature.call_count == nb_call
-            fake_vtherm.change_target_temperature.assert_has_calls(
-                [
-                    call.find_preset_temp(temp),
-                ]
-            )
-
-            assert fake_vtherm.recalculate.call_count == 1
-            assert fake_vtherm.async_control_heating.call_count == 1
-            fake_vtherm.async_control_heating.assert_has_calls([
-                call.async_control_heating(force=True)
-            ])
 
     fake_vtherm.reset_mock()
 
