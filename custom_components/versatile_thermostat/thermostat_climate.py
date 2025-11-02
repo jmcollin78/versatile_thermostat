@@ -80,6 +80,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().__init__(hass, unique_id, name, entry_infos)
         self._regulated_target_temp = self.target_temperature
 
+        self._last_hvac_mode = None
+
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
@@ -1202,26 +1204,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
     @overrides
     async def async_turn_off(self) -> None:
-        # if window is open, don't overwrite the saved_hvac_mode
-        # if self.window_state != STATE_ON:
-        #     self.save_hvac_mode()
+        """Turn off the climate entity."""
+        self._last_hvac_mode = self.requested_state.hvac_mode
         await self.async_set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     async def async_turn_on(self) -> None:
-
-        # don't turn_on if window is open
-        # if self.window_state == STATE_ON:
-        #     _LOGGER.info(
-        #         "%s - refuse to turn on because window is open. We keep the save_hvac_mode",
-        #         self,
-        #     )
-        #     return
-
-        # if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
-        #     await self.restore_hvac_mode(True)
-        # else:
-        if self._ac_mode:
+        """Turn on the climate entity. If multiple modes are available, choose the most appropriate one."""
+        if self._last_hvac_mode:
+            await self.async_set_hvac_mode(self._last_hvac_mode)
+        elif self._ac_mode:
             await self.async_set_hvac_mode(VThermHvacMode_COOL)
         else:
             await self.async_set_hvac_mode(VThermHvacMode_HEAT)

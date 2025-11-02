@@ -199,6 +199,8 @@ class UnderlyingEntity:
         if not await self._thermostat.power_manager.check_power_available():
             _LOGGER.debug("%s - overpowering is detected", self)
             await self._thermostat.power_manager.set_overpowering(True)
+            self._thermostat.requested_state.force_changed()
+            await self._thermostat.update_states(force=True)
             return False
         return True
 
