@@ -72,7 +72,7 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 5. [Grundlegende Merkmale](documentation/de/base-attributes.md)
 6. [Konfiguriere ein VTherm als `Schalter`](documentation/de/over-switch.md)
 7. [Konfiguriere ein VTherm als `Klima`](documentation/de/over-climate.md)
-8. [Konfiguriere ein VTherm als `Ventil](documentation/de/over-valve.md)
+8. [Konfiguriere ein VTherm als `Ventil`](documentation/de/over-valve.md)
 9. [Voreinstellungen](documentation/de/feature-presets.md)
 10. [Fensterverwaltung](documentation/de/feature-window.md)
 11. [Anwesenheitsverwaltung](documentation/de/feature-presence.md)
