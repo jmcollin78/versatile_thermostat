@@ -1,58 +1,58 @@
 {
-  "title": "Versatile Thermostat configuration",
+  "title": "Konfiguracja Termostatu Wszechstronnego",
   "config": {
-    "flow_title": "Versatile Thermostat configuration",
+    "flow_title": "Konfiguracja Termostatu Wszechstronnego ",
     "step": {
       "user": {
-        "title": "Type of Versatile Thermostat",
+        "title": "Typ termostatu wszechstronnego",
         "data": {
-          "thermostat_type": "Thermostat type"
+          "thermostat_type": "Typ termostatu"
         },
         "data_description": {
-          "thermostat_type": "Only one central configuration type is possible"
+          "thermostat_type": "Możliwy jest tylko typ konfiguracji centralnej"
         }
       },
       "menu": {
         "title": "Menu",
-        "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
+        "description": "Skonfiguruj swój termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.",
         "menu_options": {
-          "main": "Main attributes",
-          "central_boiler": "Central boiler",
-          "type": "Underlyings",
-          "tpi": "TPI parameters",
+          "main": "Głowne atrybuty",
+          "central_boiler": "Bojler centralny",
+          "type": "Podstawy",
+          "tpi": "Parametry TPI",
           "features": "Features",
-          "presets": "Presets",
-          "window": "Window detection",
-          "motion": "Motion detection",
-          "power": "Power management",
-          "presence": "Presence detection",
-          "advanced": "Advanced parameters",
-          "auto_start_stop": "Auto start and stop",
-          "valve_regulation": "Valve regulation configuration",
-          "finalize": "All done",
-          "configuration_not_complete": "Configuration not complete"
+          "presets": "Ustawienia fabryczne",
+          "window": "Detekcja okna",
+          "motion": "Detekcja ruchu",
+          "power": "Zarządzanie energią",
+          "presence": "Detekcja obecności",
+          "advanced": "Parametry zaawansowane",
+          "auto_start_stop": "Auto start i stop",
+          "valve_regulation": "Konfiguracja regulacji zaworu",
+          "finalize": "Wszystko zrobione",
+          "configuration_not_complete": "Konfiguracja niekompletna"
         }
       },
       "main": {
-        "title": "Add new Versatile Thermostat",
-        "description": "Main mandatory attributes&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "title": "Dodaj nowy Termostat Wszechstronny",
+        "description": "Podstawowe wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
         "data": {
-          "name": "Name",
-          "thermostat_type": "Thermostat type",
-          "temperature_sensor_entity_id": "Room temperature",
-          "last_seen_temperature_sensor_entity_id": "Last seen room temperature datetime",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
-          "cycle_min": "Cycle duration (minutes)",
-          "temp_min": "Minimum temperature allowed",
-          "temp_max": "Maximum temperature allowed",
-          "step_temperature": "Temperature step",
-          "device_power": "Device power",
-          "use_central_mode": "Enable the control by central entity (requires central config). Check to enable the control of the VTherm with the select central_mode entities.",
-          "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
-          "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
+          "name": "Nazwa",
+          "thermostat_type": "Typ termostatu",
+          "temperature_sensor_entity_id": "Temperatura pomieszczenia",
+          "last_seen_temperature_sensor_entity_id": "Stempel czasowy ostatniego odczytu temperatury pomieszczenia",
+          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej",
+          "cycle_min": "Czas trwania cyklu (minuty)",
+          "temp_min": "Minimalna dopuszczalna temperatura",
+          "temp_max": "Maksymalna temperatura dopuszczalna",
+          "step_temperature": "Skok temperatury",
+          "device_power": "Moc urządzenia",
+          "use_central_mode": "Załączenie sterowania przez encję centralną (wymaga konfiguracji centralnej). Zaznacz aby załączyć sterowanie VTherm wybranymi encjami central_mode.",
+          "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz aby używać głównej konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, ...).",
+          "used_by_controls_central_boiler": "Używane prze bojler centralny. Zaznacz, jeśli ten VTherm powinien sterować bojlerem centralnym"
         },
         "data_description": {
-          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
