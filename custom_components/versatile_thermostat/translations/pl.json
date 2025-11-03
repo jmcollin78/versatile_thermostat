@@ -170,8 +170,8 @@
           "motion_sensor_entity_id": "Id encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji (sekundy)",
           "motion_off_delay": "Zwłoka deaktywacji (sekundy)",
-          "motion_preset": "Ustawienia wstepne, gdy wykryto ruch",
-          "no_motion_preset": "Ustawienia wstepne, gdy brak wykrycia ruchu",
+          "motion_preset": "Ustawienia wstępne, gdy wykryto ruch",
+          "no_motion_preset": "Ustawienia wstępne, gdy brak wykrycia ruchu",
           "use_motion_central_config": "Wybierz, aby użyć centralnej konfiguracji ruchu. Wyłącz wybór aby użyć konfiguracji ruchu dedykowanej dla tego termostatu"
         }
       },
@@ -193,7 +193,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarądzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór aby użyć wybranych encji temperatury"
@@ -204,7 +204,7 @@
       },
       "advanced": {
         "title": "Zaawansowane parametry",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz co zrobić.\nNiwłaściwa zmiana tych parametrów może prowadzić do złej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do złej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
         "data": {
           "safety_delay_min": "Zwłoka trybu bezpiecznego (minuty)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
@@ -213,9 +213,9 @@
         },
         "data_description": {
           "safety_delay_min": "Maksymalne dopuszczalne opóźnienie w minutach między dwoma pomiarami temperatury. Powyżej tego opóźnienia termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
-          "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie nie załączy trybu bezpiecznego.",
-          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0 aby wyłączyć ogrzewanie w bezpiecznym ustawieniu wstępnym",
-          "use_advanced_central_config": "Wybierz aby użyć centralnej konfiguracji zaawansowanej. Wyłącz wybór aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
+          "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
+          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym ustawieniu wstępnym",
+          "use_advanced_central_config": "Wybierz aby użyć centralnej konfiguracji zaawansowanej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
       "central_boiler": {
@@ -252,8 +252,8 @@
     "error": {
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
-      "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu metod jednoczesnie.",
-      "no_central_config": "Nie możesz wybrać 'centralnej konfiguracji', ponieważ jej nie znaleziono. Najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji centralnej' aby jej użyć."
+      "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu metod jednocześnie.",
+      "no_central_config": "Nie możesz wybrać 'centralnej konfiguracji', ponieważ jej nie znaleziono. Najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji centralnej', aby jej użyć."
     },
     "abort": {
       "already_configured": "Urządzenie już skonfigurowane"
@@ -625,7 +625,7 @@
         "name": "Komfort poza domem"
       },
       "boost_away_temp": {
-        "name": "Wzmmocnienie poza domem"
+        "name": "Wzmocnienie poza domem"
       },
       "eco_ac_away_temp": {
         "name": "Eko AC poza domem"
