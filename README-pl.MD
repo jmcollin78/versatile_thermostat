@@ -19,7 +19,7 @@ Ten niestandardowy komponent Home Assistanta jest ulepszoną i całkowicie przep
 
 # Zrzuty ekranowe
 
-Karta Versatile Thermostat UI (Available on [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
+Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
 
 ![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
@@ -27,22 +27,22 @@ Karta Versatile Thermostat UI (Available on [Github](https://github.com/jmcollin
 ![New](images/new-icon.png)
 > * **Wydanie 7.4**:
 >
-> - Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint. This prevents the heater from turning on/off for short periods. Ideal for wood stoves that take a long time to heat up. See [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+> - Dodano progi włączania i wyłączania algorytmu TPI, gdy temperatura przekroczy zadaną wartość. Zapobiega to włączaniu i wyłączaniu się grzejnika na krótkie okresy. Idealne rozwiązanie do pieców opalanych drewnem, które długo się nagrzewają. Patrz [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
 >
-> - Added a sleep mode for VTherms of type `over_climate` with regulation by direct valve control. This mode allows you to set the thermostat to off mode but with the valve 100% open. It is useful for long periods without heating if the boiler circulates water from time to time. Note: you must update the VTHerm UI Card to view this new mode. See [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+> - Dodano tryb uśpienia dla termostatów typu `termostat na klimacie` z regulacją poprzez bezpośrednie sterowanie zaworem. Ten tryb umożliwia ustawienie termostatu w trybie wyłączonym, ale z zaworem otwartym w 100%. Jest to przydatne podczas długich okresów bez ogrzewania, jeśli kocioł od czasu do czasu cyrkuluje wodę. Uwaga: aby wyświetlić ten nowy tryb, należy zaktualizować kartę interfejsu użytkownika. Patrz [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
 >
 > * **Wydanie 7.2**:
 >
-> - Native support for devices controlled via a `select` (or `input_select`) or `climate` entity for _VTherm_ of type `over_switch`. This update makes the creation of virtual switches obsolete for integrating Nodon, Heaty, eCosy, etc. More information [here](documentation/en/over-switch.md#command-customization).
+> - Natywna obsługa urządzeń sterowanych za pomocą encji `select` (lub `input_select`) lub `climate` dla typu `Termostat na Przełączniku`. Ta aktualizacja sprawia, że ​​tworzenie przełączników wirtualnych staje się przestarzałe w przypadku integracji Nodon, Heaty, eCosy itp. Więcej informacji [tutaj](documentation/en/over-switch.md#command-customization).
 >
-> - Documentation links: Version 7.2 introduces experimental links to the documentation from the configuration pages. The link is accessible via the icon [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). This feature is currently tested on some configuration pages.
+> - Linki do dokumentacji: wydanie 7.2 wprowadza eksperymentalne linki do dokumentacji wprost ze stron konfiguracji. Link jest dostępny za pomocą ikony [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). Funkcja ta jest obecnie testowana na niektórych stronach konfiguracyjnych.
 
 # 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
 Wielkie podziękowania dla wszystkich moich piwnych sponsorów za ich donacje i wszelki formy zachęty. To bardzo wiele dla mnie znaczy i motywuje do dalszej pracy! Jeśli integracja ta pozwala Ci oszczędzać pieniądze, w zamian za to możesz kupić mi piwo. Z pewnością będę umiał to docenić!
 
-# Glossary
+# Słownik
 
   `VTherm`: Versatile Thermostat as referred to in this document
 
@@ -60,7 +60,7 @@ Wielkie podziękowania dla wszystkich moich piwnych sponsorów za ich donacje i 
 
   `underlying`: the device controlled by `VTherm`
 
-# Documentation
+# Dokumentacja
 
 The documentation is now divided into several pages for easier reading and searching:
 1. [Introduction](documentation/en/presentation.md)
@@ -88,13 +88,13 @@ The documentation is now divided into several pages for easier reading and searc
 23. [Troubleshooting](documentation/en/troubleshooting.md)
 24. [Release notes](documentation/en/releases.md)
 
-# Some results
+# Trochę wyników...
 
-**Temperature stability around the target configured by preset**:
+**Stabilizacja temperatury skonfigurowana dzięki ustawieniom wstępnym**:
 
 ![image](documentation/en/images/results-1.png)
 
-**On/off cycles calculated by the integration `over_climate`**:
+**Cykle Zał/Wył obliczane przez integrację `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-2.png)
 
