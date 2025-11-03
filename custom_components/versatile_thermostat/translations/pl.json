@@ -53,18 +53,18 @@
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
-          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+          "last_seen_temperature_sensor_entity_id": "Stempel czasowy ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'datetime'",
+          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nieużywany, gdy wybrano konfigurację centalną"
         }
       },
       "features": {
-        "title": "Features",
-        "description": "Thermostat features",
+        "title": "Funkcje",
+        "description": "Funkcje termostatu",
         "data": {
-          "use_window_feature": "Use window detection",
-          "use_motion_feature": "Use motion detection",
-          "use_power_feature": "Use power management",
-          "use_presence_feature": "Use presence detection",
+          "use_window_feature": "Użyj detekcji okna",
+          "use_motion_feature": "Użyj detekcji ruchu",
+          "use_power_feature": "Użyj zarządzania energią",
+          "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
