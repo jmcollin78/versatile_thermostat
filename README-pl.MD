@@ -13,9 +13,9 @@ w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](R
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tip](images/tips.png) Ta integracja termostatu ma na celu znaczne uproszczenie automatyzacji zarządzania ogrzewaniem. Ponieważ wszystkie typowe zdarzenia związane z ogrzewaniem (obecność w domu, wykrycie aktywności w pomieszczeniu, otwarte okno, wyłączenie zasilania) są natywnie zarządzane przez termostat, nie musisz zajmować się skomplikowanymi skryptami i automatyzacjami, aby zarządzać termostatami. ;-).
+> ![Tip](images/tips.png) Ta integracja ma na celu znaczne uproszczenie automatyzacji zarządzania ogrzewaniem. Ponieważ wszystkie typowe zdarzenia związane z ogrzewaniem (obecność w domu, wykrycie aktywności w pomieszczeniu, otwarte okno, wyłączenie zasilania, itp.) są natywnie zarządzane przez termostat, nie musisz zajmować się skomplikowanymi skryptami i automatyzacjami, aby zarządzać termostatami. ;-).
 
-Ten niestandardowy komponent Home Assistanta jest ulepszoną i całkowicie przepisaną wersją komponentu „Awesome Thermostat” (patrz: [Github](https://github.com/dadge/awesome_thermostat)) z dodatkowymi funkcjami.
+Ten niestandardowy komponent Home Assistanta jest ulepszoną i napisaną całkowicie od nowa wersją komponentu „Awesome Thermostat” (patrz: [Github](https://github.com/dadge/awesome_thermostat)) z dodatkowymi funkcjami.
 
 # Zrzuty ekranowe
 
@@ -27,42 +27,42 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 ![New](images/new-icon.png)
 > * **Wydanie 7.4**:
 >
-> - Dodano progi włączania i wyłączania algorytmu TPI, gdy temperatura przekroczy zadaną wartość. Zapobiega to włączaniu i wyłączaniu się grzejnika na krótkie okresy. Idealne rozwiązanie do pieców opalanych drewnem, które długo się nagrzewają. Patrz [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+> - Dodano progi załączania i wyłączania algorytmu TPI, gdy temperatura przekroczy zadaną wartość. Zapobiega to włączaniu i wyłączaniu się grzejnika na krótkie okresy. Idealne rozwiązanie do pieców opalanych drewnem, które długo się nagrzewają. Patrz [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
 >
-> - Dodano tryb uśpienia dla termostatów typu `termostat na klimacie` z regulacją poprzez bezpośrednie sterowanie zaworem. Ten tryb umożliwia ustawienie termostatu w trybie wyłączonym, ale z zaworem otwartym w 100%. Jest to przydatne podczas długich okresów bez ogrzewania, jeśli kocioł od czasu do czasu cyrkuluje wodę. Uwaga: aby wyświetlić ten nowy tryb, należy zaktualizować kartę interfejsu użytkownika. Patrz [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+> - Dodano tryb uśpienia dla termostatów typu `Termostat na Klimacie` z regulacją poprzez bezpośrednie sterowanie zaworem. Ten tryb umożliwia ustawienie termostatu w trybie wyłączonym, ale z zaworem otwartym w 100%-ach. Jest to przydatne podczas długich okresów bez ogrzewania, gdy kocioł od czasu do czasu cyrkuluje wodę. Uwaga: aby wyświetlić ten nowy tryb, należy zaktualizować kartę interfejsu użytkownika. Patrz [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
 >
 > * **Wydanie 7.2**:
 >
-> - Natywna obsługa urządzeń sterowanych za pomocą encji `select` (lub `input_select`) lub `climate` dla typu `Termostat na Przełączniku`. Ta aktualizacja sprawia, że ​​tworzenie przełączników wirtualnych staje się przestarzałe w przypadku integracji Nodon, Heaty, eCosy itp. Więcej informacji [tutaj](documentation/en/over-switch.md#command-customization).
+> - Natywna obsługa urządzeń sterowanych za pomocą encji `select` (lub `input_select`) lub `climate` dla typu `Termostat na Przełączniku`. Ta aktualizacja sprawia, że ​​tworzenie przełączników wirtualnych staje się przestarzałe dla integracji Nodon, Heaty, eCosy itp. Więcej informacji [tutaj](documentation/en/over-switch.md#command-customization).
 >
 > - Linki do dokumentacji: wydanie 7.2 wprowadza eksperymentalne linki do dokumentacji wprost ze stron konfiguracji. Link jest dostępny za pomocą ikony [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). Funkcja ta jest obecnie testowana na niektórych stronach konfiguracyjnych.
 
 # 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
-Wielkie podziękowania dla wszystkich moich piwnych sponsorów za ich donacje i wszelki formy zachęty. To bardzo wiele dla mnie znaczy i motywuje do dalszej pracy! Jeśli integracja ta pozwala Ci oszczędzać pieniądze, w zamian za to możesz kupić mi piwo. Z pewnością będę umiał to docenić!
+Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje i wszelkie formy zachęty. To bardzo wiele dla mnie znaczy i motywuje do dalszej pracy! Jeśli integracja ta pozwala Ci oszczędzać pieniądze, w zamian za to możesz kupić mi piwo. Z pewnością będę umiał to docenić!
 
 # Słownik
 
-  `VTherm`: Versatile Thermostat as referred to in this document
+  `VTherm`: Versatile Thermostat (Termostat Wszechstronny) jako odnośnik do dokumentacji.
 
-  `TRV`: Thermostatic Radiator Valve equipped with a valve. The valve opens or closes to allow hot water to pass.
+  `TRV`: Termostatyczny Zawór Grzejnikowy wyposażony w zawór. Zawór, otwierając się lub zamykając, umożliwia kontrolę przepływu ciepłej wody.
 
-  `AC`: Air Conditioning. An AC device cools instead of heats. Temperatures are reversed: Eco is warmer than Comfort, which is warmer than Boost. The algorithms take this information into account.
+  `AC`: Klimatyzacja Powietrza. Urządzenie AC chłodzi lub grzeje. Oznaczenie temperatur: Tryb Eko jest cieplejszy niż Komfort, który z kolei jest cieplejszy niż tzw. Boost. Algorytmy integracji biorą to pod uwagę.
 
-  `EMA`: Exponential Moving Average. Used to smooth sensor temperature measurements. It represents a moving average of the room's temperature and is used to calculate the slope of the temperature curve, which would be too unstable on the raw data.
+  `EMA`: Zmienna Średnia Wykładnicza. Służy do wygładzania pomiarów temperatury z czujnika. Reprezentuje zmienną średnią temperaturę w pomieszczeniu i służy do obliczania nachylenia krzywej temperatury, co byłoby zbyt niestabilne w przypadku danych surowych.
 
-  `slope`: The slope of the temperature curve, measured in ° (C or K)/h. It is positive when the temperature increases and negative when it decreases. This slope is calculated based on the `EMA`.
+  `slope`: Nachylenie krzywej temperatury, mierzone w stopniach (°C lub °K)/h. Jest dodatnie, gdy temperatura rośnie, i ujemne, gdy spada. Nachylenie to oblicza się na podstawie `EMA`.
 
-  `PAC`: Heat pump
+  `PAC`: Pompa ciepła
 
   `HA`: Home Assistant
 
-  `underlying`: the device controlled by `VTherm`
+  `underlying`: Urządzenie sterowane integracją `Versatile Thermostat` (Termostat Wszechstronny)
 
 # Dokumentacja
 
-The documentation is now divided into several pages for easier reading and searching:
+Dokumentacja podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
 1. [Introduction](documentation/en/presentation.md)
 2. [Installation](documentation/en/installation.md)
 3. [Quick start](documentation/en/quick-start.md)
@@ -98,23 +98,23 @@ The documentation is now divided into several pages for easier reading and searc
 
 ![image](documentation/en/images/results-2.png)
 
-**Regulation with an `over_switch`**:
+**Regulacja `Termostatem na Przełączniku`**:
 
 ![image](documentation/en/images/results-4.png)
 
-**Strong regulation in `over_climate`**:
+**Solidna regulacjation w `Termostacie Na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulation with direct valve control in `over_climate`**:
+**Regulacja bezpośrednim sterowaniem zaworu 'Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Enjoy!
+Ciesz się i korzystaj!
 
-# Contributions are welcome!
+# Współpraca mile widziana!
 
-If you wish to contribute, please read the [contribution guidelines](CONTRIBUTING.md).
+Chciałbyś wnieść swój wkład? Prosze, zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
 
 ***
 
