@@ -106,7 +106,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
-**Regulacja bezpośrednim sterowaniem zaworu 'Termostat na Klimacie`**:
+**Regulacja bezpośrednim sterowaniem zaworu `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
