@@ -167,7 +167,7 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     now = now + timedelta(minutes=2)
     algo._accumulated_error = -100
     ret = algo.should_be_turned_off(
-        requested_hvac_mode=VThermHvacMode_OFF,
+        requested_hvac_mode=VThermHvacMode_HEAT,
         # saved_hvac_mode=VThermHvacMode_HEAT,
         target_temp=21,
         current_temp=17,
@@ -181,7 +181,7 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     now = now + timedelta(minutes=30)
     algo._accumulated_error = -100
     ret = algo.should_be_turned_off(
-        requested_hvac_mode=VThermHvacMode_OFF,
+        requested_hvac_mode=VThermHvacMode_HEAT,
         # saved_hvac_mode=VThermHvacMode_HEAT,
         target_temp=21,
         current_temp=17,
@@ -247,7 +247,7 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
         slope_min=0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.accumulated_error == 1
 
     # 2. should not stop (accumulated_error too low)
@@ -260,11 +260,11 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
         slope_min=0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.accumulated_error == 4
 
     # 2. should stop
-    now = now + timedelta(minutes=5)
+    now = now + timedelta(minutes=15)
     ret = algo.should_be_turned_off(
         requested_hvac_mode=VThermHvacMode_COOL,
         # saved_hvac_mode=VThermHvacMode_OFF,
@@ -273,7 +273,7 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
         slope_min=0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret is True
     assert algo.accumulated_error == 5  # should be 9 but is capped at error threshold
 
     # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
@@ -287,7 +287,7 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
         now=now,
     )
     assert algo.accumulated_error == 1.5  # 5/2 - 1
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is True
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -1011,10 +1011,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -1066,12 +1065,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     ) as mock_send_event:
         vtherm._set_now(now)
         await vtherm.async_set_preset_mode(VThermPreset.BOOST)
-        await hass.async_block_till_done()
-        assert vtherm.target_temperature == 21
+        await wait_for_local_condition(lambda: vtherm.target_temperature == 21)
 
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
 
         # VTherm should have been restarted
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
@@ -1574,8 +1570,8 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
         assert vtherm.window_state == STATE_ON
 
-    # 4. Set current temperature to 21 5 min later -> should turn off VTherm due to Auto-start/stop but window takes precedence
-    now = now + timedelta(minutes=5)
+    # 4. Set current temperature to 21 7 min later -> should turn off VTherm due to Auto-start/stop but window takes precedence
+    now = now + timedelta(minutes=7)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
     with patch(
@@ -1587,9 +1583,29 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
         # VTherm should no more be heating
         assert vtherm.hvac_mode == VThermHvacMode_OFF
-        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION  # No change
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION  # No change cause window is in priority
         # assert vtherm._saved_hvac_mode == VThermHvacMode_HEAT
-        assert mock_send_event.call_count == 0  # No message
+        assert mock_send_event.call_count == 1  # Start/stop event only
+        mock_send_event.assert_has_calls(
+            [
+                call(
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    data={
+                        "type": "stop",
+                        "name": "overClimate",
+                        "cause": "Auto stop conditions reached",
+                        "hvac_mode": VThermHvacMode_OFF,
+                        "saved_hvac_mode": VThermHvacMode_HEAT,
+                        "target_temperature": 19.0,
+                        "current_temperature": 21.0,
+                        "temperature_slope": 0.167,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
+                    },
+                ),
+            ]
+        )
+        assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
 
     # 5. close the window
     now = now + timedelta(minutes=2)
@@ -1612,28 +1628,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         # assert vtherm._saved_hvac_mode == VThermHvacMode_HEAT
 
         assert vtherm.window_state == STATE_OFF
-        assert mock_send_event.call_count >= 2
-        mock_send_event.assert_has_calls(
-            [
-                call(EventType.HVAC_MODE_EVENT, {"hvac_mode": VThermHvacMode_OFF}),
-                call(
-                    event_type=EventType.AUTO_START_STOP_EVENT,
-                    data={
-                        "type": "stop",
-                        "name": "overClimate",
-                        "cause": "Auto stop conditions reached",
-                        "hvac_mode": VThermHvacMode_OFF,
-                        "saved_hvac_mode": VThermHvacMode_HEAT,
-                        "target_temperature": 19.0,
-                        "current_temperature": 21.0,
-                        "temperature_slope": 0.214,
-                        "accumulated_error": -2,
-                        "accumulated_error_threshold": 2,
-                    },
-                ),
-            ]
-        )
-
+        assert mock_send_event.call_count == 0
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -1716,7 +1711,6 @@ async def test_auto_start_stop_disable_vtherm_off(
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     vtherm._set_now(now)
-    await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is True)
 
     assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
     enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)

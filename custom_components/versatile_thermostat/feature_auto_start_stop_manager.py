@@ -94,58 +94,61 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         else:
             # Do the auto-start-stop calculation
             slope = (self._vtherm.last_temperature_slope or 0) / 60  # to have the slope in °/min
-            action = self._auto_start_stop_algo.should_be_turned_off(
+            should_be_off = self._auto_start_stop_algo.should_be_turned_off(
                 self._vtherm.requested_state.hvac_mode,
                 self._vtherm.target_temperature,
                 self._vtherm.current_temperature,
                 slope,
                 self._vtherm.now,
             )
-            _LOGGER.debug("%s - auto_start_stop action is %s", self, action)
-            if action == AUTO_START_STOP_ACTION_OFF and self._vtherm.is_on:
-                _LOGGER.info("%s - Turning OFF the Vtherm due to auto-start-stop conditions", self)
-                self._is_auto_stop_detected = True
+            _LOGGER.debug("%s - auto_start_stop should be off is %s", self, should_be_off)
+            if should_be_off:
+                _LOGGER.info("%s - VTherm should be OFF due to auto-start-stop conditions", self)
                 # self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
                 # await self._vtherm.async_turn_off()
 
-                # Send an event
-                self._vtherm.send_event(
-                    event_type=EventType.AUTO_START_STOP_EVENT,
-                    data={
-                        "type": "stop",
-                        "name": self.name,
-                        "cause": "Auto stop conditions reached",
-                        "hvac_mode": VThermHvacMode_OFF,
-                        "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
-                        "target_temperature": self._vtherm.target_temperature,
-                        "current_temperature": self._vtherm.current_temperature,
-                        "temperature_slope": round(slope, 3),
-                        "accumulated_error": self._auto_start_stop_algo.accumulated_error,
-                        "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
-                    },
-                )
-            elif action == AUTO_START_STOP_ACTION_ON and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
-                _LOGGER.info("%s - Turning ON the Vtherm due to auto-start-stop conditions", self)
-                self._is_auto_stop_detected = False
+                # Send an event if vtherm is on
+                if not self._is_auto_stop_detected:
+                    self._vtherm.send_event(
+                        event_type=EventType.AUTO_START_STOP_EVENT,
+                        data={
+                            "type": "stop",
+                            "name": self.name,
+                            "cause": "Auto stop conditions reached",
+                            "hvac_mode": VThermHvacMode_OFF,
+                            "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
+                            "target_temperature": self._vtherm.target_temperature,
+                            "current_temperature": self._vtherm.current_temperature,
+                            "temperature_slope": round(slope, 3),
+                            "accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                            "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
+                        },
+                    )
+                self._is_auto_stop_detected = True
+
+            else:
+                _LOGGER.info("%s - VTherm should be ON due to auto-start-stop conditions", self)
 
                 # await self._vtherm.async_turn_on()
 
                 # Send an event
-                self._vtherm.send_event(
-                    event_type=EventType.AUTO_START_STOP_EVENT,
-                    data={
-                        "type": "start",
-                        "name": self.name,
-                        "cause": "Auto start conditions reached",
-                        "hvac_mode": self._vtherm.requested_state.hvac_mode,
-                        "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
-                        "target_temperature": self._vtherm.target_temperature,
-                        "current_temperature": self._vtherm.current_temperature,
-                        "temperature_slope": round(slope, 3),
-                        "accumulated_error": self._auto_start_stop_algo.accumulated_error,
-                        "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
-                    },
-                )
+                if self._is_auto_stop_detected:
+                    self._vtherm.send_event(
+                        event_type=EventType.AUTO_START_STOP_EVENT,
+                        data={
+                            "type": "start",
+                            "name": self.name,
+                            "cause": "Auto start conditions reached",
+                            "hvac_mode": self._vtherm.requested_state.hvac_mode,
+                            "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
+                            "target_temperature": self._vtherm.target_temperature,
+                            "current_temperature": self._vtherm.current_temperature,
+                            "temperature_slope": round(slope, 3),
+                            "accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                            "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
+                        },
+                    )
+                self._is_auto_stop_detected = False
 
         # returns False if we should stop
         return not self._is_auto_stop_detected
