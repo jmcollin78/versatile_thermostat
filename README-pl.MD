@@ -102,7 +102,7 @@ Dokumentacja podzielona jest na rozdziały i części, aby łatwiej było z niej
 
 ![image](documentation/en/images/results-4.png)
 
-**Solidna regulacjation w `Termostacie Na Klimacie`**:
+**Regulacja w `Termostacie Na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
