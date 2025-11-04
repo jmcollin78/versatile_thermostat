@@ -7,7 +7,6 @@ from unittest.mock import patch, call
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
@@ -22,7 +21,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -36,88 +35,88 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     assert algo._vtherm_name == "testu"
 
     # 1. should not stop (accumulated_error too low)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=22,
         slope_min=0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.accumulated_error == -1
     assert algo.last_switch_date is None
 
     # 2. should not stop (accumulated_error too low)
     now = now + timedelta(minutes=5)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=23,
         slope_min=0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.accumulated_error == -6
     assert algo.last_switch_date is None
 
     # 3. should not stop (accumulated_error too low)
     now = now + timedelta(minutes=2)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=23,
         slope_min=0.1,
         now=now,
     )
     assert algo.accumulated_error == -8
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.last_switch_date is None
 
     # 4 .No change on accumulated error because the new measure is too near the last one
     now = now + timedelta(seconds=11)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=23,
         slope_min=0.1,
         now=now,
     )
     assert algo.accumulated_error == -8
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.last_switch_date is None
 
     # 5. should stop now because accumulated_error is > ERROR_THRESHOLD for slow (10)
     now = now + timedelta(minutes=4)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=22,
         slope_min=0.1,
         now=now,
     )
     assert algo.accumulated_error == -10
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret is True
     assert algo.last_switch_date is not None
     assert algo.last_switch_date == now
     last_now = now
 
     # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
     now = now + timedelta(minutes=2)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=22,
         current_temp=21,
         slope_min=-0.1,
         now=now,
     )
     assert algo.accumulated_error == -4  # -10/2 + 1
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is True
     assert algo.last_switch_date == last_now
 
     # 7. change level to slow (no real change) -> error_accumulated should not reset to 0
@@ -131,7 +130,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     assert algo.last_switch_date == last_now
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -150,16 +149,16 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
 
     # 1. should stop
     algo._accumulated_error = -100
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=10,
         current_temp=21,
         slope_min=0.5,
         now=now,
     )
 
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret is True
     assert algo.last_switch_date is not None
     assert algo.last_switch_date == now
     last_now = now
@@ -167,29 +166,29 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     # 2. now we should turn on but to near the last change -> no nothing to do
     now = now + timedelta(minutes=2)
     algo._accumulated_error = -100
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_OFF,
-        saved_hvac_mode=VThermHvacMode_HEAT,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_OFF,
+        # saved_hvac_mode=VThermHvacMode_HEAT,
         target_temp=21,
         current_temp=17,
         slope_min=-0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is True
     assert algo.last_switch_date == last_now
 
     # 3. now we should turn on and now is much later ->
     now = now + timedelta(minutes=30)
     algo._accumulated_error = -100
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_OFF,
-        saved_hvac_mode=VThermHvacMode_HEAT,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_OFF,
+        # saved_hvac_mode=VThermHvacMode_HEAT,
         target_temp=21,
         current_temp=17,
         slope_min=-0.1,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_ON
+    assert ret is False
     assert algo.last_switch_date == now
     last_now = now
 
@@ -200,33 +199,33 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     # 4. try to turn_off but too speed (29 min)
     now = now + timedelta(minutes=29)
     algo._accumulated_error = -100
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=17,
         current_temp=21,
         slope_min=0.5,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_NOTHING
+    assert ret is False
     assert algo.last_switch_date == last_now
 
     # 5. turn_off much later (29 min + 1 min)
     now = now + timedelta(minutes=1)
     algo._accumulated_error = -100
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_HEAT,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=17,
         current_temp=21,
         slope_min=0.5,
         now=now,
     )
-    assert ret == AUTO_START_STOP_ACTION_OFF
+    assert ret is True
     assert algo.last_switch_date == now
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -240,9 +239,9 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     assert algo._vtherm_name == "testu"
 
     # 1. should not stop (accumulated_error too low)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_COOL,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_COOL,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=22,
         current_temp=21,
         slope_min=0.1,
@@ -253,9 +252,9 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
 
     # 2. should not stop (accumulated_error too low)
     now = now + timedelta(minutes=3)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_COOL,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_COOL,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=23,
         current_temp=21,
         slope_min=0.1,
@@ -266,9 +265,9 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
 
     # 2. should stop
     now = now + timedelta(minutes=5)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_COOL,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_COOL,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=23,
         current_temp=21,
         slope_min=0.1,
@@ -279,9 +278,9 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
 
     # 6. inverse the temperature (target > current) -> accumulated_error should be divided by 2
     now = now + timedelta(minutes=2)
-    ret = algo.calculate_action(
-        hvac_mode=VThermHvacMode_COOL,
-        saved_hvac_mode=VThermHvacMode_OFF,
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_COOL,
+        # saved_hvac_mode=VThermHvacMode_OFF,
         target_temp=21,
         current_temp=22,
         slope_min=-0.1,
@@ -293,7 +292,7 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_none_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -386,7 +385,7 @@ async def test_auto_start_stop_none_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="This test sometimes fails in CI only")
+# @pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -653,7 +652,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_ac_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -896,7 +895,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="This test sometimes fails in CI only")
+# @pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1112,7 +1111,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1254,7 +1253,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1399,9 +1398,9 @@ async def test_auto_start_stop_fast_heat_window(
 
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
 
-        # Nothing should have change (window event is ignoed as we are already OFF)
+        # Window takes precedence in the the hvac_off_reason
         assert vtherm.hvac_mode == VThermHvacMode_OFF
-        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         # assert vtherm._saved_hvac_mode == VThermHvacMode_HEAT
 
         mock_send_event.assert_not_called()
@@ -1436,7 +1435,7 @@ async def test_auto_start_stop_fast_heat_window(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window_mixed(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1575,7 +1574,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
         assert vtherm.window_state == STATE_ON
 
-    # 4. Set current temperature to 21 5 min later -> should turn off VTherm
+    # 4. Set current temperature to 21 5 min later -> should turn off VTherm due to Auto-start/stop but window takes precedence
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
@@ -1638,7 +1637,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
+# @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_disable_vtherm_off(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1719,13 +1718,8 @@ async def test_auto_start_stop_disable_vtherm_off(
     vtherm._set_now(now)
     await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is True)
 
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
-    enable_entity = search_entity(
-        hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
@@ -1756,10 +1750,40 @@ async def test_auto_start_stop_disable_vtherm_off(
     now = now + timedelta(minutes=5)
     vtherm._set_now(now)
 
-    enable_entity.turn_off()
-    await hass.async_block_till_done()
-    assert enable_entity.state == STATE_OFF
-    # VTherm should be heating
-    assert vtherm.hvac_mode == VThermHvacMode_HEAT
-    # In Eco
-    assert vtherm.target_temperature == 17.0
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
+        enable_entity.turn_off()
+        await wait_for_local_condition(lambda: enable_entity.state == STATE_OFF)
+
+        # VTherm should be heating
+        assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+        # In Eco
+        assert vtherm.target_temperature == 17.0
+        # We should have a message
+        assert mock_send_event.call_count == 2
+
+        mock_send_event.assert_has_calls(
+            [
+                call(
+                    event_type=EventType.AUTO_START_STOP_EVENT,
+                    data={
+                        "type": "start",
+                        "name": vtherm.name,
+                        "cause": "Auto start stop disabled",
+                        "hvac_mode": VThermHvacMode_HEAT,
+                        "saved_hvac_mode": VThermHvacMode_HEAT,
+                        "target_temperature": 17,
+                        "current_temperature": 26,
+                        "temperature_slope": 3.0,
+                        "accumulated_error": -2,
+                        "accumulated_error_threshold": 2,
+                    },
+                ),
+                call(
+                    EventType.HVAC_MODE_EVENT,
+                    {
+                        "hvac_mode": VThermHvacMode_HEAT,
+                    },
+                ),
+            ],
+            any_order=True,
+        )

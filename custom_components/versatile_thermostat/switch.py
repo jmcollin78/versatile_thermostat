@@ -81,38 +81,36 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
             # If no previous state set it to false by default
             self._attr_is_on = self._default_value
 
-        self.update_my_state_and_vtherm()
+        await self.update_my_state_and_vtherm()
 
-    def update_my_state_and_vtherm(self):
+    async def update_my_state_and_vtherm(self):
         """Update the auto_start_stop_enable flag in my VTherm"""
         self.async_write_ha_state()
         if (
             self.my_climate is not None
             and self.my_climate.auto_start_stop_manager is not None
         ):
-            self.my_climate.auto_start_stop_manager.set_auto_start_stop_enable(
-                self._attr_is_on
-            )
+            await self.my_climate.auto_start_stop_manager.set_auto_start_stop_enable(self._attr_is_on)
 
     @callback
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        self.turn_on()
+        self._attr_is_on = True
+        await self.update_my_state_and_vtherm()
 
     @callback
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        self.turn_off()
+        self._attr_is_on = False
+        await self.update_my_state_and_vtherm()
 
     @overrides
     def turn_off(self, **kwargs: Any):
-        self._attr_is_on = False
-        self.update_my_state_and_vtherm()
+        self.hass.create_task(self.async_turn_off(**kwargs))
 
     @overrides
     def turn_on(self, **kwargs: Any):
-        self._attr_is_on = True
-        self.update_my_state_and_vtherm()
+        self.hass.create_task(self.async_turn_on(**kwargs))
 
 
 class FollowUnderlyingTemperatureChange(

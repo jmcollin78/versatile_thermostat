@@ -324,6 +324,9 @@ class FeatureWindowManager(BaseFeatureManager):
 
         self._window_state = new_state
         if old_state != new_state:
+            if self._vtherm.auto_start_stop_manager:
+                # because window may have an impact on auto-start/stop
+                await self._vtherm.auto_start_stop_manager.refresh_state()
             self._vtherm.requested_state.force_changed()
             await self._vtherm.update_states(True)
             return True

@@ -62,12 +62,13 @@ class AutoStartStopDetectionAlgorithm:
     _last_calculation_date: datetime | None = None
     _last_switch_date: datetime | None = None
 
-    def __init__(self, level: TYPE_AUTO_START_STOP_LEVELS, vtherm_name) -> None:
+    def __init__(self, level: TYPE_AUTO_START_STOP_LEVELS, vtherm_name: str):
         """Initalize a new algorithm with the right constants"""
-        self._vtherm_name = vtherm_name
-        self._last_calculation_date = None
-        self._last_switch_date = None
+        self._vtherm_name: str = vtherm_name
+        self._last_calculation_date: datetime | None = None
+        self._last_switch_date: datetime | None = None
         self._init_level(level)
+        self._last_should_be_off: bool = False
 
     def _init_level(self, level: TYPE_AUTO_START_STOP_LEVELS):
         """Initialize a new level"""
@@ -81,40 +82,36 @@ class AutoStartStopDetectionAlgorithm:
             # reset accumulated error if we change the level
             self._accumulated_error = 0
 
-    def calculate_action(
-        self,
-        hvac_mode: VThermHvacMode | None,
-        saved_hvac_mode: VThermHvacMode | None,
-        target_temp: float,
-        current_temp: float,
-        slope_min: float | None,
-        now: datetime,
-    ) -> AUTO_START_STOP_ACTIONS:
-        """Calculate an eventual action to do depending of the value in parameter"""
+    def should_be_turned_off(self, requested_hvac_mode: VThermHvacMode, target_temp: float, current_temp: float, slope_min: float | None, now: datetime) -> bool | None:
+        """Check auto-start/stop state should be triggered
+        Return True if the device should be turned off, False if the device should not be turned off
+        """
+
         if self._level == AUTO_START_STOP_LEVEL_NONE:
             _LOGGER.debug(
                 "%s - auto-start/stop is disabled",
                 self,
             )
-            return AUTO_START_STOP_ACTION_NOTHING
+            self._last_should_be_off = False
+            return self._last_should_be_off
 
         _LOGGER.debug(
-            "%s - calculate_action: hvac_mode=%s, saved_hvac_mode=%s, target_temp=%s, current_temp=%s, slope_min=%s at %s",
+            "%s - calculate_action: requested_hvac_mode=%s, target_temp=%s, current_temp=%s, slope_min=%s at %s",
             self,
-            hvac_mode,
-            saved_hvac_mode,
+            requested_hvac_mode,
             target_temp,
             current_temp,
             slope_min,
             now,
         )
 
-        if hvac_mode is None or target_temp is None or current_temp is None:
+        if requested_hvac_mode is None or target_temp is None or current_temp is None:
             _LOGGER.debug(
                 "%s - No all mandatory parameters are set. Disable auto-start/stop",
                 self,
             )
-            return AUTO_START_STOP_ACTION_NOTHING
+            self._last_should_be_off = False
+            return self._last_should_be_off
 
         # Calculate the error factor (P)
         error = target_temp - current_temp
@@ -130,7 +127,7 @@ class AutoStartStopDetectionAlgorithm:
                     now,
                     self._last_calculation_date,
                 )
-                return AUTO_START_STOP_ACTION_NOTHING
+                return self._last_should_be_off
             error = error * dtmin
 
         # If the error have change its sign, reset smoothly the accumulated error
@@ -158,83 +155,132 @@ class AutoStartStopDetectionAlgorithm:
 
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
-        if hvac_mode == VThermHvacMode_HEAT:
-            if (
-                self._accumulated_error <= -self._error_threshold
-                and temp_at_dt >= target_temp + TEMP_HYSTERESIS
-                and nb_minutes_since_last_switch >= self._dt
-            ):
+        if requested_hvac_mode == VThermHvacMode_HEAT:
+            if self._accumulated_error <= -self._error_threshold and temp_at_dt >= target_temp + TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
                 _LOGGER.info(
-                    "%s - We need to stop, there is no need for heating for a long time.",
+                    "%s - auto-start/stop: We need to stop, there is no need for heating for a long time.",
                     self,
                 )
                 self._last_switch_date = now
-                return AUTO_START_STOP_ACTION_OFF
-            else:
-                _LOGGER.debug("%s - nothing to do, we are heating", self)
-                return AUTO_START_STOP_ACTION_NOTHING
+                self._last_should_be_off = True
+            elif temp_at_dt <= target_temp - TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
+                _LOGGER.info(
+                    "%s - auto-start/stop: We need to start heating.",
+                    self,
+                )
+                self._last_switch_date = now
+                self._last_should_be_off = False
 
-        if hvac_mode == VThermHvacMode_COOL:
-            if (
-                self._accumulated_error >= self._error_threshold
-                and temp_at_dt <= target_temp - TEMP_HYSTERESIS
-                and nb_minutes_since_last_switch >= self._dt
-            ):
+        elif requested_hvac_mode == VThermHvacMode_COOL:
+            if self._accumulated_error >= self._error_threshold and temp_at_dt <= target_temp - TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
                 _LOGGER.info(
                     "%s - We need to stop, there is no need for cooling for a long time.",
                     self,
                 )
                 self._last_switch_date = now
-                return AUTO_START_STOP_ACTION_OFF
-            else:
-                _LOGGER.debug(
-                    "%s - nothing to do, we are cooling",
-                    self,
-                )
-                return AUTO_START_STOP_ACTION_NOTHING
+                self._last_should_be_off = True
 
-        # check to turn on
-        if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_HEAT:
-            if (
-                temp_at_dt <= target_temp - TEMP_HYSTERESIS
-                and nb_minutes_since_last_switch >= self._dt
-            ):
+            elif temp_at_dt >= target_temp + TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
                 _LOGGER.info(
-                    "%s - We need to start, because it will be time to heat",
+                    "%s - We need to start cooling.",
                     self,
                 )
                 self._last_switch_date = now
-                return AUTO_START_STOP_ACTION_ON
-            else:
-                _LOGGER.debug(
-                    "%s - nothing to do, we don't need to heat soon",
-                    self,
-                )
-                return AUTO_START_STOP_ACTION_NOTHING
+                self._last_should_be_off = False
 
-        if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_COOL:
-            if (
-                temp_at_dt >= target_temp + TEMP_HYSTERESIS
-                and nb_minutes_since_last_switch >= self._dt
-            ):
-                _LOGGER.info(
-                    "%s - We need to start, because it will be time to cool",
-                    self,
-                )
-                self._last_switch_date = now
-                return AUTO_START_STOP_ACTION_ON
-            else:
-                _LOGGER.debug(
-                    "%s - nothing to do, we don't need to cool soon",
-                    self,
-                )
-                return AUTO_START_STOP_ACTION_NOTHING
+        _LOGGER.debug("%s - nothing to do, requested hvac_mode is %s", self, requested_hvac_mode)
+        return self._last_should_be_off
 
-        _LOGGER.debug(
-            "%s - nothing to do, no conditions applied",
-            self,
-        )
-        return AUTO_START_STOP_ACTION_NOTHING
+    # def calculate_action(
+    #     self,
+    #     hvac_mode: VThermHvacMode | None,
+    #     saved_hvac_mode: VThermHvacMode | None,
+    #     target_temp: float,
+    #     current_temp: float,
+    #     slope_min: float | None,
+    #     now: datetime,
+    # ) -> AUTO_START_STOP_ACTIONS:
+    #     """Calculate an eventual action to do depending of the value in parameter"""
+
+    #     # Check to turn-off
+    #     # When we hit the threshold, that mean we can turn off
+    #     if hvac_mode == VThermHvacMode_HEAT:
+    #         if (
+    #             self._accumulated_error <= -self._error_threshold
+    #             and temp_at_dt >= target_temp + TEMP_HYSTERESIS
+    #             and nb_minutes_since_last_switch >= self._dt
+    #         ):
+    #             _LOGGER.info(
+    #                 "%s - We need to stop, there is no need for heating for a long time.",
+    #                 self,
+    #             )
+    #             self._last_switch_date = now
+    #             return AUTO_START_STOP_ACTION_OFF
+    #         else:
+    #             _LOGGER.debug("%s - nothing to do, we are heating", self)
+    #             return AUTO_START_STOP_ACTION_NOTHING
+
+    #     if hvac_mode == VThermHvacMode_COOL:
+    #         if (
+    #             self._accumulated_error >= self._error_threshold
+    #             and temp_at_dt <= target_temp - TEMP_HYSTERESIS
+    #             and nb_minutes_since_last_switch >= self._dt
+    #         ):
+    #             _LOGGER.info(
+    #                 "%s - We need to stop, there is no need for cooling for a long time.",
+    #                 self,
+    #             )
+    #             self._last_switch_date = now
+    #             return AUTO_START_STOP_ACTION_OFF
+    #         else:
+    #             _LOGGER.debug(
+    #                 "%s - nothing to do, we are cooling",
+    #                 self,
+    #             )
+    #             return AUTO_START_STOP_ACTION_NOTHING
+
+    #     # check to turn on
+    #     if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_HEAT:
+    #         if (
+    #             temp_at_dt <= target_temp - TEMP_HYSTERESIS
+    #             and nb_minutes_since_last_switch >= self._dt
+    #         ):
+    #             _LOGGER.info(
+    #                 "%s - We need to start, because it will be time to heat",
+    #                 self,
+    #             )
+    #             self._last_switch_date = now
+    #             return AUTO_START_STOP_ACTION_ON
+    #         else:
+    #             _LOGGER.debug(
+    #                 "%s - nothing to do, we don't need to heat soon",
+    #                 self,
+    #             )
+    #             return AUTO_START_STOP_ACTION_NOTHING
+
+    #     if hvac_mode == VThermHvacMode_OFF and saved_hvac_mode == VThermHvacMode_COOL:
+    #         if (
+    #             temp_at_dt >= target_temp + TEMP_HYSTERESIS
+    #             and nb_minutes_since_last_switch >= self._dt
+    #         ):
+    #             _LOGGER.info(
+    #                 "%s - We need to start, because it will be time to cool",
+    #                 self,
+    #             )
+    #             self._last_switch_date = now
+    #             return AUTO_START_STOP_ACTION_ON
+    #         else:
+    #             _LOGGER.debug(
+    #                 "%s - nothing to do, we don't need to cool soon",
+    #                 self,
+    #             )
+    #             return AUTO_START_STOP_ACTION_NOTHING
+
+    #     _LOGGER.debug(
+    #         "%s - nothing to do, no conditions applied",
+    #         self,
+    #     )
+    #     return AUTO_START_STOP_ACTION_NOTHING
 
     def set_level(self, level: TYPE_AUTO_START_STOP_LEVELS):
         """Set a new level"""
