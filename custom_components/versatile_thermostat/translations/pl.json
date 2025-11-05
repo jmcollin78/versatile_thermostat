@@ -253,7 +253,7 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej', aby jej użyć."
+      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej'."
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -513,7 +513,7 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej', aby jej użyć.",
+      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej'.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
