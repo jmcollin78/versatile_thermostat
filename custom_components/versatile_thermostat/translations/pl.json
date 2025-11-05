@@ -471,7 +471,7 @@
         "data_description": {
 
           "minimal_activation_delay": "Zwłoka (w sekundach), w czasie której urządzenie nie zostanie aktywowane",
-          "minimal_deactivation_delay": "Zwłoka (w sekundach), w czasie której urządzenie będzie utrzymywane w stanie gotowości"          
+          "minimal_deactivation_delay": "Zwłoka (w sekundach), w czasie której urządzenie będzie utrzymywane w stanie gotowości",
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w minutach) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
           "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym ustawieniu wstępnym",
