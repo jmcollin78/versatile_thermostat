@@ -102,7 +102,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 ![image](documentation/en/images/results-4.png)
 
-**Regulacja w `Termostacie na Klimacie`**:
+**Regulacja `Termostatem na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 
