@@ -1779,7 +1779,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return True
 
     async def async_control_heating(self, _=None, force=False) -> bool:
-        """The main function used to run the calculation at each cycle"""
+        """The main function used to run the calculation at each cycle
+        Returns True if the cycle was successfully calculated, False otherwise."""
 
         _LOGGER.debug(
             "%s - Checking new cycle. hvac_mode=%s, safety_state=%s, preset_mode=%s, force=%s",

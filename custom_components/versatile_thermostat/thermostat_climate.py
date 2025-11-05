@@ -884,10 +884,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """The main function used to run the calculation at each cycle"""
         ret = await super().async_control_heating(_=_, force=force)
 
-        # Check if we need to auto start/stop the Vtherm
-        continu = await self.auto_start_stop_manager.refresh_state()
-        if not continu:
+        if not ret:
             return ret
+
+        # Check if we need to auto start/stop the Vtherm
+        old_stop = self.auto_start_stop_manager.is_auto_stop_detected
+        new_stop = await self.auto_start_stop_manager.refresh_state()
+        if old_stop != new_stop:
+            _LOGGER.info("%s - Auto stop state changed from %s to %s", self, old_stop, new_stop)
+            await self.update_states(force=True)
+            return True
 
         # Continue the normal async_control_heating
 
@@ -897,7 +903,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
             await self._send_auto_fan_mode()
 
-        return ret
+        return True
 
     def set_follow_underlying_temp_change(self, follow: bool):
         """Set the flaf follow the underlying temperature changes"""

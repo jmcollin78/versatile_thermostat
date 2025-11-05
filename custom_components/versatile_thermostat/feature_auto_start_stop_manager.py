@@ -86,7 +86,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
     @overrides
     async def refresh_state(self) -> bool:
         """Check the auto-start-stop and an eventual action
-        Return False if we should stop the control_heating method"""
+        Return True is auto stop is detected"""
 
         if not self._is_configured or not self._is_auto_start_stop_enabled:
             _LOGGER.debug("%s - auto start/stop is disabled (or not configured)", self)
@@ -150,8 +150,8 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     )
                 self._is_auto_stop_detected = False
 
-        # returns False if we should stop
-        return not self._is_auto_stop_detected
+        # returns True if we should stop
+        return self._is_auto_stop_detected
 
     async def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""
