@@ -8,7 +8,7 @@
 
 This README file is available in
 languages : [English](README.md) | [French](README-fr.md) | [German](README-de.md) | [Czech](README-cs.md) | [Polish](README-pl.MD)
-
+<div> <br> </div>
 <p align="center">
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
