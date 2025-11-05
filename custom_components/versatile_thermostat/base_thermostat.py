@@ -231,7 +231,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._window_manager: FeatureWindowManager = FeatureWindowManager(self, hass)
         self._safety_manager: FeatureSafetyManager = FeatureSafetyManager(self, hass)
         # Auto start/stop is only for over_climate
-        self._auto_start_stop_manager: FeatureAutoStartStopManager = None
+        self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)

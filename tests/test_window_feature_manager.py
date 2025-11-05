@@ -155,7 +155,8 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
     type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value={})
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -261,7 +262,8 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     type(fake_vtherm).name = PropertyMock(return_value="the name")
     type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -370,7 +372,8 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
     type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -485,7 +488,8 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     type(fake_vtherm).name = PropertyMock(return_value="the name")
     type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
