@@ -214,6 +214,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._hvac_off_reason: str | None = None
         self._hvac_list: list[VThermHvacMode] = []
+        self._str_hvac_list: list[str] = []
 
         # Store the last havac_mode before central mode changes
         # has been introduce to avoid conflict with window
@@ -768,16 +769,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def hvac_modes(self) -> list[HVACMode]:
-        """List of available operation modes for Home Assistant."""
-        return [to_ha_hvac_mode(mode) for mode in self._hvac_list if to_ha_hvac_mode(mode) is not None]
-
-    @property
-    def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
-        """List of available VTherm operation modes."""
-        return self._hvac_list
 
     @property
     def ac_mode(self) -> bool | None:
