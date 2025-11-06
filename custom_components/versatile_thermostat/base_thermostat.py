@@ -712,6 +712,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def set_hvac_list(self):
         """Set the hvac list depending on ac_mode"""
         self._hvac_list = self.build_hvac_list()
+        self._str_hvac_list = [to_ha_hvac_mode(mode) for mode in self._hvac_list if to_ha_hvac_mode(mode) is not None]
+
+    @property
+    def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
+        """List of available VTherm operation modes."""
+        return self._hvac_list
+
+    @property
+    def hvac_modes(self) -> list[str]:
+        """List of available VTherm operation modes."""
+        return self._str_hvac_list
 
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
@@ -759,8 +770,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._name
 
     @property
-    def hvac_modes(self) -> list[VThermHvacMode]:
-        """List of available operation modes."""
+    def hvac_modes(self) -> list[HVACMode]:
+        """List of available operation modes for Home Assistant."""
+        return [to_ha_hvac_mode(mode) for mode in self._hvac_list if to_ha_hvac_mode(mode) is not None]
+
+    @property
+    def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
+        """List of available VTherm operation modes."""
         return self._hvac_list
 
     @property
@@ -1136,7 +1152,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     for under in self._underlyings:
                         sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
                     self._attr_hvac_mode = str(self.vtherm_hvac_mode)
-                    self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": self.vtherm_hvac_mode})
+                    self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # self.recalculate()
                     # self.reset_last_change_time_from_vtherm()
                     # Remove eventual overpowering if we want to turn-off
@@ -1746,7 +1762,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         #     return
 
         # if new_central_mode == CENTRAL_MODE_COOL_ONLY:
-        #     if VThermHvacMode_COOL in self.hvac_modes:
+        #     if VThermHvacMode_COOL in self.vtherm_hvac_modes:
         #         await self.async_set_hvac_mode(VThermHvacMode_COOL)
         #     else:
         #         self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
@@ -1754,7 +1770,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         #     return
 
         # if new_central_mode == CENTRAL_MODE_HEAT_ONLY:
-        #     if VThermHvacMode_HEAT in self.hvac_modes:
+        #     if VThermHvacMode_HEAT in self.vtherm_hvac_modes:
         #         await self.async_set_hvac_mode(VThermHvacMode_HEAT)
         #     # if not already off
         #     elif self.vtherm_hvac_mode != VThermHvacMode_OFF:
@@ -1763,7 +1779,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         #     return
 
         # if new_central_mode == CENTRAL_MODE_FROST_PROTECTION:
-        #     if VThermPreset.FROST in self.vtherm_preset_modes and VThermHvacMode_HEAT in self.hvac_modes:  # pyright: ignore[reportOperatorIssue]
+        #     if VThermPreset.FROST in self.vtherm_preset_modes and VThermHvacMode_HEAT in self.vtherm_hvac_modes:  # pyright: ignore[reportOperatorIssue]
         #         await self.async_set_hvac_mode(VThermHvacMode_HEAT)
         #         await self.async_set_preset_mode(VThermPreset.FROST)
         #     else:
@@ -2073,7 +2089,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             for key, preset_name in items:
                 _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
                 # removes preset_name frost if heat is not in hvac_modes
-                if key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.hvac_modes:
+                if key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
                     _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
                     continue
                 value = vtherm_api.get_temperature_number_value(

@@ -301,7 +301,7 @@ class FeatureWindowManager(BaseFeatureManager):
             #
             # if (
             #    self._window_action == CONF_WINDOW_FAN_ONLY
-            #    and VThermHvacMode_FAN_ONLY in self._vtherm.hvac_modes
+            #    and VThermHvacMode_FAN_ONLY in self._vtherm.vtherm_hvac_modes
             # ):
             #    await self._vtherm.async_set_hvac_mode(VThermHvacMode_FAN_ONLY)
             # elif (

@@ -63,7 +63,7 @@ class VThermState:
             hvac_mode: New HVAC mode to set (e.g. 'heat', 'off', 'cool', 'sleep').
         """
         if not isinstance(hvac_mode, VThermHvacMode):
-            raise ValueError(f"Invalid HVAC mode: {hvac_mode}. Should be an instance of VThermHvacMode.")
+            hvac_mode = VThermHvacMode(str(hvac_mode))
 
         self._is_hvac_mode_changed = self._is_hvac_mode_changed or self._hvac_mode != hvac_mode
         self._hvac_mode = hvac_mode
@@ -139,10 +139,19 @@ class VThermState:
     def to_dict(self) -> dict[str, Any]:
         """Convert the state to a dictionary."""
         return {
-            "hvac_mode": self._hvac_mode,
+            "hvac_mode": str(self._hvac_mode),
             "target_temperature": self._target_temperature,
-            "preset": self._preset,
+            "preset": str(self._preset),
         }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "VThermState":
+        """Create a VThermState from a dictionary."""
+        hvac_mode = VThermHvacMode(data["hvac_mode"])
+        target_temperature = data["target_temperature"]
+        preset = VThermPreset(data["preset"]) if data["preset"] else None
+        state = cls(hvac_mode, target_temperature, preset)
+        return state
 
     def __str__(self) -> str:
         """Return a human readable representation of the state."""

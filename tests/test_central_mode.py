@@ -366,7 +366,8 @@ async def test_switch_ac_change_central_mode_true(
         assert entity
         assert entity.is_controlled_by_central_mode
         assert entity.ac_mode is True
-        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
+        assert entity.hvac_modes == [str(VThermHvacMode_HEAT), str(VThermHvacMode_COOL), str(VThermHvacMode_OFF)]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
 
         # Find the select entity
         select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
@@ -504,7 +505,7 @@ async def test_climate_ac_change_central_mode_false(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
         assert entity.is_controlled_by_central_mode is False
-        assert entity.hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
 
         # Find the select entity
         select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
@@ -649,7 +650,7 @@ async def test_climate_ac_only_change_central_mode_true(
         assert entity.is_over_climate
         assert entity.is_controlled_by_central_mode is True
         # Should take the hvac_modes of the underlying climate
-        assert entity.hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL]
 
         # Find the select entity
         select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)

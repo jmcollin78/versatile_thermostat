@@ -85,7 +85,7 @@ async def test_over_switch_ac_full_start(
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
-        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,

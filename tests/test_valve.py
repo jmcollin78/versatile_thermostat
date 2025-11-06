@@ -86,7 +86,7 @@ async def test_over_valve_full_start(
         assert entity.ac_mode is False
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,

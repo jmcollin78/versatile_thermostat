@@ -61,7 +61,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity._prop_algorithm is not None
         assert entity.have_valve_regulation is False
 
-        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -123,7 +123,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.have_valve_regulation is False
 
         # hvac_modes comes from underlying entity + OFF. there is no AC mode in underlying entity
-        assert entity.hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2

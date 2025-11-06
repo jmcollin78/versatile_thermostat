@@ -52,6 +52,15 @@ class VThermHvacMode:
     def __repr__(self):
         return f"[VThermHvacMode: {self._hvac_mode}]"
 
+    def to_json(self) -> str:
+        """Convert to JSON serializable string."""
+        return self._hvac_mode
+
+    @classmethod
+    def from_json(cls, json_value: str) -> "VThermHvacMode":
+        """Create instance from JSON serializable string."""
+        return cls(json_value)
+
 
 VThermHvacMode_OFF = VThermHvacMode(OFF)
 VThermHvacMode_HEAT = VThermHvacMode(HEAT)
