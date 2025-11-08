@@ -118,7 +118,7 @@ Przykład krzywych uzyskanych z Plotly:
 ![image](images/plotly-curves.png)
 
 ## Powiadamianie o zdarzeniach za pomocą AppDaemon NOTIFIER
-Ta automatyzacja wykorzystuje doskonałą aplikację AppDaemon NOTIFIER, opracowaną przez Horizon Domotique, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem, mających miejsce w dowolnym Wszechstronnym Termostacie.
+Ta automatyzacja wykorzystuje doskonałą aplikację AppDaemon NOTIFIER, opracowaną przez Horizon Domotique, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego Wszechstronnego Termostatu.
 
 Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tutaj](reference.md#events).
 <details>
