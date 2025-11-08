@@ -7,15 +7,15 @@
   - [Powiadomienie o zdarzeniach za pomocą AppDaemon NOTIFIER](#event-notification-with-the-appdaemon-notifier)
 
 ## Karta Versatile Thermostat UI Card
-Opracowano dedykowaną kartę dla termostatu Versatile Thermostat (bazującą na Better Thermostat). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów Wszechstronnego Termostatu:
+Opracowano dedykowaną kartę dla termostatu VTherm (bazującą na Better Thermostat). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów Wszechstronnego Termostatu:
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
 ## Harmonogram
 
-Aby w pełni wykorzystać możliwości Wszechstronnego Termostatu, zalecane jest używanie go w połączeniu z [Harmonogramem](https://github.com/nielsfaber/scheduler-component). Komponent ten umożliwia tworzenie harmonogramu pracy klimatyzacji w oparciu o predefiniowane tryby. Chociaż ta funkcja jest nieco ograniczona w przypadku termostatu uniwersalnego, staje się bardzo wydajna w połączeniu z Wszechstronnym Termostatem.
+Aby w pełni wykorzystać możliwości VTherm, zalecane jest używanie go w połączeniu z [Harmonogramem](https://github.com/nielsfaber/scheduler-component). Komponent ten umożliwia tworzenie harmonogramu pracy klimatyzacji w oparciu o predefiniowane tryby. Chociaż ta funkcja jest nieco ograniczona w przypadku termostatu uniwersalnego, staje się bardzo wydajna w połączeniu z VTherm.
 
-Oto przykład. Zakładając, że zainstalowałeś zarówno Wszechstronny Termostat, jak i komponent Harmonogram, dodaj w harmonogramie:
+Oto przykład. Zakładając, że zainstalowałeś zarówno VTherm, jak i komponent Harmonogram, dodaj w harmonogramie:
 
 ![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
 
@@ -118,7 +118,7 @@ Przykład krzywych uzyskanych z Plotly:
 ![image](images/plotly-curves.png)
 
 ## Powiadamianie o zdarzeniach za pomocą AppDaemon NOTIFIER
-Ta automatyzacja wykorzystuje doskonałą aplikację AppDaemon NOTIFIER, opracowaną przez Horizon Domotique, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego Wszechstronnego Termostatu.
+Ta automatyzacja wykorzystuje doskonałą aplikację AppDaemon NOTIFIER, opracowaną przez Horizon Domotique, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego termostatu VTherm.
 
 Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tutaj](reference.md#events).
 <details>
