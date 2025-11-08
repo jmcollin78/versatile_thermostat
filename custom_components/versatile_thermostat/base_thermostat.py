@@ -618,7 +618,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # Try to init current_state with old temperature, preset and mode
                 self._state_manager.current_state.set_state(
                     target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
-                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None)),
+                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None) or VThermPreset.NONE),
                     hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
             # If we have no initial temperature set with min (or max depending on ac_mode)
@@ -642,7 +642,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # Try to init requested_state with old temperature, preset and mode
                 self._state_manager.requested_state.set_state(
                     target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
-                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None)),
+                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None) or VThermPreset.NONE),
                     hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
 
