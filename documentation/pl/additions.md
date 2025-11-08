@@ -27,7 +27,7 @@ Zdefiniuj schemat trybu i zapisz go:
 
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
-W tym przykładzie ustawiony został tryb ECO na noc oraz na okres, gdy w ciągu dnia nikogo nie ma w domu, BOOST rano i COMFORT wieczorem.
+W tym przykładzie ustawiony został tryb ECO na noc oraz na okres dzienny, gdy nikogo nie ma w domu, BOOST rano i COMFORT wieczorem.
 
 
 ## Krzywe regulacji z Plotly do precyzyjnego dostrajania termostatu
