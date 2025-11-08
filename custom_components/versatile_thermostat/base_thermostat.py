@@ -607,17 +607,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         )
         if old_state is not None:
             # Restore current_state
-            if current_state := old_state.attributes.get(ATTR_CURRENT_STATE, None):
+            if current_state_attr := old_state.attributes.get(ATTR_CURRENT_STATE, None):
+                current_state = VThermState.from_dict(current_state_attr)
                 self._state_manager.current_state.set_state(
-                    hvac_mode=current_state.get("hvac_mode", None) or VThermHvacMode_OFF,
-                    target_temperature=current_state.get("target_temperature", None),
-                    preset=current_state.get("preset", None) or VThermPreset.NONE,
+                    hvac_mode=current_state.hvac_mode,
+                    target_temperature=current_state.target_temperature,
+                    preset=current_state.preset,
                 )
             else:
                 # Try to init current_state with old temperature, preset and mode
                 self._state_manager.current_state.set_state(
                     target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
-                    preset=old_state.attributes.get(ATTR_PRESET_MODE, None),
+                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None)),
                     hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
             # If we have no initial temperature set with min (or max depending on ac_mode)
@@ -630,18 +631,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 )
 
             # Restore requested_state or default with current_state
-            if requested_state := old_state.attributes.get(ATTR_REQUESTED_STATE, None):
+            if requested_state_attr := old_state.attributes.get(ATTR_REQUESTED_STATE, None):
+                requested_state = VThermState.from_dict(requested_state_attr)
                 self._state_manager.requested_state.set_state(
-                    hvac_mode=requested_state.get("hvac_mode", None) or VThermHvacMode_OFF,
-                    target_temperature=requested_state.get("target_temperature", None),
-                    preset=requested_state.get("preset", None) or VThermPreset.NONE,
+                    hvac_mode=requested_state.hvac_mode,
+                    target_temperature=requested_state.target_temperature,
+                    preset=requested_state.preset,
                 )
             else:
                 # Try to init requested_state with old temperature, preset and mode
                 self._state_manager.requested_state.set_state(
-                    target_temperature=self._state_manager.current_state.target_temperature,
-                    preset=self._state_manager.current_state.preset,
-                    hvac_mode=self._state_manager.current_state.hvac_mode,
+                    target_temperature=old_state.attributes.get(ATTR_TEMPERATURE, None),
+                    preset=VThermPreset(old_state.attributes.get(ATTR_PRESET_MODE, None)),
+                    hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
 
             # TODO has been removed
@@ -1858,8 +1860,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             ATTR_REQUESTED_STATE: self._state_manager.requested_state.to_dict(),
             "is_on": self.is_on,
             "hvac_action": self.hvac_action,
-            # "hvac_mode": self.hvac_mode,
-            # "preset_mode": self.preset_mode,
+            "hvac_mode": self.hvac_mode,
+            "preset_mode": self.preset_mode,
             "type": self._thermostat_type,
             "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
             "last_central_mode": self.last_central_mode,
@@ -1874,11 +1876,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "target_temperature_step": self.target_temperature_step,
             "ext_current_temperature": self._cur_ext_temp,
             "ac_mode": self._ac_mode,
-            # "saved_target_temp": self._saved_target_temp,
-            # "saved_preset_mode": self._saved_preset_mode,
-            # "saved_hvac_mode": self._saved_hvac_mode,
-            # ATTR_SAVED_PRESET_MODE_CENTRAL_MODE: self._saved_preset_mode_central_mode,
-            # ATTR_SAVED_HVAC_MODE_CENTRAL_MODE: self._saved_hvac_mode_central_mode,
             "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
             "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
             "minimal_activation_delay_sec": self._minimal_activation_delay,

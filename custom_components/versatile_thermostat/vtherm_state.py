@@ -158,3 +158,21 @@ class VThermState:
         return f"VThermState(" f"hvac_mode={self._hvac_mode}, " f"target_temperature={self._target_temperature}, " f"preset={self._preset}, " f"is_changed={self.is_changed})"
 
     __repr__ = __str__
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two VThermState instances for equality.
+
+        Args:
+            other: Another object to compare with.
+
+        Returns:
+            True if both states have the same hvac_mode, target_temperature, and preset.
+        """
+        if not isinstance(other, VThermState):
+            return False
+
+        return self._hvac_mode == other._hvac_mode and self._target_temperature == other._target_temperature and self._preset == other._preset
+
+    def __ne__(self, other: object) -> bool:
+        """Compare two VThermState instances for inequality."""
+        return not self.__eq__(other)
