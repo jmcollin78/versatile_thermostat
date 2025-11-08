@@ -227,7 +227,7 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
         assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
+        assert custom_attributes["window_delay_sec"] == 10
         assert custom_attributes["window_auto_open_threshold"] is None
         assert (
             custom_attributes["window_auto_close_threshold"] is None
@@ -336,7 +336,7 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
         assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
+        assert custom_attributes["window_delay_sec"] == 10
         assert custom_attributes["window_auto_open_threshold"] is None
         assert (
             custom_attributes["window_auto_close_threshold"] is None
@@ -451,7 +451,7 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
         assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
+        assert custom_attributes["window_delay_sec"] == 10
         assert custom_attributes["window_auto_open_threshold"] is None
         assert (
             custom_attributes["window_auto_close_threshold"] is None
@@ -567,7 +567,7 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
         assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
+        assert custom_attributes["window_delay_sec"] == 10
         assert custom_attributes["window_auto_open_threshold"] is None
         assert (
             custom_attributes["window_auto_close_threshold"] is None

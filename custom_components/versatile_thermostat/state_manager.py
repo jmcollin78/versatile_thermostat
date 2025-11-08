@@ -216,26 +216,17 @@ class StateManager:
                 self._current_state.set_target_temperature(vtherm.find_preset_temp(VThermPreset.ECO if window_action == CONF_WINDOW_ECO_TEMP else VThermPreset.FROST))
                 updated = True
 
+        elif vtherm.motion_manager.is_configured and self._current_state.preset == VThermPreset.ACTIVITY:
+            new_preset = vtherm.motion_manager.get_current_motion_preset()
+            _LOGGER.debug("%s - motion will set new target preset: %s", self, new_preset)
+            self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
+            updated = True
+
         elif vtherm.presence_manager.is_absence_detected:
             if vtherm.vtherm_preset_mode is not None:
                 new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
-                _LOGGER.debug(
-                    "%s - presence will set new target temperature: %.2f",
-                    self,
-                    new_temp,
-                )
+                _LOGGER.debug("%s - presence will set new target temperature: %.2f", self, new_temp)
                 self._current_state.set_target_temperature(new_temp)
-                updated = True
-
-        elif vtherm.motion_manager.is_motion_detected:
-            if self._current_state.preset == VThermPreset.ACTIVITY:
-                new_preset = vtherm.motion_manager.get_current_motion_preset()
-                _LOGGER.debug(
-                    "%s - motion will set new target preset: %s",
-                    self,
-                    new_preset,
-                )
-                self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
                 updated = True
 
         if not updated:
