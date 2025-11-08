@@ -119,21 +119,21 @@ class StateManager:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
-        elif vtherm.last_central_mode == CENTRAL_MODE_COOL_ONLY:
+        elif vtherm.last_central_mode == CENTRAL_MODE_COOL_ONLY and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if VThermHvacMode_COOL in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_COOL)
             else:
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
 
-        elif vtherm.last_central_mode == CENTRAL_MODE_HEAT_ONLY:
+        elif vtherm.last_central_mode == CENTRAL_MODE_HEAT_ONLY and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if VThermHvacMode_HEAT in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_HEAT)
             else:
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
 
-        elif vtherm.last_central_mode == CENTRAL_MODE_FROST_PROTECTION:
+        elif vtherm.last_central_mode == CENTRAL_MODE_FROST_PROTECTION and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if VThermPreset.FROST not in vtherm.vtherm_preset_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             elif vtherm.vtherm_hvac_mode != VThermHvacMode_HEAT and VThermHvacMode_HEAT in vtherm.vtherm_hvac_modes:
@@ -148,7 +148,7 @@ class StateManager:
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         # Calculate hvac_off_reason
-        if self._current_state.hvac_mode != VThermHvacMode_OFF:
+        if self._current_state.hvac_mode != VThermHvacMode_OFF and vtherm.hvac_off_reason is not None:
             vtherm.set_hvac_off_reason(None)
 
         return self._current_state.is_hvac_mode_changed
