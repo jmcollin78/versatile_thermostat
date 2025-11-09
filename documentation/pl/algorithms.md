@@ -17,9 +17,9 @@ Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klim
 
 ![image](images/config-tpi.png)
 
-Musisz określić:
-1. współczynnik `coef_int` algorytmu TPI,
-2. współczynnik `coef_ext` algorytmu TPI,
+Musisz tutaj określić:
+1. współczynnik `współczynnik delty dla temperatury wewnętrznej` algorytmu TPI,
+2. współczynnik `współczynnik delty dla temperatury zewnętrznej` algorytmu TPI,
 3. minimalny czas aktywacji (w sek.),
 4. minimalny czas deaktywacji (w sek.),
 5. górny próg odcięcia w °C (lub °K) dla odchylenia temperatury, powyżej którego algorytm zostanie wyłączony,
@@ -31,28 +31,24 @@ Algorytm TPI oblicza procent załączenia/wyłączenia grzejnika w każdym cyklu
 
 Procent ten obliczany jest na podstawie następującej formuły:
 
-    on_percent = coef_int * (target_temperature - current_temperature) + coef_ext * (target_temperature - outdoor_temperature)
-    Then, the algorithm ensures that 0 <= on_percent <= 1.
+    procent = współczynnik_delty_dla_temperatury_wewnętrznej * (temperatura_docelowa - temperatura_aktuana) + współczynnik_delty_dla_temperatury_zewnętrznej * (temperatura_docelowa - temperatura_zewnętrzna)
+    Następnie algorytm sprawdza warunek: 0 <= procent <= 1.
 
-The default values for `coef_int` and `coef_ext` are `0.6` and `0.01`, respectively. These default values are suitable for a standard well-insulated room.
+Domyślne wartości  `współczynnika delty dla temperatury wewnętrznej` i `współczynnika delty dla temperatury zewnętrznej` wynoszą odpowiednio `0.6` i `0.01`. Wartości te są odpowiednie dla pomieszczenia o dobrej izolacji termicznej.
 
-When adjusting these coefficients, keep the following in mind:
-1. **If the target temperature is not reached** after stabilization, increase `coef_ext` (the `on_percent` is too low),
-2. **If the target temperature is exceeded** after stabilization, decrease `coef_ext` (the `on_percent` is too high),
-3. **If reaching the target temperature is too slow**, increase `coef_int` to provide more power to the heater,
-4. **If reaching the target temperature is too fast and oscillations occur** around the target, decrease `coef_int` to provide less power to the radiator.
+Określając wartości współczynników, należy pamiętać, że:
+1. **Jeśli docelowa temperatura nie zostanie osiągnięta** po stabilizacji, zwiększ `współczynnik delty dla temperatury wewnętrznej` (wartość procentowa jest zbyt niska),
+2. **Jeśli docelowa temperatura zostanie przekroczona** po stabilizacji, zmniejsz `współczynnik delty dla temperatury zewnętrznej` (wartość procentowa jest zbyt wysoka),
+3. **Jeśli osiąganie docelowej temperatury jest zbyt wolne**, zwiększ `współczynnik delty dla temperatury wewnętrznej`, aby dostarczyć więcej mocy do ogrzewania,
+4. **Jeśli osiąganie docelowej temperatury jest zbyt szybkie** i występują oscylacje wokół celu, zmniejsz `współczynnik delty dla temperatury wewnętrznej`, aby dostarczyć mniej mocy do grzejnika.
 
-In `over_valve` mode, the `on_percent` value is converted to a percentage (0 to 100%) and directly controls the valve's opening level.
+W trybie `Termostat na Zaworze`, wartość `procent` jest konwertowana na procent (0 do 100%) i bezpośrednio steruje stopniem otwarcia zaworu.
 
 ### Minimalna zwłoka aktywacji lub dezaktywacji
 
-The first delay (`minimal_activation_delay_sec`), in seconds, is the minimum acceptable delay to turn on the heater.
-When the calculation results in a power-on delay shorter than this value, the heater remains off.
-If the activation time is too short, rapid switching will not allow the equipment to reach operating temperature.
+Pierwsze opóźnienie (`minimal_activation_delay_sec`), w sekundach, to minimalne dopuszczalne opóźnienie włączenia ogrzewania. Gdy wynik obliczeń daje czas włączenia krótszy, niż ta wartość, ogrzewanie pozostaje wyłączone. Jeśli czas aktywacji jest zbyt krótki, szybkie przełączanie nie pozwoli urządzeniu osiągnąć temperatury roboczej.
 
-Similarly, the second delay (`minimal_deactivation_delay_sec`), also in seconds, defines the minimum acceptable off-time.
-If the off-time is shorter than this value, the heater will not be turned off.
-This prevents rapid flickering that provides little benefit for temperature regulation.
+Podobnie, drugie opóźnienie (`minimal_deactivation_delay_sec`), również w sekundach, definiuje minimalny dopuszczalny czas wyłączenia. Jeśli czas wyłączenia jest krótszy, niż ta wartość, ogrzewanie nie zostanie wyłączone. Zapobiega to szybkiemu migotaniu, które przynosi niewielkie korzyści w regulacji temperatury.
 
 ### Górne i dolne progi aktywacji algorytmu
 
