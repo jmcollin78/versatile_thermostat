@@ -1,35 +1,35 @@
-# The Different Algorithms Used
+# Używanie różnych algorytmów
 
-- [The Different Algorithms Used](#the-different-algorithms-used)
-  - [The TPI Algorithm](#the-tpi-algorithm)
-    - [Configuring the TPI Algorithm Coefficients](#configuring-the-tpi-algorithm-coefficients)
-    - [Principle](#principle)
-    - [Minimum Activation or Deactivation Delay](#minimum-activation-or-deactivation-delay)
-    - [Upper and Lower Activation Thresholds of the Algorithm](#upper-and-lower-activation-thresholds-of-the-algorithm)
-  - [The Self-Regulation Algorithm (Without Valve Control)](#the-self-regulation-algorithm-without-valve-control)
-  - [The Auto-Start/Stop Function Algorithm](#the-auto-startstop-function-algorithm)
+- [Użycie różnych algorytmów](#the-different-algorithms-used)
+  - [Algorytm TPI](#the-tpi-algorithm)
+    - [Konfigurowanie współczynników algorytmu TPI](#configuring-the-tpi-algorithm-coefficients)
+    - [Zasady](#principle)
+    - [Minimalna zwłoka aktywacji lub dezaktywacji](#minimum-activation-or-deactivation-delay)
+    - [Górne i dolne progi aktywacji algorytmu](#upper-and-lower-activation-thresholds-of-the-algorithm)
+  - [Algorytm autoregulacji (bez sterowania zaworem)](#the-self-regulation-algorithm-without-valve-control)
+  - [Algorytm autoSTAR i autoSTOP](#the-auto-startstop-function-algorithm)
 
-## The TPI Algorithm
+## Algorytm TPI
 
-### Configuring the TPI Algorithm Coefficients
+### Konfigurowanie współczynników algorytmu TPI
 
-If you have selected a thermostat of type `over_switch`, `over_valve`, or `over_climate` with self-regulation in `Direct Valve Control` mode and choose the "TPI" option in the menu, you will land on this page:
+Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klimacie` z trybem autoregulacji  `Bezpośrednie strowanie zaworem` i wybrałeś w menu opcję "TPI", znajdziesz się na tej stronie:
 
 ![image](images/config-tpi.png)
 
-You must provide:
-1. the `coef_int` coefficient of the TPI algorithm,
-2. the `coef_ext` coefficient of the TPI algorithm,
-3. a minimum activation time in seconds,
-4. a minimum deactivation time in seconds,
-5. a high cut-off threshold in °C (or °K) for the temperature deviation above which the algorithm will be disabled,
-6. a low re-activation threshold in °C (or °K) for the temperature deviation below which the algorithm will be enabled again.
+Musisz określić:
+1. współczynnik `coef_int` algorytmu TPI,
+2. współczynnik `coef_ext` algorytmu TPI,
+3. minimalny czas aktywacji (w sek.),
+4. minimalny czas deaktywacji (w sek.),
+5. górny próg odcięcia w °C (lub °K) dla odchylenia temperatury, powyżej którego algorytm zostanie wyłączony,
+6. dolny próg ponownej aktywacji w °C (lub °K) dla odchylenia temperatury, poniżej którego algorytm zostanie ponownie włączony.
 
-### Principle
+### Zasady
 
-The TPI algorithm calculates the On vs Off percentage for the radiator at each cycle, using the target temperature, the current room temperature, and the current outdoor temperature. This algorithm is only applicable for Versatile Thermostats operating in `over_switch` and `over_valve` modes.
+Algorytm TPI oblicza procent załączenia/wyłączenia grzejnika w każdym cyklu, wykorzystując temperaturę docelową, aktualną temperaturę w pomieszczeniu i aktualną temperaturę zewnętrzną. Algorytm ten ma zastosowanie tylko dla termostatów, działających w trybach `na Przełączniku` lub `na Zaworze`.
 
-The percentage is calculated using this formula:
+Procent ten obliczany jest na podstawie następującej formuły:
 
     on_percent = coef_int * (target_temperature - current_temperature) + coef_ext * (target_temperature - outdoor_temperature)
     Then, the algorithm ensures that 0 <= on_percent <= 1.
@@ -44,7 +44,7 @@ When adjusting these coefficients, keep the following in mind:
 
 In `over_valve` mode, the `on_percent` value is converted to a percentage (0 to 100%) and directly controls the valve's opening level.
 
-### Minimum Activation or Deactivation Delay
+### Minimalna zwłoka aktywacji lub dezaktywacji
 
 The first delay (`minimal_activation_delay_sec`), in seconds, is the minimum acceptable delay to turn on the heater.
 When the calculation results in a power-on delay shorter than this value, the heater remains off.
@@ -54,7 +54,7 @@ Similarly, the second delay (`minimal_deactivation_delay_sec`), also in seconds,
 If the off-time is shorter than this value, the heater will not be turned off.
 This prevents rapid flickering that provides little benefit for temperature regulation.
 
-### Upper and Lower Activation Thresholds of the Algorithm
+### Górne i dolne progi aktywacji algorytmu
 
 Since version 7.4, two additional thresholds are available.
 They allow you to disable (or re-enable) the TPI algorithm itself, based on the difference between the target setpoint and the current temperature.
@@ -76,7 +76,7 @@ Examples:
 > 3. In cooling mode, the tests are reversed, but the principle remains the same.
 > 4. The upper threshold should always be greater than the lower threshold, even in cooling mode.
 
-## The Self-Regulation Algorithm (Without Valve Control)
+## Algorytm autoregulacji (bez sterowania zaworem)
 
 The self-regulation algorithm can be summarized as follows:
 
@@ -90,7 +90,7 @@ The self-regulation algorithm can be summarized as follows:
      2. Add the offset to the target temperature,
      3. Send the target temperature (= regulated_temp + (internal_temp - room_temp)) to the underlying device.
 
-## The Auto-Start/Stop Function Algorithm
+## Algorytm autoSTAR i autoSTOP
 
 The algorithm used in the auto-start/stop function operates as follows:
 1. If "Enable Auto-Start/Stop" is off, stop here.
