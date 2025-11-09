@@ -7,7 +7,7 @@
     - [Minimalna zwłoka aktywacji lub dezaktywacji](#minimum-activation-or-deactivation-delay)
     - [Górne i dolne progi aktywacji algorytmu](#upper-and-lower-activation-thresholds-of-the-algorithm)
   - [Algorytm autoregulacji (bez sterowania zaworem)](#the-self-regulation-algorithm-without-valve-control)
-  - [Algorytm autoSTAR i autoSTOP](#the-auto-startstop-function-algorithm)
+  - [Algorytm autoSTART i autoSTOP](#the-auto-startstop-function-algorithm)
 
 ## Algorytm TPI
 
@@ -90,7 +90,7 @@ The self-regulation algorithm can be summarized as follows:
      2. Add the offset to the target temperature,
      3. Send the target temperature (= regulated_temp + (internal_temp - room_temp)) to the underlying device.
 
-## Algorytm autoSTAR i autoSTOP
+## Algorytm autoSTART i autoSTOP
 
 The algorithm used in the auto-start/stop function operates as follows:
 1. If "Enable Auto-Start/Stop" is off, stop here.
