@@ -1,4 +1,4 @@
-# Używanie różnych algorytmów
+# Użycie różnych algorytmów
 
 - [Użycie różnych algorytmów](#the-different-algorithms-used)
   - [Algorytm TPI](#the-tpi-algorithm)
