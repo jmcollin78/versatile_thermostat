@@ -52,50 +52,49 @@ Podobnie, drugie opóźnienie (`minimal_deactivation_delay_sec`), również w se
 
 ### Górne i dolne progi aktywacji algorytmu
 
-Since version 7.4, two additional thresholds are available.
-They allow you to disable (or re-enable) the TPI algorithm itself, based on the difference between the target setpoint and the current temperature.
+Od wersji 7.4 dostępne są dwa dodatkowe progi aktywacji algorytmów. Pozwalają one wyłączyć (lub ponownie załączyć) sam algorytm TPI, w zależności od różnicy między temperaturą docelową  a temperaturą aktualną.
 
-- If the temperature rises and the difference is greater than the upper threshold, the heater is switched off (i.e., `on_percent` is forced to 0).
-- If the temperature drops and the difference is smaller than the lower threshold, the heater is turned back on (i.e., `on_percent` is calculated by the algorithm as described above).
+- Jeśli temperatura rośnie i różnica jest większa, niż górny próg, ogrzewanie zostaje wyłączone (tj. `on_percent` ma wymuszoną wartość 0).
+- Jeśli temperatura spada i różnica jest mniejsza, niż dolny próg, ogrzewanie zostaje ponownie załączone (tj. `on_percent` jest obliczany przez algorytm zgodnie z opisem powyżej).
 
-These two thresholds stop the on/off cycling when the temperature overshoots the target.
-A hysteresis prevents rapid toggling.
+Te dwa progi zatrzymują cykliczne włączanie/wyłączanie, gdy temperatura przekracza wartość docelową. Histereza zapobiega szybkiemu przełączaniu.
 
-Examples:
-1. Suppose the target setpoint is 20°C, the upper threshold is 2°C, and the lower threshold is 1°C.
-2. When the temperature rises above 22°C (setpoint + upper threshold), `on_percent` is forced to 0.
-3. When the temperature drops below 21°C (setpoint + lower threshold), `on_percent` is recalculated.
+Przykłady:
+1. Załóżmy, że docelowa temperatura ustawiona jest na 20°C, górny próg to 2°C, a dolny próg to 1°C.
+2. Gdy temperatura wzrośnie powyżej 22°C (`temperatura docelowa` + `górny próg`), to `on_percent` ma wymuszoną wartość 0.
+3. Gdy temperatura spadnie poniżej 21°C (`temperatura docelowa` + `dolny próg`), to `on_percent` zostaje ponownie obliczony przez algorytm.
 
-> ![Tip](images/tips.png) _*Notes*_
-> 1. Leave both values at 0 if you do not want to use thresholds. This restores the behavior from before version 7.4.
-> 2. Both values are required. If you leave one at 0, no threshold will be applied. Indeed, both are necessary for correct operation.
-> 3. In cooling mode, the tests are reversed, but the principle remains the same.
-> 4. The upper threshold should always be greater than the lower threshold, even in cooling mode.
+> ![Tip](images/tips.png) _*Wskazówka*_
+> 1. Pozostaw obie wartości równe 0, jeśli nie chcesz używać progów. Przywraca to zachowanie sprzed wersji 7.4.
+> 2. Obie wartości są wymagane. Jeśli jedna pozostanie równa 0, żaden próg nie zostanie zastosowany. Faktycznie obie wartości są niezbędne do prawidłowego działania.
+> 3. W trybie chłodzenia testy są odwrócone, ale zasada pozostaje taka sama.
+> 4. Górny próg powinien zawsze być większy niż dolny próg, nawet w trybie chłodzenia.
 
 ## Algorytm autoregulacji (bez sterowania zaworem)
 
-The self-regulation algorithm can be summarized as follows:
+Algorytm samoregulacji można podsumować w następujący sposób:
 
-1. Initialize the target temperature as the VTherm setpoint,
-2. If self-regulation is enabled:
-   1. Calculate the regulated temperature (valid for a VTherm),
-   2. Use this temperature as the target,
-3. For each underlying device of the VTherm:
-     1. If "Use Internal Temperature" is checked:
-          1. Calculate the compensation (`trv_internal_temp - room_temp`),
-     2. Add the offset to the target temperature,
-     3. Send the target temperature (= regulated_temp + (internal_temp - room_temp)) to the underlying device.
+1. Zainicjalizuj temperaturę docelową na termostacie VTherm,
+2. Jeśli samoregulacja jest załączona:
+    1. Oblicz temperaturę regulowaną (istotną dla teostatu VTherm),
+    2. Użyj tej temperatury jako wartości docelowej,
+3. Dla każdego urządzenia powiązanego z termostatem VTherm:
+    1. Jeśli zaznaczono „Użyj temperatury wewnętrznej”:
+        1. Oblicz kompensację (`trv_internal_temp` - `room_temp`),
+    2. Dodaj offset do temperatury docelowej,
+    3. Ustaw temperaturę docelową (= `regulated_temp` + (`internal_temp` - `room_temp`)) na urządzeniu powiązanym.
 
 ## Algorytm autoSTART i autoSTOP
 
-The algorithm used in the auto-start/stop function operates as follows:
-1. If "Enable Auto-Start/Stop" is off, stop here.
-2. If VTherm is on and in Heating mode, when `error_accumulated` < `-error_threshold` -> turn off and save HVAC mode.
-3. If VTherm is on and in Cooling mode, when `error_accumulated` > `error_threshold` -> turn off and save HVAC mode.
-4. If VTherm is off and the saved HVAC mode is Heating, and `current_temperature + slope * dt <= target_temperature`, turn on and set the HVAC mode to the saved mode.
-5. If VTherm is off and the saved HVAC mode is Cooling, and `current_temperature + slope * dt >= target_temperature`, turn on and set the HVAC mode to the saved mode.
-6. `error_threshold` is set to `10 (° * min)` for slow detection, `5` for medium, and `2` for fast.
+Algorytm używany w funkcji autoSTART/STOP działa w następujący sposób:
 
-`dt` is set to `30 min` for slow, `15 min` for medium, and `7 min` for fast detection levels.
+1. Jeśli „AutoSTART/AutoSTOP” jest wyłączony, działanie funkcji zatrzymuje się.
+2. Jeśli termostat VTherm jest załączony i pracuje w trybie ogrzewania, gdy `error_accumulated` < `-error_threshold` → wyłącz i zapisz tryb HVAC.
+3  Jeśli termostat VTherm jest załączony i pracuje w trybie chłodzenia, gdy `error_accumulated` > `error_threshold` → wyłącz i zapisz tryb HVAC.
+4. Jeśli termostat VTherm jest wyłączony, a zapisany tryb HVAC to `grzanie`, i `aktualna temperatura` + `slope` * `dt` <= `temperatura docelowa`, załącz i ustaw tryb HVAC jako zapisany.
+5. Jeśli termostat VTherm jest wyłączony, a zapisany tryb HVAC to `chłodzenie`, i `aktuana temperatura` + `slope` * `dt` >= `temperatura docelowa`, załącz i ustaw tryb HVAC jako zapisany.
+6. `error_threshold` jest ustawiony na `10 (° * min)` dla powolnej detekcji, `5` dla średniej detekcji oraz `2` dla szybkiej detekcji.
 
-The function is detailed [here](https://github.com/jmcollin78/versatile_thermostat/issues/585).
+Parametr `dt` jest ustawiony na `30 minut` dla powolnego, na `15 minut` dla średniego, oraz na `7 minut` dla szybkiego tempa detekcji.
+
+Szczegóły tej funkcji opisane są [tutaj](https://github.com/jmcollin78/versatile_thermostat/issues/585).
