@@ -902,9 +902,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await end_climate_changed(changes)
 
     @overrides
-    async def async_control_heating(self, _=None, force=False) -> bool:
+    async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(_=_, force=force)
+        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         # if not ret:
         #     return ret

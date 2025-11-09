@@ -161,10 +161,11 @@ class FeaturePowerManager(BaseFeatureManager):
         ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
         if not ret:
             _LOGGER.info(
-                "%s - there is not enough power available power=%.3f, max_power=%.3f heater power=%.3f",
+                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f heater power=%.3f",
                 self,
                 current_power,
                 current_max_power,
+                started_vtherm_total_power,
                 self._device_power,
             )
         else:
