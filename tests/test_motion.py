@@ -55,13 +55,8 @@ async def test_motion_feature_manager_refresh(
 
     custom_attributes = {}
     motion_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["motion_sensor_entity_id"] is None
-    assert custom_attributes["motion_state"] == STATE_UNAVAILABLE
     assert custom_attributes["is_motion_configured"] is False
-    assert custom_attributes["motion_preset"] is None
-    assert custom_attributes["no_motion_preset"] is None
-    assert custom_attributes["motion_delay_sec"] == 0
-    assert custom_attributes["motion_off_delay_sec"] == 0
+    assert custom_attributes.get("motion_manager") is None
 
     # 2. post_init
     motion_manager.post_init(
@@ -81,13 +76,13 @@ async def test_motion_feature_manager_refresh(
 
     custom_attributes = {}
     motion_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
-    assert custom_attributes["motion_state"] == STATE_UNKNOWN
     assert custom_attributes["is_motion_configured"] is True
-    assert custom_attributes["motion_preset"] is VThermPreset.BOOST
-    assert custom_attributes["no_motion_preset"] is VThermPreset.ECO
-    assert custom_attributes["motion_delay_sec"] == 10
-    assert custom_attributes["motion_off_delay_sec"] == 30
+    assert custom_attributes["motion_manager"]["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
+    assert custom_attributes["motion_manager"]["motion_state"] == STATE_UNKNOWN
+    assert custom_attributes["motion_manager"]["motion_preset"] is VThermPreset.BOOST
+    assert custom_attributes["motion_manager"]["no_motion_preset"] is VThermPreset.ECO
+    assert custom_attributes["motion_manager"]["motion_delay_sec"] == 10
+    assert custom_attributes["motion_manager"]["motion_off_delay_sec"] == 30
 
     # 3. start listening
     await motion_manager.start_listening()
@@ -118,13 +113,13 @@ async def test_motion_feature_manager_refresh(
     # 5. Check custom_attributes
         custom_attributes = {}
         motion_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
-        assert custom_attributes["motion_state"] == new_state
         assert custom_attributes["is_motion_configured"] is True
-        assert custom_attributes["motion_preset"] is VThermPreset.BOOST
-        assert custom_attributes["no_motion_preset"] is VThermPreset.ECO
-    assert custom_attributes["motion_delay_sec"] == 10
-    assert custom_attributes["motion_off_delay_sec"] == 30
+        assert custom_attributes["motion_manager"]["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
+        assert custom_attributes["motion_manager"]["motion_state"] == new_state
+        assert custom_attributes["motion_manager"]["motion_preset"] is VThermPreset.BOOST
+        assert custom_attributes["motion_manager"]["no_motion_preset"] is VThermPreset.ECO
+        assert custom_attributes["motion_manager"]["motion_delay_sec"] == 10
+        assert custom_attributes["motion_manager"]["motion_off_delay_sec"] == 30
 
     motion_manager.stop_listening()
     await hass.async_block_till_done()
@@ -204,13 +199,13 @@ async def test_motion_feature_manager_event(
     # 3. Check custom_attributes
     custom_attributes = {}
     motion_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
-    assert custom_attributes["motion_state"] == motion_state
     assert custom_attributes["is_motion_configured"] is True
-    assert custom_attributes["motion_preset"] is VThermPreset.BOOST
-    assert custom_attributes["no_motion_preset"] is VThermPreset.ECO
-    assert custom_attributes["motion_delay_sec"] == 10
-    assert custom_attributes["motion_off_delay_sec"] == 30
+    assert custom_attributes["motion_manager"]["motion_sensor_entity_id"] == "sensor.the_motion_sensor"
+    assert custom_attributes["motion_manager"]["motion_state"] == motion_state
+    assert custom_attributes["motion_manager"]["motion_preset"] is VThermPreset.BOOST
+    assert custom_attributes["motion_manager"]["no_motion_preset"] is VThermPreset.ECO
+    assert custom_attributes["motion_manager"]["motion_delay_sec"] == 10
+    assert custom_attributes["motion_manager"]["motion_off_delay_sec"] == 30
 
     motion_manager.stop_listening()
     await hass.async_block_till_done()

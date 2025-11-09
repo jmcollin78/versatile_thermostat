@@ -410,6 +410,9 @@ CENTRAL_MODES = [
     CENTRAL_MODE_FROST_PROTECTION,
 ]
 
+ATTR_CURRENT_STATE = "current_state"
+ATTR_REQUESTED_STATE = "requested_state"
+
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
     """Light parameters for slow latency regulation"""

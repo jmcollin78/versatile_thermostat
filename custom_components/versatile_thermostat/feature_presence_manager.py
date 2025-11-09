@@ -167,11 +167,18 @@ class FeaturePresenceManager(BaseFeatureManager):
         """Add some custom attributes"""
         extra_state_attributes.update(
             {
-                "presence_sensor_entity_id": self._presence_sensor_entity_id,
-                "presence_state": self._presence_state,
                 "is_presence_configured": self._is_configured,
             }
         )
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "presence_manager": {
+                        "presence_sensor_entity_id": self._presence_sensor_entity_id,
+                        "presence_state": self._presence_state,
+                    }
+                }
+            )
 
     @overrides
     @property

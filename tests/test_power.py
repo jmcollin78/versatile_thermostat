@@ -70,14 +70,8 @@ async def test_power_feature_manager(
 
     custom_attributes = {}
     power_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["power_sensor_entity_id"] is None
-    assert custom_attributes["max_power_sensor_entity_id"] is None
-    assert custom_attributes["overpowering_state"] == STATE_UNAVAILABLE
     assert custom_attributes["is_power_configured"] is False
-    assert custom_attributes["device_power"] is 0
-    assert custom_attributes["power_temp"] is None
-    assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_max_power"] is None
+    assert custom_attributes.get("power_manager") is None
 
     # 2. post_init
     vtherm_api.find_central_configuration = MagicMock()
@@ -106,16 +100,14 @@ async def test_power_feature_manager(
 
     custom_attributes = {}
     power_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["power_sensor_entity_id"] == "sensor.the_power_sensor"
-    assert (
-        custom_attributes["max_power_sensor_entity_id"] == "sensor.the_max_power_sensor"
-    )
-    assert custom_attributes["overpowering_state"] == STATE_UNKNOWN
     assert custom_attributes["is_power_configured"] is True
-    assert custom_attributes["device_power"] == 1234
-    assert custom_attributes["power_temp"] == 10
-    assert custom_attributes["current_power"] is None
-    assert custom_attributes["current_max_power"] is None
+    assert custom_attributes["power_manager"]["power_sensor_entity_id"] == "sensor.the_power_sensor"
+    assert custom_attributes["power_manager"]["max_power_sensor_entity_id"] == "sensor.the_max_power_sensor"
+    assert custom_attributes["power_manager"]["overpowering_state"] == STATE_UNKNOWN
+    assert custom_attributes["power_manager"]["device_power"] == 1234
+    assert custom_attributes["power_manager"]["power_temp"] == 10
+    assert custom_attributes["power_manager"]["current_power"] is None
+    assert custom_attributes["power_manager"]["current_max_power"] is None
 
     # 3. start listening
     await power_manager.start_listening()
@@ -860,6 +852,10 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
+    #
+    #
+    #
+    #
     #
     #
     #

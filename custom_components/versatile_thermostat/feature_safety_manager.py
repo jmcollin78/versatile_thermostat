@@ -89,6 +89,11 @@ class FeatureSafetyManager(BaseFeatureManager):
             _LOGGER.debug("%s - safety is disabled (or not configured)", self)
             return False
 
+        if self._vtherm.requested_state.hvac_mode == VThermHvacMode_OFF:
+            self._safety_state = STATE_OFF
+            _LOGGER.debug("%s - safety is OFF because requested_state is OFF", self)
+            return False
+
         now = self._vtherm.now
         current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
@@ -245,16 +250,18 @@ class FeatureSafetyManager(BaseFeatureManager):
         extra_state_attributes.update(
             {
                 "is_safety_configured": self._is_configured,
-                "safety_state": self._safety_state,
             }
         )
 
         if self._is_configured:
             extra_state_attributes.update(
                 {
-                    "safety_delay_min": self._safety_delay_min,
-                    "safety_min_on_percent": self._safety_min_on_percent,
-                    "safety_default_on_percent": self._safety_default_on_percent,
+                    "safety_manager": {
+                        "safety_state": self._safety_state,
+                        "safety_delay_min": self._safety_delay_min,
+                        "safety_min_on_percent": self._safety_min_on_percent,
+                        "safety_default_on_percent": self._safety_default_on_percent,
+                    }
                 }
             )
 

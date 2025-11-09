@@ -6,7 +6,7 @@ from homeassistant.components.climate.const import PRESET_NONE, PRESET_BOOST, PR
 
 # Liste des presets valides (à adapter selon ton projet)
 PRESET_POWER = "power"
-PRESET_SAFETY = "security"
+PRESET_SAFETY = "safety"
 PRESET_FROST_PROTECTION = "frost"
 
 PRESET_TEMP_SUFFIX = "_temp"

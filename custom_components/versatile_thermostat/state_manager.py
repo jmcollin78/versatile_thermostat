@@ -4,7 +4,7 @@ This class manages both the current and the requested state of a VTherm.
 """
 
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Any
 from .const import (
     HVAC_OFF_REASON_SAFETY,
     HVAC_OFF_REASON_MANUAL,
@@ -20,6 +20,8 @@ from .const import (
     CENTRAL_MODE_COOL_ONLY,
     CENTRAL_MODE_HEAT_ONLY,
     CENTRAL_MODE_FROST_PROTECTION,
+    ATTR_CURRENT_STATE,
+    ATTR_REQUESTED_STATE,
 )
 from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT
@@ -253,3 +255,12 @@ class StateManager:
                 self._current_state.set_target_temperature(vtherm.max_temp)
             else:
                 self._current_state.set_target_temperature(vtherm.min_temp)
+
+    def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
+        """Add some custom attributes"""
+        extra_state_attributes.update(
+            {
+                ATTR_CURRENT_STATE: self.current_state.to_dict(),
+                ATTR_REQUESTED_STATE: self.requested_state.to_dict(),
+            }
+        )

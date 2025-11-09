@@ -36,16 +36,9 @@ async def test_window_feature_manager_create(
 
     custom_attributes = {}
     window_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["window_sensor_entity_id"] is None
-    assert custom_attributes["window_state"] == STATE_UNAVAILABLE
-    assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
     assert custom_attributes["is_window_configured"] is False
     assert custom_attributes["is_window_auto_configured"] is False
-    assert custom_attributes["window_delay_sec"] == 0
-    assert custom_attributes["window_auto_open_threshold"] == 0
-    assert custom_attributes["window_auto_close_threshold"] == 0
-    assert custom_attributes["window_auto_max_duration"] == 0
-    assert custom_attributes["window_action"] is None
+    assert custom_attributes.get("window_manager") is None
 
 
 @pytest.mark.parametrize(
@@ -117,19 +110,18 @@ async def test_window_feature_manager_post_init(
 
     custom_attributes = {}
     window_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["window_sensor_entity_id"] == window_sensor_entity_id
-    assert custom_attributes["window_state"] == window_state
-    assert custom_attributes["window_auto_state"] == window_auto_state
-    assert custom_attributes["is_window_bypass"] is False
     assert custom_attributes["is_window_configured"] is is_configured
     assert custom_attributes["is_window_auto_configured"] is is_auto_configured
-    assert custom_attributes["is_window_bypass"] is False
-    assert custom_attributes["window_delay_sec"] is window_delay_sec
-    assert custom_attributes["window_auto_open_threshold"] is window_auto_open_threshold
-    assert (
-        custom_attributes["window_auto_close_threshold"] is window_auto_close_threshold
-    )
-    assert custom_attributes["window_auto_max_duration"] is window_auto_max_duration
+    if is_configured or is_auto_configured:
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == window_sensor_entity_id
+        assert custom_attributes["window_manager"]["window_state"] == window_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == window_auto_state
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] is window_delay_sec
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is window_auto_open_threshold
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is window_auto_close_threshold
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is window_auto_max_duration
 
 
 @pytest.mark.parametrize(
@@ -220,19 +212,17 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] == 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -329,19 +319,17 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] == 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -444,19 +432,17 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state if long_enough else current_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] == 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state if long_enough else current_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -560,19 +546,19 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state if long_enough else current_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] == 10
-        assert custom_attributes["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state if long_enough else current_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
         assert (
-            custom_attributes["window_auto_close_threshold"] is None
+            custom_attributes["window_manager"]["window_auto_close_threshold"] is None
         )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()

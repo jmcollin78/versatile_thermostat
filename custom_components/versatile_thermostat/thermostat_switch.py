@@ -133,40 +133,58 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
 
         under0: UnderlyingSwitch = self._underlyings[0]
         self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
-        self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
-        self._attr_extra_state_attributes["keep_alive_sec"] = under0.keep_alive_sec
 
-        self._attr_extra_state_attributes["underlying_entities"] = [
-           underlying.entity_id for underlying in self._underlyings
-        ]
-
-        self._attr_extra_state_attributes[
-            "on_percent"
-        ] = self._prop_algorithm.on_percent
-        self._attr_extra_state_attributes["power_percent"] = self.power_percent
-        self._attr_extra_state_attributes[
-            "on_time_sec"
-        ] = self._prop_algorithm.on_time_sec
-        self._attr_extra_state_attributes[
-            "off_time_sec"
-        ] = self._prop_algorithm.off_time_sec
-        self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
-        self._attr_extra_state_attributes["function"] = self._proportional_function
-        self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
-        self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
-        self._attr_extra_state_attributes[
-            "calculated_on_percent"
-        ] = self._prop_algorithm.calculated_on_percent
-
-        self._attr_extra_state_attributes["vswitch_on_commands"] = self._lst_vswitch_on
-        self._attr_extra_state_attributes["vswitch_off_commands"] = self._lst_vswitch_off
-
+        self._attr_extra_state_attributes.update(
+            {
+                "is_over_switch": self.is_over_switch,
+                "vtherm_over_switch": {
+                    "is_inversed": self.is_inversed,
+                    "keep_alive_sec": under0.keep_alive_sec,
+                    "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+                    "on_percent": self._prop_algorithm.on_percent,
+                    "power_percent": self.power_percent,
+                    "on_time_sec": self._prop_algorithm.on_time_sec,
+                    "off_time_sec": self._prop_algorithm.off_time_sec,
+                    "cycle_min": self._cycle_min,
+                    "function": self._proportional_function,
+                    "tpi_coef_int": self._tpi_coef_int,
+                    "tpi_coef_ext": self._tpi_coef_ext,
+                    "calculated_on_percent": self._prop_algorithm.calculated_on_percent,
+                    "vswitch_on_commands": self._lst_vswitch_on,
+                    "vswitch_off_commands": self._lst_vswitch_off,
+                },
+            }
+        )
+        # self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
+        # self._attr_extra_state_attributes["keep_alive_sec"] = under0.keep_alive_sec
+        #
+        # self._attr_extra_state_attributes["underlying_entities"] = [
+        #    underlying.entity_id for underlying in self._underlyings
+        # ]
+        #
+        # self._attr_extra_state_attributes[
+        #     "on_percent"
+        # ] = self._prop_algorithm.on_percent
+        # self._attr_extra_state_attributes["power_percent"] = self.power_percent
+        # self._attr_extra_state_attributes[
+        #     "on_time_sec"
+        # ] = self._prop_algorithm.on_time_sec
+        # self._attr_extra_state_attributes[
+        #     "off_time_sec"
+        # ] = self._prop_algorithm.off_time_sec
+        # self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
+        # self._attr_extra_state_attributes["function"] = self._proportional_function
+        # self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
+        # self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
+        # self._attr_extra_state_attributes[
+        #     "calculated_on_percent"
+        # ] = self._prop_algorithm.calculated_on_percent
+        #
+        # self._attr_extra_state_attributes["vswitch_on_commands"] = self._lst_vswitch_on
+        # self._attr_extra_state_attributes["vswitch_off_commands"] = self._lst_vswitch_off
+        #
         self.async_write_ha_state()
-        # _LOGGER.debug(
-        #     "%s - Calling update_custom_attributes: %s",
-        #     self,
-        #     self._attr_extra_state_attributes,
-        # )
+        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def recalculate(self):

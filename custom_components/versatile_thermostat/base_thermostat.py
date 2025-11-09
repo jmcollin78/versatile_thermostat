@@ -64,11 +64,6 @@ from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
 
-ATTR_CURRENT_STATE = "current_state"
-ATTR_REQUESTED_STATE = "requested_state"
-ATTR_SAVED_HVAC_MODE_CENTRAL_MODE = "saved_hvac_mode_central_mode"
-ATTR_SAVED_PRESET_MODE_CENTRAL_MODE = "saved_preset_mode_central_mode"
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -1814,7 +1809,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Not usefull. Will be done at the next power refresh
         # await VersatileThermostatAPI.get_vtherm_api().central_power_manager.refresh_state()
 
+        old_safety: bool = self._safety_manager.is_safety_detected
         safety: bool = await self._safety_manager.refresh_state()
+        if old_safety != safety:
+            self.requested_state.force_changed()
+            await self.update_states(force=False)
+            return False
+
         if safety and self.is_over_climate:
             _LOGGER.debug("%s - End of cycle (safety and over climate)", self)
 
@@ -1856,47 +1857,53 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Update the custom extra attributes for the entity"""
 
         self._attr_extra_state_attributes: dict[str, Any] = {
-            ATTR_CURRENT_STATE: self._state_manager.current_state.to_dict(),
-            ATTR_REQUESTED_STATE: self._state_manager.requested_state.to_dict(),
-            "is_on": self.is_on,
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
-            "type": self._thermostat_type,
-            "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
-            "last_central_mode": self.last_central_mode,
-            "frost_temp": self._presets.get(VThermPreset.FROST, 0),
-            "eco_temp": self._presets.get(VThermPreset.ECO, 0),
-            "boost_temp": self._presets.get(VThermPreset.BOOST, 0),
-            "comfort_temp": self._presets.get(VThermPreset.COMFORT, 0),
-            "frost_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.FROST), 0),
-            "eco_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.ECO), 0),
-            "boost_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.BOOST), 0),
-            "comfort_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.COMFORT), 0),
-            "target_temperature_step": self.target_temperature_step,
-            "ext_current_temperature": self._cur_ext_temp,
-            "ac_mode": self._ac_mode,
-            "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
-            "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
-            "minimal_activation_delay_sec": self._minimal_activation_delay,
-            "minimal_deactivation_delay_sec": self._minimal_deactivation_delay,
-            ATTR_TOTAL_ENERGY: self.total_energy,
-            "last_update_datetime": self.now.isoformat(),
-            "timezone": str(self._current_tz),
-            "temperature_unit": self.temperature_unit,
-            "is_device_active": self.is_device_active,
-            "device_actives": self.device_actives,
-            "nb_device_actives": self.nb_device_actives,
-            "ema_temp": self._ema_temp,
-            "is_used_by_central_boiler": self.is_used_by_central_boiler,
-            "temperature_slope": round(self.last_temperature_slope or 0, 3),
-            "hvac_off_reason": self.hvac_off_reason,
-            "max_on_percent": self._max_on_percent,
-            "have_valve_regulation": self.have_valve_regulation,
-            "last_change_time_from_vtherm": (
-                self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
-            ),
+            "specific_states": {
+                "is_on": self.is_on,
+                "last_central_mode": self.last_central_mode,
+                "last_update_datetime": self.now.isoformat(),
+                "ext_current_temperature": self._cur_ext_temp,
+                "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
+                "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
+                "is_device_active": self.is_device_active,
+                "device_actives": self.device_actives,
+                "nb_device_actives": self.nb_device_actives,
+                "ema_temp": self._ema_temp,
+                "temperature_slope": round(self.last_temperature_slope or 0, 3),
+                "hvac_off_reason": self.hvac_off_reason,
+                ATTR_TOTAL_ENERGY: self.total_energy,
+                "last_change_time_from_vtherm": (
+                    self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
+                ),
+            },
+            "configuration": {
+                "ac_mode": self._ac_mode,
+                "type": self._thermostat_type,
+                "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
+                "target_temperature_step": self.target_temperature_step,
+                "minimal_activation_delay_sec": self._minimal_activation_delay,
+                "minimal_deactivation_delay_sec": self._minimal_deactivation_delay,
+                "timezone": str(self._current_tz),
+                "temperature_unit": self.temperature_unit,
+                "is_used_by_central_boiler": self.is_used_by_central_boiler,
+                "max_on_percent": self._max_on_percent,
+                "have_valve_regulation": self.have_valve_regulation,
+            },
+            "preset_temperatures": {
+                "frost_temp": self._presets.get(VThermPreset.FROST, 0),
+                "eco_temp": self._presets.get(VThermPreset.ECO, 0),
+                "boost_temp": self._presets.get(VThermPreset.BOOST, 0),
+                "comfort_temp": self._presets.get(VThermPreset.COMFORT, 0),
+                "frost_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.FROST), 0),
+                "eco_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.ECO), 0),
+                "boost_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.BOOST), 0),
+                "comfort_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.COMFORT), 0),
+            },
         }
+
+        self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
         for manager in self._managers:
             manager.add_custom_attributes(self._attr_extra_state_attributes)

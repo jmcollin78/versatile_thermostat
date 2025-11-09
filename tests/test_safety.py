@@ -41,10 +41,7 @@ async def test_safety_feature_manager_create(
     custom_attributes = {}
     safety_manager.add_custom_attributes(custom_attributes)
     assert custom_attributes["is_safety_configured"] is False
-    assert custom_attributes["safety_state"] is STATE_UNAVAILABLE
-    assert custom_attributes.get("safety_delay_min", None) is None
-    assert custom_attributes.get("safety_min_on_percent", None) is None
-    assert custom_attributes.get("safety_default_on_percent", None) is None
+    assert custom_attributes.get("safety_manager") is None
 
 
 @pytest.mark.parametrize(
@@ -92,20 +89,12 @@ async def test_safety_feature_manager_post_init(
     custom_attributes = {}
     safety_manager.add_custom_attributes(custom_attributes)
     assert custom_attributes["is_safety_configured"] is is_configured
-    assert custom_attributes["safety_state"] is state
 
     if safety_manager.is_configured:
-        assert custom_attributes.get("safety_delay_min", None) == safety_delay_min
-        assert (
-            custom_attributes.get("safety_min_on_percent", None)
-            == safety_min_on_percent
-            or DEFAULT_SAFETY_MIN_ON_PERCENT
-        )
-        assert (
-            custom_attributes.get("safety_default_on_percent", None)
-            == safety_default_on_percent
-            or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
-        )
+        assert custom_attributes["safety_manager"]["safety_state"] is state
+        assert custom_attributes["safety_manager"].get("safety_delay_min", None) == safety_delay_min
+        assert custom_attributes["safety_manager"].get("safety_min_on_percent", None) == safety_min_on_percent or DEFAULT_SAFETY_MIN_ON_PERCENT
+        assert custom_attributes["safety_manager"].get("safety_default_on_percent", None) == safety_default_on_percent or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

@@ -92,17 +92,24 @@ class FeaturePowerManager(BaseFeatureManager):
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
         extra_state_attributes.update(
             {
-                "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
-                "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
-                "overpowering_state": self.overpowering_state,
                 "is_power_configured": self.is_configured,
-                "device_power": self._device_power,
-                "power_temp": self._power_temp,
-                "current_power": vtherm_api.central_power_manager.current_power,
-                "current_max_power": vtherm_api.central_power_manager.current_max_power,
-                "mean_cycle_power": self.mean_cycle_power,
             }
         )
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "power_manager": {
+                        "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
+                        "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
+                        "overpowering_state": self.overpowering_state,
+                        "device_power": self._device_power,
+                        "power_temp": self._power_temp,
+                        "current_power": vtherm_api.central_power_manager.current_power,
+                        "current_max_power": vtherm_api.central_power_manager.current_max_power,
+                        "mean_cycle_power": self.mean_cycle_power,
+                    }
+                }
+            )
 
     async def check_power_available(self) -> bool:
         """Check if the Vtherm can be started considering overpowering.

@@ -498,54 +498,75 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
-        self._attr_extra_state_attributes["start_hvac_action_date"] = (
-            self._underlying_climate_start_hvac_action_date
+        self._attr_extra_state_attributes.update(
+            {
+                "vtherm_over_climate": {
+                    "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
+                    "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+                    "is_regulated": self.is_regulated,
+                    "auto_fan_mode": self.auto_fan_mode,
+                    "current_auto_fan_mode": self._current_auto_fan_mode,
+                    "auto_activated_fan_mode": self._auto_activated_fan_mode,
+                    "auto_deactivated_fan_mode": self._auto_deactivated_fan_mode,
+                    "follow_underlying_temp_change": self._follow_underlying_temp_change,
+                    "auto_regulation_use_device_temp": self.auto_regulation_use_device_temp,
+                }
+            }
         )
 
-        self._attr_extra_state_attributes["underlying_entities"] = [
-            underlying.entity_id for underlying in self._underlyings
-        ]
+        # self._attr_extra_state_attributes["start_hvac_action_date"] = ()
+        #
+        # self._attr_extra_state_attributes["underlying_entities"] = [
+        #    underlying.entity_id for underlying in self._underlyings
+        # ]
 
         if self.is_regulated:
-            self._attr_extra_state_attributes["is_regulated"] = self.is_regulated
-            self._attr_extra_state_attributes["regulated_target_temperature"] = (
-                self._regulated_target_temp
+            self._attr_extra_state_attributes.update(
+                {
+                    "vtherm_over_climate": {
+                        "regulation": {
+                            "regulated_target_temperature": self._regulated_target_temp,
+                            "auto_regulation_mode": self._auto_regulation_mode,
+                            "regulation_accumulated_error": self._regulation_algo.accumulated_error,
+                        }
+                    }
+                }
             )
-            self._attr_extra_state_attributes["auto_regulation_mode"] = (
-                self.auto_regulation_mode
-            )
-            self._attr_extra_state_attributes["regulation_accumulated_error"] = (
-                self._regulation_algo.accumulated_error
-            )
+            # self._attr_extra_state_attributes["is_regulated"] = self.is_regulated
+            # self._attr_extra_state_attributes["regulated_target_temperature"] = (
+            #    self._regulated_target_temp
+            # )
+            # self._attr_extra_state_attributes["auto_regulation_mode"] = (
+            #    self.auto_regulation_mode
+            # )
+            # self._attr_extra_state_attributes["regulation_accumulated_error"] = (
+            #    self._regulation_algo.accumulated_error
+            # )
 
-        self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
-        self._attr_extra_state_attributes["current_auto_fan_mode"] = (
-            self._current_auto_fan_mode
-        )
-
-        self._attr_extra_state_attributes["auto_activated_fan_mode"] = (
-            self._auto_activated_fan_mode
-        )
-
-        self._attr_extra_state_attributes["auto_deactivated_fan_mode"] = (
-            self._auto_deactivated_fan_mode
-        )
-
-        self._attr_extra_state_attributes["auto_regulation_use_device_temp"] = (
-            self.auto_regulation_use_device_temp
-        )
-
-        self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
-            self._follow_underlying_temp_change
-        )
+        # self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
+        # self._attr_extra_state_attributes["current_auto_fan_mode"] = (
+        #     self._current_auto_fan_mode
+        # )
+        #
+        # self._attr_extra_state_attributes["auto_activated_fan_mode"] = (
+        #     self._auto_activated_fan_mode
+        # )
+        #
+        # self._attr_extra_state_attributes["auto_deactivated_fan_mode"] = (
+        #     self._auto_deactivated_fan_mode
+        # )
+        #
+        # self._attr_extra_state_attributes["auto_regulation_use_device_temp"] = (
+        #     self.auto_regulation_use_device_temp
+        # )
+        #
+        # self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
+        #     self._follow_underlying_temp_change
+        # )
 
         self.async_write_ha_state()
 
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
+        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def recalculate(self):

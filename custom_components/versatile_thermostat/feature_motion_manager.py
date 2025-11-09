@@ -284,15 +284,22 @@ class FeatureMotionManager(BaseFeatureManager):
         """Add some custom attributes"""
         extra_state_attributes.update(
             {
-                "motion_sensor_entity_id": self._motion_sensor_entity_id,
-                "motion_state": self._motion_state,
                 "is_motion_configured": self._is_configured,
-                "motion_delay_sec": self._motion_delay_sec,
-                "motion_off_delay_sec": self._motion_off_delay_sec,
-                "motion_preset": self._motion_preset,
-                "no_motion_preset": self._no_motion_preset,
             }
         )
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "motion_manager": {
+                        "motion_sensor_entity_id": self._motion_sensor_entity_id,
+                        "motion_state": self._motion_state,
+                        "motion_delay_sec": self._motion_delay_sec,
+                        "motion_off_delay_sec": self._motion_off_delay_sec,
+                        "motion_preset": self._motion_preset,
+                        "no_motion_preset": self._no_motion_preset,
+                    }
+                }
+            )
 
     @overrides
     @property

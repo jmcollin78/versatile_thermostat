@@ -945,10 +945,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
         assert (
             vtherm.auto_start_stop_manager.auto_start_stop_level
@@ -1122,10 +1119,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
         assert (
             vtherm.auto_start_stop_manager.auto_start_stop_level

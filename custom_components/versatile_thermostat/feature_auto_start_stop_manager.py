@@ -219,13 +219,15 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         if self.is_configured:
             extra_state_attributes.update(
                 {
-                    "auto_start_stop_enable": self.auto_start_stop_enable,
-                    "auto_start_stop_level": self._auto_start_stop_algo.level,
-                    "auto_start_stop_dtmin": self._auto_start_stop_algo.dt_min,
-                    "auto_start_stop_accumulated_error": self._auto_start_stop_algo.accumulated_error,
-                    "auto_start_stop_accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
-                    "auto_start_stop_last_switch_date": self._auto_start_stop_algo.last_switch_date,
-                    "is_auto_stop_detected": self.is_auto_stop_detected,
+                    "auto_start_stop_manager": {
+                        "auto_start_stop_enable": self.auto_start_stop_enable,
+                        "auto_start_stop_level": self._auto_start_stop_algo.level,
+                        "auto_start_stop_dtmin": self._auto_start_stop_algo.dt_min,
+                        "auto_start_stop_accumulated_error": self._auto_start_stop_algo.accumulated_error,
+                        "auto_start_stop_accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
+                        "auto_start_stop_last_switch_date": self._auto_start_stop_algo.last_switch_date,
+                        "is_auto_stop_detected": self.is_auto_stop_detected,
+                    }
                 }
             )
 

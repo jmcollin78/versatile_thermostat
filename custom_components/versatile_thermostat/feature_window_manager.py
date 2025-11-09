@@ -433,20 +433,28 @@ class FeatureWindowManager(BaseFeatureManager):
         """Add some custom attributes"""
         extra_state_attributes.update(
             {
-                "window_state": self.window_state,
-                "window_auto_state": self.window_auto_state,
-                "window_action": self.window_action,
-                "is_window_bypass": self._is_window_bypass,
-                "window_sensor_entity_id": self._window_sensor_entity_id,
-                "window_delay_sec": self._window_delay_sec,
-                "window_off_delay_sec": self._window_off_delay_sec,
-                "is_window_configured": self._is_configured,
-                "is_window_auto_configured": self._is_window_auto_configured,
-                "window_auto_open_threshold": self._window_auto_open_threshold,
-                "window_auto_close_threshold": self._window_auto_close_threshold,
-                "window_auto_max_duration": self._window_auto_max_duration,
+                "is_window_configured": self.is_configured,
+                "is_window_auto_configured": self.is_window_auto_configured,
             }
         )
+
+        if self.is_configured or self.is_window_auto_configured:
+            extra_state_attributes.update(
+                {
+                    "window_manager": {
+                        "window_state": self.window_state,
+                        "window_auto_state": self.window_auto_state,
+                        "window_action": self.window_action,
+                        "is_window_bypass": self._is_window_bypass,
+                        "window_sensor_entity_id": self._window_sensor_entity_id,
+                        "window_delay_sec": self._window_delay_sec,
+                        "window_off_delay_sec": self._window_off_delay_sec,
+                        "window_auto_open_threshold": self._window_auto_open_threshold,
+                        "window_auto_close_threshold": self._window_auto_close_threshold,
+                        "window_auto_max_duration": self._window_auto_max_duration,
+                    }
+                }
+            )
 
     async def set_window_bypass(self, window_bypass: bool) -> bool:
         """Set the window bypass flag

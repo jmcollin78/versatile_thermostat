@@ -461,12 +461,9 @@ async def test_auto_start_stop_medium_heat_vtherm(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_MEDIUM
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_MEDIUM
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 15
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 15
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -728,12 +725,9 @@ async def test_auto_start_stop_fast_ac_vtherm(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
     assert (
@@ -971,12 +965,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
     assert (
@@ -1183,15 +1174,12 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
-    await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is True)
+    await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True)
 
     assert (
         vtherm.auto_start_stop_manager.auto_start_stop_level
@@ -1203,13 +1191,13 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
-    assert vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is True
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True
 
     # 2. set enable to false
     enable_entity.turn_off()
     await hass.async_block_till_done()
     assert enable_entity.state == STATE_OFF
-    assert vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is False
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is False
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -1326,12 +1314,9 @@ async def test_auto_start_stop_fast_heat_window(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -1510,12 +1495,9 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -1702,12 +1684,9 @@ async def test_auto_start_stop_disable_vtherm_off(
         assert (
             vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
         )
-        assert (
-            vtherm._attr_extra_state_attributes["auto_start_stop_level"]
-            == AUTO_START_STOP_LEVEL_FAST
-        )
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_dtmin"] == 7
+        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     vtherm._set_now(now)
@@ -1717,7 +1696,7 @@ async def test_auto_start_stop_disable_vtherm_off(
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
-    assert vtherm._attr_extra_state_attributes.get("auto_start_stop_enable") is True
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True
 
     # 2. turn off the VTherm with auto-start/stop
     now = now + timedelta(minutes=5)
