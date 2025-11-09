@@ -2,9 +2,11 @@
 
 """ A climate over switch classe """
 import logging
+from datetime import timedelta
 from homeassistant.core import Event, callback
 from homeassistant.helpers.event import (
     async_track_state_change_event,
+    async_track_time_interval,
     EventStateChangedData,
 )
 from homeassistant.core import HomeAssistant
@@ -124,7 +126,16 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             )
             switch.startup()
 
-        self.hass.create_task(self.async_control_heating())
+        # self.hass.create_task(self.async_control_heating())
+        # Start the control_heating
+        # starts a cycle
+        self.async_on_remove(
+            async_track_time_interval(
+                self.hass,
+                self.async_control_heating,
+                interval=timedelta(minutes=self._cycle_min),
+            )
+        )
 
     @overrides
     def update_custom_attributes(self):

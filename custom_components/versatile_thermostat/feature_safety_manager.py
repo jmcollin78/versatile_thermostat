@@ -242,7 +242,7 @@ class FeatureSafetyManager(BaseFeatureManager):
         elif not should_be_in_safety and self._safety_state in [STATE_UNKNOWN]:
             self._safety_state = STATE_OFF
 
-        return should_be_in_safety
+        return self._safety_state == STATE_ON
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""

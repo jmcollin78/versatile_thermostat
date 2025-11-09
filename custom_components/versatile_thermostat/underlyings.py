@@ -464,7 +464,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         # safety mode could have change the on_time percent
-        await self._thermostat.safety_manager.refresh_state()
+        # TODO why this ? await self._thermostat.safety_manager.refresh_state()
         time = self._on_time_sec
 
         action_label = "start"
