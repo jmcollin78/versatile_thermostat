@@ -21,6 +21,7 @@ from homeassistant.components.climate import (
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 
@@ -102,8 +103,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     @callback
     async def _power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power changes."""
-        _LOGGER.debug("Receive new Power event")
-        _LOGGER.debug(event)
+        write_event_log(_LOGGER, self, f"Receive power sensor state {event.data.get('new_state').state if event.data.get('new_state') else None}")
+        # _LOGGER.debug(event)
 
         self._started_vtherm_total_power = 0
         await self.refresh_state()
@@ -111,8 +112,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     @callback
     async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
-        _LOGGER.debug("Receive new Power Max event")
-        _LOGGER.debug(event)
+        write_event_log(_LOGGER, self, f"Receive max power sensor state {event.data.get('new_state').state if event.data.get('new_state') else None}")
+        # _LOGGER.debug(event)
         await self.refresh_state()
 
     @overrides

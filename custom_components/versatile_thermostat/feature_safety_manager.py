@@ -18,6 +18,7 @@ from homeassistant.components.climate import HVACAction
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -191,18 +192,12 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         # Start safety mode
         if should_start_safety:
+            write_event_log(_LOGGER, self._vtherm, "Starting safety mode")
             self._safety_state = STATE_ON
             # self._vtherm.save_hvac_mode()
             # self._vtherm.save_preset_mode()
             if self._vtherm.proportional_algorithm:
-                self._vtherm.proportional_algorithm.set_safety(
-                    self._safety_default_on_percent
-                )
-            # TODO is state_manager yet
-            # await self._vtherm.async_set_preset_mode_internal(VThermPreset.SAFETY)
-            # Turn off the underlying climate or heater if safety default on_percent is 0
-            # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
-            #     await self._vtherm.async_set_hvac_mode(VThermHvacMode_OFF, False)
+                self._vtherm.proportional_algorithm.set_safety(self._safety_default_on_percent)
 
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
@@ -218,14 +213,11 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         # Stop safety mode
         elif should_stop_safety:
+            write_event_log(_LOGGER, self._vtherm, "Ending safety mode")
             _LOGGER.warning("%s - End of safety mode.", self)
             self._safety_state = STATE_OFF
             if self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.unset_safety()
-            # Restore hvac_mode if previously saved
-            # if self._vtherm.is_over_climate or self._safety_default_on_percent <= 0.0:
-            #     await self._vtherm.restore_hvac_mode(False)
-            # await self._vtherm.restore_preset_mode()
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
                 {
@@ -243,6 +235,17 @@ class FeatureSafetyManager(BaseFeatureManager):
             self._safety_state = STATE_OFF
 
         return self._safety_state == STATE_ON
+
+    async def refresh_and_update_if_changed(self) -> bool:
+        """Refresh the safety state and update_states of VTherm if changed
+        Returns True if the state has changed, False otherwise"""
+        old_safety: bool = self.is_safety_detected
+        if old_safety != await self.refresh_state():
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(force=True)
+            return True
+
+        return False
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""

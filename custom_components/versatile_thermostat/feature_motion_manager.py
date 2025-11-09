@@ -23,12 +23,13 @@ from homeassistant.helpers.event import (
     async_call_later,
 )
 
-from .vtherm_preset import VThermPreset
-
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
+from .vtherm_preset import VThermPreset
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -247,25 +248,8 @@ class FeatureMotionManager(BaseFeatureManager):
         if new_state is not None:
             self._motion_state = STATE_ON if new_state == STATE_ON else STATE_OFF
 
-        # if self._vtherm.preset_mode == VThermPreset.ACTIVITY:
-        #     new_preset = self.get_current_motion_preset()
-        #     _LOGGER.info(
-        #         "%s - Motion condition have changes. New preset temp will be %s",
-        #         self,
-        #         new_preset,
-        #     )
-        #     # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-        #     # We take the motion into account
-        #     new_temp = self._vtherm.find_preset_temp(new_preset)
-        #     old_temp = self._vtherm.target_temperature
-        #     if new_temp != old_temp:
-        #         await self._vtherm.change_target_temperature(new_temp)
-        #
-        #     if new_temp != old_temp and recalculate:
-        #         self._vtherm.recalculate()
-        #         await self._vtherm.async_control_heating(force=True)
-
         if old_motion_state != self._motion_state:
+            write_event_log(_LOGGER, self._vtherm, f"Motion state changed from {old_motion_state} to {self._motion_state}")
             self._vtherm.requested_state.force_changed()
             await self._vtherm.update_states(True)
             return True

@@ -21,6 +21,8 @@ from .const import (
     overrides,
 )
 
+from .commons import write_event_log
+
 from .base_thermostat import BaseThermostat, ConfigData
 from .underlyings import UnderlyingSwitch
 from .prop_algorithm import PropAlgorithm
@@ -255,6 +257,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         """Handle heater switch state changes."""
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
+
+        write_event_log(_LOGGER, self, f"Underlying switch state changed from {old_state.state if old_state else None} to {new_state.state if new_state else None}")
         if new_state is None:
             return
         if old_state is None:

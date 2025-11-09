@@ -15,7 +15,7 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
 )
 
-from .commons import round_to_nearest
+from .commons import round_to_nearest, write_event_log
 from .base_thermostat import BaseThermostat, ConfigData
 from .pi_algorithm import PITemperatureRegulator
 
@@ -649,7 +649,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 await self.update_states()
 
         new_state = event.data.get("new_state")
-        _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
+        old_state = event.data.get("old_state")
+
+        write_event_log(_LOGGER, self, f"Underlying climate state changed from {old_state} to new_state {new_state}")
+
         if not new_state:
             return
 
@@ -664,8 +667,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         changes = False
         new_hvac_mode = VThermHvacMode(new_state.state)
-
-        old_state = event.data.get("old_state")
 
         # Issue #829 - refresh underlying command if it comes back to life
         if old_state is not None and new_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN) and old_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):

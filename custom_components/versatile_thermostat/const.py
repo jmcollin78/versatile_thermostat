@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, disable=unused-import
 """Constants for the Versatile Thermostat integration."""
 
 import logging

@@ -17,6 +17,7 @@ from homeassistant.core import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -180,19 +181,12 @@ class FeaturePowerManager(BaseFeatureManager):
         current_max_power = vtherm_api.central_power_manager.current_max_power
 
         if overpowering and not self.is_overpowering_detected:
-            _LOGGER.warning(
-                "%s - overpowering is detected. Heater preset will be set to 'power'",
-                self,
-            )
+            write_event_log(_LOGGER, self._vtherm, "Overpowering is detected")
+            _LOGGER.warning("%s - overpowering is detected.", self)
 
             self._overpowering_state = STATE_ON
 
-            # if self._vtherm.is_over_climate:
-            #     self._vtherm.save_hvac_mode()
-
-            # self._vtherm.save_preset_mode()
             await self._vtherm.async_underlying_entity_turn_off()
-            # await self._vtherm.async_set_preset_mode_internal(VThermPreset.POWER, force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -204,18 +198,10 @@ class FeaturePowerManager(BaseFeatureManager):
                 },
             )
         elif not overpowering and self.is_overpowering_detected:
-            _LOGGER.warning(
-                "%s - end of overpowering is detected. Heater preset will be restored.",
-                self,
-            )
+            write_event_log(_LOGGER, self._vtherm, "End of overpowering is detected")
+            _LOGGER.warning("%s - end of overpowering is detected.", self)
             self._overpowering_state = STATE_OFF
 
-            # restore state
-            # if self._vtherm.is_over_climate:
-            #     await self._vtherm.restore_hvac_mode()
-            # await self._vtherm.restore_preset_mode()
-            # # restart cycle
-            # await self._vtherm.async_control_heating(force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {

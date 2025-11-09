@@ -16,6 +16,7 @@ from .thermostat_climate import ThermostatOverClimate
 from .prop_algorithm import PropAlgorithm
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
 
 # from .vtherm_api import VersatileThermostatAPI
@@ -323,25 +324,15 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @overrides
     async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, need_control_heating=True):
         """Set new hvac mode"""
-        _LOGGER.info("%s - Calling async_set_hvac_mode to %s", self, hvac_mode)
 
+        write_event_log(_LOGGER, self, f"Setting hvac_mode to {hvac_mode}")
         if hvac_mode == VThermHvacMode_SLEEP:
-            _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
             self._is_sleeping = True
             hvac_mode = VThermHvacMode_OFF
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
         else:
             self._is_sleeping = False
 
-        # When turning off, we need to close the valve
-        # if self._is_sleeping:
-        #     self._valve_open_percent = 100
-        #     for under in self._underlyings_valve_regulation:
-        #         await under.set_valve_open_percent()
-        #     self.update_custom_attributes()
-        #     self.async_write_ha_state()
-
-        # set hvac mode save the state at the end
         await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
@@ -416,7 +407,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         target:
             entity_id: climate.thermostat_1
         """
-        _LOGGER.info("%s - Calling service_set_hvac_mode_sleep", self)
+        write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP, need_control_heating=False)
 
     @overrides

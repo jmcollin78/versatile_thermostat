@@ -13,6 +13,8 @@ from .vtherm_hvac_mode import VThermHvacMode
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
 
+from .commons import write_event_log
+
 from .base_manager import BaseFeatureManager
 
 from .auto_start_stop_algorithm import (
@@ -152,6 +154,18 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
         # returns True if we should stop
         return self._is_auto_stop_detected
+
+    async def refresh_and_update_if_changed(self) -> bool:
+        """Refresh the auto start/stop state and update_states of VTherm if changed
+        Returns True if the state has changed, False otherwise"""
+        old_auto_start_stop: bool = self.is_auto_stop_detected
+        if old_auto_start_stop != await self.refresh_state():
+            write_event_log(_LOGGER, self._vtherm, f"Auto start/stop state changed from {old_auto_start_stop} to {self.is_auto_stop_detected}")
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(force=True)
+            return True
+
+        return False
 
     async def set_auto_start_stop_enable(self, is_enabled: bool):
         """Enable/Disable the auto-start/stop feature"""

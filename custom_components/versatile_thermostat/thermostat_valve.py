@@ -14,6 +14,7 @@ from .base_thermostat import BaseThermostat, ConfigData
 from .prop_algorithm import PropAlgorithm
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
 
@@ -136,9 +137,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         This method just log the change. It changes nothing to avoid loops.
         """
         new_state = event.data.get("new_state")
-        _LOGGER.debug(
-            "%s - _async_valve_changed new_state is %s", self, new_state.state
-        )
+        write_event_log(_LOGGER, self, f"Underlying valve state changed to {new_state}")
 
     @overrides
     def update_custom_attributes(self):

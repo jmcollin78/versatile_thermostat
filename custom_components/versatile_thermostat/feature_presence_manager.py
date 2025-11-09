@@ -24,6 +24,7 @@ from homeassistant.helpers.event import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 from .vtherm_preset import VThermPreset
 
@@ -97,35 +98,19 @@ class FeaturePresenceManager(BaseFeatureManager):
     async def _presence_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle presence changes."""
         new_state = event.data.get("new_state")
-        _LOGGER.info(
-            "%s - Presence changed. Event.new_state is %s, _attr_preset_mode=%s, activity=%s",
-            self,
-            new_state,
-            self._vtherm.preset_mode,
-            VThermPreset.ACTIVITY,
-        )
+        write_event_log(_LOGGER, self._vtherm, f"Presence sensor changed to state {new_state.state if new_state else None}")
+
         if new_state is None:
             return
 
         return await self.update_presence(new_state.state)
-    #            self._vtherm.requested_state.force_changed()
-    #            await self._vtherm.update_states(force=True)
-    #    await self._vtherm.async_control_heating(force=True)
 
     async def update_presence(self, new_state: str):
         """Update the value of the presence sensor and update the VTherm state accordingly"""
 
         _LOGGER.info("%s - Updating presence. New state is %s", self, new_state)
         old_presence_state = self._presence_state
-        self._presence_state = (
-            STATE_ON if new_state in (STATE_ON, STATE_HOME) else STATE_OFF
-        )
-        # if self._vtherm.preset_mode in HIDDEN_PRESETS or self._is_configured is False:
-        #     _LOGGER.info(
-        #         "%s - Ignoring presence change cause in Power or Security preset or presence not configured",
-        #         self,
-        #     )
-        #     return # old_presence_state != self._presence_state
+        self._presence_state = STATE_ON if new_state in (STATE_ON, STATE_HOME) else STATE_OFF
 
         if new_state is None or new_state not in (
             STATE_OFF,
@@ -134,27 +119,6 @@ class FeaturePresenceManager(BaseFeatureManager):
             STATE_NOT_HOME,
         ):
             self._presence_state = STATE_UNKNOWN
-
-            # if self._vtherm.preset_mode not in [
-            #    VThermPreset.BOOST,
-            #    VThermPreset.COMFORT,
-            #    VThermPreset.ECO,
-            #    VThermPreset.ACTIVITY,
-            #    VThermPreset.FROST,
-            # ]:
-            # return  # old_presence_state != self._presence_state
-
-        # new_temp = self._vtherm.find_preset_temp(self._vtherm.preset_mode)
-        # if new_temp is not None:
-        #    _LOGGER.debug(
-        #        "%s - presence change in temperature mode new_temp will be: %.2f",
-        #        self,
-        #        new_temp,
-        #    )
-        #    await self._vtherm.change_target_temperature(new_temp)
-        #    self._vtherm.recalculate()
-        #
-        #    return True
 
         if old_presence_state != self._presence_state:
             self._vtherm.requested_state.force_changed()
