@@ -498,71 +498,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
-        self._attr_extra_state_attributes.update(
-            {
-                "vtherm_over_climate": {
-                    "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
-                    "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
-                    "is_regulated": self.is_regulated,
-                    "auto_fan_mode": self.auto_fan_mode,
-                    "current_auto_fan_mode": self._current_auto_fan_mode,
-                    "auto_activated_fan_mode": self._auto_activated_fan_mode,
-                    "auto_deactivated_fan_mode": self._auto_deactivated_fan_mode,
-                    "follow_underlying_temp_change": self._follow_underlying_temp_change,
-                    "auto_regulation_use_device_temp": self.auto_regulation_use_device_temp,
-                }
-            }
-        )
-
-        # self._attr_extra_state_attributes["start_hvac_action_date"] = ()
-        #
-        # self._attr_extra_state_attributes["underlying_entities"] = [
-        #    underlying.entity_id for underlying in self._underlyings
-        # ]
+        vtherm_over_climate_data = {
+            "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
+            "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+            "is_regulated": self.is_regulated,
+            "auto_fan_mode": self.auto_fan_mode,
+            "current_auto_fan_mode": self._current_auto_fan_mode,
+            "auto_activated_fan_mode": self._auto_activated_fan_mode,
+            "auto_deactivated_fan_mode": self._auto_deactivated_fan_mode,
+            "follow_underlying_temp_change": self._follow_underlying_temp_change,
+            "auto_regulation_use_device_temp": self.auto_regulation_use_device_temp,
+        }
 
         if self.is_regulated:
-            self._attr_extra_state_attributes.update(
-                {
-                    "vtherm_over_climate": {
-                        "regulation": {
-                            "regulated_target_temperature": self._regulated_target_temp,
-                            "auto_regulation_mode": self._auto_regulation_mode,
-                            "regulation_accumulated_error": self._regulation_algo.accumulated_error,
-                        }
-                    }
-                }
-            )
-            # self._attr_extra_state_attributes["is_regulated"] = self.is_regulated
-            # self._attr_extra_state_attributes["regulated_target_temperature"] = (
-            #    self._regulated_target_temp
-            # )
-            # self._attr_extra_state_attributes["auto_regulation_mode"] = (
-            #    self.auto_regulation_mode
-            # )
-            # self._attr_extra_state_attributes["regulation_accumulated_error"] = (
-            #    self._regulation_algo.accumulated_error
-            # )
+            vtherm_over_climate_data["regulation"] = {
+                "regulated_target_temperature": self._regulated_target_temp,
+                "auto_regulation_mode": self._auto_regulation_mode,
+                "regulation_accumulated_error": self._regulation_algo.accumulated_error,
+            }
 
-        # self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
-        # self._attr_extra_state_attributes["current_auto_fan_mode"] = (
-        #     self._current_auto_fan_mode
-        # )
-        #
-        # self._attr_extra_state_attributes["auto_activated_fan_mode"] = (
-        #     self._auto_activated_fan_mode
-        # )
-        #
-        # self._attr_extra_state_attributes["auto_deactivated_fan_mode"] = (
-        #     self._auto_deactivated_fan_mode
-        # )
-        #
-        # self._attr_extra_state_attributes["auto_regulation_use_device_temp"] = (
-        #     self.auto_regulation_use_device_temp
-        # )
-        #
-        # self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
-        #     self._follow_underlying_temp_change
-        # )
+        self._attr_extra_state_attributes.update({"vtherm_over_climate": vtherm_over_climate_data})
 
         self.async_write_ha_state()
 
@@ -576,20 +531,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         _LOGGER.debug("%s - recalculate all", self)
         self.update_custom_attributes()
         self.async_write_ha_state()
-
-    # @overrides
-    # async def restore_hvac_mode(self, need_control_heating=False):
-    #    """Restore a previous hvac_mod"""
-    #    old_hvac_mode = self.hvac_mode
-    #
-    #    await super().restore_hvac_mode(need_control_heating=need_control_heating)
-    #
-    #    # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
-    #    if old_hvac_mode == VThermHvacMode_OFF and self.hvac_mode != VThermHvacMode_OFF:
-    #        _LOGGER.info(
-    #            "%s - Force resent target temp cause we turn on some over climate"
-    #        )
-    #        await self.change_target_temperature(self.target_temperature)
 
     @overrides
     def incremente_energy(self):

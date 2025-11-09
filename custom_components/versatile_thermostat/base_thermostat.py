@@ -1241,9 +1241,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self.recalculate()
                     self.reset_last_change_time_from_vtherm()
 
+                    await self.async_control_heating(force=force or sub_need_control_heating)
                     self.update_custom_attributes()
                     self.async_write_ha_state()
-                    await self.async_control_heating(force=force or sub_need_control_heating)
         else:
             _LOGGER.debug("%s - current state did not change. Still %s", self, self._state_manager.current_state)
 
