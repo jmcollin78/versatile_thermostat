@@ -137,6 +137,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         This method just log the change. It changes nothing to avoid loops.
         """
         new_state = event.data.get("new_state")
+        self.calculate_hvac_action()
         write_event_log(_LOGGER, self, f"Underlying valve state changed to {new_state}")
 
     @overrides
@@ -201,7 +202,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         #     "calculated_on_percent"
         # ] = self._prop_algorithm.calculated_on_percent
         #
-        self.async_write_ha_state()
+        # self.async_write_ha_state()
         _LOGGER.debug(
             "%s - Calling update_custom_attributes: %s",
             self,
@@ -278,9 +279,9 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         self._last_calculation_timestamp = now
 
+        # self.calculate_hvac_action()
         self.update_custom_attributes()
-        # already done in update_custom_attributes
-        # self.async_write_ha_state()
+        self.async_write_ha_state()
 
     @overrides
     def incremente_energy(self):

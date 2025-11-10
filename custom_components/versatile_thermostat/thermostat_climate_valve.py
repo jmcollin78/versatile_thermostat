@@ -311,14 +311,13 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         else:
             return self._valve_open_percent
 
-    @property
-    def hvac_action(self) -> HVACAction | None:
+    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
         if self._is_sleeping:
-            return HVACAction.OFF
+            self._attr_hvac_action = HVACAction.OFF
         else:
-            return self.calculate_hvac_action(self._underlyings_valve_regulation)
+            super().calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
     def is_device_active(self) -> bool:

@@ -134,44 +134,30 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """True if the Thermostat is over_climate"""
         return True
 
-    def calculate_hvac_action(self, under_list: list) -> HVACAction | None:
+    @overrides
+    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
         """Calculate an hvac action based on the hvac_action of the list in argument"""
         # if one not IDLE or OFF -> return it
         # else if one IDLE -> IDLE
         # else OFF
+        if under_list is None:
+            under_list = self._underlyings
+
         one_idle = False
+        ret = None
         for under in under_list:
             if (action := under.hvac_action) not in [
                 HVACAction.IDLE,
                 HVACAction.OFF,
             ]:
-                return action
+                self._attr_hvac_action = action
+                return
             if under.hvac_action == HVACAction.IDLE:
                 one_idle = True
         if one_idle:
-            return HVACAction.IDLE
-        return HVACAction.OFF
-
-    @property
-    def hvac_action(self) -> HVACAction | None:
-        """Returns the current hvac_action by checking all hvac_action of the underlyings"""
-        return self.calculate_hvac_action(self._underlyings)
-
-    # @overrides
-    # async def change_target_temperature(self, temperature: float, force=False):
-    #    """Set the target temperature and the target temperature of underlying climate if any"""
-    #    await super().change_target_temperature(temperature, force=force)
-    #
-    #    self._regulation_algo.set_target_temp(self.target_temperature)
-    #    # Is necessary cause control_heating method will not force the update.
-    #    # TODO no more needed ?
-    #    # await self._send_regulated_temperature(force=True)
-
-    @overrides
-    async def update_states(self, force=False):
-        """Update the states of the thermostat and its underlyings."""
-
-        await super().update_states(force=force)
+            self._attr_hvac_action = HVACAction.IDLE
+        else:
+            self._attr_hvac_action = HVACAction.OFF
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
@@ -519,18 +505,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self._attr_extra_state_attributes.update({"vtherm_over_climate": vtherm_over_climate_data})
 
-        self.async_write_ha_state()
-
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def recalculate(self):
-        """A utility function to force the calculation of a the algo and
-        update the custom attributes and write the state
+        """A utility function to force the calculation of a the algo. For over_climate there is nothing to
+        recalculate but we need it cause the base function throw not implemented error
         """
-        _LOGGER.debug("%s - recalculate all", self)
-        self.update_custom_attributes()
-        self.async_write_ha_state()
 
     @overrides
     def incremente_energy(self):
@@ -587,6 +568,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 # already done by update_custom_attribute
                 # self.update_custom_attributes()
                 # await self.async_control_heating()
+                self.requested_state.force_changed()
                 await self.update_states()
 
         new_state = event.data.get("new_state")

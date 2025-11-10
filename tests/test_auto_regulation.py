@@ -96,6 +96,7 @@ async def test_over_climate_regulation(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.HEATING
             )  # simulate under heating
+            entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
@@ -192,6 +193,7 @@ async def test_over_climate_regulation_ac_mode(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.COOLING
             )  # simulate under heating
+            entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.COOLING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
@@ -307,6 +309,7 @@ async def test_over_climate_regulation_limitations(
         fake_underlying_climate.set_hvac_action(
             HVACAction.HEATING
         )  # simulate under heating
+        entity.calculate_hvac_action()
         assert entity.hvac_action == HVACAction.HEATING
 
         # the regulated temperature will not change because when we set temp manually it is forced
@@ -414,6 +417,7 @@ async def test_over_climate_regulation_use_device_temp(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.HEATING
             )  # simulate under heating
+            entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
@@ -571,6 +575,7 @@ async def test_over_climate_regulation_dtemp_null(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.HEATING
             )  # simulate under cooling
+            entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 

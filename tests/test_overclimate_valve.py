@@ -204,6 +204,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
                 "number.mock_opening_degree", "40", {"min": 0, "max": 100}
             ))
 
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
@@ -249,7 +250,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             State(
                 "number.mock_opening_degree", "13", {"min": 0, "max": 100}
             ))
-
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
@@ -296,6 +297,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
                 "number.mock_opening_degree", "0", {"min": 0, "max": 100}
             ))
 
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.is_device_active is False
         assert vtherm.nb_device_actives == 0

@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
 """ Test the Window management """
 import logging
-from unittest.mock import patch, PropertyMock, AsyncMock, MagicMock
+from unittest.mock import patch, PropertyMock, MagicMock
 
 from homeassistant.components.climate import HVACMode
 

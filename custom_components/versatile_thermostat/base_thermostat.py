@@ -892,11 +892,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Return current operation."""
         return self._state_manager.current_state.hvac_mode
 
-    @property
-    def hvac_action(self) -> HVACAction | None:  # pyright: ignore[reportIncompatibleVariableOverride]
-        """Return the current running hvac operation if supported.
-        Need to be one of CURRENT_HVAC_*.
-        """
+    def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
+        """Calculate the HVAC action based on the current state and underlying devices"""
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             action = HVACAction.OFF
         elif not self.is_device_active:
@@ -905,7 +902,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             action = HVACAction.COOLING
         else:
             action = HVACAction.HEATING
-        return action
+        self._attr_hvac_action = action
 
     @property
     def is_used_by_central_boiler(self) -> HVACAction | None:
@@ -1240,10 +1237,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if changed:
                     self.recalculate()
                     self.reset_last_change_time_from_vtherm()
-
                     await self.async_control_heating(force=force or sub_need_control_heating)
-                    self.update_custom_attributes()
-                    self.async_write_ha_state()
+
+            self.calculate_hvac_action()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
         else:
             _LOGGER.debug("%s - current state did not change. Still %s", self, self._state_manager.current_state)
 
@@ -1390,7 +1388,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     force,
                 )
 
-        # self.update_custom_attributes()
+        self.calculate_hvac_action()
+        self.update_custom_attributes()
+        self.async_write_ha_state()
         return True
 
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
@@ -1576,11 +1576,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         for manager in self._managers:
             manager.add_custom_attributes(self._attr_extra_state_attributes)
-
-    @overrides
-    def async_write_ha_state(self):
-        """overrides to have log"""
-        return super().async_write_ha_state()
 
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""

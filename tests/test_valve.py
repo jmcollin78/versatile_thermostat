@@ -451,6 +451,8 @@ async def test_over_valve_regulation(
         await send_temperature_change_event(entity, 18, now)
         assert entity.valve_open_percent == 90
 
+        # Simulate the next cycle
+        await entity.async_control_heating(force=True)
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 

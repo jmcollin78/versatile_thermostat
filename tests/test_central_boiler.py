@@ -1248,6 +1248,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         # Wait for state event propagation
         await asyncio.sleep(0.5)
 
+        # The underlying is idle but the valve are closed -> OFF
         assert entity.hvac_action == HVACAction.OFF
         assert entity.device_actives == []
 

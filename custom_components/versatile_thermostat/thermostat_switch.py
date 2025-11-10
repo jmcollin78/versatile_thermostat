@@ -264,5 +264,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         if old_state is None:
             self.hass.create_task(self._check_initial_state())
 
+        self.calculate_hvac_action()
         self.async_write_ha_state()
         self.update_custom_attributes()
