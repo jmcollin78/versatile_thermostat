@@ -123,7 +123,7 @@ class FeaturePowerManager(BaseFeatureManager):
             not self._is_configured
             or not vtherm_api.central_power_manager.is_configured
         ):
-            return True
+            return True, 0
 
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
@@ -136,7 +136,7 @@ class FeaturePowerManager(BaseFeatureManager):
             _LOGGER.warning(
                 "%s - power not valued. check_power_available not available", self
             )
-            return True
+            return True, 0
 
         _LOGGER.debug(
             "%s - overpowering check: power=%.3f, max_power=%.3f heater power=%.3f",
@@ -168,11 +168,8 @@ class FeaturePowerManager(BaseFeatureManager):
                 started_vtherm_total_power,
                 self._device_power,
             )
-        else:
-            # Adds the current_power_max to the started vtherm total power
-            vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
 
-        return ret
+        return ret, power_consumption_max
 
     async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""

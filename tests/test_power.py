@@ -132,8 +132,12 @@ async def test_power_feature_manager(
         type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=1)
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
-        ret = await power_manager.check_power_available()
+        ret, power_consumption_max = await power_manager.check_power_available()
         assert ret == check_power_available
+        if is_device_active:
+            assert power_consumption_max == 0
+        else:
+            assert power_consumption_max == 1234
 
 
 @pytest.mark.parametrize(
@@ -852,6 +856,14 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     #
     #
     #

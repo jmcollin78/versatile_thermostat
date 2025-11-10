@@ -48,7 +48,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._current_max_power: float | None = None
         self._power_temp: float | None = None
         self._cancel_calculate_shedding_call = None
-        self._started_vtherm_total_power: float | None = None
+        self._started_vtherm_total_power: float = 0
         # Not used now
         self._last_shedding_date = None
 

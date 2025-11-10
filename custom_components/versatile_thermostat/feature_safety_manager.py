@@ -151,7 +151,7 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         should_start_safety = mode_cond and not is_safety_detected and should_be_in_safety
         # attr_preset_mode is not necessary normaly. It is just here to be sure
-        should_stop_safety = is_safety_detected and not should_be_in_safety and self._vtherm.preset_mode == VThermPreset.SAFETY
+        should_stop_safety = is_safety_detected and not should_be_in_safety
 
         # Logging and event
         if should_start_safety:

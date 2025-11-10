@@ -43,12 +43,12 @@ from homeassistant.const import (
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
-from .commons_type import ConfigData, T
+from .commons_type import ConfigData
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
-from .underlyings import UnderlyingEntity
+from .underlyings import UnderlyingEntity, T
 
 from .prop_algorithm import PropAlgorithm
 from .ema import ExponentialMovingAverage

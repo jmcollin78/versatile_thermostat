@@ -3,7 +3,7 @@
 """ Underlying entities classes """
 import logging
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, TypeVar
 
 from enum import StrEnum
 
@@ -38,6 +38,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode
 from .keep_alive import IntervalCaller
 from .commons import round_to_nearest
+from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -196,10 +197,15 @@ class UnderlyingEntity:
         """Check that a underlying can be turned on, else
         activate the overpowering state of the VTherm associated.
         Returns True if the check is ok (no overpowering needed)"""
-        if not await self._thermostat.power_manager.check_power_available():
+        ret, power_consumption_max = await self._thermostat.power_manager.check_power_available()
+        if not ret:
             _LOGGER.debug("%s - overpowering is detected", self)
             await self._thermostat.power_manager.set_overpowering(True)
             return False
+        else:
+            # Adds the current_power_max to the started vtherm total power
+            vtherm_api = VersatileThermostatAPI.get_vtherm_api(self._hass)
+            vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
         return True
 
 
@@ -1304,3 +1310,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)
+
+
+T = TypeVar("T", bound=UnderlyingEntity)

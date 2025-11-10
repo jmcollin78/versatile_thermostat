@@ -180,7 +180,7 @@ class PropAlgorithm:
             )
         else:
             _LOGGER.debug(
-                "Security is Off using the calculated_on_percent %f",
+                "Safety is Off using the calculated_on_percent %f",
                 self._calculated_on_percent,
             )
             self._on_percent = self._calculated_on_percent
