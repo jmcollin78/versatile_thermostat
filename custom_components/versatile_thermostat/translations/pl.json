@@ -448,7 +448,7 @@
       },
       "presence": {
         "title": "Obecność - {name}",
-        "description": "Atrybuty zarądzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć głównej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
