@@ -875,6 +875,10 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
     #
     #
     #
+    #
+    #
+    #
+    #
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \

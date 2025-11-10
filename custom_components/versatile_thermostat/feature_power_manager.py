@@ -146,17 +146,7 @@ class FeaturePowerManager(BaseFeatureManager):
             self._device_power,
         )
 
-        # issue 407 - power_consumption_max is power we need to add. If already active we don't need to add more power
-        if self._vtherm.is_device_active:
-            power_consumption_max = 0
-        else:
-            if self._vtherm.is_over_climate:
-                power_consumption_max = self._device_power
-            else:
-                power_consumption_max = max(
-                    self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
-                )
+        power_consumption_max = self.calculate_power_consumption_max()
 
         ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
         if not ret:
@@ -170,6 +160,51 @@ class FeaturePowerManager(BaseFeatureManager):
             )
 
         return ret, power_consumption_max
+
+    def calculate_power_consumption_max(self) -> float:
+        """Calculate the maximum power consumption"""
+        power_consumption_max = 0
+        if not self._vtherm.is_device_active:
+            if self._vtherm.is_over_climate:
+                power_consumption_max = self._device_power
+            else:
+                power_consumption_max = max(
+                    self._device_power / self._vtherm.nb_underlying_entities,
+                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                )
+        return power_consumption_max
+
+    def add_power_consumption_to_central_power_manager(self):
+        """
+        Add the current power consumption to the central power manager.
+        """
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+        if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
+            return
+
+        power_consumption_max = self.calculate_power_consumption_max()
+
+        vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
+
+    def sub_power_consumption_to_central_power_manager(self):
+        """
+        Substract the current power consumption to the central power manager.
+        """
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+        if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
+            return
+
+        power_consumption_max = 0
+        if self._vtherm.is_device_active:
+            if self._vtherm.is_over_climate:
+                power_consumption_max = self._device_power
+            else:
+                power_consumption_max = max(
+                    self._device_power / self._vtherm.nb_underlying_entities,
+                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                )
+
+        vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
 
     async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""

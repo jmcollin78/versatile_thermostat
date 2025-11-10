@@ -38,7 +38,6 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode
 from .keep_alive import IntervalCaller
 from .commons import round_to_nearest
-from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -197,17 +196,13 @@ class UnderlyingEntity:
         """Check that a underlying can be turned on, else
         activate the overpowering state of the VTherm associated.
         Returns True if the check is ok (no overpowering needed)"""
-        ret, power_consumption_max = await self._thermostat.power_manager.check_power_available()
+        ret, _ = await self._thermostat.power_manager.check_power_available()
         if not ret:
             _LOGGER.debug("%s - overpowering is detected", self)
             await self._thermostat.power_manager.set_overpowering(True)
             return False
-        else:
-            # Adds the current_power_max to the started vtherm total power
-            vtherm_api = VersatileThermostatAPI.get_vtherm_api(self._hass)
-            vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
-        return True
 
+        return True
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -352,6 +347,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         # This may fails if called after shutdown
         try:
             try:
+                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager()
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
@@ -376,6 +372,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         data = self._on_command.get("data")
         try:
             try:
+                self._thermostat.power_manager.add_power_consumption_to_central_power_manager()
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._keep_alive.set_async_action(self._keep_alive_callback)
