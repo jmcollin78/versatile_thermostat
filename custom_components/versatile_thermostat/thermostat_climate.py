@@ -565,9 +565,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         async def end_climate_changed(changes: bool):
             """To end the event management"""
             if changes:
-                # already done by update_custom_attribute
-                # self.update_custom_attributes()
-                # await self.async_control_heating()
                 self.requested_state.force_changed()
                 await self.update_states()
 
