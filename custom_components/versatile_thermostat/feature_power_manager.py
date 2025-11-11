@@ -22,6 +22,7 @@ from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 from .vtherm_api import VersatileThermostatAPI
+from .lock_policy import make_internal_context, OP_INTERNAL_AUTO_REGULATION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,6 +207,11 @@ class FeaturePowerManager(BaseFeatureManager):
 
         vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
 
+    def _with_internal_power_context(self):
+        """Return a context for internal power/auto-regulation operations."""
+        vt_unique_id = getattr(self._vtherm, "unique_id", None)
+        return make_internal_context(OP_INTERNAL_AUTO_REGULATION, vt_unique_id)
+
     async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""
 
@@ -219,7 +225,12 @@ class FeaturePowerManager(BaseFeatureManager):
 
             self._overpowering_state = STATE_ON
 
-            await self._vtherm.async_underlying_entity_turn_off()
+            prev_context = getattr(self._vtherm, "_context", None)
+            self._vtherm._context = self._with_internal_power_context()
+            try:
+                await self._vtherm.async_underlying_entity_turn_off()
+            finally:
+                self._vtherm._context = prev_context
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -235,6 +246,8 @@ class FeaturePowerManager(BaseFeatureManager):
             _LOGGER.warning("%s - end of overpowering is detected.", self)
             self._overpowering_state = STATE_OFF
 
+            # Overpowering ended - update state with internal context to bypass lock
+            await self._vtherm.update_states(force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {

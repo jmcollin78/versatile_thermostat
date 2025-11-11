@@ -92,8 +92,8 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 18. [Selbstregulierung](documentation/de/self-regulation.md)
 19. [Tuning-Beispiele](documentation/de/tuning-examples.md)
 20. [Algorithmen](documentation/de/algorithms.md)
-21. [Referenzdokumentation](documentation/de/reference.md)
-22. [Tuning-Beispiele](documentation/de/tuning-examples.md)
+21. [Sperrfunktion](documentation/de/feature-lock.md)
+22. [Referenzdokumentation](documentation/de/reference.md)
 23. [Störungsbeseitigung](documentation/de/troubleshooting.md)
 24. [Veröffentlichungshinweise](documentation/de/releases.md)
 

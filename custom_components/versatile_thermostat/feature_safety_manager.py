@@ -24,6 +24,7 @@ from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 from .vtherm_api import VersatileThermostatAPI
 from .vtherm_hvac_mode import VThermHvacMode
+from .lock_policy import make_internal_context, OP_INTERNAL_SAFETY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,6 +50,11 @@ class FeatureSafetyManager(BaseFeatureManager):
         self._safety_min_on_percent = None
         self._safety_default_on_percent = None
         self._safety_state = STATE_UNAVAILABLE
+
+    def _with_internal_safety_context(self):
+        """Return a context for internal safety operations."""
+        vt_unique_id = getattr(self._vtherm, "unique_id", None)
+        return make_internal_context(OP_INTERNAL_SAFETY, vt_unique_id)
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
@@ -199,6 +205,10 @@ class FeatureSafetyManager(BaseFeatureManager):
             if self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.set_safety(self._safety_default_on_percent)
 
+            # Set safety preset with internal context to bypass lock
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(force=True)
+
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
                 {
@@ -218,6 +228,10 @@ class FeatureSafetyManager(BaseFeatureManager):
             self._safety_state = STATE_OFF
             if self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.unset_safety()
+
+            # Restore state - force update
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(force=True)
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
                 {

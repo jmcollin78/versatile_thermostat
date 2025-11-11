@@ -93,10 +93,11 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
 19. [Les différents algorithmes](documentation/fr/algorithms.md)
-20. [Documentation de référence](documentation/fr/reference.md)
-21. [Exemple de réglages](documentation/fr/tuning-examples.md)
-22. [Dépannage](documentation/fr/troubleshooting.md)
-23. [Notes de version](documentation/fr/releases.md)
+20. [Fonction de verrouillage](documentation/fr/feature-lock.md)
+21. [Documentation de référence](documentation/fr/reference.md)
+22. [Exemple de réglages](documentation/fr/tuning-examples.md)
+23. [Dépannage](documentation/fr/troubleshooting.md)
+24. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 
