@@ -189,12 +189,12 @@ TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
 ]
 
 HVAC_OFF_REASON_NAME = "hvac_off_reason"
-HVAC_OFF_REASON_MANUAL = "manual"
-HVAC_OFF_REASON_AUTO_START_STOP = "auto_start_stop"
-HVAC_OFF_REASON_WINDOW_DETECTION = "window_detection"
-HVAC_OFF_REASON_SLEEP_MODE = "sleep_mode"
-HVAC_OFF_REASON_SAFETY = "safety_detection"
-HVAC_OFF_REASON_CENTRAL_MODE = "central_mode"
+HVAC_OFF_REASON_MANUAL = "hvac_off_manual"
+HVAC_OFF_REASON_AUTO_START_STOP = "hvac_off_auto_start_stop"
+HVAC_OFF_REASON_WINDOW_DETECTION = "hvac_off_window_detection"
+HVAC_OFF_REASON_SLEEP_MODE = "hvac_off_sleep_mode"
+HVAC_OFF_REASON_SAFETY = "hvac_off_safety_detection"
+HVAC_OFF_REASON_CENTRAL_MODE = "hvac_off_central_mode"
 HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
     HVAC_OFF_REASON_MANUAL, HVAC_OFF_REASON_AUTO_START_STOP, HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_SLEEP_MODE, HVAC_OFF_REASON_SAFETY
 ]
@@ -412,6 +412,16 @@ CENTRAL_MODES = [
 
 ATTR_CURRENT_STATE = "current_state"
 ATTR_REQUESTED_STATE = "requested_state"
+
+MSG_OVERPOWERING_DETECTED = "overpowering_detected"
+MSG_SAFETY_DETECTED = "safety_detected"
+MSG_TARGET_TEMP_WINDOW_ECO = "target_temp_window_eco"
+MSG_TARGET_TEMP_WINDOW_FROST = "target_temp_window_frost"
+MSG_TARGET_TEMP_POWER = "target_temp_power"
+MSG_TARGET_TEMP_CENTRAL_MODE = "target_temp_central_mode"
+MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
+MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
+MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:

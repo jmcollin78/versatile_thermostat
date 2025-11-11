@@ -113,6 +113,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     "max_on_percent",
                     "have_valve_regulation",
                     "last_change_time_from_vtherm",
+                    "messages",
                 }
             )
         )
@@ -215,11 +216,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._hvac_off_reason: str | None = None
         self._hvac_list: list[VThermHvacMode] = []
         self._str_hvac_list: list[str] = []
-
-        # Store the last havac_mode before central mode changes
-        # has been introduce to avoid conflict with window
-        # self._saved_hvac_mode_central_mode = None
-        # self._saved_preset_mode_central_mode = None
+        self._temperature_reason: str | None = None
 
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
@@ -1139,6 +1136,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._hvac_off_reason
 
     @property
+    def temperature_reason(self) -> str | None:
+        """Returns the reason of the target temperature
+        This is useful for features that changes the VTherm like window detection or power management"""
+        return self._temperature_reason
+
+    @property
     def is_sleeping(self) -> bool:
         """True if the thermostat is in sleep mode. Only for over_climate with valve regulation"""
         return False
@@ -1490,6 +1493,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Set the reason of hvac_off"""
         self._hvac_off_reason = hvac_off_reason
 
+    def set_temperature_reason(self, temperature_reason: str | None):
+        """Set the reason of temperature"""
+        self._temperature_reason = temperature_reason
+
     async def check_central_mode(self, new_central_mode: str | None, old_central_mode: str | None):
         """Take into account a central mode change"""
         if not self.is_controlled_by_central_mode:
@@ -1525,6 +1532,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
 
+        messages: list[str] = []
+        if self.safety_manager.is_safety_detected:
+            messages.append(MSG_SAFETY_DETECTED)
+        if self.power_manager.is_overpowering_detected:
+            messages.append(MSG_OVERPOWERING_DETECTED)
+        if self.hvac_off_reason:
+            messages.append(self.hvac_off_reason)
+        if self.temperature_reason:
+            messages.append(self.temperature_reason)
+
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
@@ -1546,6 +1563,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),
+                "messages": messages,
             },
             "configuration": {
                 "ac_mode": self._ac_mode,

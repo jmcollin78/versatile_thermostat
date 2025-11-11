@@ -277,30 +277,30 @@ async def test_state_manager_calculate_hvac_mode(
 
 
 @pytest.mark.parametrize(
-    "current_hvac_mode,requested_preset,current_preset,is_overpowering_detected,is_safety_detected,last_central_mode,expected_result,expected_preset",
+    "current_hvac_mode,requested_preset,current_preset,is_overpowering_detected,is_safety_detected,last_central_mode,expected_result,expected_preset,expected_temperature_reason",
     # fmt: off
     [
         # Normal case -> no change
-        # current_hvac_mode | requested_preset  | current_preset   | is_overpowering_detected | is_safety_detected | last_central_mode          | expected_result | expected_preset
-        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO),
+        # current_hvac_mode | requested_preset  | current_preset   | is_overpowering_detected | is_safety_detected | last_central_mode          | expected_result | expected_preset | expected_temperature_reason
+        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO,   None),
         # Change preset -> change expected
-        (VThermHvacMode_HEAT, VThermPreset.BOOST, VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_AUTO,           True,             VThermPreset.BOOST),
+        (VThermHvacMode_HEAT, VThermPreset.BOOST, VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_AUTO,           True,             VThermPreset.BOOST, None),
         # Overpowering detected and hvac_mode != OFF -> preset POWER
-        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  True,                      False,               CENTRAL_MODE_AUTO,           True,             VThermPreset.POWER),
+        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  True,                      False,               CENTRAL_MODE_AUTO,           True,             VThermPreset.POWER, MSG_TARGET_TEMP_POWER),
         # Overpowering detected but hvac_mode = OFF -> no change (preset stays requested)
-        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  True,                      False,               CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO),
+        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  True,                      False,               CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO,   None),
         # Safety detected and hvac_mode != OFF -> preset SAFETY
-        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     True,                CENTRAL_MODE_AUTO,           True,             VThermPreset.SAFETY),
+        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     True,                CENTRAL_MODE_AUTO,           True,             VThermPreset.SAFETY, None),
         # Safety detected but hvac_mode = OFF -> no change (preset stays requested)
-        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  False,                     True,                CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO),
+        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  False,                     True,                CENTRAL_MODE_AUTO,           False,            VThermPreset.ECO,   None),
         # Overpowering has priority over safety
-        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  True,                      True,                CENTRAL_MODE_AUTO,           True,             VThermPreset.POWER),
+        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  True,                      True,                CENTRAL_MODE_AUTO,           True,             VThermPreset.POWER, MSG_TARGET_TEMP_POWER),
         # Central mode FROST_PROTECTION and hvac_mode = HEAT -> preset FROST
-        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, True,           VThermPreset.FROST),
+        (VThermHvacMode_HEAT, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, True,           VThermPreset.FROST, MSG_TARGET_TEMP_CENTRAL_MODE),
         # Central mode FROST_PROTECTION but hvac_mode != HEAT -> no FROST preset
-        (VThermHvacMode_COOL, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, False,          VThermPreset.ECO),
+        (VThermHvacMode_COOL, VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, False,          VThermPreset.ECO,   None),
         # Central mode FROST_PROTECTION but hvac_mode = OFF -> no FROST preset
-        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, False,          VThermPreset.ECO),
+        (VThermHvacMode_OFF,  VThermPreset.ECO,   VThermPreset.ECO,  False,                     False,               CENTRAL_MODE_FROST_PROTECTION, False,          VThermPreset.ECO,   None),
     ],
     # fmt: on
 )
@@ -314,6 +314,7 @@ async def test_state_manager_calculate_current_preset(
     last_central_mode: str,
     expected_result: bool,
     expected_preset: VThermPreset,
+    expected_temperature_reason: str,
 ) -> None:
     """Test the state manager's preset calculation with various parameters."""
     fake_vtherm = MagicMock(spec=BaseThermostat)
@@ -322,6 +323,8 @@ async def test_state_manager_calculate_current_preset(
     type(fake_vtherm).vtherm_preset_modes = PropertyMock(
         return_value=[VThermPreset.ECO, VThermPreset.COMFORT, VThermPreset.NONE, VThermPreset.FROST, VThermPreset.BOOST, VThermPreset.POWER, VThermPreset.SAFETY]
     )
+    # Mock set_temperature_reason method
+    fake_vtherm.set_temperature_reason = MagicMock()
 
     state_manager = StateManager()
     state_manager.requested_state.set_state(hvac_mode=VThermHvacMode_HEAT, preset=requested_preset, target_temperature=22)
@@ -343,42 +346,45 @@ async def test_state_manager_calculate_current_preset(
     assert ret is expected_result
     assert state_manager.current_state.preset == expected_preset
 
+    if expected_temperature_reason is not None:
+        fake_vtherm.set_temperature_reason.assert_called_with(expected_temperature_reason)
+
 
 @pytest.mark.parametrize(
-    "current_preset,requested_temp,current_temp,is_window_detected,window_action,is_absence_detected,is_motion_detected,motion_preset,ac_mode,expected_result,expected_temp",
+    "current_preset,requested_temp,current_temp,is_window_detected,window_action,is_absence_detected,is_motion_detected,motion_preset,ac_mode,expected_result,expected_temp,expected_temperature_reason",
     # fmt: off
     [
         # Normal case -> no change (requested temp is used)
-        # current_preset | requested_temp | current_temp | is_window_detected | window_action         | is_absence_detected | is_motion_detected | motion_preset      | ac_mode | expected_result | expected_temp
-        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0),  # ECO temp
+        # current_preset | requested_temp | current_temp | is_window_detected | window_action         | is_absence_detected | is_motion_detected | motion_preset      | ac_mode | expected_result | expected_temp | expected_temperature_reason
+        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0,         None),  # ECO temp
         # Window detected with FROST action -> use FROST temp
-        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_FROST_TEMP, False,                False,               VThermPreset.ECO,   False,      True,             7.0),   # FROST temp
+        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_FROST_TEMP, False,                False,               VThermPreset.ECO,   False,      True,             7.0,          MSG_TARGET_TEMP_WINDOW_FROST),   # FROST temp
         # Window detected with ECO action -> use ECO temp
-        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_ECO_TEMP, False,                  False,               VThermPreset.ECO,   False,      True,             18.0),  # ECO temp
+        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_ECO_TEMP, False,                  False,               VThermPreset.ECO,   False,      True,             18.0,         MSG_TARGET_TEMP_WINDOW_ECO),  # ECO temp
         # Window detected with TURN_OFF action -> no temperature change from window
-        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0),  # ECO temp
+        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0,         None),  # ECO temp
         # Absence detected -> use preset temperature (away mode)
-        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, True,                   False,               VThermPreset.ECO,   False,      True,             16.0),  # ECO_AWAY temp
+        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, True,                   False,               VThermPreset.ECO,   False,      True,             16.0,         MSG_TARGET_TEMP_ABSENCE_DETECTED),  # ECO_AWAY temp
         # Motion detected with ACTIVITY preset -> use motion preset temp
-        (VThermPreset.ACTIVITY, 22.0,       20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  True,                VThermPreset.BOOST, False,      True,             23.0),  # Boost temp
+        (VThermPreset.ACTIVITY, 22.0,       20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  True,                VThermPreset.BOOST, False,      True,             23.0,         MSG_TARGET_TEMP_ACTIVITY_DETECTED),  # Boost temp
         # Motion detected but not ACTIVITY preset -> no motion impact
-        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  True,                VThermPreset.ECO,   False,      True,             18.0),  # ECO temp
+        (VThermPreset.ECO, 22.0,            20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  True,                VThermPreset.ECO,   False,      True,             18.0,         None),  # ECO temp
         # No preset, use requested temp directly
-        (VThermPreset.NONE, 22.0,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               False,      True,             22.0),  # Requested temp
+        (VThermPreset.NONE, 22.0,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               False,      True,             22.0,         None),  # Requested temp
         # No preset, no requested temp, AC mode -> use max temp
-        (VThermPreset.NONE, None,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               True,       True,             35.0),  # Max temp (AC)
+        (VThermPreset.NONE, None,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               True,       True,             35.0,         None),  # Max temp (AC)
         # No preset, no requested temp, heating mode -> use min temp
-        (VThermPreset.NONE, None,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               False,      True,             7.0),   # Min temp
+        (VThermPreset.NONE, None,           20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               None,               False,      True,             7.0,          None),   # Min temp
         # Window has priority over absence
-        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_ECO_TEMP, True,                   False,               VThermPreset.ECO,   False,      True,             16.0),  # ECO temp away (window priority)
+        (VThermPreset.ECO, 22.0,            20.0,          True,                CONF_WINDOW_ECO_TEMP, True,                   False,               VThermPreset.ECO,   False,      True,             16.0,         MSG_TARGET_TEMP_WINDOW_ECO),  # ECO temp away (window priority)
         # Window has priority over motion
-        (VThermPreset.ACTIVITY, 22.0,       20.0,          True,                CONF_WINDOW_FROST_TEMP, False,                True,                VThermPreset.FROST, False,      True,             7.0),   # FROST temp (window priority)
+        (VThermPreset.ACTIVITY, 22.0,       20.0,          True,                CONF_WINDOW_FROST_TEMP, False,                True,                VThermPreset.FROST, False,      True,             7.0,          MSG_TARGET_TEMP_WINDOW_FROST),   # FROST temp (window priority)
         # Absence has priority over motion
-        (VThermPreset.ACTIVITY, 22.0,       20.0,          False,               CONF_WINDOW_TURN_OFF, True,                   True,                VThermPreset.COMFORT,   False,  True,             16.1),  # COMFORT_AWAY temp
+        (VThermPreset.ACTIVITY, 22.0,       20.0,          False,               CONF_WINDOW_TURN_OFF, True,                   True,                VThermPreset.COMFORT,   False,  True,             16.1,         MSG_TARGET_TEMP_ACTIVITY_DETECTED),  # Motion COMFORT_AWAY temp
         # SAFETY preset -> use requested preset temp
-        (VThermPreset.SAFETY, 22.0,         20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0),  # ECO temp (hard coded in test as requested_preset)
+        (VThermPreset.SAFETY, 22.0,         20.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      True,             18.0,         None),  # ECO temp (hard coded in test as requested_preset)
         # No change case -> same temp
-        (VThermPreset.ECO, 18.0,            18.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      False,            18.0),  # No change
+        (VThermPreset.ECO, 18.0,            18.0,          False,               CONF_WINDOW_TURN_OFF, False,                  False,               VThermPreset.ECO,   False,      False,            18.0,         None),  # No change
     ],
     # fmt: on
 )
@@ -395,6 +401,7 @@ async def test_state_manager_calculate_current_target_temperature(
     ac_mode: bool,
     expected_result: bool,
     expected_temp: float,
+    expected_temperature_reason: str,
 ) -> None:
     """Test the state manager's target temperature calculation with various parameters."""
     fake_vtherm = MagicMock(spec=BaseThermostat)
@@ -403,6 +410,9 @@ async def test_state_manager_calculate_current_target_temperature(
     type(fake_vtherm).ac_mode = PropertyMock(return_value=ac_mode)
     type(fake_vtherm).min_temp = 7
     type(fake_vtherm).max_temp = 35
+
+    # Mock set_temperature_reason method
+    fake_vtherm.set_temperature_reason = MagicMock()
 
     # Mock find_preset_temp method with predefined temperatures
     def mock_find_preset_temp(preset):
@@ -455,3 +465,8 @@ async def test_state_manager_calculate_current_target_temperature(
     ret = await state_manager.calculate_current_target_temperature(fake_vtherm)
     assert ret is expected_result
     assert state_manager.current_state.target_temperature == expected_temp
+
+    if expected_temperature_reason is not None:
+        fake_vtherm.set_temperature_reason.assert_called_with(expected_temperature_reason)
+    else:
+        fake_vtherm.set_temperature_reason.assert_not_called()

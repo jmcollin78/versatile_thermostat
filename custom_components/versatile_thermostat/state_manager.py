@@ -22,6 +22,13 @@ from .const import (
     CENTRAL_MODE_FROST_PROTECTION,
     ATTR_CURRENT_STATE,
     ATTR_REQUESTED_STATE,
+    MSG_TARGET_TEMP_POWER,
+    MSG_TARGET_TEMP_WINDOW_ECO,
+    MSG_TARGET_TEMP_WINDOW_FROST,
+    MSG_TARGET_TEMP_CENTRAL_MODE,
+    MSG_TARGET_TEMP_ACTIVITY_DETECTED,
+    MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED,
+    MSG_TARGET_TEMP_ABSENCE_DETECTED,
 )
 from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT
@@ -68,6 +75,7 @@ class StateManager:
         if not vtherm:
             return False
 
+        vtherm.set_temperature_reason(None)
         change_hvac_mode = await self.calculate_current_hvac_mode(vtherm)
         change_preset = await self.calculate_current_preset(vtherm)
         change_target_temp = await self.calculate_current_target_temperature(vtherm)
@@ -175,6 +183,7 @@ class StateManager:
         if vtherm.power_manager.is_overpowering_detected and self._current_state.hvac_mode != VThermHvacMode_OFF:
             # turn off underlying and take the hvac_mode
             self._current_state.set_preset(VThermPreset.POWER)
+            vtherm.set_temperature_reason(MSG_TARGET_TEMP_POWER)
 
         # then check safety
         elif vtherm.safety_manager.is_safety_detected and self._current_state.hvac_mode != VThermHvacMode_OFF:
@@ -183,6 +192,7 @@ class StateManager:
         elif vtherm.last_central_mode == CENTRAL_MODE_FROST_PROTECTION:
             if VThermPreset.FROST in vtherm.vtherm_preset_modes and vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT:
                 self._current_state.set_preset(VThermPreset.FROST)
+                vtherm.set_temperature_reason(MSG_TARGET_TEMP_CENTRAL_MODE)
 
         # all is fine set current_state = requested_state
         else:
@@ -216,12 +226,14 @@ class StateManager:
                 window_action == CONF_WINDOW_ECO_TEMP and vtherm.is_preset_configured(VThermPreset.ECO)
             ):
                 self._current_state.set_target_temperature(vtherm.find_preset_temp(VThermPreset.ECO if window_action == CONF_WINDOW_ECO_TEMP else VThermPreset.FROST))
+                vtherm.set_temperature_reason(MSG_TARGET_TEMP_WINDOW_ECO if window_action == CONF_WINDOW_ECO_TEMP else MSG_TARGET_TEMP_WINDOW_FROST)
                 updated = True
 
         elif vtherm.motion_manager.is_configured and self._current_state.preset == VThermPreset.ACTIVITY:
             new_preset = vtherm.motion_manager.get_current_motion_preset()
             _LOGGER.debug("%s - motion will set new target preset: %s", self, new_preset)
             self._current_state.set_target_temperature(vtherm.find_preset_temp(new_preset))
+            vtherm.set_temperature_reason(MSG_TARGET_TEMP_ACTIVITY_DETECTED if vtherm.motion_manager.is_motion_detected else MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED)
             updated = True
 
         elif vtherm.presence_manager.is_absence_detected:
@@ -229,6 +241,7 @@ class StateManager:
                 new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
                 _LOGGER.debug("%s - presence will set new target temperature: %.2f", self, new_temp)
                 self._current_state.set_target_temperature(new_temp)
+                vtherm.set_temperature_reason(MSG_TARGET_TEMP_ABSENCE_DETECTED)
                 updated = True
 
         if not updated:
