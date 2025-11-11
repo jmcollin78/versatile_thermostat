@@ -1,111 +1,114 @@
 # Typ termostatu `Termostat na Klimacie`
 
 - [Typ termostatu `Termostat na Klimacie`](#over_climate-type-thermostat)
-  - [Prerequisites](#prerequisites)
-  - [Configuration](#configuration)
-    - [The Underlying Entities](#the-underlying-entities)
-    - [AC Mode](#ac-mode)
-    - [Self-Regulation](#self-regulation)
-    - [Auto-Fan (Auto Ventilation)](#auto-fan-auto-ventilation)
-    - [Compensating for the Internal Temperature of the Underlying Equipment](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
-  - [Specific Functions](#specific-functions)
-  - [Follow Underlying Temperature Changes](#follow-underlying-temperature-changes)
+  - [Wymagania wstępne](#prerequisites)
+  - [Konfiguracja](#configuration)
+    - [Encje podstawowe](#the-underlying-entities)
+    - [Tryb AC](#ac-mode)
+    - [Samoregulacja](#self-regulation)
+    - [Autowentylacja](#auto-fan-auto-ventilation)
+    - [Kompensacja temperatury wewnętrznej urządzeń bazowych](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
+  - [Funkcje specyficzne](#specific-functions)
+  - [Śledzenie podstawowych zmian temperatury](#follow-underlying-temperature-changes)
 
-## Prerequisites
+## Wymagania wstępne
 
-The installation should look like this:
+Instalacja powinna wyglądać następująco:
 
 ![installation `over_climate`](images/over-climate-schema.png)
 
-1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
-2. Periodically, the internal thermometer (2), external thermometer (2b), or equipment's internal thermometer (2c) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or equipment.
-3. Based on the setpoint values, differences, and self-regulation parameters (see [auto-regulation](self-regulation.md)), VTherm will calculate a setpoint to send to the underlying `climate` entity.
-4. The `climate` entity controls the equipment using its own protocol.
-5. Depending on the chosen regulation options, VTherm may directly control the opening of a thermostatic valve or calibrate the equipment so that its internal temperature reflects the room temperature.
+1. Użytkownik, automatyzacja lub Harmonogram ustawiają żądaną wartość za pomocą ustawień wstępnych lub bezpośrednio poprzez temperaturę.
+2. Termometr wewnętrzny (2), termometr zewnętrzny (2b) lub wewnętrzny termometr urządzenia (2c) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna lub urządzenia.
+3. Na podstawie wartości zadanych, różnic i parametrów samoregulacji (zobacz [samoregulacja](self-regulation.md)), termostat obliczy wartość żądaną i prześle ją do encji `climate`.
+4. Encja `climate` steruje urządzeniem za pomocą własnego protokołu.
+5. W zależności od wybranych opcji regulacji termostat może bezpośrednio sterować otwarciem zaworu termostatycznego lub kalibrować urządzenie tak, aby jego wewnętrzna temperatura odzwierciedlała temperaturę w pomieszczeniu.
 
-## Configuration
+## Konfiguracja
 
-First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherms_ (patrz: [główne ustawienia](base-attributes.md)).
+Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji:
 
 ![image](images/config-linked-entity2.png)
 
-### The Underlying Entities
-In the "Equipment to Control" list, you should add the `climate` entities that will be controlled by VTherm. Only entities of type `climate` are accepted.
+### Encje podstawowe
+Do listy "Sterowane urządzenia" dodaj encje `climate`, które mają być sterowane termostatem. Akceptowane są tu jedynie encje typu `climate`.
 
-### AC Mode
+### Tryb AC
 
-You can choose an `over_climate` thermostat to control an air conditioner (reversible or not) by checking the "AC Mode" box. If the equipment allows it, both 'Heating' and 'Cooling' modes will be available.
+Możesz wybrać `termostat na klimacie` do sterowania klimatyzacją (odwracalną lub nie), zaznaczając opcję "Tryb AC". Jeśli urządzenie na to pozwala, oba tryby: 'Grzanie" i Chłodzenie' będą dostępne.
 
-### Self-Regulation
+### Samoregulacja
 
-In `over_climate` mode, the device uses its own regulation algorithm: it turns on/off and pauses automatically based on the setpoint transmitted by VTherm through its `climate` entity. It uses its internal thermometer and the received setpoint.
+W trybie `termosta na klimacie` urządzenie korzysta z własnego algorytmu regulacji: załącza się/wyłącza i zatrzymuje automatycznie na podstawie wartości zadanej odebranej przez termostat VTherm za pośrednictwem encji `climate`. Wykorzystuje swój wewnętrzny termometr oraz odczytaną wartość zadaną.
 
-Depending on the equipment, this internal regulation may vary in quality. It greatly depends on the quality of the equipment, the functionality of its internal thermometer, and its internal algorithm. To improve equipment that regulates poorly, VTherm offers a way to adjust the setpoint it sends by increasing or decreasing it based on the room temperature measured by VTherm, rather than the internal temperature.
+W zależności od urządzenia jakość tej wewnętrznej regulacji może się różnić. W dużej mierze zależy to od jakości samego urządzenia, funkcjonalności jego wewnętrznego termometru oraz algorytmu regulacji. Aby poprawić działanie urządzeń, które słabo regulują temperaturę, VTherm oferuje możliwość dostosowania odczytywanej wartości zadanej poprzez jej zwiększenie lub zmniejszenie na podstawie temperatury pomieszczenia mierzonej przez termostat VTherm, a nie t
 
-The self-regulation options are described in detail [here](self-regulation.md).
+Opcje samoregulacji są szczegółowo opisane [tutaj](self-regulation.md).
 
-To avoid overloading the underlying equipment (some may beep unpleasantly, others run on batteries, etc.), two thresholds are available to limit the number of requests:
-1. Regulation Threshold: a threshold in ° (or %) below which a new setpoint will not be sent. If the last setpoint was 22°, the next one will be 22° ± regulation threshold. If a direct valve regulation is used (`over_valve` or `over_climate` with direct valve regulation, this value should in percentage and should not below 3% for Sonoff TRVZB (else the Sonoff TRVZB can lost its calibration).
-2. Minimum Regulation Period (in minutes): a minimum time interval below which a new setpoint will not be sent. If the last setpoint was sent at 11:00, the next one cannot be sent before 11:00 + minimum regulation period.
+Aby uniknąć przeciążenia sterowanego urządzenia (niektóre mogą wydawać nieprzyjemne dźwięki, inne działają na baterie itp.), dostępne są dwa progi ograniczające liczbę wysyłanych żądań:
+1. Próg regulacji: próg w ° (lub %), poniżej którego nowa wartość zadana nie zostanie wysłana. Jeśli ostatnia wartość zadana wynosiła 22°, kolejna będzie wynosić 22° ± próg regulacji. Jeśli stosowana jest bezpośrednia regulacja zaworu (`termostat na zaworze` lub `termostat na klimacie` z bezpośrednią regulacją zaworu), wartość ta powinna być wyrażona w procentach i nie powinna być niższa niż 3% dla Sonoff TRVZB (w przeciwnym razie Sonoff TRVZB może utracić kalibrację).
+2. Minimalny okres regulacji (w min.): minimalny odstęp czasu, poniżej którego nowa wartość zadana nie zostanie przekazana. Jeśli ostatnia wartość zadana została przekazana o 11:00, kolejna nie może zostać wysłana przed 11:00 + minimalny okres regulacji.
 
-Improperly setting these thresholds may prevent correct self-regulation as new setpoints won't be sent.
+Nieprawidłowe ustawienie tych progów może uniemożliwić prawidłową samoregulację, ponieważ nowe wartości zadane nie będą przekazywane.
 
-### Auto-Fan (Auto Ventilation)
+### Autowentylacja
 
-This mode, introduced in version 4.3, forces the use of ventilation if the temperature difference is significant. By activating ventilation, heat distribution occurs more quickly, which helps achieve the target temperature faster.
-You can choose which ventilation level to activate from the following options: Low, Medium, High, Turbo.
+Ten tryb, wprowadzony w wersji 4.3, wymusza użycie wentylacji, jeśli różnica temperatur jest znacząca. Aktywując wentylację, rozprowadzanie ciepła następuje szybciej, co pomaga szybciej osiągnąć temperaturę docelową.
+Możesz wybrać poziom wentylacji do aktywacji spośród następujących opcji: Niski, Średni, Wysoki, Turbo.
 
-Of course, your underlying equipment must have ventilation, and it must be controllable for this to work. If your equipment doesn't include the Turbo mode, the High mode will be used instead. Once the temperature difference becomes small again, the ventilation will switch to a "normal" mode, which depends on your equipment (in order): `Mute`, `Auto`, `Low`. The first available mode for your equipment will be chosen.
+Oczywiście Twoje urządzenie musi posiadać funkcję wentylacji i musi być sterowalne, aby ten tryb działał. Jeśli urządzenie nie obsługuje trybu Turbo, zostanie użyty tryb 'Wysoki'High. Gdy różnica temperatur ponownie stanie się niewielka, wentylacja przełączy się na tryb 'normalny, który zależy od Twojego urządzenia (w kolejności): `Mute`, `Auto`, `Low`. Zostanie wybrany pierwszy dostępny tryb dla Twojego sprzętu.
 
-### Compensating for the Internal Temperature of the Underlying Equipment
+### Kompensacja temperatury wewnętrznej urządzeń bazowych
 
-Warning: This option must not be used with direct valve control regulation if a calibration entity has been provided.
+_Ostrzeżenie_: 
+Tej opcji nie należy używać z regulacją bezpośredniego sterowania zaworem, jeśli została podana encja kalibracyjna.
 
-Sometimes, the internal thermometer of the underlying equipment (TRV, air conditioner, etc.) is inaccurate to the point that self-regulation is insufficient. This happens when the internal thermometer is placed too close to the heat source. The internal temperature rises much faster than the room temperature, leading to regulation failures.
-Example:
-1. Room temperature is 18°, setpoint is 20°.
-2. The internal temperature of the equipment is 22°.
-3. If VTherm sends a setpoint of 21° (= 20° + 1° of self-regulation), the equipment will not heat because its internal temperature (22°) is higher than the setpoint (21°).
+Czasami wewnętrzny termometr sterowanego urządzenia (TRV, klimatyzator itp.) jest na tyle niedokładny, że samoregulacja okazuje się niewystarczająca. Dzieje się tak, gdy termometr wewnętrzny znajduje się zbyt blisko źródła ciepła. Temperatura wewnętrzna rośnie znacznie szybciej niż temperatura w środku pomieszczeniu, co prowadzi do błędów regulacji.
+Przykład:
+1. Temperatura w pomieszczeniu wynosi 18°, wartość żądana to 20°.
+2. Temperatura wewnętrzna urządzenia wynosi 22°.
+3. Jeśli termostat wyśle wartość zadaną 21° (= 20° + 1° samoregulacji), urządzenie nie będzie grzało, ponieważ jego temperatura wewnętrzna (22°) jest wyższa niż wartość zadana (21°).
 
-To address this, a new optional feature has been added in version 5.4: ![Use of Internal Temperature](images/config-use-internal-temp.png)
+Aby temu zaradzić, w wersji 5.4 dodano nową opcjonalną funkcję:
 
-When activated, this feature adds the difference between the internal temperature and the room temperature to the setpoint to force heating.
-In the above example, the difference is +4° (22° - 18°), so VTherm will send 25° (21° + 4°) to the equipment, forcing it to heat.
+![użycie temperatury wewnętrnej](images/config-use-internal-temp.png)
 
-This difference is calculated for each underlying equipment since each has its own internal temperature. For example, a VTherm connected to three TRVs, each with its own internal temperature.
+Po aktywacji funkcja ta dodaje różnicę między temperaturą wewnętrzną a temperaturą w pomieszczeniu do wartości żądanej, aby wymusić grzanie.
+W powyższym przykładzie różnica wynosi +4° (22° - 18°), więc termostat wyśle do urządzenia wartość 25° (21° + 4°), wymuszając grzanie.
 
-This results in much more effective self-regulation that avoids issues with large internal temperature differences due to faulty sensors.
+Różnica ta jest obliczana dla każdego sterowanego urządzenia indywidualnie, ponieważ każde ma własną temperaturę wewnętrzną, np. termostat podłączony do trzech TRV, z których każdy ma własny termometr.
 
-However, be aware that some internal temperatures fluctuate so quickly and inaccurately that they completely skew the calculation. In this case, it’s better to disable this option.
+Skutkuje to znacznie bardziej efektywną samoregulacją, która eliminuje problemy wynikające z dużych różnic temperatur wewnętrznych spowodowanych wadliwymi wartościami sensorów.
+Należy jednak pamiętać, że niektóre temperatury wewnętrzne zmieniają się tak szybko i niedokładnie, że całkowicie zaburzają obliczenia. W takim przypadku lepiej wyłączyć tę opcję.
 
-You will find advice on how to adjust these settings properly on the page [self-regulation](self-regulation.md).
+Porady dotyczące prawidłowego dostosowania tych ustawień znajdziesz na stronie [Samoregulacja](self-regulation.md)
 
-> ![Warning](images/tips.png) _*Notes*_
-> It is very rare to need to check this box. Most of the time, self-regulation solves the issues. The results highly depend on the equipment and the behavior of its internal temperature.
-> You should only use this option if all other methods have failed.
 
-## Specific Functions
+> ![Warning](images/tips.png) _*Wskazówki*_
+> Bardzo rzadko zachodzi potrzeba zaznaczenia tej opcji. W większości przypadków samoregulacja rozwiązuje problemy. Rezultaty w dużej mierze zależą od urządzenia i zachowania się jego temperatury wewnętrznej. Daltego z opcji tej należy korzystać rozsądnie i tylko wtedy, gdy wszystkie inne metody zawiodły..
 
-Specific functions can be configured through a dedicated option in the menu.
+## Funkcje specyficzne
 
-The specific functions that require configuration for this type of VTherm are:
-1. Auto-Start/Stop: Automatic start and stop of VTherm based on usage forecasts. This is described here: [auto-start/stop function](feature-auto-start-stop.md).
-2. If valve regulation is chosen, the TPI algorithm configuration is accessible from the menu. See ([algorithms](algorithms.md)).
-3. if valve regulation is selected, you can set the _VTherm_ to dormant (sleep) mode. The dormant mode is specific to this type of thermostat and allows you to turn off the _VTherm_ while keeping the valve fully 100% open. There are two ways to activate the dormant mode:
-   1. either with the [VTherm UI Card](additions.md#versatile-thermostat-ui-card) by pressing the 'Zzz' button mode,
-   2. or by calling an action named `service_set_hvac_mode_sleep`. See [Actions](reference.md#actions-services)
+Specyficzne funkcje można skonfigurować za pomocą dedykowanej opcji w menu.
 
-## Follow Underlying Temperature Changes
+Funkcje wymagające konfiguracji dla tego typu termostatu to:
+> 1. AutoSTART/autoSTOP: Automatyczne uruchamianie i zatrzymywanie termostatu na podstawie prognoz użytkowania. Opis znajduje się [tutaj:](feature-auto-start-stop.md).
+> 2. Jeśli wybrano regulację zaworu, konfiguracja algorytmu TPI jest dostępna z poziomu menu (patrz: [Algorytmy](algorithms.md)).
+> 3. Jeśli wybrano regulację zaworu, możesz ustawić termostat w tryb uśpienia. Tryb uśpienia jest specyficzny dla tego typu termostatu i pozwala wyłączyć go, pozostawiając zawór całkowicie otwarty (100%). Istnieją dwa sposoby aktywacji trybu uśpienia:
+>    1. za pomocą [karty VTherm UI Card](additions.md#versatile-thermostat-ui-card), naciskając przycisk trybu 'Zzz',
+>    2. wywołując akcję o nazwie `service_set_hvac_mode_sleep`. Zobacz [Akcje](reference.md#actions-services)
 
-Some users want to continue using their equipment as before (without _VTherm_). For example, you might want to use the remote control of your _PAC_ or turn the knob on your _TRV_.
-If you are in this case, an entity has been added to the _VTherm_ device called `Follow underlying temp changes`:
+## Śledzenie zmian temperatury bazowej
+
+Niektórzy użytkownicy chcą nadal korzystać ze swojego urządzenia, jak dotychczas (bez _VTherm_). Na przykład, mogą chcieć użyć pilota do _PAC_ lub obrócić pokrętło w _TRV_.
+W takim przypadku do urządzenia _VTherm_ dodano sensor "Śledzenie zmiany temperatury bazowej”:
 
 ![Track temperature changes](images/entity-follow-under-temp-change.png)
 
-When this entity is 'On', all temperature or state changes made directly on the underlying equipment are reflected in _VTherm_.
+Gdy ta opcja jest aktywna, wszystkie zmiany temperatury lub stanu dokonane bezpośrednio na sterowanym urządzeniu są odzwierciedlane w termostacie VTherm.
 
-Be careful, if you use this feature, your equipment is now controlled in two ways: _VTherm_ and directly by you. The commands might be contradictory, which could lead to confusion about the equipment's state. _VTherm_ is equipped with a delay mechanism that prevents loops: the user gives a setpoint, which is captured by _VTherm_ and changes the setpoint, ... This delay may cause the change made directly on the equipment to be ignored if these changes are too close together in time.
+**Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejasności co do aktualnego stanu urządzenia. 
+Termostat _VTherm_ posiada mechanizm opóźnienia, który zapobiega zapętleniom: użytkownik ustawia żądaną wartość, termostat _VTherm_ ją przechwytuje i odpowiednio zmienia wartość. To opóźnienie może powodować zignorowanie zmiany dokonanej bezpośrednio na urządzeniu, jeśli nastąpi w zbyt krótkim czasie.
 
-Some equipment (like Daikin, for example) changes state by itself. If the checkbox is checked, it may turn off the _VTherm_ when that's not what you intended.
-That's why it's better not to use it. It generates a lot of confusion and many support requests.
+Niektóre urządzenia (np. Daikin) zmieniają stan samodzielnie. Jeśli zaznaczono tę opcję, może to spowodować wyłączenie termostatu _VTherm_, mimo że nie było to zamierzone. Dlatego lepiej jej nie używać — generuje to wiele niejasności i niepotrzebnych zapytań o wsparcie techniczne.
+
