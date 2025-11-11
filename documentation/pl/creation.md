@@ -65,7 +65,8 @@ Jeśli jedyną dostępną encją do regulacji temperatury grzejnika jest encja t
 Ten typ może być używany dla głowic termostatycznych (TRV) bez powiązanej encji `climate` lub innych rozwiązań DIY udostępniających encję typu `number`.
 
 # Dokonywanie właściwych wyborów
-> ![Tip](images/tips.png) _*Jak wybrać typ*_
+> ![Tip](images/tips.png) _*Jak wybrać typ?*_
+>
 > Wybór odpowiedniego typu jest kluczowy. Nie można go później zmienić za pomocą interfejsu konfiguracji. Aby dokonać właściwego wyboru, rozważ następujące zagadnienia:
 > 1. **Jakiego rodzaju urządzeniem będę sterować?** Kieruj się poniższą kolejnością preferencji:
 >    1. Jeśli masz sterowalną głowicę termostatyczną (TRV) w Home Assistant poprzez encję typu `number` (np. Shelly TRV), wybierz typ `termostat na zaworze`. Jest to najbardziej bezpośredni typ i zapewnia najlepszą regulację.
