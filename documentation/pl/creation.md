@@ -76,4 +76,4 @@ Ten typ może być używany dla głowic termostatycznych (TRV) bez powiązanej e
 
 
 # Odsyłacze
-Wiecej informacji (w jęz. francuskim) na temat proponowanych koncepcji znajdziesz tutaj: https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+Wiecej informacji (w jęz. francuskim) na temat omawianych tu zagadnień znajdziesz tutaj: https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
