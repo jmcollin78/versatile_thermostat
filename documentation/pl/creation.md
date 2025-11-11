@@ -53,7 +53,7 @@ Podstawowymi encjami dla tego typu są encje `switch` lub `input_boolean`.
 ## Termostat na innym termostacie
 Jeśli Twoje urządzenie jest sterowane przez encję `climate` w Home Assistant i masz dostęp tylko do niej, powinieneś użyć tego typu termostatu. W takim przypadku termostat po prostu dostosowuje docelową temperaturę z encji `climate`.
 
-Ten typ zawiera również zaawansowane funkcje samoregulacji, które dostosowują wartość zadaną wysyłaną do urządzenia, pomagając szybciej osiągnąć docelową temperaturę i łagodząc słabą regulację wewnętrzną. Na przykład, jeśli wewnętrzny termometr urządzenia znajduje się zbyt blisko grzejnika, może błędnie zakładać, że pomieszczenie jest ogrzane, podczas gdy w innych pomieszczeniach wartość zadana nie została jeszcze osiągnięta.
+Ten typ zawiera również zaawansowane funkcje samoregulacji, które dostosowują wartość zadaną wysyłaną do urządzenia, pomagając szybciej osiągnąć docelową temperaturę i łagodząc słabą regulację wewnętrzną. Na przykład, jeśli wewnętrzny termometr urządzenia znajduje się zbyt blisko grzejnika, może błędnie zakładać, że pomieszczenie jest ogrzane, podczas gdy w innych punktach tego pomieszczenia żądana wartość temperatury nie została jeszcze osiągnięta.
 
 Począwszy od wersji 6.8 ten typ termostatu może również regulować temperaturę bezpośrednio poprzez sterowanie zaworem. Idealny dla sterowalnych głowic termostatycznych (TRV), takich jak Sonoff TRVZB — ten typ jest zalecany, jeśli posiadasz takie urządzenia.
 
