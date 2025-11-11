@@ -1,6 +1,6 @@
-# `over_climate` Type Thermostat
+# Typ termostatu `Termostat na Klimacie`
 
-- [`over_climate` Type Thermostat](#over_climate-type-thermostat)
+- [Typ termostatu `Termostat na Klimacie`](#over_climate-type-thermostat)
   - [Prerequisites](#prerequisites)
   - [Configuration](#configuration)
     - [The Underlying Entities](#the-underlying-entities)
