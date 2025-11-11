@@ -18,7 +18,7 @@ Instalacja powinna wyglądać następująco:
 ![installation `over_climate`](images/over-climate-schema.png)
 
 1. Użytkownik, automatyzacja lub Harmonogram ustawiają żądaną wartość za pomocą ustawień wstępnych lub bezpośrednio poprzez temperaturę.
-2. Termometr wewnętrzny (2), termometr zewnętrzny (2b) lub wewnętrzny termometr urządzenia (2c) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna lub urządzenia.
+2. Termometr wewnętrzny (2), termometr zewnętrzny (2b) lub wewnętrzny termometr urządzenia (2c) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna, termostatu lub grzejnika.
 3. Na podstawie wartości zadanych, różnic i parametrów samoregulacji (zobacz [samoregulacja](self-regulation.md)), termostat obliczy wartość żądaną i prześle ją do encji `climate`.
 4. Encja `climate` steruje urządzeniem za pomocą własnego protokołu.
 5. W zależności od wybranych opcji regulacji termostat może bezpośrednio sterować otwarciem zaworu termostatycznego lub kalibrować urządzenie tak, aby jego wewnętrzna temperatura odzwierciedlała temperaturę w pomieszczeniu.
