@@ -951,6 +951,8 @@ class UnderlyingValve(UnderlyingEntity):
         self._hvac_mode = None
         self._percent_open = None  # self._thermostat.valve_open_percent
         self._valve_entity_id = valve_entity_id
+        self._min_open: float | None = None
+        self._max_open: float | None = None
 
     async def _send_value_to_number(self, number_entity_id: str, value: int):
         """Send a value to a number entity"""
@@ -1002,11 +1004,32 @@ class UnderlyingValve(UnderlyingEntity):
         else:
             return False
 
+    def init_min_max_open(self, force=False):
+        """Init the min and max open percent value from underlying entity attributes. Returns true if initialized else false"""
+        if not force and self._min_open is not None and self._max_open is not None:
+            return True
+
+        valve_state: State = self._hass.states.get(self._valve_entity_id)
+        if valve_state is None:
+            return False
+
+        if "min" in valve_state.attributes and "max" in valve_state.attributes:
+            self._min_open = valve_state.attributes["min"]
+            self._max_open = valve_state.attributes["max"]
+        else:
+            self._min_open = 0
+            self._max_open = 100
+
+        return True
+
     @property
     def is_device_active(self):
         """If the toggleable device is currently active."""
         try:
-            return self._percent_open > 0 if isinstance(self._percent_open, (int, float)) else False
+            if not self.init_min_max_open():
+                return False
+
+            return self._percent_open > self._min_open if isinstance(self._percent_open, (int, float)) else False
             # To test if real device is open but this is causing some side effect
             # because the activation can be deferred -
             # or float(self._hass.states.get(self._entity_id).state) > 0
@@ -1030,22 +1053,11 @@ class UnderlyingValve(UnderlyingEntity):
     def cap_sent_value(self, value) -> float:
         """Try to adapt the open_percent value to the min / max found
         in the underlying entity (if any)"""
-        min_val = None
-        max_val = None
-
-        # Gets the last number state
-        valve_state: State = self._hass.states.get(self._valve_entity_id)
-        if valve_state is None:
+        if not self.init_min_max_open():
             return value
 
-        if "min" in valve_state.attributes and "max" in valve_state.attributes:
-            min_val = valve_state.attributes["min"]
-            max_val = valve_state.attributes["max"]
-
-            new_value = round(max(min_val, min(value / 100 * max_val, max_val)))
-        else:
-            _LOGGER.debug("%s - no min and max attributes on underlying", self)
-            new_value = value
+        # Gets the last number state
+        new_value = round(max(self._min_open, min(value / 100 * self._max_open, self._max_open)))
 
         if new_value != value:
             _LOGGER.info(
@@ -1053,8 +1065,8 @@ class UnderlyingValve(UnderlyingEntity):
                 self,
                 new_value,
                 value,
-                min_val,
-                max_val,
+                self._min_open,
+                self._max_open,
             )
 
         return new_value

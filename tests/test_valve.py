@@ -220,13 +220,13 @@ async def test_over_valve_full_start(
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get", return_value=expected_state
     ):
+        # Force reload the underlying valve entity. For test only
+        entity.underlying_entity(0).init_min_max_open(force=True)
         event_timestamp = now - timedelta(minutes=2)
         await send_temperature_change_event(entity, 20, datetime.now())
         assert entity.valve_open_percent == 0
-        assert entity.is_device_active is True  # Should be 0 but in fact 10 is send
-        assert (
-            entity.hvac_action == HVACAction.HEATING
-        )  # Should be IDLE but heating due to 10
+        assert entity.is_device_active is False  # 10 is send but <= min_open
+        assert entity.hvac_action == HVACAction.IDLE  # IDLE due to 10 min_open
 
         assert mock_service_call.call_count == 1
         # The VTherm valve is 0, but the underlying have received 10 which is the min
@@ -274,8 +274,8 @@ async def test_over_valve_full_start(
         assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.valve_open_percent == 10
         assert entity.target_temperature == 17.1  # eco_away
-        assert entity.is_device_active is True
-        assert entity.hvac_action == HVACAction.HEATING
+        assert entity.is_device_active is False  # 10 is the min
+        assert entity.hvac_action == HVACAction.IDLE
 
     # 5. Test window open/close (with a normal min/max so that is_device_active is False when open_percent is 0)
     expected_state = State(
@@ -289,6 +289,9 @@ async def test_over_valve_full_start(
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get", return_value=expected_state
     ):
+        # Force reload the underlying valve entity. For test only
+        entity.underlying_entity(0).init_min_max_open(force=True)
+
         # Open a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=1)
