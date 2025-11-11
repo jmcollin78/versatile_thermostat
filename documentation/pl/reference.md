@@ -13,43 +13,43 @@
 
 ## Parameter Summary
 
-| Parameter                                 | Label                                                      | "over switch" | "over climate"      | "over valve" | "central configuration" |
-| ----------------------------------------- | ---------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
-| ``name``                                  | Name                                                       | X             | X                   | X            | -                       |
-| ``thermostat_type``                       | Thermostat type                                            | X             | X                   | X            | -                       |
-| ``temperature_sensor_entity_id``          | Temperature sensor entity id                               | X             | X (auto-regulation) | X            | -                       |
-| ``external_temperature_sensor_entity_id`` | External temperature sensor entity id                      | X             | X (auto-regulation) | X            | X                       |
-| ``cycle_min``                             | Cycle duration (minutes)                                   | X             | X                   | X            | -                       |
-| ``temp_min``                              | Minimum allowed temperature                                | X             | X                   | X            | X                       |
-| ``temp_max``                              | Maximum allowed temperature                                | X             | X                   | X            | X                       |
-| ``device_power``                          | Device power                                               | X             | X                   | X            | -                       |
-| ``use_central_mode``                      | Enable centralized control                                 | X             | X                   | X            | -                       |
-| ``use_window_feature``                    | With window detection                                      | X             | X                   | X            | -                       |
-| ``use_motion_feature``                    | With motion detection                                      | X             | X                   | X            | -                       |
-| ``use_power_feature``                     | With power management                                      | X             | X                   | X            | -                       |
-| ``use_presence_feature``                  | With presence detection                                    | X             | X                   | X            | -                       |
-| ``heater_entity1_id``                     | 1st heater                                                 | X             | -                   | -            | -                       |
-| ``heater_entity2_id``                     | 2nd heater                                                 | X             | -                   | -            | -                       |
-| ``heater_entity3_id``                     | 3rd heater                                                 | X             | -                   | -            | -                       |
-| ``heater_entity4_id``                     | 4th heater                                                 | X             | -                   | -            | -                       |
-| ``heater_keep_alive``                     | Switch refresh interval                                    | X             | -                   | -            | -                       |
-| ``proportional_function``                 | Algorithm                                                  | X             | -                   | -            | -                       |
-| ``climate_entity1_id``                    | Underlying thermostat                                      | -             | X                   | -            | -                       |
-| ``climate_entity2_id``                    | 2nd underlying thermostat                                  | -             | X                   | -            | -                       |
-| ``climate_entity3_id``                    | 3rd underlying thermostat                                  | -             | X                   | -            | -                       |
-| ``climate_entity4_id``                    | 4th underlying thermostat                                  | -             | X                   | -            | -                       |
-| ``valve_entity1_id``                      | Underlying valve                                           | -             | -                   | X            | -                       |
-| ``valve_entity2_id``                      | 2nd underlying valve                                       | -             | -                   | X            | -                       |
-| ``valve_entity3_id``                      | 3rd underlying valve                                       | -             | -                   | X            | -                       |
-| ``valve_entity4_id``                      | 4th underlying valve                                       | -             | -                   | X            | -                       |
-| ``ac_mode``                               | Use of air conditioning (AC)?                              | X             | X                   | X            | -                       |
-| ``tpi_coef_int``                          | Coefficient for internal temperature delta                 | X             | -                   | X            | X                       |
-| ``tpi_coef_ext``                          | Coefficient for external temperature delta                 | X             | -                   | X            | X                       |
-| ``frost_temp``                            | Frost preset temperature                                   | X             | X                   | X            | X                       |
-| ``window_sensor_entity_id``               | Window sensor (entity id)                                  | X             | X                   | X            | -                       |
-| ``window_delay``                          | Delay before turn-off (seconds)                            | X             | X                   | X            | X                       |
-| ``window_auto_open_threshold``            | High drop threshold for automatic detection (°/min)        | X             | X                   | X            | X                       |
-| ``window_auto_close_threshold``           | Low drop threshold for automatic closure detection (°/min) | X             | X                   | X            | X                       |
+| Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie"      | "Termostat<br>na Zaworze" | "Główna<br>konfiguracja" |
+| ----------------------------------------- | ----------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
+| ``name``                                  | Nazwa                                                       | X             | X                   | X            | -                       |
+| ``thermostat_type``                       | Typ termostatu                                              | X             | X                   | X            | -                       |
+| ``temperature_sensor_entity_id``          | Identyfikator encji sensora temperatury                     | X             | X (auto-regulacja) | X            | -                       |
+| ``external_temperature_sensor_entity_id`` | Identyfikator encji sensora temperatury zewnętrznej         | X             | X (auto-regulacja) | X            | X                       |
+| ``cycle_min``                             | Czas trwania cyklu (w min.)                                 | X             | X                   | X            | -                       |
+| ``temp_min``                              | Minimalna dopuszczalna temperatura                          | X             | X                   | X            | X                       |
+| ``temp_max``                              | Maksymalna dopuszczalna temperatura                         | X             | X                   | X            | X                       |
+| ``device_power``                          | Moc urządzenia                                              | X             | X                   | X            | -                       |
+| ``use_central_mode``                      | Sterowanie centralne aktywne                                | X             | X                   | X            | -                       |
+| ``use_window_feature``                    | Z detekcją otwarcia okna                                    | X             | X                   | X            | -                       |
+| ``use_motion_feature``                    | Z detekcją ruchu                                            | X             | X                   | X            | -                       |
+| ``use_power_feature``                     | Z zarządzaniem mocą                                         | X             | X                   | X            | -                       |
+| ``use_presence_feature``                  | Z detekcją obecności                                        | X             | X                   | X            | -                       |
+| ``heater_entity1_id``                     | 1-szy grzejnik                                              | X             | -                   | -            | -                       |
+| ``heater_entity2_id``                     | 2-gi grzejnik                                               | X             | -                   | -            | -                       |
+| ``heater_entity3_id``                     | 3-ci grzejnik                                               | X             | -                   | -            | -                       |
+| ``heater_entity4_id``                     | 4-ty grzejnik                                               | X             | -                   | -            | -                       |
+| ``heater_keep_alive``                     | Częstość odświerzania                                       | X             | -                   | -            | -                       |
+| ``proportional_function``                 | Algorytm                                                    | X             | -                   | -            | -                       |
+| ``climate_entity1_id``                    | 1-szy termostat podstawowy                                  | -             | X                   | -            | -                       |
+| ``climate_entity2_id``                    | 2-gi termostat podstawowy                                   | -             | X                   | -            | -                       |
+| ``climate_entity3_id``                    | 3-ci termostat podstawowy                                   | -             | X                   | -            | -                       |
+| ``climate_entity4_id``                    | 4-ty termostat podstawowy                                   | -             | X                   | -            | -                       |
+| ``valve_entity1_id``                      | 1-szy zawór podstawowy                                      | -             | -                   | X            | -                       |
+| ``valve_entity2_id``                      | 2-gi zawór podstawowy                                       | -             | -                   | X            | -                       |
+| ``valve_entity3_id``                      | 3-ci zawór podstawowy                                       | -             | -                   | X            | -                       |
+| ``valve_entity4_id``                      | 4-ty zawór podstawowy                                       | -             | -                   | X            | -                       |
+| ``ac_mode``                               | Użycie trybu AC?                                            | X             | X                   | X            | -                       |
+| ``tpi_coef_int``                          | Współczynnik delta temperatury wewnętrznej                  | X             | -                   | X            | X                       |
+| ``tpi_coef_ext``                          | Współczynnik delta temperatury zewnętrznej                  | X             | -                   | X            | X                       |
+| ``frost_temp``                            | Temperatura antyzamarzania                                  | X             | X                   | X            | X                       |
+| ``window_sensor_entity_id``               | Identyfikator encji sensora okna                            | X             | X                   | X            | -                       |
+| ``window_delay``                          | Zwłoka w wyłączeniu (w sek.)                                | X             | X                   | X            | X                       |
+| ``window_auto_open_threshold``            | Górny próg automatycznej detekcji otwarcia okna (°/min)     | X             | X                   | X            | X                       |
+| ``window_auto_close_threshold``           | Dolny próg automatycznej detekcji zamknięcia okna (°/min)   | X             | X                   | X            | X                       |
 | ``window_auto_max_duration``              | Maximum duration of automatic turn-off (minutes)           | X             | X                   | X            | X                       |
 | ``motion_sensor_entity_id``               | Motion sensor entity id                                    | X             | X                   | X            | -                       |
 | ``motion_delay``                          | Delay before motion is considered (seconds)                | X             | X                   | X            | -                       |
