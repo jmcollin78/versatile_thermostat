@@ -1,6 +1,6 @@
-# `over_switch` Type Thermostat
+# Typ termostatu `Termostat na Przełączniku`
 
-- [`over_switch` Type Thermostat](#over_switch-type-thermostat)
+- [Typ termostatu `Termostat na Przełączniku`](#over_switch-type-thermostat)
   - [Prerequisites](#prerequisites)
   - [Configuration](#configuration)
     - [The underlying devices](#the-underlying-devices)
