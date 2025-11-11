@@ -21,7 +21,7 @@ For this to work, the preset used for heating control must be higher than the ma
 
 To integrate it into _VTherm_, you must:
 1. Create a _VTherm_ of type `over_switch`. See [Wybór termostatu](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
+2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [Wybór głównych atrybutów](base-attributes.md),
 3. Assign one or more underlying devices to control. The underlying device here is the `select` entity that controls the Nodon. See [underlying devices](over-switch.md),
 4. Provide custom on/off commands (mandatory for the Nodon). See [command customization](over-switch.md#command-customization). The custom commands follow the format `select_option/option:<preset>` as indicated in the link.
 
