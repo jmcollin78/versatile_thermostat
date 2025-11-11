@@ -13,7 +13,7 @@
 
 ## Parameter Summary
 
-| Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie"      | "Termostat<br>na Zaworze" | "Główna<br>konfiguracja" |
+| Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na<br>Klimacie"      | "Termostat<br>na Zaworze" | "Główna<br>konfiguracja" |
 | ----------------------------------------- | ----------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
 | ``name``                                  | Nazwa                                                       | X             | X                   | X            | -                       |
 | ``thermostat_type``                       | Typ termostatu                                              | X             | X                   | X            | -                       |
@@ -42,7 +42,7 @@
 | ``valve_entity2_id``                      | 2-gi zawór podstawowy                                       | -             | -                   | X            | -                       |
 | ``valve_entity3_id``                      | 3-ci zawór podstawowy                                       | -             | -                   | X            | -                       |
 | ``valve_entity4_id``                      | 4-ty zawór podstawowy                                       | -             | -                   | X            | -                       |
-| ``ac_mode``                               | Użycie trybu AC?                                            | X             | X                   | X            | -                       |
+| ``ac_mode``                               | Tryb AC                                                     | X             | X                   | X            | -                       |
 | ``tpi_coef_int``                          | Współczynnik delta temperatury wewnętrznej                  | X             | -                   | X            | X                       |
 | ``tpi_coef_ext``                          | Współczynnik delta temperatury zewnętrznej                  | X             | -                   | X            | X                       |
 | ``frost_temp``                            | Temperatura antyzamarzania                                  | X             | X                   | X            | X                       |
@@ -50,12 +50,12 @@
 | ``window_delay``                          | Zwłoka w wyłączeniu (w sek.)                                | X             | X                   | X            | X                       |
 | ``window_auto_open_threshold``            | Górny próg automatycznej detekcji otwarcia okna (°/min)     | X             | X                   | X            | X                       |
 | ``window_auto_close_threshold``           | Dolny próg automatycznej detekcji zamknięcia okna (°/min)   | X             | X                   | X            | X                       |
-| ``window_auto_max_duration``              | Maximum duration of automatic turn-off (minutes)           | X             | X                   | X            | X                       |
-| ``motion_sensor_entity_id``               | Motion sensor entity id                                    | X             | X                   | X            | -                       |
-| ``motion_delay``                          | Delay before motion is considered (seconds)                | X             | X                   | X            | -                       |
-| ``motion_off_delay``                      | Delay before end of motion is considered (seconds)         | X             | X                   | X            | X                       |
-| ``motion_preset``                         | Preset to use if motion is detected                        | X             | X                   | X            | X                       |
-| ``no_motion_preset``                      | Preset to use if no motion is detected                     | X             | X                   | X            | X                       |
+| ``window_auto_max_duration``              | Maksymalny czas trwania automatycznego wyłączenia (w min.)  | X             | X                   | X            | X                       |
+| ``motion_sensor_entity_id``               | Identyfikator encji sensora ruchu                           | X             | X                   | X            | -                       |
+| ``motion_delay``                          | Zwłoka początku detekcji ruchu (w sek.)                     | X             | X                   | X            | -                       |
+| ``motion_off_delay``                      | Zwłoka końca detekcji ruchu (w sek.)                        | X             | X                   | X            | X                       |
+| ``motion_preset``                         | Ustawienie wstępne po wykryciu początku ruchu               | X             | X                   | X            | X                       |
+| ``no_motion_preset``                      | Ustawienie wstępne po wykryciu końca ruchu                  | X             | X                   | X            | X                       |
 | ``power_sensor_entity_id``                | Total power sensor (entity id)                             | X             | X                   | X            | X                       |
 | ``max_power_sensor_entity_id``            | Max power sensor (entity id)                               | X             | X                   | X            | X                       |
 | ``power_temp``                            | Temperature during load shedding                           | X             | X                   | X            | X                       |
