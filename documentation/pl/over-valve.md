@@ -1,7 +1,7 @@
-# `thermostat_over_valve` Type Thermostat
+# Typ termostatu `Termostat na Zaworze`
 
 > ![Attention](images/tips.png) _*Notes*_
-> 1. The `over_valve` type is often confused with the `over_climate` type equipped with auto-regulation and direct valve control.
+> 1. The `termostat na zaworze` type is often confused with the `over_climate` type equipped with auto-regulation and direct valve control.
 > 2. You should only choose this type when you do not have an associated `climate` entity for your _TRV_ in Home Assistant, and if you only have a `number` type entity to control the valve's opening percentage. The `over_climate` with auto-regulation on the valve is much more powerful than the `over_valve` type.
 
 ## Prerequisites
