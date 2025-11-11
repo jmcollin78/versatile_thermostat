@@ -104,11 +104,13 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 16. [La commande du chauffage central](documentation/fr/feature-central-boiler.md)
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
-19. [Les différents algorithmes](documentation/fr/algorithms.md)
-20. [Documentation de référence](documentation/fr/reference.md)
-21. [Exemple de réglages](documentation/fr/tuning-examples.md)
-22. [Dépannage](documentation/fr/troubleshooting.md)
-23. [Notes de version](documentation/fr/releases.md)
+19. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
+20. [Exemple de réglages](documentation/fr/tuning-examples.md)
+21. [Les algorithmes](documentation/fr/algorithms.md)
+22. [Documentation de référence](documentation/fr/reference.md)
+23. [Exemples de réglages](documentation/fr/tuning-examples.md)
+24. [Dépannage](documentation/fr/troubleshooting.md)
+25. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 

@@ -139,3 +139,37 @@ set_hvac_mode_sleep:
     target:
         entity:
             integration: versatile_thermostat
+
+lock:
+    name: Lock
+    description: "Locks the thermostat, preventing any changes to its configuration from UI or automations."
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        code:
+            name: Lock code
+            description: The optional lock code
+            required: false
+            advanced: false
+            example: "1234"
+            selector:
+                text:
+                    type: password
+
+unlock:
+    name: Unlock
+    description: "Unlocks the thermostat, allowing changes to its configuration."
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
+        code:
+            name: Lock code
+            description: The optional lock code
+            required: false
+            advanced: false
+            example: "1234"
+            selector:
+                text:
+                    type: password

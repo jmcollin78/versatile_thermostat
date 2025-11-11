@@ -102,10 +102,11 @@ The documentation is now divided into several pages for easier reading and searc
 18. [Self-regulation](documentation/en/self-regulation.md)
 19. [Tuning examples](documentation/en/tuning-examples.md)
 20. [Algorithms](documentation/en/algorithms.md)
-21. [Reference documentation](documentation/en/reference.md)
-22. [Tuning examples](documentation/en/tuning-examples.md)
-23. [Troubleshooting](documentation/en/troubleshooting.md)
-24. [Release notes](documentation/en/releases.md)
+21. [Lock / Unlock](documentation/en/feature-lock.md)
+22. [Reference documentation](documentation/en/reference.md)
+23. [Tuning examples](documentation/en/tuning-examples.md)
+24. [Troubleshooting](documentation/en/troubleshooting.md)
+25. [Release notes](documentation/en/releases.md)
 
 # Some results
 

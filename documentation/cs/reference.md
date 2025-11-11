@@ -8,6 +8,7 @@
   - [Úprava přednastavené teploty](#úprava-přednastavené-teploty)
   - [Úprava bezpečnostních nastavení](#úprava-bezpečnostních-nastavení)
   - [Obejití kontroly okna](#obejití-kontroly-okna)
+  - [Služby zamknutí / odemknutí](#služby-zamknutí--odemknutí)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
 - [State messages](#state-messages)
@@ -199,6 +200,15 @@ data:
 target:
     entity_id: climate.my_thermostat
 ```
+
+## Služby zamknutí / odemknutí
+
+Tyto služby umožňují uzamknout termostat, aby se zabránilo změnám konfigurace, nebo jej opět odemknout a povolit úpravy:
+
+- `versatile_thermostat.lock` - Uzamkne termostat a brání změnám konfigurace
+- `versatile_thermostat.unlock` - Odemkne termostat a znovu povolí změny konfigurace
+
+Podrobnosti viz [Funkce zámku](feature-lock.md).
 
 # Události
 Klíčové události termostatu jsou oznámeny prostřednictvím sběrnice zpráv.

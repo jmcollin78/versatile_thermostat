@@ -8,6 +8,7 @@
   - [Modify the Preset Temperature](#modify-the-preset-temperature)
   - [Modify Security Settings](#modify-security-settings)
   - [ByPass Window Check](#bypass-window-check)
+  - [Lock / Unlock Services](#lock--unlock-services)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
 - [State messages](#state-messages)
@@ -199,6 +200,13 @@ data:
 target:
     entity_id: climate.my_thermostat
 ```
+
+## Lock / Unlock Services
+
+- `versatile_thermostat.lock` - Locks a thermostat to prevent configuration changes
+- `versatile_thermostat.unlock` - Unlocks a thermostat to allow configuration changes
+
+See [Lock Feature](feature-lock.md) for details.
 
 # Events
 The key events of the thermostat are notified via the message bus.
