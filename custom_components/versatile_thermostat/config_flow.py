@@ -121,6 +121,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_PRESETS_CENTRAL_CONFIG,
             CONF_USE_PRESENCE_CENTRAL_CONFIG,
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
+            CONF_USE_LOCK_CENTRAL_CONFIG,
             CONF_USE_CENTRAL_MODE,
         ):
             if not is_empty:
@@ -524,6 +525,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             menu_options.append("valve_regulation")
 
         menu_options.append("advanced")
+        menu_options.append("lock")
 
         if self.check_config_complete(self._infos):
             menu_options.append("finalize")
@@ -926,6 +928,47 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # This will return to async_step_presence (to keep the "presence" step)
         return await self.generic_step("advanced", schema, user_input, next_step)
+
+    async def async_step_lock(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the lock flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_lock user_input=%s", user_input)
+
+        next_step = self.async_step_menu
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+        else:
+            schema = STEP_LOCK_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_LOCK_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_lock"
+                ):
+                    schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_lock
+
+        return await self.generic_step("lock", schema, user_input, next_step)
+
+    async def async_step_spec_lock(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle the specific lock flow steps"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_spec_lock user_input=%s", user_input
+        )
+
+        schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+
+        self._infos[COMES_FROM] = "async_step_spec_lock"
+
+        next_step = self.async_step_menu
+
+        return await self.generic_step("lock", schema, user_input, next_step)
 
     async def async_step_finalize(self, _):
         """Finalize the creation. Should be overriden by underlyings"""

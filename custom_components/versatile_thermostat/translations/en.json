@@ -33,6 +33,18 @@
           "configuration_not_complete": "Configuration not complete"
         }
       },
+      "lock": {
+        "title": "Lock Management",
+        "description": "The lock function prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
+        "data": {
+          "use_lock_central_config": "Use central lock configuration",
+          "lock_users": "Lock will prevent user commands",
+          "lock_automations": "Lock will prevent commands from automations and integrations (ex: scheduler)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Check to use central lock configuration. Uncheck to use lock configuration specific to this VTherm"
+        }
+      },
       "main": {
         "title": "Add new Versatile Thermostat",
         "description": "Main mandatory attributes&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
