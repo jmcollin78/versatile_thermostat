@@ -45,4 +45,6 @@ By default, the outdoor thermometer can trigger Safety Mode if it stops sending 
 > 2. Two temperature sources are required: the indoor and outdoor temperatures. Both must report values, or the thermostat will switch to "security" preset.
 > 3. An action is available to adjust the three safety parameters. This can help adapt Safety Mode to your needs.
 > 4. For normal use, `safety_default_on_percent` should be lower than `safety_min_on_percent`.
-> 5. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), a _VTherm_ in Safety Mode is indicated by a gray overlay showing the faulty thermometer and the time since its last value update: ![safety mode](images/safety-mode-icon.png).
+> 5. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), a _VTherm_ in Safety Mode is indicated by a gray overlay showing the faulty thermometer and the time since its last value update:
+>
+> ![safety mode](images/safety-mode-icon.png).
