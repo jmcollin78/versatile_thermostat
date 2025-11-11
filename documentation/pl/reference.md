@@ -1,17 +1,17 @@
-# Reference Documentation
+# Dokumentacja Referencyjna
 
-- [Reference Documentation](#reference-documentation)
-  - [Parameter Summary](#parameter-summary)
-- [Sensors](#sensors)
-- [Actions (Services)](#actions-services)
-  - [Force Presence/Occupation](#force-presenceoccupation)
-  - [Modify the Preset Temperature](#modify-the-preset-temperature)
-  - [Modify Security Settings](#modify-security-settings)
-  - [ByPass Window Check](#bypass-window-check)
-- [Events](#events)
-- [Custom Attributes](#custom-attributes)
+- [Dokumentacja Referencyjna](#reference-documentation)
+  - [Parametry](#parameter-summary)
+- [Sensory](#sensors)
+- [Akcje (Usługi)](#actions-services)
+  - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
+  - [Modykacja wstępnych ustawień temperatury](#modify-the-preset-temperature)
+  - [Modify ustawień bezpieczeństwa](#modify-security-settings)
+  - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
+- [Zdarzenia](#events)
+- [Atrybuty własne](#custom-attributes)
 
-## Parameter Summary
+## Parametry
 
 | Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na<br>Klimacie"      | "Termostat<br>na Zaworze" | "Główna<br>konfiguracja" |
 | ----------------------------------------- | ----------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
@@ -32,7 +32,7 @@
 | ``heater_entity2_id``                     | 2-gi grzejnik                                               | X             | -                   | -            | -                       |
 | ``heater_entity3_id``                     | 3-ci grzejnik                                               | X             | -                   | -            | -                       |
 | ``heater_entity4_id``                     | 4-ty grzejnik                                               | X             | -                   | -            | -                       |
-| ``heater_keep_alive``                     | Częstość odświerzania                                       | X             | -                   | -            | -                       |
+| ``heater_keep_alive``                     | Częstość odświerzania stanu                                 | X             | -                   | -            | -                       |
 | ``proportional_function``                 | Algorytm                                                    | X             | -                   | -            | -                       |
 | ``climate_entity1_id``                    | 1-szy termostat podstawowy                                  | -             | X                   | -            | -                       |
 | ``climate_entity2_id``                    | 2-gi termostat podstawowy                                   | -             | X                   | -            | -                       |
@@ -56,54 +56,54 @@
 | ``motion_off_delay``                      | Zwłoka końca detekcji ruchu (w sek.)                        | X             | X                   | X            | X                       |
 | ``motion_preset``                         | Ustawienie wstępne po wykryciu początku ruchu               | X             | X                   | X            | X                       |
 | ``no_motion_preset``                      | Ustawienie wstępne po wykryciu końca ruchu                  | X             | X                   | X            | X                       |
-| ``power_sensor_entity_id``                | Total power sensor (entity id)                             | X             | X                   | X            | X                       |
-| ``max_power_sensor_entity_id``            | Max power sensor (entity id)                               | X             | X                   | X            | X                       |
-| ``power_temp``                            | Temperature during load shedding                           | X             | X                   | X            | X                       |
-| ``presence_sensor_entity_id``             | Presence sensor entity id (true if someone is present)     | X             | X                   | X            | -                       |
-| ``minimal_activation_delay``              | Minimum activation delay                                   | X             | -                   | -            | X                       |
-| ``minimal_deactivation_delay``            | Minimum deactivation delay                                 | X             | -                   | -            | X                       |
-| ``safety_delay_min``                      | Maximum delay between two temperature measurements         | X             | -                   | X            | X                       |
-| ``safety_min_on_percent``                 | Minimum power percentage to enter security mode            | X             | -                   | X            | X                       |
-| ``auto_regulation_mode``                  | Auto-regulation mode                                       | -             | X                   | -            | -                       |
-| ``auto_regulation_dtemp``                 | Auto-regulation threshold                                  | -             | X                   | -            | -                       |
-| ``auto_regulation_period_min``            | Minimum auto-regulation period                             | -             | X                   | -            | -                       |
-| ``inverse_switch_command``                | Inverse the switch command (for switches with pilot wire)  | X             | -                   | -            | -                       |
-| ``auto_fan_mode``                         | Automatic fan mode                                         | -             | X                   | -            | -                       |
-| ``auto_regulation_use_device_temp``       | Use of internal temperature of the underlying device       | -             | X                   | -            | -                       |
-| ``use_central_boiler_feature``            | Add central boiler control                                 | -             | -                   | -            | X                       |
-| ``central_boiler_activation_service``     | Boiler activation service                                  | -             | -                   | -            | X                       |
-| ``central_boiler_deactivation_service``   | Boiler deactivation service                                | -             | -                   | -            | X                       |
-| ``used_by_controls_central_boiler``       | Indicates if the VTherm controls the central boiler        | X             | X                   | X            | -                       |
-| ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
-| ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |
+| ``power_sensor_entity_id``                | Identyfikator encji sensora mocy                            | X             | X                   | X            | X                       |
+| ``max_power_sensor_entity_id``            | Identyfikator encji sensora mocy maksymalnej                | X             | X                   | X            | X                       |
+| ``power_temp``                            | Temperatura podczar redukcji mocy                           | X             | X                   | X            | X                       |
+| ``presence_sensor_entity_id``             | Identyfikator encji sensora obecności (`true`=obecność)     | X             | X                   | X            | -                       |
+| ``minimal_activation_delay``              | Minimalna zwłoka aktywacji                                  | X             | -                   | -            | X                       |
+| ``minimal_deactivation_delay``            | Minimalna zwłoka deaktywacji                                | X             | -                   | -            | X                       |
+| ``safety_delay_min``                      | Maksymalna zwłoka między dwoma pomiarami temperatury        | X             | -                   | X            | X                       |
+| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczeństwa  | X             | -                   | X            | X                       |
+| ``auto_regulation_mode``                  | Tryb samoregulacji                                          | -             | X                   | -            | -                       |
+| ``auto_regulation_dtemp``                 | Próg samoregulacji                                          | -             | X                   | -            | -                       |
+| ``auto_regulation_period_min``            | Minimalny czas samoregulacji                                | -             | X                   | -            | -                       |
+| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie pilotem)        | X             | -                   | -            | -                       |
+| ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                | -             | X                   | -            | -                       |
+| ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                  | -             | X                   | -            | -                       |
+| ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                           | -             | -                   | -            | X                       |
+| ``central_boiler_activation_service``     | Usługa katyewacji kotła                                     | -             | -                   | -            | X                       |
+| ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                    | -             | -                   | -            | X                       |
+| ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                       | X             | X                   | X            | -                       |
+| ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP              | -             | X                   | -            | -                       |
+| ``auto_start_stop_level``                 | Poziom detekcji autoSTART/autoSTOP                          | -             | X                   | -            | -                       |
 
-# Sensors
+# Sensory
 
-With the thermostat, sensors are available to visualize alerts and the internal state of the thermostat. These are available in the entities of the device associated with the thermostat:
+W termostacie dostępne są sensory wizualizujące alerty i stan wewnętrzny samego termostatu. Są one dostępne w encjach urządzenia powiązanych z termostatem:
 
 ![image](images/thermostat-sensors.png)
 
-In order, there are:
-1. the main ``climate`` entity for thermostat control,
-2. the entity allowing the auto-start/stop feature,
-3. the entity allowing _VTherm_ to follow changes in the underlying device,
-4. the energy consumed by the thermostat (value that increments continuously),
-5. the time of receipt of the last external temperature,
-6. the time of receipt of the last internal temperature,
-7. the average power of the device during the cycle (for TPI only),
-8. the time spent in the off state during the cycle (TPI only),
-9. the time spent in the on state during the cycle (TPI only),
-10. the load shedding state,
-11. the power percentage during the cycle (TPI only),
-12. the presence state (if presence management is configured),
-13. the security state,
-14. the window state (if window management is configured),
-15. the motion state (if motion management is configured),
-16. the valve opening percentage (for `over_valve` type),
+Są to kolejno:
+1. główna encja `climate` do sterowania termostatem,
+2. encja umożliwiająca funkcję autoSTART/autoSTOP,
+3. encja umożliwiająca termostatowi śledzenie zmian w urządzeniu głównym,
+4. energia zużyta przez termostat (wartość stale rosnąca),
+5. czas ostatniego odczytu temperatury zewnętrznej,
+6. czas ostatniego odczytu temperatury wewnętrznej,
+7. średnia moc urządzenia w cyklu (tylko dla TPI),
+8. czas trwania stanu wyłączenia podczas cyklu (tylko TPI),
+9. czas trwania stanu załączenia podczas cyklu (tylko TPI),
+10. stan redukcji obciążenia,
+11. procent mocy w trakcie cyklu (tylko TPI),
+12. stan obecności (jeśli skonfigurowano zarządzanie obecnością),
+13. stan bezpieczeństwa,
+14. stan okna (jeśli skonfigurowano zarządzanie oknem),
+15. stan ruchu (jeśli skonfigurowano zarządzanie ruchem),
+16. procent otwarcia zaworu (dla typu `termostat na zaworze`),
 
-The presence of these entities depends on whether the associated feature is enabled.
+Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 
-To color the sensors, add these lines and customize them as needed in your `configuration.yaml`:
+Aby pokolorować sensory dodaj w pliku `configuration.yaml` poniższe linie kodu , dostosowując je według własnych potrzeb:
 
 ```yaml
 frontend:
@@ -117,15 +117,15 @@ frontend:
       state-binary_sensor-running-on-color: "orange"
 ```
 
-and choose the theme ```versatile_thermostat_theme``` in the panel configuration. You will get something like this:
+...i wybierz motyw ```versatile_thermostat_theme``` w panelu konfiguracyjnym. Otrzymasz coś podobnego do tego:
 
 ![image](images/colored-thermostat-sensors.png)
 
-# Actions (Services)
+# Akcje (Usługi)
 
 This custom implementation offers specific actions (services) to facilitate integration with other Home Assistant components.
 
-## Force Presence/Occupation
+## Wymuszanie obecności/zajętości
 This service allows you to force the presence state independently of the presence sensor. This can be useful if you want to manage presence via a service rather than a sensor. For example, you can use your alarm to force absence when it is turned on.
 
 The code to call this service is as follows:
@@ -138,7 +138,7 @@ cible:
     entity_id : climate.my_thermostat
 ```
 
-## Modify the Preset Temperature
+## Modykacja wstępnych ustawień temperatury
 This service is useful if you want to dynamically change the preset temperature. Instead of switching presets, some use cases require modifying the temperature of the preset. This way, you can keep the scheduler unchanged to manage the preset while adjusting the preset temperature.
 If the modified preset is currently selected, the target temperature change is immediate and will be applied in the next calculation cycle.
 
@@ -170,7 +170,7 @@ target:
 >
 >    - After a restart, presets are reset to the configured temperature. If you want your change to be permanent, you need to modify the preset temperature in the integration configuration.
 
-## Modify Security Settings
+## Modify ustawień bezpieczeństwa
 This service allows you to dynamically modify the security settings described here [Advanced Configuration](#advanced-configuration).
 If the thermostat is in ``security`` mode, the new settings are applied immediately.
 
@@ -185,7 +185,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-## ByPass Window Check
+## Pomijanie sprawdzania stanu okna
 This service allows you to enable or disable a bypass for the window check.
 It allows the thermostat to continue heating even if the window is detected as open.
 When set to ``true``, changes to the window's status will no longer affect the thermostat. When set to ``false``, the thermostat will be disabled if the window is still open.
@@ -199,7 +199,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-# Events
+# Zdarzenia
 The key events of the thermostat are notified via the message bus.
 The following events are notified:
 
@@ -220,13 +220,13 @@ Each event carries the event's key values (temperatures, current preset, current
 
 You can easily capture these events in an automation, for example, to notify users.
 
-# Custom Attributes
+# Atrybuty własne
 
 To adjust the algorithm, you have access to the entire context seen and calculated by the thermostat via dedicated attributes. You can view (and use) these attributes in the "Developer Tools / States" section of HA. Enter your thermostat and you will see something like this:
 ![image](images/dev-tools-climate.png)
 
 The custom attributes are as follows:
-| Attribute                         | Meaning                                                                                                                             |
+| Attrybut                          | Znaczenie                                                                                                                           |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                    | The list of modes supported by the thermostat                                                                                       |
 | ``temp_min``                      | The minimum temperature                                                                                                             |
