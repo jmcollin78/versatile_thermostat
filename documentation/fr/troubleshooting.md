@@ -107,7 +107,7 @@ Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat d
 ## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
 
 ### Type `over_switch` ou `over_valve`
-Avec un _VTherm_ de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](algorithms#lalgorithme-tpi) pour optimiser les réglages.
+Avec un _VTherm_ de type `over_switch` ou `over_valve`, ce défaut montre juste que les paramètres de l'algorithme TPI sont mal réglés. Voir [Algorithme TPI](algorithms.md#lalgorithme-tpi) pour optimiser les réglages.
 
 ### Type `over_climate`
 Avec un _VTherm_ de type `over_climate`, la régulation est faite par le `climate` sous-jacent directement et _VTherm_ se contente de lui transmettre les consignes. Donc si le radiateur chauffe alors que la température de consigne est dépassée, c'est certainement que sa mesure de température interne est biaisée. Ca arrive très souvent avec les TRV et les clims réversibles qui ont un capteur de température interne, soit trop près de l'élément de chauffe (donc trop froid l'hiver).
