@@ -6,6 +6,7 @@ from datetime import datetime
 
 from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACAction
+from homeassistant.helpers.event import async_call_later
 
 
 from .underlyings import UnderlyingValveRegulation
@@ -31,16 +32,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         frozenset(
             {
                 "is_over_climate",
-                "have_valve_regulation",
-                "underlying_entities",
-                "on_time_sec",
-                "off_time_sec",
-                "cycle_min",
-                "function",
-                "tpi_coef_int",
-                "tpi_coef_ext",
-                "power_percent",
-                "min_opening_degrees",
+                "vtherm_over_climate",
+                "vtherm_over_climate_valve",
             }
         )
     )
@@ -56,7 +49,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
         self._min_opening_degress: list[int] = []
-        self._cancel_recalculate_later = None
         # if mode sleep is activated, the valve is fully open but the hvac_mode is off
         self._is_sleeping: bool = False
 
@@ -142,7 +134,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self._attr_extra_state_attributes.update(
             {
-                "vtherm_over_climate": {
+                "vtherm_over_climate_valve": {
                     "have_valve_regulation": self.have_valve_regulation,
                     "valve_regulation": {
                         "underlyings_valve_regulation": [underlying.valve_entity_ids for underlying in self._underlyings_valve_regulation],
@@ -159,7 +151,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                         "auto_regulation_dpercent": self._auto_regulation_dpercent,
                         "auto_regulation_period_min": self._auto_regulation_period_min,
                         "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
-                        "is_sleeping": self._is_sleeping,
                     },
                 }
             }
@@ -175,9 +166,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
 
-        if self._cancel_recalculate_later:
-            self._cancel_recalculate_later()
-            self._cancel_recalculate_later = None
+        self.stop_recalculate_later()
 
         # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
         if self._is_sleeping:
@@ -255,9 +244,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             """Callback to set the valve percent"""
             self.recalculate()
 
-        if self._cancel_recalculate_later:
-            self._cancel_recalculate_later()
-            self._cancel_recalculate_later = None
+        self.stop_recalculate_later()
 
         self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 

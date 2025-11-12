@@ -5,6 +5,7 @@
 import math
 import logging
 from typing import Any, Generic
+from collections.abc import Callable, Coroutine
 
 from homeassistant.core import (
     HomeAssistant,
@@ -76,47 +77,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     _attr_swing_horizontal_mode = ""
 
     _entity_component_unrecorded_attributes = (
-        ClimateEntity._entity_component_unrecorded_attributes.union(
-            frozenset(
-                {
-                    "is_on",
-                    "is_controlled_by_central_mode",
-                    "last_central_mode",
-                    "type",
-                    "frost_temp",
-                    "eco_temp",
-                    "boost_temp",
-                    "comfort_temp",
-                    "frost_away_temp",
-                    "eco_away_temp",
-                    "boost_away_temp",
-                    "comfort_away_temp",
-                    "power_temp",
-                    "ac_mode",
-                    # "saved_preset_mode",
-                    # "saved_target_temp",
-                    # "saved_hvac_mode",
-                    # "saved_preset_mode_central_mode",
-                    # "saved_hvac_mode_central_mode",
-                    "last_temperature_datetime",
-                    "last_ext_temperature_datetime",
-                    "minimal_activation_delay_sec",
-                    "minimal_deactivation_delay_sec",
-                    "last_update_datetime",
-                    "timezone",
-                    "temperature_unit",
-                    "is_device_active",
-                    "device_actives",
-                    "target_temperature_step",
-                    "is_used_by_central_boiler",
-                    "temperature_slope",
-                    "max_on_percent",
-                    "have_valve_regulation",
-                    "last_change_time_from_vtherm",
-                    "messages",
-                }
-            )
-        )
+        ClimateEntity._entity_component_unrecorded_attributes.union(frozenset({"configuration", "preset_temperatures"}))
         .union(FeaturePresenceManager.unrecorded_attributes)
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
@@ -236,6 +197,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._motion_manager)
         self.register_manager(self._window_manager)
         self.register_manager(self._safety_manager)
+
+        self._cancel_recalculate_later: Callable[[datetime], Coroutine[Any, Any, None] | None] = None
 
         self.post_init(entry_infos)
 
@@ -481,12 +444,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Called when the thermostat will be removed"""
         _LOGGER.info("%s - Removing thermostat", self)
 
+        self.stop_recalculate_later()
+
         # stop listening for all managers
         for manager in self._managers:
             manager.stop_listening()
 
         for under in self._underlyings:
             under.remove_entity()
+
+    def stop_recalculate_later(self):
+        """Stop any scheduled call later tasks if any."""
+        if self._cancel_recalculate_later:
+            self._cancel_recalculate_later()  # pylint: disable=not-callable
+            self._cancel_recalculate_later = None
 
     async def async_startup(self, central_configuration):
         """Triggered on startup, used to get old state and set internal states
@@ -889,17 +860,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Return current operation."""
         return self._state_manager.current_state.hvac_mode
 
-    def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
-        """Calculate the HVAC action based on the current state and underlying devices"""
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
-            action = HVACAction.OFF
-        elif not self.is_device_active:
-            action = HVACAction.IDLE
-        elif self.vtherm_hvac_mode == VThermHvacMode_COOL:
-            action = HVACAction.COOLING
-        else:
-            action = HVACAction.HEATING
-        self._attr_hvac_action = action
+    @property
+    def is_recalculate_scheduled(self) -> bool:
+        """Return true if a recalculation is scheduled."""
+        return self._cancel_recalculate_later is not None
 
     @property
     def is_used_by_central_boiler(self) -> HVACAction | None:
@@ -1524,6 +1488,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         raise NotImplementedError()
 
+    def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
+        """Calculate the HVAC action based on the current state and underlying devices"""
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+            action = HVACAction.OFF
+        elif not self.is_device_active:
+            action = HVACAction.IDLE
+        elif self.vtherm_hvac_mode == VThermHvacMode_COOL:
+            action = HVACAction.COOLING
+        else:
+            action = HVACAction.HEATING
+        self._attr_hvac_action = action
+
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
 
@@ -1559,6 +1535,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),
                 "messages": messages,
+                "is_sleeping": self.is_sleeping,
+                "is_recalculate_scheduled": self.is_recalculate_scheduled,
             },
             "configuration": {
                 "ac_mode": self._ac_mode,

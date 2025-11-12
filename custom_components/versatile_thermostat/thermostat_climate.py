@@ -38,16 +38,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         frozenset(
             {
                 "is_over_climate",
-                "start_hvac_action_date",
-                "underlying_entities",
-                "regulation_accumulated_error",
-                "auto_regulation_mode",
-                "auto_fan_mode",
-                "current_auto_fan_mode",
-                "auto_activated_fan_mode",
-                "auto_deactivated_fan_mode",
-                "auto_regulation_use_device_temp",
-                "follow_underlying_temp_change",
+                "vtherm_over_climate",
             }
         ).union(FeatureAutoStartStopManager.unrecorded_attributes)
     )
@@ -77,8 +68,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._regulated_target_temp = self.target_temperature
 
         self._last_hvac_mode = None
-
-        self._cancel_call_later = None
 
     @overrides
     def post_init(self, config_entry: ConfigData):
@@ -159,9 +148,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
 
-        if self._cancel_call_later:
-            self._cancel_call_later()
-            self._cancel_call_later = None
+        self.stop_recalculate_later()
 
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
@@ -267,11 +254,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             """Callback to send the regulated temperature"""
             await self._send_regulated_temperature()
 
-        if self._cancel_call_later:
-            self._cancel_call_later()
-            self._cancel_call_later = None
+        self.stop_recalculate_later()
 
-        self._cancel_call_later = async_call_later(self._hass, 20, callback_send_regulated_temp)
+        self._cancel_recalculate_later = async_call_later(self._hass, 20, callback_send_regulated_temp)
 
     def check_auto_regulation_period_min(self, now):
         """Check if minimal auto_regulation period is exceeded
@@ -501,6 +486,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
+        # the attr is 2 times in custom_attributes, because it need to be restored, so it must be at root
+        self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
         vtherm_over_climate_data = {
             "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
             "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
@@ -659,12 +646,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if -step < under_temp_diff < step:
             under_temp_diff = 0
 
-        # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a VThermHvacMode_OFF command
-        # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
-        # if self._hvac_mode == VThermHvacMode_OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
-        #    new_hvac_mode = VThermHvacMode_OFF
-
         # Forget event when the event holds no real changes
         if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode):
             _LOGGER.debug(
@@ -795,11 +776,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     self,
                     new_hvac_mode,
                 )
-                # now done in update_states
-                # for under in self._underlyings:
-                #     await under.set_hvac_mode(new_hvac_mode)
             changes = True
-            # self.vtherm_hvac_mode = new_hvac_mode
             self.requested_state.set_hvac_mode(new_hvac_mode)
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
@@ -842,9 +819,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
         ret = await super().async_control_heating(timestamp=timestamp, force=force)
-
-        # if not ret:
-        #     return ret
 
         # Check if we need to auto start/stop the Vtherm
         old_stop = self.auto_start_stop_manager.is_auto_stop_detected

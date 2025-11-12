@@ -28,17 +28,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         frozenset(
             {
                 "is_over_valve",
-                "underlying_entities",
-                "on_time_sec",
-                "off_time_sec",
-                "cycle_min",
-                "function",
-                "tpi_coef_int",
-                "tpi_coef_ext",
-                "auto_regulation_dpercent",
-                "auto_regulation_period_min",
-                "last_calculation_timestamp",
-                "calculated_on_percent",
+                "vtherm_over_valve",
             }
         )
     )
@@ -51,7 +41,6 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._last_calculation_timestamp: datetime | None = None
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
-        self._cancel_recalculate_later = None
 
         # Call to super must be done after initialization because it calls post_init at the end
         super().__init__(hass, unique_id, name, config_entry)
@@ -177,9 +166,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
 
-        if self._cancel_recalculate_later:
-            self._cancel_recalculate_later()
-            self._cancel_recalculate_later = None
+        self.stop_recalculate_later()
 
         if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
             _LOGGER.warning(
@@ -258,9 +245,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             """Callback to set the valve percent"""
             self.recalculate()
 
-        if self._cancel_recalculate_later:
-            self._cancel_recalculate_later()
-            self._cancel_recalculate_later = None
+        self.stop_recalculate_later()
 
         self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 

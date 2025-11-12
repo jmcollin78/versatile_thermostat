@@ -36,18 +36,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         frozenset(
             {
                 "is_over_switch",
-                "is_inversed",
-                "underlying_entities",
-                "on_time_sec",
-                "off_time_sec",
-                "cycle_min",
-                "function",
-                "tpi_coef_int",
-                "tpi_coef_ext",
-                "power_percent",
-                "calculated_on_percent",
-                "vswitch_on_commands",
-                "vswitch_off_commands",
+                "vtherm_over_switch",
             }
         )
     )
@@ -168,34 +157,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                 },
             }
         )
-        # self._attr_extra_state_attributes["is_inversed"] = self.is_inversed
-        # self._attr_extra_state_attributes["keep_alive_sec"] = under0.keep_alive_sec
-        #
-        # self._attr_extra_state_attributes["underlying_entities"] = [
-        #    underlying.entity_id for underlying in self._underlyings
-        # ]
-        #
-        # self._attr_extra_state_attributes[
-        #     "on_percent"
-        # ] = self._prop_algorithm.on_percent
-        # self._attr_extra_state_attributes["power_percent"] = self.power_percent
-        # self._attr_extra_state_attributes[
-        #     "on_time_sec"
-        # ] = self._prop_algorithm.on_time_sec
-        # self._attr_extra_state_attributes[
-        #     "off_time_sec"
-        # ] = self._prop_algorithm.off_time_sec
-        # self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
-        # self._attr_extra_state_attributes["function"] = self._proportional_function
-        # self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
-        # self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
-        # self._attr_extra_state_attributes[
-        #     "calculated_on_percent"
-        # ] = self._prop_algorithm.calculated_on_percent
-        #
-        # self._attr_extra_state_attributes["vswitch_on_commands"] = self._lst_vswitch_on
-        # self._attr_extra_state_attributes["vswitch_off_commands"] = self._lst_vswitch_off
-        #
+
         self.async_write_ha_state()
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
