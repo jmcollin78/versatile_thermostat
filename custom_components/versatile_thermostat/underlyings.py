@@ -1029,7 +1029,7 @@ class UnderlyingValve(UnderlyingEntity):
             if not self.init_min_max_open():
                 return False
 
-            return self._percent_open > self._min_open if isinstance(self._percent_open, (int, float)) else False
+            return self._percent_open > (self._min_open or 0) if isinstance(self._percent_open, (int, float)) else False
             # To test if real device is open but this is causing some side effect
             # because the activation can be deferred -
             # or float(self._hass.states.get(self._entity_id).state) > 0

@@ -71,6 +71,7 @@ async def test_auto_start_stop_feature_manager_post_init(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).have_valve_regulation = PropertyMock(return_value=False)
 
     # 1. creation
     auto_start_stop_manager = FeatureAutoStartStopManager(fake_vtherm, hass)

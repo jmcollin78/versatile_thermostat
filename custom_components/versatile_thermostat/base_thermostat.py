@@ -198,7 +198,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._window_manager)
         self.register_manager(self._safety_manager)
 
-        self._cancel_recalculate_later: Callable[[datetime], Coroutine[Any, Any, None] | None] = None
+        self._cancel_recalculate_later: Callable[[], None] | None = None
 
         self.post_init(entry_infos)
 
