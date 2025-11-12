@@ -57,6 +57,9 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
 
+        if not self._vtherm.is_over_climate or self._vtherm.have_valve_regulation:
+            return
+
         use_auto_start_stop = entry_infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False)
         if use_auto_start_stop:
             self._auto_start_stop_level = (

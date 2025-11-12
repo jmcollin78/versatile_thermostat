@@ -1138,6 +1138,22 @@ async def test_user_config_flow_over_climate_valve(
     ]
     assert result.get("errors") is None
 
+    # 4.bis check that function doesn't contains auto_start_stop
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "features"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "features"
+    assert result.get("errors") == {}
+
+    assert result["data_schema"].schema.get("use_window_feature", None) is not None
+    assert result["data_schema"].schema.get("use_motion_feature", None) is not None
+    assert result["data_schema"].schema.get("use_power_feature", None) is not None
+    assert result["data_schema"].schema.get("use_presence_feature", None) is not None
+    assert result["data_schema"].schema.get("use_auto_start_stop_feature", None) is None
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
     # 5. TPI
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "tpi"}
@@ -1190,7 +1206,7 @@ async def test_user_config_flow_over_climate_valve(
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_WINDOW_FEATURE: False,
-            CONF_USE_AUTO_START_STOP_FEATURE: False,
+            # CONF_USE_AUTO_START_STOP_FEATURE: False,
         },
     )
     assert result["type"] == FlowResultType.MENU

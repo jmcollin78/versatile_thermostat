@@ -80,6 +80,7 @@ HA_TO_VTHERM_MAP = {
     HVACMode.DRY: VThermHvacMode_DRY,
     HVACMode.FAN_ONLY: VThermHvacMode_FAN_ONLY,
     HVACMode.HEAT_COOL: VThermHvacMode_HEAT_COOL,
+    SLEEP: VThermHvacMode_SLEEP,
 }
 
 # Map statique pour conversion VTherm -> HA
@@ -91,7 +92,7 @@ VTHERM_TO_HA_MAP = {
     DRY: HVACMode.DRY,
     FAN_ONLY: HVACMode.FAN_ONLY,
     HEAT_COOL: HVACMode.HEAT_COOL,
-    SLEEP: HVACMode.OFF,  # SLEEP doesn't exist in HA, we return OFF
+    SLEEP: SLEEP,  # SLEEP doesn't exist in HA, we for a new String
 }
 
 

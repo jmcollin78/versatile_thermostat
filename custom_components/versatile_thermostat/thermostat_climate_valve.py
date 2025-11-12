@@ -243,6 +243,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         async def callback_recalculate(_):
             """Callback to set the valve percent"""
             self.recalculate()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
 
         self.stop_recalculate_later()
 
@@ -377,3 +379,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         await super()._check_initial_state()
         for under in self._underlyings_valve_regulation:
             await under.check_initial_state(self.vtherm_hvac_mode)
+
+    @overrides
+    def choose_auto_fan_mode(self, auto_fan_mode: str):
+        """Force no auto_fan for climate with valve regulation"""
+        self._current_auto_fan_mode = CONF_AUTO_FAN_NONE
+        self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None

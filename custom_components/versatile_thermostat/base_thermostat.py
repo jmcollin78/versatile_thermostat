@@ -1165,53 +1165,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Turn auxiliary heater off."""
         raise NotImplementedError()
 
-    async def update_states(self, force=False):
-        """Update the states of the thermostat considering the requested state and the current state"""
-        changed = False
-        if self._state_manager.requested_state.is_changed:
-            if changed := await self._state_manager.calculate_current_state(self):
-                _LOGGER.info("%s - current state changed to %s", self, self._state_manager.current_state)
-                sub_need_control_heating = False
-                # Apply preset
-                if self._state_manager.current_state.is_preset_changed:
-                    _LOGGER.info("%s - Applying new preset: %s", self, self.vtherm_preset_mode)
-                    self.send_event(EventType.PRESET_EVENT, {"preset": self.preset_mode})
-                    if self.preset_mode not in HIDDEN_PRESETS:
-                        self._attr_preset_mode = self.preset_mode
-
-                # Apply temperature
-                if self._state_manager.current_state.is_target_temperature_changed:
-                    _LOGGER.info("%s - Applying new target temperature: %s", self, self.target_temperature)
-                    self._attr_target_temperature = self.target_temperature
-
-                # Apply hvac_mode
-                if self._state_manager.current_state.is_hvac_mode_changed:
-                    _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
-                    # Delegate to all underlying
-                    for under in self._underlyings:
-                        sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
-                    self._attr_hvac_mode = str(self.vtherm_hvac_mode)
-                    self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
-                    # Remove eventual overpowering if we want to turn-off
-                    if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
-                        await self.power_manager.set_overpowering(False)
-
-                if changed:
-                    self.recalculate(force=force)
-                    self.reset_last_change_time_from_vtherm()
-                    await self.async_control_heating(force=force or sub_need_control_heating)
-
-            self.calculate_hvac_action()
-            self.update_custom_attributes()
-            self.async_write_ha_state()
-        else:
-            _LOGGER.debug("%s - current state did not change. Still %s", self, self._state_manager.current_state)
-
-        self._state_manager.requested_state.reset_changed()
-        self._state_manager.current_state.reset_changed()
-
-        return changed
-
     ##
     ## Entry events (from linked devices or users)
     ##
@@ -1299,6 +1252,53 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     ## Calculation and utility functions
     ##
+    async def update_states(self, force=False):
+        """Update the states of the thermostat considering the requested state and the current state"""
+        changed = False
+        if self._state_manager.requested_state.is_changed:
+            if changed := await self._state_manager.calculate_current_state(self):
+                _LOGGER.info("%s - current state changed to %s", self, self._state_manager.current_state)
+                sub_need_control_heating = False
+                # Apply preset
+                if self._state_manager.current_state.is_preset_changed:
+                    _LOGGER.info("%s - Applying new preset: %s", self, self.vtherm_preset_mode)
+                    self.send_event(EventType.PRESET_EVENT, {"preset": self.preset_mode})
+                    if self.preset_mode not in HIDDEN_PRESETS:
+                        self._attr_preset_mode = self.preset_mode
+
+                # Apply temperature
+                if self._state_manager.current_state.is_target_temperature_changed:
+                    _LOGGER.info("%s - Applying new target temperature: %s", self, self.target_temperature)
+                    self._attr_target_temperature = self.target_temperature
+
+                # Apply hvac_mode
+                if self._state_manager.current_state.is_hvac_mode_changed:
+                    _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
+                    # Delegate to all underlying
+                    for under in self._underlyings:
+                        sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
+                    self._attr_hvac_mode = str(self.vtherm_hvac_mode)
+                    self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
+                    # Remove eventual overpowering if we want to turn-off
+                    if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
+                        await self.power_manager.set_overpowering(False)
+
+                if changed:
+                    self.recalculate(force=force)
+                    self.reset_last_change_time_from_vtherm()
+                    await self.async_control_heating(force=force or sub_need_control_heating)
+
+            self.calculate_hvac_action()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+        else:
+            _LOGGER.debug("%s - current state did not change. Still %s", self, self._state_manager.current_state)
+
+        self._state_manager.requested_state.reset_changed()
+        self._state_manager.current_state.reset_changed()
+
+        return changed
+
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle
         Returns True if the cycle was successfully calculated, False otherwise."""

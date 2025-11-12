@@ -244,6 +244,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         async def callback_recalculate(_):
             """Callback to set the valve percent"""
             self.recalculate()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
 
         self.stop_recalculate_later()
 

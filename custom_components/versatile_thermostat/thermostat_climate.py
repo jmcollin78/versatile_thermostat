@@ -253,6 +253,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         async def callback_send_regulated_temp(_):
             """Callback to send the regulated temperature"""
             await self._send_regulated_temperature()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
 
         self.stop_recalculate_later()
 
