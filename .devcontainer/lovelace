@@ -1,0 +1,2721 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace",
+  "data": {
+    "config": {
+      "title": "Maison",
+      "views": [
+        {
+          "type": "sections",
+          "max_columns": 4,
+          "title": "Synthèse",
+          "path": "default_view",
+          "icon": "mdi:alarm-panel",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "vertical-stack",
+                  "title": "Entrées",
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "input_number.fake_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_number.fake_external_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_datetime.fake_last_seen"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power_max"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch2"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch3"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_ac1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_motion_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_presence_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_window_sensor1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "columns": 4,
+                      "entities": [
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_temp",
+                          "name": "Boost"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_away_temp",
+                          "name": "Boost abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_temp",
+                          "name": "Boost clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                          "name": "Boost clim abs"
+                        },
+                        {
+                          "entity": "select.central_mode"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_temp",
+                          "name": "Confort"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_away_temp",
+                          "name": "Confort abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_temp",
+                          "name": "Confort clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                          "name": "Confort clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_temp",
+                          "name": "Eco"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_away_temp",
+                          "name": "Eco abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_temp",
+                          "name": "Eco clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                          "name": "Eco clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_temp",
+                          "name": "Hors gel "
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_away_temp",
+                          "name": "Hors gel abs"
+                        }
+                      ],
+                      "title": "Central configuration"
+                    }
+                  ]
+                },
+                {
+                  "type": "heading",
+                  "heading_style": "title",
+                  "heading": "Underlyings"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat2"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat1"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat4"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat9"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat3"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_sonoff_trvzb1"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_sonoff_trvzb2"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_1"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_2"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_3"
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_4"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Nouvelle section"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_switch_1",
+                  "set_current_as_main": true,
+                  "disable_circle": true,
+                  "disable_menu": true,
+                  "disable_target_icon": false
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_temperature_slope"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_on_time"
+                    }
+                  ],
+                  "title": "Cycle Switch1",
+                  "hours_to_show": 1
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_climate_2",
+                  "disable_circle": true,
+                  "disable_autoStartStop": false,
+                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
+                  "set_current_as_main": true
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_ac1",
+                  "set_current_as_main": true,
+                  "disable_circle": true
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Nouvelle section"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.multi_switch",
+                  "set_current_as_main": true,
+                  "disable_circle": true
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.multi_climate",
+                  "autoStartStopEnableEntity": "switch.multi_climate_enable_auto_start_stop"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.sonoff",
+                  "autoStartStopEnableEntity": "switch.sonoff_enable_auto_start_stop",
+                  "set_current_as_main": true,
+                  "disable_circle": true
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "type": "custom:versatile-thermostat-ui-card",
+                      "entity": "climate.thermostat_select",
+                      "disable_circle": true,
+                      "set_current_as_main": true,
+                      "name": "Th. Switch over select"
+                    },
+                    {
+                      "type": "entity",
+                      "entity": "input_select.nodon_select",
+                      "state_color": false,
+                      "grid_options": {
+                        "columns": "full"
+                      }
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "input_select.nodon_select"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "type": "custom:versatile-thermostat-ui-card",
+                      "entity": "climate.thermostat_switch_over_climate",
+                      "disable_circle": true,
+                      "set_current_as_main": true,
+                      "name": "Th. Switch over climate"
+                    },
+                    {
+                      "type": "entity",
+                      "entity": "climate.underlying_switch_climate",
+                      "state_color": false,
+                      "grid_options": {
+                        "columns": "full"
+                      }
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "climate.underlying_switch_climate"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "type": "custom:versatile-thermostat-ui-card",
+                      "entity": "climate.inversed_th_over_switch",
+                      "disable_circle": true,
+                      "set_current_as_main": true,
+                      "name": "Th. inversed Switch"
+                    },
+                    {
+                      "type": "entity",
+                      "entity": "switch.fake_inversed_switch",
+                      "state_color": false,
+                      "grid_options": {
+                        "columns": "full"
+                      }
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "switch.fake_inversed_switch"
+                        },
+                        {
+                          "entity": "input_boolean.fake_inversed_heater"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Nouvelle section"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.empty_thermostast",
+                  "set_current_as_main": true,
+                  "disable_circle": true
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_valve",
+                  "set_current_as_main": true,
+                  "disable_circle": true
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_4switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4switch2"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4switch4"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_mean_power_cycle"
+                    }
+                  ],
+                  "title": "Multi-switch"
+                }
+              ]
+            }
+          ],
+          "cards": []
+        },
+        {
+          "path": "switch",
+          "title": "Home",
+          "badges": [],
+          "cards": [],
+          "type": "sections",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Global",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "person.jmc"
+                  ]
+                },
+                {
+                  "type": "vertical-stack",
+                  "title": "Entrées",
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "input_number.fake_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_number.fake_external_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_datetime.fake_last_seen"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power_max"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch3"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch2"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_motion_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_presence_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_window_sensor1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "columns": 4,
+                      "entities": [
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_temp",
+                          "name": "Boost"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_away_temp",
+                          "name": "Boost abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_temp",
+                          "name": "Boost clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                          "name": "Boost clim abs"
+                        },
+                        {
+                          "entity": "select.central_mode"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_temp",
+                          "name": "Confort"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_away_temp",
+                          "name": "Confort abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_temp",
+                          "name": "Confort clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                          "name": "Confort clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_temp",
+                          "name": "Eco"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_away_temp",
+                          "name": "Eco abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_temp",
+                          "name": "Eco clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                          "name": "Eco clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_temp",
+                          "name": "Hors gel "
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_away_temp",
+                          "name": "Hors gel abs"
+                        }
+                      ],
+                      "title": "Central configuration"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Thermostat switch 1",
+                  "heading_style": "title",
+                  "icon": "mdi:toggle-switch-variant-off"
+                },
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "number.thermostat_switch_1_preset_frost_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_eco_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_comfort_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_boost_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_frost_away_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_eco_away_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_comfort_away_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_switch_1_preset_boost_away_temp"
+                    }
+                  ],
+                  "columns": 4
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_switch_1",
+                  "disable_window": false,
+                  "disable_heat": false,
+                  "disable_menu": false,
+                  "disable_off": false,
+                  "disable_safety_warning": false,
+                  "set_current_as_main": true,
+                  "disable_buttons": false,
+                  "disable_name": false,
+                  "disable_auto_fan_infos": false,
+                  "disable_autoStartStop": false,
+                  "disable_circle": true
+                },
+                {
+                  "type": "glance",
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "entities": [
+                    {
+                      "entity": "sensor.thermostat_switch_1_energy"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_last_external_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_last_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_mean_power_cycle"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_motion_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_off_time"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_on_time"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_overpowering_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_power_percent"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_presence_state"
+                    },
+                    {
+                      "entity": "binary_sensor.versatile_thermostat_thermostat_switch_1_security_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_window_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_temperature_slope"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_window_bypass"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_ema_temperature"
+                    }
+                  ],
+                  "title": "Thermostat Switch 1",
+                  "theme": "versatile_thermostat_theme",
+                  "columns": 4
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Central boiler",
+                  "heading_style": "title",
+                  "icon": "mdi:water-boiler"
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "show_name": true,
+                      "show_icon": true,
+                      "show_state": true,
+                      "type": "glance",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        },
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        }
+                      ],
+                      "state_color": true
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Stats",
+                  "heading_style": "title",
+                  "icon": "mdi:chart-line"
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch2"
+                    }
+                  ],
+                  "title": "Activation des radiateurs (long termes)",
+                  "hours_to_show": 24
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch2"
+                    },
+                    {
+                      "entity": "climate.underlying_thermostat1"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_temperature_slope"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_regulated_temperature"
+                    }
+                  ],
+                  "hours_to_show": 1,
+                  "title": "Activation des radiateurs (court termes)"
+                },
+                {
+                  "graph": "line",
+                  "hours_to_show": 4,
+                  "type": "sensor",
+                  "entity": "sensor.thermostat_switch_1_energy",
+                  "detail": 1,
+                  "name": "Energie thermostat 1",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            }
+          ],
+          "max_columns": 4,
+          "icon": "mdi:toggle-switch-variant-off"
+        },
+        {
+          "path": "climate-2",
+          "title": "Home",
+          "badges": [],
+          "cards": [],
+          "type": "sections",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Global",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "person.jmc"
+                  ]
+                },
+                {
+                  "type": "vertical-stack",
+                  "title": "Entrées",
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "input_number.fake_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_number.fake_external_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_datetime.fake_last_seen"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power_max"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch3"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch2"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_motion_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_presence_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_window_sensor1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "columns": 4,
+                      "entities": [
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_temp",
+                          "name": "Boost"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_away_temp",
+                          "name": "Boost abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_temp",
+                          "name": "Boost clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                          "name": "Boost clim abs"
+                        },
+                        {
+                          "entity": "select.central_mode"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_temp",
+                          "name": "Confort"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_away_temp",
+                          "name": "Confort abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_temp",
+                          "name": "Confort clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                          "name": "Confort clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_temp",
+                          "name": "Eco"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_away_temp",
+                          "name": "Eco abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_temp",
+                          "name": "Eco clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                          "name": "Eco clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_temp",
+                          "name": "Hors gel "
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_away_temp",
+                          "name": "Hors gel abs"
+                        }
+                      ],
+                      "title": "Central configuration"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Thermostat Climate 2",
+                  "heading_style": "title",
+                  "icon": "mdi:toggle-switch-variant-off"
+                },
+                {
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "number.thermostat_climate_2_preset_frost_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_climate_2_preset_eco_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_climate_2_preset_comfort_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_climate_2_preset_boost_temp"
+                    }
+                  ]
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_climate_2",
+                  "disable_window": false,
+                  "disable_heat": false,
+                  "disable_menu": false,
+                  "disable_off": false,
+                  "disable_safety_warning": false,
+                  "set_current_as_main": true,
+                  "disable_buttons": false,
+                  "disable_name": false,
+                  "disable_auto_fan_infos": false,
+                  "disable_autoStartStop": false,
+                  "disable_circle": true,
+                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop"
+                },
+                {
+                  "type": "thermostat",
+                  "entity": "climate.underlying_thermostat2"
+                },
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "sensor.thermostat_climate_2_energy"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_last_external_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_last_temperature_date"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_climate_2_motion_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_climate_2_overpowering_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_climate_2_presence_state"
+                    },
+                    {
+                      "entity": "binary_sensor.versatile_thermostat_thermostat_climate_2_security_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_climate_2_window_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_temperature_slope"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_climate_2_window_bypass"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_ema_temperature"
+                    }
+                  ],
+                  "title": "Thermostat Climate 2",
+                  "theme": "versatile_thermostat_theme",
+                  "columns": 4
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Central boiler",
+                  "heading_style": "title",
+                  "icon": "mdi:water-boiler"
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "show_name": true,
+                      "show_icon": true,
+                      "show_state": true,
+                      "type": "glance",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        },
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        }
+                      ],
+                      "state_color": true
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Stats",
+                  "heading_style": "title",
+                  "icon": "mdi:chart-line"
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "climate.underlying_thermostat2"
+                    }
+                  ],
+                  "title": "Activation du sous-jacent (long termes)",
+                  "hours_to_show": 24
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "climate.underlying_thermostat2"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_temperature_slope"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_regulated_temperature"
+                    }
+                  ],
+                  "hours_to_show": 1,
+                  "title": "Activation du sous-jacent (court termes)"
+                },
+                {
+                  "graph": "line",
+                  "hours_to_show": 4,
+                  "type": "sensor",
+                  "entity": "sensor.thermostat_climate_2_energy",
+                  "detail": 1,
+                  "name": "Energie thermostat 2",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            }
+          ],
+          "max_columns": 4,
+          "icon": "mdi:air-filter"
+        },
+        {
+          "path": "valve",
+          "title": "Valve",
+          "badges": [],
+          "cards": [],
+          "type": "sections",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Global",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "person.jmc"
+                  ]
+                },
+                {
+                  "type": "vertical-stack",
+                  "title": "Entrées",
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "input_number.fake_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_number.fake_external_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_datetime.fake_last_seen"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power_max"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch3"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch2"
+                        },
+                        {
+                          "entity": "input_boolean.fake_heater_switch1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_motion_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_presence_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_window_sensor1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "columns": 4,
+                      "entities": [
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_temp",
+                          "name": "Boost"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_away_temp",
+                          "name": "Boost abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_temp",
+                          "name": "Boost clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                          "name": "Boost clim abs"
+                        },
+                        {
+                          "entity": "select.central_mode"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_temp",
+                          "name": "Confort"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_away_temp",
+                          "name": "Confort abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_temp",
+                          "name": "Confort clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                          "name": "Confort clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_temp",
+                          "name": "Eco"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_away_temp",
+                          "name": "Eco abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_temp",
+                          "name": "Eco clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                          "name": "Eco clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_temp",
+                          "name": "Hors gel "
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_away_temp",
+                          "name": "Hors gel abs"
+                        }
+                      ],
+                      "title": "Central configuration"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Thermostat Valve",
+                  "heading_style": "title",
+                  "icon": "mdi:pipe-valve"
+                },
+                {
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "number.thermostat_valve_preset_frost_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_valve_preset_eco_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_valve_preset_comfort_temp"
+                    },
+                    {
+                      "entity": "number.thermostat_valve_preset_boost_temp"
+                    }
+                  ]
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_valve",
+                  "disable_window": false,
+                  "disable_heat": false,
+                  "disable_menu": false,
+                  "disable_off": false,
+                  "disable_safety_warning": false,
+                  "set_current_as_main": true,
+                  "disable_buttons": false,
+                  "disable_name": false,
+                  "disable_auto_fan_infos": false,
+                  "disable_autoStartStop": false,
+                  "disable_circle": true
+                },
+                {
+                  "type": "gauge",
+                  "entity": "input_number.fake_valve1",
+                  "min": 0,
+                  "max": 100,
+                  "severity": {
+                    "green": 0,
+                    "yellow": 25,
+                    "red": 76
+                  },
+                  "name": "Ouverture",
+                  "unit": "%",
+                  "needle": true
+                },
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "sensor.thermostat_valve_energy"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_last_external_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_last_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_mean_power_cycle"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_motion_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_off_time"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_on_time"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_overpowering_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_power_percent"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_presence_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_security_state"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_window_state"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_temperature_slope"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_window_bypass"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_ema_temperature"
+                    }
+                  ],
+                  "title": "Thermostat Valve",
+                  "theme": "versatile_thermostat_theme",
+                  "columns": 4
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Central boiler",
+                  "heading_style": "title",
+                  "icon": "mdi:water-boiler"
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "show_name": true,
+                      "show_icon": true,
+                      "show_state": true,
+                      "type": "glance",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        },
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        }
+                      ],
+                      "state_color": true
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Stats",
+                  "heading_style": "title",
+                  "icon": "mdi:chart-line"
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_valve1"
+                    }
+                  ],
+                  "title": "Ouverture de la vanne (long termes)",
+                  "hours_to_show": 24
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_valve1"
+                    },
+                    {
+                      "entity": "sensor.thermostat_valve_temperature_slope"
+                    }
+                  ],
+                  "hours_to_show": 1,
+                  "title": "Ouverture de la vanne (court termes)"
+                },
+                {
+                  "graph": "line",
+                  "hours_to_show": 4,
+                  "type": "sensor",
+                  "entity": "sensor.thermostat_valve_energy",
+                  "detail": 1,
+                  "name": "Energie Valve",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                }
+              ]
+            }
+          ],
+          "max_columns": 4,
+          "icon": "mdi:pipe-valve"
+        },
+        {
+          "theme": "Backend-selected",
+          "title": "Multi-switch",
+          "path": "multi-switch",
+          "icon": "mdi:locker-multiple",
+          "badges": [],
+          "cards": [
+            {
+              "type": "vertical-stack",
+              "title": "Multi-switch - Entrées",
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_external_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power_max"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch2"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_motion_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_presence_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_window_sensor1"
+                    }
+                  ]
+                },
+                {
+                  "type": "glance",
+                  "columns": 4,
+                  "entities": [
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_temp",
+                      "name": "Boost"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_away_temp",
+                      "name": "Boost abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_temp",
+                      "name": "Boost clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                      "name": "Boost clim abs"
+                    },
+                    {
+                      "entity": "select.central_mode"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_temp",
+                      "name": "Confort"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_away_temp",
+                      "name": "Confort abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_temp",
+                      "name": "Confort clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                      "name": "Confort clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_temp",
+                      "name": "Eco"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_away_temp",
+                      "name": "Eco abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_temp",
+                      "name": "Eco clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                      "name": "Eco clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_temp",
+                      "name": "Hors gel "
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_away_temp",
+                      "name": "Hors gel abs"
+                    }
+                  ],
+                  "title": "Central configuration"
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "type": "glance",
+                  "title": "Chauffage températures",
+                  "entities": [
+                    {
+                      "entity": "number.central_configuration_preset_frost_away_temp"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_away_temp"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_away_temp"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_away_temp"
+                    }
+                  ]
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.multi_switch",
+                  "name": "Multi-switchs",
+                  "set_current_as_main": true
+                },
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "sensor.multi_switch_energy"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_last_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_last_external_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_mean_power_cycle"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_motion_state"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_off_time"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_on_time"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_overpowering_state"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_power_percent"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_presence_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_security_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_window_state"
+                    },
+                    {
+                      "entity": "sensor.multi_switch_temperature_slope"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_switch_window_bypass"
+                    }
+                  ],
+                  "title": "Multi-switch",
+                  "theme": "versatile_thermostat_theme",
+                  "columns": 4
+                }
+              ]
+            },
+            {
+              "type": "history-graph",
+              "entities": [
+                {
+                  "entity": "input_boolean.fake_heater_4switch1"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch2"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch3"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch4"
+                },
+                {
+                  "entity": "sensor.multi_switch_temperature_slope"
+                }
+              ],
+              "title": "Multi switch activation des radiateurs",
+              "hours_to_show": 0.6
+            },
+            {
+              "hours_to_show": 4,
+              "graph": "line",
+              "type": "sensor",
+              "entity": "sensor.multi_switch_energy",
+              "detail": 1,
+              "name": "Energie Multi-switch"
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
+                    },
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    }
+                  ],
+                  "state_color": true
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Multi-climate",
+          "path": "multi-climate",
+          "icon": "mdi:hvac",
+          "badges": [],
+          "cards": [
+            {
+              "type": "vertical-stack",
+              "title": "Multi-climate - Entrées",
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_external_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power_max"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch2"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_motion_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_presence_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_window_sensor1"
+                    }
+                  ]
+                },
+                {
+                  "type": "glance",
+                  "columns": 4,
+                  "entities": [
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_temp",
+                      "name": "Boost"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_away_temp",
+                      "name": "Boost abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_temp",
+                      "name": "Boost clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                      "name": "Boost clim abs"
+                    },
+                    {
+                      "entity": "select.central_mode"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_temp",
+                      "name": "Confort"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_away_temp",
+                      "name": "Confort abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_temp",
+                      "name": "Confort clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                      "name": "Confort clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_temp",
+                      "name": "Eco"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_away_temp",
+                      "name": "Eco abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_temp",
+                      "name": "Eco clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                      "name": "Eco clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_temp",
+                      "name": "Hors gel "
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_away_temp",
+                      "name": "Hors gel abs"
+                    }
+                  ],
+                  "title": "Central configuration"
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.multi_climate",
+                  "set_current_as_main": true
+                },
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "sensor.multi_climate_energy"
+                    },
+                    {
+                      "entity": "sensor.multi_climate_last_temperature_date"
+                    },
+                    {
+                      "entity": "sensor.multi_climate_last_external_temperature_date"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_motion_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_overpowering_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_presence_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_security_state"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_window_state"
+                    },
+                    {
+                      "entity": "sensor.multi_climate_temperature_slope"
+                    },
+                    {
+                      "entity": "binary_sensor.multi_climate_window_bypass"
+                    },
+                    {
+                      "entity": "sensor.multi_climate_regulated_temperature"
+                    }
+                  ],
+                  "title": "Multi-climate",
+                  "theme": "versatile_thermostat_theme",
+                  "columns": 4
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_1",
+                  "show_entity_picture": false,
+                  "color": "accent",
+                  "vertical": false,
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes",
+                      "hvac_modes": [
+                        "heat",
+                        "cool",
+                        "off"
+                      ]
+                    },
+                    {
+                      "type": "target-temperature"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_2",
+                  "show_entity_picture": false,
+                  "color": "accent",
+                  "vertical": false,
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes",
+                      "hvac_modes": [
+                        "heat",
+                        "cool",
+                        "off"
+                      ]
+                    },
+                    {
+                      "type": "target-temperature"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_3",
+                  "show_entity_picture": false,
+                  "color": "accent",
+                  "vertical": false,
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes",
+                      "hvac_modes": [
+                        "heat",
+                        "cool",
+                        "off"
+                      ]
+                    },
+                    {
+                      "type": "target-temperature"
+                    }
+                  ]
+                },
+                {
+                  "type": "tile",
+                  "entity": "climate.underlying_thermostat_4_4",
+                  "show_entity_picture": false,
+                  "color": "accent",
+                  "vertical": false,
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes",
+                      "hvac_modes": [
+                        "heat",
+                        "cool",
+                        "off"
+                      ]
+                    },
+                    {
+                      "type": "target-temperature"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_4climate1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4climate2"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4climate3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_4climate4"
+                    },
+                    {
+                      "entity": "sensor.multi_climate_temperature_slope"
+                    }
+                  ],
+                  "title": "Multi climate activation des radiateurs",
+                  "hours_to_show": 0.6
+                },
+                {
+                  "graph": "line",
+                  "hours_to_show": 4,
+                  "type": "sensor",
+                  "entity": "sensor.multi_climate_energy",
+                  "detail": 1,
+                  "name": "Energie Multi-climate"
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
+                    },
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    }
+                  ],
+                  "state_color": true
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Ac Mode",
+          "path": "ac-mode",
+          "icon": "mdi:air-conditioner",
+          "badges": [],
+          "cards": [
+            {
+              "type": "vertical-stack",
+              "title": "AC mode - Entrées",
+              "cards": [
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_external_temperature_sensor1"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power"
+                    },
+                    {
+                      "entity": "input_number.fake_current_power_max"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch3"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch2"
+                    },
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_motion_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_presence_sensor1"
+                    },
+                    {
+                      "entity": "input_boolean.fake_window_sensor1"
+                    }
+                  ]
+                },
+                {
+                  "type": "glance",
+                  "columns": 4,
+                  "entities": [
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_temp",
+                      "name": "Boost"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_away_temp",
+                      "name": "Boost abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_temp",
+                      "name": "Boost clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                      "name": "Boost clim abs"
+                    },
+                    {
+                      "entity": "select.central_mode"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_temp",
+                      "name": "Confort"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_away_temp",
+                      "name": "Confort abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_temp",
+                      "name": "Confort clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                      "name": "Confort clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_temp",
+                      "name": "Eco"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_away_temp",
+                      "name": "Eco abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_temp",
+                      "name": "Eco clim"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                      "name": "Eco clim abs"
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_temp",
+                      "name": "Hors gel "
+                    },
+                    {
+                      "entity": "number.central_configuration_preset_frost_away_temp",
+                      "name": "Hors gel abs"
+                    }
+                  ],
+                  "title": "Central configuration"
+                }
+              ]
+            },
+            {
+              "type": "custom:versatile-thermostat-ui-card",
+              "entity": "climate.thermostat_ac1",
+              "disable_heat": true
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "type": "button",
+                  "show_name": true,
+                  "show_icon": true,
+                  "tap_action": {
+                    "action": "more-info"
+                  },
+                  "entity": "input_boolean.fake_heater_ac1",
+                  "show_state": true
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_ac1"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            },
+            {
+              "type": "history-graph",
+              "entities": [
+                {
+                  "entity": "climate.thermostat_ac1"
+                }
+              ]
+            },
+            {
+              "show_name": true,
+              "show_icon": true,
+              "show_state": true,
+              "type": "glance",
+              "entities": [
+                {
+                  "entity": "sensor.thermostat_ac1_energy"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_last_temperature_date"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_last_external_temperature_date"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_mean_power_cycle"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_motion_state"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_window_state"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_presence_state"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_on_time"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_overpowering_state"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_power_percent"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_security_state"
+                },
+                {
+                  "entity": "sensor.thermostat_ac1_temperature_slope"
+                },
+                {
+                  "entity": "binary_sensor.thermostat_ac1_window_bypass"
+                }
+              ],
+              "columns": 3,
+              "theme": "versatile_thermostat_theme"
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
+                    },
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    }
+                  ],
+                  "state_color": true
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Sonoff TRVZB",
+          "path": "sonoff-trvzb",
+          "icon": "mdi:valve",
+          "theme": "versatile_thermostat_theme",
+          "type": "sections",
+          "max_columns": 4,
+          "dense_section_placement": true,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Entrées",
+                  "heading_style": "title",
+                  "icon": "mdi:tune-vertical"
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "input_number.fake_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_number.fake_external_temperature_sensor1"
+                        },
+                        {
+                          "entity": "input_datetime.fake_last_seen"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power"
+                        },
+                        {
+                          "entity": "input_number.fake_current_power_max"
+                        },
+                        {
+                          "entity": "input_boolean.fake_valve_sonoff_trvzb1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_motion_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_presence_sensor1"
+                        },
+                        {
+                          "entity": "input_boolean.fake_window_sensor1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "glance",
+                      "columns": 4,
+                      "entities": [
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_temp",
+                          "name": "Boost"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_away_temp",
+                          "name": "Boost abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_temp",
+                          "name": "Boost clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_boost_ac_away_temp",
+                          "name": "Boost clim abs"
+                        },
+                        {
+                          "entity": "select.central_mode"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_temp",
+                          "name": "Confort"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_away_temp",
+                          "name": "Confort abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_temp",
+                          "name": "Confort clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_comfort_ac_away_temp",
+                          "name": "Confort clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_temp",
+                          "name": "Eco"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_away_temp",
+                          "name": "Eco abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_temp",
+                          "name": "Eco clim"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_eco_ac_away_temp",
+                          "name": "Eco clim abs"
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_temp",
+                          "name": "Hors gel "
+                        },
+                        {
+                          "entity": "number.central_configuration_preset_frost_away_temp",
+                          "name": "Hors gel abs"
+                        }
+                      ],
+                      "title": "Central configuration"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "VTherm",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.sonoff",
+                  "name": "Sonoff TRVZB",
+                  "powerEntity": "sensor.sonoff_power_percent",
+                  "disable_circle": true,
+                  "disable_auto_fan_infos": true,
+                  "disable_cool": true,
+                  "disable_auto": true,
+                  "autoStartStopEnableEntity": "switch.myvtherm_enable_auto_start_stop",
+                  "disable_sleep": true
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "show_name": true,
+                      "show_icon": true,
+                      "show_state": true,
+                      "type": "glance",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        },
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        }
+                      ],
+                      "state_color": true
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "climate.sonoff"
+                    }
+                  ],
+                  "hours_to_show": 1
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "climate.underlying_sonoff_trvzb"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "icon": "mdi:valve",
+                  "heading": "Etat Sonoff TRVZB 1",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "climate.underlying_sonoff_trvzb1"
+                    }
+                  ]
+                },
+                {
+                  "type": "thermostat",
+                  "entity": "climate.underlying_sonoff_trvzb1",
+                  "show_current_as_primary": true,
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes"
+                    }
+                  ]
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_valve_sonoff_trvzb1"
+                    },
+                    {
+                      "entity": "input_number.fake_offset_calibration1"
+                    },
+                    {
+                      "entity": "input_number.fake_opening_degree1"
+                    },
+                    {
+                      "entity": "input_number.fake_closing_degree1"
+                    }
+                  ],
+                  "title": "Etat Sonoff TRVZB 1"
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_opening_degree1"
+                    },
+                    {
+                      "entity": "input_number.fake_closing_degree1"
+                    },
+                    {
+                      "entity": "input_number.fake_offset_calibration1"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Etat Sonoff TRVZB 2",
+                  "heading_style": "title",
+                  "icon": "mdi:valve"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "climate.underlying_sonoff_trvzb2"
+                    }
+                  ]
+                },
+                {
+                  "type": "thermostat",
+                  "entity": "climate.underlying_sonoff_trvzb2",
+                  "features": [
+                    {
+                      "type": "climate-hvac-modes"
+                    }
+                  ],
+                  "show_current_as_primary": true
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_valve_sonoff_trvzb2"
+                    },
+                    {
+                      "entity": "input_number.fake_offset_calibration2"
+                    },
+                    {
+                      "entity": "input_number.fake_opening_degree2"
+                    },
+                    {
+                      "entity": "input_number.fake_closing_degree2"
+                    }
+                  ],
+                  "title": "Etat Sonoff TRVZB 2"
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_number.fake_opening_degree2"
+                    },
+                    {
+                      "entity": "input_number.fake_closing_degree2"
+                    },
+                    {
+                      "entity": "input_number.fake_offset_calibration2"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Test Better Thermostat UI",
+          "path": "test-better-thermostat-ui",
+          "badges": [],
+          "cards": [],
+          "type": "sections",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "New section"
+                },
+                {
+                  "type": "custom:versatile-thermostat-ui-card",
+                  "entity": "climate.thermostat_climate_2",
+                  "name": "Climate 2",
+                  "disable_window": false,
+                  "disable_cool": false,
+                  "disable_heat": false,
+                  "disable_menu": false,
+                  "disable_off": false,
+                  "disable_security_warning": false,
+                  "set_current_as_main": true,
+                  "disable_buttons": false,
+                  "disable_autoStartStop": false,
+                  "disable_circle": true,
+                  "disable_name": false,
+                  "disable_overpowering": false,
+                  "disable_auto": false,
+                  "disable_heat_cool": false,
+                  "disable_dry": false,
+                  "disable_fan_only": false,
+                  "disable_power_infos": false,
+                  "disable_auto_fan_infos": false,
+                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
+                  "powerEntity": "sensor.thermostat_valve_mean_power_cycle"
+                },
+                {
+                  "type": "grid",
+                  "square": false,
+                  "columns": 1,
+                  "cards": [
+                    {
+                      "type": "entities",
+                      "entities": [
+                        {
+                          "entity": "switch.thermostat_climate_2_enable_auto_start_stop",
+                          "name": "Enable auto start/stop"
+                        }
+                      ],
+                      "title": "Thermostat climate 2"
+                    },
+                    {
+                      "type": "thermostat",
+                      "entity": "climate.thermostat_climate_2",
+                      "features": [
+                        {
+                          "type": "climate-hvac-modes",
+                          "hvac_modes": [
+                            "heat",
+                            "off"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "custom:restriction-card",
+                  "duration": 5,
+                  "restrictions": {
+                    "confirm": {
+                      "text": "Déverrouillage ?"
+                    }
+                  },
+                  "card": {
+                    "type": "custom:versatile-thermostat-ui-card",
+                    "entity": "climate.thermostat_climate_2",
+                    "name": "Climate 2",
+                    "disable_window": false,
+                    "disable_cool": false,
+                    "disable_heat": false,
+                    "disable_menu": false,
+                    "disable_off": false,
+                    "disable_security_warning": false,
+                    "set_current_as_main": true,
+                    "disable_buttons": false,
+                    "disable_autoStartStop": false,
+                    "disable_circle": false,
+                    "disable_name": false,
+                    "disable_overpowering": false,
+                    "disable_auto": false,
+                    "disable_heat_cool": false,
+                    "disable_dry": false,
+                    "disable_fan_only": false,
+                    "disable_power_infos": false,
+                    "disable_auto_fan_infos": false,
+                    "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
+                    "powerEntity": "sensor.thermostat_valve_mean_power_cycle"
+                  }
+                }
+              ],
+              "column_span": 4
+            }
+          ],
+          "max_columns": 4
+        }
+      ]
+    }
+  }
+}
