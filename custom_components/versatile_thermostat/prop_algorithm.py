@@ -115,7 +115,7 @@ class PropAlgorithm:
             if hvac_mode == VThermHvacMode_COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
-                slope = -slope
+                slope = -slope if slope is not None else None
             else:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
