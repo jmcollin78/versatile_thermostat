@@ -1,51 +1,54 @@
-# Power Management - Load Shedding
+# Zarządzanie energią - Redukcja obciążenia
 
-- [Power Management - Load Shedding](#power-management---load-shedding)
-    - [Example Use Case:](#example-use-case)
-  - [Configuring Power Management](#configuring-power-management)
+- [Zarządzanie energią - Redukcja obciążenia](#power-management---load-shedding)
+    - [Przykład użycia:](#example-use-case)
+  - [Konfiguracja zarządzania energią](#configuring-power-management)
 
-This feature allows you to regulate the electrical consumption of your heaters. Known as load shedding, it lets you limit the electrical consumption of your heating equipment if overconsumption conditions are detected.
-You will need a **sensor for the total instantaneous power consumption** of your home and a **sensor for the maximum allowed power**.
+Funkcja ta pozwala regulować zużycie energii elektrycznej przez grzejniki. Znana jako `redukcja obciążenia`, umożliwia ograniczenie poboru energii przez urządzenia grzewcze w przypadku wykrycia warunków nadmiernego zużycia. Wymagany jest **sensor całkowitego chwilowego zużycia energii** w całym domu oraz **sensor maksymalnej dopuszczalnej mocy**.
 
-The behavior of this feature is as follows:
-1. When a new measurement of the home's power consumption or the maximum allowed power is received,
-2. If the maximum power is exceeded, the central command will shed the load of all active devices starting with those closest to the setpoint. This continues until enough _VTherms_ are shed,
-3. If there is available power reserve and some _VTherms_ are shed, the central command will re-enable as many devices as possible, starting with those furthest from the setpoint (at the time they were shed).
-4. When a _VTherm_ starts, a check is performed to determine if the declared power is available. If not, the _VTherm_ is put into shed mode.
+Zachowanie tej funkcji jest następujące:
+1. Gdy odczytany zostanie nowy pomiar zużycia energii w domu lub sensor maksymalnej dopuszczalnej mocy,
+2. Jeśli maksymalna moc zostanie przekroczona, centralne sterowanie ograniczy obciążenie wszystkich aktywnych urządzeń, zaczynając od tych najbliższych wartości zadanej. Proces trwa, dopóki wystarczająca liczba termostatów nie zostanie odłączona.
+3. Jeśli dostępna jest rezerwa mocy, a część termostatów została odłączona, centralne sterowanie ponownie włączy tyle urządzeń, ile to możliwe, zaczynając od tych najbardziej oddalonych od wartości zadanej (w momencie ich odłączenia).
+4. Gdy termostat się uruchamia, wykonywana jest kontrola, czy zadeklarowana moc jest dostępna. Jeśli nie, termostat zostaje przełączony w tryb ograniczenia (`shed mode`).
 
-**WARNING:** This is **not a safety feature** but an optimization function to manage consumption at the expense of some heating degradation. Overconsumption is still possible depending on the frequency of your consumption sensor updates and the actual power used by your equipment. Always maintain a safety margin.
+**Ostrzeżenie:** To nie jest **funkcja bezpieczeństwa**, lecz mechanizm optymalizacji zużycia energii kosztem pewnego pogorszenia ogrzewania. Nadmierne zużycie energii nadal jest możliwe, w zależności od częstotliwości aktualizacji czujnika zużycia oraz rzeczywistej mocy pobieranej przez urządzenia. Zawsze należy zachować margines bezpieczeństwa.
 
-### Example Use Case:
-1. You have an electric meter limited to 11 kW,
-2. You occasionally charge an electric vehicle at 5 kW,
-3. This leaves 6 kW for everything else, including heating,
-4. You have 1 kW of other active devices,
-5. You declare a sensor (`input_number`) for the maximum allowed power at 9 kW (= 11 kW - reserved power for other devices - safety margin).
+### Przykład użycia:
+1. Masz licznik energii elektrycznej ograniczony do 11 kW,
+2. Okazjonalnie ładujesz pojazd elektryczny z mocą 5 kW,
+3. Pozostaje 6 kW na wszystko inne, w tym ogrzewanie,
+4. Masz 1 kW innych aktywnych urządzeń,
+5. Deklarujesz sensor (`input_number`) dla maksymalnej dopuszczalnej mocy ustawionej na 9 kW (= 11 kW – zarezerwowana moc dla innych urządzeń – margines bezpieczeństwa).
 
-If the vehicle is charging, the total consumed power is 6 kW (5 + 1), and a _VTherm_ will only turn on if its declared power is a maximum of 3 kW (9 kW - 6 kW).
-If the vehicle is charging and another _VTherm_ of 2 kW is on, the total consumed power is 8 kW (5 + 1 + 2), and a _VTherm_ will only turn on if its declared power is a maximum of 1 kW (9 kW - 8 kW). Otherwise, it will skip its turn (cycle).
-If the vehicle is not charging, the total consumed power is 1 kW, and a _VTherm_ will only turn on if its declared power is a maximum of 8 kW (9 kW - 1 kW).
+   Zachowanie systemu
 
-## Configuring Power Management
+> 1. Jeśli pojazd jest ładowany, całkowite zużycie energii wynosi 6 kW (5 + 1), a termostat włączy się tylko wtedy, gdy jego zadeklarowana moc wynosi maksymalnie 3 kW (9 – 6).
+> 2. Jeśli pojazd jest ładowany i dodatkowo działa inny termostat o mocy 2 kW, całkowite zużycie wynosi 8 kW (5 + 1 + 2), a kolejny termostat włączy się tylko wtedy, gdy jego zadeklarowana moc wynosi maksymalnie 1 kW (9 – 8). W przeciwnym razie pominie swoją kolej (cykl).
+> 3. Jeśli pojazd nie jest ładowany, całkowite zużycie wynosi 1 kW, a termostat włączy się tylko wtedy, gdy jego zadeklarowana moc wynosi maksymalnie 8 kW (9 – 1).
 
-In the centralized configuration, if you have selected the `With power detection` feature, configure it as follows:
+## Konfiguracja zarządzania energią
+
+Jeśli w konfiguracji głównej wybrałeś funkcję `Zarządzania energią`, skonfiguruj ją następująco:
 
 ![image](images/config-power.png)
 
-1. The entity ID of the **sensor for total instantaneous power consumption** of your home,
-2. The entity ID of the **sensor for maximum allowed power**,
-3. The temperature to apply if load shedding is activated.
+Wymagane elementy konfiguracji:
+1. **Identyfikator encji** sensora całkowitego chwilowego zużycia energii,
+2. **Identyfikator encji** sensora maksymalnej dopuszczalnej mocy,
+3. **Temperatura**, która ma być zastosowana, jeśli aktywowana zostanie redukcja obciążenia.
 
-Ensure that all power values use the same units (e.g., kW or W).
-Having a **sensor for maximum allowed power** allows you to modify the maximum power dynamically using a scheduler or automation.
+Upewnij się, że wszystkie wartości mocy używają tych samych jednostek (np. kW lub W).
+Posiadanie **sensora maksymalnej dopuszczalnej mocy** pozwala na dynamiczną modyfikację wartości maksymalnej mocy przy użyciu harmonogramu lub automatyzacji.
 
-Note that due to centralized load-shedding, it is not possible to override the consumption and maximum consumption sensors on individual _VTherms_. This configuration must be done in the centralized settings. See [Centralized Configuration](./creation.md#centralized-configuration).
+Ze względu na scentralizowaną redukcję obciążenia nie jest możliwe nadpisanie wartości senssorów zużycia i maksymalnego zużycia na poszczególnych termostatatch. Konfiguracja musi być wykonana w ustawieniach głównych (patrz: [Konfiguracja główna](./creation.md#centralized-configuration)).
 
-> ![Tip](images/tips.png) _*Notes*_
+
+> ![Tip](images/tips.png) _*Wskazówki*_
 >
-> 1. During load shedding, the heater is set to the preset named `power`. This is a hidden preset that cannot be manually selected.
-> 2. Always maintain a margin, as the maximum power can briefly be exceeded while waiting for the next cycle's calculation or due to uncontrolled devices.
-> 3. If you do not wish to use this feature, uncheck it in the 'Features' menu.
-> 4. If a single _VTherm_ controls multiple devices, the **declared heating power consumption** should correspond to the total power of all devices.
-> 5. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), load shedding is represented as follows: ![load shedding](images/power-exceeded-icon.png).
-> 6. There may be a delay of up to 20 seconds between receiving a new value from the power consumption sensor and triggering load shedding for _VTherms_. This delay prevents overloading Home Assistant if your consumption updates are very frequent.
+> 1. Podczas redukcji obciążenia w grzejniku wybierane są ustawienia wstępne o nazwie `moc`. Jest to ukryte ustawienie wstępne, którego nie można wybrać ręcznie.
+> 2. Zawsze zachowuj margines bezpieczeństwa, ponieważ maksymalna moc może być chwilowo przekroczona w oczekiwaniu na kolejne obliczenie cyklu lub przez niekontrolowane urządzenia.
+> 3. Jeśli nie chcesz korzystać z tej funkcji, odznacz ją w menu 'Funkcje'.
+> 4. Jeśli pojedynczy termostat steruje wieloma urządzeniami, zadeklarowane zużycie energii grzewczej powinno odpowiadać całkowitej mocy wszystkich urządzeń.
+> 5. Jeśli korzystasz z karty interfejsu Versatile Thermostat UI Card (patrz [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), redukcja obciążenia jest reprezentowane jako: ![load shedding](images/power-exceeded-icon.png).
+> 6. Może wystąpić opóźnienie do 20 sekund pomiędzy otrzymaniem nowej wartości z czujnika zużycia energii a uruchomieniem redukcji obciążenia dla termostatu. Opóźnienie to zapobiega przeciążeniu Home Assistanta, jeśli aktualizacje zużycia są bardzo częste.
