@@ -250,8 +250,7 @@
                 },
                 {
                   "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.sonoff",
-                  "autoStartStopEnableEntity": "switch.sonoff_enable_auto_start_stop",
+                  "entity": "climate.sonoff_trvzb",
                   "set_current_as_main": true,
                   "disable_circle": true
                 },
@@ -266,12 +265,17 @@
                       "name": "Th. Switch over select"
                     },
                     {
-                      "type": "entity",
+                      "type": "tile",
                       "entity": "input_select.nodon_select",
-                      "state_color": false,
                       "grid_options": {
                         "columns": "full"
-                      }
+                      },
+                      "features_position": "bottom",
+                      "vertical": false,
+                      "state_content": [
+                        "state",
+                        "last_changed"
+                      ]
                     },
                     {
                       "type": "history-graph",
@@ -324,12 +328,17 @@
                       "name": "Th. inversed Switch"
                     },
                     {
-                      "type": "entity",
+                      "type": "tile",
                       "entity": "switch.fake_inversed_switch",
-                      "state_color": false,
                       "grid_options": {
                         "columns": "full"
-                      }
+                      },
+                      "features_position": "bottom",
+                      "vertical": false,
+                      "state_content": [
+                        "state",
+                        "last_changed"
+                      ]
                     },
                     {
                       "type": "history-graph",
@@ -1826,7 +1835,8 @@
                 {
                   "type": "custom:versatile-thermostat-ui-card",
                   "entity": "climate.multi_climate",
-                  "set_current_as_main": true
+                  "set_current_as_main": true,
+                  "autoStartStopEnableEntity": "switch.multi_climate_enable_auto_start_stop_2"
                 },
                 {
                   "show_name": true,
@@ -2153,7 +2163,9 @@
             {
               "type": "custom:versatile-thermostat-ui-card",
               "entity": "climate.thermostat_ac1",
-              "disable_heat": true
+              "disable_heat": true,
+              "disable_circle": false,
+              "set_current_as_main": true
             },
             {
               "type": "vertical-stack",
@@ -2412,15 +2424,14 @@
                 },
                 {
                   "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.sonoff",
+                  "entity": "climate.sonoff_trvzb",
                   "name": "Sonoff TRVZB",
-                  "powerEntity": "sensor.sonoff_power_percent",
                   "disable_circle": true,
                   "disable_auto_fan_infos": true,
                   "disable_cool": true,
                   "disable_auto": true,
-                  "autoStartStopEnableEntity": "switch.myvtherm_enable_auto_start_stop",
-                  "disable_sleep": true
+                  "disable_sleep": false,
+                  "set_current_as_main": true
                 },
                 {
                   "type": "vertical-stack",
