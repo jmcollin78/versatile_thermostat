@@ -8,7 +8,6 @@ from typing import Any
 from homeassistant.core import (
     HomeAssistant,
 )
-from .vtherm_hvac_mode import VThermHvacMode
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
@@ -19,8 +18,6 @@ from .base_manager import BaseFeatureManager
 
 from .auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
-    AUTO_START_STOP_ACTION_OFF,
-    AUTO_START_STOP_ACTION_ON,
 )
 
 
@@ -45,9 +42,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
 
-        self._auto_start_stop_level: TYPE_AUTO_START_STOP_LEVELS = (
-            AUTO_START_STOP_LEVEL_NONE
-        )
+        self._auto_start_stop_level: str = AUTO_START_STOP_LEVEL_NONE
         self._auto_start_stop_algo: AutoStartStopDetectionAlgorithm | None = None
         self._is_configured: bool = False
         self._is_auto_start_stop_enabled: bool = False
@@ -260,7 +255,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         return self._is_configured
 
     @property
-    def auto_start_stop_level(self) -> TYPE_AUTO_START_STOP_LEVELS:
+    def auto_start_stop_level(self) -> str:
         """Return the auto start/stop level."""
         return self._auto_start_stop_level
 
