@@ -1,5 +1,5 @@
 {
-  "title": "Versatile Thermostat Konfiguration",
+  "title": "Versatile Thermostat",
   "config": {
     "flow_title": "Versatile Thermostat Konfiguration",
     "step": {
@@ -53,7 +53,7 @@
         },
         "data_description": {
           "temperature_sensor_entity_id": "Entity-ID des Raumtemperatursensor",
-          "last_seen_temperature_sensor_entity_id": "Entity-ID des Sensors, der das Datum und die Uhrzeit der letzten Datenübermittlung des Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
+          "last_seen_temperature_sensor_entity_id": "Entity-ID des Sensors, der das Datum und die Uhrzeit der letzten Datenübermittlung vom Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
           "external_temperature_sensor_entity_id": "Außentemperatursensor Entity-ID. Wird nicht verwendet, wenn zentrale Konfiguration gewählt wurde."
         }
       },
