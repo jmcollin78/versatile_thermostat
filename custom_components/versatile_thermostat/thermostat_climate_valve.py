@@ -56,6 +56,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
         self._min_opening_degress: list[int] = []
+        self._cancel_recalculate_later = None
         # if mode sleep is activated, the valve is fully open but the hvac_mode is off
         self._is_sleeping: bool = False
 
@@ -168,11 +169,15 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
+
+        if self._cancel_recalculate_later:
+            self._cancel_recalculate_later()
+            self._cancel_recalculate_later = None
 
         # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
         if self._is_sleeping:
@@ -184,12 +189,13 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         if self._last_calculation_timestamp is not None:
             period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if period < self._auto_regulation_period_min:
+            if not force and period < self._auto_regulation_period_min:
                 _LOGGER.info(
                     "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
                     self,
                     period,
                 )
+                self.do_recalculate_later()
                 return
 
         self._prop_algorithm.calculate(
@@ -240,6 +246,20 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._last_calculation_timestamp = now
 
         super().recalculate()
+
+    def do_recalculate_later(self):
+        """A utility function to set the valve open percent later on all underlyings"""
+        _LOGGER.debug("%s - do_recalculate_later call", self)
+
+        async def callback_recalculate(_):
+            """Callback to set the valve percent"""
+            self.recalculate()
+
+        if self._cancel_recalculate_later:
+            self._cancel_recalculate_later()
+            self._cancel_recalculate_later = None
+
+        self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""

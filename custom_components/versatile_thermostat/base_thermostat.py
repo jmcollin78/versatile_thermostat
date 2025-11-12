@@ -1233,7 +1233,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                         await self.power_manager.set_overpowering(False)
 
                 if changed:
-                    self.recalculate()
+                    self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
                     await self.async_control_heating(force=force or sub_need_control_heating)
 
@@ -1511,7 +1511,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         await self.update_states()
         return
 
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state.
         Should be overridden by super class

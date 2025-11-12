@@ -200,7 +200,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
@@ -212,9 +212,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self.last_temperature_slope,
             self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
-        # self.update_custom_attributes()
-        # already done bu update_custom_attributes
-        # self.async_write_ha_state()
 
     @overrides
     def incremente_energy(self):

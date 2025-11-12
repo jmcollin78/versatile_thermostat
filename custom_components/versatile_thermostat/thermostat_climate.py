@@ -5,11 +5,7 @@ from datetime import timedelta, datetime
 
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, HomeAssistant, State, callback
-from homeassistant.helpers.event import (
-    async_track_state_change_event,
-    async_track_time_interval,
-    EventStateChangedData,
-)
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, EventStateChangedData, async_call_later
 from homeassistant.components.climate import (
     HVACAction,
     ClimateEntityFeature,
@@ -82,6 +78,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self._last_hvac_mode = None
 
+        self._cancel_call_later = None
+
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
@@ -94,7 +92,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         super().post_init(config_entry)
 
-        for climate in config_entry.get(CONF_UNDERLYING_LIST):
+        for climate in config_entry.get(CONF_UNDERLYING_LIST, []):
             under = UnderlyingClimate(
                 hass=self._hass,
                 thermostat=self,
@@ -144,7 +142,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             under_list = self._underlyings
 
         one_idle = False
-        ret = None
         for under in under_list:
             if (action := under.hvac_action) not in [
                 HVACAction.IDLE,
@@ -161,6 +158,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
+
+        if self._cancel_call_later:
+            self._cancel_call_later()
+            self._cancel_call_later = None
 
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
@@ -183,6 +184,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
         if not force and not self.check_auto_regulation_period_min(self.now):
+            self.do_send_regulated_temp_later()
             return
 
         self._regulation_algo.set_target_temp(self.target_temperature)
@@ -255,6 +257,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_max_temp,
                 self._attr_min_temp,
             )
+
+    def do_send_regulated_temp_later(self):
+        """A utility function to set the temperature later on an underlying"""
+        # For over climate we do nothing because the temperature is set in the main loop
+        _LOGGER.debug("%s - do_set_temperature_later call", self)
+
+        async def callback_send_regulated_temp(_):
+            """Callback to send the regulated temperature"""
+            await self._send_regulated_temperature()
+
+        if self._cancel_call_later:
+            self._cancel_call_later()
+            self._cancel_call_later = None
+
+        self._cancel_call_later = async_call_later(self._hass, 20, callback_send_regulated_temp)
 
     def check_auto_regulation_period_min(self, now):
         """Check if minimal auto_regulation period is exceeded
@@ -508,7 +525,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo. For over_climate there is nothing to
         recalculate but we need it cause the base function throw not implemented error
         """

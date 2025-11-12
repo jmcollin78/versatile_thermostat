@@ -6,6 +6,7 @@ from datetime import timedelta, datetime
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
+    async_call_later,
     EventStateChangedData,
 )
 from homeassistant.core import Event, HomeAssistant, callback
@@ -50,6 +51,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._last_calculation_timestamp: datetime | None = None
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
+        self._cancel_recalculate_later = None
 
         # Call to super must be done after initialization because it calls post_init at the end
         super().__init__(hass, unique_id, name, config_entry)
@@ -169,11 +171,15 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
+
+        if self._cancel_recalculate_later:
+            self._cancel_recalculate_later()
+            self._cancel_recalculate_later = None
 
         if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
             _LOGGER.warning(
@@ -187,12 +193,14 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         if self._last_calculation_timestamp is not None:
             period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if period < self._auto_regulation_period_min:
+            if not force and period < self._auto_regulation_period_min:
                 _LOGGER.info(
                     "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
                     self,
                     period,
                 )
+
+                self.do_recalculate_later()
                 return
 
         self._prop_algorithm.calculate(
@@ -241,6 +249,20 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         # self.calculate_hvac_action()
         self.update_custom_attributes()
         self.async_write_ha_state()
+
+    def do_recalculate_later(self):
+        """A utility function to set the valve open percent later on all underlyings"""
+        _LOGGER.debug("%s - do_recalculate_later call", self)
+
+        async def callback_recalculate(_):
+            """Callback to set the valve percent"""
+            self.recalculate()
+
+        if self._cancel_recalculate_later:
+            self._cancel_recalculate_later()
+            self._cancel_recalculate_later = None
+
+        self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 
     @overrides
     def incremente_energy(self):
