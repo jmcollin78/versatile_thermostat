@@ -1,27 +1,27 @@
-# Motion or Activity Detection
+# Detekcja ruchu lub aktywności
 
-- [Motion or Activity Detection](#motion-or-activity-detection)
-  - [Configure Activity Mode or Motion Detection](#configure-activity-mode-or-motion-detection)
-  - [Usage](#usage)
+- [Detekcja ruchu lub aktywności](#motion-or-activity-detection)
+  - [Konfiguracja trybu aktywności lub detekcji ruchu](#configure-activity-mode-or-motion-detection)
+  - [Zastosowanie](#usage)
 
-This feature allows you to change presets when motion is detected in a room. If you don't want to heat your office when the room is occupied and only when the room is occupied, you need a motion (or presence) sensor in the room and configure this feature.
+Funkcja ta pozwala zmieniać ustawienia wstępne, gdy w pomieszczeniu wykryty zostanie ruch. Jeśli nie chcesz ogrzewać pomieszczenia, gdy jest ono nieużywane, a tylko wtedy, gdy ktoś w nim przebywa, potrzebujesz czujnika ruchu (lub obecności) w pomieszczeniu i odpowiedniej konfiguracji tej funkcji.
 
-This function is often confused with the presence feature. They are complementary but not interchangeable. The 'motion' function is local to a room equipped with a motion sensor, while the 'presence' function is designed to be global to the entire home.
+Ta funkcja jest często mylona z funkcją obecności. Są one komplementarne, ale niezamienne. Funkcja „ruchu” działa lokalnie w pomieszczeniu wyposażonym w czujnik ruchu, natomiast funkcja „obecności” została zaprojektowana jako globalna dla całego domu.
 
-## Configure Activity Mode or Motion Detection
+## Konfiguracja trybu aktywności lub detekcji ruchu
 
-If you have chosen the `With motion detection` feature:
+Jeśli wybrałeś funkcję detekcji ruchu:
 
 ![image](images/config-motion.png)
 
-What we need:
-- a **motion sensor**. Entity ID of a motion sensor. The states of the motion sensor must be "on" (motion detected) or "off" (no motion detected),
-- a **detection delay** (in seconds) defining how long we wait for confirmation of the motion before considering the motion. This parameter can be **greater than your motion sensor's delay**, otherwise, the detection will happen with every motion detected by the sensor,
-- an **inactivity delay** (in seconds) defining how long we wait for confirmation of no motion before no longer considering the motion,
-- a **"motion" preset**. We will use the temperature of this preset when activity is detected,
-- a **"no motion" preset**. We will use the temperature of this second preset when no activity is detected.
+to potrzebne bedą:
+- **Czujnik ruchu**. `Entity ID` czujnika ruchu. Stany czujnika muszą być `'on'` (wykryto ruch) lub `'off'` (brak ruchu).
+- **Opóźnienie detekcji** (w sek.), określające jak długo należy czekać na potwierdzenie ruchu, zanim zostanie on uznany za faktycznie zaistniały. Parametr ten może być większy niż zwłoka czujnika, w przeciwnym razie detekcja nastąpi przy każdym wykryciu ruchu.
+- **Opóźnienie braku aktywności** (w sek.), określające jak długo należy czekać na potwierdzenie braku ruchu, zanim przestaniemy go uwzględniać.
+- **Ustawienie wstępne "ruchu"**. Używana będzie temperatura zapisana w tym ustawieniu, gdy wykryta zostanie aktywność.
+- **Ustawienie wstępne "brak ruchu”**. Używana będzie temperatura zapisana w tym ustawieniu, gdy aktywność nie zostanie wykryta.
 
-## Usage
+## Zastosowanie
 
 To tell a _VTherm_ that it should listen to the motion sensor, you must set it to the special 'Activity' preset. If you have installed the Versatile Thermostat UI card (see [here](additions.md#much-better-with-the-versatile-thermostat-ui-card)), this preset is displayed as follows: ![activity preset](images/activity-preset-icon.png).
 
