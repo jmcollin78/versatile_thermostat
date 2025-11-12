@@ -1,35 +1,35 @@
-# Advanced Configuration
+# Konfiguracja zaawansowana
 
-- [Advanced Configuration](#advanced-configuration)
-  - [Advanced Settings](#advanced-settings)
-    - [Safety Mode](#safety-mode)
+- [Konfiguracja zaawansowana](#advanced-configuration)
+  - [Ustawienia zaawansowane](#advanced-settings)
+    - [Tryb bezpieczeństwa](#safety-mode)
 
-These settings refine the thermostat's operation, particularly the safety mechanism for a _VTherm_. Missing temperature sensors (room or outdoor) can pose a risk to your home. For instance, if the temperature sensor gets stuck at 10°C, the `over_climate` or `over_valve` _VTherm_ types will command maximum heating of the underlying devices, which could lead to room overheating or even property damage, at worst resulting in a fire hazard.
+Ustawienia te udoskonalają działanie termostatu, w szczególności mechanizm bezpieczeństwa dla termostatów. Brak sensorów temperatury (pokojowych lub zewnętrznych) może stanowić zagrożenie dla Twojego domu. Na przykład, jeśli czujnik temperatury utknie na wartości 10°C, urządzenia typu `Termostat na Klimacie` lub `Termostat na Zaworze` będą wymuszać maksymalne ogrzewanie, co może prowadzić do przegrzania pomieszczenia, a nawet uszkodzenia mienia, w najgorszym przypadku stwarzając ryzyko pożaru.
 
-To prevent this, _VTherm_ ensures that thermometers report values regularly. If they don't, the _VTherm_ switches to a special mode called Safety Mode. This mode ensures minimal heating to prevent the opposite risk: a completely unheated home in the middle of winter, for example.
+Aby temu zapobiec, VTherm zapewnia regularne raportowanie wartości odczytywanych z termometrów. Jeśli tak się nie dzieje, VTherm przełącza się w specjalny tryb zwany Trybem Bezpieczeństwa (Safety Mode). Ten tryb gwarantuje minimalne ogrzewanie, aby zapobiec przeciwnemu ryzyku całkowitego braku ogrzewania np. w środku zimy.
 
-The challenge lies in that some thermometers—especially battery-operated ones—only send temperature updates when the value changes. It is entirely possible to receive no temperature updates for hours without the thermometer failing. The parameters below allow fine-tuning of the thresholds for activating Safety Mode.
+Problem polega na tym, że niektóre termometry — szczególnie zasilane bateryjnie — wysyłają aktualizacje temperatury tylko wtedy, gdy wartość się zmienia. Zatem całkiem możliwe jest, że przez wiele godzin nie nadejdą żadne aktualizacje temperatury, mimo że termometr działa poprawnie. Poniższe parametry pozwalają na precyzyjne dostrojenie progów aktywacji Trybu Bezpieczeństwa.
 
-If your thermometer has a `last seen` attribute indicating the last contact time, you can specify it in the _VTherm_'s main attributes to greatly reduce false Safety Mode activations. See [configuration](base-attributes.md#choosing-base-attributes) and [troubleshooting](troubleshooting.md#why-does-my-versatile-thermostat-switch-to-safety-mode).
+Jeśli Twój termometr posiada atrybut `last seen`, wskazujący czas ostatniego kontaktu, możesz określić go w głównych atrybutach VTherm, aby znacznie ograniczyć fałszywe aktywacje Trybu Bezpieczeństwa (patrz: [konfiguracja](base-attributes.md#choosing-base-attributes) oraz [rozwiązywanie problemów](troubleshooting.md#why-does-my-versatile-thermostat-switch-to-safety-mode)).
 
-For `over_climate` _VTherms_, which self-regulate, Safety Mode is disabled. In this case, there is no danger, only the risk of an incorrect temperature.
+Dla `termostatu na klimacie` z samoregulacją Tryb Bezpieczeństwa jest niedostępny. W takim przypadku nie ma zagrożenia, istnieje jedynie ryzyko błędnej temperatury.
 
-## Advanced Settings
+## Ustawienia zaawansowane
 
-The advanced configuration form looks like this:
+Ekran konfiguracji zaawansowanej wygląda następujaco:
 
 ![image](images/config-advanced.png)
 
-### Safety Mode
+### Tryb bezpieczeństwa
 
-The second delay (`safety_delay_min`) is the maximum time between two temperature measurements before the _VTherm_ switches to Safety Mode.
+Drugie opóźnienie (`safety_delay_min`) to maksymalny czas pomiędzy dwoma pomiarami temperatury, po którym termostat VTherm przełącza się w Tryb Bezpieczeństwa (Safety Mode).
 
-The third parameter (`safety_min_on_percent`) is the minimum `on_percent` below which Safety Mode will not be activated. This setting prevents activating Safety Mode if the controlled radiator does not heat sufficiently. In this case, there is no physical risk to the home, only the risk of overheating or underheating.
-Setting this parameter to `0.00` will trigger Safety Mode regardless of the last heating setting, whereas `1.00` will never trigger Safety Mode (effectively disabling the feature). This can be useful to adapt the safety mechanism to your specific needs.
+Trzeci parametr (`safety_min_on_percent`) to minimalna wartość `on_percent`, poniżej której Tryb Bezpieczeństwa nie zostanie aktywowany. To ustawienie zapobiega aktywacji Trybu Bezpieczeństwa, jeśli grzejnik nie nagrzewa się wystarczająco. W takim przypadku nie ma fizycznego zagrożenia dla domu, istnieje jedynie ryzyko przegrzania lub niedogrzania. 
+Ustawienie tego parametru na `0.00` spowoduje uruchomienie Trybu Bezpieczeństwa niezależnie od ostatniego ustawienia ogrzewania, natomiast wartość `1.00` nigdy nie uruchomi Trybu Bezpieczeństwa (w praktyce wyłączając tę funkcję). Może to być przydatne do dostosowania mechanizmu bezpieczeństwa do Twoich specyficznych potrzeb.
 
-The fourth parameter (`safety_default_on_percent`) defines the `on_percent` used when the thermostat switches to `security` mode. Setting it to `0` will turn off the thermostat in Safety Mode, while setting it to a value like `0.2` (20%) ensures some heating remains, avoiding a completely frozen home in case of a thermometer failure.
+Czwarty parametr (`safety_default_on_percent`) definiuje wartość `on_percent` używaną, gdy termostat przełącza się w Tryb Bezpieczeństwa. Ustawienie go na `0` wyłączy termostat w Trybie Bezpieczeństwa, natomiast ustawienie na wartość taką jak `0.2` (20%) zapewni pewien poziom ogrzewania, zapobiegając całkowitemu wychłodzeniu pomieszczenia w przypadku awarii termometru.
 
-It is possible to disable Safety Mode triggered by missing data from the outdoor thermometer. Since the outdoor thermometer usually has a minor impact on regulation (depending on your configuration), it might not be critical if it's unavailable. To do this, add the following lines to your `configuration.yaml`:
+Możliwe jest wyłączenie Trybu Bezpieczeństwa uruchamianego przez brak danych z termometru zewnętrznego. Ponieważ termometr zewnętrzny zazwyczaj ma niewielki wpływ na regulację (w zależności od konfiguracji), jego niedostępność może nie być krytyczna. Aby to zrobić, dodaj poniższe linie kodu do pliku  `configuration.yaml`:
 
 ```yaml
 versatile_thermostat:
@@ -38,13 +38,13 @@ versatile_thermostat:
         check_outdoor_sensor: false
 ```
 
-By default, the outdoor thermometer can trigger Safety Mode if it stops sending data. Remember that Home Assistant must be restarted for these changes to take effect. This setting applies to all _VTherms_ sharing the outdoor thermometer.
+Domyślnie termometr zewnętrzny może uruchomić Tryb Bezpieczeństwa (Safety Mode), jeśli przestanie wysyłać dane. Pamiętaj, że Home Assistant musi zostać ponownie uruchomiony, aby te zmiany zaczęły obowiązywać. To ustawienie dotyczy wszystkich termostatów, które współdzielą termometr zewnętrzny.
 
-> ![Tip](images/tips.png) _*Notes*_
-> 1. When the temperature sensor resumes reporting, the preset will be restored to its previous value.
-> 2. Two temperature sources are required: the indoor and outdoor temperatures. Both must report values, or the thermostat will switch to "security" preset.
-> 3. An action is available to adjust the three safety parameters. This can help adapt Safety Mode to your needs.
-> 4. For normal use, `safety_default_on_percent` should be lower than `safety_min_on_percent`.
-> 5. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), a _VTherm_ in Safety Mode is indicated by a gray overlay showing the faulty thermometer and the time since its last value update:
+> ![Tip](images/tips.png) _*Wskazówki*_
+> 1. Gdy czujnik temperatury wznowi raportowanie, ustawienie wstępne zostanie przywrócone do poprzedniej wartości.
+> 2. Wymagane są dwa źródła temperatury: wewnętrzne i zewnętrzne. Oba muszą raportować wartości, w przeciwnym razie termostat przełączy się na tryb bezpieczny.
+> 3. Dostępna jest akcja umożliwiająca dostosowanie trzech parametrów bezpieczeństwa. Może to pomóc w dopasowaniu Trybu Bezpieczeństwa do Twoich potrzeb.
+> 4. W normalnym użytkowaniu `safety_default_on_percent` powinno być niższe niż `safety_min_on_percent`.
+> 5. Jeśli korzystasz z karty interfejsu Versatile Thermostat (patrz [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), karta termostatu w Trybie Bezpieczeństwa jest pokrywana szarym tłem, wskazując wadliwy termometr oraz czas od ostatniej aktualizacji jego wartości:
 >
 > ![safety mode](images/safety-mode-icon.png).
