@@ -1,52 +1,54 @@
 # When to Use and Not Use It
-This thermostat can control 3 types of equipment:
-1. A radiator that only works in on/off mode (called `thermostat_over_switch`). The minimum configuration required to use this type of thermostat is:
-   1. An equipment like a radiator (a `switch` or equivalent),
-   2. A temperature sensor for the room (or an input_number),
-   3. An external temperature sensor (consider the weather integration if you don't have one).
-2. Another thermostat that has its own modes of operation (called `thermostat_over_climate`). For this type of thermostat, the minimum configuration requires:
-   1. Equipment – like air conditioning, a thermostatic valve – controlled by its own `climate` entity.
-3. Equipment that can take a value from 0 to 100% (called `thermostat_over_valve`). At 0, heating is off, and at 100% it is fully open. This type allows controlling a thermostatic valve (e.g., Shelly valve) that exposes a `number` type entity, enabling direct control of the valve's opening. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using both the internal and external temperature sensors, and utilizing the TPI algorithm described below.
+Termostat może sterować 3 typami urządzeń:
+1. Grzejnik działający wyłącznie w trybie on/off (nazywany thermostat_over_switch). Minimalna konfiguracja wymagana do użycia tego typu termostatu obejmuje:
+   1. Urządzenie takie jak grzejnik (`switch` lub odpowiednik),
+   2. Czujnik temperatury dla pomieszczenia (lub `input_number`),
+   3. Zewnętrzny czujnik temperatury (rozważ integrację pogodową, jeśli nie masz takiego czujnika).
+2. Inny termostat posiadający własne tryby pracy (nazywany thermostat_over_climate). Dla tego typu termostatu minimalna konfiguracja wymaga:
+   1. Urządzenia – np. klimatyzacji, zaworu termostatycznego – sterowanego przez własną encję climate.
+3. Urządzenie, które może przyjmować wartość od 0 do 100% (nazywane `termostatem na zaworze`). Przy wartości `0` ogrzewanie jest wyłączone, a przy `100%` zawór jest całkowicie otwarty. Ten typ pozwala sterować zaworem termostatycznym (np. zawór Shelly), który udostępnia encję typu `number`, umożliwiając bezpośrednie sterowanie stopniem otwarcia zaworu. Versatile Thermostat reguluje temperaturę w pomieszczeniu poprzez dostosowanie procentu otwarcia, wykorzystując zarówno czujniki temperatury wewnętrznej i zewnętrznej, jak i algorytm TPI opisany poniżej.
 
-The `over_climate` type allows you to add all the features offered by VersatileThermostat to your existing equipment. The VersatileThermostat `climate` entity will control your underlying `climate` entity, turn it off if windows are open, switch to Eco mode if no one is present, etc. See [here](#pourquoi-un-nouveau-thermostat-implémentation). For this type of thermostat, all heating cycles are controlled by the underlying `climate` entity and not by the Versatile Thermostat itself. An optional auto-regulation function allows Versatile Thermostat to adjust the setpoint temperature to the underlying entity in order to reach the setpoint.
+Typ `termostatu na klimacie` pozwala dodać wszystkie funkcje oferowane przez Versatile Thermostat do istniejącego sprzętu. Encja `climate` termostatu będzie sterować Twoją bazową encją `climate` – wyłączy ją, jeśli okna są otwarte, przełączy w tryb `Eco`, jeśli nikt nie jest obecny, itd. (patrz: [tutaj](#pourquoi-un-nouveau-thermostat-implémentation).
 
-Installations with a pilot wire and activation diode benefit from an option that allows inverting the on/off control of the underlying radiator. To do this, use the `over_switch` type and check the "Invert command" option.
+Dla tego typu termostatu wszystkie cykle grzewcze są kontrolowane przez bazową encję `climate`, a nie przez sam termostat. Opcjonalna funkcja autoregulacji pozwala termostatom _VTherm_ dostosować temperaturę zadaną do encji bazowej, aby osiągnąć wartość docelową.
 
-# Why a New Thermostat Implementation?
+Instalacje z pilotem przewodowym i diodą aktywacyjną korzystają z opcji umożliwiającej odwrócenie sterowania `on`/`off` bazowego grzejnika. Aby to zrobić, użyj typu `termostat na przełączniku` i zaznacz opcję `Inwersja polecenia`.
 
-This component, called __Versatile Thermostat__, manages the following use cases:
-- Configuration via the standard integration graphical interface (using the Config Entry flow),
-- Full use of **preset mode**,
-- Disable preset mode when the temperature is **set manually** on a thermostat,
-- Turn off/on a thermostat or change preset when a **door or windows are opened/closed** after a certain delay,
-- Change preset when **activity is detected** or not in a room for a defined time,
-- Use a **TPI (Time Proportional Interval)** algorithm thanks to [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)],
-- Add **load shedding** management or regulation to not exceed a defined total power. When the maximum power is exceeded, a hidden preset of "power" is set on the `climate` entity. When the power goes below the maximum, the previous preset is restored.
-- **Presence management**. This feature allows dynamically modifying the preset temperature based on the presence sensor in your home.
-- **Actions to interact with the thermostat** from other integrations: you can force presence/non-presence using a service, and you can dynamically change preset temperatures and modify security settings.
-- Add sensors to view the thermostat's internal states,
-- Centralized control of all Versatile Thermostats to stop them all, set them all to frost protection, force them all to heating mode (in winter), force them all to cooling mode (in summer).
-- Control of a central heating boiler and VTherms that must control this boiler.
-- Automatic start/stop based on usage prediction for `over_climate`.
+# Dlaczego nowa implementacja termostatu?
+Komponent `Versatile Thermostat` obsługuje następujące przypadki użycia:
+- Konfiguracja poprzez standardowy graficzny interfejs integracji (przy użyciu Config Entry flow),
+- Pełne wykorzystanie trybu ustawień wstępnych,
+- Wyłączenie trybu ustawień wstępnych, gdy temperatura zostanie ustawiona ręcznie na termostacie,
+- Wyłączenie/załączenie termostatu lub zmiana ustawień wstępnych, gdy drzwi lub okna zostaną otwarte/zamknięte po określonym czasie,
+- Zmiana ustawienia wstępnego, gdy w określonym czasie w pomieszczeniu zostanie wykryta aktywność lub jej brak,
+- Wykorzystanie algorytmu TPI (_Time Proportional Interval_) dzięki [Argonaute],
+- Dodanie zarządzania redukcją obciążenia lub regulacji, aby nie przekroczyć zdefiniowanej całkowitej mocy. Gdy maksymalna moc zostanie przekroczona, na encji `climate` ustawiane jest ukryte ustawenie wstępne '`moc`'. Gdy moc spadnie poniżej maksimum, przywracane jest poprzedne ustawienie.
+- Zarządzanie obecnością. Funkcja ta pozwala dynamicznie modyfikować temperaturę ustawienia na podstawie czujnika obecności w domu.
+- Akcje do interakcji z termostatem z innych integracji: możesz wymusić obecność/nieobecność za pomocą usługi oraz dynamicznie zmieniać temperatury i modyfikować ustawienia bezpieczeństwa.
+- Dodanie czujników do podglądu wewnętrznych stanów termostatu,
+- Centralne sterowanie wszystkimi termostatami _Versatile Thermostat_: zatrzymanie wszystkich, ustawienie wszystkich w tryb ochrony przed mrozem, wymuszenie trybu grzania (zimą), wymuszenie trybu chłodzenia (latem).
+- Sterowanie centralnym kotłem grzewczym oraz termostatami, kontrolującymi ten kocioł.
+- Automatyczne uruchamianie/zatrzymywanie na podstawie prognozy użycia dla `termostatu na klimacie`.
 
-All these functions are configurable either centrally or individually depending on your needs.
+Wszystkie te funkcje mogą być konfigurowane centralnie lub indywidualnie – w zależności od Twoich potrzeb.
 
-# Equipment
+# Urządzenia
 
-To operate _VTherm_, you will need some hardware. The list below is not exhaustive but includes the most commonly used devices that are fully compatible with Home Assistant and _VTherm_. These are affiliate links to the partner store [Domadoo](https://www.domadoo.fr/fr/?domid=97), which allows me to receive a small percentage if you purchase through these links. Ordering from [Domadoo](https://www.domadoo.fr/fr/?domid=97) gives you competitive prices, a return guarantee, and a very short delivery time comparable to other major online retailers. Their 4.8/5 rating speaks for itself.
+Aby używać termostatów  _VTherm_, potrzebujesz odpowiednich urządzeń. Poniższa lista nie jest wyczerpująca, ale obejmuje najczęściej używane urządzenia, które są w pełni kompatybilne z Home Assistant i VTherm.
+Są to linki partnerskie do sklepu [Domadoo](https://www.domadoo.fr/fr/?domid=97), co pozwala mi otrzymać niewielki procent prowizji, jeśli dokonasz zakupu przez te linki. Zamawiając w [Domadoo](https://www.domadoo.fr/fr/?domid=97), otrzymujesz konkurencyjne ceny, gwarancję zwrotu oraz bardzo krótki czas dostawy – porównywalny z innymi dużymi sprzedawcami internetowymi. Ich ocena 4.8/5 mówi sama za siebie. 
 
-⭐ : The most used and therefore the best choice.
+⭐ : Najczęściej używane, a więc najlepszy wybór.
 
-## Thermometers
-Essential in a _VTherm_ setup, an externalized temperature measurement device placed where you live ensures reliable, comfortable, and stable temperature control.
+## Termometry
+Niezbędne w konfiguracji _VTherm_ – zewnętrzne urządzenie do pomiaru temperatury umieszczone we właściwym miejscu, zapewnia niezawodną, komfortową i stabilną kontrolę temperatury.
 
 - [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html??domid=97)
 - [⭐ 4 x Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6968-sonoff-pack-4x-capteurs-de-temperature-et-d-humidite-zigbee-ecran.html?domid=97)
 - [ Neo Tuya Zigbee](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 - [ Moes Tuya Zigbee](https://www.domadoo.fr/fr/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
 
-## Switches
-To directly control an electric heater. Usable with _VTherm_ [`over_switch`](over-switch.md):
+## Przełączniki
+Służą do bezpośredniego sterowania grzejnikami elektrycznymi. Użyteczne dla [`termostatów na przełączniku`](over-switch.md):
 
 - [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/fr/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
 - [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/fr/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
