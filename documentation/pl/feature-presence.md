@@ -1,8 +1,8 @@
 # Zarządzanie obecnością / nieobecnością
 - [Zarządzanie obecnością / nieobecnością](#presence--absence-management)
-  - [Konfiguracja obecności (lub nieobecności))](#configure-presence-or-absence)
+  - [Konfiguracja obecności / nieobecności](#configure-presence-or-absence)
 
-## Konfiguracja obecności (lub nieobecności)
+## Konfiguracja obecności / nieobecności
 
 Funkcja ta umożliwia dynamiczne dostosowanie ustawionych temperatur termostatu w zależności od wykrycia obecności (lub nieobecności). W tym celu należy skonfigurować temperaturę, która będzie używana dla każdego ustawienia wstępnego, dla którego obecność będzie nieaktywna. Gdy czujnik obecności się wyłączy, temperatura ta będzie temperaturą docelową. Gdy ponownie się włączy, zostanie użyta „normalna” temperatura skonfigurowana dla tego ustawienia wstępnego. Zobacz: [zarządzanie ustawieniami wstępnymi](feature-presets.md).
 
