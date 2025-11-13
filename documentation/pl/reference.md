@@ -123,12 +123,12 @@ frontend:
 
 # Akcje (Usługi)
 
-This custom implementation offers specific actions (services) to facilitate integration with other Home Assistant components.
+Ta niestandardowa implementacja oferuje określone akcje (usługi), ułatwiające integrację z innymi komponentami Home Assistanta.
 
 ## Wymuszanie obecności/zajętości
-This service allows you to force the presence state independently of the presence sensor. This can be useful if you want to manage presence via a service rather than a sensor. For example, you can use your alarm to force absence when it is turned on.
+Ta usługa umożliwia wymuszenie stanu obecności niezależnie od czujnika obecności. Może to być przydatne, jeśli chcesz zarządzać obecnością za pośrednictwem usługi, a nie czujnika. Na przykład, możesz użyć alarmu do wymuszenia nieobecności, gdy ten jest włączony.
 
-The code to call this service is as follows:
+Kod wywołujący tę akcję jest następujący:
 
 ```yaml
 service : versatile_thermostat.set_presence
@@ -226,56 +226,57 @@ To adjust the algorithm, you have access to the entire context seen and calculat
 ![image](images/dev-tools-climate.png)
 
 The custom attributes are as follows:
+
+
 | Attrybut                          | Znaczenie                                                                                                                           |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| ``hvac_modes``                    | The list of modes supported by the thermostat                                                                                       |
-| ``temp_min``                      | The minimum temperature                                                                                                             |
-| ``temp_max``                      | The maximum temperature                                                                                                             |
-| ``preset_modes``                  | The presets visible for this thermostat. Hidden presets are not displayed here                                                      |
-| ``temperature_actuelle``          | The current temperature as reported by the sensor                                                                                   |
-| ``temperature``                   | The target temperature                                                                                                              |
-| ``action_hvac``                   | The action currently being executed by the heater. Can be idle, heating                                                             |
-| ``preset_mode``                   | The preset currently selected. Can be one of the 'preset_modes' or a hidden preset like power                                       |
-| ``[eco/confort/boost]_temp``      | The temperature configured for preset xxx                                                                                           |
-| ``[eco/confort/boost]_away_temp`` | The temperature configured for preset xxx when presence is disabled or not_home                                                     |
-| ``temp_power``                    | The temperature used during loss detection                                                                                          |
-| ``on_percent``                    | The calculated on percentage by the TPI algorithm                                                                                   |
-| ``on_time_sec``                   | The on period in seconds. Should be ```on_percent * cycle_min```                                                                    |
-| ``off_time_sec``                  | The off period in seconds. Should be ```(1 - on_percent) * cycle_min```                                                             |
-| ``cycle_min``                     | The calculation cycle in minutes                                                                                                    |
-| ``function``                      | The algorithm used for the cycle calculation                                                                                        |
-| ``tpi_coef_int``                  | The ``coef_int`` of the TPI algorithm                                                                                               |
-| ``tpi_coef_ext``                  | The ``coef_ext`` of the TPI algorithm                                                                                               |
-| ``saved_preset_mode``             | The last preset used before automatic preset switching                                                                              |
-| ``saved_target_temp``             | The last temperature used before automatic switching                                                                                |
-| ``window_state``                  | The last known state of the window sensor. None if the window is not configured                                                     |
-| ``is_window_bypass``              | True if the window open detection bypass is enabled                                                                                 |
-| ``motion_state``                  | The last known state of the motion sensor. None if motion detection is not configured                                               |
-| ``overpowering_state``            | The last known state of the overpower sensor. None if power management is not configured                                            |
-| ``presence_state``                | The last known state of the presence sensor. None if presence detection is not configured                                           |
-| ``safety_delay_min``              | The delay before activating security mode when one of the two temperature sensors stops sending measurements                        |
-| ``safety_min_on_percent``         | The heating percentage below which the thermostat will not switch to security                                                       |
-| ``safety_default_on_percent``     | The heating percentage used when the thermostat is in security mode                                                                 |
-| ``last_temperature_datetime``     | The date and time in ISO8866 format of the last internal temperature reception                                                      |
-| ``last_ext_temperature_datetime`` | The date and time in ISO8866 format of the last external temperature reception                                                      |
-| ``security_state``                | The security state. True or false                                                                                                   |
-| ``minimal_activation_delay_sec``  | The minimal activation delay in seconds                                                                                             |
-| ``minimal_deactivation_delay_sec``| The minimal deactivation delay in seconds                                                                                           |
-| ``last_update_datetime``          | The date and time in ISO8866 format of this state                                                                                   |
-| ``friendly_name``                 | The name of the thermostat                                                                                                          |
-| ``supported_features``            | A combination of all features supported by this thermostat. See the official climate integration documentation for more information |
-| ``valve_open_percent``            | The valve opening percentage                                                                                                        |
-| ``regulated_target_temperature``  | The target temperature calculated by self-regulation                                                                                |
-| ``is_inversed``                   | True if the control is inverted (pilot wire with diode)                                                                             |
-| ``is_controlled_by_central_mode`` | True if the VTherm can be centrally controlled                                                                                      |
-| ``last_central_mode``             | The last central mode used (None if the VTherm is not centrally controlled)                                                         |
-| ``is_used_by_central_boiler``     | Indicates if the VTherm can control the central boiler                                                                              |
-| ``auto_start_stop_enable``        | Indicates if the VTherm is allowed to auto start/stop                                                                               |
-| ``auto_start_stop_level``         | Indicates the auto start/stop level                                                                                                 |
-| ``hvac_off_reason``               | Indicates the reason for the thermostat's off state (hvac_off). It can be Window, Auto-start/stop, or Manual                        |
-| ``last_change_time_from_vtherm``  | The date and time of the last change done by VTherm                                                                                 |
-| ``nb_device_actives``             | The number of underlying devices seen as active                                                                                     |
-| ``device_actives``                | The list of underlying devices seen as active                                                                                       |
+| ``hvac_modes``                    | Lista trybów obsługiwanych przez termostat                                                                                          |
+| ``temp_min``                      | Temperatura minimana                                                                                                                |
+| ``temp_max``                      | Temperatura maksymalna                                                                                                              |
+| ``preset_modes``                  | Ustawienia wstępne widoczne dla tego termostatu. Ukryte ustawienia nie są tu wyświetlane                                            |
+| ``temperature_actuelle``          | Aktualna temperatura raportowana przez czujnik                                                                                      |
+| ``temperature``                   | Temperatura docelowa                                                                                                                |
+| ``action_hvac``                   | Akcja aktualnie wykonywana przez grzejnik. Może być `idle` lub `heating`.                                                           |
+| ``preset_mode``                   | Aktualnie wybrane ustawienie wstępne. Może być jednym z `preset_modes` lub ukrytym ustawieniem wstępnym, np. `moc`                  |
+| ``[eco/confort/boost]_temp``      | Temperatura skonfigurowana dla ustawienia wstępnego `xxx`                                                                           |
+| ``[eco/confort/boost]_away_temp`` | Temperatura skonfigurowana dla ustawienia wstępnego `xxx`, gdy `obrcność` jest wyłączona lub jest `not_home`.                       |
+| ``temp_power``                    | Temperatura używana podczas wykrywania utraty sygnału                                                                               |
+| ``on_percent``                    | Obliczony procent włączenia przez algorytm TPI                                                                                      |
+| ``on_time_sec``                   | Okres załączenia (w sek.). Powinien wynosić ```on_percent * cycle_min```                                                            |
+| ``off_time_sec``                  | Okres wyłączenia (w sek.). Powinien wynosić ```(1 - on_percent) * cycle_min```                                                      |
+| ``cycle_min``                     | Cykl obliczeniowy (w min.)                                                                                                          |
+| ``function``                      | Algorytm używany do obliczeń cyklu                                                                                                  |
+| ``tpi_coef_int``                  | Wartość `współczynnika delty dla temperatury wewnętrznej` algorytmu TPI                                                             |
+| ``tpi_coef_ext``                  | Wartość `współczynnika delty dla temperatury zewnętrznej` algorytmu TPI                                                             |
+| ``saved_preset_mode``             | Ostatnio użyte ustawienie wstępne przed automatycznym przełączeniem                                                                 |
+| ``saved_target_temp``             | Ostatnia temperatura użyta przed automatycznym przełączeniem                                                                        |
+| ``window_state``                  | Ostatni znany stan czujnika okna. `Brak`, jeśli czujnik nie jest skonfigurowany                                                     |
+| ``is_window_bypass``              | `True`, jeśli pomijanie detekcji otwartego okna jest załączone                                                                      |
+| ``motion_state``                  | Ostatni znany stan czujnika ruchu. `Brak`, jeśli detekcja ruchu nie jest skonfigurowana                                             |
+| ``overpowering_state``            | Ostatni znany stan czujnika przeciążenia. `Brak`, jeśli zarządzanie energią nie jest skonfigurowane                                 |
+| ``presence_state``                | Ostatni znany stan czujnika obecności. `Brak`, jeśli detekcja obecności nie jest skonfigurowana                                     |
+| ``safety_delay_min``              | Zwłoka w aktywacji trybu bezpieczeństwa, gdy jeden z dwóch czujników temperatury przestaje wysyłać pomiary                          |
+| ``safety_min_on_percent``         | Procent grzania, poniżej którego termostat nie przełączy się w tryb bezpieczeństwa                                                  |
+| ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpieczeństwa                                                              |
+| ``last_temperature_datetime``     | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                                         |
+| ``last_ext_temperature_datetime`` | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                                         |
+| ``security_state``                | Stan bezpieczeństwa. `True` lub `false`                                                                                             |
+| ``minimal_activation_delay_sec``  | Minimalne opóźnienie aktywacji (w sek.)                                                                                             |
+| ``minimal_deactivation_delay_sec``| Minimalne opóźnienie deaktywacji (w sek.)                                                                                           |
+| ``last_update_datetime``          | Data i czas tego stanu (w formacie ISO8866)                                                                                         |
+| ``friendly_name``                 | Przyjazna nazwa termostatu                                                                                                          |
+| ``supported_features``            | Kombinacja wszystkich funkcji obsługiwanych przez ten termostat. Zobacz dokumentację, aby uzyskać więcej informacji                 |
+| ``valve_open_percent``            | Procent otwarcia zaworu                                                                                                             |
+| ``regulated_target_temperature``  | Temperatura docelowa obliczona przez samoregulację                                                                                  |
+| ``is_inversed``                   | `True`, jeśli sterowanie jest odwrócone (pilot przewodowy)                                                                          |
+| ``is_controlled_by_central_mode`` | `True`, jeśli termostat może być sterowany centralnie                                                                               |
+| ``last_central_mode``             | Ostatni użyty tryb centralny (`None`, jeśli termostat nie jest sterowany centralnie)                                                |
+| ``is_used_by_central_boiler``     | Wskazuje, czy termostat może sterować centralnym kotłem                                                                             |
+| ``auto_start_stop_enable``        | Wskazuje, czy termostat może pracować w trybie autoSTART/autoSTOP                                                                   |
+| ``auto_start_stop_level``         | Wskazuje poziom autoSTAR/autoSTOP                                                                                                   |
+| ``hvac_off_reason``               | Wskazuje powód wyłączenia termostatu (`hvac_off`). Może to być `Window`, `AutoSTART/autoSTOP` lub `Manual`                          |
+| ``last_change_time_from_vtherm``  | Data i czas ostatniej zmiany dokonanej przez termostat                                                                              |
+| ``nb_device_actives``             | Liczba urządzeń podrzędnych widocznych jako aktywne                                                                                 |
+| ``device_actives``                | Lista urządzeń podrzędnych widocznych jako aktywne                                                                                  |
 
 
-These attributes will be requested when you need assistance.
