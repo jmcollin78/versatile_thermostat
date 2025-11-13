@@ -219,11 +219,11 @@ Możesz łatwo przechwytywać te zdarzenia w automatyzacji, na przykład w celu 
 
 # Atrybuty własne
 
-To adjust the algorithm, you have access to the entire context seen and calculated by the thermostat via dedicated attributes. You can view (and use) these attributes in the "Developer Tools / States" section of HA. Enter your thermostat and you will see something like this:
+Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia developerskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz coś takiego:
+
 ![image](images/dev-tools-climate.png)
 
-The custom attributes are as follows:
-
+Atrybuty własne są nastepujace:
 
 | Attrybut                          | Znaczenie                                                                                                                           |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
