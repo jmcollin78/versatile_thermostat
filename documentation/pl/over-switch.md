@@ -24,6 +24,8 @@ Instalacja powinna wyglądać następująco:
 6. Fizyczny przełącznik będzie włączał lub wyłączał grzejnik.  
 
 > Wartość `on-time` jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
+>
+> ![image](images/on-switch-diagram.png)
 
 ## Konfiguracja
 
