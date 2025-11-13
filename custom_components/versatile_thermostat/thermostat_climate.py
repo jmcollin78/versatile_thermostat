@@ -1158,3 +1158,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             await self.async_set_hvac_mode(VThermHvacMode_COOL)
         else:
             await self.async_set_hvac_mode(VThermHvacMode_HEAT)
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_climate"

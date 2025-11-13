@@ -25,17 +25,26 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 
 # Co nowego?
 ![New](images/new-icon.png)
-> * <u>**Wydanie 7.4**:</u>
+## Release 8.0
+> This is a major release. It rewrites a significant part of the internal mechanisms of Versatile Thermostat by introducing several new features:
+>    1. _requested state / current state_: VTherm now has 2 states. The requested state is the state requested by the user (or Scheduler). The current state is the state currently applied to the VTherm. The latter depends on the different VTherm functions. For example, the user can request (requested state) to have heating on with Comfort preset but since the window has been detected open, the VTherm is actually off. This dual management always preserves the user's request and applies the result of the different functions on this user request to get the current state. This better handles cases where multiple functions want to act on the VTherm state (window opening and power shedding for example). It also ensures a return to the user's initial request when no detection is in progress anymore,
+>    2. _time filtering_: the time filtering operation has been revised. Time filtering prevents sending too many commands to a controlled equipment to avoid consuming too much battery (battery-powered TRV for example), changing setpoints too frequently (heat pump, pellet stove, underfloor heating, ...). The new operation is now as follows: explicit user (or Scheduler) requests are always immediately taken into account. They are not filtered. Only changes related to external conditions (room temperature for example) are potentially filtered. Filtering consists of resending the desired command later and not ignoring the command as was previously the case. The `auto_regulation_dtemp` parameter allows adjusting the delay,
+>    3. _hvac_action improvement_: the `hvac_action` reflects the current activation state of the controlled equipment. For an `over_switch` type it reflects the switch activation state, for an `over_valve` or valve regulation, it is active when the valve opening is greater than the minimum valve opening (or 0 if not configured), for an `over_climate` it reflects the underlying `climate`'s `hvac_action` if available or a simulation otherwise.
+>    4. _custom attributes_: the organization of custom attributes accessible in Developer Tools / States has been reorganized into sections depending on the VTherm type and each activated function. More information [here](documentation/en/reference.md#custom-attributes).
+>    5. _power shedding_: the power shedding algorithm now takes into account equipment shutdown between two measurements of home power consumption. Suppose you have power consumption feedback every 5 minutes. If a radiator is turned off between 2 measurements then turning on a new one may be authorized. Before, only turn-ons were taken into account between 2 measurements. As before, the next power consumption feedback will possibly shed more or less.
+>    6. _auto-start/stop_: auto-start/stop is only useful for `over_climate` type VTherm without direct valve control. The option has been removed for other VTherm types.
+>    7. _VTherm UI Card_: all these modifications allowed a major evolution of the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) to integrate messages explaining the current state (why does my VTherm have this target temperature?) and if time filtering is in progress - so the underlying state update has been delayed.
+>    8. _log improvements_: logs have been improved to simplify debugging. Logs in the form `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` inform of an event impacting the VTherm state.
 >
-> - Dodano progi załączania i wyłączania algorytmu TPI, gdy temperatura przekroczy zadaną wartość. Zapobiega to włączaniu i wyłączaniu się grzejnika na krótkie okresy. Idealne rozwiązanie do pieców opalanych drewnem, które długo się nagrzewają. Patrz: [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+> ⚠️ **Warning**
 >
-> - Dodano tryb uśpienia dla termostatów typu `Termostat na Klimacie` z regulacją poprzez bezpośrednie sterowanie zaworem. Ten tryb umożliwia ustawienie termostatu w trybie wyłączonym, ale z zaworem otwartym w 100%-ach. Jest to przydatne podczas długich okresów bez ogrzewania, gdy kocioł od czasu do czasu cyrkuluje wodę. Uwaga: aby wyświetlić ten nowy tryb, należy zaktualizować kartę interfejsu użytkownika. Patrz: [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+> This major release includes breaking changes from the previous version:
+> - `versatile_thermostat_security_event` has been renamed to `versatile_thermostat_safety_event`. If your automations use this event, you must update them,
+> - custom attributes have been reorganized. You must update your automations or Jinja templates that use them,
+> - the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) must be updated to at least V2.0 to be compatible,
 >
-> * <u>**Wydanie 7.2**:</u>
+> **Despite the 342 automated tests of this integration and the care taken with this major release, I cannot guarantee that its installation will not disrupt your VTherms' states. For each VTherm you must check the preset, hvac_mode and possibly the VTherm setpoint temperature after installation.**
 >
-> - Natywna obsługa urządzeń sterowanych za pomocą encji `select` (lub `input_select`) lub `climate` dla typu `Termostat na Przełączniku`. Ta aktualizacja sprawia, że ​​tworzenie przełączników wirtualnych staje się przestarzałe dla integracji Nodon, Heaty, eCosy itp. Więcej informacji [tutaj](documentation/en/over-switch.md#command-customization).
->
-> - Linki do dokumentacji: wydanie 7.2 wprowadza eksperymentalne linki do dokumentacji wprost ze stron konfiguracyjnych. Link jest dostępny pod ikoną [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). Funkcja ta jest obecnie testowana na niektórych stronach konfiguracyjnych.
 
 # 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
@@ -111,6 +120,14 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 ![image](documentation/en/images/results-over-climate-2.png)
 
 Ciesz się i korzystaj!
+
+# Some comments on the integration
+|                                             |                                             |                                             |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
+| ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
+
+
 
 # Współpraca mile widziana!
 

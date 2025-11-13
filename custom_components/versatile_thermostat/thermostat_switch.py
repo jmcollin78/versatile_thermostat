@@ -147,7 +147,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                     "power_percent": self.power_percent,
                     "on_time_sec": self._prop_algorithm.on_time_sec,
                     "off_time_sec": self._prop_algorithm.off_time_sec,
-                    "cycle_min": self._cycle_min,
                     "function": self._proportional_function,
                     "tpi_coef_int": self._tpi_coef_int,
                     "tpi_coef_ext": self._tpi_coef_ext,
@@ -226,3 +225,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self.calculate_hvac_action()
         self.async_write_ha_state()
         self.update_custom_attributes()
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_switch"

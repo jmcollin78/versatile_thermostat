@@ -1,7 +1,17 @@
 # Release Notes
 
 ![New](images/new-icon.png)
-
+> * <u>**Wydanie 7.4**:</u>
+>
+> - Dodano progi załączania i wyłączania algorytmu TPI, gdy temperatura przekroczy zadaną wartość. Zapobiega to włączaniu i wyłączaniu się grzejnika na krótkie okresy. Idealne rozwiązanie do pieców opalanych drewnem, które długo się nagrzewają. Patrz: [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+>
+> - Dodano tryb uśpienia dla termostatów typu `Termostat na Klimacie` z regulacją poprzez bezpośrednie sterowanie zaworem. Ten tryb umożliwia ustawienie termostatu w trybie wyłączonym, ale z zaworem otwartym w 100%-ach. Jest to przydatne podczas długich okresów bez ogrzewania, gdy kocioł od czasu do czasu cyrkuluje wodę. Uwaga: aby wyświetlić ten nowy tryb, należy zaktualizować kartę interfejsu użytkownika. Patrz: [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+>
+> * <u>**Wydanie 7.2**:</u>
+>
+> - Natywna obsługa urządzeń sterowanych za pomocą encji `select` (lub `input_select`) lub `climate` dla typu `Termostat na Przełączniku`. Ta aktualizacja sprawia, że ​​tworzenie przełączników wirtualnych staje się przestarzałe dla integracji Nodon, Heaty, eCosy itp. Więcej informacji [tutaj](documentation/en/over-switch.md#command-customization).
+>
+> - Linki do dokumentacji: wydanie 7.2 wprowadza eksperymentalne linki do dokumentacji wprost ze stron konfiguracyjnych. Link jest dostępny pod ikoną [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). Funkcja ta jest obecnie testowana na niektórych stronach konfiguracyjnych.
 > * **Release 7.1**:
 >   - Redesign of the load-shedding function (power management). Load-shedding is now handled centrally (previously, each _VTherm_ was autonomous). This allows for much more efficient management and prioritization of load-shedding on devices that are close to the setpoint. Note that you must have a centralized configuration with power management enabled for this to work. More info [here](./feature-power.md).
 

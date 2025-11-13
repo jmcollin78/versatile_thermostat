@@ -10,6 +10,7 @@
   - [Obejití kontroly okna](#obejití-kontroly-okna)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
+- [State messages](#state-messages)
 
 ## Přehled parametrů
 
@@ -226,6 +227,9 @@ Pro úpravu algoritmu máte přístup k celému kontextu viděnému a vypočíta
 ![image](images/dev-tools-climate.png)
 
 Vlastní atributy jsou následující:
+
+> see updated list on English version - please translate
+
 | Atribut                            | Význam                                                                                                                 |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                     | Seznam režimů podporovaných termostatem                                                                                |
@@ -277,3 +281,20 @@ Vlastní atributy jsou následující:
 
 
 Tyto atributy budou vyžadovány, když budete potřebovat pomoc.
+
+# State messages
+
+The `specific_states.messages` custom attribute contains a list of message codes that explain the current state. Messages can be:
+| Code                                | Meaning                                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| `overpowering_detected`             | An overpowering situation is detected                                               |
+| `safety_detected`                   | A temperature measurement fault is detected that triggered VTherm safety mode       |
+| `target_temp_window_eco`            | Window detection forced the target temperature to the Eco preset                    |
+| `target_temp_window_frost`          | Window detection forced the target temperature to the Frost preset                  |
+| `target_temp_power`                 | Power shedding forced the target temperature with the value configured for shedding |
+| `target_temp_central_mode`          | The target temperature was forced by central mode                                   |
+| `target_temp_activity_detected`     | The target temperature was forced by motion detection                               |
+| `target_temp_activity_not_detected` | The target temperature was forced by no motion detection                            |
+| `target_temp_absence_detected`      | The target temperature was forced by absence detection                              |
+
+Note: these messages are available in the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) under the information icon.

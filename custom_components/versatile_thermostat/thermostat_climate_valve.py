@@ -140,9 +140,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                         "underlyings_valve_regulation": [underlying.valve_entity_ids for underlying in self._underlyings_valve_regulation],
                         "on_percent": self._prop_algorithm.on_percent,
                         "power_percent": self.power_percent,
-                        "on_time_sec": self._prop_algorithm.on_time_sec,
-                        "off_time_sec": self._prop_algorithm.off_time_sec,
-                        "cycle_min": self._cycle_min,
                         "function": self._proportional_function,
                         "tpi_coef_int": self._tpi_coef_int,
                         "tpi_coef_ext": self._tpi_coef_ext,
@@ -385,3 +382,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Force no auto_fan for climate with valve regulation"""
         self._current_auto_fan_mode = CONF_AUTO_FAN_NONE
         self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_climate_valve"

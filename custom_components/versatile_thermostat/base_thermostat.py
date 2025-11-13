@@ -134,8 +134,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._should_relaunch_control_heating = None
 
-        self._thermostat_type = None
-
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
@@ -1132,6 +1130,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             return None
 
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return None
+
     def underlying_entity_id(self, index=0) -> str | None:
         """The climate_entity_id. Added for retrocompatibility reason"""
         if index < self.nb_underlying_entities:
@@ -1540,7 +1543,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             },
             "configuration": {
                 "ac_mode": self._ac_mode,
-                "type": self._thermostat_type,
+                "type": self.vtherm_type,
                 "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
                 "target_temperature_step": self.target_temperature_step,
                 "minimal_activation_delay_sec": self._minimal_activation_delay,
@@ -1550,6 +1553,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "is_used_by_central_boiler": self.is_used_by_central_boiler,
                 "max_on_percent": self._max_on_percent,
                 "have_valve_regulation": self.have_valve_regulation,
+                "cycle_min": self._cycle_min,
             },
             "preset_temperatures": {
                 "frost_temp": self._presets.get(VThermPreset.FROST, 0),

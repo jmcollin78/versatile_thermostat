@@ -143,9 +143,6 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                     "valve_open_percent": self.valve_open_percent,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
                     "on_percent": self._prop_algorithm.on_percent,
-                    "on_time_sec": self._prop_algorithm.on_time_sec,
-                    "off_time_sec": self._prop_algorithm.off_time_sec,
-                    "cycle_min": self._cycle_min,
                     "function": self._proportional_function,
                     "tpi_coef_int": self._tpi_coef_int,
                     "tpi_coef_ext": self._tpi_coef_ext,
@@ -286,3 +283,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             added_energy,
             self._total_energy,
         )
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_valve"
