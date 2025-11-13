@@ -1,20 +1,31 @@
-# Quick Start
+# Szybki Start
 
-This page outlines the steps to quickly set up a basic yet operational _VTherm_. It is structured by equipment type.
+Ta strona przedstawia kroki potrzebne do szybkiego skonfigurowania podstawowego, ale poprawnie działającego termostatu _VTherm_.  
+Struktura jest podzielona według typu urządzenia.
 
-- [Quick Start](#quick-start)
-  - [Nodon SIN-4-FP-21 or similar (pilot wire)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
-  - [Heatzy, eCosy, or similar (`climate` entity)](#heatzy-ecosy-or-similar-climate-entity)
-  - [Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
-  - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
-  - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
-- [Next Steps](#next-steps)
-- [Call for Contributions](#call-for-contributions)
 
-## Nodon SIN-4-FP-21 or similar (pilot wire)
+- [Szybki start](#quick-start)
+  - [Nodon SIN-4-FP-21 lub podobne (pilot przewodowy)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
+  - [Heatzy, eCosy, lub podobne (sterowane encją `climate`)](#heatzy-ecosy-or-similar-climate-entity)
+  - [Zwykły przełącznik w rodzaju Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
+  - [Sonoff TRVZB lub podobne (TRV ze sterowaniem zaworem)](#sonoff-trvzb-or-similar-trv-with-valve-control)
+  - [Odwracalne jednostki HP, klimatyzatory, lub inne urządzenia sterowane encją `climate`](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
+- [Następne kroki](#next-steps)
+- [Zaproszenie do współpracy](#call-for-contributions)
 
-This module allows controlling a radiator via a pilot wire. It appears in _HA_ as a `select` entity that lets you choose the heating preset to apply.
+## Nodon SIN-4-FP-21 lub podobne (pilot przewodowy)
 
+Moduł ten pozwala sterować grzejnik pilotem przewodowym. Pojawia się w _HA_ jako encja typu `select` pozwalająca wybrać wstępne ustawienie ogrzewania.
+
+_VTherm_ będzie regulować temperaturę poprzez okresową zmianę ustawień wstępnych za pomocą dostosowanych poleceń, aż do osiągnięcia wartości żądanej.
+
+Aby to się udało, ustawienie wstępne używane do sterowania ogrzewaniem musi być wyższe, niż maksymalna temperatura oczekiwana (dobrym wyborem jest np. **24°C**).
+
+Aby zintegrować urządzenie z _VTherm_, należy wykonać następujące kroki:
+1. Utwórz termostat _VTherm_ typu `termostat na przełączniku`. Zobacz: [Wybór termostatu](creation.md).
+2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md)  
+3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `select`, która steruje urządzeniem. Zobacz: [urządzenia](over-switch.md).  
+4. Podaj własne polecenia `on`/`off` (obowiązkowe dla Nodona). Zobacz *command customiza
 _VTherm_ will regulate the temperature by periodically changing the preset via customized commands until the setpoint is reached.
 
 For this to work, the preset used for heating control must be higher than the maximum temperature you will need (24°C is a good value).
