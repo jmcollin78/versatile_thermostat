@@ -138,13 +138,12 @@ cible:
     entity_id : climate.my_thermostat
 ```
 
-## Modykacja wstępnych ustawień temperatury
-This service is useful if you want to dynamically change the preset temperature. Instead of switching presets, some use cases require modifying the temperature of the preset. This way, you can keep the scheduler unchanged to manage the preset while adjusting the preset temperature.
-If the modified preset is currently selected, the target temperature change is immediate and will be applied in the next calculation cycle.
+## Modyfikacja wstępnych ustawień temperatury
+Ta usługa jest przydatna, jeśli chcesz dynamicznie zmieniać temperaturę w ustawieniu wstępnym. Zamiast przełączać ustawienia, w niektórych przypadkach konieczne jest modyfikowanie temperatury w samym ustawieniu. Dzięki temu możesz pozostawić harmonogram bez zmian, aby zarządzał ustawieniem wstępnym, jednocześnie dostosowując jego temperaturę. Jeśli zmodyfikowane ustawienie jest aktualnie wybrane, zmiana temperatury docelowej następuje natychmiast i zostanie uwzględniona w następnym cyklu obliczeniowym.
 
-You can modify one or both temperatures (when present or absent) of each preset.
+Możesz zmodyfikować jedną lub obie temperatury (dla obecności lub nieobecności) każdego z ustawień.
 
-Use the following code to set the preset temperature:
+Użyj poniższego kodu, aby ustawić temperaturę:
 ```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
@@ -155,7 +154,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-Or, to change the preset for the Air Conditioning (AC) mode, add the `_ac` prefix to the preset name like this:
+...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawenia, jak w przykładzie:
 ```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
@@ -166,15 +165,15 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Wskazówki*_
 >
->    - After a restart, presets are reset to the configured temperature. If you want your change to be permanent, you need to modify the preset temperature in the integration configuration.
+>    - Po ponownym uruchomieniu ustawienia wstępne zostaną zresetowane do skonfigurowanej temperatury. Aby zmiana była trwała, należy zmodyfikować ustawienia wstępne w konfiguracji integracji.
 
-## Modify ustawień bezpieczeństwa
-This service allows you to dynamically modify the security settings described here [Advanced Configuration](#advanced-configuration).
-If the thermostat is in ``security`` mode, the new settings are applied immediately.
+## Modyfikacja ustawień bezpieczeństwa
+Usługa ta umożliwia dynamiczną modyfikację ustawień bezpieczeństwa, opisanych tutaj: [Zaawansowana konfiguracja](#advanced-configuration).
+Jeśli termostat jest w trybie ``bezpieczeństwa``, nowe ustawienia zostaną zastosowane natychmiast.
 
-To change the security settings, use the following code:
+Aby zmienić ustawienia bezpieczeństwa, zastosuj poniższy kod:
 ```yaml
 service: versatile_thermostat.set_safety
 data:
@@ -186,11 +185,10 @@ target:
 ```
 
 ## Pomijanie sprawdzania stanu okna
-This service allows you to enable or disable a bypass for the window check.
-It allows the thermostat to continue heating even if the window is detected as open.
-When set to ``true``, changes to the window's status will no longer affect the thermostat. When set to ``false``, the thermostat will be disabled if the window is still open.
+Usługa ta umożliwia dynamiczne załączanie i wyłączanie funkcji pomijania stanu otwarcia okien (lub drzwi). To z kolei pozwala termostatom kontunuować grzanie nawet w sytuacji wykrycia otwarcia okna.
+Przy wartości ``true``, zmiany stanu okna nie będą wpływały na termostat. Przy wartości ``false``, termostat zostanie wyłączony, jeśli okno będzie nadal otwarte.
 
-To change the bypass setting, use the following code:
+Aby zmienić ustawienie pomijania stanu otwarcia okna, zastosuj poniższy kod:
 ```yaml
 service: versatile_thermostat.set_window_bypass
 data:
@@ -200,25 +198,24 @@ target:
 ```
 
 # Zdarzenia
-The key events of the thermostat are notified via the message bus.
-The following events are notified:
+Kluczowe zdarzenia z udziałem termostatów wywołują pojawienie się powiadomień za pośrednictwem magistrali komunikacyjnej.
+Powiadomienia dotyczą następujących zdarzeń:
 
-- ``versatile_thermostat_security_event``: the thermostat enters or exits the ``security`` preset
-- ``versatile_thermostat_power_event``: the thermostat enters or exits the ``power`` preset
-- ``versatile_thermostat_temperature_event``: one or both temperature measurements of the thermostat haven't been updated for more than `safety_delay_min`` minutes
-- ``versatile_thermostat_hvac_mode_event``: the thermostat is turned on or off. This event is also broadcast at the thermostat's startup
-- ``versatile_thermostat_preset_event``: a new preset is selected on the thermostat. This event is also broadcast at the thermostat's startup
-- ``versatile_thermostat_central_boiler_event``: an event indicating a change in the boiler's state
-- ``versatile_thermostat_auto_start_stop_event``: an event indicating a stop or restart made by the auto-start/stop function
+- ``versatile_thermostat_security_event``: termostat wchodzi lub wychodzi z ustawień `bezpieczeństwo`
+- ``versatile_thermostat_power_event``: termostat wchodzi lub wychodzi z ustawień `moc`
+- ``versatile_thermostat_temperature_event``: co najmniej jeden z pomiarów temperatury termostatu nie został zaktualizowany przez ponad `safety_delay_min` minut.
+- ``versatile_thermostat_hvac_mode_event``: termostat jest włączany lub wyłączany. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
+- ``versatile_thermostat_preset_event``: w termostacie wybrano nowe ustawienie wstępne. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
+- ``versatile_thermostat_central_boiler_event``: zdarzenie zmiany stanu kotła
+- ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia wykonane przez funkcję autoSTART/autoSTOP
 
-If you've followed along, when a thermostat switches to security mode, 3 events are triggered:
-1. ``versatile_thermostat_temperature_event`` to indicate that a thermometer is no longer responding,
-2. ``versatile_thermostat_preset_event`` to indicate the switch to the ``security`` preset,
-3. ``versatile_thermostat_hvac_mode_event`` to indicate the potential shutdown of the thermostat
+Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczeństwa, wyzwalane są 3 zdarzenia:
+1. ``versatile_thermostat_temperature_event`` – wskazuje, że termometr przestał odpowiadać,
+2. ``versatile_thermostat_preset_event`` – wskazuje przełączenie na ustawienie trybu `bezpieczeństwa`,
+3. ``versatile_thermostat_hvac_mode_event`` – wskazuje potencjalne wyłączenie termostatu.
 
-Each event carries the event's key values (temperatures, current preset, current power, ...) as well as the thermostat's states.
-
-You can easily capture these events in an automation, for example, to notify users.
+Każde zdarzenie przechowuje kluczowe wartości zdarzenia (temperatury, aktualne ustawienia, bieżąca moc, ...) oraz stany termostatu.
+Możesz łatwo przechwytywać te zdarzenia w automatyzacji, na przykład w celu powiadamiania użytkowników.
 
 # Atrybuty własne
 
