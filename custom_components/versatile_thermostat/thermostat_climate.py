@@ -490,6 +490,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
         # the attr is 2 times in custom_attributes, because it need to be restored, so it must be at root
         self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
+        self._attr_extra_state_attributes["regulated_target_temperature"] = self.regulated_target_temp
         vtherm_over_climate_data = {
             "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
             "underlying_entities": [underlying.entity_id for underlying in self._underlyings],

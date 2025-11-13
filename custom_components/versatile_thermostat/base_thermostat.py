@@ -1834,7 +1834,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_WINDOW_BYPASS, window_bypass: {window_bypass}")
         if await self._window_manager.set_window_bypass(window_bypass):
-            self.update_custom_attributes()
+            self.requested_state.force_changed()
+            await self.update_states(force=True)
 
     async def service_set_hvac_mode_sleep(self):
         """Set the hvac_mode to SLEEP mode (valid only for over_climate with valve regulation):
