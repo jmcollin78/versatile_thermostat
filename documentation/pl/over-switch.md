@@ -7,7 +7,7 @@
     - [Keep-Alive](#keep-alive)
     - [AC Mode](#ac-mode)
     - [Command Inversion](#command-inversion)
-    - [Command Customization](#command-customization)
+    - [Dostosowywanie poleceń](#command-customization)
 
 
 ## Prerequisites
