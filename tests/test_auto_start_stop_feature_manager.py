@@ -71,6 +71,7 @@ async def test_auto_start_stop_feature_manager_post_init(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).have_valve_regulation = PropertyMock(return_value=False)
 
     # 1. creation
     auto_start_stop_manager = FeatureAutoStartStopManager(fake_vtherm, hass)
@@ -98,25 +99,11 @@ async def test_auto_start_stop_feature_manager_post_init(
     assert custom_attributes["is_auto_start_stop_configured"] is is_configured
 
     if auto_start_stop_manager.is_configured:
-        assert custom_attributes["auto_start_stop_enable"] is False
+        assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_enable"] is False
+        assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == level if level and is_configured else AUTO_START_STOP_LEVEL_NONE
+        assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == auto_start_stop_manager._auto_start_stop_algo.dt_min
+        assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_accumulated_error"] == auto_start_stop_manager._auto_start_stop_algo.accumulated_error
         assert (
-            custom_attributes["auto_start_stop_level"] == level
-            if level and is_configured
-            else AUTO_START_STOP_LEVEL_NONE
+            custom_attributes["auto_start_stop_manager"]["auto_start_stop_accumulated_error_threshold"] == auto_start_stop_manager._auto_start_stop_algo.accumulated_error_threshold
         )
-        assert (
-            custom_attributes["auto_start_stop_dtmin"]
-            == auto_start_stop_manager._auto_start_stop_algo.dt_min
-        )
-        assert (
-            custom_attributes["auto_start_stop_accumulated_error"]
-            == auto_start_stop_manager._auto_start_stop_algo.accumulated_error
-        )
-        assert (
-            custom_attributes["auto_start_stop_accumulated_error_threshold"]
-            == auto_start_stop_manager._auto_start_stop_algo.accumulated_error_threshold
-        )
-        assert (
-            custom_attributes["auto_start_stop_last_switch_date"]
-            == auto_start_stop_manager._auto_start_stop_algo.last_switch_date
-        )
+        assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_last_switch_date"] == auto_start_stop_manager._auto_start_stop_algo.last_switch_date
