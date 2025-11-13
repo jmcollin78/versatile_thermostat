@@ -55,8 +55,8 @@ Służą do bezpośredniego sterowania grzejnikami elektrycznymi. Użyteczne dla
 - [Sonoff 4-channel Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Przełączniki pilota przewodowego
-Stosuje się je do sterowania grzejnikami elektrycznymi wyposażonymi w pilota przewodowego. Są użyteczne dla [`termostatu na przełączniku`](over-switch.md) oraz [personalizacji polecenień](over-switch.md#la-personnalisation-des-commandes):
+## Przełączniki z pilotem przewodowym
+Stosuje się je do sterowania grzejnikami elektrycznymi wyposażonymi w pilota przewodowego. Są użyteczne dla [`termostatu na przełączniku`](over-switch.md) oraz celów [personalizacji polecenień](over-switch.md#la-personnalisation-des-commandes):
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
