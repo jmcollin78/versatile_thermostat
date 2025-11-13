@@ -82,4 +82,16 @@ Niektóre termostaty typu TRV są niekompatybilne z integracją _Versatile Therm
 7. Systemy klimatyzacji oparte na integracji _Overkiz_ nie działają. Wydaje się niemożliwe wyłączenie lub nawet zmiana temperatury w tych systemach.
 8. Systemy grzewcze oparte na _Netatmo_ działają słabo. Harmonogramy _Netatmo_ kolidują z oprogramowaniem _VTherm_. Urządzenia _Netatmo_ stale wracają do trybu `Auto`, który jest słabo obsługiwany przez _VTherm_. W tym trybie _VTherm_ nie może bowiem określić, czy system grzeje, czy chłodzi, co uniemożliwia wybór właściwego algorytmu. Niektórzy użytkownicy zdołali uruchomić system, używając wirtualnego przełącznika pomiędzy _VTherm_ a systemem bazowym, ale stabilność nie jest gwarantowana. Przykład znajduje się w sekcji [Rozwiązywanie problemów](troubleshooting.md).
 
+### Problemy z kompatybilnością TRV i możliwe obejścia
+
+| Urządzenie / typ | Problem | Możliwe obejście |
+|------------------|---------|------------------|
+| **Danfoss POPP (z feedbackiem temperatury)** | Zawór sam się autoreguluje, nie da się go wyłączyć → konflikt z VTherm | Brak obejścia – niezalecane użycie |
+| **Homematic / Homematic IP** | Ograniczenia protokołu RF, problemy przy sterowaniu wieloma termostatami jednocześnie | Grupowanie termostatów przez procedury Homematic (np. termostat ścienny) i sterowanie tylko nim; alternatywnie sterowanie jednym termostatem i propagowanie zmian przez automatyzację |
+| **Heatzy** | Brak obsługi komend `set_temperature` | Brak obejścia – niezalecane użycie |
+| **Rointe** | Samoczynne wybudzanie się urządzenia | Akceptacja tego zachowania – pozostałe funkcje działają normalnie |
+| **Aqara SRTS-A01 / MOES TV01-ZB** | Brak feedbacku `hvac_action` → nie wiadomo, czy grzeją | Można używać, ale stan jest niedokładny; pozostałe funkcje działają |
+| **Airwell (Midea AC LAN)** | Jeśli dwa polecenia VTherm są zbyt blisko siebie, klimatyzator sam się zatrzymuje | Wydłużenie odstępów między poleceniami |
+| **Overkiz (klimatyzacja)** | Brak możliwości wyłączenia lub zmiany temperatury | Brak obejścia – niekompatybilne |
+| **Netatmo (systemy grzewcze)** | Harmonogramy Netatmo kolidują z VTherm, urządzenia
 
