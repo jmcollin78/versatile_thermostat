@@ -122,7 +122,8 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 Ciesz się i korzystaj!
 
-# Some comments on the integration
+
+# Wybrane komentarze do integracji `Versatile Thermostat`
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
