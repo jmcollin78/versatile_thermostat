@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Tipo di Versatile Thermostat",
-	"description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)", 
+        "description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)",
         "data": {
           "thermostat_type": "Tipo di termostato"
         },
@@ -111,8 +111,8 @@
           "tpi_coef_ext": "coef_ext",
           "tpi_threshold_low": "Soglia minima TPI",
           "tpi_threshold_high": "Soglia massima TPI",
-	  "minimal_activation_delay": "Délai minimal d'activation",
-          "minimal_deactivation_delay": "Délai de désactivation minimal", 	
+          "minimal_activation_delay": "Délai minimal d'activation",
+          "minimal_deactivation_delay": "Délai de désactivation minimal",
           "use_tpi_central_config": "Utilizzare configurazione TPI centrale"
         },
         "data_description": {
@@ -265,7 +265,7 @@
     "step": {
       "user": {
         "title": "Tipo - {name}",
-	"description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)", 
+        "description": "Scegliere il tipo di termostato che si desidera creare&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)",
         "data": {
           "thermostat_type": "Tipo di termostato"
         },
@@ -409,7 +409,7 @@
           "window_sensor_entity_id": "Lasciare vuoto se non si desidera utilizzare alcun sensore finestra e si desidera utilizzare il rilevamento automatico",
           "window_delay": "Rtardo in secondi prima che lo stato “on” del sensore venga preso in considerazione",
           "window_off_delay": "Rtardo in secondi prima che lo stato “off\" del sensore venga preso in considerazione. Lasciare vuoto per utilizzare lo stesso valore della stato \"on\"",
-          "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra", 
+          "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
           "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
           "window_auto_max_duration": "Valore consigliato: 60 (1 ora). Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
           "use_window_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm.",
@@ -521,8 +521,8 @@
       "no_central_config": "Non è possibile selezionare “usa configurazione centralizzata” perché non è stata trovata alcuna configurazione centralizzata. È necessario creare un Versatile Thermostat di tipo “Configurazione centralizzata” per poterlo utilizzare.",
       "service_configuration_format": "Il formato della configurazione del servizio è errato",
       "valve_regulation_nb_entities_incorrect": "Il numero di entità della valvola per la regolazione delle valvole deve essere pari al numero dei sottostanti",
-      "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30"
-      "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README." 
+      "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30",
+      "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README."
     },
     "abort": {
       "already_configured": "Il dispositivo è gia configurato"

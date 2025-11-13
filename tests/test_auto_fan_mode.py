@@ -7,7 +7,7 @@ from datetime import datetime  # , timedelta
 
 from homeassistant.core import HomeAssistant
 
-# from homeassistant.components.climate import HVACAction, HVACMode
+# from homeassistant.components.climate import HVACAction
 from homeassistant.config_entries import ConfigEntryState
 
 # from homeassistant.helpers.entity_component import EntityComponent
@@ -19,7 +19,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
-
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
@@ -239,10 +238,10 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
     ) as mock_send_fan_mode:
         # Force preset mode
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode == HVACMode.HEAT
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.hvac_mode == VThermHvacMode_HEAT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 18
 
         # Change the current temperature to 16 which is 2° under
@@ -309,9 +308,9 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
     ) as mock_send_fan_mode:
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode == HVACMode.COOL
-        assert entity.preset_mode == PRESET_COMFORT
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+        assert entity.hvac_mode == VThermHvacMode_COOL
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 23
 
         assert entity.current_temperature == 21

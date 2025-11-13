@@ -16,4 +16,4 @@
 5. Umieść pobrane pliki w nowo utworzonym folderze.
 6. Ponownie uruchom Home Assistant.
 <h1></h1>
-<b>Teraz możesz dodać pobraną właśnie integrację na stronie <i>Ustawienia -> Urządzenia oraz Usługi</i>. </b> Dodaj tyle termostatów, ile potrzebujesz (zwykle jeden termostat na każdy grzejnik lub grupę grzejników, albo jeden termostat na cały centralny system ogrzewania).
+<b>Teraz możesz dodać pobraną właśnie integrację na stronie `Ustawienia -> Urządzenia oraz Usługi`. </b> Dodaj tyle termostatów, ile potrzebujesz (zwykle jeden termostat na każdy grzejnik lub grupę grzejników, albo jeden termostat na cały centralny system ogrzewania).

@@ -122,6 +122,14 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 Ciesz się i korzystaj!
 
+# Some comments on the integration
+|                                             |                                             |                                             |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
+| ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
+
+
+
 # Współpraca mile widziana!
 
 Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
