@@ -154,7 +154,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawenia, jak w przykładzie:
+...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
 ```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
