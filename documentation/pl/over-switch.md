@@ -1,38 +1,38 @@
 # Typ termostatu `Termostat na Przełączniku`
 
 - [Typ termostatu `Termostat na Przełączniku`](#over_switch-type-thermostat)
-  - [Prerequisites](#prerequisites)
-  - [Configuration](#configuration)
-    - [The underlying devices](#the-underlying-devices)
-    - [Keep-Alive](#keep-alive)
-    - [AC Mode](#ac-mode)
-    - [Command Inversion](#command-inversion)
+  - [Wymagania wstępne](#prerequisites)
+  - [Konfiguracja](#configuration)
+    - [Podstawowe urządzenia](#the-underlying-devices)
+    - [Podtrzymanie aktywności (keep-alive)](#keep-alive)
+    - [Tryb AC](#ac-mode)
+    - [Inwersja poleceń](#command-inversion)
     - [Dostosowywanie poleceń](#command-customization)
 
 
-## Prerequisites
+## Wymagania wstępne
 
-The installation should look like this:
+Instalacja powinna wyglądać następująco:
 
 ![installation `over_switch`](images/over-switch-schema.png)
 
-1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
-2. Periodically, the internal thermometer (2) or external thermometer (2b) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or too near the radiator.
-3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#lalgorithme-tpi)), VTherm will calculate a percentage of the on-time.
-4. It will then regularly command the turning on and off of the underlying `switch` (or `select` or `climate`) entities.
-5. These underlying entities will control the physical device.
-6. The physical switch will turn the radiator on or off.
+1. Ustawienia temperatury docelowej pomieszczenia mogą być realizowane przez użytkownika, automatyzacje, wcześniej zdefiniowany harmonogram, lub mogą pochodzić z ustawień wstępnych integracji.
+2. Termometr wewnętrzny (2) lub termometr zewnętrzny (2b) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna, termostatu lub grzejnika.
+3. Na podstawie wartości zadanych, różnicy temperatur oraz parametrów algorytmu **TPI** (zobacz: [TPI](algorithms.md#lalgorithme-tpi), termostat _VTherm_ obliczy procentowy czas włączenia.
+4. Następnie w regularnych odstępach czasu termostat _VTherm_ będzie wydawał polecenia załączania i wyłączania dla encji podrzędnych typu `switch`, `select` lub `climate`.
+5. Te encje podrzędne będą sterować fizycznym urządzeniem.
+6. Fizyczny przełącznik będzie włączał lub wyłączał grzejnik.  
 
-> The on-time percentage is recalculated each cycle, which is what allows regulating the room temperature.
+> Wartość `on-time` jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
 
-## Configuration
+## Konfiguracja
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
 Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
 
 ![image](images/config-linked-entity.png)
 
-### The underlying devices
+### Podstawowe urządzenia
 
 In the "list of devices to control," you add the switches that will be controlled by VTherm. Only entities of type `switch`, `input_boolean`, `select`, `input_select`, or `climate` are accepted.
 
@@ -47,19 +47,19 @@ VTherm will smooth the consumed power as much as possible by alternating activat
 
 Of course, if the requested power (`on_percent`) is too high, there will be an overlap of activations.
 
-### Keep-Alive
+### Podtrzymanie aktywności (keep-alive)
 
 Some equipment requires periodic activation to prevent a safety shutdown. Known as "keep-alive," this function can be activated by entering a non-zero number of seconds in the thermostat's keep-alive interval field. To disable the function or if in doubt, leave it empty or enter zero (default value).
 
-### AC Mode
+### Tryb AC
 
 It is possible to choose a `thermostat_over_switch` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
 
-### Command Inversion
+### Inwersja poleceń
 
 If your equipment is controlled by a pilot wire with a diode, you may need to check the "Invert the Command" box. This will set the switch to `On` when you need to turn off the equipment and to `Off` when you need to turn it on. The cycle times will be inverted with this option.
 
-### Command Customization
+### Dostosowywanie poeceń
 
 This configuration section allows you to customize the on and off commands sent to the underlying device.
 These commands are mandatory if one of the underlying devices is not a `switch` (for `switch` entities, standard on/off commands are used).
