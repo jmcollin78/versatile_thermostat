@@ -24,13 +24,12 @@ Wartość procentowa otwarcia zaworu jest przeliczana przy każdym cyklu na nowo
 
 Ten schemat pokazuje, że VTherm działa w cyklu zamkniętym: od ustawienia temperatury, przez pomiar i obliczenia, aż po sterowanie zaworem i korektę w kolejnym cyklu. Dzięki temu system może precyzyjnie regulować ogrzewanie, zapewniając komfort cieplny i optymalne zużycie energii.
 
-## Configuration
+## Konfiguracja
 
-First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów VTherm (patrz: [ustawienia główne](base-attributes.md)). Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji, gdzie dodasz encje `number` sterowane przez termostat _VTherm_. Akceptowane są tu jedynie encje typu `number` i `input_number`.
 
 ![image](images/config-linked-entity3.png)
 
-The algorithm currently available is TPI. See [algorithm](#algorithm).
+Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm).
 
-It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśli dodatkowo wybierzesz opcję `Tryb AC`. W takm wypadku dostępny będzie jedynie tryb chłodzenia.
