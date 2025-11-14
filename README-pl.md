@@ -97,31 +97,36 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 23. [Usuwanie usterek](documentation/pl/troubleshooting.md)
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
-
+---
 # Kilka wyników...
 
-**Stabilizacja temperatury skonfigurowana dzięki ustawieniom wstępnym**:
+**Stabilizacja temperatury skonfigurowana dzięki ustawieniu presetu**:
 
 ![image](documentation/en/images/results-1.png)
+<h1></h1>
 
 **Cykle Zał/Wył obliczane przez integrację `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-2.png)
+<h1></h1>
 
 **Regulacja `Termostatem na Przełączniku`**:
 
 ![image](documentation/en/images/results-4.png)
+<h1></h1>
 
 **Regulacja `Termostatem na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
+<h1></h1>
 
-**Regulacja bezpośrednim sterowaniem zaworu `Termostat na Klimacie`**:
+**Regulacja `Termostatem na Klimacie` z bezpośrednim sterowaniem zaworu**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
+<h1></h1>
 
 
-#Ciesz się i korzystaj!
+## Ciesz się i korzystaj!
 
 
 ## Wybrane komentarze do integracji `Versatile Thermostat`
@@ -136,7 +141,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
 
-***
+
 
 [versatile_thermostat]: https://github.com/jmcollin78/versatile_thermostat
 [buymecoffee]: https://www.buymeacoffee.com/jmcollin78
