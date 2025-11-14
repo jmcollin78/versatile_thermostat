@@ -1,24 +1,24 @@
-# Presence / Absence Management
+# Zarządzanie obecnością / nieobecnością
+- [Zarządzanie obecnością / nieobecnością](#presence--absence-management)
+  - [Konfiguracja obecności / nieobecności](#configure-presence-or-absence)
 
-- [Presence / Absence Management](#presence--absence-management)
-  - [Configure Presence (or Absence)](#configure-presence-or-absence)
+## Konfiguracja obecności / nieobecności
 
-## Configure Presence (or Absence)
+Funkcja ta umożliwia dynamiczne dostosowanie ustawionych temperatur termostatu w zależności od wykrycia obecności (lub nieobecności). W tym celu należy skonfigurować temperaturę, która będzie używana dla każdego ustawienia wstępnego, dla którego obecność będzie nieaktywna. Gdy czujnik obecności się wyłączy, temperatura ta będzie temperaturą docelową. Gdy ponownie się włączy, zostanie użyta „normalna” temperatura skonfigurowana dla tego ustawienia wstępnego. Zobacz: [zarządzanie ustawieniami wstępnymi](feature-presets.md).
 
-If this feature is selected, it allows you to dynamically adjust the preset temperatures of the thermostat when presence (or absence) is detected. To do this, you need to configure the temperature to be used for each preset when presence is disabled. When the presence sensor turns off, these temperatures will be applied. When it turns back on, the "normal" temperature configured for the preset will be used. See [preset management](feature-presets.md).
-
-To configure presence, fill out this form:
+Aby skonfigurować obecność, podaj poniższe dane:
 
 ![image](images/config-presence.png)
 
-For this, you simply need to configure an **occupancy sensor** whose state must be 'on' or 'home' if someone is present, or 'off' or 'not_home' otherwise.
+Do tego potrzebujesz jedynie skonfigurować czujnik obecności, którego stan musi być `on` lub `home`, jeśli ktoś jest obecny, albo `off` lub `not_home` w przeciwnym przypadku.
 
-Temperatures are configured in the entities of the device corresponding to your _VTherm_ (Settings/Integration/Versatile Thermostat/the vtherm).
+Temperatury są konfigurowane w encjach termostatu _VTherm_.
 
-WARNING: People groups do not work as a presence sensor. They are not recognized as a presence sensor. You need to use a template as described here [Using a People Group as a Presence Sensor](troubleshooting.md#using-a-people-group-as-a-presence-sensor).
+UWAGA: Grupy osób nie działają jako czujnik obecności. Nie są rozpoznawane jako czujnik obecności. Należy użyć szablonu opisanego [tutaj](troubleshooting.md#using-a-people-group-as-a-presence-sensor).
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Wskazówki*_
 >
-> 1. The temperature change is immediate and is reflected on the front panel. The calculation will consider the new target temperature at the next cycle calculation.
-> 2. You can use the direct person.xxxx sensor or a Home Assistant sensor group. The presence sensor handles the states `on` or `home` as present and `off` or `not_home` as absent.
-> 3. To pre-heat your home when everyone is absent, you can add an `input_boolean` entity to your people group. If you set this `input_boolean` to 'On', the presence sensor will be forced to 'On' and the presets with presence will be used. You can also set this `input_boolean` to 'On' via an automation, for example, when you leave a zone to start preheating your home.
+> 1. Zmiana temperatury jest natychmiastowa i widoczna na panelu. Obliczenia uwzględnią nową temperaturę docelową przy następnym cyklu obliczeniowym.
+> 2. Możesz użyć bezpośredniego czujnika `person.xxxx` lub grupy czujników Home Assistant. Czujnik obecności interpretuje stany `on` lub `home` jako obecność oraz `off` lub `not_home` jako nieobecność.
+> 3. Aby wstępnie ogrzać dom, gdy wszyscy są nieobecni, możesz dodać encję `input_boolean` do swojej grupy osób. Jeśli ustawisz tę encję `input_boolean` na `on` lub `true`, stan obecności zostanie wymuszony i zostaną użyte ustawienia wstępne zdefiniowane dla stanu obecności. Możesz także ustawić tę encję `input_boolean` na `on` lub `true` za pomocą automatyzacji, na przykład gdy opuszczasz jakąś strefę lub pojawiasz się w innej.
+

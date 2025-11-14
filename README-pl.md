@@ -25,26 +25,27 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 
 # Co nowego?
 ![New](images/new-icon.png)
-## Release 8.0
-> This is a major release. It rewrites a significant part of the internal mechanisms of Versatile Thermostat by introducing several new features:
->    1. _requested state / current state_: VTherm now has 2 states. The requested state is the state requested by the user (or Scheduler). The current state is the state currently applied to the VTherm. The latter depends on the different VTherm functions. For example, the user can request (requested state) to have heating on with Comfort preset but since the window has been detected open, the VTherm is actually off. This dual management always preserves the user's request and applies the result of the different functions on this user request to get the current state. This better handles cases where multiple functions want to act on the VTherm state (window opening and power shedding for example). It also ensures a return to the user's initial request when no detection is in progress anymore,
->    2. _time filtering_: the time filtering operation has been revised. Time filtering prevents sending too many commands to a controlled equipment to avoid consuming too much battery (battery-powered TRV for example), changing setpoints too frequently (heat pump, pellet stove, underfloor heating, ...). The new operation is now as follows: explicit user (or Scheduler) requests are always immediately taken into account. They are not filtered. Only changes related to external conditions (room temperature for example) are potentially filtered. Filtering consists of resending the desired command later and not ignoring the command as was previously the case. The `auto_regulation_dtemp` parameter allows adjusting the delay,
->    3. _hvac_action improvement_: the `hvac_action` reflects the current activation state of the controlled equipment. For an `over_switch` type it reflects the switch activation state, for an `over_valve` or valve regulation, it is active when the valve opening is greater than the minimum valve opening (or 0 if not configured), for an `over_climate` it reflects the underlying `climate`'s `hvac_action` if available or a simulation otherwise.
->    4. _custom attributes_: the organization of custom attributes accessible in Developer Tools / States has been reorganized into sections depending on the VTherm type and each activated function. More information [here](documentation/en/reference.md#custom-attributes).
->    5. _power shedding_: the power shedding algorithm now takes into account equipment shutdown between two measurements of home power consumption. Suppose you have power consumption feedback every 5 minutes. If a radiator is turned off between 2 measurements then turning on a new one may be authorized. Before, only turn-ons were taken into account between 2 measurements. As before, the next power consumption feedback will possibly shed more or less.
->    6. _auto-start/stop_: auto-start/stop is only useful for `over_climate` type VTherm without direct valve control. The option has been removed for other VTherm types.
->    7. _VTherm UI Card_: all these modifications allowed a major evolution of the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) to integrate messages explaining the current state (why does my VTherm have this target temperature?) and if time filtering is in progress - so the underlying state update has been delayed.
->    8. _log improvements_: logs have been improved to simplify debugging. Logs in the form `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` inform of an event impacting the VTherm state.
+Ta wersja wymaga szczególnej uwagi. Przebudowano w niej znaczną część wewnętrznych mechanizmów *Versatile Thermostat*, wprowadzając kilka nowych funkcji:
+> 1. `Stan żądany` / `stan bieżący`: termostat _VTherm_ ma teraz 2 stany. `Stan żądany` to stan oczekiwany przez użytkownika (lub harmonogram). `Stan bieżący` to stan aktualny termostatu _VTherm_. Ten ostatni zależy od różnych funkcji VTherm. Np. użytkownik może zażądać (`stan żądany`) włączenia ogrzewania z ustawieniem Komfort, ale ponieważ wykryto otwarte okno, termostat _VTherm_ jest w rzeczywistości wyłączony. To podwójne zarządzanie zawsze zachowuje żądanie użytkownika i aplikuje wyniki różnych funkcji jako odpowiedź na żądanie użytkownika, aby w efekcie uzyskać `stan bieżący`. Takie rozwiązanie lepiej radzi sobie z przypadkami, gdy wiele funkcji chce oddziaływać na stan termostatu (np. otwieranie okna i wyłączanie zasilania). Zapewnia również powrót do pierwotnego `stanu żądanego`, gdy nie już żadnych innych zdarzeń oddziałujących na termostat (np. otwieranie okna i wyłączanie zasilania),
+> 2. `Filtrowanie czasu`: operacja filtrowania czasu została znacznie poprawiona. Filtrowanie czasu zapobiega wysyłaniu zbyt wielu poleceń do urządzenia, co mogłoby prowadzić do nadmiernego zużycia baterii (np. termostatu zasilanego bateryjnie), a także zbyt częstej zmiany ustawień (pompy ciepła, pieca na pellet, ogrzewania podłogowego itp.). Nowa funkcja działa teraz następująco: jawne żądania użytkownika (lub harmonogramu) są zawsze natychmiast uwzględniane i **nie są one filtrowane**. Potencjalnie filtrowane są tylko zmiany związane z warunkami zewnętrznymi (np. temperaturą w pomieszczeniu). Filtrowanie polega na ponownym wysłaniu żądanego polecenia w późniejszym czasie, a nie na jego ignorowaniu, jak to miało miejsce dotychczas. Parametr `auto_regulation_dtemp` umożliwia dostosowanie opóźnienia.
+> 3. Ulepszenie parametru `hvac_action`: parametr `hvac_action` odzwierciedla aktualny stan aktywacji sterowanego urządzenia. W przypadku typu `termostat na przełączniku` odzwierciedla on stan aktywacji przełącznika, w przypadku `termostatu na zaworze` pozostaje aktywny, gdy otwarcie zaworu jest większe, niż minimalne (lub 0, jeśli nie jest skonfigurowany). W przypadku `termostatu na klimacie` odzwierciedla on parametr `hvac_action` klimatu bazowego, jeśli jest dostępny, lub - w przeciwnym razie - jego symulację.
+> 4. `Atrybuty własne`: organizacja atrybutów niestandardowych dostępnych w `Narzędzia deweloperskie -> Stany` została podzielona na sekcje w zależności od typu termostatu _VTherm_ i każdej aktywowanej funkcji. 
+> 5. `Redukcja mocy`: algorytm redukcji mocy uwzględnia teraz wyłączenie urządzeń między dwoma pomiarami zużycia energii w domu. 
+Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. Jeśli grzejnik zostanie wyłączony między dwoma pomiarami, włączenie nowego może zostać autoryzowane. Wcześniej uwzględniano tylko włączenia między dwoma pomiarami. Tak jak poprzednio, kolejny komunikat dotyczący zużycia energii prawdopodobnie spowoduje większą lub mniejszą redukcję mocy.
+> 6. `AutoSTART/autoSTOP`: funkcja autoSTART/autoSTOP jest przydatna tylko dla typu `termostatu na klimacie` bez bezpośredniego sterowania zaworem. Opcja ta została usunięta z pozostałych typów termostatów.
+> 7. Karta `VTherm UI Card`: wszystkie te modyfikacje pozwoliły na znaczną ewolucję karty `VTherm UI Card`, integrując komunikaty wyjaśniające aktualny stan (dlaczego mój VTherm ma taką temperaturę docelową?) oraz czy trwa filtrowanie czasu – w związku z czym aktualizacja stanu bazowego jest opóźniona.
+> 8. Ulepszenia `logów`: ulepszono logi, aby znacząco uprościć debugowanie. Logi w formacie `---> NOWE ZDARZENIE: VersatileThermostat-Inversed ...` informują o zdarzeniu wpływającym na stan termostatu _VTherm_.
 >
-> ⚠️ **Warning**
+> ⚠️ **Ostrzeżenie**
 >
-> This major release includes breaking changes from the previous version:
-> - `versatile_thermostat_security_event` has been renamed to `versatile_thermostat_safety_event`. If your automations use this event, you must update them,
-> - custom attributes have been reorganized. You must update your automations or Jinja templates that use them,
-> - the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) must be updated to at least V2.0 to be compatible,
+> Ta wersja integracji zawiera zasadnicze zmiany w stosunku do wersji poprzedniej:
+> - zmianie ulega nazwa zdarzenia z `versatile_thermostat_security_event` na `versatile_thermostat_safety_event`. Jeśli Twoja automatyzacja wykorzystuje to zdarzenie, konieczna jest jej aktualizacja,
+> - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
+> - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0` aby zachować kompatybilność,
 >
-> **Despite the 342 automated tests of this integration and the care taken with this major release, I cannot guarantee that its installation will not disrupt your VTherms' states. For each VTherm you must check the preset, hvac_mode and possibly the VTherm setpoint temperature after installation.**
+> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić ustawienia wstępne, tryb HVAC i ewentualnie ustawenie temperatury sensora _VTherm_ po instalacji.**
 >
+
 
 # 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
@@ -53,7 +54,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Słownik
 
-  `VTherm`: Versatile Thermostat (Termostat Wszechstronny) jako odnośnik do dokumentacji.
+  `VTherm`: Versatile Thermostat, jako odnośnik do dokumentacji.
 
   `TRV`: Termostatyczny Zawór Grzejnikowy wyposażony w zawór. Zawór, otwierając się lub zamykając, umożliwia kontrolę przepływu ciepłej wody.
 
@@ -67,35 +68,35 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
   `HA`: Home Assistant
 
-  `underlying`: Urządzenie sterowane integracją `Versatile Thermostat` (Termostat Wszechstronny)
+  `underlying`: Urządzenie sterowane integracją `Versatile Thermostat`
 
 # Dokumentacja
 
 Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
-1. [Introduction](documentation/en/presentation.md)
-2. [Installation](documentation/en/installation.md)
-3. [Quick start](documentation/en/quick-start.md)
-4. [Choosing a VTherm type](documentation/en/creation.md)
-5. [Basic attributes](documentation/en/base-attributes.md)
-6. [Configuring a VTherm on a `switch`](documentation/en/over-switch.md)
-7. [Configuring a VTherm on a `climate`](documentation/en/over-climate.md)
-8. [Configuring a VTherm on a valve](documentation/en/over-valve.md)
-9. [Presets](documentation/en/feature-presets.md)
-10. [Window management](documentation/en/feature-window.md)
-11. [Presence management](documentation/en/feature-presence.md)
-12. [Motion management](documentation/en/feature-motion.md)
-13. [Power management](documentation/en/feature-power.md)
-14. [Auto start and stop](documentation/en/feature-auto-start-stop.md)
-15. [Centralized control of all VTherms](documentation/en/feature-central-mode.md)
-16. [Central heating control](documentation/en/feature-central-boiler.md)
-17. [Advanced aspects, security mode](documentation/en/feature-advanced.md)
-18. [Self-regulation](documentation/en/self-regulation.md)
-19. [Tuning examples](documentation/en/tuning-examples.md)
-20. [Algorithms](documentation/en/algorithms.md)
-21. [Reference documentation](documentation/en/reference.md)
-22. [Tuning examples](documentation/en/tuning-examples.md)
-23. [Troubleshooting](documentation/en/troubleshooting.md)
-24. [Release notes](documentation/en/releases.md)
+1. [Wprowadzenie](documentation/pl/presentation.md)
+2. [Instalacja](documentation/pl/installation.md)
+3. [Szybki start](documentation/pl/quick-start.md)
+4. [Wybór typu termostatu](documentation/pl/creation.md)
+5. [Atrybuty podstawowe](documentation/pl/base-attributes.md)
+6. [Konfigurowanie `termostatu na przełączniku`](documentation/pl/over-switch.md)
+7. [Konfigurowanie `termostatu na klimacie`](documentation/pl/over-climate.md)
+8. [Konfigurowanie `termostatu na zaworze`](documentation/pl/over-valve.md)
+9. [Ustawienia wstępne (presety)](documentation/pl/feature-presets.md)
+10. [Zarządzanie oknami](documentation/pl/feature-window.md)
+11. [Zarządzanie obecnością](documentation/pl/feature-presence.md)
+12. [Zarządzanie ruchem](documentation/pl/feature-motion.md)
+13. [Zarządzanie mocą/zasilaniem](documentation/pl/feature-power.md)
+14. [AutoSTART i autoSTOP](documentation/pl/feature-auto-start-stop.md)
+15. [Scentralizowane zarządzanie wszystkimi termostatami _VTherm_](documentation/pl/feature-central-mode.md)
+16. [Sterowanie centralnym ogrzewaniem / kotłem](documentation/pl/feature-central-boiler.md)
+17. [Zaawansowane ustawienia, tryb bezpieczeństwa](documentation/pl/feature-advanced.md)
+18. [Samoregulacja](documentation/pl/self-regulation.md)
+19. [Algorytmy](documentation/pl/algorithms.md)
+21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
+22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
+23. [Usuwanie usterek](documentation/pl/troubleshooting.md)
+24. [Informacje o wersjach](documentation/pl/releases.md)
+
 
 # Kilka wyników...
 
@@ -121,7 +122,8 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 Ciesz się i korzystaj!
 
-# Some comments on the integration
+
+# Wybrane komentarze do integracji `Versatile Thermostat`
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |

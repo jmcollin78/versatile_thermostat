@@ -1,97 +1,104 @@
-# `over_switch` Type Thermostat
+# Typ termostatu `Termostat na Przełączniku`
 
-- [`over_switch` Type Thermostat](#over_switch-type-thermostat)
-  - [Prerequisites](#prerequisites)
-  - [Configuration](#configuration)
-    - [The underlying devices](#the-underlying-devices)
-    - [Keep-Alive](#keep-alive)
-    - [AC Mode](#ac-mode)
-    - [Command Inversion](#command-inversion)
-    - [Command Customization](#command-customization)
+- [Typ termostatu `Termostat na Przełączniku`](#over_switch-type-thermostat)
+  - [Wymagania wstępne](#prerequisites)
+  - [Konfiguracja](#configuration)
+    - [Podstawowe urządzenia](#the-underlying-devices)
+    - [Podtrzymanie aktywności (keep-alive)](#keep-alive)
+    - [Tryb AC](#ac-mode)
+    - [Inwersja poleceń](#command-inversion)
+    - [Dostosowywanie poleceń](#command-customization)
 
 
-## Prerequisites
+## Wymagania wstępne
 
-The installation should look like this:
+Instalacja powinna wyglądać następująco:
 
 ![installation `over_switch`](images/over-switch-schema.png)
 
-1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
-2. Periodically, the internal thermometer (2) or external thermometer (2b) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or too near the radiator.
-3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#lalgorithme-tpi)), VTherm will calculate a percentage of the on-time.
-4. It will then regularly command the turning on and off of the underlying `switch` (or `select` or `climate`) entities.
-5. These underlying entities will control the physical device.
-6. The physical switch will turn the radiator on or off.
+1. Ustawienia temperatury docelowej pomieszczenia mogą być realizowane przez użytkownika, automatyzacje, wcześniej zdefiniowany harmonogram, lub mogą pochodzić z ustawień wstępnych integracji.
+2. Termometr wewnętrzny (2) lub termometr zewnętrzny (2b) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna, termostatu lub grzejnika.
+3. Na podstawie wartości zadanych, różnicy temperatur oraz parametrów algorytmu **TPI** (zobacz: [TPI](algorithms.md#lalgorithme-tpi), termostat _VTherm_ obliczy procentowy czas włączenia.
+4. Następnie w regularnych odstępach czasu termostat _VTherm_ będzie wydawał polecenia załączania i wyłączania dla encji podrzędnych typu `switch`, `select` lub `climate`.
+5. Te encje podrzędne będą sterować fizycznym urządzeniem.
+6. Fizyczny przełącznik będzie włączał lub wyłączał grzejnik.  
 
-> The on-time percentage is recalculated each cycle, which is what allows regulating the room temperature.
+Wartość `on-time` jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
 
-## Configuration
+![image](images/over-switch-diagram.png)
 
-First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
+Ten schemat pokazuje, że VTherm działa cyklicznie – każdorazowo mierzy temperaturę, oblicza czas włączenia i steruje urządzeniem. Dzięki temu możliwe jest precyzyjne utrzymanie komfortu cieplnego w pomieszczeniu, bez przegrzewania ani wychładzania.
+
+## Konfiguracja
+
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherm_ (patrz: [ustawienia główne](base-attributes.md)). Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji:
 
 ![image](images/config-linked-entity.png)
 
-### The underlying devices
+### Podstawowe urządzenia
 
-In the "list of devices to control," you add the switches that will be controlled by VTherm. Only entities of type `switch`, `input_boolean`, `select`, `input_select`, or `climate` are accepted.
+Do listy "Sterowane urządzenia" dodaj encje, które mają być sterowane termostatem. Akceptowane są tu jedynie encje typu `switch`, `input_boolean`, `select`, `input_select`, lub `climate`.
 
-If one of the underlying devices is not a `switch`, then command customization is mandatory. By default, for `switch` entities, the commands are the standard switch on/off commands (`turn_on`, `turn_off`).
+Jeśli jedno z urządzeń podrzędnych nie jest przełącznikiem, wówczas dostosowanie poleceń jest obowiązkowe. Domyślnie dla encji typu `switch` polecenia to standardowe komendy `włącz`/`wyłącz` (`turn_on`, `turn_off`).
 
-The algorithm currently available is TPI. See [algorithm](#algorithm).
-If multiple entities are configured, the thermostat staggers the activations to minimize the number of switches on at any given time. This allows for better power distribution, as each radiator will turn on in turn.
+Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm). Jeśli skonfigurowano wiele encji, termostat przeplata ich aktywacje, aby zminimalizować liczbę jednocześnie włączonych przełączników. Pozwala to na lepsze rozłożenie mocy, ponieważ każdy grzejnik włącza się po kolei.
 
-VTherm will smooth the consumed power as much as possible by alternating activations. Example of staggered activations:
+VTherm będzie jak najlepiej wygładzać zużycie energii poprzez naprzemienne aktywacje. 
+Oto przykład przeplatania aktywacji:
 
 ![image](images/multi-switch-activation.png)
 
-Of course, if the requested power (`on_percent`) is too high, there will be an overlap of activations.
+Oczywiście, jeśli żądana moc (`on_percent`) jest zbyt wysoka, nastąpi nakładanie się aktywacji.
 
-### Keep-Alive
 
-Some equipment requires periodic activation to prevent a safety shutdown. Known as "keep-alive," this function can be activated by entering a non-zero number of seconds in the thermostat's keep-alive interval field. To disable the function or if in doubt, leave it empty or enter zero (default value).
+### Podtrzymanie aktywności (keep-alive)
 
-### AC Mode
+Niektóre urządzenia wymagają okresowej aktywacji, aby zapobiegać wyłączeniu awaryjnemu. Funkcja ta, znana jako 'podtrzymywanie aktywności (keep-alive)', może zostać aktywowana poprzez wprowadzenie wartości innej niż zero w polu interwału utrzymywania aktywności termostatu. Aby wyłączyć tę funkcję lub w razie wątpliwości, pozostaw to pole puste lub wpisz zero (wartość domyślna).
 
-It is possible to choose a `thermostat_over_switch` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+### Tryb AC
 
-### Command Inversion
+Można wybrać `termostat na przełączniku` do sterowania klimatyzatorem, zaznaczając pole `Tryb AC`. W takim przypadku widoczny będzie tylko tryb chłodzenia.
 
-If your equipment is controlled by a pilot wire with a diode, you may need to check the "Invert the Command" box. This will set the switch to `On` when you need to turn off the equipment and to `Off` when you need to turn it on. The cycle times will be inverted with this option.
 
-### Command Customization
+### Inwersja poleceń
 
-This configuration section allows you to customize the on and off commands sent to the underlying device.
-These commands are mandatory if one of the underlying devices is not a `switch` (for `switch` entities, standard on/off commands are used).
+Jeśli urządzenie jest sterowane przewodem sterującym z diodą, może być konieczne zaznaczenie pola 'Odwróć polecenie'. Spowoduje to ustawienie przełącznika w pozycji załączonej, gdy urządzenie jest wyłączane, i w pozycji wyłączonej, gdy jest załączane. Po wybraniu tej opcji czasy cykli zostaną odwrócone.
 
-To customize the commands, click on `Add` at the bottom of the page for both the on and off commands:
+
+### Dostosowywanie poeceń
+
+Ta sekcja konfiguracji umożliwia dostosowanie poleceń włączania i wyłączania wysyłanych do urządzenia bazowego. Polecenia te są obowiązkowe, jeśli jedno z urządzeń bazowych nie jest przełącznikiem `switch` (w przypadku przełączników używane są standardowe polecenia włączania/wyłączania (`turn_on` i `turn_off`).
+
+Aby dostosować polecenia, kliknij „Dodaj” u dołu okna, zarówno dla poleceń włączania, jak i wyłączania:
 
 ![virtual switch](images/config-vswitch1.png)
 
-Then, specify the on and off commands using the format `command[/attribute[:value]]`.
-The available commands depend on the type of underlying device:
+Następnie określ polecenia włączania i wyłączania, używając formatu `polecenie[/atrybut[:wartość]]`
+Dostępne polecenia zależą od typu urządzenia bazowego:
 
-| Underlying Device Type      | Possible On Commands                  | Possible Off Commands                          | Applies To                        |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
-| `switch` or `input_boolean` | `turn_on`                             | `turn_off`                                     | All switches                      |
-| `select` or `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 and similar (*) |
-| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
+| Typ urządzenia bazowego      | Polecenie załączenia                  | Poleenie wyłączenia                            | Zastosowanie                        |
+| ---------------------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------------- |
+| `switch` lub `input_boolean` | `turn_on`                             | `turn_off`                                     | Wszystkie przełączniki              |
+| `select` lub `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 i podobne (*)     |
+| `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)              |
+| `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                          |
 
-(*) Check the values accepted by your device in **Developer Tools / States** and search for your device. You will see the options it supports. They must be identical, including case sensitivity.
+(*) Sprawdź wartości akceptowane przez Twoje urządzenie w `Narzędzia deweloperskie -> Stany` i wyszukaj swoje urządzenie. Zobaczysz obsługiwane przez nie opcje. Muszą być identyczne, łącznie z uwzględnieniem wielkości liter.
 
-Of course, these examples can be adapted to your specific case.
+Oczywiście, przykłady te można dostosować do Twojego konkretnego przypadku.
 
-Example for a Nodon SIN-4-FP-21:
+Przykład dla Nodon SIN-4-FP-21:
+
 ![virtual switch Nodon](images/config-vswitch2.png)
 
-Click "Validate" to confirm the modifications.
 
-If the following error occurs:
+Kliknij 'Zatwierdź' aby potwierdzić zmiany.
 
-> The command customization configuration is incorrect. It is required for non-switch underlying devices, and the format must be 'service_name[/attribute:value]'. More details in the README.
+Jeśli pojawi się błąd:
+> Konfiguracja dostosowywania polecenia jest nieprawidłowa. Jest ona wymagana dla urządzeń bazowych innych niż przełączniki, a format musi być następujący: `nazwa_usługi[/atrybut:wartość]`. Więcej szczegółów w pliku README.
 
-This means that one of the entered commands is invalid. The following rules must be followed:
-1. Each command must follow the format `command[/attribute[:value]]` (e.g., `select_option/option:comfort` or `turn_on`) without spaces or special characters except `_`.
-2. There must be as many commands as there are declared underlying devices, except when all underlying devices are `switch` entities, in which case command customization is not required.
-3. If multiple underlying devices are configured, the commands must be in the same order. The number of on commands must equal the number of off commands and the number of underlying devices (in the correct order). It is possible to mix different types of underlying devices. As soon as one underlying device is not a `switch`, all commands for all underlying devices, including `switch` entities, must be configured.
+oznacza to, że jedno z wprowadzonych poleceń jest nieprawidłowe. 
+Należy przestrzegać następujących zasad:
+1. Każde polecenie musi być zgodne z formatem `polecenie[/atrybut[:wartość]]` (np. `select_option/option:comfort` lub `turn_on`) bez spacji ani znaków specjalnych z wyjątkiem _.
+2. Poleceń musi być tyle, ile zadeklarowanych urządzeń bazowych, z wyjątkiem sytuacji, gdy wszystkie urządzenia bazowe są przełącznikami. W takim przypadku dostosowywanie poleceń nie jest wymagane.
+3. W przypadku konfiguracji wielu urządzeń bazowych polecenia muszą być podane w tej samej kolejności. Liczba poleceń `on` musi być równa liczbie poleceń `off` i liczbie urządzeń bazowych (w odpowiedniej kolejności). Możliwe jest mieszanie różnych typów urządzeń bazowych. Gdy chociaż jedno z urządzeń bazowych nie jest przełącznikiem `switch`, wszystkie polecenia dla wszystkich urządzeń bazowych, w tym przełączników, muszą zostać skonfigurowane.

@@ -1,31 +1,30 @@
-# Centralized Control
+# Centralne sterowanie
 
-- [Centralized Control](#centralized-control)
-  - [Configuration of Centralized Control](#configuration-of-centralized-control)
-  - [Usage](#usage)
+- [Centralne sterowanie](#centralized-control)
+  - [Konfiguracja centralnego sterowania](#configuration-of-centralized-control)
+  - [Zastosowanie](#usage)
 
-This feature allows you to control all your _VTherms_ from a single control point.
-A typical use case is when you leave for an extended period and want to set all your _VTherms_ to frost protection, and when you return, you want to set them back to their initial state.
+Funkcja ta pozwala sterować wszystkimi termostatami _VTherm_ z jednego punktu kontrolnego. Typowym przypadkiem użycia jest sytuacja, gdy wyjeżdżasz na dłuższy czas i chcesz ustawić wszystkie termostaty w tryb ochrony przed mrozem, a po powrocie przywrócić je do stanu początkowego.
 
-Centralized control is done from a special _VTherm_ called centralized configuration. See [here](creation.md#centralized-configuration) for more information.
+Centralne sterowanie odbywa się z poziomu specjalnego termostatu _VTherm_ o nazwie 'Konfiguracja główna'. Zobacz [tutaj](creation.md#centralized-configuration), aby uzyskać więcej informacji.
 
-## Configuration of Centralized Control
+## Konfiguracja centralnego sterowania
 
-If you have set up a centralized configuration, you will have a new entity named `select.central_mode` that allows you to control all _VTherms_ with a single action.
+Jeśli skonfigurowałeś centralną konfigurację, pojawi się nowa encja o nazwie `select.central_mode`, która pozwala sterować wszystkimi termostatami _VTherm_ za pomocą jednej akcji.
 
 ![central_mode](images/central-mode.png)
 
-This entity appears as a list of choices containing the following options:
-1. `Auto`: the 'normal' mode where each _VTherm_ operates autonomously,
-2. `Stopped`: all _VTherms_ are turned off (`hvac_off`),
-3. `Heat only`: all _VTherms_ are set to heating mode if supported, otherwise they are stopped,
-4. `Cool only`: all _VTherms_ are set to cooling mode if supported, otherwise they are stopped,
-5. `Frost protection`: all _VTherms_ are set to frost protection mode if supported, otherwise they are stopped.
+Ta encja pojawia się jako lista wyboru zawierająca następujące opcje:
+1. `Auto`: „normalny” tryb, w którym każdy termostat _VTherm_ działa autonomicznie,
+2. `Zatrzymany`: wszystkie termostaty _VTherm_ są wyłączone (`hvac_off`),
+3. `Tylko grzanie`: wszystkie termostaty _VTherm_ są ustawione w tryb grzania, jeśli jest obsługiwany, w przeciwnym razie są wyłączone,
+4. `Tylko chłodzenie`: wszystkie termostaty _VTherm_ są ustawione w tryb chłodzenia, jeśli jest obsługiwany, w przeciwnym razie są wyłączone,
+5. `Ochrona przeciw zamarzaniu`: wszystkie termostaty _VTherm_ są ustawione w tryb ochrony przed mrozem, jeśli jest obsługiwany, w przeciwnym razie są wyłączone.
 
-## Usage
+## Zastosowanie
 
-For a _VTherm_ to be controllable centrally, its configuration attribute named `use_central_mode` must be true. This attribute is available in the configuration page `Main Attributes`.
+Aby termostat _VTherm_ mógł być sterowany centralnie, jego atrybut konfiguracyjny o nazwie `use_central_mode` musi mieć wartość `true`. Ten atrybut jest dostępny na stronie konfiguracji 'Atrybuty główne'.
 
 ![central_mode](images/use-central-mode.png)
 
-This means you can control all _VTherms_ (those explicitly designated) with a single control.
+Oznacza to, że możesz sterować wszystkimi termostatami _VTherm_ (tymi wyraźnie wskazanymi) za pomocą jednego elementu sterowania.
