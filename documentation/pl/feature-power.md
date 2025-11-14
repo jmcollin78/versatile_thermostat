@@ -46,7 +46,7 @@ Ze względu na scentralizowaną redukcję obciążenia nie jest możliwe nadpisa
 
 > ![Tip](images/tips.png) _*Wskazówki*_
 >
-> 1. Podczas redukcji obciążenia w grzejniku wybierane są ustawienia wstępne o nazwie `moc`. Jest to ukryte ustawienie wstępne, którego nie można wybrać ręcznie.
+> 1. Podczas redukcji obciążenia w grzejniku wybierany jest preset o nazwie `moc`. Jest to ukryty preset, którego nie można wybrać ręcznie.
 > 2. Zawsze zachowuj margines bezpieczeństwa, ponieważ maksymalna moc może być chwilowo przekroczona w oczekiwaniu na kolejne obliczenie cyklu lub przez niekontrolowane urządzenia.
 > 3. Jeśli nie chcesz korzystać z tej funkcji, odznacz ją w menu 'Funkcje'.
 > 4. Jeśli pojedynczy termostat steruje wieloma urządzeniami, zadeklarowane zużycie energii grzewczej powinno odpowiadać całkowitej mocy wszystkich urządzeń.
