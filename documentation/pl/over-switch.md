@@ -67,37 +67,38 @@ Jeśli urządzenie jest sterowane przewodem sterującym z diodą, może być kon
 
 ### Dostosowywanie poeceń
 
-This configuration section allows you to customize the on and off commands sent to the underlying device.
-These commands are mandatory if one of the underlying devices is not a `switch` (for `switch` entities, standard on/off commands are used).
+Ta sekcja konfiguracji umożliwia dostosowanie poleceń włączania i wyłączania wysyłanych do urządzenia bazowego. Polecenia te są obowiązkowe, jeśli jedno z urządzeń bazowych nie jest przełącznikiem `switch` (w przypadku przełączników używane są standardowe polecenia włączania/wyłączania (`turn_on` i `turn_off`).
 
-To customize the commands, click on `Add` at the bottom of the page for both the on and off commands:
+Aby dostosować polecenia, kliknij „Dodaj” u dołu okna, zarówno dla poleceń włączania, jak i wyłączania:
 
 ![virtual switch](images/config-vswitch1.png)
 
-Then, specify the on and off commands using the format `command[/attribute[:value]]`.
-The available commands depend on the type of underlying device:
+Następnie określ polecenia włączania i wyłączania, używając formatu `polecenie[/atrybut[:wartość]]`
+Dostępne polecenia zależą od typu urządzenia bazowego:
 
-| Underlying Device Type      | Possible On Commands                  | Possible Off Commands                          | Applies To                        |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
-| `switch` or `input_boolean` | `turn_on`                             | `turn_off`                                     | All switches                      |
-| `select` or `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 and similar (*) |
-| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
+| Typ urządzenia bazowego      | Polecenie załączenia                  | Poleenie wyłączenia                            | Zastosowanie                        |
+| ---------------------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------------- |
+| `switch` lub `input_boolean` | `turn_on`                             | `turn_off`                                     | Wszystkie przełączniki              |
+| `select` lub `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 i podobne (*)     |
+| `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)              |
+| `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                          |
 
-(*) Check the values accepted by your device in **Developer Tools / States** and search for your device. You will see the options it supports. They must be identical, including case sensitivity.
+(*) Sprawdź wartości akceptowane przez Twoje urządzenie w `Narzędzia deweloperskie -> Stany` i wyszukaj swoje urządzenie. Zobaczysz obsługiwane przez nie opcje. Muszą być identyczne, łącznie z uwzględnieniem wielkości liter.
 
-Of course, these examples can be adapted to your specific case.
+Oczywiście, przykłady te można dostosować do Twojego konkretnego przypadku.
 
-Example for a Nodon SIN-4-FP-21:
+Przykład dla Nodon SIN-4-FP-21:
+
 ![virtual switch Nodon](images/config-vswitch2.png)
 
-Click "Validate" to confirm the modifications.
 
-If the following error occurs:
+Kliknij 'Zatwierdź' aby potwierdzić zmiany.
 
-> The command customization configuration is incorrect. It is required for non-switch underlying devices, and the format must be 'service_name[/attribute:value]'. More details in the README.
+Jeśli pojawi się błąd:
+> Konfiguracja dostosowywania polecenia jest nieprawidłowa. Jest ona wymagana dla urządzeń bazowych innych niż przełączniki, a format musi być następujący: `nazwa_usługi[/atrybut:wartość]`. Więcej szczegółów w pliku README.
 
-This means that one of the entered commands is invalid. The following rules must be followed:
-1. Each command must follow the format `command[/attribute[:value]]` (e.g., `select_option/option:comfort` or `turn_on`) without spaces or special characters except `_`.
-2. There must be as many commands as there are declared underlying devices, except when all underlying devices are `switch` entities, in which case command customization is not required.
-3. If multiple underlying devices are configured, the commands must be in the same order. The number of on commands must equal the number of off commands and the number of underlying devices (in the correct order). It is possible to mix different types of underlying devices. As soon as one underlying device is not a `switch`, all commands for all underlying devices, including `switch` entities, must be configured.
+oznacza to, że jedno z wprowadzonych poleceń jest nieprawidłowe. 
+Należy przestrzegać następujących zasad:
+1. Każde polecenie musi być zgodne z formatem `polecenie[/atrybut[:wartość]]` (np. `select_option/option:comfort` lub `turn_on`) bez spacji ani znaków specjalnych z wyjątkiem _.
+2. Poleceń musi być tyle, ile zadeklarowanych urządzeń bazowych, z wyjątkiem sytuacji, gdy wszystkie urządzenia bazowe są przełącznikami. W takim przypadku dostosowywanie poleceń nie jest wymagane.
+3. W przypadku konfiguracji wielu urządzeń bazowych polecenia muszą być podane w tej samej kolejności. Liczba poleceń `on` musi być równa liczbie poleceń `off` i liczbie urządzeń bazowych (w odpowiedniej kolejności). Możliwe jest mieszanie różnych typów urządzeń bazowych. Gdy chociaż jedno z urządzeń bazowych nie jest przełącznikiem `switch`, wszystkie polecenia dla wszystkich urządzeń bazowych, w tym przełączników, muszą zostać skonfigurowane.
