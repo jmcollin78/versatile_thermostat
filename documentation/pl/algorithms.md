@@ -13,7 +13,7 @@
 
 ### Konfigurowanie współczynników algorytmu TPI
 
-Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klimacie` z trybem autoregulacji  `Bezpośrednie strowanie zaworem` i wybrałeś w menu opcję "TPI", znajdziesz się na tej stronie:
+Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klimacie` z trybem autoregulacji  `Bezpośrednie sterowanie zaworem` i wybrałeś w menu opcję "TPI", znajdziesz się na tej stronie:
 
 ![image](images/config-tpi.png)
 
