@@ -41,10 +41,10 @@ versatile_thermostat:
 Domyślnie termometr zewnętrzny może uruchomić Tryb Bezpieczeństwa (Safety Mode), jeśli przestanie wysyłać dane. Pamiętaj, że Home Assistant musi zostać ponownie uruchomiony, aby te zmiany zaczęły obowiązywać. To ustawienie dotyczy wszystkich termostatów, które współdzielą termometr zewnętrzny.
 
 > ![Tip](images/tips.png) _*Wskazówki*_
-> 1. Gdy czujnik temperatury wznowi raportowanie, ustawienie wstępne zostanie przywrócone do poprzedniej wartości.
+> 1. Gdy czujnik temperatury wznowi raportowanie, preset zostanie przywrócony do poprzedniej wartości.
 > 2. Wymagane są dwa źródła temperatury: wewnętrzne i zewnętrzne. Oba muszą raportować wartości, w przeciwnym razie termostat przełączy się na tryb bezpieczny.
 > 3. Dostępna jest akcja umożliwiająca dostosowanie trzech parametrów bezpieczeństwa. Może to pomóc w dopasowaniu Trybu Bezpieczeństwa do Twoich potrzeb.
 > 4. W normalnym użytkowaniu `safety_default_on_percent` powinno być niższe niż `safety_min_on_percent`.
-> 5. Jeśli korzystasz z karty interfejsu Versatile Thermostat (patrz [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), karta termostatu w Trybie Bezpieczeństwa jest pokrywana szarym tłem, wskazując wadliwy termometr oraz czas od ostatniej aktualizacji jego wartości:
+> 5. Jeśli korzystasz z karty interfejsu Versatile Thermostat (patrz: [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), karta termostatu w Trybie Bezpieczeństwa jest pokrywana szarym tłem, wskazując wadliwy termometr oraz czas od ostatniej aktualizacji jego wartości:
 >
 > ![safety mode](images/safety-mode-icon.png).
