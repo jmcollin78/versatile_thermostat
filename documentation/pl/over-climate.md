@@ -100,7 +100,7 @@ Funkcje wymagające konfiguracji dla tego typu termostatu to:
 
 ## Śledzenie zmian temperatury bazowej
 
-Niektórzy użytkownicy chcą nadal korzystać ze swojego urządzenia, jak dotychczas (bez _VTherm_). Na przykład, mogą chcieć użyć pilota do _PAC_ lub obrócić pokrętło w _TRV_.
+Niektórzy użytkownicy chcą nadal korzystać ze swojego urządzenia, jak dotychczas (bez _VTherm_). Na przykład, mogą chcieć użyć przewodu sterującego z diodą do _PAC_ lub obrócić pokrętło w _TRV_.
 W takim przypadku do urządzenia _VTherm_ dodano sensor "Śledzenie zmiany temperatury bazowej”:
 
 ![Track temperature changes](images/entity-follow-under-temp-change.png)
