@@ -23,6 +23,11 @@ Instalacja powinna wyglądać następująco:
 4. Encja `climate` steruje urządzeniem za pomocą własnego protokołu.
 5. W zależności od wybranych opcji regulacji termostat może bezpośrednio sterować otwarciem zaworu termostatycznego lub kalibrować urządzenie tak, aby jego wewnętrzna temperatura odzwierciedlała temperaturę w pomieszczeniu.
 
+![image](images/over-climate-diagram.png)
+
+
+Diagram pokazuje, że _VTherm_ działa w cyklu zamkniętym: **ustawienie → pomiar → obliczenia → sterowanie → korekta**. Dzięki temu system może utrzymywać stabilną temperaturę w pomieszczeniu, unikając przegrzewania lub wychładzania.
+
 ## Konfiguracja
 
 W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherms_ (patrz: [główne ustawienia](base-attributes.md)).
