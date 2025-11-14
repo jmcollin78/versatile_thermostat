@@ -5,7 +5,7 @@
 - [Sensory](#sensors)
 - [Akcje (Usługi)](#actions-services)
   - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
-  - [Modykacja wstępnych ustawień temperatury](#modify-the-preset-temperature)
+  - [Modykacja presetów temperatury](#modify-the-preset-temperature)
   - [Modify ustawień bezpieczeństwa](#modify-security-settings)
   - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
 - [Zdarzenia](#events)
@@ -54,8 +54,8 @@
 | ``motion_sensor_entity_id``               | Identyfikator encji sensora ruchu                           | X             | X                   | X            | -                       |
 | ``motion_delay``                          | Zwłoka początku detekcji ruchu (w sek.)                     | X             | X                   | X            | -                       |
 | ``motion_off_delay``                      | Zwłoka końca detekcji ruchu (w sek.)                        | X             | X                   | X            | X                       |
-| ``motion_preset``                         | Ustawienie wstępne po wykryciu początku ruchu               | X             | X                   | X            | X                       |
-| ``no_motion_preset``                      | Ustawienie wstępne po wykryciu końca ruchu                  | X             | X                   | X            | X                       |
+| ``motion_preset``                         | Preset po wykryciu początku ruchu                           | X             | X                   | X            | X                       |
+| ``no_motion_preset``                      | Preset po wykryciu końca ruchu                              | X             | X                   | X            | X                       |
 | ``power_sensor_entity_id``                | Identyfikator encji sensora mocy                            | X             | X                   | X            | X                       |
 | ``max_power_sensor_entity_id``            | Identyfikator encji sensora mocy maksymalnej                | X             | X                   | X            | X                       |
 | ``power_temp``                            | Temperatura podczar redukcji mocy                           | X             | X                   | X            | X                       |
@@ -138,8 +138,8 @@ cible:
     entity_id : climate.my_thermostat
 ```
 
-## Modyfikacja wstępnych ustawień temperatury
-Ta usługa jest przydatna, jeśli chcesz dynamicznie zmieniać temperaturę w ustawieniu wstępnym. Zamiast przełączać ustawienia, w niektórych przypadkach konieczne jest modyfikowanie temperatury w samym ustawieniu. Dzięki temu możesz pozostawić harmonogram bez zmian, aby zarządzał ustawieniem wstępnym, jednocześnie dostosowując jego temperaturę. Jeśli zmodyfikowane ustawienie jest aktualnie wybrane, zmiana temperatury docelowej następuje natychmiast i zostanie uwzględniona w następnym cyklu obliczeniowym.
+## Modyfikacja presetów temperatury
+Ta usługa jest przydatna, jeśli chcesz dynamicznie zmieniać temperaturę w presecie. Zamiast przełączać ustawienia, w niektórych przypadkach konieczne jest modyfikowanie temperatury w samym ustawieniu. Dzięki temu możesz pozostawić harmonogram bez zmian, aby zarządzał presetem, jednocześnie dostosowując jego temperaturę. Jeśli zmodyfikowane ustawienie jest aktualnie wybrane, zmiana temperatury docelowej następuje natychmiast i zostanie uwzględniona w następnym cyklu obliczeniowym.
 
 Możesz zmodyfikować jedną lub obie temperatury (dla obecności lub nieobecności) każdego z ustawień.
 
@@ -167,7 +167,7 @@ target:
 
 > ![Tip](images/tips.png) _*Wskazówki*_
 >
->    - Po ponownym uruchomieniu ustawienia wstępne zostaną zresetowane do skonfigurowanej temperatury. Aby zmiana była trwała, należy zmodyfikować ustawienia wstępne w konfiguracji integracji.
+>    - Po ponownym uruchomieniu presety zostaną zresetowane do skonfigurowanej temperatury. Aby zmiana była trwała, należy zmodyfikować presety w konfiguracji integracji.
 
 ## Modyfikacja ustawień bezpieczeństwa
 Usługa ta umożliwia dynamiczną modyfikację ustawień bezpieczeństwa, opisanych tutaj: [Zaawansowana konfiguracja](#advanced-configuration).
@@ -205,7 +205,7 @@ Powiadomienia dotyczą następujących zdarzeń:
 - ``versatile_thermostat_power_event``: termostat wchodzi lub wychodzi z ustawień `moc`
 - ``versatile_thermostat_temperature_event``: co najmniej jeden z pomiarów temperatury termostatu nie został zaktualizowany przez ponad `safety_delay_min` minut.
 - ``versatile_thermostat_hvac_mode_event``: termostat jest włączany lub wyłączany. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
-- ``versatile_thermostat_preset_event``: w termostacie wybrano nowe ustawienie wstępne. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
+- ``versatile_thermostat_preset_event``: w termostacie wybrano nowy preset. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
 - ``versatile_thermostat_central_boiler_event``: zdarzenie zmiany stanu kotła
 - ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia wykonane przez funkcję autoSTART/autoSTOP
 
@@ -230,13 +230,13 @@ Atrybuty własne są nastepujace:
 | ``hvac_modes``                    | Lista trybów obsługiwanych przez termostat                                                                                          |
 | ``temp_min``                      | Temperatura minimana                                                                                                                |
 | ``temp_max``                      | Temperatura maksymalna                                                                                                              |
-| ``preset_modes``                  | Ustawienia wstępne widoczne dla tego termostatu. Ukryte ustawienia nie są tu wyświetlane                                            |
+| ``preset_modes``                  | Preset widoczny dla tego termostatu. Ukryte ustawienia nie są tu wyświetlane.                                                       |
 | ``temperature_actuelle``          | Aktualna temperatura raportowana przez czujnik                                                                                      |
 | ``temperature``                   | Temperatura docelowa                                                                                                                |
 | ``action_hvac``                   | Akcja aktualnie wykonywana przez grzejnik. Może być `idle` lub `heating`.                                                           |
-| ``preset_mode``                   | Aktualnie wybrane ustawienie wstępne. Może być jednym z `preset_modes` lub ukrytym ustawieniem wstępnym, np. `moc`                  |
-| ``[eco/confort/boost]_temp``      | Temperatura skonfigurowana dla ustawienia wstępnego `xxx`                                                                           |
-| ``[eco/confort/boost]_away_temp`` | Temperatura skonfigurowana dla ustawienia wstępnego `xxx`, gdy `obrcność` jest wyłączona lub jest `not_home`.                       |
+| ``preset_mode``                   | Aktualnie wybrany preset. Może być jednym z `preset_modes` lub ukrytym presetem, np. `moc`                                          |
+| ``[eco/confort/boost]_temp``      | Temperatura skonfigurowana dla presetu `xxx`                                                                                        |
+| ``[eco/confort/boost]_away_temp`` | Temperatura skonfigurowana dla presetu `xxx`, gdy `obecność` jest wyłączona lub ma wartość `not_home`.                              |
 | ``temp_power``                    | Temperatura używana podczas wykrywania utraty sygnału                                                                               |
 | ``on_percent``                    | Obliczony procent włączenia przez algorytm TPI                                                                                      |
 | ``on_time_sec``                   | Okres załączenia (w sek.). Powinien wynosić ```on_percent * cycle_min```                                                            |
@@ -245,7 +245,7 @@ Atrybuty własne są nastepujace:
 | ``function``                      | Algorytm używany do obliczeń cyklu                                                                                                  |
 | ``tpi_coef_int``                  | Wartość `współczynnika delty dla temperatury wewnętrznej` algorytmu TPI                                                             |
 | ``tpi_coef_ext``                  | Wartość `współczynnika delty dla temperatury zewnętrznej` algorytmu TPI                                                             |
-| ``saved_preset_mode``             | Ostatnio użyte ustawienie wstępne przed automatycznym przełączeniem                                                                 |
+| ``saved_preset_mode``             | Ostatnio użyty preset przed automatycznym przełączeniem                                                                             |
 | ``saved_target_temp``             | Ostatnia temperatura użyta przed automatycznym przełączeniem                                                                        |
 | ``window_state``                  | Ostatni znany stan czujnika okna. `Brak`, jeśli czujnik nie jest skonfigurowany                                                     |
 | ``is_window_bypass``              | `True`, jeśli pomijanie detekcji otwartego okna jest załączone                                                                      |
