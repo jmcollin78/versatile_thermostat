@@ -30,8 +30,21 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Zámek",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zámku",
+        "description": "Funkce zámku brání změnám v konfiguraci termostatu z uživatelského rozhraní nebo automatizací, zatímco termostat zůstává funkční.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zámku",
+          "lock_users": "Zámek zabrání příkazům od uživatelů",
+          "lock_automations": "Zámek zabrání příkazům z automatizací a integrací (např. plánovače)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zámku. Odškrtněte pro použití specifické konfigurace zámku pro tento VTherm"
         }
       },
       "main": {
@@ -286,8 +299,21 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Zámek",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zámku - {name}",
+        "description": "Funkce zámku brání změnám v konfiguraci termostatu z uživatelského rozhraní nebo automatizací, zatímco termostat zůstává funkční.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zámku",
+          "lock_users": "Zámek zabrání příkazům od uživatelů",
+          "lock_automations": "Zámek zabrání příkazům z automatizací a integrací (např. plánovače)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zámku. Odškrtněte pro použití specifické konfigurace zámku pro tento VTherm"
         }
       },
       "main": {

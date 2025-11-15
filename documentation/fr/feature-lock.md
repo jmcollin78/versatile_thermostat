@@ -1,12 +1,21 @@
-# Fonction de verrouillage
+# Fonctionnalité de Verrouillage
 
-## Vue d'ensemble
+## Aperçu
 
-La fonction de verrouillage empêche toute modification de la configuration d'un thermostat depuis l'interface utilisateur ou via des automatisations, tout en laissant le thermostat pleinement opérationnel.
+La fonctionnalité de verrouillage empêche les modifications de la configuration d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.
+
+## Configuration
+
+La fonctionnalité de verrouillage est configurée dans les paramètres du thermostat, sous la section "Verrouillage". Vous pouvez choisir de bloquer :
+
+- **Utilisateurs**: Empêche les modifications depuis l'interface utilisateur de Home Assistant.
+- **Automatisations & intégrations**: Empêche les modifications depuis les automatisations, les scripts et autres intégrations.
+
+Vous pouvez également choisir d'utiliser une configuration centrale pour les paramètres de verrouillage.
 
 ## Utilisation
 
-Utilisez les services suivants pour contrôler l'état de verrouillage :
+Utilisez ces services pour contrôler l'état de verrouillage :
 
 - `versatile_thermostat.lock` - Verrouille le thermostat
 - `versatile_thermostat.unlock` - Déverrouille le thermostat
@@ -19,39 +28,43 @@ target:
   entity_id: climate.my_thermostat
 ```
 
-## État de verrouillage
+## État de Verrouillage
 
 L'état de verrouillage est :
 
-- Visible dans l'attribut `is_locked` de l'entité climate
-- Conservé lors des redémarrages de Home Assistant
-- Propre à chaque thermostat (chaque thermostat possède son propre verrouillage)
+- Visible dans les attributs `is_locked`, `lock_users` et `lock_automations` de l'entité climat.
+- Conservé lors des redémarrages de Home Assistant.
+- Spécifique à chaque thermostat (chaque thermostat a son propre verrou).
 
-## Lorsque le thermostat est verrouillé
+## Lorsque Verrouillé
 
-**Bloqué (depuis l'UI / automatisations / appels externes) :**
+**Bloqué (depuis l'interface utilisateur / automatisations / appels externes):**
 
-- Changement de mode HVAC (y compris marche/arrêt)
-- Modification de la température de consigne
-- Changement de préréglage et services VTherm de configuration des préréglages
-- Changement d'état de présence via les services VTherm
-- Modification de la configuration de sécurité via les services VTherm
-- Contournement de la détection de fenêtre (window bypass) via les services VTherm
-- Modes ventilation / oscillation lorsque exposés par VTherm
+- Changements de mode CVC (y compris marche/arrêt)
+- Changements de température cible
+- Changements de préréglages et services de configuration des préréglages VTherm
+- Changements d'état de présence via les services VTherm
+- Changements de configuration de sécurité via les services VTherm
+- Changements de dérogation de fenêtre via les services VTherm
+- Modes ventilateur/balancement/ventilation lorsqu'ils sont exposés par VTherm
 
-**Autorisé (logique interne VTherm, toujours active) :**
+**Autorisé (logique interne VTherm, toujours active):**
 
-- Détection de fenêtre ouverte et actions associées (arrêt, température éco/gel, mode ventilation seul, restauration à la fermeture)
-- Protections de sécurité (surchauffe, hors-gel, préréglages de sécurité)
-- Gestion de puissance / délestage et comportements liés au mode puissance
-- Algorithmes automatiques de régulation (TPI / PI / PROP) et boucle de contrôle
-- Coordination centrale / parent / enfant et autres automatismes internes VTherm
+- Détection et actions de fenêtre (arrêt ou éco/hors-gel à l'ouverture, ventilateur seul si applicable, restauration du comportement à la fermeture)
+- Protections de sécurité (par ex. préréglages de sécurité surchauffe / hors-gel, gestion de la sécurité marche/arrêt)
+- Gestion de la puissance et de la surpuissance (y compris le comportement de `PRESET_POWER`)
+- Algorithmes de régulation automatique (TPI / PI / PROP) et boucle de contrôle
+- Coordination centrale/parent/enfant et autres automatisations internes de VTherm
 
 **Garantie de comportement :**
 
-- Les actions liées aux fenêtres (par exemple arrêt à l'ouverture, restauration à la fermeture) fonctionnent même lorsque le thermostat est verrouillé.
+- Les actions de fenêtre (par exemple : arrêt à l'ouverture, restauration à la fermeture) fonctionnent même lorsque le thermostat est verrouillé.
 
-## Cas d'usage
+**Note d'implémentation :**
 
-- Empêcher toute modification accidentelle pendant des périodes critiques
-- Fonctionnalité de verrouillage enfant
+- Le verrouillage est appliqué sur les appels externes, tandis que VTherm utilise le contexte de Home Assistant en interne pour que ses propres fonctionnalités puissent toujours ajuster le thermostat lorsqu'il est verrouillé.
+
+## Cas d'utilisation
+
+- Prévenir les modifications accidentelles pendant les périodes critiques
+- Fonctionnalité de verrouillage parental

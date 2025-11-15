@@ -4,6 +4,15 @@
 
 The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.
 
+## Configuration
+
+The Lock feature is configured in the thermostat's settings, under the "Lock" section. You can choose to lock out:
+
+- **Users**: Prevents changes from the Home Assistant UI.
+- **Automations & integrations**: Prevents changes from automations, scripts, and other integrations  like scheduler.
+
+You can also choose to use a central configuration for the lock settings.
+
 ## Usage
 
 Use these services to control the lock state:
@@ -23,7 +32,7 @@ target:
 
 The lock state is:
 
-- Visible in the `is_locked` attribute of the climate entity
+- Visible in the `is_locked`, `lock_users`, and `lock_automations` attributes of the climate entity
 - Preserved across Home Assistant restarts
 - Per-thermostat (each thermostat has its own lock)
 

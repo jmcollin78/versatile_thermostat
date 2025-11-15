@@ -2,13 +2,22 @@
 
 ## Přehled
 
-Funkce zámku zabraňuje změnám konfigurace termostatu z uživatelského rozhraní nebo z automatizací, přičemž termostat zůstává plně funkční.
+Funkce Zámek brání změnám v konfiguraci termostatu z uživatelského rozhraní nebo automatizací a zároveň udržuje termostat v provozu.
+
+## Konfigurace
+
+Funkce Zámek se konfiguruje v nastavení termostatu v části "Zámek". Můžete si vybrat, zda chcete uzamknout:
+
+- **Uživatelé**: Zabraňuje změnám z uživatelského rozhraní Home Assistant.
+- **Automatizace a integrace**: Zabraňuje změnám z automatizací, skriptů a dalších integrací.
+
+Můžete si také vybrat použití centrální konfigurace pro nastavení zámku.
 
 ## Použití
 
-Pro ovládání stavu zámku použijte následující služby:
+Pro ovládání stavu zámku použijte tyto služby:
 
-- `versatile_thermostat.lock` - Uzamkne termostat
+- `versatile_thermostat.lock` - Zamkne termostat
 - `versatile_thermostat.unlock` - Odemkne termostat
 
 Příklad automatizace:
@@ -23,29 +32,39 @@ target:
 
 Stav zámku je:
 
-- Viditelný v atributu `is_locked` entity `climate`
-- Zachován při restartech Home Assistanta
-- Vztahuje se na každý termostat zvlášť (každý termostat má svůj vlastní zámek)
+- Viditelný v atributech `is_locked`, `lock_users` a `lock_automations` klimatizační entity
+- Zachován při restartu Home Assistant
+- Pro každý termostat zvlášť (každý termostat má svůj vlastní zámek)
 
-## Když je termostat uzamčen
+## Při zamčení
 
-**Blokované operace:**
+**Blokováno (z UI / automatizací / externích volání):**
 
-- Změna režimu HVAC (topení / chlazení / vypnuto)
-- Zapnutí / vypnutí
-- Změna cílové teploty
-- Změna předvoleb (presetů)
-- Změna režimu ventilátoru a větrání
-- Služby specifické pro VTherm (přítomnost, teplota presetů, bezpečnost, obejití detekce okna)
+- Změny režimu HVAC (včetně zapnutí/vypnutí)
+- Změny cílové teploty
+- Změny předvoleb a konfigurační služby předvoleb VTherm
+- Změny stavu přítomnosti prostřednictvím služeb VTherm
+- Změny konfigurace zabezpečení prostřednictvím služeb VTherm
+- Změny bypassu okna prostřednictvím služeb VTherm
+- Režimy ventilátoru/otáčení/ventilace, pokud jsou vystaveny VTherm
 
-**Nadále funguje:**
+**Povoleno (interní logika VTherm, vždy aktivní):**
 
-- Regulace teploty a řídicí smyčka
-- Bezpečnostní funkce (ochrana proti přehřátí, bezpečnostní režim)
-- Automatické funkce (detekce otevřeného okna, detekce pohybu, správa výkonu)
-- Aktualizace a měření ze senzorů
+- Detekce a akce oken (vypnutí nebo eco/protimrazová ochrana při otevření, pouze ventilátor, pokud je to možné, obnovení chování při zavření)
+- Ochrany zabezpečení (např. předvolby zabezpečení proti přehřátí / mrazu, správa zapnutí/vypnutí zabezpečení)
+- Správa napájení a přetížení (včetně chování `PRESET_POWER`)
+- Automatické regulační algoritmy (TPI / PI / PROP) a regulační smyčka
+- Koordinace centrální/rodič/dítě a další interní automatizace VTherm
 
-## Příklady použití
+**Záruka chování:**
+
+- Akce oken (například: vypnutí při otevření, obnovení při zavření) fungují i při zamčeném termostatu.
+
+**Poznámka k implementaci:**
+
+- Zámek je vynucen na externích voláních, zatímco VTherm interně používá kontext Home Assistant, aby jeho vlastní funkce mohly stále upravovat termostat i při zamčení.
+
+## Případy použití
 
 - Zabránění náhodným změnám během kritických období
-- Dětský zámek pro zabránění nechtěným úpravám
+- Funkce dětského zámku

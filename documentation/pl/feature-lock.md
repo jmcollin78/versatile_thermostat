@@ -1,61 +1,70 @@
-# Funkcja blokady (Lock)
+# Funkcja blokady
 
 ## Przegląd
 
-- Funkcja blokady uniemożliwia zewnętrzne zmiany konfiguracji termostatu (interfejs UI, automatyzacje, sceny, integracje zewnętrzne), przy zachowaniu pełnego działania wewnętrznej logiki VTherm.
-- Stan blokady jest dostępny jako atrybut `is_locked` encji climate.
-- Blokada jest konfigurowana per-termometr i jej stan jest zachowywany pomiędzy restartami Home Assistant.
+Funkcja blokady zapobiega zmianom w konfiguracji termostatu z interfejsu użytkownika lub automatyzacji, utrzymując jednocześnie termostat w stanie gotowości do pracy.
 
-## Sterowanie
+## Konfiguracja
 
-Użyj poniższych usług do sterowania blokadą:
+Funkcja blokady jest konfigurowana w ustawieniach termostatu, w sekcji "Blokada". Możesz zablokować:
 
-- `versatile_thermostat.lock` – włącza blokadę termostatu.
-- `versatile_thermostat.unlock` – wyłącza blokadę termostatu.
+- **Użytkownicy**: Zapobiega zmianom w interfejsie użytkownika Home Assistant.
+- **Automatyzacje i integracje**: Zapobiega zmianom w automatyzacjach, skryptach i innych integracjach.
+
+Możesz również użyć centralnej konfiguracji dla ustawień blokady.
+
+## Użycie
+
+Użyj tych usług, aby kontrolować stan blokady:
+
+- `versatile_thermostat.lock` - Blokuje termostat
+- `versatile_thermostat.unlock` - Odblokowuje termostat
 
 Przykład automatyzacji:
 
 ```yaml
 service: versatile_thermostat.lock
 target:
-  entity_id: climate.moj_termostat
+  entity_id: climate.my_thermostat
 ```
 
 ## Stan blokady
 
-- Aktualny stan blokady jest widoczny w atrybucie `is_locked` encji climate.
-- Stan blokady jest trwały (zachowywany przy restarcie).
-- Każdy termostat posiada własną, niezależną blokadę.
+Stan blokady jest:
 
-## Co jest blokowane, gdy termostat jest zablokowany
+- Widoczny w atrybutach `is_locked`, `lock_users` i `lock_automations` encji klimatyzacji
+- Zachowywany po ponownym uruchomieniu Home Assistant
+- Indywidualny dla każdego termostatu (każdy termostat ma swoją własną blokadę)
 
-Zewnętrzne wywołania (np. z UI, automatyzacji, scen, integracji) nie mogą:
+## Po zablokowaniu
 
-- Zmieniać trybu HVAC (w tym włączać/wyłączać).
-- Zmieniać temperatury zadanej.
-- Zmieniać trybu nastawy (preset) ani używać usług konfiguracji presetów VTherm.
-- Zmieniać stanu obecności przy użyciu usług VTherm.
-- Zmieniać konfiguracji bezpieczeństwa przy użyciu usług VTherm.
-- Zmieniać ustawienia pominięcia detekcji okna (window bypass) przy użyciu usług VTherm.
-- Zmieniać trybów wentylatora/oscylacji, jeżeli są dostępne poprzez VTherm.
+**Zablokowane (z interfejsu użytkownika / automatyzacji / wywołań zewnętrznych):**
 
-Ograniczenia dotyczą wyłącznie zewnętrznych wywołań; mechanizmy wewnętrzne VTherm pozostają aktywne.
+- Zmiany trybu HVAC (w tym włączanie/wyłączanie)
+- Zmiany temperatury docelowej
+- Zmiany ustawień wstępnych i usług konfiguracji ustawień wstępnych VTherm
+- Zmiany stanu obecności za pośrednictwem usług VTherm
+- Zmiany konfiguracji bezpieczeństwa za pośrednictwem usług VTherm
+- Zmiany obejścia okna za pośrednictwem usług VTherm
+- Tryby wentylatora/obracania/wentylacji, gdy są udostępniane przez VTherm
 
-## Co pozostaje aktywne przy włączonej blokadzie
+**Dozwolone (wewnętrzna logika VTherm, zawsze aktywna):**
 
-Nawet przy aktywnej blokadzie działają w pełni wewnętrzne mechanizmy VTherm, w szczególności:
+- Wykrywanie i działania okien (wyłączanie lub tryb eco/mróz przy otwarciu, tylko wentylator, jeśli dotyczy, przywracanie zachowania po zamknięciu)
+- Zabezpieczenia (np. ustawienia wstępne zabezpieczające przed przegrzaniem / mrozem, obsługa włączania/wyłączania zabezpieczeń)
+- Zarządzanie mocą i przeciążeniem (w tym zachowanie `PRESET_POWER`)
+- Automatyczne algorytmy regulacji (TPI / PI / PROP) i pętla sterowania
+- Koordynacja centralna/nadrzędna/podrzędna i inne wewnętrzne automatyzacje VTherm
 
-- Detekcja okna i powiązane akcje:
-  - wyłączenie na otwarcie okna,
-  - obniżenie do trybu eco/frost,
-  - przełączenie na tryb „fan only” (jeśli dostępny),
-  - przywrócenie poprzedniego stanu po zamknięciu okna.
-- Mechanizmy bezpieczeństwa (np. ochrona przed przegrzaniem, tryby bezpieczeństwa).
-- Zarządzanie mocą i ograniczanie przeciążenia (w tym zachowanie powiązane z PRESET_POWER).
-- Automatyczne algorytmy regulacji (TPI / PI / PROP) oraz wewnętrzna pętla sterowania.
-- Centralna koordynacja, tryby nadrzędne/podrzędne i współpraca wielu termostatów realizowana przez VTherm.
+**Gwarancja zachowania:**
 
-## Uwagi dotyczące zachowania
+- Działania okien (na przykład: wyłączanie przy otwarciu, przywracanie po zamknięciu) działają nawet przy zablokowanym termostacie.
 
-- Blokada dotyczy wyłącznie zewnętrznych zmian; wewnętrzne działania VTherm są wykonywane niezależnie od stanu blokady.
-- Akcje związane z detekcją okna (np. wyłączenie przy otwarciu, przywrócenie po zamknięciu) działają poprawnie również wtedy, gdy termostat jest zablokowany.
+**Uwaga dotycząca implementacji:**
+
+- Blokada jest egzekwowana przy wywołaniach zewnętrznych, podczas gdy VTherm wewnętrznie używa kontekstu Home Assistant, aby jego własne funkcje mogły nadal dostosowywać termostat, gdy jest zablokowany.
+
+## Przypadki użycia
+
+- Zapobieganie przypadkowym zmianom w okresach krytycznych
+- Funkcja blokady rodzicielskiej

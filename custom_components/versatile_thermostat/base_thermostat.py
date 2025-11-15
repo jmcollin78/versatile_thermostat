@@ -179,6 +179,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._last_central_mode = None
         self._is_used_by_central_boiler = False
         self._is_locked: bool = False
+        self._lock_users: bool = True
+        self._lock_automations: bool = True
 
         self._support_flags = None
         # Preset will be initialized from Number entities
@@ -256,6 +258,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             if cfg.get(CONF_USE_ADVANCED_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_ADVANCED_DATA_SCHEMA)
+
+            if cfg.get(CONF_USE_LOCK_CENTRAL_CONFIG) is True:
+                clean_one(cfg, STEP_CENTRAL_LOCK_DATA_SCHEMA)
 
             # take all central config
             entry_infos = central_config.data.copy()
@@ -390,6 +395,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._is_used_by_central_boiler = (
             entry_infos.get(CONF_USED_BY_CENTRAL_BOILER) is True
         )
+
+        self._lock_users = entry_infos.get(CONF_LOCK_USERS, True)
+        self._lock_automations = entry_infos.get(CONF_LOCK_AUTOMATIONS, True)
 
         self._max_on_percent = api.max_on_percent
 
@@ -1216,7 +1224,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode):
         """Set new target hvac mode. Uses the HA VThermHvacMode enum to respect the original type."""
         context = getattr(self, "_context", None)
-        decision = LockPolicy.decide(self._is_locked, OP_SET_HVAC_MODE, context)
+        decision = LockPolicy.decide(
+            self._is_locked,
+            self._lock_users,
+            self._lock_automations,
+            OP_SET_HVAC_MODE,
+            context,
+        )
         if decision is LockDecision.DENY_LOG:
             log_blocked(_LOGGER, self.entity_id, OP_SET_HVAC_MODE, context)
             return
@@ -1233,7 +1247,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_preset_mode(self, preset_mode: str):
         """Set new preset mode."""
         context = getattr(self, "_context", None)
-        decision = LockPolicy.decide(self._is_locked, OP_SET_PRESET_MODE, context)
+        decision = LockPolicy.decide(
+            self._is_locked,
+            self._lock_users,
+            self._lock_automations,
+            OP_SET_PRESET_MODE,
+            context,
+        )
         if decision is LockDecision.DENY_LOG:
             log_blocked(_LOGGER, self.entity_id, OP_SET_PRESET_MODE, context)
             return
@@ -1294,7 +1314,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_temperature(self, **kwargs):
         """Set new requested target temperature and turn off any active presets."""
         context = getattr(self, "_context", None)
-        decision = LockPolicy.decide(self._is_locked, OP_SET_TEMPERATURE, context)
+        decision = LockPolicy.decide(
+            self._is_locked,
+            self._lock_users,
+            self._lock_automations,
+            OP_SET_TEMPERATURE,
+            context,
+        )
         if decision is LockDecision.DENY_LOG:
             log_blocked(_LOGGER, self.entity_id, OP_SET_TEMPERATURE, context)
             return
@@ -1596,6 +1622,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "messages": messages,
                 "is_sleeping": self.is_sleeping,
                 "is_locked": self._is_locked,
+                "lock_users": self._lock_users,
+                "lock_automations": self._lock_automations,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
             },
             "configuration": {
@@ -1799,7 +1827,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             entity_id: climate.thermostat_1
         """
         context = getattr(self, "_context", None)
-        decision = LockPolicy.decide(self._is_locked, OP_SERVICE_SET_PRESENCE, context)
+        decision = LockPolicy.decide(
+            self._is_locked,
+            self._lock_users,
+            self._lock_automations,
+            OP_SERVICE_SET_PRESENCE,
+            context,
+        )
         if decision is LockDecision.DENY_LOG:
             log_blocked(_LOGGER, self.entity_id, OP_SERVICE_SET_PRESENCE, context)
             return
@@ -1825,6 +1859,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         context = getattr(self, "_context", None)
         decision = LockPolicy.decide(
             self._is_locked,
+            self._lock_users,
+            self._lock_automations,
             OP_SERVICE_SET_PRESET_TEMPERATURE,
             context,
         )
@@ -1876,6 +1912,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         context = getattr(self, "_context", None)
         decision = LockPolicy.decide(
             self._is_locked,
+            self._lock_users,
+            self._lock_automations,
             OP_SERVICE_SET_SAFETY,
             context,
         )
@@ -1916,6 +1954,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         context = getattr(self, "_context", None)
         decision = LockPolicy.decide(
             self._is_locked,
+            self._lock_users,
+            self._lock_automations,
             OP_SERVICE_SET_WINDOW_BYPASS,
             context,
         )
@@ -1941,6 +1981,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         context = getattr(self, "_context", None)
         decision = LockPolicy.decide(
             self._is_locked,
+            self._lock_users,
+            self._lock_automations,
             OP_SERVICE_SET_HVAC_MODE_SLEEP,
             context,
         )

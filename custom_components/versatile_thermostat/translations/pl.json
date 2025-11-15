@@ -29,8 +29,21 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "lock": "Blokada",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
+        }
+      },
+      "lock": {
+        "title": "Zarządzanie blokadą",
+        "description": "Funkcja blokady zapobiega zmianom w konfiguracji termostatu z interfejsu użytkownika lub automatyzacji, utrzymując jednocześnie termostat w stanie gotowości do pracy.",
+        "data": {
+          "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+          "lock_users": "Blokada uniemożliwi wydawanie poleceń przez użytkowników",
+          "lock_automations": "Blokada uniemożliwi wydawanie poleceń z automatyzacji i integracji (np. harmonogramu)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu"
         }
       },
       "main": {
@@ -288,8 +301,21 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "lock": "Blokada",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
+        }
+      },
+      "lock": {
+        "title": "Zarządzanie blokadą - {name}",
+        "description": "Funkcja blokady zapobiega zmianom w konfiguracji termostatu z interfejsu użytkownika lub automatyzacji, utrzymując jednocześnie termostat w stanie gotowości do pracy.",
+        "data": {
+          "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+          "lock_users": "Blokada uniemożliwi wydawanie poleceń przez użytkowników",
+          "lock_automations": "Blokada uniemożliwi wydawanie poleceń z automatyzacji i integracji (np. harmonogramu)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu"
         }
       },
       "main": {

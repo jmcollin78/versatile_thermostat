@@ -92,7 +92,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 17. [Zaawansowane ustawienia, tryb bezpieczeństwa](documentation/pl/feature-advanced.md)
 18. [Samoregulacja](documentation/pl/self-regulation.md)
 19. [Algorytmy](documentation/pl/algorithms.md)
-21. [Funkcja blokady](documentation/pl/feature-lock.md)
+20. [Funkcja blokady](documentation/pl/feature-lock.md)
 21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
 22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
 23. [Usuwanie usterek](documentation/pl/troubleshooting.md)

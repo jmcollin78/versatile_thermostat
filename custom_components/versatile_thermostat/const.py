@@ -126,6 +126,9 @@ CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 
+CONF_LOCK_USERS = "lock_users"
+CONF_LOCK_AUTOMATIONS = "lock_automations"
+ 
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
@@ -156,6 +159,7 @@ CONF_USE_POWER_CENTRAL_CONFIG = "use_power_central_config"
 CONF_USE_PRESENCE_CENTRAL_CONFIG = "use_presence_central_config"
 CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
 CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
+CONF_USE_LOCK_CENTRAL_CONFIG = "use_lock_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
 

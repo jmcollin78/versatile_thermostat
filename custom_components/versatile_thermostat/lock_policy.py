@@ -167,7 +167,13 @@ class LockPolicy:
     }
 
     @staticmethod
-    def decide(is_locked: bool, operation: str, context: Optional[Context]) -> LockDecision:
+    def decide(
+        is_locked: bool,
+        lock_users: bool,
+        lock_automations: bool,
+        operation: str,
+        context: Optional[Context],
+    ) -> LockDecision:
         """Decide whether an operation is allowed based on lock state and context."""
 
         # Not locked: always allow
@@ -187,14 +193,30 @@ class LockPolicy:
 
         # External or unknown while locked
         if operation in LockPolicy.PROTECTED_OPERATIONS:
-            return LockDecision.DENY_LOG
+            # Deny if the source is a user and user lock is enabled
+            if lock_users and context and context.user_id:
+                return LockDecision.DENY_LOG
+            # Deny if the source is an automation and automation lock is enabled
+            if lock_automations and (not context or not context.user_id):
+                return LockDecision.DENY_LOG
 
         return LockDecision.ALLOW
 
     @staticmethod
-    def should_allow(is_locked: bool, operation: str, context: Optional[Context]) -> bool:
+    def should_allow(
+        is_locked: bool,
+        lock_users: bool,
+        lock_automations: bool,
+        operation: str,
+        context: Optional[Context],
+    ) -> bool:
         """Return True if the operation should be executed."""
-        return LockPolicy.decide(is_locked, operation, context) == LockDecision.ALLOW
+        return (
+            LockPolicy.decide(
+                is_locked, lock_users, lock_automations, operation, context
+            )
+            == LockDecision.ALLOW
+        )
 
 
 # ---------------------------------------------------------------------------

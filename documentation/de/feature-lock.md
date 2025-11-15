@@ -1,17 +1,26 @@
 # Sperrfunktion
 
-## Übersicht
+## Überblick
 
-Die Sperrfunktion verhindert Änderungen an der Konfiguration eines Thermostats über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin normal arbeitet.
+Die Sperrfunktion verhindert Änderungen an der Konfiguration eines Thermostats über die Benutzeroberfläche oder Automatisierungen, während der Thermostat betriebsbereit bleibt.
+
+## Konfiguration
+
+Die Sperrfunktion wird in den Thermostateinstellungen im Abschnitt "Sperren" konfiguriert. Sie können Folgendes sperren:
+
+- **Benutzer**: Verhindert Änderungen über die Home Assistant-Benutzeroberfläche.
+- **Automatisierungen & Integrationen**: Verhindert Änderungen durch Automatisierungen, Skripte und andere Integrationen.
+
+Sie können auch eine zentrale Konfiguration für die Sperreinstellungen verwenden.
 
 ## Verwendung
 
-Verwenden Sie die folgenden Dienste, um den Sperrstatus zu steuern:
+Verwenden Sie diese Dienste, um den Sperrzustand zu steuern:
 
 - `versatile_thermostat.lock` - Sperrt den Thermostat
 - `versatile_thermostat.unlock` - Entsperrt den Thermostat
 
-Beispiel für eine Automation:
+Beispiel für eine Automatisierung:
 
 ```yaml
 service: versatile_thermostat.lock
@@ -19,33 +28,43 @@ target:
   entity_id: climate.my_thermostat
 ```
 
-## Sperrstatus
+## Sperrzustand
 
-Der Sperrstatus ist:
+Der Sperrzustand ist:
 
-- Sichtbar im Attribut `is_locked` der `climate`-Entität
-- Über Home Assistant-Neustarts hinweg persistent
-- Pro Thermostat getrennt (jeder Thermostat hat seine eigene Sperre)
+- Sichtbar in den Attributen `is_locked`, `lock_users` und `lock_automations` der Klimaentität
+- Wird bei Neustarts von Home Assistant beibehalten
+- Pro Thermostat (jeder Thermostat hat seine eigene Sperre)
 
-## Wenn der Thermostat gesperrt ist
+## Im gesperrten Zustand
 
-**Blockierte Aktionen:**
+**Blockiert (von UI / Automatisierungen / externen Aufrufen):**
 
-- Ändern des HVAC-Modus (Heizen / Kühlen / Aus)
-- Ein- und Ausschalten
-- Ändern der Solltemperatur
-- Ändern der Presets
-- Ändern von Lüfter- und Belüftungsmodus
-- VTherm-spezifische Dienste (Präsenz, Preset-Temperaturen, Sicherheit, Fenster-Bypass)
+- Änderungen des HLK-Modus (einschließlich Ein/Aus)
+- Änderungen der Ziel-Temperatur
+- Änderungen von Voreinstellungen und VTherm Voreinstellungs-Konfigurationsdiensten
+- Änderungen des Anwesenheitsstatus über VTherm-Dienste
+- Änderungen der Sicherheitskonfiguration über VTherm-Dienste
+- Änderungen der Fensterumgehung über VTherm-Dienste
+- Lüfter-/Schwenk-/Lüftungsmodi, wenn sie von VTherm bereitgestellt werden
 
-**Weiterhin aktiv:**
+**Erlaubt (interne VTherm-Logik, immer aktiv):**
 
-- Temperaturregelung und Regelkreis
-- Sicherheitsfunktionen (Überhitzungsschutz, Sicherheitsmodus)
-- Automatische Funktionen (Fenstererkennung, Bewegungserkennung, Leistungsmanagement)
-- Sensoraktualisierungen und Messwerte
+- Fenstererkennung und -aktionen (Ausschalten oder Eco/Frost bei Öffnen, nur Lüfter, falls zutreffend, Wiederherstellung des Verhaltens bei Schließen)
+- Schutzmaßnahmen (z. B. Überhitzungs- / Frostschutz-Voreinstellungen, Sicherheits-Ein/Aus-Handhabung)
+- Energie- und Überleistungsmanagement (einschließlich des `PRESET_POWER`-Verhaltens)
+- Automatische Regelungsalgorithmen (TPI / PI / PROP) und Regelkreis
+- Zentrale/Eltern/Kind-Koordination und andere interne VTherm-Automatisierungen
+
+**Verhaltensgarantie:**
+
+- Fensteraktionen (z. B. Ausschalten bei Öffnen, Wiederherstellen bei Schließen) funktionieren auch bei gesperrtem Thermostat.
+
+**Implementierungshinweis:**
+
+- Die Sperre wird bei externen Aufrufen erzwungen, während VTherm intern den Home Assistant-Kontext verwendet, damit seine eigenen Funktionen den Thermostat auch im gesperrten Zustand anpassen können.
 
 ## Anwendungsfälle
 
-- Verhindern versehentlicher Änderungen in kritischen Zeiträumen
-- Kindersicherung zum Schutz vor unbeabsichtigten Anpassungen
+- Verhindern von versehentlichen Änderungen während kritischer Perioden
+- Kindersicherung Funktionalität
