@@ -19,16 +19,16 @@
   - [_VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
   - [ _VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`](#vtherm-automatically-switches-to-cooling-or-heating-mode)
   - [Detekcja otwarcia okien nie zapobiega zmianom presetów](#open-window-detection-does-not-prevent-preset-changes)
-    - [Przykład](#example)
+    - [Przykład pozornej niespójności](#example)
 
 
 ## System Heatzy
 
-The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
+System Heatzy jest już natywnie wspierany przez integrację _VTherm_. Zobacz: [Szybki start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
 
-This configuration is kept for reference only.
+Ta konfiguracja jest przechowywana wyłącznie w celach informacyjnych.
 
-Using a Heatzy or Nodon is possible provided you use a virtual switch with this model:
+Użycie Heatzy lub Nodon jest możliwe pod warunkiem użycia wirtualnego przełącznika z tym modelem:
 
 ```yaml
 - platform: template
@@ -56,17 +56,17 @@ Using a Heatzy or Nodon is possible provided you use a virtual switch with this 
         data:
           preset_mode: "eco"
 ```
-Thanks to @gael for this example.
+
 
 ## Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)
 
-The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire).
+System Nodon jest już natywnie wspierany przez integrację _VTherm_. Zobacz: [Szybki start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
 
-This configuration is kept for reference only.
+Ta konfiguracja jest przechowywana wyłącznie w celach informacyjnych.
 
+Podobnie jak w przypadku opisanego powyżej systemu Heatzy, można użyć wirtualnego przełącznika, który zmieni ustawienia grzejnika na podstawie stanu załączenia/wyłączenia termostatu _VTherm_.
 
-As with the Heatzy above, you can use a virtual switch that will change the preset of your radiator based on the VTherm’s on/off state.
-Example:
+Przykład:
 
 ```yaml
 - platform: template
@@ -97,13 +97,13 @@ Example:
           option: eco
 ```
 
-Another more complex example is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+Jeszcze jeden, bardziej złożony przykład znajdziesz [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
 
-## Sytem Netatmo
+## System Netatmo
 
-The system based on Netatmo TRVs does not work well with _VTherm_. You can find a discussion about the specific behavior of Netatmo systems (in French) here: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
+System oparty na termostatach TRV Netatmo nie współpracuje dobrze z _VTherm_. Dyskusję na temat konkretnego działania systemów Netatmo (w języku francuskim) można znaleźć [tutaj](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
 
-However, some users have successfully integrated _VTherm_ with Netatmo by incorporating a virtual switch between _VTherm_ and the Netatmo `climate` entity, as follows:
+Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo w następujący sposób:
 
 ```
 TODO
@@ -112,8 +112,8 @@ TODO
 
 ## Gdy grzeje tylko pierwszy grzejnik
 
-In `over_switch` mode, if multiple radiators are configured for the same VTherm, the heating will be triggered sequentially to smooth out the consumption peaks as much as possible.
-This is completely normal and intentional. It is described here: [For a thermostat of type ```thermostat_over_switch```](over-switch.md#over_switch-type-thermostat)
+W ``termostacie na przełączniku``, jeśli wiele grzejników jest skonfigurowanych dla tego samego termostatu _VTherm_, ogrzewanie będzie uruchamiane sekwencyjnie, aby maksymalnie wygładzić szczyty zużycia.
+Jest to całkowicie normalne i celowe. Opis znajduje się tutaj: [dla termostatu typu ```termostat na przełączniku```](over-switch.md#over_switch-type-thermostat)
 
 ## Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.
 
@@ -129,14 +129,14 @@ Aby rozwiązać ten problem, _VTherm_ został wyposażony w funkcję samoregulac
 
 ## Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym
 
-If you are unable to configure the automatic window open detection function (see [auto](feature-window.md#auto-mode)), you can try modifying the temperature smoothing algorithm parameters.
-Indeed, the automatic window open detection is based on calculating the temperature slope. To avoid artifacts caused by an imprecise temperature sensor, this slope is calculated using a temperature smoothed with an algorithm called Exponential Moving Average (EMA).
-This algorithm has 3 parameters:
-1. `lifecycle_sec`: the duration in seconds considered for smoothing. The higher it is, the smoother the temperature will be, but the detection delay will also increase.
-2. `max_alpha`: if two temperature readings are far apart in time, the second one will carry much more weight. This parameter limits the weight of a reading that comes well after the previous one. This value must be between 0 and 1. The lower it is, the less distant readings are taken into account. The default value is 0.5, meaning that a new temperature reading will never weigh more than half of the moving average.
-3. `precision`: the number of digits after the decimal point retained for calculating the moving average.
+Jeśli nie możesz skonfigurować funkcji automatycznej detekcji otwarcia okna (patrz: [auto](feature-window.md#auto-mode)), możesz spróbować zmodyfikować parametry algorytmu wygładzania temperatury.
+W rzeczywistości automatyczna detekcja otwarcia okna opiera się na obliczaniu nachylenia krzywej temperatury. Aby uniknąć artefaktów spowodowanych przez niedokładny czujnik temperatury, nachylenie to jest obliczane za pomocą temperatury wygładzonej algorytmem o nazwie Średnia Zmienna Wykładnicza (EMA).
+Algorytm ten ma 3 parametry:
+1. `lifecycle_sec`: czas trwania w sekundach uwzględniany przy wygładzaniu. Im wyższy, tym bardziej płynna będzie temperatura, ale wzrośnie również opóźnienie detekcji.
+2. `max_alpha`: jeśli dwa odczyty temperatury są oddalone od siebie w czasie, drugi będzie miał znacznie większą wagę. Ten parametr ogranicza wagę odczytu, który następuje znacznie później, niż poprzedni. Wartość ta musi mieścić się w przedziale od 0 do 1. Im niższa, tym mniej odległe odczyty są brane pod uwagę. Wartość domyślna to 0,5, co oznacza, że ​​nowy odczyt temperatury nigdy nie będzie ważył więcej, niż połowę wartości EMA.
+3. `precision`: liczba cyfr po przecinku uwzględniana przy obliczaniu EMA.
 
-To change these parameters, you need to modify the `configuration.yaml` file and add the following section (the values below are the default values):
+Aby zmienić te parametry, należy zmodyfikować plik `configuration.yaml` i dodać następującą sekcję (poniższe wartości są wartościami domyślnymi):
 
 ```yaml
 versatile_thermostat:
@@ -146,7 +146,7 @@ versatile_thermostat:
     precision: 2
 ```
 
-These parameters are sensitive and quite difficult to adjust. Please only use them if you know what you’re doing and if your temperature readings are not already smoothed.
+Te parametry są wrażliwe i dość trudne do regulacji. Używaj ich tylko wtedy, gdy wiesz, co robisz i jeśli odczyty temperatury nie zostały już wcześniej wygładzone w inny sposób.
 
 ## Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?
 
@@ -201,7 +201,7 @@ Zależy to od przyczyny problemu:
 ## Grupa osób jako sensor obecności
 
 Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w VTherm.
-Rozwiązaniem jest utworzenie szablonu czujnika binarnego za pomocą poniższego kodu.:
+Rozwiązaniem jest utworzenie szablonu czujnika binarnego za pomocą poniższego kodu:
 
 Plik `template.yaml`:
 
@@ -213,7 +213,7 @@ Plik `template.yaml`:
       device_class: occupancy
 ```
 
-W tym przykładzie zwróć uwagę na użycie `input_boolean` o nazwie `force_presence`, która wymusza na czujniku stan `True`, wymuszając w ten sposób na każdym termostacie, który go używa, aktywację detekcji obecności. Można tego użyć na przykład do uruchomienia ogrzewania domu po wyjściu z pracy lub gdy w strefie zdefinoewanej w _Home Assistant_ znajduje się nierozpoznana osoba.
+W tym przykładzie zwróć uwagę na użycie `input_boolean` o nazwie `force_presence`, która wymusza na czujniku stan `True`, wymuszając w ten sposób na każdym termostacie, który go używa, aktywację detekcji obecności. Można tego użyć na przykład do uruchomienia ogrzewania domu po wyjściu z pracy lub gdy w strefie zdefiniewanej w _Home Assistant_ znajduje się nierozpoznana osoba.
 
 Plik `configuration.yaml`:
 
