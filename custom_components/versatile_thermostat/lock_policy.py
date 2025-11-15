@@ -193,8 +193,8 @@ class LockPolicy:
 
         # External or unknown while locked
         if operation in LockPolicy.PROTECTED_OPERATIONS:
-            # Deny if the source is a user and user lock is enabled
-            if lock_users and context and context.user_id:
+            # Deny if the source is a user or unknown and user lock is enabled
+            if lock_users and (context is None or (context and context.user_id)):
                 return LockDecision.DENY_LOG
             # Deny if the source is an automation and automation lock is enabled
             if lock_automations and (not context or not context.user_id):
