@@ -1,6 +1,6 @@
-# Zarządzanie energią - Redukcja obciążenia
+# Zarządzanie energią i redukcja obciążenia
 
-- [Zarządzanie energią - Redukcja obciążenia](#power-management---load-shedding)
+- [Zarządzanie energią i redukcja obciążenia](#power-management---load-shedding)
     - [Przykład użycia:](#example-use-case)
   - [Konfiguracja zarządzania energią](#configuring-power-management)
 
@@ -12,7 +12,7 @@ Zachowanie tej funkcji jest następujące:
 3. Jeśli dostępna jest rezerwa mocy, a część termostatów została odłączona, centralne sterowanie ponownie włączy tyle urządzeń, ile to możliwe, zaczynając od tych najbardziej oddalonych od wartości zadanej (w momencie ich odłączenia).
 4. Gdy termostat się uruchamia, wykonywana jest kontrola, czy zadeklarowana moc jest dostępna. Jeśli nie, termostat zostaje przełączony w tryb ograniczenia (`shed mode`).
 
-**Ostrzeżenie:** To nie jest **funkcja bezpieczeństwa**, lecz mechanizm optymalizacji zużycia energii kosztem pewnego pogorszenia ogrzewania. Nadmierne zużycie energii nadal jest możliwe, w zależności od częstotliwości aktualizacji czujnika zużycia oraz rzeczywistej mocy pobieranej przez urządzenia. Zawsze należy zachować margines bezpieczeństwa.
+**Ostrzeżenie:** To nie jest **funkcja bezpieczna**, lecz mechanizm optymalizacji zużycia energii kosztem pewnego pogorszenia ogrzewania. Nadmierne zużycie energii nadal jest możliwe, w zależności od częstotliwości aktualizacji czujnika zużycia oraz rzeczywistej mocy pobieranej przez urządzenia. Zawsze należy zachować margines bezpieczeństwa.
 
 ### Przykład użycia:
 1. Masz licznik energii elektrycznej ograniczony do 11 kW,
