@@ -1,7 +1,7 @@
 
 # Usuwanie problemów
 
-- [Usuwanie problemów(#troubleshooting)
+- [Usuwanie problemów](#troubleshooting)
   - [System Heatzy](#using-a-heatzy)
   - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
   - [System Netatmo](#using-a-netatmo-system)
