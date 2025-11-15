@@ -4,7 +4,7 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-# Versatile Thermostat - Wszechstronny Termostat
+# Versatile Thermostat (Wszechstronny Termostat)
 
 Ten plik README jest dostępny
 w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](README-de.md) | [Czeski](README-cs.md) | [Polski](README-pl.md)
