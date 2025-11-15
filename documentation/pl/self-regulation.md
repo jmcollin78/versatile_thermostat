@@ -37,7 +37,7 @@ Należy podać:
 
 Algorytm obliczania współczynnika otwierania oparty jest na _TPI_, który opisano [tutaj](algorithms.md). Jest to ten sam algorytm, który jest używany dla `termostatu na przełączniku` i `termostatu na zaworze`.
 
-Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona ustawiona na `100 - współczynnik otwierania`, aby wymusić przejście zaworu w określony stan, w przeciwnym razie zostanie ustawiona na `100`.
+Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona ustawiona na `100 - współczynnik otwierania`, aby wymusić przejście zaworu w określony stan. W przeciwnym razie zostanie ustawiona na `100`.
 
 > ![Warning](images/tips.png) _*Wskazówki*_
 > 1. Od wersji 7.2.2 możliwe jest użycie encji `stopień zamknięcia` zaworu Sonoff TRVZB.
@@ -87,7 +87,7 @@ Dostępne są następujące parametry regulacji:
 
 Podczas dostrajania należy wziąć pod uwagę następujące obserwacje:
 1. `kp * error` zwróci wartość offsetu związaną z _*błędem brutto*_. Ten offset jest wprost proporcjonalny do _*błędu*_ i będzie wynosić zero (`0`) po osiągnięciu celu.
-2. *_Kumulacja błędu*_ pomaga skorygować krzywą stabilizacji, nawet jeśli błąd nadal występuje. Błąd kumuluje się, a offset stopniowo rośnie, co powinno ustabilizować temperaturę wokół celu. Aby uzyskać zauważalny efekt, ten parametr nie powinien być zbyt mały. Średnia wartość to `30`.
+2. _*Kumulacja błędu*_ pomaga skorygować krzywą stabilizacji, nawet jeśli błąd nadal występuje. Błąd kumuluje się, a offset stopniowo rośnie, co powinno ustabilizować temperaturę wokół celu. Aby uzyskać zauważalny efekt, ten parametr nie powinien być zbyt mały. Średnia wartość to `30`.
 3. `ki *accumd_error_threshold` zwróci maksymalny offset związany ze _*skumulowanym błędem*_.
 4. `k_ext` umożliwia natychmiastową (bez czekania na _*skumulowane błędy*_) korektę, gdy temperatura zewnętrzna znacznie różni się od temperatury docelowej. Jeśli stabilizacja jest zbyt wysoka przy dużych różnicach temperatur, ten parametr może być zbyt wysoki. Powinien być regulowany do zera, aby umożliwić pierwszym dwóm offsetom wykonanie pracy.
 
@@ -145,14 +145,14 @@ versatile_thermostat:
         stabilization_threshold: 0.1
         accumulated_error_threshold: 80
 ```
-and of course, configure the auto-regulation mode of the VTherm to Expert mode. All _VTherms_ in **Expert** mode will use the same parameters, it is not possible to have different expert settings.
+Oczywiście należy przestawić tryb samoregulacji termostatu _VTherm_ w _*tryb ekspercki*_. Wszystkie termostaty _VTherm_ w _*trybie eksperckim*_ będą używać **tych samych parametrów**. Nie jest możliwe korzystanie z różnych ustawień eksperckich dla różnych termostatów _VTherm_.
 
-To apply the changes, you must either **restart Home Assistant completely** or just the Versatile Thermostat integration (Developer Tools / YAML / Reload Configuration / Versatile Thermostat).
+Aby zastosować zmiany, należy **całkowicie zrestartować Home Assistant** lub skorzystać tylko z integracji _*Versatile Thermostat*_ (`Narzędzia deweloperskie -> YAML -> Przeładuj konfigurację -> Versatile Thermostat`).
 
 > ![Tip](images/tips.png) _*Notes*_
 >
-> 1. In expert mode, it is rarely necessary to use the option [Compensate the internal temperature of the underlying](over-climate.md#compensate-the-internal-temperature-of-the-underlying). This could result in very high setpoints.
+> 1. W _*trybie esperckim*_ rzadko pojawia się potrzeba użycia opcji [kompensacji temperatury wewnętrznej urządzenia](over-climate.md#compensate-the-internal-temperature-of-the-underlying). Nieprzemyślane jej użycie mogłoby prowadzić do ustawienia ekstremalnie wysokich wartości temperatury docelowej.
 
-## Summary of the Auto-Regulation Algorithm
+## Podsumowanie algorytmu samoregulacji
 
-A summary of the auto-regulation algorithm is described [here](algorithms.md#the-auto-regulation-algorithm-without-valve-control)
+Podsumowanie algorytmu samoregulacji opisano [tutaj](algorithms.md#the-auto-regulation-algorithm-without-valve-control).
