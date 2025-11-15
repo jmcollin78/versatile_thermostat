@@ -100,8 +100,8 @@ def test_classify_context_external_default():
     ],
 )
 def test_decide_unlocked(is_locked, operation, ctx, expected):
-    assert LockPolicy.decide(is_locked, operation, ctx) is expected
-    assert LockPolicy.should_allow(is_locked, operation, ctx) is (expected is LockDecision.ALLOW)
+    assert LockPolicy.decide(is_locked, True, True, operation, ctx) is expected
+    assert LockPolicy.should_allow(is_locked, True, True, operation, ctx) is (expected is LockDecision.ALLOW)
 
 
 @pytest.mark.parametrize(
@@ -125,9 +125,9 @@ def test_decide_unlocked(is_locked, operation, ctx, expected):
     ],
 )
 def test_decide_locked_protected_external_or_unknown_denied(operation, ctx):
-    decision = LockPolicy.decide(True, operation, ctx)
+    decision = LockPolicy.decide(True, True, True, operation, ctx)
     assert decision is LockDecision.DENY_LOG
-    assert LockPolicy.should_allow(True, operation, ctx) is False
+    assert LockPolicy.should_allow(True, True, True, operation, ctx) is False
 
 
 @pytest.mark.parametrize(
@@ -144,9 +144,9 @@ def test_decide_locked_protected_external_or_unknown_denied(operation, ctx):
     ],
 )
 def test_decide_locked_non_protected_external_or_unknown_allowed(operation, ctx):
-    decision = LockPolicy.decide(True, operation, ctx)
+    decision = LockPolicy.decide(True, True, True, operation, ctx)
     assert decision is LockDecision.ALLOW
-    assert LockPolicy.should_allow(True, operation, ctx) is True
+    assert LockPolicy.should_allow(True, True, True, operation, ctx) is True
 
 
 @pytest.mark.parametrize(
@@ -164,6 +164,6 @@ def test_decide_locked_non_protected_external_or_unknown_allowed(operation, ctx)
 )
 def test_decide_locked_internal_always_allowed(operation):
     ctx = make_internal_context(operation, vt_unique_id="vt_1")
-    decision = LockPolicy.decide(True, operation, ctx)
+    decision = LockPolicy.decide(True, True, True, operation, ctx)
     assert decision is LockDecision.ALLOW
-    assert LockPolicy.should_allow(True, operation, ctx) is True
+    assert LockPolicy.should_allow(True, True, True, operation, ctx) is True
