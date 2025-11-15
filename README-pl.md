@@ -94,7 +94,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 19. [Algorytmy](documentation/pl/algorithms.md)
 21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
 22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
-23. [Usuwanie usterek](documentation/pl/troubleshooting.md)
+23. [Usuwanie problemów](documentation/pl/troubleshooting.md)
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
 ---
