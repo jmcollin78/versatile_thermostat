@@ -209,7 +209,7 @@ Powiadomienia dotyczą następujących zdarzeń:
 - ``versatile_thermostat_central_boiler_event``: zdarzenie zmiany stanu kotła
 - ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia wykonane przez funkcję autoSTART/autoSTOP
 
-Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczeństwa, wyzwalane są 3 zdarzenia:
+Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczny, wyzwalane są 3 zdarzenia:
 1. ``versatile_thermostat_temperature_event`` – wskazuje, że termometr przestał odpowiadać,
 2. ``versatile_thermostat_preset_event`` – wskazuje przełączenie na ustawienie trybu `bezpieczeństwa`,
 3. ``versatile_thermostat_hvac_mode_event`` – wskazuje potencjalne wyłączenie termostatu.
@@ -223,7 +223,7 @@ Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i oblicza
 
 ![image](images/dev-tools-climate.png)
 
-Atrybuty własne są nastepujace:
+Atrybuty własne są następujace:
 
 | Attrybut                          | Znaczenie                                                                                                                           |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -253,7 +253,7 @@ Atrybuty własne są nastepujace:
 | ``overpowering_state``            | Ostatni znany stan czujnika przeciążenia. `Brak`, jeśli zarządzanie energią nie jest skonfigurowane                                 |
 | ``presence_state``                | Ostatni znany stan czujnika obecności. `Brak`, jeśli detekcja obecności nie jest skonfigurowana                                     |
 | ``safety_delay_min``              | Zwłoka w aktywacji trybu bezpieczeństwa, gdy jeden z dwóch czujników temperatury przestaje wysyłać pomiary                          |
-| ``safety_min_on_percent``         | Procent grzania, poniżej którego termostat nie przełączy się w tryb bezpieczeństwa                                                  |
+| ``safety_min_on_percent``         | Procent grzania, poniżej którego termostat nie przełączy się w tryb bezpieczny                                                |
 | ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpieczeństwa                                                              |
 | ``last_temperature_datetime``     | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                                         |
 | ``last_ext_temperature_datetime`` | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                                         |
@@ -265,7 +265,7 @@ Atrybuty własne są nastepujace:
 | ``supported_features``            | Kombinacja wszystkich funkcji obsługiwanych przez ten termostat. Zobacz dokumentację, aby uzyskać więcej informacji                 |
 | ``valve_open_percent``            | Procent otwarcia zaworu                                                                                                             |
 | ``regulated_target_temperature``  | Temperatura docelowa obliczona przez samoregulację                                                                                  |
-| ``is_inversed``                   | `True`, jeśli sterowanie jest odwrócone (pilot przewodowy)                                                                          |
+| ``is_inversed``                   | `True`, jeśli sterowanie jest odwrócone (dotyczy sterowania przewodowego z diodą)                                                                          |
 | ``is_controlled_by_central_mode`` | `True`, jeśli termostat może być sterowany centralnie                                                                               |
 | ``last_central_mode``             | Ostatni użyty tryb centralny (`None`, jeśli termostat nie jest sterowany centralnie)                                                |
 | ``is_used_by_central_boiler``     | Wskazuje, czy termostat może sterować centralnym kotłem                                                                             |
