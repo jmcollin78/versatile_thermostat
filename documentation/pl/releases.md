@@ -58,7 +58,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 <summary>Starsze wydania</summary>
 
 >  * **Wydanie 5.3**: Dodano funkcję sterowania centralnym kotłem [#234](https://github.com/jmcollin78/versatile_thermostat/issues/234) - wiecej informacji [tutaj](#le-contrôle-dune-chaudière-centrale),
->    - Dodano możliwość wyłączenia trybu bezpieczeństwa dla zewnętrznego termometru [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343),
+>    - Dodano możliwość wyłączenia trybu bezpiecznego dla zewnętrznego termometru [#343](https://github.com/jmcollin78/versatile_thermostat/issues/343),
 >  * **Wydanie 5.2**: Dodano funkcję centralnego sterowania wszystkimi termostatami _VTherm_ [#158](https://github.com/jmcollin78/versatile_thermostat/issues/158).
 >  * **Wydanie 5.1**: Ograniczenie wartości wysyłanych do zaworów i klimatyzacji.
 >  * **Wydanie 5.0**: Dodano konfigurację centralną do łączenia konfigurowalnych atrybutów [#239](https://github.com/jmcollin78/versatile_thermostat/issues/239)
