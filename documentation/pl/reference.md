@@ -171,7 +171,7 @@ target:
 
 ## Modyfikacja ustawień bezpieczeństwa
 Usługa ta umożliwia dynamiczną modyfikację ustawień bezpieczeństwa, opisanych tutaj: [Zaawansowana konfiguracja](#advanced-configuration).
-Jeśli termostat jest w trybie ``bezpieczeństwa``, nowe ustawienia zostaną zastosowane natychmiast.
+Jeśli termostat jest w trybie ``bezpiecznym``, nowe ustawienia zostaną zastosowane natychmiast.
 
 Aby zmienić ustawienia bezpieczeństwa, zastosuj poniższy kod:
 ```yaml
@@ -211,7 +211,7 @@ Powiadomienia dotyczą następujących zdarzeń:
 
 Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczny, wyzwalane są 3 zdarzenia:
 1. ``versatile_thermostat_temperature_event`` – wskazuje, że termometr przestał odpowiadać,
-2. ``versatile_thermostat_preset_event`` – wskazuje przełączenie na ustawienie trybu `bezpieczeństwa`,
+2. ``versatile_thermostat_preset_event`` – wskazuje przełączenie na ustawienie trybu `bezpiecznego`,
 3. ``versatile_thermostat_hvac_mode_event`` – wskazuje potencjalne wyłączenie termostatu.
 
 Każde zdarzenie przechowuje kluczowe wartości zdarzenia (temperatury, aktualne ustawienia, bieżąca moc, ...) oraz stany termostatu.
@@ -252,9 +252,9 @@ Atrybuty własne są następujace:
 | ``motion_state``                  | Ostatni znany stan czujnika ruchu. `Brak`, jeśli detekcja ruchu nie jest skonfigurowana                                             |
 | ``overpowering_state``            | Ostatni znany stan czujnika przeciążenia. `Brak`, jeśli zarządzanie energią nie jest skonfigurowane                                 |
 | ``presence_state``                | Ostatni znany stan czujnika obecności. `Brak`, jeśli detekcja obecności nie jest skonfigurowana                                     |
-| ``safety_delay_min``              | Zwłoka w aktywacji trybu bezpieczeństwa, gdy jeden z dwóch czujników temperatury przestaje wysyłać pomiary                          |
+| ``safety_delay_min``              | Zwłoka w aktywacji trybu bezpiecznego, gdy jeden z dwóch czujników temperatury przestaje wysyłać pomiary                          |
 | ``safety_min_on_percent``         | Procent grzania, poniżej którego termostat nie przełączy się w tryb bezpieczny                                                |
-| ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpieczeństwa                                                              |
+| ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpiecznym                                                              |
 | ``last_temperature_datetime``     | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                                         |
 | ``last_ext_temperature_datetime`` | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                                         |
 | ``security_state``                | Stan bezpieczeństwa. `True` lub `false`                                                                                             |
