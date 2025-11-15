@@ -2,7 +2,7 @@
 # pylint: disable='line-too-long'
 import logging
 
-from homeassistant.components.climate import HVACMode
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class PropAlgorithm:
         self._calculated_on_percent = 0
         self._on_time_sec = 0
         self._off_time_sec = self._cycle_min * 60
-        self._security = False
+        self._safety = False
         self._default_on_percent = 0
         self._max_on_percent = max_on_percent
         self._tpi_threshold_low = tpi_threshold_low
@@ -99,11 +99,11 @@ class PropAlgorithm:
         current_temp: float | None,
         ext_current_temp: float | None,
         slope: float | None,
-        hvac_mode: HVACMode,
+        hvac_mode: VThermHvacMode,
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
-            log = _LOGGER.debug if hvac_mode == HVACMode.OFF else _LOGGER.warning
+            log = _LOGGER.debug if hvac_mode == VThermHvacMode_OFF else _LOGGER.warning
             log(
                 "%s - Proportional algorithm: calculation is not possible cause target_temp (%s) or current_temp (%s) is null. Heating/cooling will be disabled. This could be normal at startup",  # pylint: disable=line-too-long
                 self._vtherm_entity_id,
@@ -112,10 +112,10 @@ class PropAlgorithm:
             )
             self._calculated_on_percent = 0
         else:
-            if hvac_mode == HVACMode.COOL:
+            if hvac_mode == VThermHvacMode_COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
-                slope = -slope
+                slope = -slope if slope is not None else None
             else:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
@@ -171,7 +171,7 @@ class PropAlgorithm:
         if self._calculated_on_percent < 0:
             self._calculated_on_percent = 0
 
-        if self._security:
+        if self._safety:
             self._on_percent = self._default_on_percent
             _LOGGER.info(
                 "%s - Security is On using the default_on_percent %f",
@@ -180,7 +180,7 @@ class PropAlgorithm:
             )
         else:
             _LOGGER.debug(
-                "Security is Off using the calculated_on_percent %f",
+                "Safety is Off using the calculated_on_percent %f",
                 self._calculated_on_percent,
             )
             self._on_percent = self._calculated_on_percent
@@ -223,19 +223,15 @@ class PropAlgorithm:
 
     def set_safety(self, default_on_percent: float):
         """Set a default value for on_percent (used for safety mode)"""
-        _LOGGER.info(
-            "%s - Proportional Algo - set security to ON", self._vtherm_entity_id
-        )
-        self._security = True
+        _LOGGER.info("%s - Proportional Algo - set safety to ON", self._vtherm_entity_id)
+        self._safety = True
         self._default_on_percent = default_on_percent
         self._calculate_internal()
 
     def unset_safety(self):
         """Unset the safety mode"""
-        _LOGGER.info(
-            "%s - Proportional Algo - set security to OFF", self._vtherm_entity_id
-        )
-        self._security = False
+        _LOGGER.info("%s - Proportional Algo - set safety to OFF", self._vtherm_entity_id)
+        self._safety = False
         self._calculate_internal()
 
     @property

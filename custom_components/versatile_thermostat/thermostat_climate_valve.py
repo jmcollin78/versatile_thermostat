@@ -5,7 +5,9 @@ import logging
 from datetime import datetime
 
 from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import HVACMode, HVACAction
+from homeassistant.components.climate import HVACAction
+from homeassistant.helpers.event import async_call_later
+
 
 from .underlyings import UnderlyingValveRegulation
 
@@ -15,6 +17,8 @@ from .thermostat_climate import ThermostatOverClimate
 from .prop_algorithm import PropAlgorithm
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
 
 # from .vtherm_api import VersatileThermostatAPI
 
@@ -28,16 +32,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         frozenset(
             {
                 "is_over_climate",
-                "have_valve_regulation",
-                "underlying_entities",
-                "on_time_sec",
-                "off_time_sec",
-                "cycle_min",
-                "function",
-                "tpi_coef_int",
-                "tpi_coef_ext",
-                "power_percent",
-                "min_opening_degrees",
+                "vtherm_over_climate",
+                "vtherm_over_climate_valve",
             }
         )
     )
@@ -127,7 +123,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Restore my specific attributes from previous state"""
         super().restore_specific_previous_state(old_state)
 
-        self._is_sleeping = self.hvac_mode == HVACMode.OFF and old_state.attributes.get("is_sleeping", False)
+        self._is_sleeping = self.vtherm_hvac_mode == VThermHvacMode_OFF and old_state.attributes.get("is_sleeping", False)
         if self._is_sleeping:
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
@@ -136,86 +132,64 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Custom attributes"""
         super().update_custom_attributes()
 
-        self._attr_extra_state_attributes["have_valve_regulation"] = (
-            self.have_valve_regulation
+        self._attr_extra_state_attributes.update(
+            {
+                "vtherm_over_climate_valve": {
+                    "have_valve_regulation": self.have_valve_regulation,
+                    "valve_regulation": {
+                        "underlyings_valve_regulation": [underlying.valve_entity_ids for underlying in self._underlyings_valve_regulation],
+                        "on_percent": self._prop_algorithm.on_percent,
+                        "power_percent": self.power_percent,
+                        "function": self._proportional_function,
+                        "tpi_coef_int": self._tpi_coef_int,
+                        "tpi_coef_ext": self._tpi_coef_ext,
+                        "min_opening_degrees": self._min_opening_degrees,
+                        "valve_open_percent": self.valve_open_percent,
+                        "auto_regulation_dpercent": self._auto_regulation_dpercent,
+                        "auto_regulation_period_min": self._auto_regulation_period_min,
+                        "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
+                    },
+                }
+            }
         )
-
-        self._attr_extra_state_attributes["underlyings_valve_regulation"] = [
-            underlying.valve_entity_ids
-            for underlying in self._underlyings_valve_regulation
-        ]
-
-        self._attr_extra_state_attributes["on_percent"] = (
-            self._prop_algorithm.on_percent
-        )
-        self._attr_extra_state_attributes["power_percent"] = self.power_percent
-        self._attr_extra_state_attributes["on_time_sec"] = (
-            self._prop_algorithm.on_time_sec
-        )
-        self._attr_extra_state_attributes["off_time_sec"] = (
-            self._prop_algorithm.off_time_sec
-        )
-        self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
-        self._attr_extra_state_attributes["function"] = self._proportional_function
-        self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
-        self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
-
-        self._attr_extra_state_attributes["min_opening_degrees"] = (
-            self._min_opening_degrees
-        )
-
-        self._attr_extra_state_attributes["valve_open_percent"] = (
-            self.valve_open_percent
-        )
-
-        self._attr_extra_state_attributes["auto_regulation_dpercent"] = (
-            self._auto_regulation_dpercent
-        )
-        self._attr_extra_state_attributes["auto_regulation_period_min"] = (
-            self._auto_regulation_period_min
-        )
-        self._attr_extra_state_attributes["last_calculation_timestamp"] = (
-            self._last_calculation_timestamp.astimezone(self._current_tz).isoformat()
-            if self._last_calculation_timestamp
-            else None
-        )
-        self._attr_extra_state_attributes["is_sleeping"] = self._is_sleeping
 
         self.async_write_ha_state()
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
+        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
 
+        self.stop_recalculate_later()
+
         # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
+        if self._is_sleeping:
+            self._valve_open_percent = 100
+            return
 
         # For testing purpose. Should call _set_now() before
         now = self.now
 
         if self._last_calculation_timestamp is not None:
             period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if period < self._auto_regulation_period_min:
+            if not force and period < self._auto_regulation_period_min:
                 _LOGGER.info(
                     "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
                     self,
                     period,
                 )
+                self.do_recalculate_later()
                 return
 
         self._prop_algorithm.calculate(
-            self._target_temp,
+            self.target_temperature,
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or HVACMode.OFF,
+            self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
 
         new_valve_percent = round(
@@ -259,9 +233,23 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         super().recalculate()
 
+    def do_recalculate_later(self):
+        """A utility function to set the valve open percent later on all underlyings"""
+        _LOGGER.debug("%s - do_recalculate_later call", self)
+
+        async def callback_recalculate(_):
+            """Callback to set the valve percent"""
+            self.recalculate()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+
+        self.stop_recalculate_later()
+
+        self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
+
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
-        if self.hvac_mode == HVACMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping:
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
             return
 
@@ -295,36 +283,26 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             await under.set_valve_open_percent()
 
     @overrides
-    async def async_set_hvac_mode(self, hvac_mode: HVACMode, need_control_heating=True):
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, need_control_heating=True):
         """Set new hvac mode"""
-        _LOGGER.info("%s - Calling async_set_hvac_mode to %s", self, hvac_mode)
 
-        if hvac_mode == HVACMODE_SLEEP:
-            _LOGGER.info("%s - Setting hvac_mode to SLEEP", self)
+        write_event_log(_LOGGER, self, f"Setting hvac_mode to {hvac_mode}")
+        if hvac_mode == VThermHvacMode_SLEEP:
             self._is_sleeping = True
-            hvac_mode = HVACMode.OFF
+            hvac_mode = VThermHvacMode_OFF
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
         else:
             self._is_sleeping = False
 
-        # When turning off, we need to close the valve
-        if self._is_sleeping:
-            self._valve_open_percent = 100
-            for under in self._underlyings_valve_regulation:
-                await under.set_valve_open_percent()
-            self.update_custom_attributes()
-            self.async_write_ha_state()
-
-        # set hvac mode save the state at the end
-        await super().async_set_hvac_mode(hvac_mode, need_control_heating)
+        await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
-    def build_hvac_list(self) -> list[HVACMode]:
+    def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
-            return [HVACMode.COOL, HVACMODE_SLEEP, HVACMode.OFF]
+            return [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         else:
-            return [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
+            return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
     @property
     def have_valve_regulation(self) -> bool:
@@ -334,19 +312,18 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if (self._hvac_mode == HVACMode.OFF and not self._is_sleeping) or self._valve_open_percent is None:
+        if (self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent
 
-    @property
-    def hvac_action(self) -> HVACAction | None:
+    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
         if self._is_sleeping:
-            return HVACAction.OFF
+            self._attr_hvac_action = HVACAction.OFF
         else:
-            return self.calculate_hvac_action(self._underlyings_valve_regulation)
+            super().calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
     def is_device_active(self) -> bool:
@@ -390,5 +367,23 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         target:
             entity_id: climate.thermostat_1
         """
-        _LOGGER.info("%s - Calling service_set_hvac_mode_sleep", self)
-        await self.async_set_hvac_mode(hvac_mode=HVACMODE_SLEEP, need_control_heating=False)
+        write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
+        await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP, need_control_heating=False)
+
+    @overrides
+    async def _check_initial_state(self):
+        """Check the initial state of the thermostat and its underlyings"""
+        await super()._check_initial_state()
+        for under in self._underlyings_valve_regulation:
+            await under.check_initial_state(self.vtherm_hvac_mode)
+
+    @overrides
+    def choose_auto_fan_mode(self, auto_fan_mode: str):
+        """Force no auto_fan for climate with valve regulation"""
+        self._current_auto_fan_mode = CONF_AUTO_FAN_NONE
+        self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_climate_valve"

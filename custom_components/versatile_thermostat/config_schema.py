@@ -84,6 +84,15 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+    }
+)
+
 STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_USE_WINDOW_FEATURE, default=False): cv.boolean,

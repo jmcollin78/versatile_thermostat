@@ -1,6 +1,19 @@
 # Note de versions
 
 ![Nouveau](images/new-icon.png)
+>
+> * **Release 7.4**:
+>
+> - Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Idéal pour les poeles à bois qui mettent beaucoup de temps à monter en température. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi),
+> - Ajout d'un mode sleep pour les VTherm de type `over_climate` avec régulation par contrôle direct de la vanne. Ce mode permet de mettre le thermostat en mode éteint mais avec la vanne 100% ouverte. C'est utile pour les longues périodes sans utiisation du chauffage si la chaudière fait circuler un peu d'eau de temps en temps. Attention, vous devez mettre à jour la VTHerm UI Card pour visualiser ce nouveau mode. Cf. [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card).
+
+> * **Release 7.2**:
+>
+> - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](documentation/fr/over-switch.md#la-personnalisation-des-commandes).
+>
+> - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration). Elle est expérimentée sur certaines pages de la configuration.
+>
+> - Ajout d'un chapitre dans la documentation nommé 'Démarrage rapide' permettant de mettre en oeuvre rapidement un _VTherm_ en fonction de votre équipement. La page est [ici](documentation/quick-start.md)
 
 > * **Release 7.1**:
 >   - Refonte de la fonction de délestage (gestion de la puissance). Le délestage est maintenant géré de façon centralisé (auparavent chaque _VTherm_ était autonome). Cela permet une gestion bien plus efficace et de prioriser le délestage sur les équipements qui sont proches de la consigne. Attention, vous devez impérativement avoir une configuration centralisée avec gestion de la puissance pour que cela fonctionne. Plus d'infos [ici](./feature-power.md)

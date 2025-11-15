@@ -1,30 +1,29 @@
-# Presets (Pre-configured Settings)
+# Konfiguracja presetów
 
-- [Presets (Pre-configured Settings)](#presets-pre-configured-settings)
-  - [Configure Pre-configured Temperatures](#configure-pre-configured-temperatures)
+- [Presety](#presets-pre-configured-settings)
+  - [Ustawienia presetów temperatur](#configure-pre-configured-temperatures)
 
-## Configure Pre-configured Temperatures
+## Ustawienia presetów temperatur
 
-The preset mode allows you to pre-configure the target temperature. Used in conjunction with Scheduler (see [scheduler](additions.md#the-scheduler-component)), you'll have a powerful and simple way to optimize the temperature relative to the electricity consumption in your home. The managed presets are as follows:
- - **Eco**: the device is in energy-saving mode
- - **Comfort**: the device is in comfort mode
- - **Boost**: the device fully opens all valves
+Tryb presetu pozwala na wstępne ustawienie temperatury docelowej. Używany w połączeniu z Harmonogramem (patrz: [harmonogram](additions.md#the-scheduler-component)), daje potężny ale prosty sposób na optymalizację temperatury względem zużycia energii elektrycznej w Twoim domu. Oto lista zarządzalnych presetów:
+ - **Eko**: urządzenie działa w trybie oszczędzania energii
+ - **Komfort**: urządzenie działa w trybie komfortu
+ - **Wzmocnienie**: urządzenie całkowicie otwiera wszystkie zawory
+ - **Brak**: jest zawsze dodawany do listy trybów jako sposób na pominięcie innych ustawień i **ręczne ustawienie temperatury**.
 
-If the AC mode is used, you can also configure temperatures when the equipment is in air conditioning mode.
+Jeśli używany jest tryb klimatyzacji (AC), możesz również skonfigurować temperatury dla pracy urządzenia w trybie chłodzenia.
 
-**None** is always added to the list of modes, as it is a way to not use presets but instead set a **manual temperature**.
-
-The presets are configured directly from the _VTherm_ entities or the central configuration if you're using centralized control. Upon creating the _VTherm_, you will have different entities that will allow you to set the temperatures for each preset:
+Presety konfigurowane są bezpośrednio z encji _VTherm_ lub z konfiguracji głównej, jeśli korzystasz ze scentralizowanego sterowania. Po utworzeniu termostatu będziesz mieć do dyspozycji różne encje umożliwiające ustawienie temperatur osobno dla każdego presetu:
 
 ![presets](images/config-preset-temp.png).
 
-The list of entities varies depending on your feature choices:
-1. If the 'presence detection' function is activated, you will have the presets with an "absence" version prefixed with _abs_.
-2. If you have selected the _AC_ option, you will also have presets for 'air conditioning' prefixed with _clim_.
+Lista encji różni się w zależności od wybranych funkcji:
+1. Jeśli funkcja 'wykrywania obecności' jest aktywna, będziesz mieć do dyspozycji presety 'nieobecności' poprzedzoną prefiksem _abs_.
+2. Jeśli wybrałeś opcję `AC`, będziesz mieć również do dyspozycji presety 'klimatyzacji' poprzedzone prefiksem _clim_.
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Wskazówki*_
 >
-> 1. When you manually change the target temperature, the preset switches to None (no preset).
-> 2. The standard preset `Away` is a hidden preset that cannot be directly selected. Versatile Thermostat uses presence management or motion detection to automatically and dynamically adjust the target temperature based on presence in the home or activity in the room. See [presence management](feature-presence.md).
-> 3. If you're using load shedding management, you will see a hidden preset named `power`. The heating element's preset is set to "power" when overload conditions are met and load shedding is active for that heating element. See [power management](feature-power.md).
-> 4. If you're using advanced configuration, you will see the preset set to `safety` if the temperature could not be retrieved after a certain delay. See [Safety Mode](feature-advanced.md#safety-mode).
+> 1. Gdy ręcznie zmienisz temperaturę docelową, prese przełączy się na `Brak`.
+> 2. Standardowy preset `Away` jest presetem ukrytym, którego nie można wybrać bezpośrednio. Integracja 'Versatile Thermostat' używa zarządzania obecnością lub wykrywania ruchu, aby automatycznie i dynamicznie dostosować temperaturę docelową w zależności od obecności w domu lub aktywności w pomieszczeniu. Zobacz: [zarządzanie obecnością](feature-presence.md).
+> 3. Jeśli korzystasz z zarządzania redukcją obciążenia, zobaczysz ukryty preset o nazwie `moc`. Preset grzejnika ustawiany jest na `moc`, gdy występują warunki przeciążenia i aktywna jest redukcja obciążenia dla tego grzejnika. Zobacz [zarządzanie energią](feature-power.md).
+> 4. Jeśli korzystasz z zaawansowanej konfiguracji, zobaczysz preset `bezpieczeństwo`, jeśli temperatura nie mogła zostać pobrana w określonym czasie. Zobacz: [tryb bezpieczny](feature-advanced.md#safety-mode).

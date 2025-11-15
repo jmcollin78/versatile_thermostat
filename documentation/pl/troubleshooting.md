@@ -1,34 +1,34 @@
 
-# Troubleshooting
+# Usuwanie problemów
 
-- [Troubleshooting](#troubleshooting)
-  - [Using a Heatzy](#using-a-heatzy)
-  - [Using a radiator with a pilot wire (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
-  - [Using a Netatmo System](#using-a-netatmo-system)
-  - [Only the first radiator heats](#only-the-first-radiator-heats)
-  - [The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
-    - [Type `over_switch` or `over_valve`](#type-over_switch-or-over_valve)
-    - [Type `over_climate`](#type-over_climate)
-  - [Adjust the window open detection parameters in auto mode](#adjust-the-window-open-detection-parameters-in-auto-mode)
-  - [Why is my Versatile Thermostat going into Safety Mode?](#why-is-my-versatile-thermostat-going-into-safety-mode)
-    - [How to detect Safety Mode?](#how-to-detect-safety-mode)
-    - [How to Be Notified When This Happens?](#how-to-be-notified-when-this-happens)
-    - [How to Fix It?](#how-to-fix-it)
-  - [Using a Group of People as a Presence Sensor](#using-a-group-of-people-as-a-presence-sensor)
-  - [Enable Logs for the Versatile Thermostat](#enable-logs-for-the-versatile-thermostat)
-  - [VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
-  - [VTherm Automatically Switches to 'Cooling' or 'Heating' Mode](#vtherm-automatically-switches-to-cooling-or-heating-mode)
-  - [Open Window Detection Does Not Prevent Preset Changes](#open-window-detection-does-not-prevent-preset-changes)
-    - [Example:](#example)
+- [Usuwanie problemów](#troubleshooting)
+  - [System Heatzy](#using-a-heatzy)
+  - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
+  - [System Netatmo](#using-a-netatmo-system)
+  - [Gdy grzeje tylko pierwszy grzejnik](#only-the-first-radiator-heats)
+  - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
+    - [`Termostat na przełączniku` lub `termostat na zaworze`](#type-over_switch-or-over_valve)
+    - [`Termosta na klimacie`](#type-over_climate)
+  - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#adjust-the-window-open-detection-parameters-in-auto-mode)
+  - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#why-is-my-versatile-thermostat-going-into-safety-mode)
+    - [Jak wykryć tryb *bezpieczny*?](#how-to-detect-safety-mode)
+    - [Jak zostać powiadomionym o wystąpieniu takiej sytuacji?](#how-to-be-notified-when-this-happens)
+    - [Jak to naprawić?](#how-to-fix-it)
+  - [Grupa osób jako sensor obecności](#using-a-group-of-people-as-a-presence-sensor)
+  - [Aktywacja logów dla _*Versatile Thermostat*_](#enable-logs-for-the-versatile-thermostat)
+  - [_VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
+  - [ _VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`](#vtherm-automatically-switches-to-cooling-or-heating-mode)
+  - [Detekcja otwarcia okien nie zapobiega zmianom presetów](#open-window-detection-does-not-prevent-preset-changes)
+    - [Przykład pozornej niespójności](#example)
 
 
-## Using a Heatzy
+## System Heatzy
 
-The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
+System Heatzy jest już natywnie wspierany przez integrację _VTherm_. Zobacz: [Szybki start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
 
-This configuration is kept for reference only.
+Ta konfiguracja jest przechowywana wyłącznie w celach informacyjnych.
 
-Using a Heatzy or Nodon is possible provided you use a virtual switch with this model:
+Użycie Heatzy lub Nodon jest możliwe pod warunkiem użycia wirtualnego przełącznika z tym modelem:
 
 ```yaml
 - platform: template
@@ -56,17 +56,17 @@ Using a Heatzy or Nodon is possible provided you use a virtual switch with this 
         data:
           preset_mode: "eco"
 ```
-Thanks to @gael for this example.
-
-## Using a radiator with a pilot wire (Nodon SIN-4-FP-21)
-
-The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire).
-
-This configuration is kept for reference only.
 
 
-As with the Heatzy above, you can use a virtual switch that will change the preset of your radiator based on the VTherm’s on/off state.
-Example:
+## Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)
+
+System Nodon jest już natywnie wspierany przez integrację _VTherm_. Zobacz: [Szybki start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
+
+Ta konfiguracja jest przechowywana wyłącznie w celach informacyjnych.
+
+Podobnie jak w przypadku opisanego powyżej systemu Heatzy, można użyć wirtualnego przełącznika, który zmieni ustawienia grzejnika na podstawie stanu załączenia/wyłączenia termostatu _VTherm_.
+
+Przykład:
 
 ```yaml
 - platform: template
@@ -97,46 +97,46 @@ Example:
           option: eco
 ```
 
-Another more complex example is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+Jeszcze jeden, bardziej złożony przykład znajdziesz [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
 
-## Using a Netatmo System
+## System Netatmo
 
-The system based on Netatmo TRVs does not work well with _VTherm_. You can find a discussion about the specific behavior of Netatmo systems (in French) here: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
+System oparty na termostatach TRV Netatmo nie współpracuje dobrze z _VTherm_. Dyskusję na temat konkretnego działania systemów Netatmo (w języku francuskim) można znaleźć [tutaj](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
 
-However, some users have successfully integrated _VTherm_ with Netatmo by incorporating a virtual switch between _VTherm_ and the Netatmo `climate` entity, as follows:
+Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo w następujący sposób:
 
 ```
 TODO
 ```
 
 
-## Only the first radiator heats
+## Gdy grzeje tylko pierwszy grzejnik
 
-In `over_switch` mode, if multiple radiators are configured for the same VTherm, the heating will be triggered sequentially to smooth out the consumption peaks as much as possible.
-This is completely normal and intentional. It is described here: [For a thermostat of type ```thermostat_over_switch```](over-switch.md#over_switch-type-thermostat)
+W ``termostacie na przełączniku``, jeśli wiele grzejników jest skonfigurowanych dla tego samego termostatu _VTherm_, ogrzewanie będzie uruchamiane sekwencyjnie, aby maksymalnie wygładzić szczyty zużycia.
+Jest to całkowicie normalne i celowe. Opis znajduje się tutaj: [dla termostatu typu ```termostat na przełączniku```](over-switch.md#over_switch-type-thermostat)
 
-## The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint
+## Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.
 
-### Type `over_switch` or `over_valve`
-With a VTherm of type `over_switch` or `over_valve`, this issue simply indicates that the TPI algorithm parameters are not properly configured. See [TPI Algorithm](algorithms.md#the-tpi-algorithm) to optimize the settings.
+### `Termostat na przełączniku` lub `termostat na zaworze`
+W przypadku `termostatu na przełączniku` lub `termostatu na zaworze`, ten problem wskazuje po prostu, że parametry algorytmu TPI nie są poprawnie skonfigurowane. Zobacz: [Algorytm TPI](algorithms.md#the-tpi-algorithm) i popraw ustwienia.
 
-### Type `over_climate`
-With a VTherm of type `over_climate`, the regulation is handled directly by the underlying `climate`, and VTherm simply transmits the setpoints to it. So if the radiator is heating even though the setpoint temperature is exceeded, it is likely that its internal temperature measurement is biased. This often happens with TRVs and reversible air conditioners that have an internal temperature sensor, either too close to the heating element (so it's too cold in winter).
+### `Termostat na klimacie`
+W przypadku `termostatu na klimacie`, regulacja jest realizowana bezpośrednio przez urządzenie `climate`, a _VTherm_ tylko przesyła do niego ustawienia. Jeśli więc grzejnik grzeje, mimo że temperatura żądana została przekroczona, prawdopodobnie jego wewnętrzny pomiar temperatury jest błędny. Często zdarza się tak w przypadku termostatów i klimatyzatorów rewersyjnych z wewnętrznym czujnikiem temperatury, umieszczonym zbyt blisko elementu grzejnego (przez co zimą jest zbyt zimno).
 
-Examples of discussions on these topics: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
+Przykłady dyskusji na te tematy: [#348](https://github.com/jmcollin78/versatile_thermostat/issues/348), [#316](https://github.com/jmcollin78/versatile_thermostat/issues/316), [#312](https://github.com/jmcollin78/versatile_thermostat/discussions/312), [#278](https://github.com/jmcollin78/versatile_thermostat/discussions/278)
 
-To resolve this, VTherm is equipped with a feature called self-regulation, which allows it to adjust the setpoint sent to the underlying device until the setpoint is met. This function compensates for the bias of internal temperature sensors. If the bias is significant, the regulation should also be significant. See [Self-regulation](self-regulation.md) for configuring self-regulation.
+Aby rozwiązać ten problem, _VTherm_ został wyposażony w funkcję samoregulacji, która pozwala mu dostosowywać wartość żądaną wysyłaną do urządzenia bazowego, aż do jej osiągnięcia. Funkcja ta kompensuje odchylenie wewnętrznych czujników temperatury. Jeśli odchylenie jest znaczne, regulacja również powinna być znacząca. Informacje na temat konfiguracji samoregulacji można znaleźć [tutaj](self-regulation.md).
 
-## Adjust the window open detection parameters in auto mode
+## Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym
 
-If you are unable to configure the automatic window open detection function (see [auto](feature-window.md#auto-mode)), you can try modifying the temperature smoothing algorithm parameters.
-Indeed, the automatic window open detection is based on calculating the temperature slope. To avoid artifacts caused by an imprecise temperature sensor, this slope is calculated using a temperature smoothed with an algorithm called Exponential Moving Average (EMA).
-This algorithm has 3 parameters:
-1. `lifecycle_sec`: the duration in seconds considered for smoothing. The higher it is, the smoother the temperature will be, but the detection delay will also increase.
-2. `max_alpha`: if two temperature readings are far apart in time, the second one will carry much more weight. This parameter limits the weight of a reading that comes well after the previous one. This value must be between 0 and 1. The lower it is, the less distant readings are taken into account. The default value is 0.5, meaning that a new temperature reading will never weigh more than half of the moving average.
-3. `precision`: the number of digits after the decimal point retained for calculating the moving average.
+Jeśli nie możesz skonfigurować funkcji automatycznej detekcji otwarcia okna (patrz: [auto](feature-window.md#auto-mode)), możesz spróbować zmodyfikować parametry algorytmu wygładzania temperatury.
+W rzeczywistości automatyczna detekcja otwarcia okna opiera się na obliczaniu nachylenia krzywej temperatury. Aby uniknąć artefaktów spowodowanych przez niedokładny czujnik temperatury, nachylenie to jest obliczane za pomocą temperatury wygładzonej algorytmem o nazwie Średnia Zmienna Wykładnicza (EMA).
+Algorytm ten ma 3 parametry:
+1. `lifecycle_sec`: czas trwania w sekundach uwzględniany przy wygładzaniu. Im wyższy, tym bardziej płynna będzie temperatura, ale wzrośnie również opóźnienie detekcji.
+2. `max_alpha`: jeśli dwa odczyty temperatury są oddalone od siebie w czasie, drugi będzie miał znacznie większą wagę. Ten parametr ogranicza wagę odczytu, który następuje znacznie później, niż poprzedni. Wartość ta musi mieścić się w przedziale od 0 do 1. Im niższa, tym mniej odległe odczyty są brane pod uwagę. Wartość domyślna to 0,5, co oznacza, że ​​nowy odczyt temperatury nigdy nie będzie ważył więcej, niż połowę wartości EMA.
+3. `precision`: liczba cyfr po przecinku uwzględniana przy obliczaniu EMA.
 
-To change these parameters, you need to modify the `configuration.yaml` file and add the following section (the values below are the default values):
+Aby zmienić te parametry, należy zmodyfikować plik `configuration.yaml` i dodać następującą sekcję (poniższe wartości są wartościami domyślnymi):
 
 ```yaml
 versatile_thermostat:
@@ -146,29 +146,29 @@ versatile_thermostat:
     precision: 2
 ```
 
-These parameters are sensitive and quite difficult to adjust. Please only use them if you know what you’re doing and if your temperature readings are not already smoothed.
+Te parametry są wrażliwe i dość trudne do regulacji. Używaj ich tylko wtedy, gdy wiesz, co robisz i jeśli odczyty temperatury nie zostały już wcześniej wygładzone w inny sposób.
 
-## Why is my Versatile Thermostat going into Safety Mode?
+## Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?
 
-Safety mode is only available for VTherm types `over_switch` and `over_valve`. It occurs when one of the two thermometers (providing either the room temperature or the external temperature) has not sent a value for more than `safety_delay_min` minutes, and the radiator had been heating at least `safety_min_on_percent`. See [safety mode](feature-advanced.md#safety-mode)
+Tryb *bezpieczny* jest dostępny tylko dla typów _VTherm_ `termostat na przełączniku` oraz `termostat na zaworze`. Występuje, gdy jeden z dwóch termometrów (mierzący temperaturę w pomieszczeniu lub temperaturę zewnętrzną) nie wysłał wartości przez ponad `safety_delay_min` minut, a grzejnik grzał co najmniej przez `safety_min_on_percent`. Zobacz: [tryb *bezpieczny*](feature-advanced.md#safety-mode).
 
-Since the algorithm relies on temperature measurements, if they are no longer received by the VTherm, there is a risk of overheating and fire. To prevent this, when the above conditions are detected, heating is limited to the `safety_default_on_percent` parameter. This value should therefore be reasonably low (10% is a good value). It helps avoid a fire while preventing the radiator from being completely turned off (risk of freezing).
+Ponieważ algorytm opiera się na pomiarach temperatury, jeśli nie są one już odbierane przez _VTherm_, istnieje ryzyko przegrzania lub nawet **pożaru**. Aby temu zapobiec, po wykryciu powyższych warunków, ogrzewanie jest ograniczone do parametru `safety_default_on_percent`. Wartość ta powinna być zatem rozsądnie niska (10% to całkiem dobra wartość). Pomaga to uniknąć ryzyka pożaru, jednocześnie zapobiegając całkowitemu wyłączeniu grzejnika (ryzyku zamarzania).
 
-All these parameters are configured on the last page of the VTherm configuration: "Advanced Settings".
+Wszystkie te parametry mozna ustawić w ostatnim oknie konfiguracji 'Ustawienia zaawansowane'.
 
-### How to detect Safety Mode?
-The first symptom is an unusually low temperature with a short and consistent heating time during each cycle.
-Example:
+### Jak wykryć tryb *bezpieczny*?
+Pierwszym objawem jest nietypowo niska temperatura oraz krótki i stały czas nagrzewania w każdym cyklu.
+Oto przykład:
 
-[security mode](images/security-mode-symptome1.png)
+![image](images/security-mode-symptome1.png)
 
-If you have installed the [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), the affected VTherm will appear like this:
+Jeśli masz zainstalowaną kartę [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), termostat _VTherm_ będzie wyglądał następująco:
 
-[security mode UI Card](images/security-mode-symptome2.png)
+![image](images/security-mode-symptome2.png)
 
-You can also check the VTherm's attributes for the dates of the last received values. **The attributes are available in the Developer Tools / States**.
+Można również sprawdzić atrybuty termostatu _VTherm_ pod kątem dat ostatnio otrzymanych wartości. **Atrybuty są dostępne w 'Narzędzia deweloperskie -> Stany'**.
 
-Example:
+Przykład:
 
 ```yaml
 security_state: true
@@ -179,31 +179,31 @@ last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
 safety_delay_min: 60
 ```
 
-We can see that:
-1. The VTherm is indeed in safety mode (`security_state: true`),
-2. The current time is 06/12/2023 at 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
-3. The last reception time of the room temperature is 06/12/2023 at 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), so it's recent,
-4. The last reception time of the external temperature is 06/12/2023 at 13:04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). The external temperature is over 5 hours late, which triggered the safety mode, as the threshold is set to 60 minutes (`safety_delay_min: 60`).
+Widać z tego, że:
+1. Termostat jest rzeczywiście w trybie *bezpiecznym* (`security_state: true`),
+2. Aktualny czas to: *06/12/2023 godz. 18:43:28* (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
+3. Czas ostatniego odczytu temperatury w pomieszczeniu to: *06/12/2023 godz. 18:43:28* (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), więc jest aktualny,
+4. Czas ostatniego odczytu temperatury zewnętrznej to: *06/12/2023 godz. 13:04:35* (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). Temperatura zewnętrzna została odczytana ponad 5 godzin później, niż temperatura w pomieszczeniu, co spowodowało załączenie trybu *bezpiecznego*, ponieważ próg załączenia tego trybu został ustawiony na 60 minut (`safety_delay_min: 60`).
 
-### How to Be Notified When This Happens?
-The VTherm sends an event as soon as this happens and again at the end of the safety alert. You can capture these events in an automation and send a notification, blink a light, trigger a siren, etc. It's up to you.
+### Jak zostać powiadomionym o wystąpieniu takiej sytuacji?
+VTherm wysyła zdarzenie natychmiast po jego wystąpieniua oraz ponownie po zakończeniu alertu bezpieczeństwa. Można rejestrować te zdarzenia w automatyzacji i wysyłać powiadomienia, załączać światło, uruchamiać syrenę itp. Decyzja należy do Ciebie.
 
-For handling events generated by VTherm, see [Events](reference.md#events).
+Informacje na temat obsługi zdarzeń generowanych przez VTherm można znaleźć w sekcji [Zdarzenia](reference.md#events).
 
-### How to Fix It?
-It depends on the cause of the problem:
-1. If a sensor is faulty, it should be repaired (replace batteries, change it, check the weather integration that provides the external temperature, etc.),
-2. If the `safety_delay_min` parameter is too small, it may generate many false alerts. A correct value is around 60 minutes, especially if you have battery-powered temperature sensors. See [my settings](tuning-examples.md#battery-powered-temperature-sensor),
-3. Some temperature sensors don't send measurements if the temperature hasn't changed. So if the temperature stays very stable for a long time, safety mode can trigger. This is not a big issue since it will deactivate once the VTherm receives a new temperature. On some thermometers (e.g., TuYA or Zigbee), you can force a max delay between two measurements. The max delay should be set to a value lower than `safety_delay_min`,
-4. As soon as the temperature is received again, safety mode will turn off, and the previous preset, target temperature, and mode values will be restored.
-5. If the external temperature sensor is faulty, you can disable safety mode triggering as it has a minimal impact on the results. To do so, see [here](feature-advanced.md#safety-mode).
+### Jak to naprawić?
+Zależy to od przyczyny problemu:
+1. Jeśli czujnik jest uszkodzony, należy go naprawić (wymienić baterie, zmienić jego położenie, sprawdzić integrację pogodową, która podaje temperaturę zewnętrzną itp.),
+2. Jeśli parametr `safety_delay_min` jest zbyt mały, może generować wiele fałszywych alertów. Prawidłowa wartość to około 60 minut, szczególnie w przypadku czujników temperatury zasilanych bateryjnie. Sprawdź: [ustawienia](tuning-examples.md#battery-powered-temperature-sensor),
+3. Niektóre czujniki temperatury nie wysyłają pomiarów, jeśli temperatura się nie zmieniła. Jeśli więc temperatura pozostaje bardzo stabilna przez długi czas, może uruchomić się tryb *bezpieczny*. Nie stanowi to dużego problemu, ponieważ zostanie on wyłączony, gdy _VTherm_ otrzyma nową temperaturę. W niektórych termometrach (np. TuYA lub Zigbee) można wymusić maksymalne opóźnienie między dwoma pomiarami. Maksymalne opóźnienie powinno być ustawione na wartość niższą, niż `safety_delay_min`.
+4. Gdy tylko temperatura zostanie ponownie odczytana, tryb *bezpieczny* wyłączy się, a poprzednie wartości zadane, temperatura docelowa i tryb zostaną przywrócone.
+5. Jeśli zewnętrzny czujnik temperatury jest uszkodzony, można wyłączyć wyzwalanie trybu *bezpiecznego*, ponieważ ma to minimalny wpływ na wyniki. Aby to zrobić, zajrzyj [tutaj](feature-advanced.md#safety-mode).
 
-## Using a Group of People as a Presence Sensor
+## Grupa osób jako sensor obecności
 
-Unfortunately, groups of people are not recognized as presence sensors. Therefore, you cannot use them directly in VTherm.
-A workaround is to create a binary sensor template with the following code:
+Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w VTherm.
+Rozwiązaniem jest utworzenie szablonu czujnika binarnego za pomocą poniższego kodu:
 
-File `template.yaml`:
+Plik `template.yaml`:
 
 ```yaml
 - binary_sensor:
@@ -213,9 +213,9 @@ File `template.yaml`:
       device_class: occupancy
 ```
 
-In this example, note the use of an `input_boolean` called `force_presence`, which forces the sensor to `True`, thereby forcing any VTherm that uses it to have active presence. This can be used, for example, to trigger a pre-heating of the house when leaving work or when an unrecognized person is present in HA.
+W tym przykładzie zwróć uwagę na użycie `input_boolean` o nazwie `force_presence`, która wymusza na czujniku stan `True`, wymuszając w ten sposób na każdym termostacie, który go używa, aktywację detekcji obecności. Można tego użyć na przykład do uruchomienia ogrzewania domu po wyjściu z pracy lub gdy w strefie zdefiniewanej w _Home Assistant_ znajduje się nierozpoznana osoba.
 
-File `configuration.yaml`:
+Plik `configuration.yaml`:
 
 ```yaml
 ...
@@ -223,38 +223,39 @@ template: !include templates.yaml
 ...
 ```
 
-## Enable Logs for the Versatile Thermostat
+## Aktywacja logów dla _*Versatile Thermostat*_
 
-Sometimes, you will need to enable logs to fine-tune your analysis. To do this, edit the `logger.yaml` file in your configuration and configure the logs as follows:
+Czasami konieczne jest włączenie logów, aby doprecyzować przyczyny błędów. Aby to zrobić, do pliku `logger.yaml` dopisz poniższy kod:
 
 ```yaml
 default: xxxx
 logs:
   custom_components.versatile_thermostat: info
 ```
-You must reload the YAML configuration (Developer Tools / YAML / Reload all YAML configuration) or restart Home Assistant for this change to take effect.
+Aby ta zmiana została uwzględniona, należy ponownie załadować konfigurację YAML ('**Narzędzia deweloperskie -> YAML -> Przeładuj całą konfigurację YAML**') lub ponownie uruchomić Home Assistant.
 
-Be careful, in debug mode, Versatile Thermostat is very verbose and can quickly slow down Home Assistant or saturate your hard drive. If you switch to debug mode for anomaly analysis, do so only for the time needed to reproduce the bug and disable debug mode immediately afterward.
+⚠️ **Uwaga**: w trybie debugowania integracja _Versatile Thermostat_ działa dość ślamazarnie i może szybko spowolnić Home Assistant lub przeciążyć dysk twardy. Jeśli przełączysz się w tryb debugowania w celu analizy problemów, zrób to tylko na czas potrzebny do odtworzenia błędu i natychmiast wyłącz tryb debugowania.
 
-## VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)
+## _VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)
 
-See the details of this feature [here](over-climate.md#track-underlying-temperature-changes).
+Zobacz szczegółowy opis tej funkcji [tutaj](over-climate.md#track-underlying-temperature-changes).
 
-## VTherm Automatically Switches to 'Cooling' or 'Heating' Mode
+## _VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`
 
-Some reversible heat pumps have modes that allow the heat pump to decide whether to heat or cool. These modes are labeled as 'Auto' or 'Heat_cool' depending on the brand. These two modes should not be used with _VTherm_ because _VTherm_'s algorithms require explicit knowledge of whether the system is in heating or cooling mode, which these modes do not provide.
+Niektóre odwracalne pompy ciepła posiadają tryby, które pozwalają pompie ciepła samodzielnie decydować, czy ma grzać, czy chłodzić. Tryby te są oznaczone jako `Auto` lub `Grzanie-chłodzenie`, w zależności od marki urządzenia. Tych dwóch trybów nie należy używać z _VTherm_, ponieważ algorytmy _VTherm_ wymagają dokładnej wiedzy o tym, czy system pracuje w trybie grzania, czy chłodzenia, czego te tryby niestety nie zapewniają.
 
-You should only use the following modes: `Heat`, `Cool`, `Off`, or optionally `Fan` (although `Fan` has no practical purpose with _VTherm_).
+Należy używać wyłącznie następujących trybów: `Grzanie` [`Heat`], `Chłodzenie` [`Cool`], `Wył.` [`Off`] lub opcjonalnie `Wentylator` [`Fan`] (chociaż `Wentylator` [`Fan`] nie ma praktycznego zastosowania w _VTherm_).
 
-## Open Window Detection Does Not Prevent Preset Changes
+## Detekcja otwarcia okien nie zapobiega zmianom presetów
 
-Indeed, preset changes while a window is open are taken into account, and this is the expected behavior.
-If the action mode is set to _Turn Off_ or _Fan Only_, the preset change and target temperature adjustment are applied immediately. Since the device is either turned off or in fan-only mode, there is no risk of heating the outside. When the device mode switches to Heating or Cooling, the preset and temperature will be applied and used.
+Rzeczywiście, gdy okno jest otwarte, zmiany presetów są uwzględniane i jest to oczekiwane zachowanie.
+Jeśli tryb działania jest ustawiony na _Wyłącz_ lub _Tylko wentylator_, zmiana ustawień wstępnych i regulacja temperatury docelowej są aplikowane natychmiast. Ponieważ urządzenie jest wyłączone lub pracuje tylko w trybie wentylatora, nie ma ryzyka przegrzania. Po przełączeniu urządzenia w tryb ogrzewania lub chłodzenia, presety zostaną zaaplikowane zgodnie z ich ustawieniem.
 
-If the action mode is set to _Frost Protection_ or _Eco_, the preset temperature is applied, **but the preset itself remains unchanged**. This allows for preset changes while the window is open without altering the setpoint temperature, which remains as programmed in the action mode.
+Jeśli tryb działania jest ustawiony na _Ochrona przed zamarzaniem_ lub _Eko_, ustawiana jest temperatura wstępna, **ale sama wartość presetu temperatury wstępnej pozostaje niezmieniona**. Pozwala to na zmianę presetu, gdy okno jest otwarte, bez zmiany samej temperatury zadanej, która pozostaje taka sama, jak ustawiono w trybie normalnej pracy.
 
-### Example:
-1. **Initial state**: Window closed, action mode set to _Frost Protection_, preset on Comfort, and setpoint temperature at 19°C.
-2. **Window opens and system waits**: The preset remains on Comfort, **but the setpoint temperature switches to 10°C** (frost protection). This state may seem inconsistent because the displayed preset does not match the applied setpoint temperature.
-3. **Preset change to Boost** (by the user or the Scheduler): The preset switches to Boost, but the setpoint temperature remains at 10°C (frost protection). This state may also appear inconsistent.
-4. **Window closes**: The preset remains on Boost, and the setpoint temperature changes to 21°C (Boost). The inconsistency disappears, and the user's preset change is correctly applied.
+### Przykład pozornej niespójności
+Oto przykład pozornej niespójności stanu wywołany presetem:
+1. **Stan początkowy**: Okno zamknięte, tryb działania ustawiony na _Ochrona przed zamarzaniem_, tryb Komfort i temperatura zadana 19°C.
+2. **Okno otwiera się, a system czeka**: Preset pozostaje w trybie _Komfort_, **ale temperatura zadana zmienia się na 10°C** (ochrona przed zamarzaniem). Ten stan może wydawać się niespójny, ponieważ wyświetlany preset nie odpowiada zastosowanej temperaturze zadanej.
+3. **Zmiana presetu na `Boost`** (przez użytkownika lub harmonogram): preset przełącza się na `Boost`, ale temperatura zadana pozostaje na poziomie 10°C (ochrona przed zamarzaniem). Ten stan również może wydawać się niespójny.
+4. **Okno zamyka się**: Preset pozostaje w trybie `Boost`, a temperatura zadana zmienia się na 21°C (`Boost`). Niespójność znika, a zmiana presetu użytkownika zostaje poprawnie zaaplikowana.

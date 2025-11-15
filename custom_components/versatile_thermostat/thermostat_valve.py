@@ -6,21 +6,16 @@ from datetime import timedelta, datetime
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
+    async_call_later,
     EventStateChangedData,
 )
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.components.climate import HVACMode
 
 from .base_thermostat import BaseThermostat, ConfigData
 from .prop_algorithm import PropAlgorithm
 
-from .const import (
-    CONF_UNDERLYING_LIST,
-    # This is not really self-regulation but regulation here
-    CONF_AUTO_REGULATION_DTEMP,
-    CONF_AUTO_REGULATION_PERIOD_MIN,
-    overrides,
-)
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
 
@@ -33,17 +28,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         frozenset(
             {
                 "is_over_valve",
-                "underlying_entities",
-                "on_time_sec",
-                "off_time_sec",
-                "cycle_min",
-                "function",
-                "tpi_coef_int",
-                "tpi_coef_ext",
-                "auto_regulation_dpercent",
-                "auto_regulation_period_min",
-                "last_calculation_timestamp",
-                "calculated_on_percent",
+                "vtherm_over_valve",
             }
         )
     )
@@ -68,7 +53,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self._hvac_mode == HVACMode.OFF:
+        if self.vtherm_hvac_mode is VThermHvacMode_OFF:
             return 0
         else:
             return self._valve_open_percent
@@ -143,84 +128,71 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         This method just log the change. It changes nothing to avoid loops.
         """
         new_state = event.data.get("new_state")
-        _LOGGER.debug(
-            "%s - _async_valve_changed new_state is %s", self, new_state.state
-        )
+        self.calculate_hvac_action()
+        write_event_log(_LOGGER, self, f"Underlying valve state changed to {new_state}")
 
     @overrides
     def update_custom_attributes(self):
         """Custom attributes"""
         super().update_custom_attributes()
-        self._attr_extra_state_attributes[
-            "valve_open_percent"
-        ] = self.valve_open_percent
-        self._attr_extra_state_attributes["is_over_valve"] = self.is_over_valve
 
-        self._attr_extra_state_attributes["underlying_entities"] = [
-           underlying.entity_id for underlying in self._underlyings
-        ]
-
-        self._attr_extra_state_attributes[
-            "on_percent"
-        ] = self._prop_algorithm.on_percent
-        self._attr_extra_state_attributes[
-            "on_time_sec"
-        ] = self._prop_algorithm.on_time_sec
-        self._attr_extra_state_attributes[
-            "off_time_sec"
-        ] = self._prop_algorithm.off_time_sec
-        self._attr_extra_state_attributes["cycle_min"] = self._cycle_min
-        self._attr_extra_state_attributes["function"] = self._proportional_function
-        self._attr_extra_state_attributes["tpi_coef_int"] = self._tpi_coef_int
-        self._attr_extra_state_attributes["tpi_coef_ext"] = self._tpi_coef_ext
-        self._attr_extra_state_attributes[
-            "auto_regulation_dpercent"
-        ] = self._auto_regulation_dpercent
-        self._attr_extra_state_attributes[
-            "auto_regulation_period_min"
-        ] = self._auto_regulation_period_min
-        self._attr_extra_state_attributes["last_calculation_timestamp"] = (
-            self._last_calculation_timestamp.astimezone(self._current_tz).isoformat()
-            if self._last_calculation_timestamp
-            else None
+        self._attr_extra_state_attributes.update(
+            {
+                "is_over_valve": self.is_over_valve,
+                "vtherm_over_valve": {
+                    "valve_open_percent": self.valve_open_percent,
+                    "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+                    "on_percent": self._prop_algorithm.on_percent,
+                    "function": self._proportional_function,
+                    "tpi_coef_int": self._tpi_coef_int,
+                    "tpi_coef_ext": self._tpi_coef_ext,
+                    "auto_regulation_dpercent": self._auto_regulation_dpercent,
+                    "auto_regulation_period_min": self._auto_regulation_period_min,
+                    "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
+                    "calculated_on_percent": self._prop_algorithm.calculated_on_percent,
+                },
+            }
         )
-        self._attr_extra_state_attributes[
-            "calculated_on_percent"
-        ] = self._prop_algorithm.calculated_on_percent
 
-        self.async_write_ha_state()
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
+        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
+    def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
         _LOGGER.debug("%s - recalculate the open percent", self)
+
+        self.stop_recalculate_later()
+
+        if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
+            _LOGGER.warning(
+                "%s - auto_regulation_period_min or auto_regulation_dpercent is not set. Stopping TPI calculation.",
+                self,
+            )
+            return
 
         # For testing purpose. Should call _set_now() before
         now = self.now
 
         if self._last_calculation_timestamp is not None:
             period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if period < self._auto_regulation_period_min:
+            if not force and period < self._auto_regulation_period_min:
                 _LOGGER.info(
                     "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
                     self,
                     period,
                 )
+
+                self.do_recalculate_later()
                 return
 
         self._prop_algorithm.calculate(
-            self._target_temp,
+            self.target_temperature,
             self._cur_temp,
             self._cur_ext_temp,
             self.last_temperature_slope,
-            self._hvac_mode or HVACMode.OFF,
+            self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
 
         new_valve_percent = round(
@@ -252,20 +224,34 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
 
         self._valve_open_percent = new_valve_percent
 
-        # is one in start_cycle now
+        # is in start_cycle now which is called by control_heating
         # for under in self._underlyings:
         #    under.set_valve_open_percent()
 
         self._last_calculation_timestamp = now
 
+        # self.calculate_hvac_action()
         self.update_custom_attributes()
-        # already done in update_custom_attributes
-        # self.async_write_ha_state()
+        self.async_write_ha_state()
+
+    def do_recalculate_later(self):
+        """A utility function to set the valve open percent later on all underlyings"""
+        _LOGGER.debug("%s - do_recalculate_later call", self)
+
+        async def callback_recalculate(_):
+            """Callback to set the valve percent"""
+            self.recalculate()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+
+        self.stop_recalculate_later()
+
+        self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
-        if self.hvac_mode == HVACMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
         added_energy = 0
@@ -297,3 +283,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             added_energy,
             self._total_energy,
         )
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_valve"

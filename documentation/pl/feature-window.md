@@ -1,64 +1,64 @@
-# Door/Window Open Detection
+# Detekcja otwarcia drzwi / okien
 
-- [Door/Window Open Detection](#doorwindow-open-detection)
+- [Detekcja otwarcia drzwi / okien](#doorwindow-open-detection)
   - [Sensor Mode](#sensor-mode)
   - [Auto Mode](#auto-mode)
 
-You must have selected the `With Open Detection` feature on the first page to reach this page.
-Open detection can be done in two ways:
-1. By using a sensor placed on the opening (sensor mode),
-2. By detecting a sudden temperature drop (auto mode)
+Musisz wybrać funkcję `Detekcja otwarcia okna` na pierwszej stronie konfiguracyjnej, aby przejść do tej sekcji.
+Detekcja otwarcia może być realizowane na dwa sposoby:
+1. Za pomocą fizycznego czujnika umieszczonego w drzwiach lub oknie (tryb `sensor`),
+2. Poprzez wykrycie nagłego spadku temperatury (tryb `auto`)
 
-## Sensor Mode
-To switch to sensor mode, you need to provide an entity of type `binary_sensor` or `input_boolean`.
-In this mode, you need to fill in the following information:
+## Tryb `Sensor`
+Aby przełączyć się na tryb `sensor`, należy wskazać encję typu `binary_sensor` lub `input_boolean`.
+W tym trybie należy uzupełnić następujące informacje:
 
 ![mode window sensor](images/config-window-sensor.png)
 
-1. A **delay in seconds** before any change. This allows you to open a window quickly without stopping the heating.
-2. The action to take when the opening is detected as open. The possible actions are:
-   1. _Turn off_: the _VTherm_ will be turned off.
-   2. _Fan only_: heating or cooling will be turned off, but the equipment will continue to ventilate (for compatible equipment).
-   3. _Frost protection_: the "Frost Protection" preset temperature will be selected on the _VTherm_ without changing the current preset (see notes below).
-   4. _Eco_: the "Eco" preset temperature will be applied to the _VTherm_ without changing the current preset (see notes below).
+1. **Opóźnienie (w sek.)** przed każdą zmianą. Pozwala to na krótko otworzyć okno bez zatrzymywania ogrzewania.
+2. Działanie, które ma zostać podjęte, gdy wykryte zostanie otwarcie. Możliwe działania to:
+   1. _Wyłącz_: termostat zostanie wyłączony.
+   2. _Tylko nawiew_: ogrzewanie lub chłodzenie zostanie wyłączone, ale urządzenie będzie nadal wentylować (dotyczy kompatybilnych urządzeń).
+   3. _Ochrona przed mrozem_: temperatura ustawień „Ochrona przez mrozem” zostanie ustawiona na termostacie bez zmiany bieżącego presetu (patrz notatki poniżej).
+   4. _Eko_: temperatura ustawienia „Eko” zostanie ustawiona na termostacie bez zmiany bieżącego presetu (patrz notatki poniżej).
 
-When the detector switches to open:
-1. _VTherm_ waits for the specified delay.
-2. If the window is still open after the delay, the _VTherm_ state (Heating / Cooling / ..., current preset, current target temperature) is saved and the action is performed.
+Gdy detektor wykryje otwarcie:
+1. termostat czeka określony czas.
+2. jeśli okno jest nadal otwarte po upływie tego czasu, wówczas aktualny stan termostatu (ogrzewanie/chłodzenie, aktualne ustawienia, temperatura docelowa, itp.) jest zapamiętywany i wykonuje się odpowiednia akcja.
 
-Similarly, when the detector switches to closed:
-1. _VTherm_ waits for the specified delay.
-2. If the window is still closed after the delay, the state before the window opening is restored.
+Podobnie, gdy detektor wykryje zamknięcie:
+1. termostat czeka określony czas.
+2. jeśli okno jest nadal zamknięte po upływie tego czasu, wówczas przywracany jest z pamięci zapisany wcześniej, poprzedni stan termostatu (ogrzewanie/chłodzenie, aktualne ustawienia, temperatura docelowa, itp.)
 
-## Auto Mode
-In auto mode, the configuration is as follows:
+## Tryb `Auto`
+W trybie `auto` konfiguracja wygląda następująco:
 
 ![image](images/config-window-auto.png)
 
-1. A **delay in seconds** before any change. This allows you to open a window quickly without stopping the heating.
-2. A detection threshold in degrees per hour. When the temperature drops beyond this threshold, the thermostat will turn off. The lower this value, the faster the detection (with a higher risk of false positives).
-3. A threshold for ending detection in degrees per hour. When the temperature drop exceeds this value, the thermostat will return to the previous mode (mode and preset).
-4. A maximum detection duration. Beyond this duration, the thermostat will return to its previous mode and preset even if the temperature continues to drop.
-5. The action to take when the opening is detected as open. The actions are the same as in sensor mode described above.
+1. **Opóźnienie** (w sek.) przed każdą zmianą. Pozwala to na krótkie otwarcie okna bez zatrzymywania ogrzewania.
+2. **Próg wykrywania** (w stopniach na godzinę). Gdy spadek temperatury przekroczy ten próg, termostat zostanie wyłączony. Im niższa wartość, tym szybsze wykrywanie (z większym ryzykiem fałszywych alarmów).
+3. **Próg zakończenia wykrywania** (w stopniach na godzinę). Gdy spadek temperatury przekroczy tę wartość, termostat powróci do poprzedniego trybu.
+4. **Maksymalny czas wykrywania**. Po jego przekroczeniu termostat powróci do poprzedniego trybu i presetu, nawet jeśli temperatura nadal spada.
+5. **Działanie do wykonania**, gdy zostanie wykryte otwarcie okna. Działania są takie same jak w trybie `sensor` opisanym powyżej.
 
-To adjust the thresholds, it is recommended to start with the reference values and adjust the detection thresholds. Some tests gave me the following values (for an office):
-- Detection threshold: 3°C/hour
-- No detection threshold: 0°C/hour
-- Max duration: 30 min.
+Aby dostosować progi, zaleca się zacząć od wartości referencyjnych i dostosować progi detekcji. Na przykład:
+- Próg wykrywania: 3°C/godz.
+- Brak wykrywania: 0°C/godz.
+- Maksymalny czas: 30 min.
 
-A new sensor called "slope" has been added for all thermostats. It provides the slope of the temperature curve in °C/hour (or °K/hour). This slope is smoothed and filtered to avoid aberrant thermometer values that could interfere with the measurement.
+Dodano nowy sensor o nazwie `slope` do wszystkich termostatów. Wskazuje on nachylenie krzywej temperatury w °C/godz. (lub °K/godz.). Nachylenie jest wygładzane i filtrowane, aby uniknąć błędnych wartości termometru, które mogłyby zakłócić pomiar.
 
 ![image](images/temperature-slope.png)
 
-To adjust it properly, it is recommended to display both the temperature curve and the slope of the curve ("slope") on the same historical graph:
+Aby odpowiednio go dostosować, zaleca się wyświetlenie zarówno krzywej temperatury, jak i nachylenia krzywej (`slope`) na tym samym wykresie historycznym:
 
 ![image](images/window-auto-tuning.png)
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Wskazówki*_
 >
-> 1. If you want to use **multiple door/window sensors** to automate your thermostat, simply create a group with the usual behavior (https://www.home-assistant.io/integrations/binary_sensor.group/)
-> 2. If you don't have a door/window sensor in your room, simply leave the sensor entity ID empty.
-> 3. **Only one mode is allowed**. You cannot configure a thermostat with both a sensor and auto detection. The two modes might contradict each other, so both modes cannot be active at the same time.
-> 4. It is not recommended to use auto mode for equipment subjected to frequent and normal temperature variations (hallways, open areas, etc.).
-> 5. To avoid interfering with your current preset settings, the actions _Frost protection_ and _Eco_ change the target temperature without changing the preset. So, you may notice a discrepancy between the selected preset and the setpoint. See more description [here](troubleshooting.md#open-window-detection-does-not-prevent-preset-changes)
-> 6. If you use the Versatile Thermostat UI card (see [here](additions.md#even-better-with-the-versatile-thermostat-ui-card)), open detection is represented as follows: ![window](images/window-detection-icon.png).
+> 1. Jeśli chcesz używać wielu czujników drzwi/okien do automatyzacji termostatu, po prostu utwórz grupę z typowym zachowaniem (`binary_sensor.group`).
+> 2. Jeśli nie masz czujnika drzwi/okna w pokoju, pozostaw identyfikator encji czujnika pusty.
+> 3. Dozwolony jest tylko jeden tryb. Nie można skonfigurować termostatu zarówno z czujnikiem, jak i z automatycznym wykrywaniem. Tryby mogą się wzajemnie wykluczać, więc nie mogą być aktywne jednocześnie.
+> 4. Nie zaleca się używania trybu `auto` dla urządzeń narażonych na częste i normalne wahania temperatury (korytarze, otwarte przestrzenie itp.).
+> 5. Aby nie zakłócać bieżących ustawień, akcje `ochrony przed mrozem` oraz `Eko` zmieniają temperaturę docelową bez zmiany presetu. Możesz więc zauważyć rozbieżność między wybranym presetem a wartością docelową.
+> 6. Jeśli używasz karty Versatile Thermostat UI Card (patrz: [tutaj](additions.md#even-better-with-the-versatile-thermostat-ui-card)), wykrywanie otwarcia jest reprezentowane jako: ![window](images/window-detection-icon.png).

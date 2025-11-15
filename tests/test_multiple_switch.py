@@ -64,11 +64,11 @@ async def test_one_switch_cycle(
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
     ):
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -271,11 +271,11 @@ async def test_multiple_switchs(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -289,7 +289,7 @@ async def test_multiple_switchs(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT),
             ]
         )
 
@@ -404,11 +404,11 @@ async def test_multiple_climates(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -419,7 +419,7 @@ async def test_multiple_climates(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -430,10 +430,10 @@ async def test_multiple_climates(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await entity.async_set_hvac_mode(HVACMode.OFF)
+        await entity.async_set_hvac_mode(VThermHvacMode_OFF)
 
-        assert entity.hvac_mode is HVACMode.OFF
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -444,7 +444,7 @@ async def test_multiple_climates(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -506,11 +506,11 @@ async def test_multiple_climates_underlying_changes(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -521,27 +521,25 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Stop heating on one underlying climate
     # All underlying supposed to be aligned with the hvac_mode now
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
-        HVACMode.HEAT,
+        VThermHvacMode_HEAT,
     ):
         # Wait 11 sec so that the event will not be discarded
         event_timestamp = now + timedelta(seconds=11)
         await send_climate_change_event(
             entity,
-            HVACMode.OFF,
-            HVACMode.HEAT,
+            VThermHvacMode_OFF,
+            VThermHvacMode_HEAT,
             HVACAction.OFF,
             HVACAction.HEATING,
             event_timestamp,
@@ -552,16 +550,14 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF),
             ]
         )
-        assert entity.hvac_mode == HVACMode.OFF
+        assert entity.hvac_mode == VThermHvacMode_OFF
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Start heating on one underlying climate
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode, patch(
         # notice that there is no need of return_value=HVACAction.IDLE because this is not
@@ -570,14 +566,14 @@ async def test_multiple_climates_underlying_changes(
         HVACAction.IDLE,
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
-        HVACMode.OFF,
+        VThermHvacMode_OFF,
     ):
         # Wait 11 sec so that the event will not be discarded
         event_timestamp = now + timedelta(seconds=11)
         await send_climate_change_event(
             entity,
-            HVACMode.HEAT,
-            HVACMode.OFF,
+            VThermHvacMode_HEAT,
+            VThermHvacMode_OFF,
             HVACAction.IDLE,
             HVACAction.OFF,
             event_timestamp,
@@ -588,10 +584,10 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT),
             ]
         )
-        assert entity.hvac_mode == HVACMode.HEAT
+        assert entity.hvac_mode == VThermHvacMode_HEAT
         assert entity.hvac_action == HVACAction.IDLE
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
@@ -652,11 +648,11 @@ async def test_multiple_climates_underlying_changes_not_aligned(
     ), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        await entity.async_set_preset_mode(PRESET_BOOST)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
 
-        assert entity.hvac_mode is HVACMode.HEAT
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19
         assert entity.window_state is STATE_UNAVAILABLE
 
@@ -667,26 +663,24 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(HVACMode.HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT),
             ]
         )
 
     # Stop heating on one underlying climate
     # All underlying supposed to be aligned with the hvac_mode now
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hvac_mode",
-        HVACMode.COOL,
+        VThermHvacMode_COOL,
     ):
         # Wait 11 sec so that the event will not be discarded
         event_timestamp = now + timedelta(seconds=11)
         await send_climate_change_event(
             entity,
-            HVACMode.OFF,
-            HVACMode.HEAT,
+            VThermHvacMode_OFF,
+            VThermHvacMode_HEAT,
             HVACAction.OFF,
             HVACAction.HEATING,
             event_timestamp,
@@ -697,11 +691,11 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert mock_underlying_set_hvac_mode.call_count == 0
         # mock_underlying_set_hvac_mode.assert_has_calls(
         #     [
-        #         call.set_hvac_mode(HVACMode.OFF),
+        #         call.set_hvac_mode(VThermHvacMode_OFF),
         #     ]
         # )
         # No change
-        assert entity.hvac_mode == HVACMode.HEAT
+        assert entity.hvac_mode == VThermHvacMode_HEAT
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -709,7 +703,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
 async def test_multiple_switch_power_management(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
-    """Test the Power management"""
+    """Test the Power management with 4 underlyings switch"""
     temps = {
         "eco": 17,
         "comfort": 18,
@@ -763,10 +757,10 @@ async def test_multiple_switch_power_management(
     now: datetime = NowClass.get_now(hass)
     VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
-    await entity.async_set_preset_mode(PRESET_BOOST)
-    assert entity.hvac_mode is HVACMode.HEAT
-    assert entity.preset_mode is PRESET_BOOST
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert entity.preset_mode == VThermPreset.BOOST
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
     assert entity.target_temperature == 19
 
@@ -795,10 +789,10 @@ async def test_multiple_switch_power_management(
         await send_max_power_change_event(entity, 300, datetime.now())
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
-        assert entity.preset_mode is PRESET_BOOST
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.power_manager.overpowering_state is STATE_OFF
 
-    # 2. Send power max mesurement too low and HVACMode is on
+    # 2. Send power max mesurement too low and VThermHvacMode is on
         side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 49))
 
         #fmt: off
@@ -815,14 +809,14 @@ async def test_multiple_switch_power_management(
             await send_max_power_change_event(entity, 49, datetime.now())
             assert entity.power_manager.is_overpowering_detected is True
             # All configuration is complete and power is > power_max we switch to POWER preset
-            assert entity.preset_mode is PRESET_POWER
+            assert entity.preset_mode == VThermPreset.POWER
             assert entity.power_manager.overpowering_state is STATE_ON
             assert entity.target_temperature == 12
 
             assert mock_send_event.call_count == 2
             mock_send_event.assert_has_calls(
                 [
-                    call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_POWER}),
+                    call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.POWER}),
                     call.send_event(
                         EventType.POWER_EVENT,
                         {
@@ -839,17 +833,19 @@ async def test_multiple_switch_power_management(
             assert mock_heater_on.call_count == 0
             assert mock_heater_off.call_count == 4  # The fourth are shutdown
 
-    # 3. change PRESET
+    # 3. change PRESET to ECO. But overpowering is still on cause temp is very low
         with patch(
             "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
         ) as mock_send_event:
             now = now + timedelta(seconds=30)
             VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
-            await entity.async_set_preset_mode(PRESET_ECO)
-            assert entity.preset_mode is PRESET_ECO
+            await entity.async_set_preset_mode(VThermPreset.ECO)
+            # before refacto: assert entity.preset_mode == VThermPreset.ECO
+            await wait_for_local_condition(lambda: entity.preset_mode == VThermPreset.POWER)
             # No change cause temperature is very low
             assert entity.power_manager.overpowering_state is STATE_ON
+            assert entity.target_temperature == 12
 
     # 4. Send hugh power max mesurement to release overpowering
         side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 150))
@@ -868,7 +864,7 @@ async def test_multiple_switch_power_management(
             await send_max_power_change_event(entity, 150, datetime.now())
             assert entity.power_manager.is_overpowering_detected is False
             # All configuration is complete and power is > power_max we switch to POWER preset
-            assert entity.preset_mode is PRESET_ECO
+            assert entity.preset_mode == VThermPreset.ECO
             assert entity.power_manager.overpowering_state is STATE_OFF
             assert entity.target_temperature == 17
 

@@ -52,9 +52,7 @@ class PITemperatureRegulator:
         # if self.accumulated_error < 0:
         #     self.accumulated_error = 0
 
-    def calculate_regulated_temperature(
-        self, room_temp: float, external_temp: float
-    ):  # pylint: disable=unused-argument
+    def calculate_regulated_temperature(self, room_temp: float | None, external_temp: float | None):  # pylint: disable=unused-argument
         """Calculate a new target_temp given some temperature"""
         if room_temp is None:
             _LOGGER.warning(

@@ -1,42 +1,42 @@
-# Auto-start / Auto-stop
+# AutoSTART / AutoSTOP
 
-- [Auto-start / Auto-stop](#auto-start--auto-stop)
-  - [Configure Auto-start/stop](#configure-auto-startstop)
-  - [Usage](#usage)
+- [AutoSTART / AutoSTOP](#auto-start--auto-stop)
+  - [Konfiguracja AutoSTART/AutoSTOP](#configure-auto-startstop)
+  - [Zastosowanie](#usage)
 
-This feature allows _VTherm_ to stop an appliance that doesn't need to be on and restart it when conditions require it. This function includes three settings that control how quickly the appliance is stopped and restarted.
-Exclusively reserved for _VTherm_ of type `over_climate`, it applies to the following use case:
-1. Your appliance is permanently powered on and consumes electricity even when heating (or cooling) is not needed. This is often the case with heat pumps (_PAC_) that consume power even in standby mode.
-2. The temperature conditions are such that heating (or cooling) is not needed for a long period: the setpoint is higher (or lower) than the room temperature.
-3. The temperature rises (or falls), remains stable, or falls (or rises) slowly.
+Ta funkcja pozwala zatrzymać urządzenie, które nie musi być załączone, oraz ponownie je uruchomić, gdy warunki tego wymagają. Funkcja obejmuje trzy ustawienia kontrolujące, jak szybko urządzenie jest zatrzymywane i ponownie uruchamiane. Jest ona zarezerwowana wyłącznie dla `termostatu na klimacie` i ma zastosowanie w przypadku, gdy:
+1. Twoje urządzenie jest stale zasilane i zużywa energię elektryczną nawet wtedy, gdy ogrzewanie (lub chłodzenie) nie jest potrzebne. Często dotyczy to pomp ciepła (_PAC_), które pobierają energię nawet w trybie czuwania.
+2. Warunki termiczne są takie, że ogrzewanie (lub chłodzenie) nie jest potrzebne przez dłuższy czas: wartość zadana jest wyższa (lub niższa) niż temperatura w pomieszczeniu.
+3. Temperatura rośnie (lub spada), pozostaje stabilna albo spada (lub rośnie) powoli.
 
-In such cases, it is preferable to ask the appliance to turn off to avoid unnecessary power consumption in standby mode.
+W takich przypadkach lepiej jest wydać urządzeniu polecenie wyłączenia się, aby uniknąć niepotrzebnego zużycia energii w trybie czuwania.
 
-## Configure Auto-start/stop
+## Konfiguracja AutoSTART/AutoSTOP
 
-To use this feature, you need to:
-1. Add the `With auto-start and stop` function in the 'Functions' menu.
-2. Set the detection level in the 'Auto-start/stop' option that appears when the function is activated. Choose the detection level between 'Slow', 'Medium', and 'Fast'. With the 'Fast' setting, stops and restarts will occur more frequently.
+Aby skorzystać z tej funkcji, należy:
+1. dodać funkcję `AutoSTART/AutoSTOP` z menu 'Funkcje',
+2. ustawić poziom detekcji w opcji `AutoSTART/AutoSTOP`, która pojawia się po aktywacji funkcji. Wybierz poziom detekcji spośród opcji: `Powolny`, `Średni` i `Szybki`. Przy ustawieniu `Szybki` zatrzymania i ponowne uruchomienia będą następować częściej.
 
 ![image](images/config-auto-start-stop.png)
 
-The 'Very slow' setting allows about 60 minutes between a stop and a restart,
-The 'Slow' setting allows about 30 minutes between a stop and a restart,
-The 'Medium' setting sets the threshold to about 15 minutes, and the 'Fast' setting puts it at 7 minutes.
+- Ustawienie `Bardzo powolny` pozwala na ustawienie odstępu około 60 minut pomiędzy zatrzymaniem a ponownym uruchomieniem.
+- Ustawienie `Powolny` pozwala na odstep około 30 minut.
+- Ustawienie `Średni` ustawia próg na około 15 minut.
+- Ustawienie `Szybki` ustawia ten próg na 7 minut.The 'Very slow' setting allows about 60 minutes between a stop and a restart,
 
-Note that these are not absolute settings since the algorithm takes into account the slope of the room temperature curve to respond accordingly. It is still possible that a restart occurs shortly after a stop if the temperature drops significantly.
+Należy pamiętać, że nie są to ustawienia absolutne, ponieważ algorytm uwzględnia nachylenie krzywej temperatury w pomieszczeniu, aby odpowiednio reagować. Nadal możliwe jest, że ponowne uruchomienie nastąpi wkrótce po zatrzymaniu, jeśli temperatura gwałtownie spadnie.
 
-## Usage
+## Zastosowanie
 
-Once the function is configured, you will now have a new `switch` type entity that allows you to enable or disable auto-start/stop without modifying the configuration. This entity is available on the _VTherm_ device and is named `switch.<name>_enable_auto_start_stop`.
+Po skonfigurowaniu funkcji pojawi się nowa encja typu `switch`, która pozwala włączyć lub wyłączyć autoSTART/autoSTOP bez modyfikowania konfiguracji. Ta encja jest dostępna na termostacie _VTherm_ i nosi nazwę `switch.<name>_enable_auto_start_stop`.
 
 ![image](images/enable-auto-start-stop-entity.png)
 
-Check the box to allow auto-start and auto-stop, and leave it unchecked to disable the feature.
+Zaznacz pole wyboru, aby zezwolić na autoSTART i autoSTOP, lub pozostaw je niezaznaczone, aby wyłączyć tę funkcję.
 
-Note: The auto-start/stop function will only turn a _VTherm_ back on if it was turned off by this function. This prevents unwanted or unexpected activations. Naturally, the off state is preserved even after a Home Assistant restart.
+**Uwaga:** Funkcja autoSTART/autoSTOP ponownie uruchomi termostat tylko wtedy, gdy została wcześniej wyłączona przez tę funkcję. Zapobiega to niepożądanym lub niespodziewanym aktywacjom. Naturalnie, stan wyłączenia jest zachowany nawet po ponownym uruchomieniu Home Assistanta.
 
-> ![Tip](images/tips.png) _*Notes*_
-> 1. The detection algorithm is described [here](algorithms.md#auto-startstop-algorithm).
-> 2. Some appliances (boilers, underfloor heating, _PAC_, etc.) may not like being started/stopped too frequently. If that's the case, it might be better to disable the function when you know the appliance will be used. For example, I disable this feature during the day when presence is detected because I know my _PAC_ will turn on often. I enable auto-start/stop at night or when no one is home, as the setpoint is lowered and it rarely triggers.
-> 3. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), a checkbox is directly visible on the card to disable auto-start/stop, and a _VTherm_ stopped by auto-start/stop is indicated by the icon: ![auto-start/stop icon](images/auto-start-stop-icon.png).
+> ![Tip](images/tips.png) _*Wskazówki*_
+> 1. Algorytm detekcji został opisany [tutaj](algorithms.md#auto-startstop-algorithm).
+> 2. Niektóre urządzenia (kotły, ogrzewanie podłogowe, pompy ciepła itp.) mogą nie tolerować zbyt częstego załączania/wyłączania. W takim przypadku lepiej wyłączyć tę funkcję, gdy wiadomo, że urządzenie będzie używane. Np. ja wyłączam tę funkcję w ciągu dnia, gdy wykrywana jest obecność, ponieważ wiem, że moja pompa ciepła będzie często się uruchamiać. Natomiast załączam autoSTART/autoSTOP w nocy lub gdy nikogo nie ma w domu, ponieważ wartość zadana jest obniżona i funkcja rzadko się aktywuje.
+> 3. Jeśli korzystasz z karty interfejsu Versatile Thermostat (patrz: [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), na karcie bezpośrednio widoczne jest pole wyłączenia autoSTART/autoSTOP, a termostat zatrzymany przez tę funkcję jest oznaczony ikoną ![auto-start/stop icon](images/auto-start-stop-icon.png).

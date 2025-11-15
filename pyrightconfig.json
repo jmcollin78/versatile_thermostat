@@ -7,10 +7,13 @@
     "reportShadowedImports": false,
     "reportOptionalMemberAccess": false,
     "reportAssignmentType": "warning",
-    "reportIncompatibleVariableOverride": "warning",
-    "reportIncompatibleMethodOverride": "warning",
+    "reportIncompatibleVariableOverride": false,
+    "reportIncompatibleMethodOverride": false,
     "reportAttributeAccessIssue": "warning",
-    "reportArgumentType": "warning",
+    "reportArgumentType": "information",
+    "reportPrivateImportUsage": false,
+    "reportGeneralTypeIssues": false,
+    "reportReturnType": "information",
     "executionEnvironments": [
         {
             "root": "tests",

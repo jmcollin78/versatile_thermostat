@@ -510,9 +510,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos.get(CONF_USE_PRESENCE_FEATURE, False) is True:
             menu_options.append("presence")
 
-        if self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True and self._infos[CONF_THERMOSTAT_TYPE] in [
-            CONF_THERMOSTAT_CLIMATE,
-        ]:
+        if (
+            self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True
+            and self._infos[CONF_THERMOSTAT_TYPE]
+            in [
+                CONF_THERMOSTAT_CLIMATE,
+            ]
+            and not self.is_valve_regulation_selected(self._infos)
+        ):
             menu_options.append("auto_start_stop")
 
         if self.is_valve_regulation_selected(self._infos):
@@ -627,8 +632,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         schema = STEP_FEATURES_DATA_SCHEMA
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_FEATURES_DATA_SCHEMA
-        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE:
+        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE and not self.is_valve_regulation_selected(self._infos):
             schema = STEP_CLIMATE_FEATURES_DATA_SCHEMA
+        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE and self.is_valve_regulation_selected(self._infos):
+            schema = STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA
 
         return await self.generic_step(
             "features",

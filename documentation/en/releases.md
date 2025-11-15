@@ -1,7 +1,17 @@
 # Release Notes
 
 ![New](images/new-icon.png)
-
+> * **Release 7.4**:
+>
+> - Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint. This prevents the heater from turning on/off for short periods. Ideal for wood stoves that take a long time to heat up. See [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+>
+> - Added a sleep mode for VTherms of type `over_climate` with regulation by direct valve control. This mode allows you to set the thermostat to off mode but with the valve 100% open. It is useful for long periods without heating if the boiler circulates water from time to time. Note: you must update the VTHerm UI Card to view this new mode. See [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+>
+> * **Release 7.2**:
+>
+> - Native support for devices controlled via a `select` (or `input_select`) or `climate` entity for _VTherm_ of type `over_switch`. This update makes the creation of virtual switches obsolete for integrating Nodon, Heaty, eCosy, etc. More information [here](documentation/en/over-switch.md#command-customization).
+>
+> - Documentation links: Version 7.2 introduces experimental links to the documentation from the configuration pages. The link is accessible via the icon [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration). This feature is currently tested on some configuration pages.
 > * **Release 7.1**:
 >   - Redesign of the load-shedding function (power management). Load-shedding is now handled centrally (previously, each _VTherm_ was autonomous). This allows for much more efficient management and prioritization of load-shedding on devices that are close to the setpoint. Note that you must have a centralized configuration with power management enabled for this to work. More info [here](./feature-power.md).
 

@@ -36,16 +36,9 @@ async def test_window_feature_manager_create(
 
     custom_attributes = {}
     window_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["window_sensor_entity_id"] is None
-    assert custom_attributes["window_state"] == STATE_UNAVAILABLE
-    assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
     assert custom_attributes["is_window_configured"] is False
     assert custom_attributes["is_window_auto_configured"] is False
-    assert custom_attributes["window_delay_sec"] == 0
-    assert custom_attributes["window_auto_open_threshold"] == 0
-    assert custom_attributes["window_auto_close_threshold"] == 0
-    assert custom_attributes["window_auto_max_duration"] == 0
-    assert custom_attributes["window_action"] is None
+    assert custom_attributes.get("window_manager") is None
 
 
 @pytest.mark.parametrize(
@@ -117,19 +110,18 @@ async def test_window_feature_manager_post_init(
 
     custom_attributes = {}
     window_manager.add_custom_attributes(custom_attributes)
-    assert custom_attributes["window_sensor_entity_id"] == window_sensor_entity_id
-    assert custom_attributes["window_state"] == window_state
-    assert custom_attributes["window_auto_state"] == window_auto_state
-    assert custom_attributes["is_window_bypass"] is False
     assert custom_attributes["is_window_configured"] is is_configured
     assert custom_attributes["is_window_auto_configured"] is is_auto_configured
-    assert custom_attributes["is_window_bypass"] is False
-    assert custom_attributes["window_delay_sec"] is window_delay_sec
-    assert custom_attributes["window_auto_open_threshold"] is window_auto_open_threshold
-    assert (
-        custom_attributes["window_auto_close_threshold"] is window_auto_close_threshold
-    )
-    assert custom_attributes["window_auto_max_duration"] is window_auto_max_duration
+    if is_configured or is_auto_configured:
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == window_sensor_entity_id
+        assert custom_attributes["window_manager"]["window_state"] == window_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == window_auto_state
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] is window_delay_sec
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is window_auto_open_threshold
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is window_auto_close_threshold
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is window_auto_max_duration
 
 
 @pytest.mark.parametrize(
@@ -154,8 +146,9 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value={})
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -183,9 +176,7 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.async_set_hvac_mode = AsyncMock()
-        fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -202,50 +193,36 @@ async def test_window_feature_manager_refresh_sensor_action_turn_off(
         assert window_manager.window_state == new_state
         assert mock_get_state.call_count == 1
 
-        assert fake_vtherm.set_hvac_off_reason.call_count == nb_call
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_hvac_mode.call_count == 1
-                assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.async_set_hvac_mode.call_count == 1
-                fake_vtherm.async_set_hvac_mode.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(HVACMode.OFF),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.restore_hvac_mode.call_count == 0
-
-            reason = None if current_state == STATE_ON and new_state == STATE_OFF else HVAC_OFF_REASON_WINDOW_DETECTION
-            fake_vtherm.set_hvac_off_reason.assert_has_calls(
-                [
-                    call.set_hvac_off_reason(reason),
-                ]
-            )
-
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -273,9 +250,10 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -303,12 +281,8 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
     with patch("homeassistant.core.StateMachine.get", return_value=State("sensor.the_motion_sensor", new_state)) as mock_get_state:
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_target_temp = AsyncMock()
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.find_preset_temp = MagicMock()
-        fake_vtherm.find_preset_temp.return_value = 17
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -328,45 +302,34 @@ async def test_window_feature_manager_refresh_sensor_action_frost_only(
         assert fake_vtherm.set_hvac_off_reason.call_count == 0
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_target_temp.call_count == 1
-                assert fake_vtherm.save_target_temp.call_count == 0
-                assert fake_vtherm.change_target_temperature.call_count == 0
-                assert fake_vtherm.find_preset_temp.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.restore_target_temp.call_count == 0
-                assert fake_vtherm.save_target_temp.call_count == 1
-                assert fake_vtherm.change_target_temperature.call_count == 1
-                fake_vtherm.change_target_temperature.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.change_target_temperature(17, True),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.find_preset_temp.call_count == 1
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.save_target_temp.call_count == 0
-            assert fake_vtherm.change_target_temperature.call_count == 0
-            assert fake_vtherm.find_preset_temp.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -396,8 +359,9 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -421,9 +385,7 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough):
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.async_set_hvac_mode = AsyncMock()
-        fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_hvac_mode = AsyncMock()
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
         # force old state for the test
@@ -451,50 +413,36 @@ async def test_window_feature_manager_sensor_event_action_turn_off(
         else:
             assert window_manager.window_state == current_state
 
-        assert fake_vtherm.set_hvac_off_reason.call_count == nb_call
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_hvac_mode.call_count == 1
-                assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.async_set_hvac_mode.call_count == 1
-                fake_vtherm.async_set_hvac_mode.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.async_set_hvac_mode(HVACMode.OFF),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.restore_hvac_mode.call_count == 0
-
-            reason = None if current_state == STATE_ON and new_state == STATE_OFF else HVAC_OFF_REASON_WINDOW_DETECTION
-            fake_vtherm.set_hvac_off_reason.assert_has_calls(
-                [
-                    call.set_hvac_off_reason(reason),
-                ]
-            )
-
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.async_set_hvac_mode.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state if long_enough else current_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
-        assert custom_attributes["window_auto_open_threshold"] is None
-        assert (
-            custom_attributes["window_auto_close_threshold"] is None
-        )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state if long_enough else current_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_close_threshold"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -524,9 +472,10 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
-    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).async_get_last_state = AsyncMock(return_value=None)
+    type(fake_vtherm).auto_start_stop_manager = PropertyMock(return_value=None)
 
     # 1. creation
     window_manager = FeatureWindowManager(fake_vtherm, hass)
@@ -549,12 +498,8 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
     with patch("homeassistant.helpers.condition.state", return_value=long_enough):
     # fmt:on
         # Configurer les méthodes mockées
-        fake_vtherm.save_target_temp = MagicMock()
         fake_vtherm.set_hvac_off_reason = MagicMock()
-        fake_vtherm.restore_target_temp = AsyncMock()
-        fake_vtherm.change_target_temperature = AsyncMock()
-        fake_vtherm.find_preset_temp = MagicMock()
-        fake_vtherm.find_preset_temp.return_value = 17
+        fake_vtherm.update_states = AsyncMock()
         fake_vtherm.async_get_last_state = AsyncMock(return_value={})
 
         # force old state for the test
@@ -584,45 +529,36 @@ async def test_window_feature_manager_event_sensor_action_frost_only(
         assert fake_vtherm.set_hvac_off_reason.call_count == 0
 
         if nb_call == 1:
-            if new_state == STATE_OFF:
-                assert fake_vtherm.restore_target_temp.call_count == 1
-                assert fake_vtherm.save_target_temp.call_count == 0
-                assert fake_vtherm.change_target_temperature.call_count == 0
-                assert fake_vtherm.find_preset_temp.call_count == 0
+            if new_state == current_state:
+                assert fake_vtherm.update_states.call_count == 0
             else:
-                assert fake_vtherm.restore_target_temp.call_count == 0
-                assert fake_vtherm.save_target_temp.call_count == 1
-                assert fake_vtherm.change_target_temperature.call_count == 1
-                fake_vtherm.change_target_temperature.assert_has_calls(
+                assert fake_vtherm.update_states.call_count == 1
+                fake_vtherm.update_states.assert_has_calls(
                     [
-                        call.change_target_temperature(17, True),
+                        call.update_states(True),
                     ]
                 )
-                assert fake_vtherm.find_preset_temp.call_count == 1
         else:
-            assert fake_vtherm.restore_hvac_mode.call_count == 0
-            assert fake_vtherm.save_target_temp.call_count == 0
-            assert fake_vtherm.change_target_temperature.call_count == 0
-            assert fake_vtherm.find_preset_temp.call_count == 0
+            assert fake_vtherm.update_states.call_count == 0
 
         fake_vtherm.reset_mock()
 
     # 5. Check custom_attributes
         custom_attributes = {}
         window_manager.add_custom_attributes(custom_attributes)
-        assert custom_attributes["window_sensor_entity_id"] == "sensor.the_window_sensor"
-        assert custom_attributes["window_state"] == new_state if long_enough else current_state
-        assert custom_attributes["window_auto_state"] == STATE_UNAVAILABLE
-        assert custom_attributes["is_window_bypass"] is False
         assert custom_attributes["is_window_configured"] is True
         assert custom_attributes["is_window_auto_configured"] is False
-        assert custom_attributes["is_window_bypass"] is False
-        assert custom_attributes["window_delay_sec"] is 10
-        assert custom_attributes["window_auto_open_threshold"] is None
+        assert custom_attributes["window_manager"]["window_sensor_entity_id"] == "sensor.the_window_sensor"
+        assert custom_attributes["window_manager"]["window_state"] == new_state if long_enough else current_state
+        assert custom_attributes["window_manager"]["window_auto_state"] == STATE_UNAVAILABLE
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["is_window_bypass"] is False
+        assert custom_attributes["window_manager"]["window_delay_sec"] == 10
+        assert custom_attributes["window_manager"]["window_auto_open_threshold"] is None
         assert (
-            custom_attributes["window_auto_close_threshold"] is None
+            custom_attributes["window_manager"]["window_auto_close_threshold"] is None
         )
-        assert custom_attributes["window_auto_max_duration"] is None
+        assert custom_attributes["window_manager"]["window_auto_max_duration"] is None
 
     window_manager.stop_listening()
     await hass.async_block_till_done()
@@ -651,8 +587,8 @@ async def test_window_feature_manager_window_auto(
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).preset_mode = PropertyMock(return_value=PRESET_COMFORT)
-    type(fake_vtherm).hvac_mode = PropertyMock(return_value=HVACMode.HEAT)
+    type(fake_vtherm).preset_mode = PropertyMock(return_value=VThermPreset.COMFORT)
+    type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
     type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
     type(fake_vtherm).proportional_algorithm = PropertyMock(return_value=None)
     fake_vtherm.async_get_last_state = AsyncMock(return_value=None)

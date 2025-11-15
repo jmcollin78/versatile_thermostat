@@ -143,3 +143,9 @@ def deprecated(message):
         return wrapper
 
     return decorator
+
+
+def write_event_log(logger: logging.Logger, vtherm: "BaseThermostat", message: str):
+    """Write an event log entry for the thermostat."""
+    logger.info("")
+    logger.info("--------------------> NEW EVENT: %s - %s --------------------------------------------------------------", vtherm, message)

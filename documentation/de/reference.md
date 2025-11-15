@@ -3,78 +3,79 @@
 - [Referenzdokumentation](#referenzdokumentation)
   - [Parameterübersicht](#parameterübersicht)
 - [Sensoren](#sensoren)
-- [Aktionen (Services)](#aktionen-services))
-  - [Präsenz/Belegung erzwingen](#präsenz-belegung-erzwingen)
-  - [Ändern der Voreinstellungstemperatur](#andern-der-voreinstellungstemperatur)
-  - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-andern)
-  - [ByPass Fensterprüfung](#bypass-fensterprufung)
+- [Aktionen (Services)](#aktionen-services)
+  - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
+  - [Ändern der Voreinstellungstemperatur](#ändern-der-voreinstellungstemperatur)
+  - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
+  - [ByPass Fensterprüfung](#bypass-fensterprüfung)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
+- [State messages](#state-messages)
 
 ## Parameterübersicht
 
-| Parameter                                 | Bezeichnung                                                                       | "over switch" | "over climate"      | "over valve" | "configuration centrale" |
-| ----------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------- | ------------ | ------------------------ |
-| ``name``                                  | Name                                                                              | X             | X                   | X            | -                        |
-| ``thermostat_type``                       | Thermostattyp                                                                     | X             | X                   | X            | -                        |
-| ``temperature_sensor_entity_id``          | Temperatursensor Entity-ID                                                        | X             | X (Selbstregelung)  | X            | -                        |
-| ``external_temperature_sensor_entity_id`` | Außentemperatursensor Entity-ID                                                   | X             | X (Selbstregelung)  | X            | X                        |
-| ``cycle_min``                             | Zyklusdauer (Minuten)                                                             | X             | X                   | X            | -                        |
-| ``temp_min``                              | Zulässige Mindesttemperatur                                                       | X             | X                   | X            | X                        |
-| ``temp_max``                              | Zulässige Maximaltemperatur                                                       | X             | X                   | X            | X                        |
-| ``device_power``                          | Leistung der Anlage                                                               | X             | X                   | X            | -                        |
-| ``use_central_mode``                      | Berechtigung zur zentralen Steuerung                                              | X             | X                   | X            | -                        |
-| ``use_window_feature``                    | Mit Öffnungserkennung                                                             | X             | X                   | X            | -                        |
-| ``use_motion_feature``                    | Mit Bewegungserkennung                                                            | X             | X                   | X            | -                        |
-| ``use_power_feature``                     | Mit Powermanagement                                                               | X             | X                   | X            | -                        |
-| ``use_presence_feature``                  | Mit Anwesenheitserkennung                                                         | X             | X                   | X            | -                        |
-| ``heater_entity1_id``                     | 1. Heizkörper                                                                     | X             | -                   | -            | -                        |
-| ``heater_entity2_id``                     | 2. Heizkörper                                                                     | X             | -                   | -            | -                        |
-| ``heater_entity3_id``                     | 3. Heizkörper                                                                     | X             | -                   | -            | -                        |
-| ``heater_entity4_id``                     | 4. Heizkörper                                                                     | X             | -                   | -            | -                        |
-| ``heater_keep_alive``                     | Aktualisierungsintervall des Schalters                                            | X             | -                   | -            | -                        |
-| ``proportional_function``                 | Algorithmus                                                                       | X             | -                   | -            | -                        |
-| ``climate_entity1_id``                    | 1. Zugeordnetes Thermostat                                                        | -             | X                   | -            | -                        |
-| ``climate_entity2_id``                    | 2. Zugeordnetes Thermostat                                                        | -             | X                   | -            | -                        |
-| ``climate_entity3_id``                    | 3. Zugeordnetes Thermostat                                                        | -             | X                   | -            | -                        |
-| ``climate_entity4_id``                    | 4. Zugeordnetes Thermostat                                                        | -             | X                   | -            | -                        |
-| ``valve_entity1_id``                      | 1. Zugeordnetes Ventil                                                            | -             | -                   | X            | -                        |
-| ``valve_entity2_id``                      | 2. Zugeordnetes Ventil                                                            | -             | -                   | X            | -                        |
-| ``valve_entity3_id``                      | 3. Zugeordnetes Ventil                                                            | -             | -                   | X            | -                        |
-| ``valve_entity4_id``                      | 4. Zugeordnetes Ventil                                                            | -             | -                   | X            | -                        |
-| ``ac_mode``                               | Nutzung der Klimaanlage (AC)?                                                     | X             | X                   | X            | -                        |
-| ``tpi_coef_int``                          | Für das interne Temperaturdelta zu verwendender Faktor                            | X             | -                   | X            | X                        |
-| ``tpi_coef_ext``                          | Für das externe Temperaturdelta zu verwendender Faktor                            | X             | -                   | X            | X                        |
-| ``frost_temp``                            | Voreingestellte Temperatur Frostschutz                                            | X             | X                   | X            | X                        |
-| ``window_sensor_entity_id``               | Öffnungssensor (Entität-ID)                                                       | X             | X                   | X            | -                        |
-| ``window_delay``                          | Abschaltverzögerung (Sekunden)                                                    | X             | X                   | X            | X                        |
-| ``window_auto_open_threshold``            | Obere Temperaturabfallschwelle für die automatische Erkennung ( °/min)            | X             | X                   | X            | X                        |
-| ``window_auto_close_threshold``           | Untere Temperaturabfallschwelle für das Ende der automatischen Erkennung ( °/min) | X             | X                   | X            | X                        |
-| ``window_auto_max_duration``              | Maximale Dauer einer automatischen Abschaltung ( Min.)                            | X             | X                   | X            | X                        |
-| ``motion_sensor_entity_id``               | Bewegungsmelder Entity-ID                                                         | X             | X                   | X            | -                        |
-| ``motion_delay``                          | Verzögerung vor Berücksichtigung der Bewegung (Sekunden)                          | X             | X                   | X            | -                        |
-| ``motion_off_delay``                      | Verzögerung vor Berücksichtigung des Bewegungsendes (Sekunden)                    | X             | X                   | X            | X                        |
-| ``motion_preset``                         | Voreinstellung bei Erkennung einer Bewegung                                       | X             | X                   | X            | X                        |
-| ``no_motion_preset``                      | Voreinstellung, die verwendet werden soll, wenn keine Bewegung erkannt wird       | X             | X                   | X            | X                        |
-| ``power_sensor_entity_id``                | Gesamtleistungssensor (Entity-ID)                                                 | X             | X                   | X            | X                        |
-| ``max_power_sensor_entity_id``            | Leistungssensor Max (Entity-ID)                                                   | X             | X                   | X            | X                        |
-| ``power_temp``                            | Temperatur bei Lastabwurf                                                         | X             | X                   | X            | X                        |
-| ``presence_sensor_entity_id``             | Anwesenheitssensor Entity-ID (true, wenn jemand anwesend ist)                     | X             | X                   | X            | -                        |
-| ``minimal_activation_delay``              | Mindestverzögerung bei Aktivierung                                                | X             | -                   | -            | X                        |
-| ``safety_delay_min``                      | Maximale Zeitspanne zwischen zwei Temperaturmessungen                             | X             | -                   | X            | X                        |
-| ``safety_min_on_percent``                 | Mindestprozentsatz der Leistung für den Übergang in den Sicherheitsmodus          | X             | -                   | X            | X                        |
-| ``auto_regulation_mode``                  | Der Selbstregulierungsmodus                                                       | -             | X                   | -            | -                        |
-| ``auto_regulation_dtemp``                 | Die Schwelle der Selbstregulierung                                                | -             | X                   | -            | -                        |
-| ``auto_regulation_period_min``            | Die Mindestdauer der Selbstregulierung                                            | -             | X                   | -            | -                        |
-| ``inverse_switch_command``                | Kehrt die Schalterfunktion um (bei Schaltern mit Pilotkabel)                      | X             | -                   | -            | -                        |
-| ``auto_fan_mode``                         | Automatischer Lüftungsmodus                                                       | -             | X                   | -            | -                        |
-| ``auto_regulation_use_device_temp``       | Verwendung der internen Temperatur des zu steuernden Geräts                       | -             | X                   | -            | -                        |
-| ``use_central_boiler_feature``            | Hinzufügen der Steuerung eines Zentralheizungskessels                             | -             | -                   | -            | X                        |
-| ``central_boiler_activation_service``     | Dienst zum Anschalten der Zentralheizung                                          | -             | -                   | -            | X                        |
-| ``central_boiler_deactivation_service``   | Dienst zum Abschalten der Zentralheizung                                          | -             | -                   | -            | X                        |
-| ``used_by_controls_central_boiler``       | Zeigt an, ob VTherm den Zentralheizungskessel steuert                             | X             | X                   | X            | -                        |
-| ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                   | -            | -                        |
-| ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                   | -            | -                        |
+| Parameter                                 | Bezeichnung                                                                       | "over switch" | "over climate"     | "over valve" | "configuration centrale" |
+| ----------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ------------------ | ------------ | ------------------------ |
+| ``name``                                  | Name                                                                              | X             | X                  | X            | -                        |
+| ``thermostat_type``                       | Thermostattyp                                                                     | X             | X                  | X            | -                        |
+| ``temperature_sensor_entity_id``          | Temperatursensor Entity-ID                                                        | X             | X (Selbstregelung) | X            | -                        |
+| ``external_temperature_sensor_entity_id`` | Außentemperatursensor Entity-ID                                                   | X             | X (Selbstregelung) | X            | X                        |
+| ``cycle_min``                             | Zyklusdauer (Minuten)                                                             | X             | X                  | X            | -                        |
+| ``temp_min``                              | Zulässige Mindesttemperatur                                                       | X             | X                  | X            | X                        |
+| ``temp_max``                              | Zulässige Maximaltemperatur                                                       | X             | X                  | X            | X                        |
+| ``device_power``                          | Leistung der Anlage                                                               | X             | X                  | X            | -                        |
+| ``use_central_mode``                      | Berechtigung zur zentralen Steuerung                                              | X             | X                  | X            | -                        |
+| ``use_window_feature``                    | Mit Öffnungserkennung                                                             | X             | X                  | X            | -                        |
+| ``use_motion_feature``                    | Mit Bewegungserkennung                                                            | X             | X                  | X            | -                        |
+| ``use_power_feature``                     | Mit Powermanagement                                                               | X             | X                  | X            | -                        |
+| ``use_presence_feature``                  | Mit Anwesenheitserkennung                                                         | X             | X                  | X            | -                        |
+| ``heater_entity1_id``                     | 1. Heizkörper                                                                     | X             | -                  | -            | -                        |
+| ``heater_entity2_id``                     | 2. Heizkörper                                                                     | X             | -                  | -            | -                        |
+| ``heater_entity3_id``                     | 3. Heizkörper                                                                     | X             | -                  | -            | -                        |
+| ``heater_entity4_id``                     | 4. Heizkörper                                                                     | X             | -                  | -            | -                        |
+| ``heater_keep_alive``                     | Aktualisierungsintervall des Schalters                                            | X             | -                  | -            | -                        |
+| ``proportional_function``                 | Algorithmus                                                                       | X             | -                  | -            | -                        |
+| ``climate_entity1_id``                    | 1. Zugeordnetes Thermostat                                                        | -             | X                  | -            | -                        |
+| ``climate_entity2_id``                    | 2. Zugeordnetes Thermostat                                                        | -             | X                  | -            | -                        |
+| ``climate_entity3_id``                    | 3. Zugeordnetes Thermostat                                                        | -             | X                  | -            | -                        |
+| ``climate_entity4_id``                    | 4. Zugeordnetes Thermostat                                                        | -             | X                  | -            | -                        |
+| ``valve_entity1_id``                      | 1. Zugeordnetes Ventil                                                            | -             | -                  | X            | -                        |
+| ``valve_entity2_id``                      | 2. Zugeordnetes Ventil                                                            | -             | -                  | X            | -                        |
+| ``valve_entity3_id``                      | 3. Zugeordnetes Ventil                                                            | -             | -                  | X            | -                        |
+| ``valve_entity4_id``                      | 4. Zugeordnetes Ventil                                                            | -             | -                  | X            | -                        |
+| ``ac_mode``                               | Nutzung der Klimaanlage (AC)?                                                     | X             | X                  | X            | -                        |
+| ``tpi_coef_int``                          | Für das interne Temperaturdelta zu verwendender Faktor                            | X             | -                  | X            | X                        |
+| ``tpi_coef_ext``                          | Für das externe Temperaturdelta zu verwendender Faktor                            | X             | -                  | X            | X                        |
+| ``frost_temp``                            | Voreingestellte Temperatur Frostschutz                                            | X             | X                  | X            | X                        |
+| ``window_sensor_entity_id``               | Öffnungssensor (Entität-ID)                                                       | X             | X                  | X            | -                        |
+| ``window_delay``                          | Abschaltverzögerung (Sekunden)                                                    | X             | X                  | X            | X                        |
+| ``window_auto_open_threshold``            | Obere Temperaturabfallschwelle für die automatische Erkennung ( °/min)            | X             | X                  | X            | X                        |
+| ``window_auto_close_threshold``           | Untere Temperaturabfallschwelle für das Ende der automatischen Erkennung ( °/min) | X             | X                  | X            | X                        |
+| ``window_auto_max_duration``              | Maximale Dauer einer automatischen Abschaltung ( Min.)                            | X             | X                  | X            | X                        |
+| ``motion_sensor_entity_id``               | Bewegungsmelder Entity-ID                                                         | X             | X                  | X            | -                        |
+| ``motion_delay``                          | Verzögerung vor Berücksichtigung der Bewegung (Sekunden)                          | X             | X                  | X            | -                        |
+| ``motion_off_delay``                      | Verzögerung vor Berücksichtigung des Bewegungsendes (Sekunden)                    | X             | X                  | X            | X                        |
+| ``motion_preset``                         | Voreinstellung bei Erkennung einer Bewegung                                       | X             | X                  | X            | X                        |
+| ``no_motion_preset``                      | Voreinstellung, die verwendet werden soll, wenn keine Bewegung erkannt wird       | X             | X                  | X            | X                        |
+| ``power_sensor_entity_id``                | Gesamtleistungssensor (Entity-ID)                                                 | X             | X                  | X            | X                        |
+| ``max_power_sensor_entity_id``            | Leistungssensor Max (Entity-ID)                                                   | X             | X                  | X            | X                        |
+| ``power_temp``                            | Temperatur bei Lastabwurf                                                         | X             | X                  | X            | X                        |
+| ``presence_sensor_entity_id``             | Anwesenheitssensor Entity-ID (true, wenn jemand anwesend ist)                     | X             | X                  | X            | -                        |
+| ``minimal_activation_delay``              | Mindestverzögerung bei Aktivierung                                                | X             | -                  | -            | X                        |
+| ``safety_delay_min``                      | Maximale Zeitspanne zwischen zwei Temperaturmessungen                             | X             | -                  | X            | X                        |
+| ``safety_min_on_percent``                 | Mindestprozentsatz der Leistung für den Übergang in den Sicherheitsmodus          | X             | -                  | X            | X                        |
+| ``auto_regulation_mode``                  | Der Selbstregulierungsmodus                                                       | -             | X                  | -            | -                        |
+| ``auto_regulation_dtemp``                 | Die Schwelle der Selbstregulierung                                                | -             | X                  | -            | -                        |
+| ``auto_regulation_period_min``            | Die Mindestdauer der Selbstregulierung                                            | -             | X                  | -            | -                        |
+| ``inverse_switch_command``                | Kehrt die Schalterfunktion um (bei Schaltern mit Pilotkabel)                      | X             | -                  | -            | -                        |
+| ``auto_fan_mode``                         | Automatischer Lüftungsmodus                                                       | -             | X                  | -            | -                        |
+| ``auto_regulation_use_device_temp``       | Verwendung der internen Temperatur des zu steuernden Geräts                       | -             | X                  | -            | -                        |
+| ``use_central_boiler_feature``            | Hinzufügen der Steuerung eines Zentralheizungskessels                             | -             | -                  | -            | X                        |
+| ``central_boiler_activation_service``     | Dienst zum Anschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
+| ``central_boiler_deactivation_service``   | Dienst zum Abschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
+| ``used_by_controls_central_boiler``       | Zeigt an, ob VTherm den Zentralheizungskessel steuert                             | X             | X                  | X            | -                        |
+| ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                  | -            | -                        |
+| ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                  | -            | -                        |
 
 # Sensoren
 
@@ -224,6 +225,8 @@ Um den Algorithmus anzupassen, gibt es über spezielle Attribute Zugriff auf den
 
 Die benutzerdefinierten Attribute sind folgende:
 
+> see updated list on English version - please translate
+
 | Attribut                          | Bedeutung                                                                                                                                                               |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                    | Liste der vom Thermostat unterstützten Modi                                                                                                                             |
@@ -275,3 +278,20 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``device_actives``                | Die Liste der zugrunde liegenden Geräte, die derzeit als aktiv angesehen werden                                                                                         |
 
 Diese Angaben werden bei einer Hilfeanfrage benötigt.
+
+# State messages
+
+The `specific_states.messages` custom attribute contains a list of message codes that explain the current state. Messages can be:
+| Code                                | Meaning                                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| `overpowering_detected`             | An overpowering situation is detected                                               |
+| `safety_detected`                   | A temperature measurement fault is detected that triggered VTherm safety mode       |
+| `target_temp_window_eco`            | Window detection forced the target temperature to the Eco preset                    |
+| `target_temp_window_frost`          | Window detection forced the target temperature to the Frost preset                  |
+| `target_temp_power`                 | Power shedding forced the target temperature with the value configured for shedding |
+| `target_temp_central_mode`          | The target temperature was forced by central mode                                   |
+| `target_temp_activity_detected`     | The target temperature was forced by motion detection                               |
+| `target_temp_activity_not_detected` | The target temperature was forced by no motion detection                            |
+| `target_temp_absence_detected`      | The target temperature was forced by absence detection                              |
+
+Note: these messages are available in the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) under the information icon.

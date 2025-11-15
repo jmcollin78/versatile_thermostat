@@ -1,6 +1,6 @@
 # Użycie różnych algorytmów
 
-- [Użycie różnych algorytmów](#the-different-algorithms-used)
+- [Różne algorytmy](#the-different-algorithms-used)
   - [Algorytm TPI](#the-tpi-algorithm)
     - [Konfigurowanie współczynników algorytmu TPI](#configuring-the-tpi-algorithm-coefficients)
     - [Zasady](#principle)
@@ -13,7 +13,7 @@
 
 ### Konfigurowanie współczynników algorytmu TPI
 
-Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klimacie` z trybem autoregulacji  `Bezpośrednie strowanie zaworem` i wybrałeś w menu opcję "TPI", znajdziesz się na tej stronie:
+Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klimacie` z trybem autoregulacji  `Bezpośrednie sterowanie zaworem` i wybrałeś w menu opcję "TPI", znajdziesz się na tej stronie:
 
 ![image](images/config-tpi.png)
 
@@ -46,16 +46,16 @@ W trybie `Termostat na Zaworze`, wartość `procent` jest konwertowana na procen
 
 ### Minimalna zwłoka aktywacji lub dezaktywacji
 
-Pierwsze opóźnienie (`minimal_activation_delay_sec`), w sekundach, to minimalne dopuszczalne opóźnienie włączenia ogrzewania. Gdy wynik obliczeń daje czas włączenia krótszy, niż ta wartość, ogrzewanie pozostaje wyłączone. Jeśli czas aktywacji jest zbyt krótki, szybkie przełączanie nie pozwoli urządzeniu osiągnąć temperatury roboczej.
+Pierwsze opóźnienie (`minimal_activation_delay_sec`), w sekundach, to minimalne dopuszczalne opóźnienie włączenia ogrzewania. Gdy wynik obliczeń daje czas włączenia krótszy, niż ta wartość, grzejnik pozostaje wyłączony. Jeśli czas aktywacji jest zbyt krótki, szybkie przełączanie nie pozwoli urządzeniu osiągnąć temperatury roboczej.
 
-Podobnie, drugie opóźnienie (`minimal_deactivation_delay_sec`), również w sekundach, definiuje minimalny dopuszczalny czas wyłączenia. Jeśli czas wyłączenia jest krótszy, niż ta wartość, ogrzewanie nie zostanie wyłączone. Zapobiega to szybkiemu migotaniu, które przynosi niewielkie korzyści w regulacji temperatury.
+Podobnie, drugie opóźnienie (`minimal_deactivation_delay_sec`), również w sekundach, definiuje minimalny dopuszczalny czas wyłączenia. Jeśli czas wyłączenia jest krótszy, niż ta wartość, grzejnik nie zostanie wyłączony. Zapobiega to szybkiemu migotaniu, które przynosi niewielkie korzyści w regulacji temperatury.
 
 ### Górne i dolne progi aktywacji algorytmu
 
-Od wersji 7.4 dostępne są dwa dodatkowe progi aktywacji algorytmów. Pozwalają one wyłączyć (lub ponownie załączyć) sam algorytm TPI, w zależności od różnicy między temperaturą docelową  a temperaturą aktualną.
+Od wersji 7.4 dostępne są dwa dodatkowe progi aktywacji algorytmów. Pozwalają one wyłączyć (lub ponownie załączyć) sam algorytm TPI, w zależności od różnicy między temperaturą docelową a temperaturą aktualną.
 
-- Jeśli temperatura rośnie i różnica jest większa, niż górny próg, ogrzewanie zostaje wyłączone (tj. `on_percent` ma wymuszoną wartość 0).
-- Jeśli temperatura spada i różnica jest mniejsza, niż dolny próg, ogrzewanie zostaje ponownie załączone (tj. `on_percent` jest obliczany przez algorytm zgodnie z opisem powyżej).
+- Jeśli temperatura rośnie i różnica jest większa, niż górny próg, grzejnik zostaje wyłączony (tj. `on_percent` ma wymuszoną wartość 0).
+- Jeśli temperatura spada i różnica jest mniejsza, niż dolny próg, grzejnik zostaje ponownie załączony (tj. `on_percent` jest obliczany przez algorytm zgodnie z opisem powyżej).
 
 Te dwa progi zatrzymują cykliczne włączanie/wyłączanie, gdy temperatura przekracza wartość docelową. Histereza zapobiega szybkiemu przełączaniu.
 

@@ -5,12 +5,12 @@ from unittest.mock import patch, PropertyMock
 from datetime import timedelta, datetime
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACMode
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.binary_sensor import (
     SecurityBinarySensor,
@@ -76,8 +76,8 @@ async def test_security_binary_sensors(
     now: datetime = datetime.now(tz=get_tz(hass))
 
     # Security should be disabled
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
 
     assert security_binary_sensor.state == STATE_OFF
     assert security_binary_sensor.device_class == BinarySensorDeviceClass.SAFETY
@@ -161,8 +161,8 @@ async def test_overpowering_binary_sensors(
     VersatileThermostatAPI.get_vtherm_api()._set_now(now)
 
     # Overpowering should be not set because poer have not been received
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.power_manager.is_overpowering_detected is False
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
@@ -263,8 +263,8 @@ async def test_window_binary_sensors(
     now: datetime = datetime.now(tz=get_tz(hass))
 
     # Overpowering should be not set because poer have not been received
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.window_state is STATE_UNKNOWN
 
@@ -336,8 +336,8 @@ async def test_motion_binary_sensors(
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
             CONF_MOTION_DELAY: 0,  # important to not been obliged to wait
-            CONF_MOTION_PRESET: PRESET_BOOST,
-            CONF_NO_MOTION_PRESET: PRESET_ECO,
+            CONF_MOTION_PRESET: VThermPreset.BOOST,
+            CONF_NO_MOTION_PRESET: VThermPreset.ECO,
         },
     )
 
@@ -354,8 +354,8 @@ async def test_motion_binary_sensors(
     now: datetime = datetime.now(tz=get_tz(hass))
 
     # Overpowering should be not set because poer have not been received
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.motion_state is STATE_UNKNOWN
 
@@ -445,8 +445,8 @@ async def test_presence_binary_sensors(
     now: datetime = datetime.now(tz=get_tz(hass))
 
     # Overpowering should be not set because poer have not been received
-    await entity.async_set_preset_mode(PRESET_COMFORT)
-    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(entity, 15, now)
     assert entity.presence_state is STATE_UNKNOWN
 
@@ -545,4 +545,3 @@ async def test_binary_sensors_over_climate_minimal(
         hass, "binary_sensor.theoverclimatemockname_presence_state", "binary_sensor"
     )
     assert presence_binary_sensor is None
-

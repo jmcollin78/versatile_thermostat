@@ -25,7 +25,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .vtherm_api import VersatileThermostatAPI
-from .commons import check_and_extract_service_configuration
+from .commons import check_and_extract_service_configuration, write_event_log
 from .base_entity import VersatileThermostatBaseEntity
 from .const import (
     DOMAIN,
@@ -389,19 +389,6 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         api.register_central_boiler(self)
 
-        # Should be not more needed and replaced by vtherm_api.init_vtherm_links
-        # @callback
-        # async def _async_startup_internal(*_):
-        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
-        #     await self.listen_nb_active_vtherm_entity()
-    #
-    # if self.hass.state == CoreState.running:
-    #     await _async_startup_internal()
-    # else:
-    #     self.hass.bus.async_listen_once(
-    #         EVENT_HOMEASSISTANT_START, _async_startup_internal
-    #     )
-
     async def listen_nb_active_vtherm_entity(self):
         """Initialize the listening of state change of VTherms"""
 
@@ -454,9 +441,11 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         if self._attr_is_on != active:
             try:
                 if active:
+                    write_event_log(_LOGGER, self, f"Central boiler is being turned on ({api.nb_active_device_for_boiler}/{api.nb_active_device_for_boiler_threshold})")
                     await self.call_service(self._service_activate)
                     _LOGGER.info("%s - central boiler have been turned on", self)
                 else:
+                    write_event_log(_LOGGER, self, f"Central boiler is being turned off ({api.nb_active_device_for_boiler}/{api.nb_active_device_for_boiler_threshold})")
                     await self.call_service(self._service_deactivate)
                     _LOGGER.info("%s - central boiler have been turned off", self)
                 self._attr_is_on = active

@@ -8,27 +8,27 @@ jobs:
     runs-on: "ubuntu-latest"
     name: Validate
     steps:
-        - uses: "actions/checkout@v3.5.2"
+      - uses: "actions/checkout@v3.5.2"
 
-        - name: HACS validation
-          uses: "hacs/action@main"
-          with:
-            category: "integration"
-            ignore: brands
+      - name: HACS validation
+        uses: "hacs/action@main"
+        with:
+          category: "integration"
+          ignore: brands
 
-        - name: Hassfest validation
-          uses: "home-assistant/actions/hassfest@master"
+      - name: Hassfest validation
+        uses: "home-assistant/actions/hassfest@master"
 
   style:
     runs-on: "ubuntu-latest"
     name: Check style formatting
     steps:
-        - uses: "actions/checkout@v3.5.2"
-        - uses: "actions/setup-python@v4.6.0"
-          with:
-            python-version: "3.13"
-        - run: python3 -m pip install black
-        - run: black .
+      - uses: "actions/checkout@v3.5.2"
+      - uses: "actions/setup-python@v4.6.0"
+        with:
+          python-version: "3.13"
+      - run: python3 -m pip install "black>=24.0,<25.0"
+      - run: black .
 
   tests:
     # Tests don't run in Gitlab ci environment

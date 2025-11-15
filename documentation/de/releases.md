@@ -1,7 +1,19 @@
 # Anmerkungen zum Release
 
 ![Neu](images/new-icon.png)
-
+> * **Release 7.4**:
+>
+> - Es wurden Schwellenwerte hinzugefügt, um den TPI-Algorithmus zu aktivieren oder zu deaktivieren, wenn die Temperatur den Sollwert überschreitet.
+> Dadurch werden kurze Ein-/Ausschaltzyklen eines Heizkörpers verhindert.
+>   Siehe [TPI](documentation/de/algorithms.md#the-tpi-algorithm)
+>
+> - Es wurde ein Schlafmodus für VTherms vom Typ `over_climate` mit Regelung durch direkte Ventilsteuerung hinzugefügt. In diesem Modus können Sie den Thermostat auf "Aus" stellen, dabei bleibt das Ventil jedoch zu 100% geöffnet. Dies ist nützlich für längere Zeiträume ohne Heizung, wenn der Heizkessel von Zeit zu Zeit Wasser zirkulieren lässt. Hinweis: Sie müssen die VTherm-UI-Karte aktualisieren, um diesen neuen Modus anzuzeigen. Siehe [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+>
+> * **Release 7.2**:
+>
+> - Native Unterstützung für Geräte, die über eine `select` (oder `input_select`) oder `climate` Entität für _VTherm_ vom Typ `over_switch` gesteuert werden können. Dieses Update macht die Erstellung von virtuellen Schaltern für die Integration von Nodon, Heaty, eCosy, etc. überflüssig. Weitere Informationen [hier](documentation/de/over-switch.md#command-customization).
+>
+> - Links zur Dokumentation: Version 7.2 führt experimentelle Links zur Dokumentation auf den Konfigurationsseiten ein. Der Link ist über das Symbol [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/over-switch.md#configuration) erreichbar. Diese Funktion wird derzeit auf einigen Konfigurationsseiten getestet.
 > * **Release 7.1**:
 >   - Umgestaltung der Lastabwurf-Funktion (Energiemanagement). Der Lastabwurf wird jetzt zentral verwaltet (vorher war jedes _VTherm_ autonom). Dies ermöglicht eine wesentlich effizientere Verwaltung und Priorisierung des Lastabwurfs bei Geräten, die sich in der Nähe des Sollwerts befinden. Beachten Sie, dass Sie eine zentralisierte Konfiguration mit aktiviertem Energiemanagement haben müssen, damit dies funktioniert. Weitere Informationen [hier](./feature-power.md).
 

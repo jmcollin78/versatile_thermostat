@@ -16,12 +16,6 @@ from homeassistant.components.number import (
     DEFAULT_MIN_VALUE,
     DEFAULT_STEP,
 )
-from homeassistant.components.climate import (
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-)
-
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -41,43 +35,34 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_STEP_TEMPERATURE,
     CONF_AC_MODE,
-    PRESET_FROST_PROTECTION,
-    PRESET_ECO_AC,
-    PRESET_COMFORT_AC,
-    PRESET_BOOST_AC,
-    PRESET_AWAY_SUFFIX,
-    PRESET_TEMP_SUFFIX,
     CONF_PRESETS_VALUES,
     CONF_PRESETS_WITH_AC_VALUES,
     CONF_PRESETS_AWAY_VALUES,
     CONF_PRESETS_AWAY_WITH_AC_VALUES,
     CONF_USE_PRESETS_CENTRAL_CONFIG,
-    CONF_USE_PRESENCE_CENTRAL_CONFIG,
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
     CONF_USE_MAIN_CENTRAL_CONFIG,
 )
 
+from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX
+
 PRESET_ICON_MAPPING = {
-    PRESET_FROST_PROTECTION + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
-    PRESET_ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
-    PRESET_COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
-    PRESET_BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
-    PRESET_ECO_AC + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
-    PRESET_COMFORT_AC + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
-    PRESET_BOOST_AC + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
-    PRESET_FROST_PROTECTION
-    + PRESET_AWAY_SUFFIX
-    + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
-    PRESET_ECO + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf",
-    PRESET_COMFORT + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa",
-    PRESET_BOOST + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
-    PRESET_ECO_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
-    PRESET_COMFORT_AC + PRESET_AWAY_SUFFIX + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
-    PRESET_BOOST_AC
-    + PRESET_AWAY_SUFFIX
-    + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
+    VThermPreset.FROST + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
+    VThermPreset.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
+    VThermPreset.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
+    VThermPreset.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
+    VThermPresetWithAC.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    VThermPresetWithAC.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    VThermPresetWithAC.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
+    VThermPresetWithAway.FROST + PRESET_TEMP_SUFFIX: "mdi:snowflake-thermometer",
+    VThermPresetWithAway.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf",
+    VThermPresetWithAway.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa",
+    VThermPresetWithAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch",
+    VThermPresetWithACAway.ECO + PRESET_TEMP_SUFFIX: "mdi:leaf-circle-outline",
+    VThermPresetWithACAway.COMFORT + PRESET_TEMP_SUFFIX: "mdi:sofa-outline",
+    VThermPresetWithACAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
 }
 
 _LOGGER = logging.getLogger(__name__)

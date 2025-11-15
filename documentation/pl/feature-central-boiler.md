@@ -1,77 +1,76 @@
-# Le contrôle d'une chaudière centrale# Controlling a Central Boiler
+# Sterowanie kotłem głównym
 
-- [Le contrôle d'une chaudière centrale# Controlling a Central Boiler](#le-contrôle-dune-chaudière-centrale-controlling-a-central-boiler)
-  - [Principle](#principle)
-  - [Configuration](#configuration)
-    - [How to Find the Right Action?](#how-to-find-the-right-action)
-  - [Events](#events)
-  - [Warning](#warning)
+- [Sterowanie kotłem głównym](#le-contrôle-dune-chaudière-centrale-controlling-a-central-boiler)
+  - [Zasady](#principle)
+  - [Konfiguracja](#configuration)
+    - [Jak znaleźć właściwą akcję?](#how-to-find-the-right-action)
+  - [Zdarzenia](#events)
+  - [Ostrzeżenie](#warning)
 
-You can control a centralized boiler. As long as it's possible to trigger or stop the boiler from Home Assistant, Versatile Thermostat will be able to control it directly.
+Możesz sterować kotłem głównym. Jak długo możliwe jest jego załączanie lub wyłączanie z poziomu Home Assistanta, integracja `Versatile Thermostat` będzie w stanie kontrolować go bezpośrednio.
 
-## Principle
-The basic principle is as follows:
-1. A new entity of type `binary_sensor`, named by default `binary_sensor.central_boiler`, is added.
-2. In the configuration of the _VTherms_, you specify whether the _VTherm_ should control the boiler. In a heterogeneous installation, some _VTherms_ should control the boiler, and others should not. Therefore, you need to indicate in each _VTherm_ configuration whether it controls the boiler.
-3. The `binary_sensor.central_boiler` listens for state changes in the equipment of the _VTherms_ marked as controlling the boiler.
-4. When the number of devices controlled by the _VTherm_ requesting heating (i.e., when its `hvac_action` changes to `Heating`) exceeds a configurable threshold, the `binary_sensor.central_boiler` turns `on`, and **if an activation service has been configured, that service is called**.
-5. If the number of devices requesting heating drops below the threshold, the `binary_sensor.central_boiler` turns `off`, and **if a deactivation service has been configured, that service is called**.
-6. You have access to two entities:
-   - A `number` type entity, named by default `number.boiler_activation_threshold`, which gives the activation threshold. This threshold is the number of devices (radiators) requesting heating.
-   - A `sensor` type entity, named by default `sensor.nb_device_active_for_boiler`, which shows the number of devices requesting heating. For example, a _VTherm_ with 4 valves, 3 of which request heating, will make this sensor show 3. Only the devices from _VTherms_ marked to control the central boiler are counted.
+## Zasady
+Podstawowa zasada działania jest następująca:
+1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_boiler`.
+2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem.
+3. `binary_sensor.central_boiler` nasłuchuje zmian stanu w urządzeniach typu _VTherm_ oznaczonych jako sterujące kotłem.
+4. Gdy liczba urządzeń sterowanych termostatem _VTherm_, które żądają ogrzewania (tj. gdy ich `hvac_action` zmienia się na `Heating`), przekroczy konfigurowalny próg, `binary_sensor.central_boiler` włącza się, a jeśli skonfigurowano usługę aktywacji, zostanie ona wywołana.
+5. Jeśli liczba urządzeń żądających ogrzewania spadnie poniżej progu, `binary_sensor.central_boiler` wyłącza się, a jeśli skonfigurowano usługę dezaktywacji, zostanie ona wywołana.
+6. Masz dostęp do dwóch encji:
+   - Encja typu `number`, domyślnie nazwana `number.boiler_activation_threshold`, która określa próg aktywacji. Próg ten to liczba urządzeń (grzejników) żądających ogrzewania.
+   - Encja typu `sensor`, domyślnie nazwana `sensor.nb_device_active_for_boiler`, która pokazuje liczbę urządzeń żądających ogrzewania. Na przykład termostat z 4 zaworami, z których 3 żądają ogrzewania, spowoduje, że sensor ten pokaże wartość 3. Zalicza się tu tylko te urządzenia spośród tych termostatów _VTherm_, które oznaczone są jako sterujące kotłem głownym.
 
-You therefore always have the information to manage and adjust the triggering of the boiler.
+Dzięki temu masz zawsze pod ręką informacje potrzebne do zarządzania i dostosowywania uruchamiania kotła.
 
-All these entities are linked to the central configuration service:
+Wszystkie te encje są powiązane z konfiguracją główną.
 
 ![Boiler Control Entities](images/entitites-central-boiler.png)
 
-## Configuration
-To configure this feature, you need a centralized configuration (see [Configuration](#configuration)) and check the 'Add Central Boiler' box:
+## Konfiguracja
+Aby skonfigurować tę funkcję, użyj konfiguracji głównej (patrz: [konfiguracja](#configuration)) i zaznacz pole `Dodaj kocioł główny`:
 
 ![Add a Central Boiler](images/config-central-boiler-1.png)
 
-On the next page, you can provide the configuration for the actions (e.g., services) to be called when the boiler is turned on/off:
+W kolejnym oknie konfiguracyjnym możesz podać konfigurację dla akcji (np. usług), które mają być wywoływane przy włączaniu/wyłączaniu kotła:
 
 ![Add a Central Boiler](images/config-central-boiler-2.png)
 
-The actions (e.g., services) are configured as described on the page:
-1. The general format is `entity_id/service_id[/attribute:value]` (where `/attribute:value` is optional).
-2. `entity_id` is the name of the entity controlling the boiler in the form `domain.entity_name`. For example: `switch.chaudiere` for a boiler controlled by a switch, or `climate.chaudière` for a boiler controlled by a thermostat, or any other entity that allows boiler control (there is no limitation). You can also toggle inputs (`helpers`) such as `input_boolean` or `input_number`.
-3. `service_id` is the name of the service to be called in the form `domain.service_name`. For example: `switch.turn_on`, `switch.turn_off`, `climate.set_temperature`, `climate.set_hvac_mode` are valid examples.
-4. Some services require a parameter. This could be the 'HVAC Mode' for `climate.set_hvac_mode` or the target temperature for `climate.set_temperature`. This parameter should be configured in the format `attribute:value` at the end of the string.
+Akcje (np. usługi) są konfigurowane zgodnie z opisem na stronie:
+1. Ogólny format to `entity_id/service_id[/attribute:value]` (gdzie `/attribute:value` jest opcjonalne).
+2. `entity_id` to nazwa encji sterującej kotłem w formie `domain.entity_name`. Na przykład: `switch.chaudiere` dla kotła sterowanego przełącznikiem, `climate.chaudière` dla kotła sterowanego termostatem lub dowolna inna encja umożliwiająca sterowanie kotłem (nie ma tu ograniczeń). Możesz także przełączać pomocnicze encje (`helpers`), takie jak `input_boolean` czy `input_number`.
+3. `service_id` to nazwa usługi, która ma zostać wywołana, w formie `domain.service_name`. Na przykład: `switch.turn_on`, `switch.turn_off`, `climate.set_temperature`, `climate.set_hvac_mode` są poprawnymi przykładami.
+4. Niektóre usługi wymagają parametru. Może to być `HVAC Mode` dla `climate.set_hvac_mode` lub docelowa temperatura dla `climate.set_temperature`. Parametr ten powinien być skonfigurowany w formacie `attribute:value` na końcu ciągu.
 
-Examples (to adjust to your case):
-- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat`: to turn the boiler thermostat on in heating mode.
-- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:off`: to turn off the boiler thermostat.
-- `switch.pompe_chaudiere/switch.turn_on`: to turn on the switch powering the boiler pump.
-- `switch.pompe_chaudiere/switch.turn_off`: to turn off the switch powering the boiler pump.
-- ...
+Przykłady (dostosuj je do Twojego przypadku):
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat`: aby włączyć termostat kotła w trybie grzania.
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:off`: aby wyłączyć termostat kotła.
+- `switch.pompe_chaudiere/switch.turn_on`: aby włączyć przełącznik zasilający pompę kotła.
+- `switch.pompe_chaudiere/switch.turn_off`: aby wyłączyć przełącznik zasilający pompę kotła.
+-  ...
 
-### How to Find the Right Action?
-To find the correct action to use, it's best to go to "Developer Tools / Services", search for the action to call, the entity to control, and any required parameters.
-Click 'Call Service'. If your boiler turns on, you have the correct configuration. Then switch to YAML mode and copy the parameters.
+### Jak znaleźć właściwą akcję?
+Aby wybrać właściwą akcję, możesz przejść w Home Assistancie do sekcji `Narzędzia deweloperskie -> Akcje`, wyszukać akcję do wywołania, encję do sterowania oraz wszelkie wymagane parametry. Kliknij przycisk `Wykonaj akcję`. Jeśli Twój kocioł się uruchomi, oznacza to, że konfiguracja jest poprawna. Następnie przełącz się w tryb YAML i skopiuj parametry.
 
-Example:
+Przykład:
 
-In "Developer Tools / Actions":
+W sekcji `Narzędzia deweloperskie -> Akcje`:
 
 ![Service Configuration](images/dev-tools-turnon-boiler-1.png)
 
-In YAML mode:
+W trybie YAML:
 
 ![Service Configuration](images/dev-tools-turnon-boiler-2.png)
 
-The service to configure will then be: `climate.sonoff/climate.set_hvac_mode/hvac_mode:heat` (note the removal of spaces in `hvac_mode:heat`).
+Konfiguracja akcji załączenia będzie wyglądać następująco: `climate.sonoff/climate.set_hvac_mode/hvac_mode:heat` (zwróć uwagę na usunięcie spacji w `hvac_mode:heat`).
 
-Do the same for the off service, and you’re ready to go.
+Zrób to samo dla akcji wyłączenia.
 
-## Events
+## Zdarzenia
 
-Each successful boiler activation or deactivation sends an event from Versatile Thermostat. This can be captured by an automation, for example, to notify you of the change.
-The events look like this:
+Każde pomyślne włączenie lub wyłączenie kotła wysyła zdarzenie z termostatu _VTherm_. Może ono zostać przechwycone przez automatyzację, na przykład w celu powiadomienia Cię o zmianie.
+Zdarzenia wyglądają następująco:
 
-An activation event:
+Zdarzenie aktywacji:
 ```yaml
 event_type: versatile_thermostat_central_boiler_event
 data:
@@ -100,7 +99,7 @@ context:
   user_id: null
 ```
 
-Un évènement d'extinction :
+Zdarzenie deaktywacji:
 ```yaml
 event_type: versatile_thermostat_central_boiler_event
 data:
@@ -116,8 +115,10 @@ context:
   user_id: null
 ```
 
-## Warning
+## Ostrzeżenie
 
-> ![Astuce](images/tips.png) _*Notes*_
+> ![Astuce](images/tips.png) _*Uwaga*_
 >
-> Software or home automation control of a central boiler may pose risks to its proper operation. Before using these functions, ensure that your boiler has proper safety features and that they are functioning correctly. For example, turning on a boiler with all valves closed can create excessive pressure.
+> Sterowanie kotłem za pomocą oprogramowania lub automatyki domowej może stwarzać ryzyko dla jego prawidłowego działania. Przed użyciem tych funkcji upewnij się, że Twój kocioł posiada odpowiednie zabezpieczenia i że działają one poprawnie.
+
+Na przykład włączenie kotła przy wszystkich zamkniętych zaworach może spowodować nadmierny i niekontrolowany wzrost ciśnienia, co może stwarzać zagrożenie.

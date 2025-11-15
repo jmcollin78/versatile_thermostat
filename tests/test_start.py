@@ -4,7 +4,7 @@
 from unittest.mock import patch, call
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate.const import HVACAction, HVACMode
+from homeassistant.components.climate.const import HVACAction
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -15,6 +15,7 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -42,17 +43,17 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_climate is False
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-            PRESET_ACTIVITY,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
+            VThermPreset.ACTIVITY,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
@@ -60,19 +61,20 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         assert entity._prop_algorithm is not None
         assert entity.have_valve_regulation is False
 
-        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
-            ]
+            ],
+            # any_order=True,
         )
 
 
@@ -88,7 +90,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         data=PARTIAL_CLIMATE_CONFIG,
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, hvac_modes=[HVACMode.HEAT, HVACMode.OFF])
+    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_OFF])
 
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
@@ -104,16 +106,16 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNAVAILABLE
         assert entity.motion_state is STATE_UNAVAILABLE
@@ -121,16 +123,16 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.have_valve_regulation is False
 
         # hvac_modes comes from underlying entity + OFF. there is no AC mode in underlying entity
-        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
@@ -162,17 +164,17 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         assert entity.name == "TheOver4SwitchMockName"
         assert entity.is_over_switch
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.hvac_mode is HVACMode.OFF
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-            PRESET_ACTIVITY,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
+            VThermPreset.ACTIVITY,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
@@ -194,10 +196,10 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
@@ -251,20 +253,20 @@ async def test_over_switch_deactivate_preset(
     assert isinstance(entity, ThermostatOverSwitch)
 
     assert entity.preset_modes == [
-        PRESET_NONE,
-        # PRESET_FROST_PROTECTION,
-        PRESET_ECO,
-        # PRESET_COMFORT,
-        PRESET_BOOST,
+        VThermPreset.NONE,
+        # VThermPreset.FROST,
+        VThermPreset.ECO,
+        # VThermPreset.COMFORT,
+        VThermPreset.BOOST,
     ]
-    assert entity.preset_mode is PRESET_NONE
+    assert entity.preset_mode is VThermPreset.NONE
 
     # try to set the COMFORT Preset which is absent
     try:
-        await entity.async_set_preset_mode(PRESET_COMFORT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
     except ValueError as err:
         print(err)
     else:
         assert False
     finally:
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE

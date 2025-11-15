@@ -27,14 +27,9 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
-    HVACMode,
     HVACAction,
+    HVACMode,
     ClimateEntityFeature,
-    PRESET_BOOST,
-    PRESET_COMFORT,
-    PRESET_ECO,
-    PRESET_NONE,
-    PRESET_ACTIVITY,
 )
 
 from homeassistant.components.switch import (
@@ -53,6 +48,8 @@ from custom_components.versatile_thermostat.const import *  # pylint: disable=wi
 from custom_components.versatile_thermostat.underlyings import overrides, UnderlyingClimate, UnderlyingSwitch
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP
+from custom_components.versatile_thermostat.vtherm_preset import VThermPreset
 
 from .const import (  # pylint: disable=unused-import
     MOCK_TH_OVER_SWITCH_USER_CONFIG,
@@ -270,15 +267,9 @@ class MockClimate(ClimateEntity):
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
-        self._attr_hvac_action = (
-            HVACAction.OFF if hvac_mode == HVACMode.OFF else HVACAction.HEATING
-        )
+        self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
         self._attr_hvac_mode = hvac_mode
-        self._attr_hvac_modes = (
-            hvac_modes
-            if hvac_modes is not None
-            else [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
-        )
+        self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
@@ -352,7 +343,7 @@ class MockUnavailableClimate(ClimateEntity):
         self._name = name
         self._attr_hvac_action = None
         self._attr_hvac_mode = None
-        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
+        self._attr_hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
 
@@ -372,7 +363,7 @@ class MagicMockClimate(MagicMock):
 
     @property
     def hvac_mode(self):  # pylint: disable=missing-function-docstring
-        return HVACMode.HEAT
+        return VThermHvacMode_HEAT
 
     @property
     def hvac_action(self):  # pylint: disable=missing-function-docstring
@@ -408,7 +399,7 @@ class MagicMockClimate(MagicMock):
     def hvac_modes(  # pylint: disable=missing-function-docstring
         self,
     ) -> list[str] | None:
-        return [HVACMode.HEAT, HVACMode.OFF, HVACMode.COOL]
+        return [VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_COOL]
 
     @property
     def fan_modes(  # pylint: disable=missing-function-docstring
@@ -461,7 +452,7 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
 
     @property
     def hvac_mode(self):  # pylint: disable=missing-function-docstring
-        return HVACMode.HEAT
+        return VThermHvacMode_HEAT
 
     @property
     def hvac_action(self):  # pylint: disable=missing-function-docstring
@@ -497,7 +488,7 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
     def hvac_modes(  # pylint: disable=missing-function-docstring
         self,
     ) -> list[str] | None:
-        return [HVACMode.HEAT, HVACMode.OFF, HVACMode.COOL]
+        return [VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_COOL]
 
     @property
     def fan_modes(  # pylint: disable=missing-function-docstring
@@ -941,8 +932,8 @@ async def send_presence_change_event(
 
 async def send_climate_change_event(
     entity: BaseThermostat,
-    new_hvac_mode: HVACMode,
-    old_hvac_mode: HVACMode,
+    new_hvac_mode: VThermHvacMode,
+    old_hvac_mode: VThermHvacMode,
     new_hvac_action: HVACAction,
     old_hvac_action: HVACAction,
     date,
@@ -992,8 +983,8 @@ async def send_climate_change_event(
 
 async def send_climate_change_event_with_temperature(
     entity: BaseThermostat,
-    new_hvac_mode: HVACMode,
-    old_hvac_mode: HVACMode,
+    new_hvac_mode: VThermHvacMode,
+    old_hvac_mode: VThermHvacMode,
     new_hvac_action: HVACAction,
     old_hvac_action: HVACAction,
     date,

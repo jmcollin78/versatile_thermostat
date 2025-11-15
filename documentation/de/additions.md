@@ -133,8 +133,8 @@ alias: Überwachung Heizungsicherheitsmodus
 description: Sendet eine Benachrichtigung, wenn ein Thermostat in den Sicherheits- oder Power-Modus wechselt.
 trigger:
   - platform: event
-    event_type: versatile_thermostat_security_event
-    id: versatile_thermostat_security_event
+    event_type: versatile_thermostat_safety_event
+    id: versatile_thermostat_safety_event
   - platform: event
     event_type: versatile_thermostat_power_event
     id: versatile_thermostat_power_event
@@ -146,7 +146,7 @@ action:
   - choose:
       - conditions:
           - condition: trigger
-            id: versatile_thermostat_security_event
+            id: versatile_thermostat_safety_event
         sequence:
           - event: NOTIFIER
             event_data:

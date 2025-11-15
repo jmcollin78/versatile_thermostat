@@ -1,7 +1,19 @@
 # Poznámky k vydáním
 
 ![New](images/new-icon.png)
-
+> * **Release 7.4**:
+>
+> - Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint. This prevents the heater from turning on/off for short periods. Ideal for wood stoves that take a long time to heat up. See [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
+>
+> - Added a sleep mode for VTherms of type `over_climate` with regulation by direct valve control. This mode allows you to set the thermostat to off mode but with the valve 100% open. It is useful for long periods without heating if the boiler circulates water from time to time. Note: you must update the VTHerm UI Card to view this new mode. See [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
+>
+> (Need translation please)
+>
+> * **Verze 7.2**:
+>
+> - Nativní podpora zařízení ovládaných prostřednictvím entity `select` (nebo `input_select`) nebo `climate` pro _VTherm_ typu `over_switch`. Tato aktualizace činí vytváření virtuálních spínačů pro integraci Nodon, Heaty, eCosy atd. zastaralým. Více informací [zde](documentation/cs/over-switch.md#přizpůsobení-příkazů).
+>
+> - Odkazy na dokumentaci: Verze 7.2 zavádí experimentální odkazy na dokumentaci z konfiguračních stránek. Odkaz je přístupný prostřednictvím ikony [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/over-switch.md#konfigurace). Tato funkce je v současnosti testována na některých konfiguračních stránkách.
 > * **Vydání 7.1**:
 >   - Přepracování funkce odlehčení zátěže (správa výkonu). Odlehčení zátěže je nyní řízeno centrálně (dříve byl každý _VTherm_ autonomní). To umožňuje mnohem efektivnější správu a prioritizaci odlehčení zátěže na zařízeních, která jsou blízko setpointu. Všimněte si, že musíte mít centralizovanou konfiguraci se zapnutou správou výkonu, aby to fungovalo. Více informací [zde](./feature-power.md).
 
