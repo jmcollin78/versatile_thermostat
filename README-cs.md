@@ -92,9 +92,10 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 18. [Samoregulace](documentation/cs/self-regulation.md)
 19. [Příklady ladění](documentation/cs/tuning-examples.md)
 20. [Algoritmy](documentation/cs/algorithms.md)
-21. [Referenční dokumentace](documentation/cs/reference.md)
-22. [Řešení problémů](documentation/cs/troubleshooting.md)
-23. [Poznámky k verzím](documentation/cs/releases.md)
+21. [Funkce zámku](documentation/cs/feature-lock.md)
+22. [Referenční dokumentace](documentation/cs/reference.md)
+23. [Řešení problémů](documentation/cs/troubleshooting.md)
+24. [Poznámky k verzím](documentation/cs/releases.md)
 
 # Některé výsledky
 

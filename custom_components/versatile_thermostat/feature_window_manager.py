@@ -34,6 +34,7 @@ from .vtherm_hvac_mode import VThermHvacMode
 
 from .base_manager import BaseFeatureManager
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
+from .lock_policy import make_internal_context, OP_INTERNAL_WINDOW_UPDATE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +73,11 @@ class FeatureWindowManager(BaseFeatureManager):
         self._is_configured: bool = False
         self._is_window_auto_configured: bool = False
         self._window_call_cancel: callable = None
+
+    def _with_internal_window_context(self):
+        """Return a context for internal window operations."""
+        vt_unique_id = getattr(self._vtherm, "unique_id", None)
+        return make_internal_context(OP_INTERNAL_WINDOW_UPDATE, vt_unique_id)
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
