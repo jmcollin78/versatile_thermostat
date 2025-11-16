@@ -72,7 +72,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Dokumentacja
 
-Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
+Dla wygody Użytkownika dokumentacja podzielona jest na rozdziały i części:
 1. [Wprowadzenie](documentation/pl/presentation.md)
 2. [Instalacja](documentation/pl/installation.md)
 3. [Szybki start](documentation/pl/quick-start.md)
@@ -98,6 +98,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
 ---
+
 # Kilka wyników...
 
 **Stabilizacja temperatury skonfigurowana dzięki ustawieniu presetu**:
@@ -110,17 +111,17 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 ![image](documentation/en/images/results-2.png)
 <h1></h1>
 
-**Regulacja `Termostatem na Przełączniku`**:
+**Regulacja przez `Termostat na Przełączniku`**:
 
 ![image](documentation/en/images/results-4.png)
 <h1></h1>
 
-**Regulacja `Termostatem na Klimacie`**:
+**Regulacja przez `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
 <h1></h1>
 
-**Regulacja `Termostatem na Klimacie` z bezpośrednim sterowaniem zaworu**:
+**Regulacja przez `Termostat na Klimacie` z opcją bezpośredniego sterowania zaworu**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
 <h1></h1>
@@ -139,7 +140,7 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 ## Współpraca mile widziana!
 
-Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
+Chciałbyś wnieść swój wkład? Zapoznaj się z [Przewodnikiem o współpracy (_*j.ang.*_)](CONTRIBUTING.md).
 
 
 
