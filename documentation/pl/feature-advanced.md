@@ -22,7 +22,7 @@ Ekran konfiguracji zaawansowanej wygląda następujaco:
 
 ### Tryb bezpieczny
 
-Drugie opóźnienie (`safety_delay_min`) to maksymalny czas pomiędzy dwoma pomiarami temperatury, po którym termostat VTherm przełącza się w Tryb Bezpieczeństwa (Safety Mode).
+Drugie opóźnienie (`safety_delay_min`) to maksymalny czas pomiędzy dwoma pomiarami temperatury, po którym termostat VTherm przełącza się na Tryb Bezpieczny (Safety Mode).
 
 Trzeci parametr (`safety_min_on_percent`) to minimalna wartość `on_percent`, poniżej której Tryb Bezpieczny nie zostanie aktywowany. To ustawienie zapobiega aktywacji Trybu Bezpieczny, jeśli grzejnik nie nagrzewa się wystarczająco. W takim przypadku nie ma fizycznego zagrożenia dla domu, istnieje jedynie ryzyko przegrzania lub niedogrzania. 
 Ustawienie tego parametru na `0.00` spowoduje uruchomienie Trybu Bezpiecznego niezależnie od ostatniego ustawienia ogrzewania, natomiast wartość `1.00` nigdy nie uruchomi Trybu Bezpiecznego (w praktyce wyłączając tę funkcję). Może to być przydatne do dostosowania mechanizmu bezpieczeństwa do Twoich specyficznych potrzeb.
