@@ -63,11 +63,11 @@
 | ``minimal_activation_delay``              | Minimalna zwłoka aktywacji                                  | X             | -                   | -            | X                       |
 | ``minimal_deactivation_delay``            | Minimalna zwłoka deaktywacji                                | X             | -                   | -            | X                       |
 | ``safety_delay_min``                      | Maksymalna zwłoka między dwoma pomiarami temperatury        | X             | -                   | X            | X                       |
-| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczeństwa  | X             | -                   | X            | X                       |
+| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczny  | X             | -                   | X            | X                       |
 | ``auto_regulation_mode``                  | Tryb samoregulacji                                          | -             | X                   | -            | -                       |
 | ``auto_regulation_dtemp``                 | Próg samoregulacji                                          | -             | X                   | -            | -                       |
 | ``auto_regulation_period_min``            | Minimalny czas samoregulacji                                | -             | X                   | -            | -                       |
-| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie pilotem)        | X             | -                   | -            | -                       |
+| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie przewodem sterującym)        | X             | -                   | -            | -                       |
 | ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                | -             | X                   | -            | -                       |
 | ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                  | -             | X                   | -            | -                       |
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                           | -             | -                   | -            | X                       |
