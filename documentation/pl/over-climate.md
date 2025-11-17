@@ -1,4 +1,4 @@
-# Typ termostatu `Termostat na Klimacie`
+# Typ termostatu: `Termostat na Klimacie`
 
 - [Typ termostatu `Termostat na Klimacie`](#over_climate-type-thermostat)
   - [Wymagania wstępne](#prerequisites)
