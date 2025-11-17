@@ -1,4 +1,4 @@
-# Warunki stosowania integracji `Versatile Thermostat`
+# Zastosowania integracji `Versatile Thermostat`
 Termostat _VTherm_ może sterować 3 typami urządzeń:
 1. Grzejnik działający wyłącznie w trybie `on`/`off` (nazywany też `termostatem na przełączniku`). Minimalna konfiguracja wymagana do użycia tego typu termostatu obejmuje:
    1. Urządzenie takie, jak grzejnik (`switch` lub odpowiednik),
