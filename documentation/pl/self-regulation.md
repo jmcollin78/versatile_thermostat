@@ -155,4 +155,4 @@ Aby zastosować zmiany, należy **całkowicie zrestartować Home Assistant** lub
 
 ## Podsumowanie algorytmu samoregulacji
 
-Podsumowanie algorytmu samoregulacji opisano [tutaj](algorithms.md#the-auto-regulation-algorithm-without-valve-control).
+Algorytm samoregulacji został szczegółowo opisany [tutaj](algorithms.md#the-auto-regulation-algorithm-without-valve-control).
