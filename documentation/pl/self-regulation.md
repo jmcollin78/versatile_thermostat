@@ -9,7 +9,7 @@ Funkcja samoregulacji jest dostępna tylko dla termostatu _VTherm_ typu `termost
 
 Istnieją dwa typowe przypadki zastosowań tej funkcji:
 1. Jeśli Twoim urządzeniem bazowym jest termostat _TRV_ typu `climate`, a zaworem można sterować bezpośrednio w *Home Assistant* (np. *Sonoff TRVZB*), ta funkcja umożliwi termostatowi _VTherm_ bezpośrednie sterowanie otwarciem zaworu w celu regulacji temperatury. Otwarcie jest następnie obliczane za pomocą algorytmu typu _TPI_ (patrz: [tutaj](algorithms.md)).
-2. W przeciwnym razie termostat _VTherm_ dostosuje ustawienie temperatury podane dla  urządzenia `climate`, aby zapewnić, że temperatura w pomieszczeniu faktycznie osiągnie ustawioną wartość.
+2. W przeciwnym razie termostat _VTherm_ dostosuje ustawienie temperatury podane dla  urządzenia `climate`, aby zapewnić faktyczne osiągnięcie temperatury w pomieszczeniu zgodnie z ustawioną wartością.
 
 ## Konfiguracja
 
