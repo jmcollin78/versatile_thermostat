@@ -6,7 +6,7 @@
 - [Akcje (Usługi)](#actions-services)
   - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
   - [Modykacja presetów temperatury](#modify-the-preset-temperature)
-  - [Modify ustawień bezpieczeństwa](#modify-security-settings)
+  - [Modikacja ustawień bezpieczeństwa](#modify-security-settings)
   - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
 - [Zdarzenia](#events)
 - [Atrybuty własne](#custom-attributes)
@@ -257,7 +257,7 @@ Atrybuty własne są następujace:
 | ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpiecznym                                                              |
 | ``last_temperature_datetime``     | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                                         |
 | ``last_ext_temperature_datetime`` | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                                         |
-| ``security_state``                | Stan bezpieczeństwa. `True` lub `false`                                                                                             |
+| ``security_state``                | Stan bezpieczny. `True` lub `false`                                                                                             |
 | ``minimal_activation_delay_sec``  | Minimalne opóźnienie aktywacji (w sek.)                                                                                             |
 | ``minimal_deactivation_delay_sec``| Minimalne opóźnienie deaktywacji (w sek.)                                                                                           |
 | ``last_update_datetime``          | Data i czas tego stanu (w formacie ISO8866)                                                                                         |
