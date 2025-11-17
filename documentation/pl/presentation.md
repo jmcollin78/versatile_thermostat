@@ -12,7 +12,7 @@ Typ `termostatu na klimacie` pozwala dodać wszystkie funkcje oferowane przez Ve
 
 Dla tego typu termostatu wszystkie cykle grzewcze są kontrolowane przez bazową encję `climate`, a nie przez sam termostat. Opcjonalna funkcja autoregulacji pozwala termostatom _VTherm_ dostosować temperaturę zadaną do encji bazowej, aby osiągnąć wartość docelową.
 
-Instalacje z pilotem przewodowym i diodą aktywacyjną korzystają z opcji umożliwiającej odwrócenie sterowania `on`/`off` bazowego grzejnika. Aby to zrobić, użyj typu `termostat na przełączniku` i zaznacz opcję `Inwersja polecenia`.
+Instalacje z przewodowym sterowaniem z diodą aktywacyjną korzystają z opcji umożliwiającej odwrócenie sterowania `on`/`off` bazowego grzejnika. Aby to zrobić, użyj typu `termostat na przełączniku` i zaznacz opcję `Inwersja polecenia`.
 
 # Kiedy dodać nowy termostat _VTherm_?
 Komponent `Versatile Thermostat` obsługuje następujące przypadki:
@@ -55,8 +55,8 @@ Służą do bezpośredniego sterowania grzejnikami elektrycznymi. Użyteczne dla
 - [Sonoff 4-channel Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Przełączniki z pilotem przewodowym
-Stosuje się je do sterowania grzejnikami elektrycznymi wyposażonymi w pilota przewodowego. Są użyteczne dla [`termostatu na przełączniku`](over-switch.md) oraz celów [personalizacji polecenień](over-switch.md#la-personnalisation-des-commandes):
+## Przełączniki z przewodem sterującym
+Stosuje się je do sterowania grzejnikami elektrycznymi wyposażonymi w przewód sterujący z diodą. Są użyteczne dla [`termostatu na przełączniku`](over-switch.md) oraz dla celów [personalizacji polecenień](over-switch.md#la-personnalisation-des-commandes):
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
