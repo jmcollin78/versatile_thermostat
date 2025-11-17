@@ -90,7 +90,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 >  * **Wydanie 3.1**: Dodano detekcję otwarcia okna lub drzwi poprzez analizę spadku temperatury. Nowa funkcja automatycznie zatrzymuje grzejnik, gdy temperatura nagle spada. [Tryb Auto](#le-mode-auto)
 >  * **Główne wydanie 3.0**: Dodano sprzęt termostatu i powiązane czujniki (binarny i niebinarny), co znacznie zbliżyło integrację do filozofii **Home Assistant** Od tech chwili masz bezpośredni dostęp do energii zużywanej przez grzejnik sterowany przez termostat oraz wiele innych czujników przydatnych w automatyzacjach.
 >  * **Wydanie 2.3**: Dodano pomiar mocy i energii dla grzejnika sterowanego przez termostat.
->  * **Wydanie 2.2**: Dodano funkcję bezpieczeństwa, aby zapobiec pozostawieniu grzejnika w trybie grzania w nieskończoność w przypadku awarii termometru.
+>  * **Wydanie 2.2**: Dodano funkcję bezpieczeństwa (tryb _*bezpieczny*_), aby zapobiec pozostawieniu grzejnika w trybie grzania w nieskończoność w przypadku awarii termometru.
 >  * **Główne wydanie 2.0**: Dodano `termostat na klimacie`, pozwalający przekształcić dowolny termostat w urządzeni _VTherm_ i uzyskać wszystkie jego funkcjonalności.
 
 </details>
