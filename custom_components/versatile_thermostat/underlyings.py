@@ -1133,7 +1133,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """Issue #902 - Normalize the opening and closing degree
         Issue #927 - Cancel the normalization"""
 
-        new_opening = max(opening, 0) if self.has_closing_degree_entity else opening
+        new_opening = max(opening, self._min_opening_degree) if self.has_closing_degree_entity else opening
         new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
 
         return new_opening, new_closing
@@ -1319,6 +1319,13 @@ class UnderlyingValveRegulation(UnderlyingValve):
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)
+
+    @overrides
+    async def turn_off(self):
+        """Turn valve off. In that context it means set the valve to the minimum opening degree."""
+        _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
+        self._percent_open = 0
+        await self.send_percent_open()
 
 
 T = TypeVar("T", bound=UnderlyingEntity)

@@ -170,6 +170,11 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self._valve_open_percent = 100
             return
 
+        if not self.is_on:
+            # the 0 will be clamped to the min value
+            self._valve_open_percent = 0
+            return
+
         # For testing purpose. Should call _set_now() before
         now = self.now
 
@@ -293,6 +298,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
         else:
             self._is_sleeping = False
+            if hvac_mode == VThermHvacMode_OFF:
+                for under in self._underlyings_valve_regulation:
+                    await under.turn_off()
 
         await super().async_set_hvac_mode(hvac_mode)
 

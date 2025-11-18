@@ -649,11 +649,40 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         # the underlying set temperature call and the call to the valve
         assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_closing_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 70}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 30}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
+            ]
+        )
+
+        assert vtherm.nb_device_actives == 0
+
+    # 4. Stop the Vtherm -> should set the opening degree to the min value
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
+        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
+        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    # fmt: on
+        now = now + timedelta(minutes=1)
+        vtherm._set_now(now)
+
+        await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+        await hass.async_block_till_done()
+
+        assert vtherm.is_device_active is False
+        assert vtherm.valve_open_percent == 0
+
+        # the underlying set temperature call and the call to the valve
+        assert mock_service_call.call_count == 6
+        mock_service_call.assert_has_calls([
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 70}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 30}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
