@@ -17,12 +17,12 @@ Instalacje z pilotem przewodowym i diodą aktywacyjną korzystają z opcji umoż
 # Kiedy dodać nowy termostat _VTherm_?
 Komponent `Versatile Thermostat` obsługuje następujące przypadki:
 - Konfiguracja poprzez standardowy graficzny interfejs integracji,
-- Pełne wykorzystanie trybu presetu,
-- Wyłączenie trybu presetu, gdy temperatura zostanie ustawiona ręcznie na termostacie,
-- Wyłączenie/załączenie termostatu lub zmiana presetu, gdy drzwi lub okna zostaną otwarte/zamknięte po określonym czasie,
-- Zmiana presetu, gdy w określonym czasie w pomieszczeniu zostanie wykryta aktywność lub jej brak,
+- Pełne wykorzystanie trybu ustawień wstępnych,
+- Wyłączenie trybu ustawień wstępnych, gdy temperatura zostanie ustawiona ręcznie na termostacie,
+- Wyłączenie/załączenie termostatu lub zmiana ustawień wstępnych, gdy drzwi lub okna zostaną otwarte/zamknięte po określonym czasie,
+- Zmiana ustawienia wstępnego, gdy w określonym czasie w pomieszczeniu zostanie wykryta aktywność lub jej brak,
 - Wykorzystanie algorytmu TPI (_Time Proportional Interval_) dzięki [Argonaute],
-- Dodanie zarządzania redukcją obciążenia lub regulacji, aby nie przekroczyć zdefiniowanej całkowitej mocy. Gdy maksymalna moc zostanie przekroczona, na encji `climate` ustawiane jest ukryty preset '`moc`'. Gdy moc spadnie poniżej maksimum, przywracane jest poprzedne ustawienie.
+- Dodanie zarządzania redukcją obciążenia lub regulacji, aby nie przekroczyć zdefiniowanej całkowitej mocy. Gdy maksymalna moc zostanie przekroczona, na encji `climate` ustawiane jest ukryte ustawienie wstępne '`moc`'. Gdy moc spadnie poniżej maksimum, przywracane jest poprzedne ustawienie.
 - Zarządzanie obecnością. Funkcja ta pozwala dynamicznie modyfikować temperaturę ustawienia na podstawie czujnika obecności w domu.
 - Akcje do interakcji z termostatem z innych integracji: możesz wymusić obecność/nieobecność za pomocą usługi oraz dynamicznie zmieniać temperatury i modyfikować ustawienia bezpieczeństwa.
 - Dodanie czujników do podglądu wewnętrznych stanów termostatu,
@@ -93,5 +93,5 @@ Niektóre termostaty typu TRV są niekompatybilne z integracją _Versatile Therm
 | **Aqara SRTS-A01 / MOES TV01-ZB** | Brak feedbacku `hvac_action` → nie wiadomo, czy grzeją | Można używać, ale stan jest niedokładny; pozostałe funkcje działają |
 | **Airwell (Midea AC LAN)** | Jeśli dwa polecenia VTherm są zbyt blisko siebie, klimatyzator sam się zatrzymuje | Wydłużenie odstępów między poleceniami |
 | **Overkiz (klimatyzacja)** | Brak możliwości wyłączenia lub zmiany temperatury | Brak obejścia – niekompatybilne |
-| **Netatmo (systemy grzewcze)** | Harmonogramy Netatmo kolidują z VTherm | Brak obejścia – niekompatybilne |
+| **Netatmo (systemy grzewcze)** | Harmonogramy Netatmo kolidują z VTherm, urządzenia
 

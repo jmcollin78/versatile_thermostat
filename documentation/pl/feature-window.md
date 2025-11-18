@@ -19,8 +19,8 @@ W tym trybie należy uzupełnić następujące informacje:
 2. Działanie, które ma zostać podjęte, gdy wykryte zostanie otwarcie. Możliwe działania to:
    1. _Wyłącz_: termostat zostanie wyłączony.
    2. _Tylko nawiew_: ogrzewanie lub chłodzenie zostanie wyłączone, ale urządzenie będzie nadal wentylować (dotyczy kompatybilnych urządzeń).
-   3. _Ochrona przed mrozem_: temperatura ustawień „Ochrona przez mrozem” zostanie ustawiona na termostacie bez zmiany bieżącego presetu (patrz notatki poniżej).
-   4. _Eko_: temperatura ustawienia „Eko” zostanie ustawiona na termostacie bez zmiany bieżącego presetu (patrz notatki poniżej).
+   3. _Ochrona przed mrozem_: temperatura ustawień „Ochrona przez mrozem” zostanie ustawiona na termostacie bez zmiany bieżącego ustawienia wstępnego (patrz notatki poniżej).
+   4. _Eko_: temperatura ustawienia „Eko” zostanie ustawiona na termostacie bez zmiany bieżącego ustawienia wstępnego (patrz notatki poniżej).
 
 Gdy detektor wykryje otwarcie:
 1. termostat czeka określony czas.
@@ -38,7 +38,7 @@ W trybie `auto` konfiguracja wygląda następująco:
 1. **Opóźnienie** (w sek.) przed każdą zmianą. Pozwala to na krótkie otwarcie okna bez zatrzymywania ogrzewania.
 2. **Próg wykrywania** (w stopniach na godzinę). Gdy spadek temperatury przekroczy ten próg, termostat zostanie wyłączony. Im niższa wartość, tym szybsze wykrywanie (z większym ryzykiem fałszywych alarmów).
 3. **Próg zakończenia wykrywania** (w stopniach na godzinę). Gdy spadek temperatury przekroczy tę wartość, termostat powróci do poprzedniego trybu.
-4. **Maksymalny czas wykrywania**. Po jego przekroczeniu termostat powróci do poprzedniego trybu i presetu, nawet jeśli temperatura nadal spada.
+4. **Maksymalny czas wykrywania**. Po jego przekroczeniu termostat powróci do poprzedniego trybu i ustawień wstępnych, nawet jeśli temperatura nadal spada.
 5. **Działanie do wykonania**, gdy zostanie wykryte otwarcie okna. Działania są takie same jak w trybie `sensor` opisanym powyżej.
 
 Aby dostosować progi, zaleca się zacząć od wartości referencyjnych i dostosować progi detekcji. Na przykład:
@@ -60,5 +60,5 @@ Aby odpowiednio go dostosować, zaleca się wyświetlenie zarówno krzywej tempe
 > 2. Jeśli nie masz czujnika drzwi/okna w pokoju, pozostaw identyfikator encji czujnika pusty.
 > 3. Dozwolony jest tylko jeden tryb. Nie można skonfigurować termostatu zarówno z czujnikiem, jak i z automatycznym wykrywaniem. Tryby mogą się wzajemnie wykluczać, więc nie mogą być aktywne jednocześnie.
 > 4. Nie zaleca się używania trybu `auto` dla urządzeń narażonych na częste i normalne wahania temperatury (korytarze, otwarte przestrzenie itp.).
-> 5. Aby nie zakłócać bieżących ustawień, akcje `ochrony przed mrozem` oraz `Eko` zmieniają temperaturę docelową bez zmiany presetu. Możesz więc zauważyć rozbieżność między wybranym presetem a wartością docelową.
+> 5. Aby nie zakłócać bieżących ustawień, akcje `ochrony przed mrozem` oraz `Eko` zmieniają temperaturę docelową bez zmiany ustawień wstępnych. Możesz więc zauważyć rozbieżność między wybranym ustawieniem wstępnym a wartością docelową.
 > 6. Jeśli używasz karty Versatile Thermostat UI Card (patrz: [tutaj](additions.md#even-better-with-the-versatile-thermostat-ui-card)), wykrywanie otwarcia jest reprezentowane jako: ![window](images/window-detection-icon.png).

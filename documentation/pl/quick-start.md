@@ -15,11 +15,11 @@ Struktura jest podzielona według typu urządzenia.
 
 ## Nodon SIN-4-FP-21 lub podobne (pilot przewodowy)
 
-Moduł ten pozwala sterować grzejnik pilotem przewodowym. Pojawia się w _HA_ jako encja typu `select` pozwalająca wybrać preset ogrzewania.
+Moduł ten pozwala sterować grzejnik pilotem przewodowym. Pojawia się w _HA_ jako encja typu `select` pozwalająca wybrać wstępne ustawienie ogrzewania.
 
-_VTherm_ będzie regulować temperaturę poprzez okresową zmianę presetu za pomocą dostosowanych poleceń, aż do osiągnięcia wartości żądanej.
+_VTherm_ będzie regulować temperaturę poprzez okresową zmianę ustawień wstępnych za pomocą dostosowanych poleceń, aż do osiągnięcia wartości żądanej.
 
-Aby to się udało, preset używany do sterowania ogrzewaniem musi być wyższy, niż maksymalna temperatura oczekiwana (dobrym wyborem jest np. **24°C**).
+Aby to się udało, ustawienie wstępne używane do sterowania ogrzewaniem musi być wyższe, niż maksymalna temperatura oczekiwana (dobrym wyborem jest np. **24°C**).
 
 Aby zintegrować urządzenie z _VTherm_, należy wykonać następujące kroki:
 1. Utwórz termostat _VTherm_ typu `termostat na przełączniku`. Zobacz: [Wybór termostatu](creation.md).
@@ -30,7 +30,7 @@ Po wykonaniu tych czterech kroków będziesz mieć w pełni funkcjonalny termost
 
 ## Heatzy, eCosy, lub podobne (sterowane encją `climate`)
 
-Moduł ten pozwala sterować grzejnikiem, który w **Home Assistant** pojawia się jako encja `climate`, umożliwiając wybór presetu grzania lub trybu (**Heat / Cool / Off**).
+Moduł ten pozwala sterować grzejnikiem, który w **Home Assistant** pojawia się jako encja `climate`, umożliwiając wybór ustawień wstępnych grzania lub trybu (**Heat / Cool / Off**).
 
 Termostat _VTherm_ będzie regulować temperaturę poprzez załączanie/wyłączanie urządzenia za pomocą dostosowanych poleceń w regularnych odstępach czasu, aż do osiągnięcia wartości żądanej.
 
@@ -78,7 +78,7 @@ Po wykonaniu tych pięciu kroków będziesz mieć w pełni funkcjonalny termosta
 
 ## Odwracalne jednostki HP, klimatyzatory, lub inne urządzenia sterowane encją `climate`
 
-Odwracalne pompy ciepła (HP) lub podobne urządzenia, reprezentowane są w _HA_ jako encje `climate`, umożliwiając wybór presetu grzania lub trybu (**Heat / Cool / Off**)
+Odwracalne pompy ciepła (HP) lub podobne urządzenia, reprezentowane są w _HA_ jako encje `climate`, umożliwiając wybór ustawień wstępnych grzania lub trybu (**Heat / Cool / Off**)
 
 Termostat _VTherm_ będzie regulować temperaturę porównując temperaturę docelową z trybem pracy urządzenia za pomocą poleceń dostosowanych do encji `climate`.
 
@@ -96,7 +96,7 @@ Szczegółowe informacje na temat samoregulacji znajdziesz [tutaj:](self-regulat
 
 # Następne kroki
 
-Po utworzeniu termostatu _VTherm_ należy skonfigurować temperatury dla presetów. Zobacz: [Presety](feature-presets.md) dla minimalnej konfiguracji.  
+Po utworzeniu termostatu _VTherm_ należy skonfigurować temperatury dla ustawień wstępnych. Zobacz: [ustawienia wstępne](feature-presets.md) dla minimalnej konfiguracji.  
 Możesz także (opcjonalnie, ale zalecane) zainstalować dedykowaną kartę [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card).  
 
 ## Rozszerzanie konfiguracji
@@ -106,8 +106,8 @@ Gdy minimalna konfiguracja działa poprawnie — i tylko wtedy, gdy działa praw
 
 ## Konfiguracja centralna
 Możesz następnie skonfigurować ustawienia centralne, aby:
-- **Udostępniać konfiguracje** pomiędzy wszystkimi instancjami _VTherm_,  
-- Włączyć **tryb centralny** dla jednolitego sterowania wszystkimi termostatami _VTherm_ ([zobacz: ](feature-central-mode.md),  
+- **Udostępniać konfiguracje** pomiędzy wszystkimi instancjami VTherm,  
+- Włączyć **tryb centralny** dla jednolitego sterowania wszystkimi VThermami ([zobacz: ](feature-central-mode.md),  
 - Zintegrować **sterowanie kotłem głównym** ([zobacz: ](feature-central-boiler.md).  
 
 To nie jest pełna lista — zobacz spis treści, aby poznać wszystkie funkcje _VTherm_.  

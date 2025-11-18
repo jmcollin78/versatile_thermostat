@@ -1,10 +1,10 @@
 {
-  "title": "Termostat VTherm",
+  "title": "Wszechstronny Termostat",
   "config": {
-    "flow_title": "Konfiguracja Termostatu VTherm",
+    "flow_title": "Konfiguracja Wszechstronnego Termostatu",
     "step": {
       "user": {
-        "title": "Typ Termostatu VTherm",
+        "title": "Typ Wszechstronnego Termostatu",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -17,11 +17,11 @@
         "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.",
         "menu_options": {
           "main": "Główne atrybuty",
-          "central_boiler": "Kocioł główny",
+          "central_boiler": "Bojler główny",
           "type": "Urządzenia",
           "tpi": "Parametry TPI",
           "features": "Funkcje",
-          "presets": "Preset",
+          "presets": "Ustawienia wstępne",
           "window": "Detekcja okna",
           "motion": "Detekcja ruchu",
           "power": "Zarządzanie energią",
@@ -34,7 +34,7 @@
         }
       },
       "main": {
-        "title": "Dodaj nowy Termostat VTherm",
+        "title": "Dodaj nowy Wszechstronny Termostat",
         "description": "Podstawowe wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
         "data": {
           "name": "Nazwa",
@@ -49,7 +49,7 @@
           "device_power": "Moc urządzenia",
           "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji głównej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
           "use_main_central_config": "Użyj dodatkowej konfiguracji głównej. Zaznacz, aby korzystać z podstawowej konfiguracji głównej (temperatura zewnętrzna, min, max, krok, ...).",
-          "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli termostat ma sterować kotłem głównym."
+          "used_by_controls_central_boiler": "Używane przez bojler główny. Zaznacz, jeśli termostat ma sterować bojlerem głównym."
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
@@ -65,7 +65,7 @@
           "use_motion_feature": "Użyj detekcji ruchu",
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
-          "use_central_boiler_feature": "Użyj kotła głównego. Zaznacz, aby dodać sterowanie kotłem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem głównym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła głównego są podane na odpowiedniej stronie konfiguracyjnej",
+          "use_central_boiler_feature": "Użyj bojlera głównego. Zaznacz, aby dodać sterowanie bojlerem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący bojlerem głównym. Jeśli któryś z termostatów zażąda ogrzewania, bojler się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, bojler pozostanie wyłączony. Polecenia załączenia i wyłączenia bojlera głównego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"
         }
       },
@@ -125,10 +125,10 @@
         }
       },
       "presets": {
-        "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "title": "Ustawienia wstępne",
+        "description": "Wybierz, jeśli termostat ma używać głównych ustawień wstępnych - wyłącz wybór, jeśli termostat ma używać swoich własnych ustawień wstępnych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
         "data": {
-          "use_presets_central_config": "Użyj konfiguracji głównych presetów"
+          "use_presets_central_config": "Użyj konfiguracji głównych ustawień wstępnych"
         }
       },
       "window": {
@@ -157,21 +157,21 @@
       },
       "motion": {
         "title": "Ruch",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Ustawienia wstępne mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie ustawienia wstępne. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
           "motion_off_delay": "Zwłoka deaktywacji",
-          "motion_preset": "Preset ruchu",
-          "no_motion_preset": "Brak presetu ruchu",
+          "motion_preset": "Ustawienia wstępne ruchu",
+          "no_motion_preset": "Brak ustawień wstępnych ruchu",
           "use_motion_central_config": "Użyj głównej konfiguracji ruchu"
         },
         "data_description": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji (w sek.)",
           "motion_off_delay": "Zwłoka deaktywacji (w sek.)",
-          "motion_preset": "Preset, gdy wykryto ruch",
-          "no_motion_preset": "Preset, gdy brak wykrycia ruchu",
+          "motion_preset": "Ustawienia wstępne, gdy wykryto ruch",
+          "no_motion_preset": "Ustawienia wstępne, gdy brak wykrycia ruchu",
           "use_motion_central_config": "Wybierz, aby użyć głównej konfiguracji ruchu. Wyłącz wybór, aby użyć konfiguracji ruchu dedykowanej dla tego termostatu"
         }
       },
@@ -193,7 +193,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć głównej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -214,20 +214,20 @@
         "data_description": {
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
-          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym ustawieniu wstępnym",
           "use_advanced_central_config": "Wybierz, aby użyć głównej konfiguracji zaawansowanej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
       "central_boiler": {
-        "title": "Sterowanie kotłem głównym",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł główny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "title": "Sterowanie bojlerem głównym",
+        "description": "Wprowadź polecenia załączające i wyłączające bojler główny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę bojlera na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę bojlera na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia"
         },
         "data_description": {
-          "central_boiler_activation_service": "Polecenie załączenia kotła głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
-          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]"
+          "central_boiler_activation_service": "Polecenie załączenia bojlera głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
+          "central_boiler_deactivation_service": "Polecenie wyłączenia bojlera głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]"
         }
       },
       "valve_regulation": {
@@ -253,14 +253,14 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji głównej'."
+      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej'."
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
     }
   },
   "options": {
-    "flow_title": "Konfiguracja Termostatu VTherm",
+    "flow_title": "Konfiguracja Wszechstronnego Termostatu",
     "step": {
       "user": {
         "title": "Typ - {name}",
@@ -276,11 +276,11 @@
         "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.",
         "menu_options": {
           "main": "Główne atrybuty",
-          "central_boiler": "Kocioł główny",
+          "central_boiler": "Bojler główny",
           "type": "Urządzenia",
           "tpi": "Parametry TPI",
           "features": "Funkcje",
-          "presets": "Presety",
+          "presets": "Ustawienia wstępne",
           "window": "Detekcja okna",
           "motion": "Detekcja ruchu",
           "power": "Zarządzanie energią",
@@ -309,7 +309,7 @@
           "device_power": "Moc urządzenia",
           "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji głównej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
           "use_main_central_config": "Użyj dodatkowej konfiguracji głównej. Zaznacz, aby używać głównej konfiguracji głównej (temperatura zewnętrzna, min, max, krok, ...).",
-          "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli ten termostat powinien sterować kotłem głównym"
+          "used_by_controls_central_boiler": "Używane przez bojler główny. Zaznacz, jeśli ten termostat powinien sterować bojlerem głównym"
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
@@ -325,7 +325,7 @@
           "use_motion_feature": "Użyj detekcji ruchu",
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
-          "use_central_boiler_feature": "Użyj kotła głównego. Zaznacz, aby dodać sterowanie kotłem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem głównym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła głównego są podane na odpowiedniej stronie konfiguracyjnej",
+          "use_central_boiler_feature": "Użyj bojlera głównego. Zaznacz, aby dodać sterowanie bojlerem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący bojlerem głównym. Jeśli któryś z termostatów będzie wymagał ogrzewania, bojler się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, bojler pozostanie wyłączony. Polecenia załączenia i wyłączenia bojlera głównego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"        }
       },
       "type": {
@@ -382,10 +382,10 @@
           "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości"
         }      },
       "presets": {
-        "title": "Presety - {name}",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "title": "Ustawienia wstępne - {name}",
+        "description": "Wybierz, jeśli termostat ma używać głównych ustawień wstępnych - wyłącz wybór, jeśli termostat ma używać swoich własnych ustawień wstępnych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
         "data": {
-          "use_presets_central_config": "Użyj konfiguracji głównej presetów"
+          "use_presets_central_config": "Użyj konfiguracji głównej ustawień wstępnych"
         }
       },
       "window": {
@@ -413,21 +413,21 @@
         }      },
       "motion": {
         "title": "Ruch - {name}",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Ustawienia wstępne mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie ustawienia wstępne. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
           "motion_off_delay": "Zwłoka deaktywacji",
-          "motion_preset": "Preset ruchu",
-          "no_motion_preset": "Brak presetu ruchu",
+          "motion_preset": "Ustawienia wstępne ruchu",
+          "no_motion_preset": "Brak ustawień wstępnych ruchu",
           "use_motion_central_config": "Użyj głównej konfiguracji ruchu"
         },
         "data_description": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji (w sek.)",
           "motion_off_delay": "Zwłoka deaktywacji (w sek.)",
-          "motion_preset": "Preset, gdy wykryto ruch",
-          "no_motion_preset": "Preset, gdy brak wykrycia ruchu",
+          "motion_preset": "Ustawienia wstępne, gdy wykryto ruch",
+          "no_motion_preset": "Ustawienia wstępne, gdy brak wykrycia ruchu",
           "use_motion_central_config": "Wybierz, aby użyć głównej konfiguracji ruchu. Wyłącz wybór, aby użyć konfiguracji ruchu dedykowanej dla tego termostatu"
         }      },
       "power": {
@@ -448,7 +448,7 @@
       },
       "presence": {
         "title": "Obecność - {name}",
-        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie ustawienia wstępne temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć głównej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -474,20 +474,20 @@
           "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości",
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
-          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym ustawieniu wstępnym",
           "use_advanced_central_config": "Wybierz, aby użyć głównej konfiguracji zaawansowanej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
       "central_boiler": {
-        "title": "Sterowanie kotłem głównym - {name}",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł główny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "title": "Sterowanie bojlerem głównym - {name}",
+        "description": "Wprowadź polecenia załączające i wyłączające bojler główny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę bojlera na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę bojlera na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia"
         },
         "data_description": {
-          "central_boiler_activation_service": "Polecenie załączenia kotła głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
-          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`"
+          "central_boiler_activation_service": "Polecenie załączenia bojlera głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
+          "central_boiler_deactivation_service": "Polecenie wyłączenia bojlera głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`"
         }
       },
       "valve_regulation": {
@@ -513,7 +513,7 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji głównej'.",
+      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat Wszechstronny typu 'konfiguracji głównej'.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
@@ -564,7 +564,7 @@
         "frost": "Chłodzenie",
         "eco": "Eko",
         "comfort": "Komfort",
-        "boost": "Boost"
+        "boost": "Wzmocnienie"
       }
     },
     "auto_start_stop": {
@@ -603,7 +603,7 @@
         "name": "Komfort"
       },
       "boost_temp": {
-        "name": "Boost"
+        "name": "Wzmocnienie"
       },
       "frost_ac_temp": {
         "name": "Chłodzenie AC"
@@ -615,7 +615,7 @@
         "name": "Komfort AC"
       },
       "boost_ac_temp": {
-        "name": "Boost AC"
+        "name": "Wzmocnienie AC"
       },
       "frost_away_temp": {
         "name": "Chłodzenie poza domem"
@@ -627,7 +627,7 @@
         "name": "Komfort poza domem"
       },
       "boost_away_temp": {
-        "name": "Boost poza domem"
+        "name": "Wzmocnienie poza domem"
       },
       "eco_ac_away_temp": {
         "name": "Eko AC poza domem"
@@ -636,7 +636,7 @@
         "name": "Komfort AC poza domem"
       },
       "boost_ac_away_temp": {
-        "name": "Boost AC poza domem"
+        "name": "Wzmocnienie AC poza domem"
       }
     }
   }

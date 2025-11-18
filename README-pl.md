@@ -4,7 +4,7 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-# Versatile Thermostat (Wszechstronny Termostat)
+# Versatile Thermostat - Wszechstronny Termostat
 
 Ten plik README jest dostępny
 w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](README-de.md) | [Czeski](README-cs.md) | [Polski](README-pl.md)
@@ -25,8 +25,8 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 
 # Co nowego?
 ![New](images/new-icon.png)
-Ta wersja wymaga **szczególnej uwagi**. Przebudowano w niej znaczną część wewnętrznych mechanizmów integracji *Versatile Thermostat*, wprowadzając kilka nowych funkcji, a także znacząco poprawiając wydajność tych już działających:
-> 1. `Stan żądany` / `stan bieżący`: termostat _VTherm_ ma teraz 2 stany. `Stan żądany` to stan oczekiwany przez użytkownika (lub harmonogram). `Stan bieżący` to stan aktualny termostatu _VTherm_. Ten ostatni zależy od różnych funkcji termostatu _VTherm_. Np. użytkownik może zażądać (`stan żądany`) włączenia ogrzewania z ustawieniem Komfort, ale ponieważ wykryto otwarte okno, termostat _VTherm_ jest w rzeczywistości wyłączony. To podwójne zarządzanie zawsze zachowuje żądanie użytkownika i aplikuje wyniki różnych funkcji jako odpowiedź na żądanie użytkownika, aby w efekcie uzyskać `stan bieżący`. Takie rozwiązanie lepiej radzi sobie z przypadkami, gdy wiele funkcji chce oddziaływać na stan termostatu (np. otwieranie okna i wyłączanie zasilania). Zapewnia również powrót do pierwotnego `stanu żądanego`, gdy nie ma już żadnych innych zdarzeń, które mogłyby oddziaływać na termostat (np. otwieranie okna i wyłączanie zasilania),
+Ta wersja wymaga szczególnej uwagi. Przebudowano w niej znaczną część wewnętrznych mechanizmów *Versatile Thermostat*, wprowadzając kilka nowych funkcji:
+> 1. `Stan żądany` / `stan bieżący`: termostat _VTherm_ ma teraz 2 stany. `Stan żądany` to stan oczekiwany przez użytkownika (lub harmonogram). `Stan bieżący` to stan aktualny termostatu _VTherm_. Ten ostatni zależy od różnych funkcji VTherm. Np. użytkownik może zażądać (`stan żądany`) włączenia ogrzewania z ustawieniem Komfort, ale ponieważ wykryto otwarte okno, termostat _VTherm_ jest w rzeczywistości wyłączony. To podwójne zarządzanie zawsze zachowuje żądanie użytkownika i aplikuje wyniki różnych funkcji jako odpowiedź na żądanie użytkownika, aby w efekcie uzyskać `stan bieżący`. Takie rozwiązanie lepiej radzi sobie z przypadkami, gdy wiele funkcji chce oddziaływać na stan termostatu (np. otwieranie okna i wyłączanie zasilania). Zapewnia również powrót do pierwotnego `stanu żądanego`, gdy nie już żadnych innych zdarzeń oddziałujących na termostat (np. otwieranie okna i wyłączanie zasilania),
 > 2. `Filtrowanie czasu`: operacja filtrowania czasu została znacznie poprawiona. Filtrowanie czasu zapobiega wysyłaniu zbyt wielu poleceń do urządzenia, co mogłoby prowadzić do nadmiernego zużycia baterii (np. termostatu zasilanego bateryjnie), a także zbyt częstej zmiany ustawień (pompy ciepła, pieca na pellet, ogrzewania podłogowego itp.). Nowa funkcja działa teraz następująco: jawne żądania użytkownika (lub harmonogramu) są zawsze natychmiast uwzględniane i **nie są one filtrowane**. Potencjalnie filtrowane są tylko zmiany związane z warunkami zewnętrznymi (np. temperaturą w pomieszczeniu). Filtrowanie polega na ponownym wysłaniu żądanego polecenia w późniejszym czasie, a nie na jego ignorowaniu, jak to miało miejsce dotychczas. Parametr `auto_regulation_dtemp` umożliwia dostosowanie opóźnienia.
 > 3. Ulepszenie parametru `hvac_action`: parametr `hvac_action` odzwierciedla aktualny stan aktywacji sterowanego urządzenia. W przypadku typu `termostat na przełączniku` odzwierciedla on stan aktywacji przełącznika, w przypadku `termostatu na zaworze` pozostaje aktywny, gdy otwarcie zaworu jest większe, niż minimalne (lub 0, jeśli nie jest skonfigurowany). W przypadku `termostatu na klimacie` odzwierciedla on parametr `hvac_action` klimatu bazowego, jeśli jest dostępny, lub - w przeciwnym razie - jego symulację.
 > 4. `Atrybuty własne`: organizacja atrybutów niestandardowych dostępnych w `Narzędzia deweloperskie -> Stany` została podzielona na sekcje w zależności od typu termostatu _VTherm_ i każdej aktywowanej funkcji. 
@@ -34,20 +34,20 @@ Ta wersja wymaga **szczególnej uwagi**. Przebudowano w niej znaczną część w
 Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. Jeśli grzejnik zostanie wyłączony między dwoma pomiarami, włączenie nowego może zostać autoryzowane. Wcześniej uwzględniano tylko włączenia między dwoma pomiarami. Tak jak poprzednio, kolejny komunikat dotyczący zużycia energii prawdopodobnie spowoduje większą lub mniejszą redukcję mocy.
 > 6. `AutoSTART/autoSTOP`: funkcja autoSTART/autoSTOP jest przydatna tylko dla typu `termostatu na klimacie` bez bezpośredniego sterowania zaworem. Opcja ta została usunięta z pozostałych typów termostatów.
 > 7. Karta `VTherm UI Card`: wszystkie te modyfikacje pozwoliły na znaczną ewolucję karty `VTherm UI Card`, integrując komunikaty wyjaśniające aktualny stan (dlaczego mój VTherm ma taką temperaturę docelową?) oraz czy trwa filtrowanie czasu – w związku z czym aktualizacja stanu bazowego jest opóźniona.
-> 8. Ulepszenia `logów`: ulepszono logi, aby znacząco uprościć debugowanie. Logi w formacie `---> NOWE ZDARZENIE: VersatileThermostat-Inversed ...` informują o zdarzeniu, wpływającym na stan termostatu _VTherm_.
+> 8. Ulepszenia `logów`: ulepszono logi, aby znacząco uprościć debugowanie. Logi w formacie `---> NOWE ZDARZENIE: VersatileThermostat-Inversed ...` informują o zdarzeniu wpływającym na stan termostatu _VTherm_.
 >
 > ⚠️ **Ostrzeżenie**
 >
 > Ta wersja integracji zawiera zasadnicze zmiany w stosunku do wersji poprzedniej:
 > - zmianie ulega nazwa zdarzenia z `versatile_thermostat_security_event` na `versatile_thermostat_safety_event`. Jeśli Twoja automatyzacja wykorzystuje to zdarzenie, konieczna jest jej aktualizacja,
 > - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
-> - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0`, aby zachować kompatybilność,
+> - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0` aby zachować kompatybilność,
 >
-> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatury sensora _VTherm_ po instalacji.**
+> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić ustawienia wstępne, tryb HVAC i ewentualnie ustawenie temperatury sensora _VTherm_ po instalacji.**
 >
 
 
-## 🍻 Dziękuję za piwo! 🍻
+# 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
 
 Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje i wszelkie formy zachęty. To bardzo wiele dla mnie znaczy i motywuje do dalszej pracy! Jeśli integracja ta pozwala Ci oszczędzać pieniądze, w zamian za to możesz kupić mi piwo. Z pewnością będę umiał to docenić!
@@ -56,11 +56,11 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
   `VTherm`: Versatile Thermostat, jako odnośnik do dokumentacji.
 
-  `TRV`: Termostatyczny Zawór Grzejnikowy (_ang: Thermostatic Radiator Valve_) wyposażony w zawór. Zawór, otwierając się lub zamykając, umożliwia kontrolę przepływu ciepłej wody.
+  `TRV`: Termostatyczny Zawór Grzejnikowy wyposażony w zawór. Zawór, otwierając się lub zamykając, umożliwia kontrolę przepływu ciepłej wody.
 
   `AC`: Klimatyzacja Powietrza. Urządzenie AC chłodzi lub grzeje. Oznaczenie temperatur: Tryb Eko jest cieplejszy niż Komfort, który z kolei jest cieplejszy niż tzw. Boost. Algorytmy integracji biorą to pod uwagę.
 
-  `EMA`: Średnia Zmienna Wykładnicza. Służy do wygładzania pomiarów temperatury z czujnika. Reprezentuje zmienną średnią temperaturę w pomieszczeniu i służy do obliczania nachylenia krzywej temperatury, co byłoby zbyt niestabilne w przypadku danych surowych.
+  `EMA`: Zmienna Średnia Wykładnicza. Służy do wygładzania pomiarów temperatury z czujnika. Reprezentuje zmienną średnią temperaturę w pomieszczeniu i służy do obliczania nachylenia krzywej temperatury, co byłoby zbyt niestabilne w przypadku danych surowych.
 
   `slope`: Nachylenie krzywej temperatury, mierzone w stopniach (°C lub °K)/h. Jest dodatnie, gdy temperatura rośnie, i ujemne, gdy spada. Nachylenie to oblicza się na podstawie `EMA`.
 
@@ -94,42 +94,36 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 19. [Algorytmy](documentation/pl/algorithms.md)
 21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
 22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
-23. [Usuwanie problemów](documentation/pl/troubleshooting.md)
+23. [Usuwanie usterek](documentation/pl/troubleshooting.md)
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
----
+
 # Kilka wyników...
 
-**Stabilizacja temperatury skonfigurowana dzięki ustawieniu presetu**:
+**Stabilizacja temperatury skonfigurowana dzięki ustawieniom wstępnym**:
 
 ![image](documentation/en/images/results-1.png)
-<h1></h1>
 
 **Cykle Zał/Wył obliczane przez integrację `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-2.png)
-<h1></h1>
 
 **Regulacja `Termostatem na Przełączniku`**:
 
 ![image](documentation/en/images/results-4.png)
-<h1></h1>
 
 **Regulacja `Termostatem na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-1.png)
-<h1></h1>
 
-**Regulacja `Termostatem na Klimacie` z bezpośrednim sterowaniem zaworu**:
+**Regulacja bezpośrednim sterowaniem zaworu `Termostat na Klimacie`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
-<h1></h1>
+
+Ciesz się i korzystaj!
 
 
-## Ciesz się i korzystaj!
-
-
-## Wybrane komentarze do integracji `Versatile Thermostat`
+# Wybrane komentarze do integracji `Versatile Thermostat`
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
@@ -137,11 +131,11 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 
 
 
-## Współpraca mile widziana!
+# Współpraca mile widziana!
 
 Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
 
-
+***
 
 [versatile_thermostat]: https://github.com/jmcollin78/versatile_thermostat
 [buymecoffee]: https://www.buymeacoffee.com/jmcollin78
