@@ -438,10 +438,9 @@ async def test_switch_ac_change_central_mode_true(
     with patch("homeassistant.core.ServiceRegistry.async_call"):
         await select_entity.async_select_option(CENTRAL_MODE_FROST_PROTECTION)
 
-        # hvac_mode should stay in COOL mode
-        assert entity.hvac_mode == VThermHvacMode_OFF
-        # no change
-        assert entity.preset_mode == VThermPreset.COMFORT
+        # hvac_mode should stay switch in Heat and preset to FROST
+        assert entity.hvac_mode == VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.FROST
 
     # 9 change back central_mode to AUTO
     with patch("homeassistant.core.ServiceRegistry.async_call"):
