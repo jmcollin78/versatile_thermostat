@@ -19,15 +19,18 @@ if [ -f ${PWD}/.devcontainer/configuration.yaml ]; then
     ln -s ${PWD}/.devcontainer/configuration.yaml ${PWD}/config/configuration.yaml
 fi
 
+# Overwrite lovelace if provided
+if [ -f ${PWD}/.devcontainer/lovelace ]; then
+    rm -f ${PWD}/config/.storage/lovelace
+    ln -s ${PWD}/.devcontainer/lovelace ${PWD}/config/.storage/lovelace
+fi
+
+
 # Set the path to custom_components
 ## This let's us have the structure we want <root>/custom_components/integration_blueprint
 ## while at the same time have Home Assistant configuration inside <root>/config
 ## without resulting to symlinks.
 export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
-
-## Link custom_components into config
-# rm -f ${PWD}/config/custom_components
-# ln -s ${PWD}/custom_components ${PWD}/config/
 
 # Start Home Assistant
 hass --config "${PWD}/config" --debug

@@ -17,6 +17,7 @@ from homeassistant.core import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -43,8 +44,8 @@ class FeaturePowerManager(BaseFeatureManager):
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
-        self._power_temp = None
-        self._overpowering_state = STATE_UNAVAILABLE
+        self._power_temp: float | None = None
+        self._overpowering_state: str | None = None
         self._is_configured: bool = False
         self._device_power: float = 0
         self._use_power_feature: bool = False
@@ -92,17 +93,24 @@ class FeaturePowerManager(BaseFeatureManager):
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
         extra_state_attributes.update(
             {
-                "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
-                "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
-                "overpowering_state": self._overpowering_state,
-                "is_power_configured": self._is_configured,
-                "device_power": self._device_power,
-                "power_temp": self._power_temp,
-                "current_power": vtherm_api.central_power_manager.current_power,
-                "current_max_power": vtherm_api.central_power_manager.current_max_power,
-                "mean_cycle_power": self.mean_cycle_power,
+                "is_power_configured": self.is_configured,
             }
         )
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "power_manager": {
+                        "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
+                        "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
+                        "overpowering_state": self.overpowering_state,
+                        "device_power": self._device_power,
+                        "power_temp": self._power_temp,
+                        "current_power": vtherm_api.central_power_manager.current_power,
+                        "current_max_power": vtherm_api.central_power_manager.current_max_power,
+                        "mean_cycle_power": self.mean_cycle_power,
+                    }
+                }
+            )
 
     async def check_power_available(self) -> bool:
         """Check if the Vtherm can be started considering overpowering.
@@ -115,7 +123,7 @@ class FeaturePowerManager(BaseFeatureManager):
             not self._is_configured
             or not vtherm_api.central_power_manager.is_configured
         ):
-            return True
+            return True, 0
 
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
@@ -128,7 +136,7 @@ class FeaturePowerManager(BaseFeatureManager):
             _LOGGER.warning(
                 "%s - power not valued. check_power_available not available", self
             )
-            return True
+            return True, 0
 
         _LOGGER.debug(
             "%s - overpowering check: power=%.3f, max_power=%.3f heater power=%.3f",
@@ -138,10 +146,56 @@ class FeaturePowerManager(BaseFeatureManager):
             self._device_power,
         )
 
-        # issue 407 - power_consumption_max is power we need to add. If already active we don't need to add more power
+        power_consumption_max = self.calculate_power_consumption_max()
+
+        ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
+        if not ret:
+            _LOGGER.info(
+                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f heater power=%.3f",
+                self,
+                current_power,
+                current_max_power,
+                started_vtherm_total_power,
+                self._device_power,
+            )
+
+        return ret, power_consumption_max
+
+    def calculate_power_consumption_max(self) -> float:
+        """Calculate the maximum power consumption"""
+        power_consumption_max = 0
+        if not self._vtherm.is_device_active:
+            if self._vtherm.is_over_climate:
+                power_consumption_max = self._device_power
+            else:
+                power_consumption_max = max(
+                    self._device_power / self._vtherm.nb_underlying_entities,
+                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                )
+        return power_consumption_max
+
+    def add_power_consumption_to_central_power_manager(self):
+        """
+        Add the current power consumption to the central power manager.
+        """
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+        if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
+            return
+
+        power_consumption_max = self.calculate_power_consumption_max()
+
+        vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
+
+    def sub_power_consumption_to_central_power_manager(self):
+        """
+        Substract the current power consumption to the central power manager.
+        """
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+        if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
+            return
+
+        power_consumption_max = 0
         if self._vtherm.is_device_active:
-            power_consumption_max = 0
-        else:
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
@@ -150,22 +204,9 @@ class FeaturePowerManager(BaseFeatureManager):
                     self._device_power * self._vtherm.proportional_algorithm.on_percent,
                 )
 
-        ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
-        if not ret:
-            _LOGGER.info(
-                "%s - there is not enough power available power=%.3f, max_power=%.3f heater power=%.3f",
-                self,
-                current_power,
-                current_max_power,
-                self._device_power,
-            )
-        else:
-            # Adds the current_power_max to the started vtherm total power
-            vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
+        vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
 
-        return ret
-
-    async def set_overpowering(self, overpowering: bool, power_consumption_max=0):
+    async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""
 
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
@@ -173,19 +214,12 @@ class FeaturePowerManager(BaseFeatureManager):
         current_max_power = vtherm_api.central_power_manager.current_max_power
 
         if overpowering and not self.is_overpowering_detected:
-            _LOGGER.warning(
-                "%s - overpowering is detected. Heater preset will be set to 'power'",
-                self,
-            )
+            write_event_log(_LOGGER, self._vtherm, "Overpowering is detected")
+            _LOGGER.warning("%s - overpowering is detected.", self)
 
             self._overpowering_state = STATE_ON
 
-            if self._vtherm.is_over_climate:
-                self._vtherm.save_hvac_mode()
-
-            self._vtherm.save_preset_mode()
             await self._vtherm.async_underlying_entity_turn_off()
-            await self._vtherm.async_set_preset_mode_internal(PRESET_POWER, force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -197,19 +231,10 @@ class FeaturePowerManager(BaseFeatureManager):
                 },
             )
         elif not overpowering and self.is_overpowering_detected:
-            _LOGGER.warning(
-                "%s - end of overpowering is detected. Heater preset will be restored to '%s'",
-                self,
-                self._vtherm._saved_preset_mode,  # pylint: disable=protected-access
-            )
+            write_event_log(_LOGGER, self._vtherm, "End of overpowering is detected")
+            _LOGGER.warning("%s - end of overpowering is detected.", self)
             self._overpowering_state = STATE_OFF
 
-            # restore state
-            if self._vtherm.is_over_climate:
-                await self._vtherm.restore_hvac_mode()
-            await self._vtherm.restore_preset_mode()
-            # restart cycle
-            await self._vtherm.async_control_heating(force=True)
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
@@ -225,7 +250,7 @@ class FeaturePowerManager(BaseFeatureManager):
         else:
             # Nothing to do (already in the right state)
             return
-        self._vtherm.update_custom_attributes()
+        # self._vtherm.update_custom_attributes()
 
     @overrides
     @property
@@ -242,17 +267,17 @@ class FeaturePowerManager(BaseFeatureManager):
         return self._overpowering_state
 
     @property
-    def is_overpowering_detected(self) -> str | None:
+    def is_overpowering_detected(self) -> bool:
         """Return True if the Vtherm is in overpowering state"""
         return self._overpowering_state == STATE_ON
 
     @property
-    def power_temperature(self) -> bool:
+    def power_temperature(self) -> float | None:
         """Return the power temperature"""
         return self._power_temp
 
     @property
-    def device_power(self) -> bool:
+    def device_power(self) -> float:
         """Return the device power"""
         return self._device_power
 

@@ -27,6 +27,7 @@ from .const import (
     CENTRAL_MODES,
     overrides,
 )
+from .commons import write_event_log
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,18 +99,6 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
         api.register_central_mode_select(self)
 
-        # @callback
-        # async def _async_startup_internal(*_):
-        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
-        #     await self.notify_central_mode_change()
-        #
-        # if self.hass.state == CoreState.running:
-        #     await _async_startup_internal()
-        # else:
-        #     self.hass.bus.async_listen_once(
-        #         EVENT_HOMEASSISTANT_START, _async_startup_internal
-        #     )
-
     @overrides
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
@@ -119,6 +108,7 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
             return
 
         if option in CENTRAL_MODES:
+            write_event_log(_LOGGER, self, f"Central mode is being changed from {old_option} to {option}")
             self._attr_current_option = option
             await self.notify_central_mode_change(old_central_mode=old_option)
 

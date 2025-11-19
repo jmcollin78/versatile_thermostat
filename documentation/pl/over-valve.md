@@ -1,31 +1,35 @@
-# `thermostat_over_valve` Type Thermostat
+# Typ termostatu `Termostat na Zaworze`
 
-> ![Attention](images/tips.png) _*Notes*_
-> 1. The `over_valve` type is often confused with the `over_climate` type equipped with auto-regulation and direct valve control.
-> 2. You should only choose this type when you do not have an associated `climate` entity for your _TRV_ in Home Assistant, and if you only have a `number` type entity to control the valve's opening percentage. The `over_climate` with auto-regulation on the valve is much more powerful than the `over_valve` type.
+> ![Attention](images/tips.png) _*Wskazówki*_
+> 1. Typ `termostat na zaworze` type jest często mylony z typem `termostat na klimacie` wyposżonym w funkcje samoregulacji z bezpośrednim sterowaniem zaworem.
+> 2. Ten typ należy wybrać tylko wtedy, gdy nie masz encji `climate` dla _TRV_ w Home Assistant i jeśli masz tylko encję typu `number` do sterowania procentem otwarcia zaworu. Typ `termostat na klimacie` z automatyczną regulacją zaworu jest znacznie bardziej wydajny niż typ `termostat na zaworze`.
 
-## Prerequisites
 
-The installation should be similar to the `over_switch` VTherm setup, except that the controlled equipment is directly the valve of a _TRV_:
+## Wymagania wstępne
+
+Instalacja powinna być zbliżona do konfiguracji `termostat na przełączniku`, z tym wyjątkiem, że sprzęt jest sterowany bezpośrednio zaworem _TRV_:
 
 ![installation `over_valve`](images/over-valve-schema.png)
 
-1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
-2. Periodically, the internal thermometer (2) or external thermometer (2b) or internal thermometer of the equipment (2c) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or too near the equipment.
-3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#lalgorithme-tpi)), VTherm will calculate the valve's opening percentage.
-4. It will then modify the value of the underlying `number` entities.
-5. These underlying `number` entities will control the valve opening rate on the _TRV_.
-6. This will regulate the radiator's heating.
+1. Ustawienia temperatury docelowej pomieszczenia mogą być realizowane przez użytkownika, automatyzacje, wcześniej zdefiniowany harmonogram, lub mogą pochodzić z presetów w samej integracji.
+2. Termometr wewnętrzny (2), termometr zewnętrzny (2b) lub wewnętrzny termometr urządzenia (2c) okresowo odczytują temperaturę. Termometr wewnętrzny powinien być umieszczony w odpowiednim miejscu — najlepiej na środku pomieszczenia. Unikaj umieszczania go zbyt blisko okna, termostatu lub grzejnika.
+3. Na podstawie wartości zadanych, różnicy temperatur oraz parametrów algorytmu **TPI** (patrz: [TPI](algorithms.md#lalgorithme-tpi)), _VTherm_ obliczy procentowy stopień otwarcia zaworu.
+4. Następnie VTherm zmodyfikuje wartość encji typu `number`.
+5. Te encje podrzędne będą kontrolować stopień otwarcia zaworu w _TRV_.
+6. W ten sposób regulowane będzie ogrzewanie grzejnika.  
 
-> The opening rate is recalculated each cycle, which allows regulating the room temperature.
+Wartość procentowa otwarcia zaworu jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
 
-## Configuration
+![image](images/over-valve-diagram.png)
 
-First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
+Ten schemat pokazuje, że VTherm działa w cyklu zamkniętym: od ustawienia temperatury, przez pomiar i obliczenia, aż po sterowanie zaworem i korektę w kolejnym cyklu. Dzięki temu system może precyzyjnie regulować ogrzewanie, zapewniając komfort cieplny i optymalne zużycie energii.
+
+## Konfiguracja
+
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów VTherm (patrz: [ustawienia główne](base-attributes.md)). Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji, gdzie dodasz encje `number` sterowane przez termostat _VTherm_. Akceptowane są tu jedynie encje typu `number` i `input_number`.
 
 ![image](images/config-linked-entity3.png)
 
-The algorithm currently available is TPI. See [algorithm](#algorithm).
+Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm).
 
-It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśli dodatkowo wybierzesz opcję `Tryb AC`. W takm wypadku dostępny będzie jedynie tryb chłodzenia.

@@ -3,20 +3,15 @@
 import logging
 from datetime import timedelta, datetime
 
-from homeassistant.const import STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, HomeAssistant, State, callback
-from homeassistant.helpers.event import (
-    async_track_state_change_event,
-    async_track_time_interval,
-    EventStateChangedData,
-)
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, EventStateChangedData, async_call_later
 from homeassistant.components.climate import (
     HVACAction,
-    HVACMode,
     ClimateEntityFeature,
 )
 
-from .commons import round_to_nearest
+from .commons import round_to_nearest, write_event_log
 from .base_thermostat import BaseThermostat, ConfigData
 from .pi_algorithm import PITemperatureRegulator
 
@@ -25,6 +20,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingClimate
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
+from .vtherm_hvac_mode import VThermHvacMode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,16 +38,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         frozenset(
             {
                 "is_over_climate",
-                "start_hvac_action_date",
-                "underlying_entities",
-                "regulation_accumulated_error",
-                "auto_regulation_mode",
-                "auto_fan_mode",
-                "current_auto_fan_mode",
-                "auto_activated_fan_mode",
-                "auto_deactivated_fan_mode",
-                "auto_regulation_use_device_temp",
-                "follow_underlying_temp_change",
+                "vtherm_over_climate",
             }
         ).union(FeatureAutoStartStopManager.unrecorded_attributes)
     )
@@ -80,6 +67,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().__init__(hass, unique_id, name, entry_infos)
         self._regulated_target_temp = self.target_temperature
 
+        self._last_hvac_mode = None
+
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
@@ -92,7 +81,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         super().post_init(config_entry)
 
-        for climate in config_entry.get(CONF_UNDERLYING_LIST):
+        for climate in config_entry.get(CONF_UNDERLYING_LIST, []):
             under = UnderlyingClimate(
                 hass=self._hass,
                 thermostat=self,
@@ -132,42 +121,36 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """True if the Thermostat is over_climate"""
         return True
 
-    def calculate_hvac_action(self, under_list: list) -> HVACAction | None:
+    @overrides
+    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
         """Calculate an hvac action based on the hvac_action of the list in argument"""
         # if one not IDLE or OFF -> return it
         # else if one IDLE -> IDLE
         # else OFF
+        if under_list is None:
+            under_list = self._underlyings
+
         one_idle = False
         for under in under_list:
             if (action := under.hvac_action) not in [
                 HVACAction.IDLE,
                 HVACAction.OFF,
             ]:
-                return action
+                self._attr_hvac_action = action
+                return
             if under.hvac_action == HVACAction.IDLE:
                 one_idle = True
         if one_idle:
-            return HVACAction.IDLE
-        return HVACAction.OFF
-
-    @property
-    def hvac_action(self) -> HVACAction | None:
-        """Returns the current hvac_action by checking all hvac_action of the underlyings"""
-        return self.calculate_hvac_action(self._underlyings)
-
-    @overrides
-    async def change_target_temperature(self, temperature: float, force=False):
-        """Set the target temperature and the target temperature of underlying climate if any"""
-        await super().change_target_temperature(temperature, force=force)
-
-        self._regulation_algo.set_target_temp(self.target_temperature)
-        # Is necessary cause control_heating method will not force the update.
-        await self._send_regulated_temperature(force=True)
+            self._attr_hvac_action = HVACAction.IDLE
+        else:
+            self._attr_hvac_action = HVACAction.OFF
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
 
-        if self.hvac_mode == HVACMode.OFF:
+        self.stop_recalculate_later()
+
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
             )
@@ -188,7 +171,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
         if not force and not self.check_auto_regulation_period_min(self.now):
+            self.do_send_regulated_temp_later()
             return
+
+        self._regulation_algo.set_target_temp(self.target_temperature)
 
         if not self._regulated_target_temp:
             self._regulated_target_temp = self.target_temperature
@@ -234,7 +220,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             dtemp = target_temp - self._regulated_target_temp
 
-            if not force and abs(dtemp) < self._auto_regulation_dtemp:
+            if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
                 _LOGGER.info(
                     "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
                     self,
@@ -259,6 +245,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_min_temp,
             )
 
+    def do_send_regulated_temp_later(self):
+        """A utility function to set the temperature later on an underlying"""
+        # For over climate we do nothing because the temperature is set in the main loop
+        _LOGGER.debug("%s - do_set_temperature_later call", self)
+
+        async def callback_send_regulated_temp(_):
+            """Callback to send the regulated temperature"""
+            await self._send_regulated_temperature()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+
+        self.stop_recalculate_later()
+
+        self._cancel_recalculate_later = async_call_later(self._hass, 20, callback_send_regulated_temp)
+
     def check_auto_regulation_period_min(self, now):
         """Check if minimal auto_regulation period is exceeded
         Returns true if it is not exceeded (so auto regulation can continue)"""
@@ -266,7 +267,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return True
 
         period = float((now - self._last_regulation_change).total_seconds()) / 60.0
-        if period < self._auto_regulation_period_min:
+        if period < (self._auto_regulation_period_min or 0):
             _LOGGER.info(
                 "%s - period (%.1f) min is < %.0f min -> forget the auto-regulation send",
                 self,
@@ -300,12 +301,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
         # deal with ac / non ac mode
-        hvac_mode = self.hvac_mode
-        if (
-            (hvac_mode == HVACMode.COOL and dtemp > 0)
-            or (hvac_mode == HVACMode.HEAT and dtemp < 0)
-            or (hvac_mode == HVACMode.OFF)
-        ):
+        hvac_mode = self.vtherm_hvac_mode
+        if (hvac_mode == VThermHvacMode_COOL and dtemp > 0) or (hvac_mode == VThermHvacMode_HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode_OFF):
             should_activate_auto_fan = False
 
         if should_activate_auto_fan and self.fan_mode != self._auto_activated_fan_mode:
@@ -410,7 +407,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._current_auto_fan_mode = auto_fan_mode
 
         # Get the supported feature of the first underlying. We suppose each underlying have the same fan attributes
-        fan_supported = self.supported_features & ClimateEntityFeature.FAN_MODE > 0
+        fan_supported = (self.supported_features or 0) & ClimateEntityFeature.FAN_MODE > 0
 
         if auto_fan_mode == CONF_AUTO_FAN_NONE or not fan_supported:
             self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
@@ -491,83 +488,43 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         super().update_custom_attributes()
 
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
-        self._attr_extra_state_attributes["start_hvac_action_date"] = (
-            self._underlying_climate_start_hvac_action_date
-        )
-
-        self._attr_extra_state_attributes["underlying_entities"] = [
-            underlying.entity_id for underlying in self._underlyings
-        ]
+        # the attr is 2 times in custom_attributes, because it need to be restored, so it must be at root
+        self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
+        self._attr_extra_state_attributes["regulated_target_temperature"] = self.regulated_target_temp
+        vtherm_over_climate_data = {
+            "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
+            "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+            "is_regulated": self.is_regulated,
+            "auto_fan_mode": self.auto_fan_mode,
+            "current_auto_fan_mode": self._current_auto_fan_mode,
+            "auto_activated_fan_mode": self._auto_activated_fan_mode,
+            "auto_deactivated_fan_mode": self._auto_deactivated_fan_mode,
+            "follow_underlying_temp_change": self._follow_underlying_temp_change,
+            "auto_regulation_use_device_temp": self.auto_regulation_use_device_temp,
+        }
 
         if self.is_regulated:
-            self._attr_extra_state_attributes["is_regulated"] = self.is_regulated
-            self._attr_extra_state_attributes["regulated_target_temperature"] = (
-                self._regulated_target_temp
-            )
-            self._attr_extra_state_attributes["auto_regulation_mode"] = (
-                self.auto_regulation_mode
-            )
-            self._attr_extra_state_attributes["regulation_accumulated_error"] = (
-                self._regulation_algo.accumulated_error
-            )
+            vtherm_over_climate_data["regulation"] = {
+                "regulated_target_temperature": self._regulated_target_temp,
+                "auto_regulation_mode": self._auto_regulation_mode,
+                "regulation_accumulated_error": self._regulation_algo.accumulated_error,
+            }
 
-        self._attr_extra_state_attributes["auto_fan_mode"] = self.auto_fan_mode
-        self._attr_extra_state_attributes["current_auto_fan_mode"] = (
-            self._current_auto_fan_mode
-        )
+        self._attr_extra_state_attributes.update({"vtherm_over_climate": vtherm_over_climate_data})
 
-        self._attr_extra_state_attributes["auto_activated_fan_mode"] = (
-            self._auto_activated_fan_mode
-        )
-
-        self._attr_extra_state_attributes["auto_deactivated_fan_mode"] = (
-            self._auto_deactivated_fan_mode
-        )
-
-        self._attr_extra_state_attributes["auto_regulation_use_device_temp"] = (
-            self.auto_regulation_use_device_temp
-        )
-
-        self._attr_extra_state_attributes["follow_underlying_temp_change"] = (
-            self._follow_underlying_temp_change
-        )
-
-        self.async_write_ha_state()
-
-        _LOGGER.debug(
-            "%s - Calling update_custom_attributes: %s",
-            self,
-            self._attr_extra_state_attributes,
-        )
+        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
-    def recalculate(self):
-        """A utility function to force the calculation of a the algo and
-        update the custom attributes and write the state
+    def recalculate(self, force=False):
+        """A utility function to force the calculation of a the algo. For over_climate there is nothing to
+        recalculate but we need it cause the base function throw not implemented error
         """
-        _LOGGER.debug("%s - recalculate all", self)
-        self.update_custom_attributes()
-        self.async_write_ha_state()
-
-    @overrides
-    async def restore_hvac_mode(self, need_control_heating=False):
-        """Restore a previous hvac_mod"""
-        old_hvac_mode = self.hvac_mode
-
-        await super().restore_hvac_mode(need_control_heating=need_control_heating)
-
-        # Issue 133 - force the temperature in over_climate mode if unerlying are turned on
-        if old_hvac_mode == HVACMode.OFF and self.hvac_mode != HVACMode.OFF:
-            _LOGGER.info(
-                "%s - Force resent target temp cause we turn on some over climate"
-            )
-            await self.change_target_temperature(self._target_temp)
 
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
 
-        if self.hvac_mode == HVACMode.OFF:
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
         device_power = self.power_manager.device_power
@@ -615,13 +572,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         async def end_climate_changed(changes: bool):
             """To end the event management"""
             if changes:
-                # already done by update_custom_attribute
-                # self.async_write_ha_state()
-                self.update_custom_attributes()
-                await self.async_control_heating()
+                self.requested_state.force_changed()
+                await self.update_states()
 
         new_state = event.data.get("new_state")
-        _LOGGER.debug("%s - _async_climate_changed new_state is %s", self, new_state)
+        old_state = event.data.get("old_state")
+
+        write_event_log(_LOGGER, self, f"Underlying climate state changed from {old_state} to new_state {new_state}")
+
         if not new_state:
             return
 
@@ -635,15 +593,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         changes = False
-        new_hvac_mode = new_state.state
-
-        old_state = event.data.get("old_state")
+        new_hvac_mode = VThermHvacMode(new_state.state)
 
         # Issue #829 - refresh underlying command if it comes back to life
         if old_state is not None and new_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN) and old_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             _LOGGER.warning("%s - underlying %s come back to life. New state=%s, old_state=%s. Will refresh its status", self, under.entity_id, new_state.state, old_state.state)
             # Force hvac_mode and target temperature
-            await under.set_hvac_mode(self.hvac_mode)
+            await under.set_hvac_mode(self.vtherm_hvac_mode)
             await self._send_regulated_temperature(force=True)
 
             return
@@ -693,19 +649,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if -step < under_temp_diff < step:
             under_temp_diff = 0
 
-        # Issue 99 - some AC turn hvac_mode=cool and hvac_action=idle when sending a HVACMode_OFF command
-        # Issue 114 - Remove this because hvac_mode is now managed by local _hvac_mode and use idle action as is
-        # if self._hvac_mode == HVACMode.OFF and new_hvac_action == HVACAction.IDLE:
-        #    _LOGGER.debug("The underlying switch to idle instead of OFF. We will consider it as OFF")
-        #    new_hvac_mode = HVACMode.OFF
-
         # Forget event when the event holds no real changes
-        if (
-            new_hvac_mode == self._hvac_mode
-            and new_hvac_action == old_hvac_action
-            and under_temp_diff == 0
-            and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode)
-        ):
+        if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode):
             _LOGGER.debug(
                 "%s - a underlying state change event is received but no real change have been found. Forget the event",
                 self,
@@ -735,7 +680,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self,
             under.entity_id,
             new_hvac_mode,
-            self._hvac_mode,
+            self.vtherm_hvac_mode,
             new_hvac_action,
             old_hvac_action,
             new_target_temp,
@@ -806,29 +751,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if (
             new_hvac_mode
             in [
-                HVACMode.OFF,
-                HVACMode.HEAT,
-                HVACMode.COOL,
-                HVACMode.HEAT_COOL,
-                HVACMode.DRY,
-                HVACMode.AUTO,
-                HVACMode.FAN_ONLY,
+                VThermHvacMode_OFF,
+                VThermHvacMode_HEAT,
+                VThermHvacMode_COOL,
+                VThermHvacMode_HEAT_COOL,
+                VThermHvacMode_DRY,
+                VThermHvacMode_AUTO,
+                VThermHvacMode_FAN_ONLY,
                 None,
             ]
-            and self._hvac_mode != new_hvac_mode
+            and self.vtherm_hvac_mode != new_hvac_mode
         ):
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
-                    if (
-                        under.entity_id != new_state.entity_id
-                        and under.hvac_mode != self._hvac_mode
-                    ):
+                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.vtherm_hvac_mode:
                         _LOGGER.info(
                             "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
                             under,
                             under.hvac_mode,
-                            self._hvac_mode,
+                            self.vtherm_hvac_mode,
                         )
                         return
 
@@ -837,10 +779,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     self,
                     new_hvac_mode,
                 )
-                for under in self._underlyings:
-                    await under.set_hvac_mode(new_hvac_mode)
             changes = True
-            self._hvac_mode = new_hvac_mode
+            self.requested_state.set_hvac_mode(new_hvac_mode)
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode != self._attr_fan_mode:
@@ -879,14 +819,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await end_climate_changed(changes)
 
     @overrides
-    async def async_control_heating(self, _=None, force=False) -> bool:
+    async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(_=_, force=force)
+        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         # Check if we need to auto start/stop the Vtherm
-        continu = await self.auto_start_stop_manager.refresh_state()
-        if not continu:
-            return ret
+        old_stop = self.auto_start_stop_manager.is_auto_stop_detected
+        new_stop = await self.auto_start_stop_manager.refresh_state()
+        if old_stop != new_stop:
+            _LOGGER.info("%s - Auto stop state changed from %s to %s", self, old_stop, new_stop)
+            await self.update_states(force=True)
+            return True
 
         # Continue the normal async_control_heating
 
@@ -929,15 +872,24 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE
 
     @overrides
-    def build_hvac_list(self) -> list[HVACMode]:
+    def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self.underlying_entity(0):
-            return self.underlying_entity(0).hvac_modes
-        else:
-            if self._ac_mode:
-                return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
-            else:
-                return [HVACMode.HEAT, HVACMode.OFF]
+            # replace HEAT_COOL by heat and cool
+            result = under_hvac_modes = self.underlying_entity(0).hvac_modes
+            if VThermHvacMode_HEAT_COOL in under_hvac_modes:
+                result = [mode for mode in under_hvac_modes if mode != VThermHvacMode_HEAT_COOL]
+                if VThermHvacMode_HEAT not in under_hvac_modes:
+                    result.extend([VThermHvacMode_HEAT])
+                if VThermHvacMode_COOL not in under_hvac_modes:
+                    result.extend([VThermHvacMode_COOL])
+
+            return result
+
+        if self._ac_mode:
+            return [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
+
+        return [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
     @property
     def mean_cycle_power(self) -> float | None:
@@ -1055,11 +1007,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def follow_underlying_temp_change(self) -> bool:
         """Get the follow underlying temp change flag"""
         return self._follow_underlying_temp_change
-
-    @property
-    def auto_start_stop_manager(self) -> FeatureAutoStartStopManager:
-        """Return the auto-start-stop Manager"""
-        return self._auto_start_stop_manager
 
     @overrides
     def init_underlyings(self):
@@ -1208,26 +1155,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
     @overrides
     async def async_turn_off(self) -> None:
-        # if window is open, don't overwrite the saved_hvac_mode
-        if self.window_state != STATE_ON:
-            self.save_hvac_mode()
-        await self.async_set_hvac_mode(HVACMode.OFF)
+        """Turn off the climate entity."""
+        self._last_hvac_mode = self.requested_state.hvac_mode
+        await self.async_set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     async def async_turn_on(self) -> None:
-
-        # don't turn_on if window is open
-        if self.window_state == STATE_ON:
-            _LOGGER.info(
-                "%s - refuse to turn on because window is open. We keep the save_hvac_mode",
-                self,
-            )
-            return
-
-        if self._saved_hvac_mode is not None:  # pylint: disable=protected-access
-            await self.restore_hvac_mode(True)
+        """Turn on the climate entity. If multiple modes are available, choose the most appropriate one."""
+        if self._last_hvac_mode:
+            await self.async_set_hvac_mode(self._last_hvac_mode)
+        elif self._ac_mode:
+            await self.async_set_hvac_mode(VThermHvacMode_COOL)
         else:
-            if self._ac_mode:
-                await self.async_set_hvac_mode(HVACMode.COOL)
-            else:
-                await self.async_set_hvac_mode(HVACMode.HEAT)
+            await self.async_set_hvac_mode(VThermHvacMode_HEAT)
+
+    @property
+    def vtherm_type(self) -> str | None:
+        """Return the type of thermostat"""
+        return "over_climate"

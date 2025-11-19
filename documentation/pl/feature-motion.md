@@ -1,40 +1,41 @@
-# Motion or Activity Detection
+# Detekcja ruchu lub aktywności
 
-- [Motion or Activity Detection](#motion-or-activity-detection)
-  - [Configure Activity Mode or Motion Detection](#configure-activity-mode-or-motion-detection)
-  - [Usage](#usage)
+- [Detekcja ruchu lub aktywności](#motion-or-activity-detection)
+  - [Konfiguracja trybu aktywności lub detekcji ruchu](#configure-activity-mode-or-motion-detection)
+  - [Zastosowanie](#usage)
 
-This feature allows you to change presets when motion is detected in a room. If you don't want to heat your office when the room is occupied and only when the room is occupied, you need a motion (or presence) sensor in the room and configure this feature.
+Funkcja ta pozwala zmieniać preset, gdy w pomieszczeniu wykryty zostanie ruch. Jeśli nie chcesz ogrzewać pustego pomieszczenia, a tylko wtedy, gdy ktoś w nim przebywa, musisz użyć  czujnika ruchu (lub obecności) w pomieszczeniu i odpowiednio skonfigurować tę funkcję.
 
-This function is often confused with the presence feature. They are complementary but not interchangeable. The 'motion' function is local to a room equipped with a motion sensor, while the 'presence' function is designed to be global to the entire home.
+Ta funkcja jest często mylona z funkcją obecności. Są one komplementarne, ale niezamienne. Funkcja „ruchu” działa lokalnie w pomieszczeniu wyposażonym w czujnik ruchu, natomiast funkcja „obecności” została zaprojektowana jako globalna dla całego domu.
 
-## Configure Activity Mode or Motion Detection
+## Konfiguracja trybu aktywności lub detekcji ruchu
 
-If you have chosen the `With motion detection` feature:
+Jeśli wybrałeś funkcję detekcji ruchu:
 
 ![image](images/config-motion.png)
 
-What we need:
-- a **motion sensor**. Entity ID of a motion sensor. The states of the motion sensor must be "on" (motion detected) or "off" (no motion detected),
-- a **detection delay** (in seconds) defining how long we wait for confirmation of the motion before considering the motion. This parameter can be **greater than your motion sensor's delay**, otherwise, the detection will happen with every motion detected by the sensor,
-- an **inactivity delay** (in seconds) defining how long we wait for confirmation of no motion before no longer considering the motion,
-- a **"motion" preset**. We will use the temperature of this preset when activity is detected,
-- a **"no motion" preset**. We will use the temperature of this second preset when no activity is detected.
+to potrzebne bedą:
+- **Czujnik ruchu**. Stany czujnika muszą mieć wartości: `'on'` (wykryto ruch) lub `'off'` (brak ruchu).
+- **Opóźnienie detekcji** (w sek.), określające jak długo należy czekać na potwierdzenie ruchu, zanim zostanie on uznany za faktycznie zaistniały. Parametr ten może być większy niż zwłoka czujnika, w przeciwnym razie detekcja nastąpi przy każdym wykryciu ruchu.
+- **Opóźnienie braku aktywności** (w sek.), określające jak długo należy czekać na potwierdzenie braku ruchu, zanim przestaniemy go uwzględniać.
+- **Preset "ruchu"**. Używana będzie temperatura zapisana w tym ustawieniu, gdy wykryta zostanie aktywność.
+- **Preset "brak ruchu”**. Używana będzie temperatura zapisana w tym ustawieniu, gdy aktywność nie zostanie wykryta.
 
-## Usage
+## Zastosowanie
 
-To tell a _VTherm_ that it should listen to the motion sensor, you must set it to the special 'Activity' preset. If you have installed the Versatile Thermostat UI card (see [here](additions.md#much-better-with-the-versatile-thermostat-ui-card)), this preset is displayed as follows: ![activity preset](images/activity-preset-icon.png).
+Aby sprawić, że termostat będzie nasłuchiwał czujnika ruchu, należy ustawić go w specjalny tryb aktywny. Jeśli masz zainstalowaną kartę interfejsu Versatile Thermostat UI (patrz: [tutaj](additions.md#much-better-with-the-versatile-thermostat-ui-card)), ten tryb jest wyświetlany jako: ![activity preset](images/activity-preset-icon.png).
+ 
+Następnie, możesz na żądanie ustawić termostat w tryb wykrywania ruchu.
 
-You can then, upon request, set a _VTherm_ to motion detection mode.
+Zachowanie będzie następujące:
+- Mamy pomieszczenie z termostatem ustawionym w tryb aktywny. Tryb „ruch” to komfort (21,5°C), tryb „brak ruchu” to Eko (18,5°C), opóźnienie detekcji wynosi 30 sekund, natomiast opóźnienie braku ruchu – 5 minut.
+- Pomieszczenie było przez jakiś czas puste (brak aktywności), temperatura w nim wynosi 18,5°C.
+- Ktoś wchodzi do pomieszczenia – aktywność zostaje wykryta, jeśli ruch trwa co najmniej 30 sekund. Temperatura wzrasta do 21,5°C.
+- Jeśli ruch trwa krócej, niż 30 sekund (szybkie przejście), temperatura pozostaje na poziomie 18,5°C.
+- Jeśli temperatura wzrosła do 21,5°C, a osoba opuszcza pomieszczenie, po 5 minutach temperatura wraca do 18,5°C.
+- Jeśli osoba wróci przed upływem 5 minut, temperatura pozostaje na poziomie 21,5°C.
 
-The behavior will be as follows:
-- we have a room with a thermostat set to activity mode, the "motion" mode chosen is comfort (21.5°C), the "no motion" mode chosen is Eco (18.5°C), and the motion delay is 30 seconds on detection and 5 minutes on the end of detection.
-- the room has been empty for a while (no activity detected), the setpoint temperature in this room is 18.5°.
-- someone enters the room, and activity is detected if the motion is present for at least 30 seconds. The temperature then goes up to 21.5°.
-- if the motion is present for less than 30 seconds (quick passage), the temperature stays at 18.5°.
-- imagine the temperature has gone up to 21.5°, when the person leaves the room, after 5 minutes the temperature is returned to 18.5°.
-- if the person returns before the 5 minutes, the temperature stays at 21.5°.
+> ![Tip](images/tips.png) _*Wskazówki*_
+> 1. Podobnie jak w przypadku innych presetów, `aktywność` będzie dostępna tylko wtedy, gdy zostanie poprawnie skonfigurowana. Oznacza to, że wszystkie 4 kluczowe parametry muszą być ustawione.
+> 2. Jeśli korzystasz z karty interfejsu Versatile Thermostat UI Card (patrz: [tutaj](additions.md#much-better-with-the-versatile-thermostat-ui-card)), aktywnacja detekcji ruchu jest reprezentowane jako: ![motion](images/motion-detection-icon.png).
 
-> ![Tip](images/tips.png) _*Notes*_
-> 1. As with other presets, `Activity` will only be offered if it is correctly configured. In other words, all 4 configuration keys must be set.
-> 2. If you are using the Versatile Thermostat UI card (see [here](additions.md#much-better-with-the-versatile-thermostat-ui-card)), motion detection is represented as follows: ![motion](images/motion-detection-icon.png).

@@ -23,14 +23,13 @@ from homeassistant.helpers.event import (
     async_call_later,
 )
 
-from homeassistant.components.climate import (
-    PRESET_ACTIVITY,
-)
-
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
+from .vtherm_preset import VThermPreset
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -128,7 +127,7 @@ class FeatureMotionManager(BaseFeatureManager):
                     self._motion_state,
                 )
                 # recalculate the right target_temp in activity mode
-                ret = await self.update_motion_state(motion_state.state, False)
+                ret = await self.update_motion_state(motion_state.state)  # , False)
 
         return ret
 
@@ -141,7 +140,7 @@ class FeatureMotionManager(BaseFeatureManager):
             self,
             new_state,
             self._vtherm.preset_mode,
-            PRESET_ACTIVITY,
+            VThermPreset.ACTIVITY,
         )
 
         if new_state is None or new_state.state not in (STATE_OFF, STATE_ON):
@@ -240,9 +239,7 @@ class FeatureMotionManager(BaseFeatureManager):
             _LOGGER.debug("%s - Event ignored cause i'm already on", self)
             return None
 
-    async def update_motion_state(
-        self, new_state: str = None, recalculate: bool = True
-    ) -> bool:
+    async def update_motion_state(self, new_state: str = None) -> bool:  # , recalculate: bool = True) -> bool:
         """Update the value of the motion sensor and update the VTherm state accordingly
         Return true if a change has been made"""
 
@@ -251,25 +248,13 @@ class FeatureMotionManager(BaseFeatureManager):
         if new_state is not None:
             self._motion_state = STATE_ON if new_state == STATE_ON else STATE_OFF
 
-        if self._vtherm.preset_mode == PRESET_ACTIVITY:
-            new_preset = self.get_current_motion_preset()
-            _LOGGER.info(
-                "%s - Motion condition have changes. New preset temp will be %s",
-                self,
-                new_preset,
-            )
-            # We do not change the preset which is kept to ACTIVITY but only the target_temperature
-            # We take the motion into account
-            new_temp = self._vtherm.find_preset_temp(new_preset)
-            old_temp = self._vtherm.target_temperature
-            if new_temp != old_temp:
-                await self._vtherm.change_target_temperature(new_temp)
+        if old_motion_state != self._motion_state:
+            write_event_log(_LOGGER, self._vtherm, f"Motion state changed from {old_motion_state} to {self._motion_state}")
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(True)
+            return True
 
-            if new_temp != old_temp and recalculate:
-                self._vtherm.recalculate()
-                await self._vtherm.async_control_heating(force=True)
-
-        return old_motion_state != self._motion_state
+        return False
 
     def get_current_motion_preset(self) -> str:
         """Calculate and return the current motion preset"""
@@ -283,15 +268,22 @@ class FeatureMotionManager(BaseFeatureManager):
         """Add some custom attributes"""
         extra_state_attributes.update(
             {
-                "motion_sensor_entity_id": self._motion_sensor_entity_id,
-                "motion_state": self._motion_state,
                 "is_motion_configured": self._is_configured,
-                "motion_delay_sec": self._motion_delay_sec,
-                "motion_off_delay_sec": self._motion_off_delay_sec,
-                "motion_preset": self._motion_preset,
-                "no_motion_preset": self._no_motion_preset,
             }
         )
+        if self._is_configured:
+            extra_state_attributes.update(
+                {
+                    "motion_manager": {
+                        "motion_sensor_entity_id": self._motion_sensor_entity_id,
+                        "motion_state": self._motion_state,
+                        "motion_delay_sec": self._motion_delay_sec,
+                        "motion_off_delay_sec": self._motion_off_delay_sec,
+                        "motion_preset": self._motion_preset,
+                        "no_motion_preset": self._no_motion_preset,
+                    }
+                }
+            )
 
     @overrides
     @property

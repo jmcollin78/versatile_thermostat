@@ -1,45 +1,46 @@
-- [Choosing Basic Attributes](#choosing-basic-attributes)
-- [Choosing the features to Use](#choosing-the-features-to-use)
+- [Wybór głównych atrybutów](#choosing-basic-attributes)
+- [Wybór funkcji użytkowych](#choosing-the-features-to-use)
 
-# Choosing Basic Attributes
+# Wybór głównych atrybutów
 
-Select the "Main Attributes" menu.
+Wybierz menu "Główne".
 
 ![image](images/config-main.png)
 
-Provide the mandatory main attributes. These attributes are common to all VTherms:
-1. A name (this will be both the integration's name and the `climate` entity name),
-2. An entity ID of a temperature sensor that provides the room temperature where the radiator is installed,
-3. An optional sensor entity providing the last seen date and time of the sensor (`last_seen`). If available, specify it here. It helps prevent safety shutdowns when the temperature is stable, and the sensor stops reporting for a long time (see [here](troubleshooting.md#why-does-my-versatile-thermostat-go-into-safety-mode)),
-4. A cycle duration in minutes. At each cycle:
-   1. For `over_switch`: VTherm will turn the radiator on/off, modulating the proportion of time it is on,
-   2. For `over_valve`: VTherm will calculate a new valve opening level and send it if it has changed,
-   3. For `over_climate`: The cycle performs basic controls and recalculates the self-regulation coefficients. The cycle may result in a new setpoint sent to underlying devices or a valve opening adjustment in the case of a controllable TRV.
-5. The equipment's power, which will activate power and energy consumption sensors for the device. If multiple devices are linked to the same VTherm, specify the total maximum power of all devices here. The power unit is not important here. What is important is that all _VTherm_ and all power sensors have the same unit (see: Power shedding feature),
-6. The option to use additional parameters from centralized configuration:
-   1. Outdoor temperature sensor,
-   2. Minimum/maximum temperature and temperature step size,
-7. The option to control the thermostat centrally. See [centralized control](#centralized-control),
-8. A checkbox if this VTherm is used to trigger a central boiler.
+Podaj wymagane atrybuty główne. Te atrybuty są wspólne dla wszystkich termostatów VTherm:
+1. Nazwa (będzie to zarówno nazwa integracji, jak i nazwa encji `climate`),
+2. Identyfikator encji sensora temperatury, który dostarcza temperaturę pomieszczenia, w którym zainstalowany jest grzejnik,
+3. Opcjonalna encja sensora podająca datę i godzinę ostatniego odczytu (last_seen). Jeśli jest dostępna, określ ją tutaj. Pomaga to zapobiec awaryjnemu wyłączeniu, gdy temperatura jest stabilna, a czujnik przestaje raportować przez długi czas (patrz [tutaj](troubleshooting.md#why-does-my-versatile-thermostat-go-into-safety-mode)),
+4. Czas trwania cyklu w minutach. W każdym cyklu:
+   1. Dla `Termostat na Przełączniku`: VTherm włączy/wyłączy grzejnik, modulując proporcję czasu, w którym jest włączony,
+   2. Dla `Termostat na Zaworze`: VTherm obliczy nowy poziom otwarcia zaworu i wyśle go, jeśli uległ zmianie,
+   3. Dla `Termostat na Klimacie`: Cykl wykonuje podstawowe sterowanie i ponownie oblicza współczynniki samoregulacji. Cykl może skutkować nowym ustawieniem docelowej temperatury wysłanym do urządzeń podrzędnych lub regulacją otwarcia zaworu w przypadku sterowalnego TRV.
+5. Moc urządzenia, która aktywuje sensory mocy i zużycia energii dla urządzenia. Jeśli wiele urządzeń jest powiązanych z tym samym termostatem VTherm, podaj tutaj całkowitą maksymalną moc wszystkich urządzeń. Jednostka mocy nie ma tu znaczenia. Ważne jest, aby wszystkie termostaty i wszystkie sensory mocy miały tę samą jednostkę (zobacz: funkcja redukcji mocy),
+6. Opcja użycia dodatkowych parametrów z konfiguracji podstawowej:
+   1. Sensor temperatury zewnętrznej,
+   2. Minimalna/maksymalna temperatura oraz krok zmiany temperatury,
+7. Opcja centralnego sterowania termostatem [patrz:](#centralized-control),
+8. Pole wyboru, jeśli termostat ten jest używany do uruchamiania bojlera głównego.
 
-> ![Tip](images/tips.png) _*Notes*_
->  1. With the `over_switch` and `over_valve` types, calculations are performed at each cycle. In case of changing conditions, you will need to wait for the next cycle to see a change. For this reason, the cycle should not be too long. **5 minutes is a good value**, but it should be adjusted to your heating type. The greater the inertia, the longer the cycle should be. See [Tuning examples](tuning-examples.md).
->  2. If the cycle is too short, the radiator may never reach the target temperature. For example, with a storage heater, it will be unnecessarily activated.
+> ![Tip](images/tips.png) _*Wskazówki*_
+>  1. W przypadku typów `Termostat na Przełączniku` i `Termostat na Zaworze` obliczenia wykonywane są w każdym cyklu. W razie zmiany warunków trzeba poczekać na kolejny cykl, aby zobaczyć efekt. Z tego powodu cykl nie powinien być zbyt długi. 5 minut to dobra wartość, ale należy ją dostosować do rodzaju ogrzewania. Im większa bezwładność, tym dłuższy powinien być cykl (patrz: [Przykłady dostrajania](tuning-examples.md).
+>  2. Jeśli cykl jest zbyt krótki, grzejnik może nigdy nie osiągnąć docelowej temperatury. Na przykład w przypadku pieca akumulacyjnego będzie uruchamiany niepotrzebnie.
 
-# Choosing the features to Use
+# Wybór funkcji użytkowych
 
-Select the "Features" menu.
+Wybierz menu "Funkcje".
 
 ![image](images/config-features.png)
 
-Choose the features you want to use for this VTherm:
-1. **Opening detection** (doors, windows) stops heating when an opening is detected. (see [managing openings](feature-window.md)),
-2. **Motion detection**: VTherm can adjust the target temperature when motion is detected in the room. (see [motion detection](feature-motion.md)),
-3. **Power management**: VTherm can stop a device if the power consumption in your home exceeds a threshold. (see [load-shedding management](feature-power.md)),
-4. **Presence detection**: If you have a sensor indicating presence or absence in your home, you can use it to change the target temperature. See [presence management](feature-presence.md). Note the difference between this function and motion detection: presence is typically used at the home level, while motion detection is more room-specific.
-5. **Automatic start/stop**: For `over_climate` VTherms only. This function stops a device when VTherm detects it will not be needed for a while. It uses the temperature curve to predict when the device will be needed again and turns it back on at that time. See [automatic start/stop management](feature-auto-start-stop.md).
+Wybierz funkcje, których chcesz używać dla tego termostatu:
+1. **Detekcja otwarcia** (drzwi, okna) zatrzymuje ogrzewanie, gdy wykryte zostanie otwarcie (patrz: [zarządzanie otwarciami](feature-window.md)),
+2. **Detekcja ruchu:** VTherm może dostosować temperaturę docelową, gdy w pomieszczeniu wykryty zostanie ruchu (patrz: [detekcja ruchu](feature-motion.md)),
+3. **Zarządzanie mocą:** VTherm może zatrzymać urządzenie, jeśli zużycie energii w domu przekroczy określony próg (patrz: [zarządzanie redukcją obciążenia](feature-power.md)),
+4. **Detekcja obecności:** Jeśli masz zainstalowany sensor obecności, możesz użyć go do zmiany temperatury docelowej ( patrz: [zarządzanie obecnością](feature-presence.md). Zwróć uwagę na różnicę między tą funkcją a funkcją detekcji ruchu: obecność jest zazwyczaj używana w skali całego domu, podczas gdy detekcja ruchu dotyczy konkretnego pomieszczenia.
+5. **AutoSTART/autoSTOP:** Tylko dla termostatów typu `Termostat na Klimacie`. Ta funkcja zatrzymuje urządzenie, gdy termostat wykryje, że nie będzie ono potrzebne przez pewien czas. Wykorzystuje krzywą temperatury do przewidywania, kiedy urządzenie znów będzie potrzebne, i załącza je ponownie w odpowiednim momencie (patrz: [zarządzanie autoSTARTem/autoSTOPem](feature-auto-start-stop.md)).
 
-> ![Tip](images/tips.png) _*Notes*_
-> 1. The list of available functions adapts to your VTherm type.
-> 2. When you enable a function, a new menu entry is added to configure it.
-> 3. You cannot validate the creation of a VTherm if all parameters for all enabled functions have not been configured.
+> ![Tip](images/tips.png) _*Wskazówki*_
+> 1. Lista dostępnych funkcji dostosowuje się do typu Twojego termostatu.
+> 2. Gdy włączysz funkcję, zostanie dodana nowa pozycja w menu do jej konfiguracji.
+> 3. Nie możesz zatwierdzić utworzenia termostatu, jeśli nie wszystkie parametry dla wszystkich włączonych funkcji zostały jeszcze skonfigurowane.
+

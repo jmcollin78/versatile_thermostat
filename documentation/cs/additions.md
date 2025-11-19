@@ -132,8 +132,8 @@ alias: Surveillance Mode Sécurité chauffage
 description: Envoi une notification si un thermostat passe en mode sécurité ou power
 trigger:
   - platform: event
-    event_type: versatile_thermostat_security_event
-    id: versatile_thermostat_security_event
+    event_type: versatile_thermostat_safety_event
+    id: versatile_thermostat_safety_event
   - platform: event
     event_type: versatile_thermostat_power_event
     id: versatile_thermostat_power_event
@@ -145,7 +145,7 @@ action:
   - choose:
       - conditions:
           - condition: trigger
-            id: versatile_thermostat_security_event
+            id: versatile_thermostat_safety_event
         sequence:
           - event: NOTIFIER
             event_data:

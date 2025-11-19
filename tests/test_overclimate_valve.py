@@ -100,19 +100,19 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
 
-        assert vtherm.hvac_modes == [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
+        assert vtherm.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
         assert vtherm.hvac_action is HVACAction.OFF
-        assert vtherm.hvac_mode is HVACMode.OFF
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
         assert vtherm.target_temperature == vtherm.min_temp
         assert vtherm.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
+            VThermPreset.NONE,
+            VThermPreset.FROST,
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
         ]
-        assert vtherm.preset_mode is PRESET_NONE
+        assert vtherm.preset_mode is VThermPreset.NONE
         assert vtherm.safety_manager.is_safety_detected is False
         assert vtherm.window_state is STATE_UNAVAILABLE
         assert vtherm.motion_state is STATE_UNAVAILABLE
@@ -125,10 +125,10 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert mock_send_event.call_count == 2
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
@@ -167,7 +167,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     # fmt: off
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
         patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
@@ -176,11 +176,11 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         now = now + timedelta(minutes=3) # avoid temporal filter
         vtherm._set_now(now)
 
-        await vtherm.async_set_preset_mode(PRESET_COMFORT)
+        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
         await hass.async_block_till_done()
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 18
         assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
@@ -204,6 +204,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
                 "number.mock_opening_degree", "40", {"min": 0, "max": 100}
             ))
 
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
@@ -226,8 +227,8 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         await send_temperature_change_event(vtherm, 18.9, now, True)
         await hass.async_block_till_done()
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 18.9
         assert vtherm.valve_open_percent == 13 # 0.3*0.1 + 0.1*1
@@ -249,7 +250,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             State(
                 "number.mock_opening_degree", "13", {"min": 0, "max": 100}
             ))
-
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
@@ -272,8 +273,8 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         await send_temperature_change_event(vtherm, 21, now, True)
         await hass.async_block_till_done()
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 21
         assert vtherm.valve_open_percent == 0 # 0.3* (-2) + 0.1*1
@@ -296,6 +297,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
                 "number.mock_opening_degree", "0", {"min": 0, "max": 100}
             ))
 
+        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.is_device_active is False
         assert vtherm.nb_device_actives == 0
@@ -407,8 +409,8 @@ async def test_over_climate_valve_multi_presence(
         await send_ext_temperature_change_event(vtherm, 18, now, True)
         await send_presence_change_event(vtherm, False, True, now)
 
-        await vtherm.async_set_preset_mode(PRESET_COMFORT)
-        await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
 
         assert vtherm.target_temperature == 17.2
         assert vtherm.nb_device_actives == 0
@@ -593,8 +595,8 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         await send_ext_temperature_change_event(vtherm, 20, now, True)
         await send_presence_change_event(vtherm, False, True, now)
 
-        await vtherm.async_set_preset_mode(PRESET_COMFORT)
-        await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
 
         assert vtherm.target_temperature == 19
         assert vtherm.nb_device_actives == 0
@@ -647,11 +649,40 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         # the underlying set temperature call and the call to the valve
         assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_closing_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
-            call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 70}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 30}, target={'entity_id': 'number.mock_closing_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
+            ]
+        )
+
+        assert vtherm.nb_device_actives == 0
+
+    # 4. Stop the Vtherm -> should set the opening degree to the min value
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
+        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
+        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    # fmt: on
+        now = now + timedelta(minutes=1)
+        vtherm._set_now(now)
+
+        await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+        await hass.async_block_till_done()
+
+        assert vtherm.is_device_active is False
+        assert vtherm.valve_open_percent == 0
+
+        # the underlying set temperature call and the call to the valve
+        assert mock_service_call.call_count == 6
+        mock_service_call.assert_has_calls([
+            call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_opening_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_closing_degree1'}),
+            call(domain='number', service='set_value', service_data={'value': 7.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            call(domain='number', service='set_value', service_data={'value': 70}, target={'entity_id': 'number.mock_opening_degree2'}),
+            call(domain='number', service='set_value', service_data={'value': 30}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
@@ -661,7 +692,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_states_get):
+async def test_over_climate_valve_VThermHvacMode_SLEEP(hass: HomeAssistant, skip_hass_states_get):
     """Test the HVAMODE_SLEEP of a thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -729,9 +760,9 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
         assert vtherm.name == "TheOverClimateMockName"
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
-        assert vtherm.hvac_modes == [HVACMode.HEAT, HVACMODE_SLEEP, HVACMode.OFF]
+        assert vtherm.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         assert vtherm.hvac_action is HVACAction.HEATING
-        assert vtherm.hvac_mode is HVACMode.OFF
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
         assert vtherm.valve_open_percent == 0
         assert vtherm.is_sleeping is False
 
@@ -741,11 +772,12 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
         await send_temperature_change_event(vtherm, 18, now, True)
         await send_ext_temperature_change_event(vtherm, 18, now, True)
 
-    # 2. Starts heating slowly (18 vs 19)
-    now = now + timedelta(minutes=2)  # avoid temporal filter
-    vtherm._set_now(now)
+        # 2. Starts heating slowly (18 vs 19)
+        now = now + timedelta(minutes=2)  # avoid temporal filter
+        vtherm._set_now(now)
 
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+
     # fmt: off
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
          patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
@@ -753,10 +785,10 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
         now = now + timedelta(minutes=2)  # avoid temporal filter
         vtherm._set_now(now)
 
-        await vtherm.async_set_preset_mode(PRESET_COMFORT)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == HVACMode.HEAT)
+        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_HEAT)
 
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 18
         assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
@@ -778,11 +810,11 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
     # fmt: off
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
     # fmt: on
-        await vtherm.async_set_hvac_mode(HVACMODE_SLEEP)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == HVACMode.OFF)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
 
-        assert vtherm.hvac_mode is HVACMode.OFF
-        assert vtherm.preset_mode is PRESET_COMFORT # no change
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
+        assert vtherm.preset_mode == VThermPreset.COMFORT # no change
         assert vtherm.target_temperature == 19 # no change
         assert vtherm.current_temperature == 18
         assert vtherm.valve_open_percent == 100 # should be 100%
@@ -807,11 +839,11 @@ async def test_over_climate_valve_hvacmode_sleep(hass: HomeAssistant, skip_hass_
     # fmt: off
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
     # fmt: on
-        await vtherm.async_set_hvac_mode(HVACMode.HEAT)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == HVACMode.HEAT)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_HEAT)
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT # no change
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT # no change
         assert vtherm.target_temperature == 19 # no change
         assert vtherm.current_temperature == 18
         assert vtherm.valve_open_percent == 40 # should be 40% (as before)
@@ -908,14 +940,14 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         assert vtherm.have_valve_regulation is True
 
     # 2. Starts heating slowly (18 vs 19)
-    await vtherm.async_set_hvac_mode(HVACMode.HEAT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(vtherm, 18, now, True)
     await send_ext_temperature_change_event(vtherm, 18, now, True)
 
     now = now + timedelta(minutes=3) # > period min -> regulation will be done
     vtherm._set_now(now)
 
-    await vtherm.async_set_preset_mode(PRESET_COMFORT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
     assert vtherm.target_temperature == 19
     assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
 
@@ -931,8 +963,8 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         await send_temperature_change_event(vtherm, 17, now, True)
         await hass.async_block_till_done()
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 17
         assert vtherm.valve_open_percent == 40 # no changes
@@ -963,8 +995,8 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         await send_temperature_change_event(vtherm, 16, now, True)
         await hass.async_block_till_done()
 
-        assert vtherm.hvac_mode is HVACMode.HEAT
-        assert vtherm.preset_mode is PRESET_COMFORT
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert vtherm.preset_mode == VThermPreset.COMFORT
         assert vtherm.target_temperature == 19
         assert vtherm.current_temperature == 16
         assert vtherm.valve_open_percent == 100 # changes !

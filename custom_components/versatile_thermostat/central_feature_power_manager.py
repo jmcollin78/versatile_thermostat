@@ -21,6 +21,7 @@ from homeassistant.components.climate import (
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .commons import write_event_log
 from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 
@@ -41,13 +42,13 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         self._hass: HomeAssistant = hass
         self._vtherm_api = vtherm_api  # no type due to circular reference
         self._is_configured: bool = False
-        self._power_sensor_entity_id: str = None
-        self._max_power_sensor_entity_id: str = None
-        self._current_power: float = None
-        self._current_max_power: float = None
-        self._power_temp: float = None
+        self._power_sensor_entity_id: str | None = None
+        self._max_power_sensor_entity_id: str | None = None
+        self._current_power: float | None = None
+        self._current_max_power: float | None = None
+        self._power_temp: float | None = None
         self._cancel_calculate_shedding_call = None
-        self._started_vtherm_total_power: float = None
+        self._started_vtherm_total_power: float = 0
         # Not used now
         self._last_shedding_date = None
 
@@ -102,8 +103,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     @callback
     async def _power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power changes."""
-        _LOGGER.debug("Receive new Power event")
-        _LOGGER.debug(event)
+        write_event_log(_LOGGER, self, f"Receive power sensor state {event.data.get('new_state').state if event.data.get('new_state') else None}")
+        # _LOGGER.debug(event)
 
         self._started_vtherm_total_power = 0
         await self.refresh_state()
@@ -111,8 +112,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
     @callback
     async def _max_power_sensor_changed(self, event: Event[EventStateChangedData]):
         """Handle power max changes."""
-        _LOGGER.debug("Receive new Power Max event")
-        _LOGGER.debug(event)
+        write_event_log(_LOGGER, self, f"Receive max power sensor state {event.data.get('new_state').state if event.data.get('new_state') else None}")
+        # _LOGGER.debug(event)
         await self.refresh_state()
 
     @overrides
@@ -159,12 +160,14 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         if self._cancel_calculate_shedding_call:
             self._cancel_calculate_shedding_call()
             self._cancel_calculate_shedding_call = None
-            await self.calculate_shedding()
+        await self.calculate_shedding()
 
     async def calculate_shedding(self):
         """Do the shedding calculation and set/unset VTherm into overpowering state"""
         if not self.is_configured or self.current_max_power is None or self.current_power is None:
             return
+
+        changed_vtherm = []
 
         _LOGGER.debug("-------- Start of calculate_shedding")
         # Find all VTherms
@@ -187,6 +190,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                     total_power_gain += device_power
                     _LOGGER.info("vtherm %s should be in overpowering state (device_power=%.2f)", vtherm.name, device_power)
                     await vtherm.power_manager.set_overpowering(True, device_power)
+                    changed_vtherm.append(vtherm)
 
                 _LOGGER.debug("after vtherm %s total_power_gain=%s, available_power=%s", vtherm.name, total_power_gain, available_power)
                 if total_power_gain >= -available_power:
@@ -223,6 +227,7 @@ class CentralFeaturePowerManager(BaseFeatureManager):
                         total_power_added += power_consumption_max
 
                     await vtherm.power_manager.set_overpowering(False)
+                    changed_vtherm.append(vtherm)
 
                 if total_power_added >= available_power:
                     _LOGGER.debug("We have found enough vtherm to set to non-overpowering")
@@ -230,6 +235,10 @@ class CentralFeaturePowerManager(BaseFeatureManager):
 
                 _LOGGER.debug("after vtherm %s total_power_added=%s, available_power=%s", vtherm.name, total_power_added, available_power)
 
+        # We have set the evenual new state, fr
+        for vtherm in changed_vtherm:
+            vtherm.requested_state.force_changed()
+            await vtherm.update_states(force=True)
         self._last_shedding_date = self._vtherm_api.now
         _LOGGER.debug("-------- End of calculate_shedding")
 
@@ -265,8 +274,8 @@ class CentralFeaturePowerManager(BaseFeatureManager):
         def cmp_temps(a, b) -> int:
             diff_a = float("inf")
             diff_b = float("inf")
-            a_target = a.target_temperature if not a.power_manager.is_overpowering_detected else a.saved_target_temp
-            b_target = b.target_temperature if not b.power_manager.is_overpowering_detected else b.saved_target_temp
+            a_target = a.target_temperature if not a.power_manager.is_overpowering_detected else a.requested_state.target_temperature
+            b_target = b.target_temperature if not b.power_manager.is_overpowering_detected else b.requested_state.target_temperature
             if a.current_temperature is not None and a_target is not None:
                 diff_a = a_target - a.current_temperature
             if b.current_temperature is not None and b_target is not None:

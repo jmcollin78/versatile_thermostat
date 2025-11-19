@@ -1,19 +1,19 @@
-# How to Install Versatile Thermostat?
+# Jak zainstalować Versatile Thermostat?
 
-## HACS Installation (Recommended)
+## Instalacja z HACS (rekomendowana)
 
-1. Install [HACS](https://hacs.xyz/). This way, you will automatically receive updates.
-2. The Versatile Thermostat integration is now available directly from the HACS interface (Integrations tab).
-3. Search for and install "Versatile Thermostat" in HACS and click "Install".
-4. Restart Home Assistant.
-5. Then, you can add a Versatile Thermostat integration in the Settings / Integrations page. Add as many thermostats as needed (usually one per radiator or group of radiators that need to be controlled, or per pump in the case of a centralized heating system).
+1. Zainstaluj [HACS](https://hacs.xyz/). W ten sposób będziesz otrzymywać informacje o dostępnych aktualizacjach integracji.
+2. Integracja `Versatile Thermostat` jest dostępna bezpośrednio z okna interfejsu HACS (zakładka `Integracje`).
+3. Znajdź "Versatile Thermostat" w HACS i kliknij "Pobierz".
+4. Ponownie uruchom Home Assistant.
 
-## Manual Installation
+## Instalacja manualna
 
-1. Using your tool of choice, open your Home Assistant configuration directory (where you will find `configuration.yaml`).
-2. If you don't have a `custom_components` directory, you need to create one.
-3. Inside the `custom_components` directory, create a new folder called `versatile_thermostat`.
-4. Download _all_ files from the `custom_components/versatile_thermostat/` directory (folder) in this repository.
-5. Place the downloaded files in the new folder you created.
-6. Restart Home Assistant.
-7. Configure the new Versatile Thermostat integration.
+1. Korzystając z wybranego narzędzia, otwórz folder konfiguracji Home Assistant (tam znajdziesz plik `configuration.yaml`).
+2. Jeśli nie masz folderu `custom_components`, utworz go.
+3. Wewnątrz folderu `custom_components` utwórz nowy folder o nazwie `versatile_thermostat`.
+4. Pobierz _wszystkie_ pliki z katalogu `custom_components/versatile_thermostat/` z tego repozytorium.
+5. Umieść pobrane pliki w nowo utworzonym folderze.
+6. Ponownie uruchom Home Assistant.
+<h1></h1>
+<b>Teraz możesz dodać pobraną właśnie integrację na stronie `Ustawienia -> Urządzenia oraz Usługi`. </b> Dodaj tyle termostatów, ile potrzebujesz (zwykle jeden termostat na każdy grzejnik lub grupę grzejników, albo jeden termostat na cały centralny system ogrzewania).

@@ -3,11 +3,11 @@ from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import HVACAction, HVACMode
+from homeassistant.components.climate import HVACAction
 from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN, HVACMode
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -15,6 +15,7 @@ from custom_components.versatile_thermostat.base_thermostat import BaseThermosta
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
+from custom_components.versatile_thermostat.vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -27,20 +28,22 @@ async def test_over_switch_ac_full_start(
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     temps = {
-        PRESET_FROST_PROTECTION: 7,
-        PRESET_ECO: 17,
-        PRESET_COMFORT: 19,
-        PRESET_BOOST: 20,
-        PRESET_ECO + PRESET_AC_SUFFIX: 25,
-        PRESET_COMFORT + PRESET_AC_SUFFIX: 23,
-        PRESET_BOOST + PRESET_AC_SUFFIX: 21,
-        PRESET_FROST_PROTECTION + PRESET_AWAY_SUFFIX: 7,
-        PRESET_ECO + PRESET_AWAY_SUFFIX: 16,
-        PRESET_COMFORT + PRESET_AWAY_SUFFIX: 17,
-        PRESET_BOOST + PRESET_AWAY_SUFFIX: 18,
-        PRESET_ECO + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 27,
-        PRESET_COMFORT + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 26,
-        PRESET_BOOST + PRESET_AC_SUFFIX + PRESET_AWAY_SUFFIX: 25,
+        VThermPreset.FROST: 7,
+        VThermPreset.ECO: 17,
+        VThermPreset.COMFORT: 19,
+        VThermPreset.BOOST: 20,
+        VThermPresetWithAC.ECO: 25,
+        VThermPresetWithAC.COMFORT: 23,
+        VThermPresetWithAC.BOOST: 21,
+        # VThermPresetWithAC.FROST: 7,
+        VThermPresetWithAway.ECO: 16,
+        VThermPresetWithAway.COMFORT: 17,
+        VThermPresetWithAway.BOOST: 18,
+        VThermPresetWithAway.FROST: 7,
+        VThermPresetWithACAway.ECO: 27,
+        VThermPresetWithACAway.COMFORT: 26,
+        VThermPresetWithACAway.BOOST: 25,
+        # VThermPresetWithACAway.FROST: 7,
     }
 
     entry = MockConfigEntry(
@@ -81,17 +84,18 @@ async def test_over_switch_ac_full_start(
         assert entity.ac_mode is True
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
-        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
-            PRESET_NONE,
-            PRESET_FROST_PROTECTION,
-            PRESET_ECO,
-            PRESET_COMFORT,
-            PRESET_BOOST,
-            PRESET_ACTIVITY,
+            VThermPreset.NONE,
+            VThermPreset.FROST,  # No frost in AC Mode but possible because Heat is possible
+            VThermPreset.ECO,
+            VThermPreset.COMFORT,
+            VThermPreset.BOOST,
+            VThermPreset.ACTIVITY,
         ]
-        assert entity.preset_mode is PRESET_NONE
+        assert entity.preset_mode is VThermPreset.NONE
         assert entity.safety_manager.is_safety_detected is False
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
@@ -103,37 +107,39 @@ async def test_over_switch_ac_full_start(
 
         mock_send_event.assert_has_calls(
             [
-                call.send_event(EventType.PRESET_EVENT, {"preset": PRESET_NONE}),
+                call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
                 call.send_event(
                     EventType.HVAC_MODE_EVENT,
-                    {"hvac_mode": HVACMode.OFF},
+                    {"hvac_mode": VThermHvacMode_OFF},
                 ),
             ]
         )
 
         # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode is HVACMode.COOL
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
 
         event_timestamp = now - timedelta(minutes=4)
         await send_presence_change_event(entity, True, False, event_timestamp)
         assert entity.presence_state == STATE_ON  # pylint: disable=protected-access
 
-        await entity.async_set_hvac_mode(HVACMode.COOL)
-        assert entity.hvac_mode is HVACMode.COOL
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
 
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode is PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
+        assert entity.vtherm_preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 23
 
         # switch to Eco
-        await entity.async_set_preset_mode(PRESET_ECO)
-        assert entity.preset_mode is PRESET_ECO
+        await entity.async_set_preset_mode(VThermPreset.ECO)
+        assert entity.vtherm_preset_mode == VThermPreset.ECO
         assert entity.target_temperature == 25
 
         # Unset the presence
         event_timestamp = now - timedelta(minutes=3)
         await send_presence_change_event(entity, False, True, event_timestamp)
+        await wait_for_local_condition(lambda: entity.presence_state == STATE_OFF)
         assert entity.presence_state == STATE_OFF  # pylint: disable=protected-access
         assert entity.target_temperature == 27  # eco_ac_away
 
@@ -147,7 +153,8 @@ async def test_over_switch_ac_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is HVACMode.OFF
+            await wait_for_local_condition(lambda: entity.vtherm_hvac_mode == VThermHvacMode_OFF)
+            assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
             assert entity.hvac_action is HVACAction.OFF
             assert entity.target_temperature == 27  # eco_ac_away (no change)
 
@@ -161,27 +168,27 @@ async def test_over_switch_ac_full_start(
             # Confirme the window event
             await try_condition(None)
 
-            assert entity.hvac_mode is HVACMode.COOL
+            assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
             assert (
                 entity.hvac_action is HVACAction.OFF
                 or entity.hvac_action is HVACAction.IDLE
             )
-            assert entity.target_temperature == 27  # eco_ac_away
+            assert entity.target_temperature == 27  # eco_ac_away (no change)
 
-        await entity.async_set_hvac_mode(HVACMode.HEAT)
-        assert entity.hvac_mode is HVACMode.HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
         # switch to comfort
-        await entity.async_set_preset_mode(PRESET_COMFORT)
-        assert entity.preset_mode is PRESET_COMFORT
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.preset_mode == VThermPreset.COMFORT
         assert entity.target_temperature == 17
 
         # switch to Eco
-        await entity.async_set_preset_mode(PRESET_ECO)
-        assert entity.preset_mode is PRESET_ECO
+        await entity.async_set_preset_mode(VThermPreset.ECO)
+        assert entity.preset_mode == VThermPreset.ECO
         assert entity.target_temperature == 16
 
         # switch to boost
-        await entity.async_set_preset_mode(PRESET_BOOST)
-        assert entity.preset_mode is PRESET_BOOST
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
+        assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 18
