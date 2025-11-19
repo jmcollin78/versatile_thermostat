@@ -35,7 +35,7 @@
       },
       "main": {
         "title": "Dodaj nowy Termostat VTherm",
-        "description": "Podstawowe wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "description": "Podstawowe wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -71,7 +71,7 @@
       },
       "type": {
         "title": "Encje powiązane",
-        "description": "Atrybuty encji powiązanych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Atrybuty encji powiązanych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/over-switch.md#configuration)",
         "data": {
           "underlying_entity_ids": "Sterowane urządzenie(-a)",
           "heater_keep_alive": "Czas podtrzymania (w sek.)",
@@ -104,7 +104,7 @@
       },
       "tpi": {
         "title": "TPI",
-        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/algorithms.md#lalgorithme-tpi)",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -126,14 +126,14 @@
       },
       "presets": {
         "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Użyj konfiguracji głównych presetów"
         }
       },
       "window": {
         "title": "Okna",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-window.md)",
         "data": {
           "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -157,7 +157,7 @@
       },
       "motion": {
         "title": "Ruch",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-motion.md)",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -177,7 +177,7 @@
       },
       "power": {
         "title": "Energia",
-        "description": "Atrybuty zarządzania energią.\nPodają moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W).&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "description": "Atrybuty zarządzania energią.\nPodają moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W).&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-power.md)",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -193,7 +193,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć głównej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -204,7 +204,7 @@
       },
       "advanced": {
         "title": "Zaawansowane parametry",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-advanced.md)",
         "data": {
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
@@ -294,7 +294,7 @@
       },
       "main": {
         "title": "Główne - {name}",
-        "description": "Główne wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "description": "Główne wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -330,7 +330,7 @@
       },
       "type": {
         "title": "Encje - {name}",
-        "description": "Atrybuty encji powiązanych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Atrybuty encji powiązanych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/over-switch.md#configuration)",
         "data": {
           "underlying_entity_ids": "Sterowane urządzenie(-a)",
           "heater_keep_alive": "Czas podtrzymania (w sek.)",
@@ -362,7 +362,7 @@
         }      },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/algorithms.md#lalgorithme-tpi)",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -383,14 +383,14 @@
         }      },
       "presets": {
         "title": "Presety - {name}",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Użyj konfiguracji głównej presetów"
         }
       },
       "window": {
         "title": "Okno - {name}",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-window.md)",
         "data": {
          "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -413,7 +413,7 @@
         }      },
       "motion": {
         "title": "Ruch - {name}",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry motion_preset i no_motion_preset powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-motion.md)",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -432,7 +432,7 @@
         }      },
       "power": {
         "title": "Energia - {name}",
-        "description": "Atrybuty zarządzania energią.\nPodają moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "description": "Atrybuty zarządzania energią.\nPodają moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-power.md)",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -448,7 +448,7 @@
       },
       "presence": {
         "title": "Obecność - {name}",
-        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nPodaje stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć głównej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -459,7 +459,7 @@
       },
       "advanced": {
         "title": "Zaawansowane - {name}",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Minimalna zwłoka aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka deaktywacji",
