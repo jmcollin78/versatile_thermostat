@@ -875,12 +875,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self.underlying_entity(0):
-            return self.underlying_entity(0).hvac_modes
-        else:
-            if self._ac_mode:
-                return [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
-            else:
-                return [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+            # replace HEAT_COOL by heat and cool
+            result = under_hvac_modes = self.underlying_entity(0).hvac_modes
+            if VThermHvacMode_HEAT_COOL in under_hvac_modes:
+                result = [mode for mode in under_hvac_modes if mode != VThermHvacMode_HEAT_COOL]
+                if VThermHvacMode_HEAT not in under_hvac_modes:
+                    result.extend([VThermHvacMode_HEAT])
+                if VThermHvacMode_COOL not in under_hvac_modes:
+                    result.extend([VThermHvacMode_COOL])
+
+            return result
+
+        if self._ac_mode:
+            return [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
+
+        return [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
     @property
     def mean_cycle_power(self) -> float | None:
