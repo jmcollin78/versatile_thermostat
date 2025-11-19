@@ -89,7 +89,7 @@ async def test_over_switch_ac_full_start(
         assert entity.target_temperature == entity.max_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
-            # VThermPreset.FROST, No frost in AC Mode
+            VThermPreset.FROST,  # No frost in AC Mode but possible because Heat is possible
             VThermPreset.ECO,
             VThermPreset.COMFORT,
             VThermPreset.BOOST,
@@ -181,14 +181,14 @@ async def test_over_switch_ac_full_start(
         # switch to comfort
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode == VThermPreset.COMFORT
-        assert entity.target_temperature == 26  # comfort_ac_away
+        assert entity.target_temperature == 17
 
         # switch to Eco
         await entity.async_set_preset_mode(VThermPreset.ECO)
         assert entity.preset_mode == VThermPreset.ECO
-        assert entity.target_temperature == 27  # eco ac away
+        assert entity.target_temperature == 16
 
         # switch to boost
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.target_temperature == 25  # boost_ac_away
+        assert entity.target_temperature == 18
