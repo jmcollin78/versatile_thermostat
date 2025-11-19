@@ -1280,7 +1280,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """If the opening valve is open."""
         try:
             value = get_safe_float(self._hass, self._opening_degree_entity_id)
-            return value > 0 if value is not None else False
+            return value > self._min_opening_degree if value is not None else False
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
