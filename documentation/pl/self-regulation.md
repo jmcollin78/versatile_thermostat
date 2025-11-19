@@ -64,7 +64,7 @@ Samoregulacja jest konfigurowana za pomocą:
 
 Te trzy parametry pozwalają dostosować regulację i uniknąć zbyt wielu zmian. Niektóre urządzenia, takie jak termostaty termostatyczne (TRV) lub kotły, nie lubią częstych zmian swoich ustawień.
 
-> ![Tip](images/tips.png) _*Porady dotyczące konfiguracji*_
+> ![image](images/tips.png) _*Porady dotyczące konfiguracji*_
 > 1. Nie uruchamiaj samoregulacji od razu. Obserwuj, jak działa naturalna regulacja urządzenia. Jeśli zauważysz, że ustawiona wartość nie jest osiągana lub jej osiągnięcie zajmuje zbyt dużo czasu, wówczas uruchom regulację.
 > 2. Zacznij od słabej samoregulacji i utrzymuj oba parametry na wartościach domyślnych. Odczekaj kilka dni i sprawdź, czy sytuacja się poprawi.
 > 3. Jeśli to nie wystarczy, przełącz się na średnią samoregulację i poczekaj na stabilizację.
