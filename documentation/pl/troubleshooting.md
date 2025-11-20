@@ -106,13 +106,13 @@ System oparty na termostatach TRV Netatmo nie współpracuje dobrze z _VTherm_. 
 Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo w następujący sposób:
 
 ```
-TODO
+(...)
 ```
 
 
 ## Gdy grzeje tylko pierwszy grzejnik
 
-W ``termostacie na przełączniku``, jeśli wiele grzejników jest skonfigurowanych dla tego samego termostatu _VTherm_, ogrzewanie będzie uruchamiane sekwencyjnie, aby maksymalnie wygładzić szczyty zużycia.
+W ``termostacie na przełączniku``, jeśli wiele grzejników jest skonfigurowanych dla tego samego termostatu _VTherm_, ogrzewanie będzie uruchamiane sekwencyjnie, aby maksymalnie wygładzić szczyty zużycia mocy grzewczej.
 Jest to całkowicie normalne i celowe. Opis znajduje się tutaj: [dla termostatu typu ```termostat na przełączniku```](over-switch.md#over_switch-type-thermostat)
 
 ## Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.

@@ -6,7 +6,7 @@
 - [Akcje (Usługi)](#actions-services)
   - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
   - [Modykacja presetów temperatury](#modify-the-preset-temperature)
-  - [Modify ustawień bezpieczeństwa](#modify-security-settings)
+  - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
   - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
 - [Zdarzenia](#events)
 - [Atrybuty własne](#custom-attributes)
@@ -63,11 +63,11 @@
 | ``minimal_activation_delay``              | Minimalna zwłoka aktywacji                                  | X             | -                   | -            | X                       |
 | ``minimal_deactivation_delay``            | Minimalna zwłoka deaktywacji                                | X             | -                   | -            | X                       |
 | ``safety_delay_min``                      | Maksymalna zwłoka między dwoma pomiarami temperatury        | X             | -                   | X            | X                       |
-| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczeństwa  | X             | -                   | X            | X                       |
+| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczny  | X             | -                   | X            | X                       |
 | ``auto_regulation_mode``                  | Tryb samoregulacji                                          | -             | X                   | -            | -                       |
 | ``auto_regulation_dtemp``                 | Próg samoregulacji                                          | -             | X                   | -            | -                       |
 | ``auto_regulation_period_min``            | Minimalny czas samoregulacji                                | -             | X                   | -            | -                       |
-| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie pilotem)        | X             | -                   | -            | -                       |
+| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie przewodem sterującym)        | X             | -                   | -            | -                       |
 | ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                | -             | X                   | -            | -                       |
 | ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                  | -             | X                   | -            | -                       |
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                           | -             | -                   | -            | X                       |
@@ -225,7 +225,7 @@ Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i oblicza
 
 Atrybuty własne są następujace:
 
-| Attrybut                          | Znaczenie                                                                                                                           |
+| Atrybut                           | Znaczenie                                                                                                                           |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                    | Lista trybów obsługiwanych przez termostat                                                                                          |
 | ``temp_min``                      | Temperatura minimana                                                                                                                |
@@ -257,7 +257,7 @@ Atrybuty własne są następujace:
 | ``safety_default_on_percent``     | Procent grzania używany, gdy termostat pracuje w trybie bezpiecznym                                                              |
 | ``last_temperature_datetime``     | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                                         |
 | ``last_ext_temperature_datetime`` | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                                         |
-| ``security_state``                | Stan bezpieczeństwa. `True` lub `false`                                                                                             |
+| ``security_state``                | Stan bezpieczny. `True` lub `false`                                                                                             |
 | ``minimal_activation_delay_sec``  | Minimalne opóźnienie aktywacji (w sek.)                                                                                             |
 | ``minimal_deactivation_delay_sec``| Minimalne opóźnienie deaktywacji (w sek.)                                                                                           |
 | ``last_update_datetime``          | Data i czas tego stanu (w formacie ISO8866)                                                                                         |

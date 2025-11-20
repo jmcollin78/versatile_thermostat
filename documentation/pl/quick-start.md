@@ -5,7 +5,7 @@ Struktura jest podzielona według typu urządzenia.
 
 
 - [Szybki start](#quick-start)
-  - [Nodon SIN-4-FP-21 lub podobne (pilot przewodowy)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
+  - [Nodon SIN-4-FP-21 lub podobne (przewodowe sterowanie z diodą aktywacyjną)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
   - [Heatzy, eCosy, lub podobne (sterowane encją `climate`)](#heatzy-ecosy-or-similar-climate-entity)
   - [Zwykły przełącznik w rodzaju Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB lub podobne (TRV ze sterowaniem zaworem)](#sonoff-trvzb-or-similar-trv-with-valve-control)
@@ -13,9 +13,9 @@ Struktura jest podzielona według typu urządzenia.
 - [Następne kroki](#next-steps)
 - [Zaproszenie do współpracy](#call-for-contributions)
 
-## Nodon SIN-4-FP-21 lub podobne (pilot przewodowy)
+## Nodon SIN-4-FP-21 lub podobne (przewodowe steroewanie z diodą)
 
-Moduł ten pozwala sterować grzejnik pilotem przewodowym. Pojawia się w _HA_ jako encja typu `select` pozwalająca wybrać preset ogrzewania.
+Moduł ten pozwala sterować grzejnik przewodem sterowania. Pojawia się w _HA_ jako encja typu `select` pozwalająca wybrać preset ogrzewania.
 
 _VTherm_ będzie regulować temperaturę poprzez okresową zmianę presetu za pomocą dostosowanych poleceń, aż do osiągnięcia wartości żądanej.
 
@@ -26,7 +26,7 @@ Aby zintegrować urządzenie z _VTherm_, należy wykonać następujące kroki:
 2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md)  
 3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `select`, która steruje urządzeniem. Zobacz: [urządzenia](over-switch.md).  
 4. Podaj własne polecenia `on`/`off` (obowiązkowe dla urządzenia). Zobacz: [dosotsowywanie poleceń](over-switch.md#command-customization). Polecenia niestandardowe mają format: `select_option/option:<preset>`, zgodnie z opisem w dokumentacji.
-Po wykonaniu tych czterech kroków będziesz mieć w pełni funkcjonalny termostat _VTherm_, który będzie strował Twoim Nodonem lub innym podobnym urządzeniem.
+Po wykonaniu tych czterech kroków będziesz mieć w pełni funkcjonalny termostat _VTherm_, który będzie sterował Twoim Nodonem lub innym podobnym urządzeniem.
 
 ## Heatzy, eCosy, lub podobne (sterowane encją `climate`)
 

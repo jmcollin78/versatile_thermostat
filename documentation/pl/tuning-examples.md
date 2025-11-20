@@ -16,7 +16,7 @@
 - Minimalna zwłoka aktywacji `minimal_activation_delay_sec`: `300` **sekund** (z powodu czasu odpowiedzi, spowodowanym pewną bezwładnością układu).
 
 ## Czujniki temperatur z bateryjnym zasilaniem
-Czujniki te często działają wolno i nie zawsze wysyłają odczyty temperatury, gdy jest ona stabilna. Dlatego ustawienia powinny być w miarę swobodne, aby uniknąć pojawiania się fałszywych alarmów.
+Czujniki te często działają dość wolno i nie zawsze wysyłają odczyty temperatury, gdy jest ona stabilna. Dlatego ustawienia powinny być w miarę swobodne, aby uniknąć pojawiania się fałszywych alarmów.
 
 - bezpieczna zwłoka `safety_delay_min`: **60 minut** (z powodu bezwładności czujnika)
 - bezpieczny procent `safety_min_on_percent`: **0.7** (70% - system przechodzi w tryb *bezpieczny*, gdy grzejnik był załączony przez ponad 70% czasu)
