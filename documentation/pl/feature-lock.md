@@ -11,16 +11,20 @@ Funkcja blokady jest konfigurowana w ustawieniach termostatu, w sekcji "Blokada"
 - **Użytkownicy**: Zapobiega zmianom w interfejsie użytkownika Home Assistant.
 - **Automatyzacje i integracje**: Zapobiega zmianom w automatyzacjach, skryptach i innych integracjach.
 
-Możesz również użyć centralnej konfiguracji dla ustawień blokady.
+Możesz również skonfigurować opcjonalny **Kod blokady**:
+
+- **Kod blokady**: 4-cyfrowy numeryczny kod PIN (np. "1234"). Jeśli ustawiony, ten kod jest wymagany do blokowania/odblokowywania termostatu. Jest to opcjonalne, a jeśli nie skonfigurowane, nie jest wymagany żaden kod.
+
+Możesz również wybrać centralną konfigurację dla ustawień blokady.
 
 ## Użycie
 
 Użyj tych usług, aby kontrolować stan blokady:
 
 - `versatile_thermostat.lock` - Blokuje termostat
-- `versatile_thermostat.unlock` - Odblokowuje termostat
+- `versatile_thermostat.unlock` - Odblokowuje termostat (wymaga `code`, jeśli skonfigurowany)
 
-Przykład automatyzacji:
+Przykład automatyzacji blokowania:
 
 ```yaml
 service: versatile_thermostat.lock
@@ -28,13 +32,23 @@ target:
   entity_id: climate.my_thermostat
 ```
 
+Przykład automatyzacji odblokowywania z kodem:
+
+```yaml
+service: versatile_thermostat.unlock
+target:
+  entity_id: climate.my_thermostat
+data:
+  code: "1234"
+```
+
 ## Stan blokady
 
 Stan blokady jest:
 
 - Widoczny w atrybutach `is_locked`, `lock_users` i `lock_automations` encji klimatyzacji
-- Zachowywany po ponownym uruchomieniu Home Assistant
-- Indywidualny dla każdego termostatu (każdy termostat ma swoją własną blokadę)
+- Zachowywany po ponownym uruchomieniu Home Assistant (w tym kod PIN, jeśli ustawiony)
+- Indywidualny dla każdego termostatu (każdy termostat ma swoją własną blokadę i opcjonalny kod PIN)
 
 ## Po zablokowaniu
 
@@ -70,3 +84,4 @@ Stan blokady jest:
 - Zapobieganie przypadkowym zmianom w okresach krytycznych
 - Funkcja blokady dla dzieci
 - Tymczasowe zapobieganie schedulerowi zmiany aktualnych ustawień
+- Zabezpieczenia przed nieautoryzowanym odblokowaniem (przy użyciu kodu PIN)

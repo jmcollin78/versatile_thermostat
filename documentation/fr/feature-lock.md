@@ -13,12 +13,16 @@ La fonctionnalité de verrouillage est configurée dans les paramètres du therm
 
 Vous pouvez également choisir d'utiliser une configuration centrale pour les paramètres de verrouillage.
 
+Vous pouvez également configurer un **Code de Verrouillage** optionnel :
+
+- **Code de Verrouillage** : Un code PIN numérique à 4 chiffres (par exemple, "1234"). S'il est défini, ce code est requis pour verrouiller/déverrouiller le thermostat. Ceci est optionnel et si non configuré, aucun code n'est requis.
+
 ## Utilisation
 
 Utilisez ces services pour contrôler l'état de verrouillage :
 
 - `versatile_thermostat.lock` - Verrouille le thermostat
-- `versatile_thermostat.unlock` - Déverrouille le thermostat
+- `versatile_thermostat.unlock` - Déverrouille le thermostat (requiert `code` si configuré)
 
 Exemple d'automatisation :
 
@@ -28,13 +32,23 @@ target:
   entity_id: climate.my_thermostat
 ```
 
+Exemple d'automatisation de déverrouillage avec code :
+
+```yaml
+service: versatile_thermostat.unlock
+target:
+  entity_id: climate.my_thermostat
+data:
+  code: "1234"
+```
+
 ## État de Verrouillage
 
 L'état de verrouillage est :
 
 - Visible dans les attributs `is_locked`, `lock_users` et `lock_automations` de l'entité climat.
-- Conservé lors des redémarrages de Home Assistant.
-- Spécifique à chaque thermostat (chaque thermostat a son propre verrou).
+- Conservé lors des redémarrages de Home Assistant (y compris le code PIN si défini).
+- Spécifique à chaque thermostat (chaque thermostat a son propre verrou et code PIN optionnel).
 
 ## Lorsque Verrouillé
 
@@ -66,3 +80,4 @@ L'état de verrouillage est :
 - Prévenir les modifications accidentelles pendant les périodes critiques
 - Fonctionnalité de verrouillage enfant
 - Empêcher temporairement le scheduler de modifier les paramètres actuels
+- Sécurité contre le déverrouillage non autorisé (en utilisant le code PIN)

@@ -11,6 +11,10 @@ The Lock feature is configured in the thermostat's settings, under the "Lock" se
 - **Users**: Prevents changes from the Home Assistant UI.
 - **Automations & integrations**: Prevents changes from automations, scripts, and other integrations  like scheduler.
 
+You can also configure an optional **Lock Code**:
+
+- **Lock Code**: A 4-digit numeric pincode (e.g., "1234"). If set, this code is required to lock/unlock the thermostat. This is optional and if not configured, no code is required.
+
 You can also choose to use a central configuration for the lock settings.
 
 ## Usage
@@ -18,9 +22,9 @@ You can also choose to use a central configuration for the lock settings.
 Use these services to control the lock state:
 
 - `versatile_thermostat.lock` - Locks the thermostat
-- `versatile_thermostat.unlock` - Unlocks the thermostat
+- `versatile_thermostat.unlock` - Unlocks the thermostat (requires `code` if configured)
 
-Example automation:
+Example locking automation:
 
 ```yaml
 service: versatile_thermostat.lock
@@ -28,13 +32,23 @@ target:
   entity_id: climate.my_thermostat
 ```
 
+Example unlocking automation with code:
+
+```yaml
+service: versatile_thermostat.unlock
+target:
+  entity_id: climate.my_thermostat
+data:
+  code: "1234"
+```
+
 ## Lock State
 
 The lock state is:
 
 - Visible in the `is_locked`, `lock_users`, and `lock_automations` attributes of the climate entity
-- Preserved across Home Assistant restarts
-- Per-thermostat (each thermostat has its own lock)
+- Preserved across Home Assistant restarts (including the pincode if set)
+- Per-thermostat (each thermostat has its own lock and optional pincode)
 
 ## When Locked
 
@@ -66,3 +80,4 @@ The lock state is:
 - Prevent accidental changes during critical periods
 - Child lock functionality
 - Temporary prevent scheduler to change current settings
+- Security against unauthorized unlocking (using pincode)

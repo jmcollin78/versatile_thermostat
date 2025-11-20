@@ -11,6 +11,10 @@ Funkce Zámek se konfiguruje v nastavení termostatu v části "Zámek". Můžet
 - **Uživatelé**: Zabraňuje změnám z uživatelského rozhraní Home Assistant.
 - **Automatizace a integrace**: Zabraňuje změnám z automatizací, skriptů a dalších integrací.
 
+Můžete také nakonfigurovat volitelný **Kód zámku**:
+
+- **Kód zámku**: 4-místný číselný PIN (např. "1234"). Pokud je nastaven, tento kód je vyžadován pro zamknutí/odemknutí termostatu. Toto je volitelné a pokud není nakonfigurováno, není vyžadován žádný kód.
+
 Můžete si také vybrat použití centrální konfigurace pro nastavení zámku.
 
 ## Použití
@@ -18,7 +22,7 @@ Můžete si také vybrat použití centrální konfigurace pro nastavení zámku
 Pro ovládání stavu zámku použijte tyto služby:
 
 - `versatile_thermostat.lock` - Zamkne termostat
-- `versatile_thermostat.unlock` - Odemkne termostat
+- `versatile_thermostat.unlock` - Odemkne termostat (vyžaduje `code` pokud nastaveno)
 
 Příklad automatizace:
 
@@ -28,13 +32,23 @@ target:
   entity_id: climate.my_thermostat
 ```
 
+Příklad automatizace odemykání s kódem:
+
+```yaml
+service: versatile_thermostat.unlock
+target:
+  entity_id: climate.my_thermostat
+data:
+  code: "1234"
+```
+
 ## Stav zámku
 
 Stav zámku je:
 
 - Viditelný v atributech `is_locked`, `lock_users` a `lock_automations` klimatizační entity
-- Zachován při restartu Home Assistant
-- Pro každý termostat zvlášť (každý termostat má svůj vlastní zámek)
+- Zachován při restartu Home Assistant (včetně PIN kódu pokud nastaveno)
+- Pro každý termostat zvlášť (každý termostat má svůj vlastní zámek a volitelný PIN kód)
 
 ## Při zamčení
 
@@ -66,3 +80,4 @@ Stav zámku je:
 - Zabránění náhodným změnám během kritických období
 - Funkce dětského zámku
 - Dočasné zabránění plánovači měnit aktuální nastavení
+- Zabezpečení proti neoprávněnému odemknutí (pomocí PIN kódu)

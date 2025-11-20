@@ -11,6 +11,10 @@ Die Sperrfunktion wird in den Thermostateinstellungen im Abschnitt "Sperren" kon
 - **Benutzer**: Verhindert Änderungen über die Home Assistant-Benutzeroberfläche.
 - **Automatisierungen & Integrationen**: Verhindert Änderungen durch Automatisierungen, Skripte und andere Integrationen.
 
+Sie können auch einen optionalen **Sperrcode** konfigurieren:
+
+- **Sperrcode**: Ein 4-stelliger numerischer PIN-Code (z. B. "1234"). Wenn gesetzt, ist dieser Code erforderlich, um den Thermostat zu sperren/zu entsperren. Dies ist optional und wenn nicht konfiguriert, ist kein Code erforderlich.
+
 Sie können auch eine zentrale Konfiguration für die Sperreinstellungen verwenden.
 
 ## Verwendung
@@ -18,7 +22,7 @@ Sie können auch eine zentrale Konfiguration für die Sperreinstellungen verwend
 Verwenden Sie diese Dienste, um den Sperrzustand zu steuern:
 
 - `versatile_thermostat.lock` - Sperrt den Thermostat
-- `versatile_thermostat.unlock` - Entsperrt den Thermostat
+- `versatile_thermostat.unlock` - Entsperrt den Thermostat (erfordert `code` falls konfiguriert)
 
 Beispiel für eine Automatisierung:
 
@@ -28,13 +32,23 @@ target:
   entity_id: climate.my_thermostat
 ```
 
+Beispiel für eine Entsperrungsautomatisierung mit Code:
+
+```yaml
+service: versatile_thermostat.unlock
+target:
+  entity_id: climate.my_thermostat
+data:
+  code: "1234"
+```
+
 ## Sperrzustand
 
 Der Sperrzustand ist:
 
 - Sichtbar in den Attributen `is_locked`, `lock_users` und `lock_automations` der Klimaentität
-- Wird bei Neustarts von Home Assistant beibehalten
-- Pro Thermostat (jeder Thermostat hat seine eigene Sperre)
+- Wird bei Neustarts von Home Assistant beibehalten (einschließlich PIN-Code, falls gesetzt)
+- Pro Thermostat (jeder Thermostat hat seine eigene Sperre und optionalen PIN-Code)
 
 ## Im gesperrten Zustand
 
@@ -69,3 +83,4 @@ Der Sperrzustand ist:
 - Verhindern von versehentlichen Änderungen während kritischer Perioden
 - Kindersicherung-Funktionalität
 - Temporäres Verhindern, dass der Scheduler aktuelle Einstellungen ändert
+- Sicherheit gegen unbefugtes Entsperren (mit PIN-Code)
