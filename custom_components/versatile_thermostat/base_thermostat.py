@@ -13,6 +13,7 @@ from homeassistant.core import (
     Event,
     State,
 )
+from homeassistant.exceptions import HomeAssistantError
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.helpers.restore_state import (
@@ -1109,6 +1110,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def service_lock(self, code: str | None = None):
         """Handle the lock service call."""
+        if not self._lock_users and not self._lock_automations:
+            _LOGGER.error("%s - Cannot lock thermostat: no lock settings enabled (neither users nor automations)", self)
+            raise HomeAssistantError("Cannot lock thermostat: no lock settings enabled. At least one of 'lock users' or 'lock automations' must be enabled.")
         if not self._validate_lock_code(code):
             return
         await self.async_set_lock(True)
