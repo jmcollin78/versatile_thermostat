@@ -12,6 +12,7 @@ from homeassistant.const import ATTR_ENTITY_ID
 from custom_components.versatile_thermostat.const import (
     CONF_LOCK_USERS,
     CONF_LOCK_AUTOMATIONS,
+    CONF_LOCK_CODE,
     SERVICE_LOCK,
     SERVICE_UNLOCK,
 )
@@ -25,6 +26,7 @@ async def setup_thermostat(
     hass: HomeAssistant,
     lock_users: bool,
     lock_automations: bool,
+    lock_code: str | None = None,
 ):
     """Setup the thermostat with the given lock configuration"""
     entry = MockConfigEntry(
@@ -54,6 +56,7 @@ async def setup_thermostat(
             "security_default_on_percent": 0.1,
             CONF_LOCK_USERS: lock_users,
             CONF_LOCK_AUTOMATIONS: lock_automations,
+            CONF_LOCK_CODE: lock_code,
         },
     )
 
@@ -66,8 +69,8 @@ async def setup_thermostat(
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_state):
-    """Test the lock feature and services"""
-    entity = await setup_thermostat(hass, True, True)
+    """Test the lock feature and services (legacy, no code)"""
+    entity = await setup_thermostat(hass, True, True, None)
     assert entity
 
     # 1. Test that lock is off by default
@@ -87,6 +90,55 @@ async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_st
         DOMAIN,
         SERVICE_UNLOCK,
         {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
+        blocking=True,
+    )
+    assert entity.is_locked() is False
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test the lock feature services with a lock code"""
+    LOCK_CODE = "1234"
+    entity = await setup_thermostat(hass, True, True, LOCK_CODE)
+    assert entity
+    entity_id = "climate.theoverswitchmockname"
+
+    # 1. Test that lock is off by default
+    assert entity.is_locked() is False
+
+    # 2. Test lock service: correct code
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_LOCK,
+        {ATTR_ENTITY_ID: entity_id, "code": LOCK_CODE},
+        blocking=True,
+    )
+    assert entity.is_locked() is True
+
+    # 3. Test unlock service: incorrect code -> should fail/remain locked
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_UNLOCK,
+        {ATTR_ENTITY_ID: entity_id, "code": "9999"},
+        blocking=True,
+    )
+    assert entity.is_locked() is True # Should remain locked
+
+    # 4. Test unlock service: missing code -> should fail/remain locked
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_UNLOCK,
+        {ATTR_ENTITY_ID: entity_id},
+        blocking=True,
+    )
+    assert entity.is_locked() is True # Should remain locked
+
+    # 5. Test unlock service: correct code -> should unlock
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_UNLOCK,
+        {ATTR_ENTITY_ID: entity_id, "code": LOCK_CODE},
         blocking=True,
     )
     assert entity.is_locked() is False
@@ -114,8 +166,8 @@ async def test_lock_feature_behavior(
     is_automation_context,
     should_be_locked,
 ):
-    """Test the lock feature behavior for users and automations"""
-    entity = await setup_thermostat(hass, lock_users, lock_automations)
+    """Test the lock feature behavior for users and automations (legacy, no code)"""
+    entity = await setup_thermostat(hass, lock_users, lock_automations, None)
     assert entity
 
     # Lock the thermostat

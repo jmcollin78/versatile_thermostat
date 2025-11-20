@@ -164,6 +164,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._is_locked: bool = False
         self._lock_users: bool = True
         self._lock_automations: bool = True
+        self._lock_code: str | None = None
 
         self._support_flags = None
         # Preset will be initialized from Number entities
@@ -381,6 +382,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._lock_users = entry_infos.get(CONF_LOCK_USERS, True)
         self._lock_automations = entry_infos.get(CONF_LOCK_AUTOMATIONS, True)
+        self._lock_code = entry_infos.get(CONF_LOCK_CODE)
 
         self._max_on_percent = api.max_on_percent
 
@@ -1090,6 +1092,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Return True if the thermostat is locked."""
         return self._is_locked
 
+    def _validate_lock_code(self, code: str | None) -> bool:
+        """Validate the provided code against the configured lock code."""
+        if self._lock_code:
+            if not code or str(code) != str(self._lock_code):
+                _LOGGER.error("%s - Lock code validation failed", self)
+                raise HomeAssistantError(f"Lock code validation failed: {code}")
+        return True
+
     async def async_set_lock(self, locked: bool):
         """Set the internal lock state."""
         self._is_locked = locked
@@ -1097,12 +1107,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.update_custom_attributes()
         self.async_write_ha_state()
 
-    async def service_lock(self):
+    async def service_lock(self, code: str | None = None):
         """Handle the lock service call."""
+        if not self._validate_lock_code(code):
+            return
         await self.async_set_lock(True)
 
-    async def service_unlock(self):
+    async def service_unlock(self, code: str | None = None):
         """Handle the unlock service call."""
+        if not self._validate_lock_code(code):
+            return
         await self.async_set_lock(False)
 
     @property
@@ -1619,6 +1633,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "is_locked": self._is_locked,
                 "lock_users": self._lock_users,
                 "lock_automations": self._lock_automations,
+                "lock_code": bool(self._lock_code),
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
             },
             "configuration": {

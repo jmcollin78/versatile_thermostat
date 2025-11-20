@@ -40,6 +40,7 @@
         "description": "Funkce zamknutí brání změnám termostatu z uživatelského rozhraní nebo automatizací při zachování provozuschopnosti termostatu.",
         "data": {
           "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
+          "lock_code": "Volitelný PIN (4 číslice)",
           "lock_users": "Zamknutí zabrání příkazům uživatelů",
           "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
         },

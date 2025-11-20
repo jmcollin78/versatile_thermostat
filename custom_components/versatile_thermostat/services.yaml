@@ -197,11 +197,31 @@ lock:
     description: "Locks the thermostat, preventing any changes to its configuration from UI or automations."
     target:
         entity:
-            - domain: climate
+            integration: versatile_thermostat
+    fields:
+        code:
+            name: Lock code
+            description: The optional lock code
+            required: false
+            advanced: false
+            example: "1234"
+            selector:
+                text:
+                    type: password
 
 unlock:
     name: Unlock
     description: "Unlocks the thermostat, allowing changes to its configuration."
     target:
         entity:
-            - domain: climate
+            integration: versatile_thermostat
+    fields:
+        code:
+            name: Lock code
+            description: The optional lock code
+            required: false
+            advanced: false
+            example: "1234"
+            selector:
+                text:
+                    type: password

@@ -39,6 +39,7 @@
         "description": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
         "data": {
           "use_lock_central_config": "Use central lock configuration",
+          "lock_code": "Optional pincode (4 digits)",
           "lock_users": "Lock will prevent commands from Users",
           "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
         },
@@ -311,6 +312,7 @@
         "description": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
         "data": {
           "use_lock_central_config": "Use central lock configuration",
+          "lock_code": "Optional pincode (4 digits)",
           "lock_users": "Lock will prevent commands from Users",
           "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
         },

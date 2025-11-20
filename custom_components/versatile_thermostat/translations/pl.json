@@ -39,6 +39,7 @@
         "description": "Funkcja blokady uniemożliwia modyfikacje termostatu z interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania termostatu.",
         "data": {
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+          "lock_code": "Opcjonalny PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",
           "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
         },

@@ -278,6 +278,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             if not self.check_vswitch_configuration(data):
                 raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
 
+        # Check the lock code format
+        if data.get(CONF_LOCK_CODE) is not None:
+            if not re.match(r"^\d{4}$", str(data.get(CONF_LOCK_CODE))):
+                raise LockCodeIncorrect()
+
     def check_vswitch_configuration(self, data) -> bool:
         """Check the Virtual switch configuration and return True if the configuration is correct"""
         nb_under = len(data.get(CONF_UNDERLYING_LIST, []))
@@ -436,6 +441,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "min_opening_degrees_format"
             except VirtualSwitchConfigurationIncorrect as err:
                 errors["base"] = "vswitch_configuration_incorrect"
+            except LockCodeIncorrect:
+                errors["base"] = "lock_code_incorrect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"

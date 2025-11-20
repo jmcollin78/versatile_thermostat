@@ -126,6 +126,7 @@ CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 
+CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
 CONF_LOCK_AUTOMATIONS = "lock_automations"
  
@@ -587,6 +588,10 @@ class ValveRegulationMinOpeningDegreesIncorrect(HomeAssistantError):
 
 class VirtualSwitchConfigurationIncorrect(HomeAssistantError):
     """Error when a virtual switch is not configured correctly"""
+
+
+class LockCodeIncorrect(HomeAssistantError):
+    """Error when a lock code is not configured correctly"""
 
 
 class overrides:  # pylint: disable=invalid-name

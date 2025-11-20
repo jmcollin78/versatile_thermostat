@@ -40,6 +40,7 @@
         "description": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
         "data": {
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
+          "lock_code": "Code PIN optionnel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
           "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
         },

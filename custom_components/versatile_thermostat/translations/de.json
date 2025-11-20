@@ -312,6 +312,7 @@
         "description": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin funktioniert.",
         "data": {
           "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
+          "lock_code": "Optionaler PIN (4 Ziffern)",
           "lock_users": "Sperre verhindert Benutzerbefehle",
           "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
         },
