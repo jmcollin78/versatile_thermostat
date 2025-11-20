@@ -1,10 +1,10 @@
 # Parę istotnych dodatków
 
-- [Parę istotnych dodatków](#some-essential-add-ons)
-  - [Karta Versatile Thermostat UI Card](#the-versatile-thermostat-ui-card)
-  - [Harmonogram](#the-scheduler-component)
-  - [Krzywe regulacji z Plotly do precyzyjnego dostrajania termostatu](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
-  - [Powiadomienie o zdarzeniach za pomocą AppDaemon NOTIFIER](#event-notification-with-the-appdaemon-notifier)
+- [Parę istotnych dodatków](#parę-istotnych-dodatków)
+  - [Karta Versatile Thermostat UI Card](#karta-versatile-thermostat-ui-card)
+  - [Harmonogram](#harmonogram)
+  - [Krzywe regulacji z Plotly do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
+  - [Powiadamianie o zdarzeniach za pomocą AppDaemon NOTIFIER](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
 
 ## Karta Versatile Thermostat UI Card
 Opracowano dedykowaną kartę dla termostatu VTherm (bazującą na Better Thermostat). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów Wszechstronnego Termostatu:
@@ -42,25 +42,23 @@ Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
     - entity: '[[climate]]'
       attribute: temperature
       yaxis: y1
-      name: Consigne
+      name: Ustawienie
     - entity: '[[climate]]'
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
-      name: Power percent
+      name: Procent mocy
       fill: tozeroy
       fillcolor: rgba(200, 10, 10, 0.3)
       line:
         color: rgba(200, 10, 10, 0.9)
     - entity: '[[slope]]'
-      name: Slope
+      name: Nachylenie
       fill: tozeroy
       yaxis: y9
       fillcolor: rgba(100, 100, 100, 0.3)
@@ -124,12 +122,12 @@ Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tut
 <details>
 
 ```yaml
-alias: Surveillance Mode Sécurité chauffage
-description: Envoi une notification si un thermostat passe en mode sécurité ou power
+alias: Monitorowanie trybu bezpieczeństwa ogrzewania
+description: Wysyła powiadomienie, gdy termostat przechodzi w tryb bezpieczeństwa lub ograniczenia mocy
 trigger:
   - platform: event
-    event_type: versatile_thermostat_security_event
-    id: versatile_thermostat_security_event
+    event_type: versatile_thermostat_safety_event
+    id: versatile_thermostat_safety_event
   - platform: event
     event_type: versatile_thermostat_power_event
     id: versatile_thermostat_power_event
@@ -147,14 +145,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Sécurité
+                Grzejnik {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Bezpieczeństwo
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} sécurité car le thermomètre ne répond
-                plus.\n{{ trigger.event.data }}
+                Grzejnik {{ trigger.event.data.name }} przeszedł w {{
+                trigger.event.data.type }} tryb bezpieczeństwa, ponieważ
+                termometr nie odpowiada.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zatrzymaj ogrzewanie
                   event: stopper_chauffage
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
@@ -169,14 +167,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Délestage
+                Grzejnik {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Ograniczenie mocy
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} délestage car la puissance max est
-                dépassée.\n{{ trigger.event.data }}
+                Grzejnik {{ trigger.event.data.name }} przeszedł w {{
+                trigger.event.data.type }} ograniczenie mocy, ponieważ
+                przekroczono maksymalną moc.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zatrzymaj ogrzewanie
                   event: stopper_chauffage
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
@@ -191,11 +189,10 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus
+                Termometr grzejnika {{ trigger.event.data.name }} nie odpowiada
               message: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus depuis longtemps.\n{{ trigger.event.data }}
+                Termometr grzejnika {{ trigger.event.data.name }} od dłuższego
+                czasu nie odpowiada.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled

@@ -2,7 +2,7 @@
 
 - [Einige unverzichtbare Ergänzungen](#einige-unverzichtbare-ergänzungen)
   - [Die Versatile Thermostat UI Card](#die-versatile-thermostat-ui-card)
-  - [Die Scheduler-Komponente!](#die-scheduler-komponente)
+  - [Die Scheduler Komponente!](#die-scheduler-komponente)
   - [Regelungskurven mit Plotly](#regelungskurven-mit-plotly)
   - [Benachrichtigung mit dem AppDaemon NOTIFIER](#benachrichtigung-mit-dem-appdaemon-notifier)
   - [Eine sehr schöne Karte (Danke @Jeffodilo)](#eine-sehr-schöne-karte-danke-jeffodilo)
@@ -52,12 +52,10 @@ Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
       name: Leistungsprozentsatz
       fill: tozeroy
