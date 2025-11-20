@@ -132,11 +132,11 @@ This service allows you to force the presence state independently of the presenc
 The code to call this service is as follows:
 
 ```yaml
-service : versatile_thermostat.set_presence
-Les données:
-    présence : "off"
-cible:
-    entity_id : climate.my_thermostat
+service: versatile_thermostat.set_presence
+data:
+    presence: "off"
+target:
+    entity_id: climate.my_thermostat
 ```
 
 ## Modify the Preset Temperature
