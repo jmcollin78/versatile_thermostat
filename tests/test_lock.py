@@ -6,6 +6,7 @@ from datetime import timedelta, datetime
 import logging
 
 from homeassistant.core import HomeAssistant, ServiceCall, Context
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.components.climate.const import PRESET_BOOST, HVACMode
 from homeassistant.const import ATTR_ENTITY_ID
 
@@ -117,22 +118,24 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
     assert entity.is_locked() is True
 
     # 3. Test unlock service: incorrect code -> should fail/remain locked
-    await hass.services.async_call(
-        DOMAIN,
-        SERVICE_UNLOCK,
-        {ATTR_ENTITY_ID: entity_id, "code": "9999"},
-        blocking=True,
-    )
-    assert entity.is_locked() is True # Should remain locked
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_UNLOCK,
+            {ATTR_ENTITY_ID: entity_id, "code": "9999"},
+            blocking=True,
+        )
+    assert entity.is_locked() is True  # Should remain locked
 
     # 4. Test unlock service: missing code -> should fail/remain locked
-    await hass.services.async_call(
-        DOMAIN,
-        SERVICE_UNLOCK,
-        {ATTR_ENTITY_ID: entity_id},
-        blocking=True,
-    )
-    assert entity.is_locked() is True # Should remain locked
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_UNLOCK,
+            {ATTR_ENTITY_ID: entity_id},
+            blocking=True,
+        )
+    assert entity.is_locked() is True  # Should remain locked
 
     # 5. Test unlock service: correct code -> should unlock
     await hass.services.async_call(
