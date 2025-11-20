@@ -51,12 +51,10 @@ Nahraďte hodnoty mezi `[[ ]]` vašimi vlastními.
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
       name: Power percent
       fill: tozeroy
@@ -128,8 +126,8 @@ Toto je skvělý příklad použití oznámení popsaných zde: [event](#notific
 <details>
 
 ```yaml
-alias: Surveillance Mode Sécurité chauffage
-description: Envoi une notification si un thermostat passe en mode sécurité ou power
+alias: Monitorování bezpečnostního režimu vytápění
+description: Odešle oznámení, když se termostat přepne do bezpečnostního nebo výkonového režimu
 trigger:
   - platform: event
     event_type: versatile_thermostat_safety_event
@@ -151,14 +149,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Sécurité
+                Radiátor {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Bezpečnost
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} sécurité car le thermomètre ne répond
-                plus.\n{{ trigger.event.data }}
+                Radiátor {{ trigger.event.data.name }} přešel do {{
+                trigger.event.data.type }} bezpečnostního režimu, protože
+                teploměr nereaguje.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zastavit vytápění
                   event: stopper_chauffage
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
@@ -173,14 +171,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Délestage
+                Radiátor {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Omezení výkonu
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} délestage car la puissance max est
-                dépassée.\n{{ trigger.event.data }}
+                Radiátor {{ trigger.event.data.name }} přešel do {{
+                trigger.event.data.type }} omezení výkonu, protože byla
+                překročena maximální výkonová hranice.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zastavit vytápění
                   event: stopper_chauffage
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
@@ -195,11 +193,10 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus
+                Teploměr radiátoru {{ trigger.event.data.name }} nereaguje
               message: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus depuis longtemps.\n{{ trigger.event.data }}
+                Teploměr radiátoru {{ trigger.event.data.name }} již delší dobu
+                nereaguje.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled
