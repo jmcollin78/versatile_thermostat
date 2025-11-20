@@ -30,7 +30,7 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
-          "lock": "Zámek",
+          "lock": "Správa zámku",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
         }
@@ -45,7 +45,8 @@
           "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
         },
         "data_description": {
-          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm"
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {
@@ -314,7 +315,8 @@
           "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
         },
         "data_description": {
-          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm"
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {

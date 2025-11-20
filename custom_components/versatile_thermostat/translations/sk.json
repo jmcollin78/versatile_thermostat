@@ -28,7 +28,7 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "finalize": "Všetko hotové",
-          "lock": "Zámok",
+          "lock": "Správa zámku",
           "configuration_not_complete": "Konfigurácia nie je dokončená"
         }
       },
@@ -37,11 +37,13 @@
         "description": "Funkcia zámku bráni zmenám v konfigurácii termostatu z používateľského rozhrania alebo automatizácií, zatiaľ čo termostat zostáva funkčný.",
         "data": {
           "use_lock_central_config": "Použiť centrálnu konfiguráciu zámku",
+          "lock_code": "PIN kód na odomknutie termostatu (4 číslice)",
           "lock_users": "Zámok zabráni príkazom od používateľov",
           "lock_automations": "Zámok zabráni príkazom z automatizácií a integrácií (napr. plánovača)"
         },
         "data_description": {
-          "use_lock_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu zámku. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu zámku pre tento VTherm"
+          "use_lock_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu zámku. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu zámku pre tento VTherm",
+          "lock_code": "PIN kód na odomknutie termostatu (4 číslice)"
         }
       },
       "main": {
@@ -276,7 +278,7 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "finalize": "Všetko hotové",
-          "lock": "Zámok",
+          "lock": "Správa zámku",
           "configuration_not_complete": "Konfigurácia nie je dokončená"
         }
       },
@@ -285,11 +287,13 @@
         "description": "Funkcia zámku bráni zmenám v konfigurácii termostatu z používateľského rozhrania alebo automatizácií, zatiaľ čo termostat zostáva funkčný.",
         "data": {
           "use_lock_central_config": "Použiť centrálnu konfiguráciu zámku",
+          "lock_code": "PIN kód na odomknutie termostatu (4 číslice)",
           "lock_users": "Zámok zabráni príkazom od používateľov",
           "lock_automations": "Zámok zabráni príkazom z automatizácií a integrácií (napr. plánovača)"
         },
         "data_description": {
-          "use_lock_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu zámku. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu zámku pre tento VTherm"
+          "use_lock_central_config": "Začiarknite, ak chcete použiť centrálnu konfiguráciu zámku. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu zámku pre tento VTherm",
+          "lock_code": "PIN kód na odomknutie termostatu (4 číslice)"
         }
       },
       "main": {

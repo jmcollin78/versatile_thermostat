@@ -45,7 +45,8 @@
           "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
         },
         "data_description": {
-          "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm"
+          "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
+          "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
         }
       },
       "main": {
@@ -304,7 +305,7 @@
           "advanced": "Parametri avanzati",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Configurazione della regolazione della valvola",
-          "lock": "Blocco",
+          "lock": "Gestione del blocco",
           "finalize": "Fatto",
           "configuration_not_complete": "Configurazione non completata"
         }
@@ -314,11 +315,13 @@
         "description": "La funzione di blocco impedisce modifiche alla configurazione di un termostato dall'interfaccia utente o dalle automazioni mantenendo il termostato operativo.",
         "data": {
           "use_lock_central_config": "Utilizzare la configurazione di blocco centrale",
+          "lock_code": "PIN opzionale (4 cifre)",
           "lock_users": "Il blocco impedirà i comandi degli utenti",
           "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
         },
         "data_description": {
-          "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm"
+          "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
+          "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
         }
       },
       "main": {

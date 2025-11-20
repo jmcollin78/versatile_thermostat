@@ -30,7 +30,7 @@
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
-          "lock": "Verrouillage",
+          "lock": "Gestion du verrouilage",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -318,7 +318,8 @@
           "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
         },
         "data_description": {
-          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm"
+          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
+          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)"
         }
       },
       "main": {
