@@ -35,7 +35,7 @@ Użycie Heatzy lub Nodon jest możliwe pod warunkiem użycia wirtualnego przeł�
   switches:
     chauffage_sdb:
       unique_id: chauffage_sdb
-      friendly_name: Bathroom heating
+      friendly_name: Grzejnik w łazience
       value_template: "{{ is_state_attr('climate.bathroom', 'preset_mode', 'comfort') }}"
       icon_template: >-
         {% if is_state_attr('climate.bathroom', 'preset_mode', 'comfort') %}
@@ -73,7 +73,7 @@ Przykład:
   switches:
     chauffage_chb_parents:
       unique_id: chauffage_chb_parents
-      friendly_name: Chauffage chambre parents
+      friendly_name: Ogrzewanie w sypialni
       value_template: "{{ is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') }}"
       icon_template: >-
         {% if is_state('select.fp_chb_parents_pilot_wire_mode', 'comfort') %}
@@ -207,7 +207,7 @@ Plik `template.yaml`:
 
 ```yaml
 - binary_sensor:
-    - name: maison_occupee
+    - name: Obecność w domu
       unique_id: maison_occupee
       state: "{{is_state('person.person1', 'home') or is_state('person.person2', 'home') or is_state('input_boolean.force_presence', 'on')}}"
       device_class: occupancy

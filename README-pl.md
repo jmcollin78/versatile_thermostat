@@ -72,7 +72,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Dokumentacja
 
-Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
+Dla wygody Użytkownika, dokumentacja podzielona jest na rozdziały i sekcje:
 1. [Wprowadzenie](documentation/pl/presentation.md)
 2. [Instalacja](documentation/pl/installation.md)
 3. [Szybki start](documentation/pl/quick-start.md)

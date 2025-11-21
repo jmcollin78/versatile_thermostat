@@ -5,7 +5,7 @@
 - [Sensory](#sensors)
 - [Akcje (Usługi)](#actions-services)
   - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
-  - [Modykacja presetów temperatury](#modify-the-preset-temperature)
+  - [Modyfikacja presetów temperatury](#modify-the-preset-temperature)
   - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
   - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
 - [Zdarzenia](#events)

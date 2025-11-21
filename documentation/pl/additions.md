@@ -124,8 +124,8 @@ Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tut
 <details>
 
 ```yaml
-alias: Surveillance Mode Sécurité chauffage
-description: Envoi une notification si un thermostat passe en mode sécurité ou power
+alias: Monitorowanie trybu bezpieczny ogrzewania
+description: Wysyłanie powiadomienia, gdy termostat przejdzie w tryb bezpieczny
 trigger:
   - platform: event
     event_type: versatile_thermostat_security_event
@@ -147,14 +147,13 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Sécurité
+                Grzejnik {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} bezpieczny
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} sécurité car le thermomètre ne répond
-                plus.\n{{ trigger.event.data }}
+                Grzejnik {{ trigger.event.data.name }} przeszedł w tryb bezpieczny {{
+                trigger.event.data.type }} ponieważ termometr przestał reagować.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Wyłączenie ogrzewania
                   event: stopper_chauffage
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
@@ -169,14 +168,13 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Délestage
+                Grzejnik {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Redukcja obciążenia
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} délestage car la puissance max est
-                dépassée.\n{{ trigger.event.data }}
+                Grzejnik {{ trigger.event.data.name }} przełączył się w tryb redukcjoi obciążenia {{
+                trigger.event.data.type }} z powodu przekroczenia mocy maksymalnej\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Wyłączenie ogrzewania
                   event: stopper_chauffage
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
@@ -191,11 +189,10 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus
+                Termometr grzejnikowy {{ trigger.event.data.name }} nie odpowiada
               message: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus depuis longtemps.\n{{ trigger.event.data }}
+                Termometr grzejnikowy {{ trigger.event.data.name }} nie
+                odpowiada od dłuższego czasu.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled
