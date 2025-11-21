@@ -1,4 +1,4 @@
-# Typ termostatu `Termostat na Przełączniku`
+# Typ termostatu: `Termostat na Przełączniku`
 
 - [Typ termostatu `Termostat na Przełączniku`](#over_switch-type-thermostat)
   - [Wymagania wstępne](#prerequisites)

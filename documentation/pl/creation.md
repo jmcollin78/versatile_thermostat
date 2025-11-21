@@ -20,7 +20,7 @@
 
 ## Tworzenie nowego termostatu
 
-Wybierz 'Dodaj integrację' na stronie panelu integracji HA lub kliknij 'Dodaj urządzenie' na podstronie integracji Vtherm...
+Wybierz 'Dodaj integrację' w oknie panelu integracji HA lub kliknij 'Dodaj urządzenie' w oknie integracji Vtherm...
 
 ![image](images/add-an-integration.png)
 

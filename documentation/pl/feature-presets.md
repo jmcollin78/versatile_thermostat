@@ -8,7 +8,7 @@
 Tryb presetu pozwala na wstępne ustawienie temperatury docelowej. Używany w połączeniu z Harmonogramem (patrz: [harmonogram](additions.md#the-scheduler-component)), daje potężny ale prosty sposób na optymalizację temperatury względem zużycia energii elektrycznej w Twoim domu. Oto lista zarządzalnych presetów:
  - **Eko**: urządzenie działa w trybie oszczędzania energii
  - **Komfort**: urządzenie działa w trybie komfortu
- - **Wzmocnienie**: urządzenie całkowicie otwiera wszystkie zawory
+ - **Boost**: urządzenie całkowicie otwiera wszystkie zawory
  - **Brak**: jest zawsze dodawany do listy trybów jako sposób na pominięcie innych ustawień i **ręczne ustawienie temperatury**.
 
 Jeśli używany jest tryb klimatyzacji (AC), możesz również skonfigurować temperatury dla pracy urządzenia w trybie chłodzenia.

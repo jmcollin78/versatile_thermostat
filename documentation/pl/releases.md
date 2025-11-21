@@ -19,10 +19,10 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 >
 > Ta wersja integracji zawiera zasadnicze zmiany w stosunku do wersji poprzedniej:
 > - zmianie ulega nazwa zdarzenia z `versatile_thermostat_security_event` na `versatile_thermostat_safety_event`. Jeśli Twoja automatyzacja wykorzystuje to zdarzenie, konieczna jest jej aktualizacja,
-> - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
+> - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów _*Jinja*_, korzystających z tych atrybutów,
 > - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0` aby zachować kompatybilność,
 >
-> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić ustawienia wstępne, tryb HVAC i ewentualnie ustawenie temperatury sensora _VTherm_ po instalacji.**
+> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Po instalacji aktualizacji, dla każdego sensora _VTherm_ należy sprawdzić ustawienia wstępne, tryb HVAC i ewentualnie ustawienie temperatury sensora _VTherm_.**
 >
 
 
@@ -90,7 +90,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 >  * **Wydanie 3.1**: Dodano detekcję otwarcia okna lub drzwi poprzez analizę spadku temperatury. Nowa funkcja automatycznie zatrzymuje grzejnik, gdy temperatura nagle spada. [Tryb Auto](#le-mode-auto)
 >  * **Główne wydanie 3.0**: Dodano sprzęt termostatu i powiązane czujniki (binarny i niebinarny), co znacznie zbliżyło integrację do filozofii **Home Assistant** Od tech chwili masz bezpośredni dostęp do energii zużywanej przez grzejnik sterowany przez termostat oraz wiele innych czujników przydatnych w automatyzacjach.
 >  * **Wydanie 2.3**: Dodano pomiar mocy i energii dla grzejnika sterowanego przez termostat.
->  * **Wydanie 2.2**: Dodano funkcję bezpieczeństwa, aby zapobiec pozostawieniu grzejnika w trybie grzania w nieskończoność w przypadku awarii termometru.
+>  * **Wydanie 2.2**: Dodano funkcję bezpieczeństwa (tryb _*bezpieczny*_), aby zapobiec pozostawieniu grzejnika w trybie grzania w nieskończoność w przypadku awarii termometru.
 >  * **Główne wydanie 2.0**: Dodano `termostat na klimacie`, pozwalający przekształcić dowolny termostat w urządzeni _VTherm_ i uzyskać wszystkie jego funkcjonalności.
 
 </details>

@@ -1,21 +1,21 @@
 # Parę istotnych dodatków
 
-- [Parę istotnych dodatków](#parę-istotnych-dodatków)
-  - [Karta Versatile Thermostat UI Card](#karta-versatile-thermostat-ui-card)
-  - [Harmonogram](#harmonogram)
-  - [Krzywe regulacji z Plotly do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
-  - [Powiadamianie o zdarzeniach za pomocą AppDaemon NOTIFIER](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
+- [Parę istotnych dodatków](#some-essential-add-ons)
+  - [Karta _*Versatile Thermostat UI Card*_](#the-versatile-thermostat-ui-card)
+  - [Harmonogram](#the-scheduler-component)
+  - [Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
+  - [Powiadomienie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#event-notification-with-the-appdaemon-notifier)
 
-## Karta Versatile Thermostat UI Card
-Opracowano dedykowaną kartę dla termostatu VTherm (bazującą na Better Thermostat). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów Wszechstronnego Termostatu:
+## Karta _*Versatile Thermostat UI Card*_
+Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better Thermostat*). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów termostatu _*VTherm*_:
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
 ## Harmonogram
 
-Aby w pełni wykorzystać możliwości VTherm, zalecane jest używanie go w połączeniu z [Harmonogramem](https://github.com/nielsfaber/scheduler-component). Komponent ten umożliwia tworzenie harmonogramu pracy klimatyzacji w oparciu o predefiniowane tryby. Chociaż ta funkcja jest nieco ograniczona w przypadku termostatu uniwersalnego, staje się bardzo wydajna w połączeniu z VTherm.
+Aby w pełni wykorzystać możliwości VTherm, zalecane jest używanie go w połączeniu z [Harmonogramem](https://github.com/nielsfaber/scheduler-component). Komponent ten umożliwia tworzenie harmonogramu pracy klimatyzacji w oparciu o predefiniowane tryby. Chociaż ta funkcja jest nieco ograniczona w przypadku termostatu uniwersalnego, staje się bardzo wydajna w połączeniu z *VTherm*.
 
-Oto przykład. Zakładając, że zainstalowałeś zarówno VTherm, jak i komponent Harmonogram, dodaj w harmonogramie:
+Oto przykład. Zakładając, że zainstalowałeś zarówno *VTherm*, jak i komponent *Harmonogram*, dodaj w harmonogramie:
 
 ![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
 
@@ -30,8 +30,8 @@ Zdefiniuj schemat trybu i zapisz go:
 W tym przykładzie ustawiony został tryb ECO na noc oraz na okres dzienny, gdy nikogo nie ma w domu, BOOST rano i COMFORT wieczorem.
 
 
-## Krzywe regulacji z Plotly do precyzyjnego dostrajania termostatu
-Można uzyskać krzywą podobną do tej pokazanej na rysunku [Trochę wyników...](../../README-pl.MD#some-results) używając konfiguracji wykresu Plotly, wykorzystując opisane niestandardowe atrybuty termostatu [tutaj](reference.md#custom-attributes):
+## Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu
+Można uzyskać krzywą podobną do tej pokazanej na rysunku [Trochę wyników...](../../README-pl.MD#some-results) używając konfiguracji wykresu *Plotly*, wykorzystując opisane niestandardowe atrybuty termostatu [tutaj](reference.md#custom-attributes):
 
 Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
 <details>
@@ -42,23 +42,25 @@ Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
     - entity: '[[climate]]'
       attribute: temperature
       yaxis: y1
-      name: Ustawienie
+      name: Consigne
     - entity: '[[climate]]'
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[ema_temperature]]'
+    - entity: '[[climate]]'
+      attribute: ema_temp
       yaxis: y1
       name: Ema
-    - entity: '[[power_percent]]'
+    - entity: '[[climate]]'
+      attribute: on_percent
       yaxis: y2
-      name: Procent mocy
+      name: Power percent
       fill: tozeroy
       fillcolor: rgba(200, 10, 10, 0.3)
       line:
         color: rgba(200, 10, 10, 0.9)
     - entity: '[[slope]]'
-      name: Nachylenie
+      name: Slope
       fill: tozeroy
       yaxis: y9
       fillcolor: rgba(100, 100, 100, 0.3)
@@ -111,23 +113,23 @@ Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
 ```
 </details>
 
-Przykład krzywych uzyskanych z Plotly:
+Przykład krzywych uzyskanych z _*Plotly*_:
 
 ![image](images/plotly-curves.png)
 
-## Powiadamianie o zdarzeniach za pomocą AppDaemon NOTIFIER
-Ta automatyzacja wykorzystuje doskonałą aplikację AppDaemon NOTIFIER, opracowaną przez Horizon Domotique, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego termostatu VTherm.
+## Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_
+Ta automatyzacja wykorzystuje doskonałą aplikację *AppDaemon NOTIFIER*, opracowaną przez *Horizon Domotique*, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona Użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego termostatu *VTherm*.
 
 Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tutaj](reference.md#events).
 <details>
 
 ```yaml
-alias: Monitorowanie trybu bezpieczeństwa ogrzewania
-description: Wysyła powiadomienie, gdy termostat przechodzi w tryb bezpieczeństwa lub ograniczenia mocy
+alias: Surveillance Mode Sécurité chauffage
+description: Envoi une notification si un thermostat passe en mode sécurité ou power
 trigger:
   - platform: event
-    event_type: versatile_thermostat_safety_event
-    id: versatile_thermostat_safety_event
+    event_type: versatile_thermostat_security_event
+    id: versatile_thermostat_security_event
   - platform: event
     event_type: versatile_thermostat_power_event
     id: versatile_thermostat_power_event
@@ -145,14 +147,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Grzejnik {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Bezpieczeństwo
+                Radiateur {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Sécurité
               message: >-
-                Grzejnik {{ trigger.event.data.name }} przeszedł w {{
-                trigger.event.data.type }} tryb bezpieczeństwa, ponieważ
-                termometr nie odpowiada.\n{{ trigger.event.data }}
+                Le radiateur {{ trigger.event.data.name }} est passé en {{
+                trigger.event.data.type }} sécurité car le thermomètre ne répond
+                plus.\n{{ trigger.event.data }}
               callback:
-                - title: Zatrzymaj ogrzewanie
+                - title: Stopper chauffage
                   event: stopper_chauffage
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
@@ -167,14 +169,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Grzejnik {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Ograniczenie mocy
+                Radiateur {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Délestage
               message: >-
-                Grzejnik {{ trigger.event.data.name }} przeszedł w {{
-                trigger.event.data.type }} ograniczenie mocy, ponieważ
-                przekroczono maksymalną moc.\n{{ trigger.event.data }}
+                Le radiateur {{ trigger.event.data.name }} est passé en {{
+                trigger.event.data.type }} délestage car la puissance max est
+                dépassée.\n{{ trigger.event.data }}
               callback:
-                - title: Zatrzymaj ogrzewanie
+                - title: Stopper chauffage
                   event: stopper_chauffage
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
@@ -189,10 +191,11 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Termometr grzejnika {{ trigger.event.data.name }} nie odpowiada
+                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
+                répond plus
               message: >-
-                Termometr grzejnika {{ trigger.event.data.name }} od dłuższego
-                czasu nie odpowiada.\n{{ trigger.event.data }}
+                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
+                répond plus depuis longtemps.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled

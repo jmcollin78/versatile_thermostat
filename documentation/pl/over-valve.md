@@ -1,4 +1,4 @@
-# Typ termostatu `Termostat na Zaworze`
+# Typ termostatu: `Termostat na Zaworze`
 
 > ![Attention](images/tips.png) _*Wskazówki*_
 > 1. Typ `termostat na zaworze` type jest często mylony z typem `termostat na klimacie` wyposżonym w funkcje samoregulacji z bezpośrednim sterowaniem zaworem.
