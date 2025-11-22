@@ -505,7 +505,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
             CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
-            CONF_AUTO_REGULATION_DTEMP: 0.01,
+            CONF_AUTO_REGULATION_DTEMP: 0,
             CONF_AUTO_REGULATION_PERIOD_MIN: 0,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,

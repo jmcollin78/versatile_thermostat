@@ -1176,7 +1176,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             min_opening_degree=self._min_opening_degree,
             max_closing_degree=self._max_closing_degree,
             max_opening_degree=self._max_opening_degree,
-            opening_threshold=self._min_opening_degree,
+            opening_threshold=self._opening_threshold,
         )
 
         # Send opening_degree
