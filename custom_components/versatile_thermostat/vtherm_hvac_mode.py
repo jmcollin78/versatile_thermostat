@@ -13,16 +13,7 @@ FAN_ONLY = HVACMode.FAN_ONLY.value
 HEAT_COOL = HVACMode.HEAT_COOL.value
 SLEEP = "sleep"
 
-VALID_HVAC_MODES = {
-    OFF,
-    HEAT,
-    COOL,
-    AUTO,
-    DRY,
-    FAN_ONLY,
-    HEAT_COOL,
-    SLEEP,
-}
+VALID_HVAC_MODES = {OFF, HEAT, COOL, AUTO, DRY, FAN_ONLY, HEAT_COOL, SLEEP, STATE_UNAVAILABLE, STATE_UNKNOWN}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,8 +33,8 @@ class VThermHvacMode:
         """
         if str(hvac_mode) not in VALID_HVAC_MODES or not isinstance(hvac_mode, str):
             _LOGGER.warning("Unsupported HVAC mode: '%s'. It may be temporary at startup. Your VTherm will be set to OFF mode.", hvac_mode)
-            hvac_mode = None
-        self._hvac_mode: str | None = hvac_mode
+            hvac_mode = STATE_UNKNOWN
+        self._hvac_mode: str = hvac_mode
 
     def __str__(self):
         return self._hvac_mode
@@ -75,6 +66,8 @@ VThermHvacMode_DRY = VThermHvacMode(DRY)
 VThermHvacMode_FAN_ONLY = VThermHvacMode(FAN_ONLY)
 VThermHvacMode_HEAT_COOL = VThermHvacMode(HEAT_COOL)
 VThermHvacMode_SLEEP = VThermHvacMode(SLEEP)
+VThermHvacMode_UNKNOWN = VThermHvacMode(STATE_UNKNOWN)
+VThermHvacMode_UNAVAILABLE = VThermHvacMode(STATE_UNAVAILABLE)
 
 # Map statique pour conversion HA -> VTherm
 HA_TO_VTHERM_MAP = {
@@ -86,8 +79,8 @@ HA_TO_VTHERM_MAP = {
     HVACMode.FAN_ONLY: VThermHvacMode_FAN_ONLY,
     HVACMode.HEAT_COOL: VThermHvacMode_HEAT_COOL,
     SLEEP: VThermHvacMode_SLEEP,
-    STATE_UNAVAILABLE: None,
-    STATE_UNKNOWN: None,
+    STATE_UNAVAILABLE: VThermHvacMode_UNAVAILABLE,
+    STATE_UNKNOWN: VThermHvacMode_UNKNOWN,
 }
 
 # Map statique pour conversion VTherm -> HA
@@ -100,7 +93,8 @@ VTHERM_TO_HA_MAP = {
     FAN_ONLY: HVACMode.FAN_ONLY,
     HEAT_COOL: HVACMode.HEAT_COOL,
     SLEEP: SLEEP,  # SLEEP doesn't exist in HA, we for a new String
-    None: STATE_UNAVAILABLE,
+    STATE_UNAVAILABLE: STATE_UNAVAILABLE,
+    STATE_UNKNOWN: STATE_UNKNOWN,
 }
 
 
