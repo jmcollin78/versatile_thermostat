@@ -528,7 +528,7 @@
       },
       "lock": {
         "title": "Lock Management - {name}",
-        "description": "The lock function prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
+        "description": "The lock feature prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
         "data": {
           "use_lock_central_config": "Use central lock configuration",
           "lock_code": "Optional pincode (4 digits)",

@@ -310,7 +310,7 @@
       },
       "lock": {
         "title": "Zarządzanie blokadą - {name}",
-        "description": "Funkcja blokady uniemożliwia modyfikacje termostatu z interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania termostatu.",
+        "description": "Funkcja blokady zapobiega modyfikacjom termostatu z interfejsu użytkownika lub automatyzacji, jednocześnie utrzymując termostat w stanie pracy.",
         "data": {
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",

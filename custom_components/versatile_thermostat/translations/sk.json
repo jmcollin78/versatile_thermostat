@@ -284,7 +284,7 @@
       },
       "lock": {
         "title": "Správa zámku - {name}",
-        "description": "Funkcia zámku bráni zmenám v konfigurácii termostatu z používateľského rozhrania alebo automatizácií, zatiaľ čo termostat zostáva funkčný.",
+        "description": "Funkcia zámku zabraňuje zmenám termostatu z používateľského rozhrania alebo automatizácií, pričom termostat zostáva funkčný.",
         "data": {
           "use_lock_central_config": "Použiť centrálnu konfiguráciu zámku",
           "lock_code": "PIN kód na odomknutie termostatu (4 číslice)",

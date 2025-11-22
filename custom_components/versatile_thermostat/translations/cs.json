@@ -308,7 +308,7 @@
       },
       "lock": {
         "title": "Správa zamknutí - {name}",
-        "description": "Funkce zamknutí brání změnám termostatu z uživatelského rozhraní nebo automatizacím při zachování provozuschopnosti termostatu.",
+        "description": "Funkce zamknutí zabraňuje změnám termostatu z uživatelského rozhraní nebo automatizací, přičemž termostat zůstává funkční.",
         "data": {
           "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
           "lock_users": "Zamknutí zabrání příkazům uživatelů",
