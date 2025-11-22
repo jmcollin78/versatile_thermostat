@@ -4,6 +4,7 @@
 import logging
 import re
 from typing import Any, Dict, List, Tuple, TypeVar
+from collections.abc import Callable
 
 from enum import StrEnum
 
@@ -79,13 +80,18 @@ class UnderlyingEntity:
         self._type: UnderlyingEntityType = entity_type
         self._entity_id: str = entity_id
         self._hvac_mode: VThermHvacMode | None = None
+        self._on_cycle_start_callbacks: list[Callable] = []
+
+    def register_cycle_callback(self, on_start: Callable):
+        """Register a callback for cycle start"""
+        self._on_cycle_start_callbacks.append(on_start)
 
     def __str__(self):
         return str(self._thermostat) + "-" + self._entity_id
 
     @property
     def entity_id(self):
-        """The entiy id represented by this class"""
+        """The entity id represented by this class"""
         return self._entity_id
 
     @property
@@ -145,7 +151,7 @@ class UnderlyingEntity:
 
     def remove_entity(self):
         """Remove the underlying entity"""
-        return
+        self._on_cycle_start_callbacks.clear()
 
     async def check_initial_state(self, hvac_mode: VThermHvacMode):
         """Prevent the underlying to be on but thermostat is off"""
@@ -485,6 +491,26 @@ class UnderlyingSwitch(UnderlyingEntity):
                 return
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
+
+        # Trigger cycle start callbacks
+        # The cycle really starts now (after the initial delay)
+        # and will end at the next turn_on_later
+        for callback in self._on_cycle_start_callbacks:
+            try:
+                await callback(
+                    on_time_sec=self._on_time_sec,
+                    off_time_sec=self._off_time_sec,
+                    on_percent=self._thermostat.safe_on_percent,
+                    hvac_mode=self._hvac_mode,
+                )
+            except Exception as ex:
+                _LOGGER.warning(
+                    "%s - Error calling cycle start callback %s: %s",
+                    self,
+                    callback,
+                    ex,
+                )
+
         self._async_cancel_cycle = self.call_later(
             self._hass,
             time,
@@ -536,6 +562,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()
         self._keep_alive.cancel()
+        super().remove_entity()
 
 
 class UnderlyingClimate(UnderlyingEntity):
@@ -1121,6 +1148,7 @@ class UnderlyingValve(UnderlyingEntity):
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
         self._cancel_cycle()
+        super().remove_entity()
 
     @property
     def percent_open(self) -> int:
