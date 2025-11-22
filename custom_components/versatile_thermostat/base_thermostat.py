@@ -1240,11 +1240,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ## Entry events (from linked devices or users)
     ##
 
+    def check_lock(func):
+        """Decorator to check if the thermostat is locked."""
+        async def wrapper(self, *args, **kwargs):
+            if self.check_is_locked(func.__name__):
+                return
+            return await func(self, *args, **kwargs)
+        return wrapper
+
     @overrides
+    @check_lock
     async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode):  # , need_control_heating=True):
         """Set new target hvac mode. Uses the HA VThermHvacMode enum to respect the original type."""
-        if self.check_is_locked("async_set_hvac_mode"):
-            return
         write_event_log(_LOGGER, self, f"Set hvac mode: {hvac_mode}")
 
         if hvac_mode is None:
@@ -1255,10 +1262,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         await self.update_states(force=False)
 
     @overrides
+    @check_lock
     async def async_set_preset_mode(self, preset_mode: str):
         """Set new preset mode."""
-        if self.check_is_locked("async_set_preset_mode"):
-            return
         # We accept a new preset when:
         # 1. last_central_mode is not set,
         # 2. or last_central_mode is AUTO,
@@ -1312,10 +1318,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         write_event_log(_LOGGER, self, f"Set swing mode: {swing_mode}")
         return
 
+    @check_lock
     async def async_set_temperature(self, **kwargs):
         """Set new requested target temperature and turn off any active presets."""
-        if self.check_is_locked("async_set_temperature"):
-            return
         temperature = kwargs.get(ATTR_TEMPERATURE)
         write_event_log(_LOGGER, self, f"Set target temp: {temperature}")
         if temperature is None:
