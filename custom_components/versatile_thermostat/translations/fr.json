@@ -239,18 +239,18 @@
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
           "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
           "proportional_function": "Algorithme",
+          "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
-          "max_closing_degree": "Fermetures maximale",
-          "opening_threshold_degree": "Seuil d'ouverture"
+          "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
           "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
           "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
-          "min_opening_degrees": "Ouverture minimale pour chaque appareil sous-jacent considéré comme chauffant, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 0 pour fermer complètement la vanne",
-          "opening_threshold_degree": "Valeur en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)"
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 0 pour fermer complètement la vanne"
         }
       }
     },
@@ -507,18 +507,18 @@
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
           "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
           "proportional_function": "Algorithme",
+          "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
-          "max_closing_degree": "Fermetures maximale",
-          "opening_threshold_degree": "Seuil d'ouverture"
+          "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
           "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
           "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
-          "min_opening_degrees": "Ouverture minimale pour chaque appareil sous-jacent considéré comme chauffant, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 0 pour fermer complètement la vanne",
-          "opening_threshold_degree": "Valeur en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)"
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 0 pour fermer complètement la vanne"
         }
       }
     },

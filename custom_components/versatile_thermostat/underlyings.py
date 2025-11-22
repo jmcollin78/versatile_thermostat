@@ -1161,7 +1161,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
             _LOGGER.warning(
                 "%s - impossible to initialize max_opening_degree or min_offset_calibration. Abort sending percent open to the valve. This could be a temporary message at startup."
             )
-            return
+            return False
+
+        return True
 
     async def send_percent_open(self, _: float = None):
         """Send the percent open to the underlying valve"""
@@ -1295,6 +1297,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @overrides
     async def check_initial_state(self, hvac_mode: VThermHvacMode):
         """Check the initial state of the underlying valve"""
+        min_closing = 100 - self._max_closing_degree
         if hvac_mode == VThermHvacMode_OFF and self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open < 100):
             _LOGGER.info(
                 "%s - The hvac mode is OFF (sleep mode), but the underlying device is not fully open. Setting to 100%% device %s",
@@ -1303,14 +1306,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             self._percent_open = 100
             await self.send_percent_open()
-        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > self._min_opening_degree):
+        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > min_closing):
             _LOGGER.info(
                 "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
                 self,
-                self._min_opening_degree,
+                min_closing,
                 self._entity_id,
             )
-            self._percent_open = self._min_opening_degree
+            self._percent_open = min_closing
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)
