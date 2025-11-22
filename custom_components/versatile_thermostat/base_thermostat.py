@@ -1089,9 +1089,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """True if the VTherm is on (! HVAC_OFF)"""
         return self.vtherm_hvac_mode and self.vtherm_hvac_mode != VThermHvacMode_OFF
 
-    def is_locked(self) -> bool:
-        """Return True if the thermostat is locked."""
-        return self._is_locked
+
 
     def check_is_locked(self, function_name: str) -> bool:
         """Check if the thermostat is locked."""
