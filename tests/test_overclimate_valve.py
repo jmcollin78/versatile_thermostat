@@ -1039,7 +1039,10 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         (80,                       15,                   80,                   100,                  20,                  79),   # 10-100 range open at min 15 and brut =80 = threashold (20) -> 83 (min_opening + interpolation)
         (100,                      15,                   80,                   100,                  20,                  100),  # 10-100 range open at min 15 and brut =100 = threashold (20) -> 100 (min_opening + interpolation = max_opening_degree)
         (100,                      15,                   80,                   150,                  20,                  150),  # 10-100 range open at min 15 and brut =100 = threashold (20) -> 150 (min_opening + interpolation = max_opening_degree)
+        # Test of @Tomtom13
         (1,                        10,                   100,                  100,                  0,                   11),   # 10-100 range and 0 -> fully close cause max_close = 100%
+        # Error test when min_opening_degree >= max_opening_degree (then threshold is used)
+        (40,                       50,                   80,                    40,                  15,                  22),  # use threshold instead of min_opening_degree
     ],
     # fmt: on
 )

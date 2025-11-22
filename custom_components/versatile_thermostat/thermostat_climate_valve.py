@@ -106,6 +106,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             # number of opening should equal number of underlying
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
+            real_opening_threshold = max(opening_threshold_degree, regulation_threshold)
+
             under = UnderlyingValveRegulation(
                 hass=self._hass,
                 thermostat=self,
@@ -115,7 +117,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
                 max_closing_degree=max_closing_degree,
-                opening_threshold=max(opening_threshold_degree, regulation_threshold),
+                opening_threshold=real_opening_threshold,
             )
             self._underlyings_valve_regulation.append(under)
 

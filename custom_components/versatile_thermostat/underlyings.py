@@ -1157,6 +1157,12 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
             )
 
+            if self._min_opening_degree >= self._max_opening_degree:
+                self._min_opening_degree = self._opening_threshold
+                raise ValueError(
+                    f"min_opening_degree must be less than the max value of the opening degree of the entity {self._opening_degree_entity_id}. Value has been defaulted to opening threshold ({self._opening_threshold})"
+                )
+
         if not self._is_min_max_initialized:
             _LOGGER.warning(
                 "%s - impossible to initialize max_opening_degree or min_offset_calibration. Abort sending percent open to the valve. This could be a temporary message at startup."

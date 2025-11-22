@@ -38,11 +38,12 @@ class OpeningClosingDegreeCalculation:
             max_closing_degree
         )
 
+        # for direct test. Already done in underlyings.py
+        if min_opening_degree >= max_opening_degree:
+            min_opening_degree = opening_threshold
+
         # clamp the brut_valve_open_percent to be within 0 and 100
         brut_valve_open_percent = max(0, min(100, brut_valve_open_percent))
-
-        if min_opening_degree >= max_closing_degree:
-            raise ValueError("min_opening_degree must be less than to max_closing_degree")
 
         # normalize to 0-1 range
         bvop = brut_valve_open_percent / 100.0
@@ -58,7 +59,6 @@ class OpeningClosingDegreeCalculation:
             calculated_degree = min_od + slope * (bvop - ot)
         else:
             calculated_degree = 1 - max_cd
-
 
         # set to base 100
         calculated_degree = round(calculated_degree * 100)
