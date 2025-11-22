@@ -43,7 +43,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 > - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
 > - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0`, aby zachować kompatybilność,
 >
-> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatury sensora _VTherm_ po instalacji.**
+> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Po zainstalowaniu aktualizacji, dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatur sensorów _VTherm_.**
 >
 
 
@@ -72,7 +72,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Dokumentacja
 
-Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
+Dla wygody Użytkownika, dokumentacja podzielona jest na rozdziały i sekcje:
 1. [Wprowadzenie](documentation/pl/presentation.md)
 2. [Instalacja](documentation/pl/installation.md)
 3. [Szybki start](documentation/pl/quick-start.md)
