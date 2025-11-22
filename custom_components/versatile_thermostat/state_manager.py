@@ -107,7 +107,7 @@ class StateManager:
         # if vtherm.power_manager.is_overpowering_detected:
 
         # First check safety
-        if vtherm.last_central_mode is CENTRAL_MODE_STOPPED:
+        if vtherm.last_central_mode == CENTRAL_MODE_STOPPED:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
 

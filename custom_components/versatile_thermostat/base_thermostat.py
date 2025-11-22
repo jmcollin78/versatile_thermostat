@@ -542,11 +542,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
 
-        # force the first cycle
-        # if changed:
-        #     _LOGGER.info("%s - Changes has been detected during startup, forcing first cycle", self)
-        #     await self.async_control_heating(force=True)
-
     def init_underlyings(self):
         """Initialize all underlyings. Should be overridden if necessary"""
 
@@ -1522,6 +1517,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
+            "ema_temp": self._ema_temp,
             "specific_states": {
                 "is_on": self.is_on,
                 "last_central_mode": self.last_central_mode,
