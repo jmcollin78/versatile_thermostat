@@ -132,6 +132,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Custom attributes"""
         super().update_custom_attributes()
 
+        self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
+        self._attr_extra_state_attributes["power_percent"] = self.power_percent
         self._attr_extra_state_attributes.update(
             {
                 "vtherm_over_climate_valve": {

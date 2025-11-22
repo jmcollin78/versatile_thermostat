@@ -136,6 +136,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         """Custom attributes"""
         super().update_custom_attributes()
 
+        self._attr_extra_state_attributes["is_over_valve"] = self.is_over_valve
+        self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
         self._attr_extra_state_attributes.update(
             {
                 "is_over_valve": self.is_over_valve,
