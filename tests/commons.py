@@ -642,7 +642,20 @@ async def create_thermostat(
     await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.LOADED
 
-    entity = search_entity(hass, entity_id, CLIMATE_DOMAIN)
+    # The entity_id is derived from the config's CONF_NAME, not the entry title
+    # We need to slugify the name to match how Home Assistant creates entity IDs
+    config_name = entry.data.get(CONF_NAME, "")
+    if config_name:
+        # Slugify: lowercase, replace spaces with underscores, remove special chars
+        slugified_name = config_name.lower().replace(" ", "_")
+        # Remove any non-alphanumeric characters except underscores
+        slugified_name = "".join(c for c in slugified_name if c.isalnum() or c == "_")
+        actual_entity_id = f"climate.{slugified_name}"
+    else:
+        # Fallback to the provided entity_id
+        actual_entity_id = entity_id
+
+    entity = search_entity(hass, actual_entity_id, CLIMATE_DOMAIN)
 
     if entity and temps:
         await set_all_climate_preset_temp(

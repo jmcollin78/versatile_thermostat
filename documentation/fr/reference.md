@@ -8,6 +8,7 @@
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
   - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
   - [ByPass Window Check](#bypass-window-check)
+  - [Services de verrouillage / déverrouillage](#services-de-verrouillage--déverrouillage)
 - [Evènements](#evènements)
 - [Attributs personnalisés](#attributs-personnalisés)
 - [Messages d'état](#messages-détat)
@@ -196,6 +197,15 @@ data:
 target:
     entity_id : climate.my_thermostat
 ```
+
+## Services de verrouillage / déverrouillage
+
+Ces services permettent de verrouiller un thermostat afin d'empêcher toute modification de sa configuration, ou de le déverrouiller pour rétablir les changements autorisés :
+
+- `versatile_thermostat.lock` - Verrouille un thermostat pour empêcher les modifications de configuration
+- `versatile_thermostat.unlock` - Déverrouille un thermostat pour autoriser à nouveau les modifications de configuration
+
+Voir [Fonction de verrouillage](feature-lock.md) pour plus de détails.
 
 # Evènements
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
