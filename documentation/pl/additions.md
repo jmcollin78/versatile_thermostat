@@ -148,7 +148,7 @@ action:
               action: send_to_jmc
               title: >-
                 Grzejnik {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} bezpieczny
+                trigger.event.data.type }} Bezpieczeństwo
               message: >-
                 Grzejnik {{ trigger.event.data.name }} przeszedł w tryb bezpieczny {{
                 trigger.event.data.type }} ponieważ termometr przestał reagować.\n{{ trigger.event.data }}
@@ -171,8 +171,8 @@ action:
                 Grzejnik {{ trigger.event.data.name }} - {{
                 trigger.event.data.type }} Redukcja obciążenia
               message: >-
-                Grzejnik {{ trigger.event.data.name }} przełączył się w tryb redukcjoi obciążenia {{
-                trigger.event.data.type }} z powodu przekroczenia mocy maksymalnej\n{{ trigger.event.data }}
+                Grzejnik {{ trigger.event.data.name }} przeszedł w tryb redukcji obciążenia {{
+                trigger.event.data.type }} z powodu przekroczenia mocy maksymalnej.\n{{ trigger.event.data }}
               callback:
                 - title: Wyłączenie ogrzewania
                   event: stopper_chauffage
@@ -189,10 +189,10 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Termometr grzejnikowy {{ trigger.event.data.name }} nie odpowiada
+                Termometr grzejnika {{ trigger.event.data.name }} nie odpowiada
               message: >-
-                Termometr grzejnikowy {{ trigger.event.data.name }} nie
-                odpowiada od dłuższego czasu.\n{{ trigger.event.data }}
+                Termometr grzejnika {{ trigger.event.data.name }} od dłuższego
+                czasu nie odpowiada.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled
