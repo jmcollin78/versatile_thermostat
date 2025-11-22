@@ -5,7 +5,7 @@
 import math
 import logging
 from typing import Any, Generic
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable
 
 from homeassistant.core import (
     HomeAssistant,

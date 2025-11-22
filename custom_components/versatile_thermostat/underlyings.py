@@ -34,6 +34,8 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
+from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode
 from .keep_alive import IntervalCaller
@@ -467,7 +469,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         # safety mode could have change the on_time percent
-        # TODO why this ? await self._thermostat.safety_manager.refresh_state()
         time = self._on_time_sec
 
         action_label = "start"
@@ -1110,6 +1111,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
         min_opening_degree: int = 0,
+        max_closing_degree: int = 100,
+        opening_threshold: int = 0,
     ) -> None:
         """Initialize the underlying TRV with valve regulation"""
         super().__init__(
@@ -1128,18 +1131,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_offset_calibration: float = None
         self._step_calibration: float = 0.1
         self._min_opening_degree: int = min_opening_degree
+        self._max_closing_degree: int = max_closing_degree
+        self._opening_threshold: int = opening_threshold
 
-    def _normalize_opening_closing_degree(self, opening: float) -> float:
-        """Issue #902 - Normalize the opening and closing degree
-        Issue #927 - Cancel the normalization"""
-
-        new_opening = max(opening, self._min_opening_degree) if self.has_closing_degree_entity else opening
-        new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
-
-        return new_opening, new_closing
-
-    async def send_percent_open(self, _: float = None):
-        """Send the percent open to the underlying valve"""
+    def initialize_min_max(self):
+        """Initialize min and max values for opening and closing degrees"""
         if not self._is_min_max_initialized:
             _LOGGER.debug(
                 "%s - initialize min offset_calibration and max open_degree", self
@@ -1167,20 +1163,19 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             return
 
-        # Caclulate percent_open
-        if self._percent_open >= 1:
-            self._percent_open = round(
-                self._min_opening_degree
-                + (self._percent_open
-                   * (100 - self._min_opening_degree) / 100)
-                )
-        else:
-            self._percent_open = 0
+    async def send_percent_open(self, _: float = None):
+        """Send the percent open to the underlying valve"""
+        if not self.initialize_min_max():
+            return
 
-        # Send closing_degree if set
-        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open)
-        # We should not change the _percent_open because it is used to check if value has bchanged
-        # self._percent_open = opening_degree
+        # Caclulate percent_open
+        opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
+            brut_valve_open_percent=self._percent_open,
+            min_opening_degree=self._min_opening_degree,
+            max_closing_degree=self._max_closing_degree,
+            max_opening_degree=self._max_opening_degree,
+            opening_threshold=self._min_opening_degree,
+        )
 
         # Send opening_degree
         await super().send_percent_open(opening_degree)

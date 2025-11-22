@@ -90,6 +90,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
+        max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
+        opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
+        regulation_threshold = config_entry.get(CONF_AUTO_REGULATION_DTEMP, 0)
 
         self._min_opening_degrees = config_entry.get(CONF_MIN_OPENING_DEGREES, None)
         min_opening_degrees_list = []
@@ -110,11 +113,9 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 opening_degree_entity_id=opening,
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
-                min_opening_degree=(
-                    min_opening_degrees_list[idx]
-                    if idx < len(min_opening_degrees_list)
-                    else 0
-                ),
+                min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
+                max_closing_degree=max_closing_degree,
+                opening_threshold=max(opening_threshold_degree, regulation_threshold),
             )
             self._underlyings_valve_regulation.append(under)
 
@@ -254,7 +255,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
     async def _send_regulated_temperature(self, force=False):
         """Sends the regulated temperature to all underlying"""
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping:
+        if not force and self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping:
             _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
             return
 
@@ -288,7 +289,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             await under.set_valve_open_percent()
 
     @overrides
-    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, need_control_heating=True):
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, _=False):
         """Set new hvac mode"""
 
         write_event_log(_LOGGER, self, f"Setting hvac_mode to {hvac_mode}")
@@ -376,7 +377,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             entity_id: climate.thermostat_1
         """
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
-        await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP, need_control_heating=False)
+        await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
 
     @overrides
     async def _check_initial_state(self):
