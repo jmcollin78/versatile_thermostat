@@ -249,7 +249,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 0 to fully close the valve"
+          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       }
     },
@@ -515,7 +515,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 0 to fully close the valve"
+          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       }
     },
