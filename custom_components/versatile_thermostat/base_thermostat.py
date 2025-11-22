@@ -1093,6 +1093,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Return True if the thermostat is locked."""
         return self._is_locked
 
+    def check_is_locked(self, function_name: str) -> bool:
+        """Check if the thermostat is locked."""
+        context = getattr(self, "_context", None)
+        source_is_user = context and context.user_id is not None
+        source_is_automation = not source_is_user
+
+        if self._is_locked and (
+            (self._lock_users and source_is_user)
+            or (self._lock_automations and source_is_automation)
+        ):
+            _LOGGER.info(
+                "%s - Blocked external call to %s while locked (source=%s)",
+                self,
+                function_name,
+                "user" if source_is_user else "automation/unknown",
+            )
+            return True
+        return False
+
     def _validate_lock_code(self, code: str | None) -> bool:
         """Validate the provided code against the configured lock code."""
         if self._lock_code:
@@ -1224,20 +1243,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @overrides
     async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode):  # , need_control_heating=True):
         """Set new target hvac mode. Uses the HA VThermHvacMode enum to respect the original type."""
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "async_set_hvac_mode",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("async_set_hvac_mode"):
             return
         write_event_log(_LOGGER, self, f"Set hvac mode: {hvac_mode}")
 
@@ -1251,20 +1257,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @overrides
     async def async_set_preset_mode(self, preset_mode: str):
         """Set new preset mode."""
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "async_set_preset_mode",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("async_set_preset_mode"):
             return
         # We accept a new preset when:
         # 1. last_central_mode is not set,
@@ -1321,20 +1314,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_set_temperature(self, **kwargs):
         """Set new requested target temperature and turn off any active presets."""
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "async_set_temperature",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("async_set_temperature"):
             return
         temperature = kwargs.get(ATTR_TEMPERATURE)
         write_event_log(_LOGGER, self, f"Set target temp: {temperature}")
@@ -1840,20 +1820,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "service_set_presence",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("service_set_presence"):
             return
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_PRESENCE, presence: {presence}")
         await self._presence_manager.update_presence(presence)
@@ -1874,20 +1841,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         target:
             entity_id: climate.thermostat_2
         """
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "service_set_preset_temperature",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("service_set_preset_temperature"):
             return
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_PRESET_TEMPERATURE, preset: {preset}, temperature: {temperature}, temperature_away: {temperature_away}")
         if preset in self._presets:
@@ -1926,20 +1880,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         target:
             entity_id: climate.thermostat_2
         """
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "service_set_safety",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("service_set_safety"):
             return
         write_event_log(
             _LOGGER, self, f"Calling SERVICE_SET_SAFETY, delay_min: {delay_min}, " f"min_on_percent: {min_on_percent * 100} %, default_on_percent: {default_on_percent * 100} %"
@@ -1967,20 +1908,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "service_set_window_bypass_state",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("service_set_window_bypass_state"):
             return
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_WINDOW_BYPASS, window_bypass: {window_bypass}")
         if await self._window_manager.set_window_bypass(window_bypass):
@@ -1993,20 +1921,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
-        context = getattr(self, "_context", None)
-        source_is_user = context and context.user_id is not None
-        source_is_automation = not source_is_user
-
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
-            _LOGGER.info(
-                "%s - Blocked external call to %s while locked (source=%s)",
-                self,
-                "service_set_hvac_mode_sleep",
-                "user" if source_is_user else "automation/unknown",
-            )
+        if self.check_is_locked("service_set_hvac_mode_sleep"):
             return
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         raise NotImplementedError("service_set_hva_mode_sleep not implemented for this kind of thermostat. Only for over_climate with valve regulation is supported")
