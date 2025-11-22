@@ -36,23 +36,23 @@ Użycie Heatzy lub Nodon jest możliwe pod warunkiem użycia wirtualnego przeł�
     chauffage_sdb:
       unique_id: chauffage_sdb
       friendly_name: Grzejnik w łazience
-      value_template: "{{ is_state_attr('climate.bathroom', 'preset_mode', 'comfort') }}"
+      value_template: "{{ is_state_attr('climate.lazienka', 'preset_mode', 'comfort') }}"
       icon_template: >-
-        {% if is_state_attr('climate.bathroom', 'preset_mode', 'comfort') %}
+        {% if is_state_attr('climate.lazienka', 'preset_mode', 'comfort') %}
           mdi:radiator
-        {% elif is_state_attr('climate.bathroom', 'preset_mode', 'away') %}
+        {% elif is_state_attr('climate.lazienka', 'preset_mode', 'away') %}
           mdi:snowflake
         {% else %}
           mdi:radiator-disabled
         {% endif %}
       turn_on:
         service: climate.set_preset_mode
-        entity_id: climate.bathroom
+        entity_id: climate.lazienka
         data:
           preset_mode: "comfort"
       turn_off:
         service: climate.set_preset_mode
-        entity_id: climate.bathroom
+        entity_id: climate.lazienka
         data:
           preset_mode: "eco"
 ```

@@ -22,7 +22,7 @@ Podstawowa zasada działania jest następująca:
 
 Dzięki temu masz zawsze pod ręką informacje potrzebne do zarządzania i dostosowywania uruchamiania kotła.
 
-Wszystkie te encje są powiązane z konfiguracją główną.
+Wszystkie te encje są powiązane z konfiguracją główną (centralną).
 
 ![Boiler Control Entities](images/entitites-central-boiler.png)
 

@@ -124,7 +124,7 @@ Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tut
 <details>
 
 ```yaml
-alias: Monitorowanie trybu bezpieczny ogrzewania
+alias: Monitorowanie trybu bezpiecznego ogrzewania 
 description: Wysyłanie powiadomienia, gdy termostat przejdzie w tryb bezpieczny
 trigger:
   - platform: event
