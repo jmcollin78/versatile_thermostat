@@ -44,6 +44,10 @@ async def async_setup_entry(
             enable_entity = AutoStartStopEnable(hass, unique_id, name, entry)
             entities.append(enable_entity)
 
+    if entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
+        pass
+        # entities.append(AutoTpiSwitch(hass, unique_id, name, entry))
+
     async_add_entities(entities, True)
 
 

@@ -68,7 +68,7 @@
         "data_description": {
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected",
         }
       },
       "features": {
