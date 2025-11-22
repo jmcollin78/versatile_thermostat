@@ -12,7 +12,7 @@ from homeassistant.helpers.event import (
 from homeassistant.core import Event, HomeAssistant, callback
 
 from .base_thermostat import BaseThermostat, ConfigData
-from .prop_algorithm import PropAlgorithm
+from .thermostat_tpi import ThermostatTPI
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -21,7 +21,7 @@ from .underlyings import UnderlyingValve
 
 _LOGGER = logging.getLogger(__name__)
 
-class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
+class ThermostatOverValve(ThermostatTPI[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -73,19 +73,6 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN)
             if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
             else 0
-        )
-
-        self._prop_algorithm = PropAlgorithm(
-            self._proportional_function,
-            self._tpi_coef_int,
-            self._tpi_coef_ext,
-            self._cycle_min,
-            self._minimal_activation_delay,
-            self._minimal_deactivation_delay,
-            self.name,
-            max_on_percent=self._max_on_percent,
-            tpi_threshold_low=self._tpi_threshold_low,
-            tpi_threshold_high=self._tpi_threshold_high,
         )
 
         lst_valves = config_entry.get(CONF_UNDERLYING_LIST)
@@ -141,13 +128,13 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._attr_extra_state_attributes.update(
             {
                 "is_over_valve": self.is_over_valve,
-                "on_percent": self._prop_algorithm.on_percent,
+                "on_percent": self.safe_on_percent,
                 "power_percent": self.power_percent,
                 "valve_open_percent": self.valve_open_percent,
                 "vtherm_over_valve": {
                     "valve_open_percent": self.valve_open_percent,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
-                    "on_percent": self._prop_algorithm.on_percent,
+                    "on_percent": self.safe_on_percent,
                     "function": self._proportional_function,
                     "tpi_coef_int": self._tpi_coef_int,
                     "tpi_coef_ext": self._tpi_coef_ext,
@@ -158,7 +145,11 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                     "auto_regulation_dpercent": self._auto_regulation_dpercent,
                     "auto_regulation_period_min": self._auto_regulation_period_min,
                     "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
-                    "calculated_on_percent": self._prop_algorithm.calculated_on_percent,
+                    "calculated_on_percent": (
+                        self._prop_algorithm.calculated_on_percent
+                        if self._prop_algorithm
+                        else None
+                    ),
                 },
             }
         )
@@ -196,16 +187,17 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                 self.do_recalculate_later()
                 return
 
-        self._prop_algorithm.calculate(
-            self.target_temperature,
-            self._cur_temp,
-            self._cur_ext_temp,
-            self.last_temperature_slope,
-            self.vtherm_hvac_mode or VThermHvacMode_OFF,
-        )
+        if self._prop_algorithm:
+            self._prop_algorithm.calculate(
+                self.target_temperature,
+                self._cur_temp,
+                self._cur_ext_temp,
+                self.last_temperature_slope,
+                self.vtherm_hvac_mode or VThermHvacMode_OFF,
+            )
 
         new_valve_percent = round(
-            max(0, min(self.proportional_algorithm.on_percent, 1)) * 100
+            max(0, min(self.safe_on_percent, 1)) * 100
         )
 
         # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close

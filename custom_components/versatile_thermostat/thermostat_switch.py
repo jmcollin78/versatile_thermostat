@@ -24,12 +24,12 @@ from .const import (
 from .commons import write_event_log
 
 from .base_thermostat import BaseThermostat, ConfigData
+from .thermostat_tpi import ThermostatTPI
 from .underlyings import UnderlyingSwitch
-from .prop_algorithm import PropAlgorithm
 
 _LOGGER = logging.getLogger(__name__)
 
-class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
+class ThermostatOverSwitch(ThermostatTPI[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -63,19 +63,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         """Initialize the Thermostat"""
 
         super().post_init(config_entry)
-
-        self._prop_algorithm = PropAlgorithm(
-            self._proportional_function,
-            self._tpi_coef_int,
-            self._tpi_coef_ext,
-            self._cycle_min,
-            self._minimal_activation_delay,
-            self._minimal_deactivation_delay,
-            self.name,
-            max_on_percent=self._max_on_percent,
-            tpi_threshold_low=self._tpi_threshold_low,
-            tpi_threshold_high=self._tpi_threshold_high,
-        )
 
         self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
 
@@ -138,13 +125,13 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes.update(
             {
                 "is_over_switch": self.is_over_switch,
-                "on_percent": self._prop_algorithm.on_percent,
+                "on_percent": self.safe_on_percent,
                 "power_percent": self.power_percent,
                 "vtherm_over_switch": {
                     "is_inversed": self.is_inversed,
                     "keep_alive_sec": under0.keep_alive_sec,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
-                    "on_percent": self._prop_algorithm.on_percent,
+                    "on_percent": self.safe_on_percent,
                     "power_percent": self.power_percent,
                     "on_time_sec": self._prop_algorithm.on_time_sec,
                     "off_time_sec": self._prop_algorithm.off_time_sec,
@@ -164,19 +151,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
 
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
-    @overrides
-    def recalculate(self, force=False):
-        """A utility function to force the calculation of a the algo and
-        update the custom attributes and write the state
-        """
-        _LOGGER.debug("%s - recalculate all", self)
-        self._prop_algorithm.calculate(
-            self.target_temperature,
-            self._cur_temp,
-            self._cur_ext_temp,
-            self.last_temperature_slope,
-            self.vtherm_hvac_mode or VThermHvacMode_OFF,
-        )
+
 
     @overrides
     def incremente_energy(self):

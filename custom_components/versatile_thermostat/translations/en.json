@@ -5,6 +5,7 @@
     "step": {
       "user": {
         "title": "Type of Versatile Thermostat",
+        "description": "Choose thermostat type you want to create&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/creation.md)",
         "data": {
           "thermostat_type": "Thermostat type"
         },
@@ -126,7 +127,8 @@
           "tpi_threshold_high": "High TPI threshold",
           "use_tpi_central_config": "Use central TPI configuration",
           "minimal_activation_delay": "Minimum activation delay",
-          "minimal_deactivation_delay": "Minimum deactivation delay"
+          "minimal_deactivation_delay": "Minimum deactivation delay",
+          "auto_tpi_mode": "Enable Auto TPI Learning"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
@@ -135,7 +137,8 @@
           "tpi_threshold_high": "Threshold in ° above which the TPI algorithm will be off. 0 means no threshold",
           "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm",
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
-          "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active"
+          "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
+          "auto_tpi_mode": "Check to enable automatic learning of TPI coefficients"
         }
       },
       "presets": {
@@ -284,6 +287,7 @@
     "step": {
       "user": {
         "title": "Type - {name}",
+        "description": "Choose thermostat type you want to create&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/creation.md)",
         "data": {
           "thermostat_type": "Thermostat type"
         },
@@ -309,6 +313,10 @@
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
           "lock": "Lock",
+          "auto_tpi_1": "Auto TPI - General",
+          "auto_tpi_2": "Auto TPI - Method",
+          "auto_tpi_3_avg": "Auto TPI - Average",
+          "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -405,7 +413,8 @@
           "tpi_threshold_high": "High TPI threshold",
           "use_tpi_central_config": "Use central TPI configuration",
           "minimal_activation_delay": "Minimum activation delay",
-          "minimal_deactivation_delay": "Minimum deactivation delay"
+          "minimal_deactivation_delay": "Minimum deactivation delay",
+          "auto_tpi_mode": "Enable Auto TPI Learning"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
@@ -441,6 +450,7 @@
           "window_sensor_entity_id": "Leave empty if no window sensor should be used and to use the automatic detection",
           "window_delay": "The delay in seconds before sensor 'on' detection is taken into account",
           "window_off_delay": "The delay in seconds before sensor 'off' detection is taken into account. Leave it empty to use the same value as window on delay",
+          "window_auto_open_threshold": "Recommended value: between 3 and 10. Leave empty if automatic window open detection is not used",
           "window_auto_close_threshold": "Recommended value: 0. Leave empty if automatic window open detection is not used",
           "window_auto_max_duration": "Recommended value: 60 (one hour). Leave empty if automatic window open detection is not used",
           "use_window_central_config": "Check to use the central window configuration. Uncheck to use a specific window configuration for this VTherm",
@@ -549,6 +559,62 @@
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
+      },
+      "auto_tpi_1": {
+        "title": "Auto TPI - General - {name}",
+        "description": "General parameters for Auto TPI learning.",
+        "data": {
+          "auto_tpi_enable_update_config": "Update configuration",
+          "auto_tpi_enable_notification": "Notifications",
+          "auto_tpi_keep_ext_learning": "Keep external coefficient learning",
+          "auto_tpi_continuous_learning": "Continuous learning",
+          "heater_heating_time": "Heater warm-up time (min)",
+          "heater_cooling_time": "Heater cool-down time (min)",
+          "auto_tpi_max_coef_int": "Max Internal Coefficient",
+          "auto_tpi_heating_rate": "Heating rate (°C/h)",
+          "auto_tpi_cooling_rate": "Cooling rate (°C/h)"
+        },
+        "data_description": {
+          "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",
+          "auto_tpi_enable_notification": "Send a notification when learning is complete",
+          "auto_tpi_keep_ext_learning": "If set, the external coefficient will continue learning even after reaching 50 cycles, as long as the internal coefficient has not reached stability.",
+          "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
+          "heater_heating_time": "Time to reach full power (minutes)",
+          "heater_cooling_time": "Time to cool down after stop (minutes)",
+          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
+        }
+      },
+      "auto_tpi_2": {
+        "title": "Auto TPI - Method - {name}",
+        "description": "Choose the calculation method for learning.",
+        "data": {
+          "auto_tpi_calculation_method": "Calculation Method"
+        },
+        "data_description": {
+          "auto_tpi_calculation_method": "Average: simple averaging. EMA: Exponential Moving Average (favors recent values)"
+        }
+      },
+      "auto_tpi_3_avg": {
+        "title": "Auto TPI - Average - {name}",
+        "description": "Parameters for the Average method.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Initial Weight"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Weight of the initial/previous value in the average calculation"
+        }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA - {name}",
+        "description": "Parameters for the EMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial learning | 0.15 | 0.08 |\n| Fine learning | 0.08 | 0.12 |\n| Continuous learning | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Decay Rate"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
+          "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)"
+        }
       }
     },
     "error": {
@@ -558,7 +624,8 @@
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
       "service_configuration_format": "The format of the service configuration is wrong",
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30"
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -616,6 +683,12 @@
         "auto_start_stop_slow": "Slow detection",
         "auto_start_stop_medium": "Medium detection",
         "auto_start_stop_fast": "Fast detection"
+      }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Average",
+        "ema": "Exponential Moving Average (EMA)"
       }
     }
   },
@@ -679,6 +752,94 @@
       },
       "boost_ac_away_temp": {
         "name": "Boost ac away"
+      }
+    }
+  },
+  "services": {
+    "set_auto_tpi_mode": {
+      "name": "Set Auto TPI mode",
+      "description": "Enable or disable the Auto TPI learning mode",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Auto TPI mode",
+          "description": "Enable (true) or disable (false) the Auto TPI learning"
+        },
+        "reinitialise": {
+          "name": "Reset learning data",
+          "description": "Reset all learning data when enabling Auto TPI mode (default is true)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Reset Auto TPI Capacities",
+      "description": "Reset the learned maximum heating and cooling capacities to 1.0 °C/h. Learned coefficients are NOT reset."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Auto Tpi Calibrate Capacity",
+      "description": "Calibrate the heating/cooling capacity (in °C/hour) using linear regression on the entity's history data. Learned coefficients are NOT updated.",
+      "fields": {
+        "start_date": {
+          "name": "History from date",
+          "description": "Date from which to retrieve history (default is 30 days ago)"
+        },
+        "end_date": {
+          "name": "History to date",
+          "description": "Date until which to retrieve history (default is now)"
+        },
+        "hvac_mode": {
+          "name": "HVAC Mode",
+          "description": "Which mode to calibrate (heat or cool)."
+        },
+        "save_to_config": {
+          "name": "Save to Config",
+          "description": "Apply the calculated capacity to the Auto TPI configuration."
+        },
+        "min_power_threshold": {
+          "name": "Minimum Power Threshold",
+          "description": "Minimum power percentage to consider a cycle as saturated (default 100%). Lower values (e.g., 95%) will include more cycles but may be less accurate."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "Set TPI parameters",
+      "description": "Change the TPI parameters",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Minimal Activation delay",
+          "description": "Delay in seconds under which the equipment will not be activated"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Minimal Deactivation delay",
+          "description": "Delay in seconds under which the equipment will be kept active"
+        },
+        "tpi_threshold_low": {
+          "name": "Low TPI threshold",
+          "description": "Threshold in ° under which the TPI algorithm will be on. 0 means no threshold"
+        },
+        "tpi_threshold_high": {
+          "name": "High TPI threshold",
+          "description": "Threshold in ° above which the TPI algorithm will be off. 0 means no threshold"
+        }
+      }
+    },
+    "lock": {
+      "name": "Lock",
+      "description": "Locks the thermostat, preventing any changes to its configuration from UI or automations.",
+      "fields": {
+        "code": {
+          "name": "Lock code",
+          "description": "The optional lock code"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Unlock",
+      "description": "Unlocks the thermostat, allowing changes to its configuration.",
+      "fields": {
+        "code": {
+          "name": "Lock code",
+          "description": "The optional lock code"
+        }
       }
     }
   }
