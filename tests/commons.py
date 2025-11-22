@@ -296,6 +296,7 @@ class MockClimate(ClimateEntity):
     def set_fan_mode(self, fan_mode):
         """Set the fan mode"""
         self._attr_fan_mode = fan_mode
+        self.async_write_ha_state()
 
     @property
     def supported_features(self) -> int:
@@ -309,22 +310,27 @@ class MockClimate(ClimateEntity):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
+        self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
         self._attr_hvac_mode = hvac_mode
+        self.async_write_ha_state()
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
         self._attr_hvac_mode = hvac_mode
+        self.async_write_ha_state()
 
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
+        self.async_write_ha_state()
 
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
+        self.async_write_ha_state()
 
 
 class MockUnavailableClimate(ClimateEntity):
