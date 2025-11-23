@@ -237,7 +237,7 @@ class StateManager:
             updated = True
 
         elif vtherm.presence_manager.is_absence_detected:
-            if vtherm.vtherm_preset_mode is not None:
+            if vtherm.vtherm_preset_mode != VThermPreset.NONE:
                 new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
                 _LOGGER.debug("%s - presence will set new target temperature: %.2f", self, new_temp)
                 self._current_state.set_target_temperature(new_temp)
