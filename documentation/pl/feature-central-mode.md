@@ -6,7 +6,7 @@
 
 Funkcja ta pozwala sterować wszystkimi termostatami _VTherm_ z jednego punktu kontrolnego. Typowym przypadkiem użycia jest sytuacja, gdy wyjeżdżasz na dłuższy czas i chcesz ustawić wszystkie termostaty w tryb ochrony przed mrozem, a po powrocie przywrócić je do stanu początkowego.
 
-Centralne sterowanie odbywa się z poziomu specjalnego termostatu _VTherm_ o nazwie 'Konfiguracja główna'. Zobacz [tutaj](creation.md#centralized-configuration), aby uzyskać więcej informacji.
+Centralne sterowanie odbywa się z poziomu specjalnego termostatu _VTherm_ o nazwie 'Konfiguracja centralna'. Zobacz [tutaj](creation.md#centralized-configuration), aby uzyskać więcej informacji.
 
 ## Konfiguracja centralnego sterowania
 

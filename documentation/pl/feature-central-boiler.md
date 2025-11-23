@@ -22,12 +22,12 @@ Podstawowa zasada działania jest następująca:
 
 Dzięki temu masz zawsze pod ręką informacje potrzebne do zarządzania i dostosowywania uruchamiania kotła.
 
-Wszystkie te encje są powiązane z konfiguracją główną (centralną).
+Wszystkie te encje są powiązane z konfiguracją centralną.
 
 ![Boiler Control Entities](images/entitites-central-boiler.png)
 
 ## Konfiguracja
-Aby skonfigurować tę funkcję, użyj konfiguracji głównej (patrz: [konfiguracja](#configuration)) i zaznacz pole `Dodaj kocioł główny`:
+Aby skonfigurować tę funkcję, użyj konfiguracji centralnej (patrz: [konfiguracja](#configuration)) i zaznacz pole `Dodaj kocioł główny`:
 
 ![Add a Central Boiler](images/config-central-boiler-1.png)
 

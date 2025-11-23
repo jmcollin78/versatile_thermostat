@@ -13,7 +13,7 @@
 
 ## Parametry
 
-| Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na<br>Klimacie"      | "Termostat<br>na Zaworze" | "Główna<br>konfiguracja" |
+| Parametr                                  | Nazwa                                                       | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie"      | "Termostat<br>na Zaworze" | "Konfiguracja<br>Centralna" |
 | ----------------------------------------- | ----------------------------------------------------------- | ------------- | ------------------- | ------------ | ----------------------- |
 | ``name``                                  | Nazwa                                                       | X             | X                   | X            | -                       |
 | ``thermostat_type``                       | Typ termostatu                                              | X             | X                   | X            | -                       |
