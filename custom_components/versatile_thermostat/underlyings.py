@@ -31,7 +31,7 @@ from homeassistant.components.climate import (
 from homeassistant.components.number import SERVICE_SET_VALUE
 
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
@@ -79,14 +79,35 @@ class UnderlyingEntity:
         self._type: UnderlyingEntityType = entity_type
         self._entity_id: str = entity_id
         self._hvac_mode: VThermHvacMode | None = None
+        # State-change listener bookkeeping
+        self._pending_listeners: List = []
+        self._registered_cancels: List[CALLBACK_TYPE] = []
 
     def __str__(self):
-        return str(self._thermostat) + "-" + self._entity_id
+        return str(self._thermostat) + "-" + (self._entity_id or "unknown")
 
     @property
     def entity_id(self):
-        """The entiy id represented by this class"""
+        """The entity id represented by this class"""
         return self._entity_id
+
+    @entity_id.setter
+    def entity_id(self, value: str):
+        """Set the entity_id and register any pending listeners.
+
+        Some underlying implementations may set `entity_id` asynchronously
+        after construction. When that happens, register any listeners that
+        previously requested registration.
+        """
+        self._entity_id = value
+        if value and self._pending_listeners:
+            for cb in list(self._pending_listeners):
+                try:
+                    cancel = async_track_state_change_event(self._hass, [value], cb)
+                    self._registered_cancels.append(cancel)
+                except Exception:
+                    _LOGGER.exception("%s - Failed to register pending listener for %s", self, value)
+            self._pending_listeners.clear()
 
     @property
     def entity_type(self) -> UnderlyingEntityType:
@@ -145,7 +166,39 @@ class UnderlyingEntity:
 
     def remove_entity(self):
         """Remove the underlying entity"""
+        # Cancel any registered listeners
+        try:
+            for cancel in list(self._registered_cancels):
+                try:
+                    cancel()
+                except Exception:
+                    _LOGGER.exception("%s - Error cancelling listener", self)
+            self._registered_cancels.clear()
+        finally:
+            # Clear pending listeners too
+            self._pending_listeners.clear()
+
         return
+
+    def register_state_listener(self, callback):
+        """Register a state-change listener for this underlying.
+
+        If `entity_id` is available, register immediately and return the
+        cancellation callback. If not, remember the callback and it will be
+        registered automatically once `entity_id` is set.
+        """
+        if self._entity_id:
+            try:
+                cancel = async_track_state_change_event(self._hass, [self._entity_id], callback)
+                self._registered_cancels.append(cancel)
+                return cancel
+            except Exception:
+                _LOGGER.exception("%s - Failed to register listener for %s", self, self._entity_id)
+                return None
+
+        # Defer registration until entity_id is available
+        self._pending_listeners.append(callback)
+        return None
 
     async def check_initial_state(self, hvac_mode: VThermHvacMode):
         """Prevent the underlying to be on but thermostat is off"""
