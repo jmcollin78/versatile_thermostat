@@ -238,14 +238,18 @@
           "opening_degree_entity_ids": "Opening degree entities",
           "closing_degree_entity_ids": "Closing degree entities",
           "proportional_function": "Algorithm",
-          "min_opening_degrees": "Min opening degrees"
+          "opening_threshold_degree": "Opening threshold degree",
+          "min_opening_degrees": "Min opening degrees",
+          "max_closing_degree": "Max closing degree"
         },
         "data_description": {
           "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
           "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
           "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "min_opening_degrees": "Opening degree minimum value for each underlying device, comma separated. Default to 0. Example: 20, 25, 30"
+          "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+          "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
+          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       }
     },
@@ -500,14 +504,18 @@
           "opening_degree_entity_ids": "Opening degree entities",
           "closing_degree_entity_ids": "Closing degree entities",
           "proportional_function": "Algorithm",
-          "min_opening_degrees": "Min opening degrees"
+          "opening_threshold_degree": "Opening threshold degree",
+          "min_opening_degrees": "Min opening degrees",
+          "max_closing_degree": "Max closing degree"
         },
         "data_description": {
           "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
           "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
           "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
-          "min_opening_degrees": "Opening degree minimum value for each underlying device, comma separated. Default to 0. Example: 20, 25, 30"
+          "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+          "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
+          "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       }
     },

@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, State
 from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
 )
+from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
 
 from .commons import *
 from .const import *
@@ -504,7 +505,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
             CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
-            CONF_AUTO_REGULATION_DTEMP: 0.01,
+            CONF_AUTO_REGULATION_DTEMP: 0,
             CONF_AUTO_REGULATION_PERIOD_MIN: 0,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
@@ -692,7 +693,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_valve_VThermHvacMode_SLEEP(hass: HomeAssistant, skip_hass_states_get):
+async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, skip_hass_states_get):
     """Test the HVAMODE_SLEEP of a thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -1009,3 +1010,57 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
+
+
+@pytest.mark.parametrize(
+    "brut_valve_open_percent,min_opening_degree,max_closing_degree,max_opening_degree,opening_threshold,expected_opening",
+    # fmt: off
+    #    brut_valve_open_percent   min_opening_degree    max_closing_degree    max_opening_degree    opening_threshold    expected_opening
+    [
+        (0,                        0,                    100,                  100,                  0,                   0),  # full range and 0 -> 0% (no changes)
+        (10,                       0,                    100,                  100,                  0,                   10),  # full range and 10 -> 10% (no changes)
+        (0,                        10,                   100,                  100,                  10,                  0),  # 10-100 range and 0 -> fully close cause max_close = 100%
+        (0,                        10,                   80,                   100,                  10,                  20),   # 10-80 range and 0 -> close -> open to the 1-max_closing
+        (5,                        10,                   80,                   100,                  10,                  20),   # 10-80 range and 5 -> close -> open to the 1-max_closing
+        (10,                       10,                   80,                   100,                  10,                  10),   # 10-80 range and 10 -> open -> 10% opening
+        (20,                       10,                   80,                   100,                  10,                  20),   # 10-80 range and 20 -> open -> 20% opening
+        (30,                       10,                   80,                   100,                  10,                  30),   # 10-80 range and 30 -> open -> 30% opening
+        (50,                       10,                   80,                   100,                  10,                  50),   # 10-80 range and 50 -> open -> 50% opening
+        (80,                       10,                   80,                   100,                  10,                  80),   # 10-80 range and 80 -> open -> 80% opening
+        (90,                       10,                   80,                   100,                  10,                  90),   # 10-80 range and 90 -> open -> 90% opening
+        (100,                      10,                   80,                   100,                  10,                  100),  # 10-80 range and 100 -> open -> 100% opening
+        # With max_opening_degree
+        (50,                       10,                   80,                   200,                  10,                  94),   # 10-200 range and 50 -> open -> 94% opening
+        (100,                      10,                   80,                   150,                  10,                  150),  # 10-150 range and 100 -> open -> 150% opening
+        # With different opening_threshold
+        (10,                       15,                   80,                   100,                  20,                  20),   # 10-100 range open at min 15 and brut =10 < threashold (20) -> 20 (100-80)
+        (20,                       15,                   80,                   100,                  20,                  15),   # 10-100 range open at min 15 and brut =20 = threashold (20) -> 15 (min_opening)
+        (40,                       15,                   80,                   100,                  20,                  36),   # 10-100 range open at min 15 and brut =40 = threashold (20) -> 15 (min_opening + interpolation)
+        (80,                       15,                   80,                   100,                  20,                  79),   # 10-100 range open at min 15 and brut =80 = threashold (20) -> 83 (min_opening + interpolation)
+        (100,                      15,                   80,                   100,                  20,                  100),  # 10-100 range open at min 15 and brut =100 = threashold (20) -> 100 (min_opening + interpolation = max_opening_degree)
+        (100,                      15,                   80,                   150,                  20,                  150),  # 10-100 range open at min 15 and brut =100 = threashold (20) -> 150 (min_opening + interpolation = max_opening_degree)
+        # Test of @Tomtom13
+        (1,                        10,                   100,                  100,                  0,                   11),   # 10-100 range and 0 -> fully close cause max_close = 100%
+        # Error test when min_opening_degree >= max_opening_degree (then threshold is used)
+        (40,                       50,                   80,                    40,                  15,                  22),  # use threshold instead of min_opening_degree
+    ],
+    # fmt: on
+)
+async def test_min_max_closing_degrees_algo(
+    hass: HomeAssistant, skip_hass_states_get, brut_valve_open_percent, min_opening_degree, max_closing_degree, max_opening_degree, opening_threshold, expected_opening
+):
+    """Test the min and max opening degrees as described here: https://github.com/jmcollin78/versatile_thermostat/issues/1220"""
+
+    # Calculate opening/closing degrees
+    opening, closing = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
+        brut_valve_open_percent=brut_valve_open_percent,
+        min_opening_degree=min_opening_degree,
+        max_closing_degree=max_closing_degree,
+        max_opening_degree=max_opening_degree,
+        opening_threshold=opening_threshold,
+    )
+
+    # Assert expected values
+    assert opening == expected_opening, f"Expected opening {expected_opening}%, got {opening}%"
+    assert closing == 100 - expected_opening, f"Expected closing {100 - expected_opening}%, got {closing}%"
+    assert opening + closing == 100, "Opening + Closing should equal 100%"
