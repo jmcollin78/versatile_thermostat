@@ -29,7 +29,7 @@ Zachowanie tej funkcji jest następujące:
 
 ## Konfiguracja zarządzania energią
 
-Jeśli w konfiguracji głównej wybrałeś funkcję `Zarządzania energią`, skonfiguruj ją następująco:
+Jeśli w konfiguracji centralnej wybrałeś funkcję `Zarządzania energią`, skonfiguruj ją następująco:
 
 ![image](images/config-power.png)
 
@@ -41,7 +41,7 @@ Wymagane elementy konfiguracji:
 Upewnij się, że wszystkie wartości mocy używają tych samych jednostek (np. kW lub W).
 Posiadanie **sensora maksymalnej dopuszczalnej mocy** pozwala na dynamiczną modyfikację wartości maksymalnej mocy przy użyciu harmonogramu lub automatyzacji.
 
-Ze względu na scentralizowaną redukcję obciążenia nie jest możliwe nadpisanie wartości senssorów zużycia i maksymalnego zużycia na poszczególnych termostatatch. Konfiguracja musi być wykonana w ustawieniach głównych (patrz: [Konfiguracja główna](./creation.md#centralized-configuration)).
+Ze względu na scentralizowaną redukcję obciążenia nie jest możliwe nadpisanie wartości senssorów zużycia i maksymalnego zużycia na poszczególnych termostatatch. Konfiguracja musi być wykonana w ustawieniach głównych (patrz: [Konfiguracja Centralna](./creation.md#centralized-configuration)).
 
 
 > ![Tip](images/tips.png) _*Wskazówki*_

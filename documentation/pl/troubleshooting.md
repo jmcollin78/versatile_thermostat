@@ -8,7 +8,7 @@
   - [Gdy grzeje tylko pierwszy grzejnik](#only-the-first-radiator-heats)
   - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
     - [`Termostat na przełączniku` lub `termostat na zaworze`](#type-over_switch-or-over_valve)
-    - [`Termosta na klimacie`](#type-over_climate)
+    - [`Termostat na klimacie`](#type-over_climate)
   - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#adjust-the-window-open-detection-parameters-in-auto-mode)
   - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#why-is-my-versatile-thermostat-going-into-safety-mode)
     - [Jak wykryć tryb *bezpieczny*?](#how-to-detect-safety-mode)

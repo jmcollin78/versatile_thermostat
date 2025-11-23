@@ -9,7 +9,7 @@
           "thermostat_type": "Typ termostatu"
         },
         "data_description": {
-          "thermostat_type": "Dostępna jest wyłącznie konfiguracja główna"
+          "thermostat_type": "Dostępna jest wyłącznie konfiguracja centralna"
         }
       },
       "menu": {
@@ -47,14 +47,14 @@
           "temp_max": "Maksymalna temperatura dopuszczalna",
           "step_temperature": "Krok temperatury",
           "device_power": "Moc urządzenia",
-          "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji głównej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
-          "use_main_central_config": "Użyj dodatkowej konfiguracji głównej. Zaznacz, aby korzystać z podstawowej konfiguracji głównej (temperatura zewnętrzna, min, max, krok, ...).",
+          "use_central_mode": "Załączenie sterowania przez encję centralną (wymaga konfiguracji centralnej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
+          "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz, aby korzystać z podstawowej konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, ...).",
           "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli termostat ma sterować kotłem głównym."
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
-          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację główną"
+          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centralną"
         }
       },
       "features": {
@@ -253,7 +253,7 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji głównej'."
+      "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji centralnej'."
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -268,7 +268,7 @@
           "thermostat_type": "Typ termostatu"
         },
         "data_description": {
-          "thermostat_type": "Możliwy jest tylko jeden typ konfiguracji głównej"
+          "thermostat_type": "Możliwy jest tylko jeden typ konfiguracji centralnej"
         }
       },
       "menu": {
@@ -307,8 +307,8 @@
           "temp_max": "Maksymalna dopuszczalna temperatura",
           "step_temperature": "Krok temperatury",
           "device_power": "Moc urządzenia",
-          "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji głównej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
-          "use_main_central_config": "Użyj dodatkowej konfiguracji głównej. Zaznacz, aby używać głównej konfiguracji głównej (temperatura zewnętrzna, min, max, krok, ...).",
+          "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji centralnej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
+          "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz, aby używać głównej konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, ...).",
           "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli ten termostat powinien sterować kotłem głównym"
         },
         "data_description": {
@@ -385,7 +385,7 @@
         "title": "Presety - {name}",
         "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
         "data": {
-          "use_presets_central_config": "Użyj konfiguracji głównej presetów"
+          "use_presets_central_config": "Użyj konfiguracji centralnej presetów"
         }
       },
       "window": {
@@ -513,7 +513,7 @@
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać 'głównej konfiguracji', ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji głównej'.",
+      "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu 'konfiguracji centralnej'.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
@@ -525,7 +525,7 @@
   "selector": {
     "thermostat_type": {
       "options": {
-        "thermostat_central_config": "Konfiguracja główna",
+        "thermostat_central_config": "Konfiguracja centralna",
         "thermostat_over_switch": "Termostat na Przełączniku",
         "thermostat_over_climate": "Termostat na Klimacie",
         "thermostat_over_valve": "Termostat na Zaworze"
