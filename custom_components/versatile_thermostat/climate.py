@@ -92,16 +92,6 @@ async def async_setup_entry(
     )
 
     platform.async_register_entity_service(
-        SERVICE_SET_PRESET_TEMPERATURE,
-        {
-            vol.Required("preset"): vol.In(CONF_PRESETS_WITH_AC),
-            vol.Optional("temperature"): vol.Coerce(float),
-            vol.Optional("temperature_away"): vol.Coerce(float),
-        },
-        "service_set_preset_temperature",
-    )
-
-    platform.async_register_entity_service(
         SERVICE_SET_SAFETY,
         {
             vol.Optional("delay_min"): cv.positive_int,

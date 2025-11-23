@@ -453,7 +453,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         # Update the VTherm temp
         self.hass.create_task(
-            self.my_climate.service_set_preset_temperature(
+            self.my_climate.set_preset_temperature(
                 self._canonical_preset_name,
                 self._attr_native_value if not self._is_away else None,
                 self._attr_native_value if self._is_away else None,

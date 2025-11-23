@@ -1,10 +1,13 @@
 # Parę istotnych dodatków
 
-- [Parę istotnych dodatków](#some-essential-add-ons)
-  - [Karta _*Versatile Thermostat UI Card*_](#the-versatile-thermostat-ui-card)
-  - [Harmonogram](#the-scheduler-component)
-  - [Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
-  - [Powiadomienie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#event-notification-with-the-appdaemon-notifier)
+- [Parę istotnych dodatków](#parę-istotnych-dodatków)
+  - [Karta _*Versatile Thermostat UI Card*_](#karta-versatile-thermostat-ui-card)
+  - [Harmonogram](#harmonogram)
+  - [Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
+  - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
+  - [Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
+  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
+  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 ## Karta _*Versatile Thermostat UI Card*_
 Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better Thermostat*). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów termostatu _*VTherm*_:
@@ -117,6 +120,12 @@ Przykład krzywych uzyskanych z _*Plotly*_:
 
 ![image](images/plotly-curves.png)
 
+## Regulation curves with Apex-charts (thanks to @gael1980)
+Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+
+![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
+
+
 ## Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_
 Ta automatyzacja wykorzystuje doskonałą aplikację *AppDaemon NOTIFIER*, opracowaną przez *Horizon Domotique*, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona Użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego termostatu *VTherm*.
 
@@ -124,7 +133,7 @@ Oto doskonały przykład użycia funkcji powiadomienia o zdarzeniu opisanym [tut
 <details>
 
 ```yaml
-alias: Monitorowanie trybu bezpiecznego ogrzewania 
+alias: Monitorowanie trybu bezpiecznego ogrzewania
 description: Wysyłanie powiadomienia, gdy termostat przejdzie w tryb bezpieczny
 trigger:
   - platform: event
@@ -202,3 +211,13 @@ mode: queued
 max: 30
 ```
 </details>
+
+## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
+An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
+The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+
+## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
+This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
+The approach is very interesting and offers a good complement to _VTherm_.
+
+It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)

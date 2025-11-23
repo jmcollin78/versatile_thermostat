@@ -1,8 +1,11 @@
 # Samoregulacja
 
-- [Samoregulacja](#self-regulation)
-    - [Samoregulacja w trybie `Ekspert`](#self-regulation-in-expert-mode)
-    - [Podsumowanie algorytmu samoregulacji](#summary-of-the-self-regulation-algorithm)
+- [Samoregulacja](#samoregulacja)
+  - [Konfiguracja](#konfiguracja)
+    - [Samoregulacja z bezpośrednim sterowaniem zaworem](#samoregulacja-z-bezpośrednim-sterowaniem-zaworem)
+    - [Inna samoregulacja](#inna-samoregulacja)
+      - [Samoregulacja w *trybie eksperckim*](#samoregulacja-w-trybie-eksperckim)
+  - [Podsumowanie algorytmu samoregulacji](#podsumowanie-algorytmu-samoregulacji)
 
 
 Funkcja samoregulacji jest dostępna tylko dla termostatu _VTherm_ typu `termostat na klimaciee`.
@@ -14,6 +17,8 @@ Istnieją dwa typowe przypadki zastosowań tej funkcji:
 ## Konfiguracja
 
 ### Samoregulacja z bezpośrednim sterowaniem zaworem
+
+-- this § is not updated since v 8.0. Please see the English version --
 
 Ten typ samoregulacji, nazwany 'Bezpośrednim sterowaniem zaworami', wymaga:
 1. Encji typu `climate` pochodzącej z urządzenia bazowego _VTherm_.
@@ -43,7 +48,7 @@ Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona 
 > 1. Od wersji 7.2.2 możliwe jest użycie encji `stopień zamknięcia` zaworu Sonoff TRVZB.
 > 2. Atrybut `hvac_action` zaworów termostatycznych Sonoff TRVZB jest zawodny. Jeśli temperatura wewnętrzna zaworu termostatycznego znacznie odbiega od temperatury w pomieszczeniu, encja `climate` może wskazywać, że zawór _TRV_ nie grzeje, nawet gdy otwieranie zaworu jest wymuszane przez _VTherm_. Ten problem nie ma wpływu, ponieważ encja `climate` zaworu _VTherm_ została poprawiona i uwzględnia stopień otwarcia zaworu przy ustawianiu atrybutu `hvac_action`. Problem ten można złagodzić, ale nie wyeliminować całkowicie, odpowiednio korygując konfigurację kalibracji temperatury.
 > 3. Atrybut `valve_open_percent` zaworu _VTherm_ może nie być zgodny z wartością `stopień otwarcia` wysłaną do zaworu. Jeśli skonfigurowano minimalną wartość otwarcia lub użyto sterowania zamykaniem, zostanie dokonana korekta. Atrybut `valve_open_percent` reprezentuje *wartość surową*, obliczoną przez termostat _VTherm_. Wartość `stopnia otwarcia` wysłana do zaworu może zostać odpowiednio dostosowana.
- 
+
 
 ### Inna samoregulacja
 
