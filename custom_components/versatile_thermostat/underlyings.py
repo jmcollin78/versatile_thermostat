@@ -1205,16 +1205,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 )
                 is not None
             ):
-                offset = round_to_nearest(
-                    min(
-                        self._max_offset_calibration,
-                        max(
-                            self._min_offset_calibration,
-                            room_temp - (local_temp - current_offset),
-                        ),
-                    ),
-                    self._step_calibration,
-                )
+                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_calibration)
+                offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
 
                 await self._send_value_to_number(
                     self._offset_calibration_entity_id, offset
