@@ -129,6 +129,12 @@ The documentation is now divided into several pages for easier reading and searc
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
+# Some comments about the integration
+|                                             |                                             |                                             |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
+| ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
+
 Enjoy!
 
 # Contributions are welcome!
