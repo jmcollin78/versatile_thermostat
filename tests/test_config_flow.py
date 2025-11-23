@@ -1240,6 +1240,8 @@ async def test_user_config_flow_over_climate_valve(
             CONF_OPENING_DEGREE_LIST: ["number.opening_degree1"],
             CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
     assert result["type"] == FlowResultType.FORM
@@ -1279,6 +1281,8 @@ async def test_user_config_flow_over_climate_valve(
             ],
             CONF_CLOSING_DEGREE_LIST: [],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -1376,6 +1380,8 @@ async def test_user_config_flow_over_climate_valve(
         CONF_TPI_COEF_INT: 0.3,
         CONF_TPI_COEF_EXT: 0.1,
         CONF_MIN_OPENING_DEGREES: "10, 20,0",
+        CONF_MAX_CLOSING_DEGREE: 30,
+        CONF_OPENING_THRESHOLD_DEGREE: 5,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
     assert result["result"]

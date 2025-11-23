@@ -118,14 +118,13 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Užijte si to!
-
 # Some comments on the integration
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
 | ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
 
+Užijte si to!
 
 # Příspěvky jsou vítány!
 

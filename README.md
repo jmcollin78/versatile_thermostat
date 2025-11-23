@@ -26,6 +26,15 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.1
+> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
+>    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
+>    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
+>    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+>
+> ![alt text](images/opening-degree-graph.png)
+> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+
 ## Release 8.0
 > This is a major release. It rewrites a significant part of the internal mechanisms of Versatile Thermostat by introducing several new features:
 >    1. _requested state / current state_: VTherm now has 2 states. The requested state is the state requested by the user (or Scheduler). The current state is the state currently applied to the VTherm. The latter depends on the different VTherm functions. For example, the user can request (requested state) to have heating on with Comfort preset but since the window has been detected open, the VTherm is actually off. This dual management always preserves the user's request and applies the result of the different functions on this user request to get the current state. This better handles cases where multiple functions want to act on the VTherm state (window opening and power shedding for example). It also ensures a return to the user's initial request when no detection is in progress anymore,
@@ -119,6 +128,12 @@ The documentation is now divided into several pages for easier reading and searc
 **Regulation with direct valve control in `over_climate`**:
 
 ![image](documentation/en/images/results-over-climate-2.png)
+
+# Some comments about the integration
+|                                             |                                             |                                             |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
+| ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
 
 Enjoy!
 

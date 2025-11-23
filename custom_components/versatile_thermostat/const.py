@@ -125,6 +125,8 @@ CONF_OFFSET_CALIBRATION_LIST = "offset_calibration_entity_ids"
 CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
+CONF_MAX_CLOSING_DEGREE = "max_closing_degree"
+CONF_OPENING_THRESHOLD_DEGREE = "opening_threshold_degree"
 
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
@@ -324,6 +326,9 @@ ALL_CONF = (
         CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
         CONF_WINDOW_ACTION,
         CONF_STEP_TEMPERATURE,
+        CONF_MIN_OPENING_DEGREES,
+        CONF_MAX_CLOSING_DEGREE,
+        CONF_OPENING_THRESHOLD_DEGREE,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
