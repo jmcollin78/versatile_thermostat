@@ -384,7 +384,6 @@ SUPPORT_FLAGS = (
 )
 
 SERVICE_SET_PRESENCE = "set_presence"
-SERVICE_SET_PRESET_TEMPERATURE = "set_preset_temperature"
 SERVICE_SET_SAFETY = "set_safety"
 SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
 SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
