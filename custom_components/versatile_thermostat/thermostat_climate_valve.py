@@ -345,7 +345,12 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         if self._is_sleeping:
             return False
         else:
-            return self.valve_open_percent > 0
+            # Check actual valve opening degree, not TPI-calculated percentage
+            # The opening threshold may result in 0% even when valve_open_percent > 0
+            for under in self._underlyings_valve_regulation:
+                if under.is_device_active:
+                    return True
+            return False
 
     @property
     def device_actives(self) -> int:
