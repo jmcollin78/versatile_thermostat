@@ -47,7 +47,7 @@ Selon l'équipement cette régulation interne peut être plus ou moins bonne. Ca
 Les choix d'auto-régulation sont décrits dans le détail [ici](self-regulation.md).
 
 Afin d'éviter de trop solliciter l'équipement sous-jacent (certain font un bip désagréable, d'autres sont sur batterie, ...), deux seuils permettant de limiter le nombre de sollicitation sont proposés :
-1. le seuil de régulation : un seuil en ° (ou en %) en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne était de 22°, alors la prochaine envoyée, sera de 22° +/- seuil de régulation. Si la régulation contrôle directement la vanne (`over_valve` ou `over_climate` avec contrôle direct de la vanne) alors la valeur doit être spécifiée en pourcentage et ne doit pas être inférieure à 3% pour les Sonoff TRVZB (sinon le calibrage peut être perdu),
+1. le seuil de régulation `regulation_threshold`: un seuil en ° (ou en %) en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne était de 22°, alors la prochaine envoyée, sera de 22° +/- seuil de régulation. Si la régulation contrôle directement la vanne (`over_valve` ou `over_climate` avec contrôle direct de la vanne) alors la valeur doit être spécifiée en pourcentage et ne doit pas être inférieure à 3% pour les Sonoff TRVZB (sinon le calibrage peut être perdu),
 2. la période minimale de régulation en minute : un interval de temps minimal en minute en dessous duquel la nouvelle consigne ne sera pas envoyée. Si la dernière consigne a été envoyée à 11h00, alors la prochaine ne pourra pas être envoyée avant 11h00 + periode minimal de régulation.
 
 S'ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation correcte puisque les nouvelles consignes ne seront pas envoyées.

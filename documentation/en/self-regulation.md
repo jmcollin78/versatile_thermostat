@@ -14,34 +14,71 @@ There are generally two cases:
 
 ### Self-regulation by direct valve control
 
-This type of self-regulation, named `Direct Valve Control`, requires:
-1. An entity of type `climate` that is included in the _VTherm_'s underlying devices.
-2. An entity of type `number` to control the valve opening rate of the _TRV_.
-3. An optional entity of type `number` for calibrating the internal temperature of the underlying device.
-4. An optional entity of type `number` to control the valve closure.
+This type of self-regulation called `Direct valve control` requires:
+1. a `climate` entity that is set in the underlying entities of the _VTherm_,
+2. a `number` entity that allows controlling the valve opening rate of the _TRV_,
+3. an optional `number` entity allowing to calibrate the internal temperature of the underlying entity,
+4. an optional `number` entity allowing to control the valve closing
 
-When the chosen self-regulation is `Direct Valve Control` on an _VTherm_ `over_climate`, a new configuration page named `Valve Regulation Configuration` appears:
+When the chosen self-regulation is `Direct valve control` on an `over_climate` _VTherm_, a new configuration page called `Valve regulation configuration` appears:
 
-![Configuration Menu](images/config-self-regulation-valve-1.png)
+![Configuration menu](images/config-self-regulation-valve-1.png)
 
-This allows you to configure the valve control entities:
+It allows configuring the valve control entities:
 
-![Configuration Entities](images/config-self-regulation-valve-2.png)
+![Configuration entities](images/config-self-regulation-valve-2.png)
 
 You must provide:
-1. As many valve opening control entities as there are underlying devices, in the same order. These parameters are mandatory.
-2. As many temperature offset calibration entities as there are underlying devices, in the same order. These parameters are optional; either all must be provided, or none. Their use, if available, is strongly recommended.
-3. As many valve closing rate control entities as there are underlying devices, in the same order. These parameters are optional; either all must be provided, or none.
-4. A list of minimum valve opening values when the valve needs to be open. This field is a list of integers. If the valve needs to be open, it will open at least to this value; otherwise, it will be fully closed (0). This ensures that enough water flows when heating is required while maintaining full closure when heating is not needed.
+1. as many valve opening control entities as there are underlying entities and in the same order. These parameters are mandatory,
+2. as many temperature offset calibration entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none. Their use, if available, is strongly recommended,
+3. as many closing rate control entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none,
+4. `opening_threshold`: the minimum valve opening below which the valve should be considered closed, and consequently, the 'max_closing_degree' parameter applies,
+5. `max_closing_degree`: the absolute maximum closing percentage. The valve will never close more than what is indicated in this value. If you want to allow complete valve closing, then leave this parameter at 100,
+6. `minimum_opening_degrees`: the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of minimum openings separated by ','. The default value is 0. Example: '20, 25, 30'. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary.
 
-The algorithm for calculating the opening rate is based on _TPI_, which is described [here](algorithms.md). It is the same algorithm used for _VTherm_ `over_switch` and `over_valve`.
+The opening rate calculation algorithm is based on _TPI_ which is described [here](algorithms.md). It is the same algorithm used for `over_switch` and `over_valve` _VTherm_.
 
-If a valve closing rate entity is configured, it will be set to `100 - opening rate` to force the valve into a specific state else it is set to 100.
+If a valve closing rate entity is configured, it will be set to the value `100 - opening rate` to force the valve into a state, otherwise it is set to 100.
 
 > ![Warning](images/tips.png) _*Notes*_
-> 1. Since version 7.2.2, it is possible to use the "closing degree" entity on Sonoff TRVZB.
-> 2. The `hvac_action` attribute of Sonoff TRVZB TRVs is unreliable. If the internal temperature of the TRV deviates too much from the room temperature, the `climate` entity may indicate that the _TRV_ is not heating even when the valve is forced open by _VTherm_. This issue has no impact because the `climate` entity of _VTherm_ is corrected and takes the valve opening into account to set its `hvac_action` attribute. This issue is mitigated but not entirely eliminated by configuring the temperature offset calibration.
-> 3. The `valve_open_percent` attribute of _VTherm_ may not match the `opening degree` value sent to the valve. If you have configured a minimum opening value or use the closing control, an adjustment is made. The `valve_open_percent` attribute represents the raw value calculated by _VTherm_. The `opening degree` value sent to the valve may be adapted accordingly.
+> 1. the `hvac_action` attribute of Sonoff TRVZB TRVs is capricious. If the internal temperature of the TRV is too offset from the room temperature, the `climate` entity may indicate that the _TRV_ is not heating even though the valve is forced open by _VTherm_. This defect has no consequences since the `climate` entity of the _VTherm_ is corrected and takes into account the valve opening to set its `hvac_action` attribute. This defect is minimized but not completely eliminated by configuring the offset calibration.
+> 2. the _VTherm_ attribute `valve_open_percent` may not be equal to the 'opening degree' value sent to the valve. If you use one of the three parameters `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees`, an adjustment is made. The custom attribute `valve_open_percent` is then the raw value calculated by _VTherm_. The 'opening degree' value sent to the valve may be adapted.
+> 3. some equipment has values that do not necessarily range from 0 to 100. _VTherm_ automatically adapts to the allowed ranges for your equipment.
+> 4. If you use the regulation parameter `regulation_threshold` (see [over_climate regulation](./over-climate.md#lauto-régulation)), then the `opening_threshold` will be adjusted so that it is never below this value. Indeed, the `regulation_threshold` is the regulation unit below which the setpoint is not sent. Setting an `opening_threshold` would have no effect.
+> 5. A _VTherm_ is considered active if `opening_threshold` is exceeded. Consequently, if the _VTherm_ controls a central boiler, it will not be turned on below this value.
+
+#### How to properly adjust the parameters that control the opening?
+
+The 3 valve opening adjustment parameters allow fine-tuning of valve behavior, especially at the beginning of the heating cycle. If we represent the opening requested by the TPI algorithm on the x-axis and the opening actually sent to the valve on the y-axis, we get this curve:
+
+<img src="../../images/opening-degree-graph.png" alt="opening parameters adjustment" width="600">
+
+##### Case 1: you have a 15% dead zone on your valve (the first 15% do not allow hot water to circulate)
+
+The settings can then be:
+1. `minimum_opening_degrees`: 15. As soon as heating is needed, it must heat at least 15%,
+2. `max_closing_degree`: the default value (100) to allow complete closing,
+3. `opening_threshold`: the default value (0) to trigger heating as soon as necessary
+
+You then have the following curve:
+
+<img src="../../images/opening-degree-default-1.png" alt="opening parameters adjustment" width="400">
+
+or if you have not defined a `regulation_threshold`:
+
+<img src="../../images/opening-degree-default-2.png" alt="opening parameters adjustment" width="400">
+
+##### Case 2: you never want to completely close the valve
+
+This case allows handling parasitic noise during complete closing or as a safety measure to always let some water circulate and avoid damaging the circulator.
+The settings can then be as follows:
+1. `minimum_opening_degrees`: 10 to heat at least 10% when heating is needed,
+2. `max_closing_degree`: 90 to always leave at least 10% opening,
+3. `opening_threshold`: 10 to consider that the first 10% do not heat. The TRV is then in `Idle` mode
+
+You then have the following curve:
+
+<img src="../../images/opening-degree-default-3.png" alt="opening parameters adjustment" width="400">
 
 ### Other self-regulation
 

@@ -4,7 +4,10 @@
   - [the Versatile Thermostat UI Card](#the-versatile-thermostat-ui-card)
   - [the Scheduler Component!](#the-scheduler-component)
   - [Regulation curves with Plotly to Fine-Tune Your Thermostat](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
+  - [Rgulation curves with Apex-charts (thanks to @gael1980)](#rgulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Event notification with the AppDaemon NOTIFIER](#event-notification-with-the-appdaemon-notifier)
+  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
+  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 ## the Versatile Thermostat UI Card
 A dedicated card for the Versatile Thermostat has been developed (based on Better Thermostat). It is available here: [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) and offers a modern view of all the VTherm statuses:
@@ -119,6 +122,11 @@ Example of curves obtained with Plotly:
 
 ![image](images/plotly-curves.png)
 
+## Regulation curves with Apex-charts (thanks to @gael1980)
+Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+
+![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
+
 ## Event notification with the AppDaemon NOTIFIER
 This automation leverages the excellent AppDaemon app named NOTIFIER, developed by Horizon Domotique, demonstrated [here](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), and the code is available [here](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). It allows users to be notified of security-related events occurring on any Versatile Thermostat.
 
@@ -207,3 +215,13 @@ mode: queued
 max: 30
 ```
 </details>
+
+## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
+An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
+The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+
+## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
+This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
+The approach is very interesting and offers a good complement to _VTherm_.
+
+It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)
