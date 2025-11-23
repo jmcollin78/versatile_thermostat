@@ -250,6 +250,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         async def callback_recalculate(_):
             """Callback to set the valve percent"""
             self.recalculate()
+            await self.async_control_heating(force=False)
             self.update_custom_attributes()
             self.async_write_ha_state()
 
