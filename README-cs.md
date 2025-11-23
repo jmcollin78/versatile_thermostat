@@ -126,6 +126,10 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 
 Užijte si to!
 
+# ⭐ Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
+
 # Příspěvky jsou vítány!
 
 Pokud si přejete přispět, přečtěte si prosím [pokyny pro přispívání](CONTRIBUTING-cs.md).

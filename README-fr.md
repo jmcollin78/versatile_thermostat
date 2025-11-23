@@ -141,6 +141,10 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 
 Enjoy !
 
+# ⭐ Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
+
 # Les contributions sont les bienvenues !
 
 Si vous souhaitez contribuer, veuillez lire les [directives de contribution](CONTRIBUTING.md)
