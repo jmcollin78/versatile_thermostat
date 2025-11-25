@@ -33,6 +33,7 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 >    - `minimum_opening_degrees`: minimalna wartość stopnia otwarcia zaworu dla każdego urządzenia bazowego po przekroczeniu progu `opening_threshold`, rozdzielona przecinkami. Domyślna wartość parametru: `0`. Przykład: 20, 25, 30. Po rozpoczęciu grzania zawór zacznie się otwierać z tą wartością i będzie się stale zwiększać, dopóki będzie potrzebne dalsze ogrzewanie.
 >
 > ![alt text](images/opening-degree-graph.png)
+>
 > Więcej informacji na ten temat można uzyskać, przegądając wątek dyskusyjny [#1220](https://github.com/jmcollin78/versatile_thermostat/issues/1220).
 
 
@@ -85,7 +86,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Dokumentacja
 
-Dla wygody Użytkownika, dokumentacja podzielona jest na rozdziały i sekcje:
+Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas konfiguracji, dokumentacja podzielona jest na rozdziały i sekcje:
 1. [Wprowadzenie](documentation/pl/presentation.md)
 2. [Instalacja](documentation/pl/installation.md)
 3. [Szybki start](documentation/pl/quick-start.md)
@@ -154,7 +155,7 @@ Dla wygody Użytkownika, dokumentacja podzielona jest na rozdziały i sekcje:
 
 ## Współpraca mile widziana!
 
-Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
+Chciałbyś wnieść swój wkład do projektu? Zapoznaj się z [zasadami współpracy](CONTRIBUTING-pl.md).
 
 
 
