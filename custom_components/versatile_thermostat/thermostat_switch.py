@@ -140,6 +140,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         self._attr_extra_state_attributes.update(
             {
                 "is_over_switch": self.is_over_switch,
+                "on_percent": self._prop_algorithm.on_percent,
+                "power_percent": self.power_percent,
                 "vtherm_over_switch": {
                     "is_inversed": self.is_inversed,
                     "keep_alive_sec": under0.keep_alive_sec,

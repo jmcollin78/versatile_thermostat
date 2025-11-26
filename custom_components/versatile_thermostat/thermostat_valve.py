@@ -141,6 +141,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._attr_extra_state_attributes.update(
             {
                 "is_over_valve": self.is_over_valve,
+                "on_percent": self._prop_algorithm.on_percent,
+                "power_percent": self.power_percent,
                 "vtherm_over_valve": {
                     "valve_open_percent": self.valve_open_percent,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
