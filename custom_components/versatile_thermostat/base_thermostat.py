@@ -1253,8 +1253,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         temperature: float | None = None,
         temperature_away: float | None = None,
     ):
-        """Called by a service call:
-        service: versatile_thermostat.set_preset_temperature
+        """Called by a to change the temperature of a preset
         data:
             preset: boost
             temperature: 17.8

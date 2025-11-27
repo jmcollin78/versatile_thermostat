@@ -827,6 +827,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         new_stop = await self.auto_start_stop_manager.refresh_state()
         if old_stop != new_stop:
             _LOGGER.info("%s - Auto stop state changed from %s to %s", self, old_stop, new_stop)
+            self.requested_state.force_changed()
             await self.update_states(force=True)
             return True
 
