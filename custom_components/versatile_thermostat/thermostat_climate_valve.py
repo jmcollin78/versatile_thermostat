@@ -137,6 +137,23 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Custom attributes"""
         super().update_custom_attributes()
 
+        valve_attributes = {}
+        for under in self._underlyings_valve_regulation:
+            valve_attributes.update(
+                {
+                    under.entity_id: {
+                        "hvac_action": under.hvac_action,
+                        "percent_open": under.percent_open,
+                        "last_sent_opening_value": under.last_sent_opening_value,
+                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
+                        "min_offset_calibration": under._min_offset_calibration,  # pylint: disable=protected-access
+                        "max_offset_calibration": under._max_offset_calibration,  # pylint: disable=protected-access
+                        "step_calibration": under._step_calibration,  # pylint: disable=protected-access
+                        "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
+                    }
+                }
+            )
+
         self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
         self._attr_extra_state_attributes["power_percent"] = self.power_percent
         self._attr_extra_state_attributes["on_percent"] = self._prop_algorithm.on_percent
@@ -159,13 +176,10 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                         "auto_regulation_period_min": self._auto_regulation_period_min,
                         "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
                     },
+                    "underlying_valves": valve_attributes,
                 }
             }
         )
-
-        # TODO add underlying custom attributes here
-        for under in self._underlyings:
-            pass
 
         self.async_write_ha_state()
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
@@ -179,7 +193,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self.stop_recalculate_later()
 
-        # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
         if self._is_sleeping:
             self._valve_open_percent = 100
             return
@@ -353,18 +366,17 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """A hack to overrides the state from underlyings"""
         if self._is_sleeping:
             return False
-        else:
-            # TODO why not: if one under is_active ?
-            return self.valve_open_percent >= self._opening_threshold_degree
+
+        for under in self._underlyings_valve_regulation:
+            if under.is_device_active:
+                return True
+        return False
 
     @property
     def device_actives(self) -> int:
         """Calculate the number of active devices"""
         if self.is_device_active:
-            return [
-                under.opening_degree_entity_id
-                for under in self._underlyings_valve_regulation
-            ]
+            return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
         else:
             return []
 

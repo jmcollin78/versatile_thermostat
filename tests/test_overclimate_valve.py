@@ -601,6 +601,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(
 
         assert vtherm.target_temperature == 19
         assert vtherm.nb_device_actives == 0
+        assert vtherm.hvac_action == HVACAction.OFF
 
     # 2: set temperature -> should activate the valve and change target
     # fmt: off

@@ -1137,7 +1137,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
-        self.sent_opening_degree: int = 0
 
     def initialize_min_max(self):
         """Initialize min and max values for opening and closing degrees"""
@@ -1279,28 +1278,22 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @property
     def is_device_active(self):
         """If the opening valve is open."""
-        try:
-            if (value := self.last_sent_opening_value) is None:
-                return False
-
-            return value > (100 - self._max_closing_degree)
-        except Exception:  # pylint: disable=broad-exception-caught
+        if (value := self.last_sent_opening_value) is None:
             return False
+
+        return value > (100 - self._max_closing_degree)
 
     @property
     def hvac_action(self) -> HVACAction:
         """Calculate a hvac_action"""
-        try:
-            if (value := self.last_sent_opening_value) is None:
-                return HVACAction.OFF
+        if (value := self.last_sent_opening_value) is None:
+            return HVACAction.OFF
 
-            if value > (100 - self._max_closing_degree):
-                return HVACAction.HEATING
-            elif value > 0:
-                return HVACAction.IDLE
-            else:
-                return HVACAction.OFF
-        except Exception:  # pylint: disable=broad-exception-caught
+        if value > (100 - self._max_closing_degree):
+            return HVACAction.HEATING
+        elif value > 0:
+            return HVACAction.IDLE
+        else:
             return HVACAction.OFF
 
     @property
@@ -1319,7 +1312,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @overrides
     async def check_initial_state(self, hvac_mode: VThermHvacMode):
         """Check the initial state of the underlying valve"""
-        min_closing = 100 - self._max_closing_degree
         if hvac_mode == VThermHvacMode_OFF and self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open < 100):
             _LOGGER.info(
                 "%s - The hvac mode is OFF (sleep mode), but the underlying device is not fully open. Setting to 100%% device %s",
@@ -1328,14 +1320,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             self._percent_open = 100
             await self.send_percent_open()
-        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > min_closing):
+        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > 0):
             _LOGGER.info(
                 "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
                 self,
-                min_closing,
+                0,
                 self._entity_id,
             )
-            self._percent_open = min_closing
+            self._percent_open = 0
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)

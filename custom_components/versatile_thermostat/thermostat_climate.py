@@ -821,7 +821,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         # Check if we need to auto start/stop the Vtherm
         old_stop = self.auto_start_stop_manager.is_auto_stop_detected
@@ -838,6 +837,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
             await self._send_auto_fan_mode()
+
+        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         return ret
 
