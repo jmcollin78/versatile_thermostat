@@ -84,7 +84,7 @@ input_number:
         min: 10
         max: 90
         icon: mdi:pipe-valve
-        unit_of_measurement: '%'
+        unit_of_measurement: "%"
     fake_boiler_temperature:
         name: Central thermostat temp
         min: 0
@@ -96,6 +96,7 @@ input_number:
         name: Sonoff offset calibration 1
         min: -12
         max: 12
+        step: .1
         icon: mdi:tune
         unit_of_measurement: °C
         mode: box
@@ -103,6 +104,7 @@ input_number:
         name: Sonoff Opening degree 1
         min: 0
         max: 100
+        step: .1
         icon: mdi:valve-open
         unit_of_measurement: "%"
         mode: box
@@ -110,6 +112,7 @@ input_number:
         name: Sonoff Closing degree 1
         min: 0
         max: 100
+        step: .1
         icon: mdi:valve-closed
         unit_of_measurement: "%"
         mode: box
@@ -117,6 +120,7 @@ input_number:
         name: Sonoff offset calibration 2
         min: -12
         max: 12
+        step: .1
         icon: mdi:tune
         unit_of_measurement: °C
         mode: box
@@ -124,6 +128,7 @@ input_number:
         name: Sonoff Opening degree 2
         min: 0
         max: 100
+        step: .1
         icon: mdi:valve-open
         unit_of_measurement: "%"
         mode: box
@@ -131,6 +136,7 @@ input_number:
         name: Sonoff Closing degree 2
         min: 0
         max: 100
+        step: .1
         icon: mdi:valve-closed
         unit_of_measurement: "%"
         mode: box
@@ -194,6 +200,9 @@ input_boolean:
     fake_inversed_heater:
         name: Inversed Heater
         icon: mdi:radiator-off
+    fake_central_boiler_switch:
+        name: Fake Central Boiler Switch
+        icon: mdi:water-boiler
 
 climate:
     - platform: generic_thermostat
@@ -242,11 +251,15 @@ climate:
       heater: input_boolean.fake_valve_sonoff_trvzb1
       target_sensor: input_number.fake_temperature_sensor1
       ac_mode: false
+      target_temp_step: 0.1
+      precision: 0.1
     - platform: generic_thermostat
       name: Underlying Sonoff TRVZB2
       heater: input_boolean.fake_valve_sonoff_trvzb2
       target_sensor: input_number.fake_temperature_sensor1
       ac_mode: false
+      target_temp_step: 0.1
+      precision: 0.1
     - platform: generic_thermostat
       name: Underlying switch climate
       heater: input_boolean.fake_heater_switch2

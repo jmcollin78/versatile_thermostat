@@ -49,6 +49,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
         self._min_opening_degress: list[int] = []
+        self._max_closing_degree: int = 100
+        self._opening_threshold_degree: int = 0
         # if mode sleep is activated, the valve is fully open but the hvac_mode is off
         self._is_sleeping: bool = False
 
@@ -90,8 +92,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
-        max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
-        opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
+        self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
+        self._opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
         regulation_threshold = config_entry.get(CONF_AUTO_REGULATION_DTEMP, 0)
 
         self._min_opening_degrees = config_entry.get(CONF_MIN_OPENING_DEGREES, None)
@@ -106,7 +108,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             # number of opening should equal number of underlying
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
-            real_opening_threshold = max(opening_threshold_degree, regulation_threshold)
+            self._opening_threshold_degree = max(self._opening_threshold_degree, regulation_threshold)
 
             under = UnderlyingValveRegulation(
                 hass=self._hass,
@@ -116,8 +118,8 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
-                max_closing_degree=max_closing_degree,
-                opening_threshold=real_opening_threshold,
+                max_closing_degree=self._max_closing_degree,
+                opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
 
@@ -135,8 +137,26 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Custom attributes"""
         super().update_custom_attributes()
 
+        valve_attributes = {}
+        for under in self._underlyings_valve_regulation:
+            valve_attributes.update(
+                {
+                    under.entity_id: {
+                        "hvac_action": under.hvac_action,
+                        "percent_open": under.percent_open,
+                        "last_sent_opening_value": under.last_sent_opening_value,
+                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
+                        "min_offset_calibration": under._min_offset_calibration,  # pylint: disable=protected-access
+                        "max_offset_calibration": under._max_offset_calibration,  # pylint: disable=protected-access
+                        "step_calibration": under._step_calibration,  # pylint: disable=protected-access
+                        "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
+                    }
+                }
+            )
+
         self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
         self._attr_extra_state_attributes["power_percent"] = self.power_percent
+        self._attr_extra_state_attributes["on_percent"] = self._prop_algorithm.on_percent
         self._attr_extra_state_attributes.update(
             {
                 "vtherm_over_climate_valve": {
@@ -149,11 +169,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                         "tpi_coef_int": self._tpi_coef_int,
                         "tpi_coef_ext": self._tpi_coef_ext,
                         "min_opening_degrees": self._min_opening_degrees,
+                        "opening_threshold_degree": self._opening_threshold_degree,
+                        "max_closing_degree": self._max_closing_degree,
                         "valve_open_percent": self.valve_open_percent,
                         "auto_regulation_dpercent": self._auto_regulation_dpercent,
                         "auto_regulation_period_min": self._auto_regulation_period_min,
                         "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),
                     },
+                    "underlying_valves": valve_attributes,
                 }
             }
         )
@@ -170,7 +193,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self.stop_recalculate_later()
 
-        # TODO this is exactly the same method as the thermostat_valve recalculate. Put that in common
         if self._is_sleeping:
             self._valve_open_percent = 100
             return
@@ -344,17 +366,17 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """A hack to overrides the state from underlyings"""
         if self._is_sleeping:
             return False
-        else:
-            return self.valve_open_percent > 0
+
+        for under in self._underlyings_valve_regulation:
+            if under.is_device_active:
+                return True
+        return False
 
     @property
     def device_actives(self) -> int:
         """Calculate the number of active devices"""
         if self.is_device_active:
-            return [
-                under.opening_degree_entity_id
-                for under in self._underlyings_valve_regulation
-            ]
+            return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
         else:
             return []
 
