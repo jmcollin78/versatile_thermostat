@@ -788,12 +788,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             changes = True
 
         # try to manage new target temperature set if state if no other changes have been found
-        # and if a target temperature have already been sent
-        if (
-            self._follow_underlying_temp_change
-            and not changes
-            and under.last_sent_temperature is not None
-        ):
+        # and if a target temperature have already been sent and if the VTherm is on
+        if self._follow_underlying_temp_change and not changes and under.last_sent_temperature is not None and self.vtherm_hvac_mode != VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
                 self,
