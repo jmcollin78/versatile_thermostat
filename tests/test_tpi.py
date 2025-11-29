@@ -2,7 +2,8 @@
 
 import pytest
 
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
+from homeassistant.exceptions import ServiceValidationError
+
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm, PROPORTIONAL_FUNCTION_TPI
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -655,7 +656,7 @@ async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: Home
             )
             await hass.async_block_till_done()
 
-        except ValueError as e:
+        except ServiceValidationError as e:
             # This is also acceptable - if the service tries to access
             # prop_algorithm attributes that don't exist
             assert "No TPI algorithm configured for this thermostat" in str(e)
