@@ -15,7 +15,7 @@ about: Create a report to help us improve
 
 If you have a simple question or you are not sure this is an issue, don't open an issue but open a new discussion [here](https://github.com/jmcollin78/versatile_thermostat/discussions).
 
-Check also in the [Troubleshooting] paragrah of the README if the aswer is not already given.
+Check also in the [Troubleshooting](../../documentation/en/troubleshooting.md) page of the README if the aswer is not already given.
 
 Issues not containing the minimum requirements will be closed:
 
@@ -34,6 +34,7 @@ If you are unsure about the version check the manifest.json file.
 <!-- Copy / paste the attributes of the VTherm here. You can go to Development Tool / States, find and select your VTherm and the copy/paste the attributes. Surround these attributes by a yaml formatting ```yaml <put the attributes> .... ```
 Without these attribute support is impossible due to the number of configuration attributes the VTherm have (more than 60). -->
 
+<!-- replace with yours -->
 My VTherm attributes are the following:
 ```yaml
 hvac_modes:
@@ -109,7 +110,7 @@ friendly_name: Thermostat switch 1
 supported_features: 17
 ```
 
-<!-- Please do not send an image but a copy / paste of the attributes in yaml format. -->
+<!-- Please do not send an image but a copy / paste of the attributes in yaml format. Format this piece of text with the </> button -->
 
 ## If it is releveant to regulation performance or optimisation some curves are needed
 To have a great curves demonstrating what you think is a problem, please install and configure what is described here: [Even better with Plotly to tune your Thermostat](#even-better-with-plotly-to-tune-your-thermostat)
@@ -118,7 +119,7 @@ To have a great curves demonstrating what you think is a problem, please install
 A clear and concise description of what the bug is.
 
 I'm trying to:
-<!-- compleete the description -->
+<!-- complete the description -->
 
 And I expect:
 <!-- complete the expectations -->
@@ -126,7 +127,7 @@ And I expect:
 But I observe this ....
 <!-- complete what you observe and why you think it is erroneous. -->
 
-I read the documentation on the README.md file and I don't find any relevant information about this issue.
+I read the documentation on the README.md and specially the [Troubleshooting](../../documentation/en/troubleshooting.md) page and I don't find any relevant information about this issue.
 
 
 ## Debug log
