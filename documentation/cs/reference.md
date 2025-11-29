@@ -281,7 +281,7 @@ Vlastní atributy jsou následující:
 | ``safety_default_on_percent``      | Procento vytápění používané při bezpečnostním režimu termostatu                                                        |
 | ``last_temperature_datetime``      | Datum a čas v ISO8866 formátu posledního přijetí vnitřní teploty                                                       |
 | ``last_ext_temperature_datetime``  | Datum a čas v ISO8866 formátu posledního přijetí vnější teploty                                                        |
-| ``security_state``                 | Bezpečnostní stav. True nebo false                                                                                     |
+| ``safety_state``                   | Bezpečnostní stav. True nebo false                                                                                     |
 | ``minimal_activation_delay_sec``   | Minimální doba aktivace v sekundách                                                                                    |
 | ``minimal_deactivation_delay_sec`` | Minimální doba deaktivace v sekundách                                                                                  |
 | ``last_update_datetime``           | Datum a čas v ISO8866 formátu tohoto stavu                                                                             |

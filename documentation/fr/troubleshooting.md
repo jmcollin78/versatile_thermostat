@@ -159,7 +159,7 @@ Vous pouvez aussi vérifier dans les attributs du _VTherm_ les dates de récepti
 Exemple :
 
 ```yaml
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -168,7 +168,7 @@ safety_delay_min: 60
 ```
 
 On voit que :
-1. le _VTherm_ est bien en mode sécurité (`security_state: true`),
+1. le _VTherm_ est bien en mode sécurité (`safety_state: true`),
 2. l'heure courante est le 06/12/2023 à 18h43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. l'heure de dernière réception de la température intérieure est le 06/12/2023 à 18h43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). Elle est donc récente,
 4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`safety_delay_min: 60`).
@@ -185,6 +185,7 @@ Cela va dépendre de la cause du problème :
 3. Certains capteurs de température, n'envoie pas de mesure si la température n'a pas changée. Donc en cas de température très stable pendant longtemps, le mode sécurité peut se déclencher. Ce n'est pas très grave puisqu'il s'enlève dès que le _VTherm_ reçoit à nouveau une température. Sur certain thermomètre (Tuya par exemple ou Zigbee), on peut forcer le délai max entre 2 mesures. Il conviendra de mettre un délai max < `safety_delay_min`,
 4. Dès que la température sera a nouveau reçue le mode sécurité s'enlèvera et les valeurs précédentes de preset, température cible et mode seront restaurées.
 5. Si c'est le capteur de température extérieur qui est en défaut, vous pouvez désactiver le déclenchement du mode sécurité puisqu'il influe assez peu sur le résultat. Pour ce faire, cf. [ici](feature-advanced.md#la-mise-en-sécurité)
+6. certains capteurs Zigbee possède une entité nommée Last Seen. Elles sont souvent masquées et nécessite d'être activée pour être utilisable. Une fois activée, vous pouvez la paramétrer dans l'écran de configuration principal du VTherm. Cf. [écran de configuration principal](base-attributes.md#choix-des-attributs-de-base).
 
 ## Utilisation d'un groupe de personnes comme capteur de présence
 

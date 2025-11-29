@@ -77,7 +77,7 @@ safety_min_on_percent: 0.5
 safety_default_on_percent: 0.1
 last_temperature_datetime: '2023-11-05T00:48:54.873157+01:00'
 last_ext_temperature_datetime: '2023-11-05T00:48:53.240122+01:00'
-security_state: true
+safety_state: true
 minimal_activation_delay_sec: 1
 device_power: 300
 mean_cycle_power: 30
