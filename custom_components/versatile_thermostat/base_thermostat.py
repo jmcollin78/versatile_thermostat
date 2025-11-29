@@ -7,6 +7,7 @@ import logging
 from typing import Any, Generic
 from collections.abc import Callable
 
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.core import (
     HomeAssistant,
     callback,
@@ -1880,14 +1881,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         )
 
         if self._prop_algorithm is None:
-            raise ValueError(f"{self} - No TPI algorithm configured for this thermostat.")
+            raise ServiceValidationError(f"{self} - No TPI algorithm configured for this thermostat.")
 
         entry = self.hass.config_entries.async_get_entry(self._unique_id)
         if not entry:
-            raise ValueError(f"{self} - No config entry has been found for this thermostat.")
+            raise ServiceValidationError(f"{self} - No config entry has been found for this thermostat.")
 
-        if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIGURATION, False):
-            raise ValueError(f"{self} - Impossible to set TPI parameters when using central TPI configuration.")
+        if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, False):
+            raise ServiceValidationError(f"{self} - Impossible to set TPI parameters when using central TPI configuration.")
 
         self._prop_algorithm.update_parameters(
             tpi_coef_int,

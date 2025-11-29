@@ -8,6 +8,7 @@
   - [Ändern der Voreinstellungstemperatur](#ändern-der-voreinstellungstemperatur)
   - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
   - [ByPass Fensterprüfung](#bypass-fensterprüfung)
+  - [Change TPI Parameters](#change-tpi-parameters)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
 - [State messages](#state-messages)
@@ -197,11 +198,31 @@ target:
     entity_id : climate.my_thermostat
 ```
 
+## Change TPI Parameters
+All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+
+Each parameter is optional. If it is not provided its current value is kept.
+
+To change the TPI parameters use the following code:
+
+```
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
+```
+
 # Ereignisse
 Wichtige Ereignisse des Thermostats werden über den Nachrichtenbus gemeldet.
 Es werden folgende Ereignisse gemeldet:
 
-- ``versatile_thermostat_security_event``: Ein Thermostat wechselt in den voreingestellten Modus ``security`` oder verlässt diesen.
+- ``versatile_thermostat_safety_event``: Ein Thermostat wechselt in den voreingestellten Modus ``security`` oder verlässt diesen.
 - ``versatile_thermostat_power_event``: Ein Thermostat erreicht oder unterschreitet den  ``power``-Sollwert
 - ``versatile_thermostat_temperature_event``: Eine oder beide Temperaturmessungen eines Thermostats wurden seit mehr als ``safety_delay_min`` Minuten nicht aktualisiert.
 - ``versatile_thermostat_hvac_mode_event``: Der Thermostat ist ein- oder ausgeschaltet. Dieses Ereignis wird auch beim Start des Thermostats übertragen.
