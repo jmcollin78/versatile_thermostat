@@ -11,15 +11,15 @@
     - [Typ `over_climate`](#typ-over_climate)
   - [Einstellen der Parameter für die Erkennung von offenen Fenstern im Automodus](#einstellen-der-parameter-für-die-erkennung-von-offenen-fenstern-im-automodus)
   - [Warum geht mein Versatile Thermostat in den Sicherheitsmodus?](#warum-geht-mein-versatile-thermostat-in-den-sicherheitsmodus)
-    - [Wie wird der Sicherheitsmodus erkannt?](#wie-wird-der-sicherheitsmodus-erkannt?)
+    - [Wie wird der Sicherheitsmodus erkannt?](#wie-wird-der-sicherheitsmodus-erkannt)
     - [Wie kann ich benachrichtigt werden, wenn dies geschieht?](#wie-kann-ich-benachrichtigt-werden-wenn-dies-geschieht)
     - [Wie kann man das beheben?](#wie-kann-man-das-beheben)
   - [Eine Personengruppe als Anwesenheitssensor verwenden](#eine-personengruppe-als-anwesenheitssensor-verwenden)
   - [Aktivieren von Protokollen für das Versatile Thermostat](#aktivieren-von-protokollen-für-das-versatile-thermostat)
   - [VTherm verfolgt keine Sollwertänderungen, die direkt am zugehörigen Gerät vorgenommen werden (`over_climate`)](#vtherm-verfolgt-keine-sollwertänderungen-die-direkt-am-zugehörigen-gerät-vorgenommen-werden-over_climate)
   - [VTherm schaltet automatisch in den Modus 'Kühlen' oder 'Heizen' um](#vtherm-schaltet-automatisch-in-den-modus-kühlen-oder-heizen-um)
-  - [Erkennung von offenen Fenstern verhindert keine Änderungen der Voreinstellungen](#Erkennung-von-offenen-Fenstern-verhindert-keine-Änderungen-der-Voreinstellungen)
-    - [Beispiel:](#Beispiel)
+  - [Erkennung von offenen Fenstern verhindert keine Änderungen der Voreinstellungen](#erkennung-von-offenen-fenstern-verhindert-keine-änderungen-der-voreinstellungen)
+    - [Beispiel:](#beispiel)
 
 
 ## Verwendung eines Heatzy
@@ -171,7 +171,7 @@ Sie können auch die Attribute von VTherm auf die Daten der letzten empfangenen 
 Beispiel:
 
 ```yaml
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -180,7 +180,7 @@ safety_delay_min: 60
 ```
 
 Das können wir sehen:
-1. Das VTherm befindet sich tatsächlich im Sicherheitsmodus (`security_state: true`),
+1. Das VTherm befindet sich tatsächlich im Sicherheitsmodus (`safety_state: true`),
 2. Die aktuelle Zeit ist der 12.06.2023 um 18:43:28 (`last_update_datetime: „2023-12-06T18:43:28.351103+01:00“`),
 3. Der letzte Empfangszeitpunkt der Raumtemperatur ist der 12.06.2023 um 18:43:28 (`last_temperature_datetime: „2023-12-06T18:43:28.346010+01:00“`), sie ist also aktuell,
 4. Der letzte Empfangszeitpunkt der Außentemperatur ist der 12.06.2023 um 13:04:35 (`last_ext_temperature_datetime: „2023-12-06T13:04:35.164367+01:00“`). Die Außentemperatur ist mehr als 5 Stunden zu spät, was den Sicherheitsmodus auslöst, da der Schwellenwert auf 60 Minuten eingestellt ist (`safety_delay_min: 60`).
@@ -197,6 +197,8 @@ Das hängt von der Ursache des Problems ab:
 3. Einige Temperatursensoren senden keine Messungen, wenn sich die Temperatur nicht geändert hat. Wenn also die Temperatur lange Zeit sehr stabil bleibt, kann der Sicherheitsmodus ausgelöst werden. Dies ist kein großes Problem, da er deaktiviert wird, sobald das VTherm eine neue Temperatur empfängt. Bei einigen Thermometern (z. B. TuYA oder Zigbee) können Sie eine maximale Verzögerung zwischen zwei Messungen erzwingen. Die maximale Verzögerung sollte auf einen Wert gesetzt werden, der kleiner ist als `safety_delay_min`,
 4. Sobald die Temperatur wieder empfangen wird, schaltet sich der Sicherheitsmodus aus, und die vorherigen Werte für Voreinstellung, Zieltemperatur und Modus werden wiederhergestellt.
 5. Wenn der externe Temperatursensor defekt ist, können Sie die Auslösung des Sicherheitsmodus deaktivieren, da er nur minimale Auswirkungen auf die Ergebnisse hat. Siehe dazu [hier](feature-advanced.md#safety-mode).
+6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
+
 
 ## Eine Personengruppe als Anwesenheitssensor verwenden
 

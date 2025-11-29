@@ -39,7 +39,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 > ⚠️ **Warning**
 >
 > This major release includes breaking changes from the previous version:
-> - `versatile_thermostat_security_event` has been renamed to `versatile_thermostat_safety_event`. If your automations use this event, you must update them,
+> - `versatile_thermostat_safety_event` has been renamed to `versatile_thermostat_safety_event`. If your automations use this event, you must update them,
 > - custom attributes have been reorganized. You must update your automations or Jinja templates that use them,
 > - the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) must be updated to at least V2.0 to be compatible,
 >

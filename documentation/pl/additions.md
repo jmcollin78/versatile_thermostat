@@ -137,8 +137,8 @@ alias: Monitorowanie trybu bezpiecznego ogrzewania
 description: Wysyłanie powiadomienia, gdy termostat przejdzie w tryb bezpieczny
 trigger:
   - platform: event
-    event_type: versatile_thermostat_security_event
-    id: versatile_thermostat_security_event
+    event_type: versatile_thermostat_safety_event
+    id: versatile_thermostat_safety_event
   - platform: event
     event_type: versatile_thermostat_power_event
     id: versatile_thermostat_power_event
@@ -150,7 +150,7 @@ action:
   - choose:
       - conditions:
           - condition: trigger
-            id: versatile_thermostat_security_event
+            id: versatile_thermostat_safety_event
         sequence:
           - event: NOTIFIER
             event_data:
