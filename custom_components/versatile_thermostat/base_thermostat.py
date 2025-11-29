@@ -198,6 +198,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
+        self._tpi_coef_int: float = 0
+        self._tpi_coef_ext: float = 0
+        self._minimal_activation_delay: int = 0
+        self._minimal_deactivation_delay: int = 0
+        self._tpi_threshold_low: float = 0
+        self._tpi_threshold_high: float = 0
+
         self.post_init(entry_infos)
 
     def register_manager(self, manager: BaseFeatureManager):
@@ -1288,8 +1295,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if preset.startswith(self.preset_mode):
             self.requested_state.force_changed()
             await self.update_states(force=True)
-            # await self.async_set_preset_mode_internal(preset.rstrip(PRESET_AC_SUFFIX))
-            # await self.async_control_heating(force=True)
 
     ##
     ## Calculation and utility functions
@@ -1841,6 +1846,76 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         raise NotImplementedError("service_set_hva_mode_sleep not implemented for this kind of thermostat. Only for over_climate with valve regulation is supported")
+
+    async def service_set_tpi_parameters(
+        self,
+        tpi_coef_int: float | None = None,
+        tpi_coef_ext: float | None = None,
+        minimal_activation_delay: int | None = None,
+        minimal_deactivation_delay: int | None = None,
+        tpi_threshold_low: float | None = None,
+        tpi_threshold_high: float | None = None,
+    ):
+        """Called by a service call:
+        service: versatile_thermostat.set_tpi_parameters
+        data:
+            tpi_coef_int: 0.6
+            tpi_coef_ext: 0.01
+            minimal_activation_delay: 30
+            minimal_deactivation_delay: 30
+            tpi_threshold_low: 0.1
+            tpi_threshold_high: 0.9
+        target:
+            entity_id: climate.thermostat_1
+        """
+        write_event_log(
+            _LOGGER,
+            self,
+            f"Calling SERVICE_SET_TPI_PARAMETERS, tpi_coef_int: {tpi_coef_int}, "
+            f"tpi_coef_ext: {tpi_coef_ext}"
+            f"minimal_activation_delay: {minimal_activation_delay}, "
+            f"minimal_deactivation_delay: {minimal_deactivation_delay}, "
+            f"tpi_threshold_low: {tpi_threshold_low}, "
+            f"tpi_threshold_high: {tpi_threshold_high}",
+        )
+
+        if self._prop_algorithm is None:
+            raise ValueError(f"{self} - No TPI algorithm configured for this thermostat.")
+
+        entry = self.hass.config_entries.async_get_entry(self._unique_id)
+        if not entry:
+            raise ValueError(f"{self} - No config entry has been found for this thermostat.")
+
+        if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIGURATION, False):
+            raise ValueError(f"{self} - Impossible to set TPI parameters when using central TPI configuration.")
+
+        self._prop_algorithm.update_parameters(
+            tpi_coef_int,
+            tpi_coef_ext,
+            minimal_activation_delay,
+            minimal_deactivation_delay,
+            tpi_threshold_low,
+            tpi_threshold_high,
+        )
+        self._tpi_coef_int = self._prop_algorithm.tpi_coef_int
+        self._tpi_coef_ext = self._prop_algorithm.tpi_coef_ext
+        self._minimal_activation_delay = self._prop_algorithm.minimal_activation_delay
+        self._minimal_deactivation_delay = self._prop_algorithm.minimal_deactivation_delay
+        self._tpi_threshold_low = self._prop_algorithm.tpi_threshold_low
+        self._tpi_threshold_high = self._prop_algorithm.tpi_threshold_high
+
+        # Update the configuration attributes
+        data = {**entry.data, CONF_TPI_COEF_INT: self._tpi_coef_int}
+        data = {**data, CONF_TPI_COEF_EXT: self._tpi_coef_ext}
+        data = {**data, CONF_TPI_THRESHOLD_LOW: self._tpi_threshold_low}
+        data = {**data, CONF_TPI_THRESHOLD_HIGH: self._tpi_threshold_high}
+        data = {**data, CONF_MINIMAL_ACTIVATION_DELAY: self._minimal_activation_delay}
+        data = {**data, CONF_MINIMAL_DEACTIVATION_DELAY: self._minimal_deactivation_delay}
+
+        self.hass.config_entries.async_update_entry(entry, data=data)
+
+        self.recalculate()
+        await self.async_control_heating(force=True)
 
     ##
     ## For testing purpose
