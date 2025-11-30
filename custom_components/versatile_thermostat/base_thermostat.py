@@ -114,6 +114,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._prop_algorithm = None
         self._async_cancel_cycle = None
 
+        # Callbacks for TPI cycle events
+        self._on_cycle_start_callbacks: list[Callable] = []
+        self._on_cycle_end_callbacks: list[Callable] = []
+
         self._state_manager = StateManager()
         # self._hvac_mode = None
         # self._target_temp = None
@@ -466,6 +470,28 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         for under in self._underlyings:
             under.remove_entity()
+
+    def register_cycle_callback(
+        self,
+        on_start: Callable | None = None,
+        on_end: Callable | None = None,
+    ):
+        """Register callbacks for TPI cycle events.
+
+        Args:
+            on_start: Callback called at the start of each TPI cycle
+                      Signature: async def callback(on_time_sec, off_time_sec, on_percent, hvac_mode)
+            on_end: Callback called at the end of each TPI cycle
+                    Signature: async def callback(on_time_sec, off_time_sec, hvac_mode)
+        """
+        if on_start:
+            self._on_cycle_start_callbacks.append(on_start)
+            _LOGGER.debug("%s - Registered cycle start callback: %s", self, on_start)
+
+        if on_end:
+            self._on_cycle_end_callbacks.append(on_end)
+            _LOGGER.debug("%s - Registered cycle end callback: %s", self, on_end)
+
 
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""

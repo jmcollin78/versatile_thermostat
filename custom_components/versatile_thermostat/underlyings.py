@@ -424,6 +424,23 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         # If we should heat, starts the cycle with delay
         if self._hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL] and on_time_sec > 0:
+            # Trigger cycle start callbacks
+            for callback in self._thermostat._on_cycle_start_callbacks:
+                try:
+                    await callback(
+                        on_time_sec=on_time_sec,
+                        off_time_sec=off_time_sec,
+                        on_percent=on_percent,
+                        hvac_mode=hvac_mode,
+                    )
+                except Exception as ex:
+                    _LOGGER.warning(
+                        "%s - Error calling cycle start callback %s: %s",
+                        self,
+                        callback,
+                        ex,
+                    )
+
             # Starts the cycle after the initial delay
             self._async_cancel_cycle = self.call_later(
                 self._hass, self._initial_delay_sec, self._turn_on_later
@@ -527,6 +544,22 @@ class UnderlyingSwitch(UnderlyingEntity):
             time,
             self._turn_on_later,
         )
+
+        # Trigger cycle end callbacks before incrementing energy
+        for callback in self._thermostat._on_cycle_end_callbacks:
+            try:
+                await callback(
+                    on_time_sec=self._on_time_sec,
+                    off_time_sec=self._off_time_sec,
+                    hvac_mode=self._hvac_mode,
+                )
+            except Exception as ex:
+                _LOGGER.warning(
+                    "%s - Error calling cycle end callback %s: %s",
+                    self,
+                    callback,
+                    ex,
+                )
 
         # increment energy at the end of the cycle
         self._thermostat.incremente_energy()
