@@ -1233,6 +1233,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ## Entry events (from linked devices or users)
     ##
 
+    @staticmethod
     def check_lock(func):
         """Decorator to check if the thermostat is locked."""
         async def wrapper(self, *args, **kwargs):
