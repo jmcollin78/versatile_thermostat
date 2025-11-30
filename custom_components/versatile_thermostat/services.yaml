@@ -143,12 +143,6 @@ set_hvac_mode_sleep:
 lock:
     name: Lock
     description: "Locks the thermostat, preventing any changes to its configuration from UI or automations."
-set_tpi_parameters:
-    name: Set TPI parameters
-    description: Change the TPI parameters
-    target:
-        entity:
-            integration: versatile_thermostat
     fields:
         code:
             name: Lock code
@@ -176,6 +170,14 @@ unlock:
             selector:
                 text:
                     type: password
+
+set_tpi_parameters:
+    name: Set TPI parameters
+    description: Change the TPI parameters
+    target:
+        entity:
+            integration: versatile_thermostat
+    fields:
         tpi_coef_int:
             name: Coef Int
             description: Coefficient Integral
