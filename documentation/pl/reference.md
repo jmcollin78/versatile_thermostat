@@ -8,6 +8,7 @@
   - [Modyfikacja presetów temperatury](#modify-the-preset-temperature)
   - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
   - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
+  - [Zmiana parametrów TPI](#change-tpi-parameters)
 - [Zdarzenia](#events)
 - [Atrybuty własne](#custom-attributes)
 
@@ -195,6 +196,26 @@ data:
     bypass: true
 target:
     entity_id: climate.my_thermostat
+```
+
+## Zmiana parametrów TPI
+Wszystkie konfigurowalne parametry TPI mogą być modyfikowane poprzez wywołanie akcji (usługi): `versatile_thermostat.set_tpi_parameters`. Zmiany te są trwałe i pozostają zachowane także po ponownym uruchomieniu. Są one stosowane niezwłocznie, a aktualizacja termostatu jest wykonywana natychmiast, w chwili zmiany wartości któregokolwiek z tych parametrów.
+
+Każdy parametr jest opcjonalny. Jeśli któryś z parametrów nie zostanie podany, zachowywana jest jego dotychczasowa wartość.
+
+Oto przykładowy kod zmiany parametrów TPI za pomoca wspomnianej akcji (usługi):
+
+```yaml
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
 ```
 
 # Zdarzenia
