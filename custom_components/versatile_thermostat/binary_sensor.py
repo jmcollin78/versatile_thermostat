@@ -100,7 +100,7 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Initialize the SecurityState Binary sensor"""
         super().__init__(hass, unique_id, name)
         self._attr_name = "Security state"
-        self._attr_unique_id = f"{self._device_name}_safety_state"
+        self._attr_unique_id = f"{unique_id}_safety_state"
         self._attr_is_on = False
 
     @callback
@@ -139,7 +139,7 @@ class OverpoweringBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
         """Initialize the OverpoweringState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Overpowering state"
-        self._attr_unique_id = f"{self._device_name}_overpowering_state"
+        self._attr_unique_id = f"{unique_id}_overpowering_state"
         self._attr_is_on = False
 
     @callback
@@ -178,7 +178,7 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Initialize the WindowState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window state"
-        self._attr_unique_id = f"{self._device_name}_window_state"
+        self._attr_unique_id = f"{unique_id}_window_state"
         self._attr_is_on = False
 
     @callback
@@ -228,7 +228,7 @@ class MotionBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Initialize the MotionState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Motion state"
-        self._attr_unique_id = f"{self._device_name}_motion_state"
+        self._attr_unique_id = f"{unique_id}_motion_state"
         self._attr_is_on = False
 
     @callback
@@ -268,7 +268,7 @@ class PresenceBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Initialize the PresenceState Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Presence state"
-        self._attr_unique_id = f"{self._device_name}_presence_state"
+        self._attr_unique_id = f"{unique_id}_presence_state"
         self._attr_is_on = False
 
     @callback
@@ -309,7 +309,7 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
         """Initialize the WindowByPass Binary sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Window bypass"
-        self._attr_unique_id = f"{self._device_name}_window_bypass_state"
+        self._attr_unique_id = f"{unique_id}_window_bypass_state"
         self._attr_is_on = False
 
     @callback

@@ -128,7 +128,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Energy"
-        self._attr_unique_id = f"{self._device_name}_energy"
+        self._attr_unique_id = f"{unique_id}_energy"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -183,7 +183,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Mean power cycle"
-        self._attr_unique_id = f"{self._device_name}_mean_power_cycle"
+        self._attr_unique_id = f"{unique_id}_mean_power_cycle"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -241,7 +241,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Power percent"
-        self._attr_unique_id = f"{self._device_name}_power_percent"
+        self._attr_unique_id = f"{unique_id}_power_percent"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -296,7 +296,7 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Valve open percent"
-        self._attr_unique_id = f"{self._device_name}_valve_open_percent"
+        self._attr_unique_id = f"{unique_id}_valve_open_percent"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -342,7 +342,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "On time"
-        self._attr_unique_id = f"{self._device_name}_on_time"
+        self._attr_unique_id = f"{unique_id}_on_time"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -391,7 +391,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Off time"
-        self._attr_unique_id = f"{self._device_name}_off_time"
+        self._attr_unique_id = f"{unique_id}_off_time"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -440,7 +440,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last temperature date"
         self._attr_entity_registry_enabled_default = False
-        self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
+        self._attr_unique_id = f"{unique_id}_last_temp_datetime"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -470,7 +470,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last external temperature date"
         self._attr_entity_registry_enabled_default = False
-        self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
+        self._attr_unique_id = f"{unique_id}_last_ext_temp_datetime"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -499,7 +499,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the slope sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Temperature slope"
-        self._attr_unique_id = f"{self._device_name}_temperature_slope"
+        self._attr_unique_id = f"{unique_id}_temperature_slope"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -552,7 +552,7 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Regulated temperature"
-        self._attr_unique_id = f"{self._device_name}_regulated_temperature"
+        self._attr_unique_id = f"{unique_id}_regulated_temperature"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -603,7 +603,7 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "EMA temperature"
-        self._attr_unique_id = f"{self._device_name}_ema_temperature"
+        self._attr_unique_id = f"{unique_id}_ema_temperature"
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
