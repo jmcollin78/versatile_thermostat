@@ -155,7 +155,7 @@ class VersatileThermostatAPI(dict):
         if not self._number_temperatures.get(config_id):
             self._number_temperatures[config_id] = dict()
 
-        self._number_temperatures.get(config_id)[preset_name] = number_entity
+        self._number_temperatures[config_id][preset_name] = number_entity
 
     def get_temperature_number_value(self, config_id, preset_name) -> float | None:
         """Returns the value of a previously registred NumberEntity which represent
@@ -183,12 +183,12 @@ class VersatileThermostatAPI(dict):
             for entity in component.entities:
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
-                if (
-                    entity.device_info
-                    and entity.device_info.get("model", None) == DOMAIN
-                ):
-                    if entry_id is None or entry_id == entity.unique_id:
-                        await entity.async_startup(self.find_central_configuration())
+                try:
+                    if entity.device_info and entity.device_info.get("model", None) == DOMAIN:
+                        if entry_id is None or entry_id == entity.unique_id:
+                            await entity.async_startup(self.find_central_configuration())  # pyright: ignore[reportAttributeAccessIssue]
+                except Exception as e:  # pylint: disable=broad-except
+                    _LOGGER.error("Error searching/initializing entity %s: %s", entity.entity_id, e)
 
         # start listening for the central power manager if not only one vtherm reload
         if not entry_id:
@@ -202,12 +202,10 @@ class VersatileThermostatAPI(dict):
         )
         if component:
             for entity in component.entities:
-                if (
-                    entity.device_info
-                    and entity.device_info.get("model", None) == DOMAIN
-                    and entity.use_central_config_temperature
-                ):
-                    await entity.init_presets(self.find_central_configuration())
+                if entity.device_info and entity.device_info.get("model", None) == DOMAIN and entity.use_central_config_temperature:  # pyright: ignore[reportAttributeAccessIssue]
+                    await entity.init_presets(self.find_central_configuration())  # pyright: ignore[reportAttributeAccessIssue]
+                    entity.requested_state.force_changed()  # pyright: ignore[reportAttributeAccessIssue]
+                    await entity.update_states(True)  # pyright: ignore[reportAttributeAccessIssue]
 
     async def reload_central_boiler_binary_listener(self):
         """Reloads the BinarySensor entity which listen to the number of

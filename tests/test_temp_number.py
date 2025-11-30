@@ -977,6 +977,12 @@ async def test_change_vtherm_temperature(
         vtherm2.find_preset_temp(preset_name) == 15
     )  # 15 is the min temp which is the default
 
+    # 2. change the preset of the VTherms to Boost
+    await vtherm.async_set_preset_mode(VThermPreset.BOOST)
+    await vtherm2.async_set_preset_mode(VThermPreset.BOOST)
+    await wait_for_local_condition(lambda: vtherm.target_temperature == 19.1)
+    await wait_for_local_condition(lambda: vtherm2.target_temperature == 15)
+
     # 2. change the central_config temp Number entity value
     temp_entity = search_entity(
         hass,
@@ -998,6 +1004,10 @@ async def test_change_vtherm_temperature(
     assert (
         vtherm2.find_preset_temp(preset_name) == 15
     )  # 15 is the min temp which is the default
+
+    # the current target temp should change for vtherm 1 but not for vtherm2
+    await wait_for_local_condition(lambda: vtherm.target_temperature == 20.3)
+    await wait_for_local_condition(lambda: vtherm2.target_temperature == 15)
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])

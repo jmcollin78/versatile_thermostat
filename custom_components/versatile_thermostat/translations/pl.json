@@ -29,8 +29,23 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
+        }
+      },
+      "lock": {
+        "title": "Zarządzanie blokadą",
+        "description": "Funkcja blokady uniemożliwia modyfikacje termostatu z interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania termostatu.",
+        "data": {
+          "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+          "lock_code": "Opcjonalny PIN (4 cyfry)",
+          "lock_users": "Blokada uniemożliwi polecenia użytkowników",
+          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm",
+          "lock_code": "Kod PIN do odblokowania termostatu (4 cyfry)"
         }
       },
       "main": {
@@ -292,8 +307,21 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "lock": "Blokada",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
+        }
+      },
+      "lock": {
+        "title": "Zarządzanie blokadą - {name}",
+        "description": "Funkcja blokady zapobiega modyfikacjom termostatu z interfejsu użytkownika lub automatyzacji, jednocześnie utrzymując termostat w stanie pracy.",
+        "data": {
+          "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+          "lock_users": "Blokada uniemożliwi polecenia użytkowników",
+          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm"
         }
       },
       "main": {

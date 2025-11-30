@@ -26,6 +26,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
 
+## Release 8.2
+> - Ajout d'une fonction permettant de verrouiller / déverouiller un _VTherm_ avec potentiellement un code. Plus d'informations [ici](documentation/fr/feature-lock.md)
+
 ## Release 8.1
 > - Pour un VTherm de type `over_climate` avec régulation par contrôle direct de la vanne, deux nouveaux paramètres permettant un contrôle beaucoup plus fin du minimum d'ouverture de la vanne ont été ajoutés au paramètre existant `minimum_opening_degrees`. Les paramètres sont maintenant :
 >    - `opening_threshold` : l'ouverture minimale de la vanne en dessous de laquelle la vanne doit être considérée comme fermée, et par conséquent, le paramètre 'max_closing_degree' s'applique,
@@ -104,11 +107,13 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 16. [La commande du chauffage central](documentation/fr/feature-central-boiler.md)
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
-19. [Les différents algorithmes](documentation/fr/algorithms.md)
-20. [Documentation de référence](documentation/fr/reference.md)
-21. [Exemple de réglages](documentation/fr/tuning-examples.md)
-22. [Dépannage](documentation/fr/troubleshooting.md)
-23. [Notes de version](documentation/fr/releases.md)
+19. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
+20. [Exemple de réglages](documentation/fr/tuning-examples.md)
+21. [Les algorithmes](documentation/fr/algorithms.md)
+22. [Documentation de référence](documentation/fr/reference.md)
+23. [Exemples de réglages](documentation/fr/tuning-examples.md)
+24. [Dépannage](documentation/fr/troubleshooting.md)
+25. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 

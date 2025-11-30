@@ -1,25 +1,25 @@
 
 # Usuwanie problemów
 
-- [Usuwanie problemów](#troubleshooting)
-  - [System Heatzy](#using-a-heatzy)
-  - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
-  - [System Netatmo](#using-a-netatmo-system)
-  - [Gdy grzeje tylko pierwszy grzejnik](#only-the-first-radiator-heats)
-  - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
-    - [`Termostat na przełączniku` lub `termostat na zaworze`](#type-over_switch-or-over_valve)
-    - [`Termostat na klimacie`](#type-over_climate)
-  - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#adjust-the-window-open-detection-parameters-in-auto-mode)
-  - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#why-is-my-versatile-thermostat-going-into-safety-mode)
-    - [Jak wykryć tryb *bezpieczny*?](#how-to-detect-safety-mode)
-    - [Jak zostać powiadomionym o wystąpieniu takiej sytuacji?](#how-to-be-notified-when-this-happens)
-    - [Jak to naprawić?](#how-to-fix-it)
-  - [Grupa osób jako sensor obecności](#using-a-group-of-people-as-a-presence-sensor)
-  - [Aktywacja logów dla _*Versatile Thermostat*_](#enable-logs-for-the-versatile-thermostat)
-  - [_VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)](#vtherm-does-not-track-setpoint-changes-made-directly-on-the-underlying-device-over_climate)
-  - [ _VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`](#vtherm-automatically-switches-to-cooling-or-heating-mode)
-  - [Detekcja otwarcia okien nie zapobiega zmianom presetów](#open-window-detection-does-not-prevent-preset-changes)
-    - [Przykład pozornej niespójności](#example)
+- [Usuwanie problemów](#usuwanie-problemów)
+  - [System Heatzy](#system-heatzy)
+  - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#grzejnik-z-przewodem-sterującym-nodon-sin-4-fp-21)
+  - [System Netatmo](#system-netatmo)
+  - [Gdy grzeje tylko pierwszy grzejnik](#gdy-grzeje-tylko-pierwszy-grzejnik)
+  - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.](#grzejnik-grzeje-nawet-po-przekroczeniu-zadanej-temperatury-lub-nie-grzeje-gdy-temperatura-w-pomieszczeniu-jest-znacznie-niższa-od-zadanej)
+    - [`Termostat na przełączniku` lub `termostat na zaworze`](#termostat-na-przełączniku-lub-termostat-na-zaworze)
+    - [`Termostat na klimacie`](#termostat-na-klimacie)
+  - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#dostosowanie-parametrów-detekcji-otwarcia-okna-w-trybie-automatycznym)
+  - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#dlaczego-vtherm-przechodzi-w-tryb-bezpieczny)
+    - [Jak wykryć tryb *bezpieczny*?](#jak-wykryć-tryb-bezpieczny)
+    - [Jak zostać powiadomionym o wystąpieniu takiej sytuacji?](#jak-zostać-powiadomionym-o-wystąpieniu-takiej-sytuacji)
+    - [Jak to naprawić?](#jak-to-naprawić)
+  - [Grupa osób jako sensor obecności](#grupa-osób-jako-sensor-obecności)
+  - [Aktywacja logów dla _*Versatile Thermostat*_](#aktywacja-logów-dla-versatile-thermostat)
+  - [_VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)](#vtherm-nie-śledzi-zmian-wartości-zadanych-wprowadzanych-bezpośrednio-na-urządzeniu-bazowym-termostat-na-klimacie)
+  - [_VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`](#vtherm-automatycznie-przełącza-się-na-tryb-chłodzenie-lub-grzanie)
+  - [Detekcja otwarcia okien nie zapobiega zmianom presetów](#detekcja-otwarcia-okien-nie-zapobiega-zmianom-presetów)
+    - [Przykład pozornej niespójności](#przykład-pozornej-niespójności)
 
 
 ## System Heatzy
@@ -171,7 +171,7 @@ Można również sprawdzić atrybuty termostatu _VTherm_ pod kątem dat ostatnio
 Przykład:
 
 ```yaml
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -180,7 +180,7 @@ safety_delay_min: 60
 ```
 
 Widać z tego, że:
-1. Termostat jest rzeczywiście w trybie *bezpiecznym* (`security_state: true`),
+1. Termostat jest rzeczywiście w trybie *bezpiecznym* (`safety_state: true`),
 2. Aktualny czas to: *06/12/2023 godz. 18:43:28* (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. Czas ostatniego odczytu temperatury w pomieszczeniu to: *06/12/2023 godz. 18:43:28* (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), więc jest aktualny,
 4. Czas ostatniego odczytu temperatury zewnętrznej to: *06/12/2023 godz. 13:04:35* (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). Temperatura zewnętrzna została odczytana ponad 5 godzin później, niż temperatura w pomieszczeniu, co spowodowało załączenie trybu *bezpiecznego*, ponieważ próg załączenia tego trybu został ustawiony na 60 minut (`safety_delay_min: 60`).
@@ -197,6 +197,8 @@ Zależy to od przyczyny problemu:
 3. Niektóre czujniki temperatury nie wysyłają pomiarów, jeśli temperatura się nie zmieniła. Jeśli więc temperatura pozostaje bardzo stabilna przez długi czas, może uruchomić się tryb *bezpieczny*. Nie stanowi to dużego problemu, ponieważ zostanie on wyłączony, gdy _VTherm_ otrzyma nową temperaturę. W niektórych termometrach (np. TuYA lub Zigbee) można wymusić maksymalne opóźnienie między dwoma pomiarami. Maksymalne opóźnienie powinno być ustawione na wartość niższą, niż `safety_delay_min`.
 4. Gdy tylko temperatura zostanie ponownie odczytana, tryb *bezpieczny* wyłączy się, a poprzednie wartości zadane, temperatura docelowa i tryb zostaną przywrócone.
 5. Jeśli zewnętrzny czujnik temperatury jest uszkodzony, można wyłączyć wyzwalanie trybu *bezpiecznego*, ponieważ ma to minimalny wpływ na wyniki. Aby to zrobić, zajrzyj [tutaj](feature-advanced.md#safety-mode).
+6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
+
 
 ## Grupa osób jako sensor obecności
 

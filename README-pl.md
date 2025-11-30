@@ -26,6 +26,10 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 8.2
+> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/pl/feature-lock.md)
+
+
 ## Wydanie 8.1
 > - Dla `termostatu na klimacie` z bezpośrednim sterowaniem zaworem, do istniejącego już parametru `minimum_opening_degrees` dodano dwa nowe, następujące parametry:
 >    - `opening_threshold`: wartość otwarcia zaworu, poniżej której zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr `max_closing_degree`),
@@ -105,7 +109,8 @@ Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas
 16. [Sterowanie centralnym ogrzewaniem / kotłem](documentation/pl/feature-central-boiler.md)
 17. [Zaawansowane ustawienia, tryb bezpieczeństwa](documentation/pl/feature-advanced.md)
 18. [Samoregulacja](documentation/pl/self-regulation.md)
-19. [Algorytmy](documentation/pl/algorithms.md)
+19. [Funkcja blokady / odblokowania](documentation/pl/feature-lock.md)
+20. [Algorytmy](documentation/pl/algorithms.md)
 21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
 22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
 23. [Usuwanie problemów](documentation/pl/troubleshooting.md)

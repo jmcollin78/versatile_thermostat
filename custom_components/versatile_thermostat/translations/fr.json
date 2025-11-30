@@ -30,8 +30,22 @@
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
+          "lock": "Gestion du verrouilage",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
+        }
+      },
+      "lock": {
+        "title": "Gestion du verrouillage",
+        "description": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
+        "data": {
+          "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
+          "lock_code": "Code PIN optionnel (4 chiffres)",
+          "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm"
         }
       },
       "main": {
@@ -294,8 +308,22 @@
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
+          "lock": "Verrouillage",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
+        }
+      },
+      "lock": {
+        "title": "Gestion du verrouillage - {name}",
+        "description": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
+        "data": {
+          "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
+          "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
+          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)"
         }
       },
       "main": {

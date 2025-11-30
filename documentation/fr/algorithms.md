@@ -88,14 +88,15 @@ L'algorithme d'auto-régulation peut être synthétisé comme suit:
 ## L'algorithme de la fonction d'auto-start/stop
 
 L'algorithme utilisé dans la fonction d'auto-start/stop est le suivant :
-1. if enable aut-start/stop is off, stop here.
-2. If VTherm is on and in heating mode, when error_accumulated is < -error_threshold -> turn off and save hvac mode,
-3. If VTherm is on and in Cooling mode, when error_accumulated is > error_threshold -> turn off and save hvac mode,
-4. If VTherm is off and saved hvac mode is Heating and current_temperature + slope x dt <= target_temperature then turn on and set havc mode to the saved hvac_mode,
-5. If VTherm is off and saved hvac mode is Cooling and current_temperature + slope x dt >= target_temperature then turn on and set havc mode to the saved hvac_mode
-6. error_threshold is set to respectively 10 (° * min) in slow, 5 in medium and 2 in fast.
+1. Si `auto-start/stop` n'est pas activé, on s'arréte là.
+2. Si `VTherm` est allumé et en mode `Chauffage`, alors si `erreur_accumulée` < -`seuil_d_erreur` -> éteindre et sauver le mode `HVAC`,
+3. Si `VTherm` est allumé et en mode `Clim`, alors si `erreur_accumulée` > `seuil_d_erreur` -> éteindre et sauver le mode `HVAC`,
+4. Si `VTherm` est éteint et le mode `HVAC` sauvé est `Chauffage` et `temperature_actuel` + `pente` x `dt` <= `temperature_cible` alors on allume et sauver le mode `HVAC`,
+5. Si `VTherm` est éteint et le mode `HVAC` sauvé est `Clim` et `temperature_actuel` + `pente` x `dt` >= `temperature_cible` alors on allume et sauver le mode `HVAC`,
 
-dt is set to respectively 30 min in slow, 15 min in medium and 7 min in fast detection level.
+`seuil_d_erreur` est fixé à `10 (° * min)` en mode lent, `5` en mode moyen et `2` en mode rapide.
+
+`dt` est fixé à `30 min` en mode lent, `15` en mode moyen et `7` en mode rapide.
 
 La fonction est décrite dans le détail [ici](https://github.com/jmcollin78/versatile_thermostat/issues/585).
 

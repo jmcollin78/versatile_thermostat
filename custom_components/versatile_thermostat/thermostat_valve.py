@@ -141,6 +141,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         self._attr_extra_state_attributes.update(
             {
                 "is_over_valve": self.is_over_valve,
+                "on_percent": self._prop_algorithm.on_percent,
+                "power_percent": self.power_percent,
                 "vtherm_over_valve": {
                     "valve_open_percent": self.valve_open_percent,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
@@ -148,6 +150,10 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
                     "function": self._proportional_function,
                     "tpi_coef_int": self._tpi_coef_int,
                     "tpi_coef_ext": self._tpi_coef_ext,
+                    "tpi_threshold_low": self._tpi_threshold_low,
+                    "tpi_threshold_high": self._tpi_threshold_high,
+                    "minimal_activation_delay": self._minimal_activation_delay,
+                    "minimal_deactivation_delay": self._minimal_deactivation_delay,
                     "auto_regulation_dpercent": self._auto_regulation_dpercent,
                     "auto_regulation_period_min": self._auto_regulation_period_min,
                     "last_calculation_timestamp": (self._last_calculation_timestamp.astimezone(self._current_tz).isoformat() if self._last_calculation_timestamp else None),

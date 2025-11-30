@@ -788,12 +788,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             changes = True
 
         # try to manage new target temperature set if state if no other changes have been found
-        # and if a target temperature have already been sent
-        if (
-            self._follow_underlying_temp_change
-            and not changes
-            and under.last_sent_temperature is not None
-        ):
+        # and if a target temperature have already been sent and if the VTherm is on
+        if self._follow_underlying_temp_change and not changes and under.last_sent_temperature is not None and self.vtherm_hvac_mode != VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
                 self,
@@ -821,13 +817,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
-        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         # Check if we need to auto start/stop the Vtherm
         old_stop = self.auto_start_stop_manager.is_auto_stop_detected
         new_stop = await self.auto_start_stop_manager.refresh_state()
         if old_stop != new_stop:
             _LOGGER.info("%s - Auto stop state changed from %s to %s", self, old_stop, new_stop)
+            self.requested_state.force_changed()
             await self.update_states(force=True)
             return True
 
@@ -838,6 +834,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
             await self._send_auto_fan_mode()
+
+        ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
         return ret
 

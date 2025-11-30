@@ -332,8 +332,10 @@ class CentralConfigTemperatureNumber(
         # persist the value
         self.async_write_ha_state()
 
-        # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        api.register_temperature_number(self._config_id, self._preset_name, self)
+
+        # We have to reload all VTherm for which uses the central configuration
         # Update the VTherms which have temperature in central config
         self.hass.create_task(api.init_vtherm_preset_with_central())
 

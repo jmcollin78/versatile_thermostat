@@ -173,7 +173,7 @@ Vous pouvez aussi vérifier dans les attributs du VTherm les dates de réception
 
 Exemple :
 ```
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -182,7 +182,7 @@ safety_delay_min: 60
 ```
 
 On voit que :
-1. le VTherm est bien en mode sécurité (`security_state: true`),
+1. le VTherm est bien en mode sécurité (`safety_state: true`),
 2. l'heure courante est le 06/12/2023 à 18h43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. l'heure de dernière réception de la température intérieure est le 06/12/2023 à 18h43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`). Elle est donc récente,
 4. l'heure de dernière réception de la température extérieure est le 06/12/2023 à 13h04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00`). C'est donc l'heure extérieure qui a plus de 5 h de retard et qui a provoquée le passage en mode sécurité, car le seuil est limité à 60 min (`safety_delay_min: 60`).
