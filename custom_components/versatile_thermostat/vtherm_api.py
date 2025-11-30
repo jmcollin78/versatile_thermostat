@@ -183,12 +183,12 @@ class VersatileThermostatAPI(dict):
             for entity in component.entities:
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
-                if (
-                    entity.device_info
-                    and entity.device_info.get("model", None) == DOMAIN
-                ):
-                    if entry_id is None or entry_id == entity.unique_id:
-                        await entity.async_startup(self.find_central_configuration())
+                try:
+                    if entity.device_info and entity.device_info.get("model", None) == DOMAIN:
+                        if entry_id is None or entry_id == entity.unique_id:
+                            await entity.async_startup(self.find_central_configuration())  # pyright: ignore[reportAttributeAccessIssue]
+                except Exception as e:  # pylint: disable=broad-except
+                    _LOGGER.error("Error searching/initializing entity %s: %s", entity.entity_id, e)
 
         # start listening for the central power manager if not only one vtherm reload
         if not entry_id:

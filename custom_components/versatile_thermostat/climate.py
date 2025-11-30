@@ -8,6 +8,7 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import selector
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.reload import async_setup_reload_service
@@ -149,4 +150,14 @@ async def async_setup_entry(
             vol.Optional("code"): cv.string,
         },
         "service_unlock",
+        SERVICE_SET_TPI_PARAMETERS,
+        {
+            vol.Optional(CONF_TPI_COEF_INT): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
+            vol.Optional(CONF_TPI_COEF_EXT): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.001, mode=selector.NumberSelectorMode.BOX)),
+            vol.Optional(CONF_MINIMAL_ACTIVATION_DELAY): cv.positive_int,
+            vol.Optional(CONF_MINIMAL_DEACTIVATION_DELAY): cv.positive_int,
+            vol.Optional(CONF_TPI_THRESHOLD_LOW): selector.NumberSelector(selector.NumberSelectorConfig(min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
+            vol.Optional(CONF_TPI_THRESHOLD_HIGH): selector.NumberSelector(selector.NumberSelectorConfig(min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
+        },
+        "service_set_tpi_parameters",
     )

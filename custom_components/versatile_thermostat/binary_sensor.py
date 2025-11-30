@@ -100,7 +100,7 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         """Initialize the SecurityState Binary sensor"""
         super().__init__(hass, unique_id, name)
         self._attr_name = "Security state"
-        self._attr_unique_id = f"{self._device_name}_security_state"
+        self._attr_unique_id = f"{self._device_name}_safety_state"
         self._attr_is_on = False
 
     @callback

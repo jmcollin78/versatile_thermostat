@@ -9,6 +9,7 @@
   - [Úprava bezpečnostních nastavení](#úprava-bezpečnostních-nastavení)
   - [Obejití kontroly okna](#obejití-kontroly-okna)
   - [Služby zamknutí / odemknutí](#služby-zamknutí--odemknutí)
+  - [Change TPI Parameters](#change-tpi-parameters)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
 - [State messages](#state-messages)
@@ -209,6 +210,25 @@ Tyto služby umožňují uzamknout termostat, aby se zabránilo změnám konfigu
 - `versatile_thermostat.unlock` - Odemkne termostat a znovu povolí změny konfigurace
 
 Podrobnosti viz [Funkce zámku](feature-lock.md).
+## Change TPI Parameters
+All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+
+Each parameter is optional. If it is not provided its current value is kept.
+
+To change the TPI parameters use the following code:
+
+```
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
+```
 
 # Události
 Klíčové události termostatu jsou oznámeny prostřednictvím sběrnice zpráv.
@@ -270,7 +290,7 @@ Vlastní atributy jsou následující:
 | ``safety_default_on_percent``      | Procento vytápění používané při bezpečnostním režimu termostatu                                                        |
 | ``last_temperature_datetime``      | Datum a čas v ISO8866 formátu posledního přijetí vnitřní teploty                                                       |
 | ``last_ext_temperature_datetime``  | Datum a čas v ISO8866 formátu posledního přijetí vnější teploty                                                        |
-| ``security_state``                 | Bezpečnostní stav. True nebo false                                                                                     |
+| ``safety_state``                   | Bezpečnostní stav. True nebo false                                                                                     |
 | ``minimal_activation_delay_sec``   | Minimální doba aktivace v sekundách                                                                                    |
 | ``minimal_deactivation_delay_sec`` | Minimální doba deaktivace v sekundách                                                                                  |
 | ``last_update_datetime``           | Datum a čas v ISO8866 formátu tohoto stavu                                                                             |

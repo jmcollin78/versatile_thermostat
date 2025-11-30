@@ -9,6 +9,7 @@
   - [Modify Security Settings](#modify-security-settings)
   - [ByPass Window Check](#bypass-window-check)
   - [Lock / Unlock Services](#lock--unlock-services)
+  - [Change TPI Parameters](#change-tpi-parameters)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
 - [State messages](#state-messages)
@@ -207,6 +208,25 @@ target:
 - `versatile_thermostat.unlock` - Unlocks a thermostat to allow configuration changes
 
 See [Lock Feature](feature-lock.md) for details.
+## Change TPI Parameters
+All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+
+Each parameter is optional. If it is not provided its current value is kept.
+
+To change the TPI parameters use the following code:
+
+```
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
+```
 
 # Events
 The key events of the thermostat are notified via the message bus.

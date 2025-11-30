@@ -170,7 +170,7 @@ Můžete také zkontrolovat atributy VTherm pro data posledních přijatých hod
 Příklad:
 
 ```yaml
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -179,7 +179,7 @@ safety_delay_min: 60
 ```
 
 Můžeme vidět, že:
-1. VTherm je skutečně v bezpečnostním režimu (`security_state: true`),
+1. VTherm je skutečně v bezpečnostním režimu (`safety_state: true`),
 2. Aktuální čas je 06/12/2023 v 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. Čas posledního příjmu teploty místnosti je 06/12/2023 v 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), takže je aktuální,
 4. Čas posledního příjmu vnější teploty je 06/12/2023 v 13:04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). Vnější teplota má zpoždění více než 5 hodin, což spustilo bezpečnostní režim, protože práh je nastaven na 60 minut (`safety_delay_min: 60`).
@@ -196,6 +196,8 @@ Závisí to na příčině problému:
 3. Některé teplotní senzory neposílají měření, pokud se teplota nezměnila. Takže pokud teplota zůstává velmi stabilní po dlouhou dobu, bezpečnostní režim se může spustit. To není velký problém, protože se deaktivuje, jakmile VTherm obdrží novou teplotu. Na některých teploměrech (např. TuYa nebo Zigbee) můžete vynutit maximální zpoždění mezi dvěma měřeními. Maximální zpoždění by mělo být nastaveno na hodnotu nižší než `safety_delay_min`,
 4. Jakmile je teplota znovu přijata, bezpečnostní režim se vypne a předchozí preset, cílová teplota a hodnoty režimu budou obnoveny.
 5. Pokud je vnější teplotní senzor vadný, můžete zakázat spuštění bezpečnostního režimu, protože má minimální dopad na výsledky. Viz [zde](feature-advanced.md#safety-mode).
+6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
+
 
 ## Použití skupiny osob jako senzoru přítomnosti
 

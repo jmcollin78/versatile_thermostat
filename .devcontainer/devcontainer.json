@@ -5,15 +5,13 @@
         "dockerfile": "Dockerfile"
     },
     "name": "Versatile Thermostat integration",
-    "appPort": [
-        "8123:8123"
-    ],
+    "appPort": ["8123:8123"],
     // "postCreateCommand": "container install",
     "postCreateCommand": "./container dev-setup",
     "mounts": [
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-        // uncomment this to get the versatile-thermostat-ui-card
-        //"source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
+        // comment/uncomment/adapt this to get the versatile-thermostat-ui-card
+        // "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
     ],
     "customizations": {
         "vscode": {
@@ -56,10 +54,7 @@
                 "python.analysis.autoSearchPaths": true,
                 "pylint.lintOnChange": false,
                 "python.formatting.provider": "black",
-                "python.formatting.blackArgs": [
-                    "--line-length",
-                    "180"
-                ],
+                "python.formatting.blackArgs": ["--line-length", "180"],
                 "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
                 "editor.formatOnPaste": false,
                 "editor.formatOnSave": true,

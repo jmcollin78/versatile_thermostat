@@ -143,6 +143,9 @@ set_hvac_mode_sleep:
 lock:
     name: Lock
     description: "Locks the thermostat, preventing any changes to its configuration from UI or automations."
+set_tpi_parameters:
+    name: Set TPI parameters
+    description: Change the TPI parameters
     target:
         entity:
             integration: versatile_thermostat
@@ -173,3 +176,79 @@ unlock:
             selector:
                 text:
                     type: password
+        tpi_coef_int:
+            name: Coef Int
+            description: Coefficient Integral
+            required: false
+            advanced: false
+            example: "0.6"
+            selector:
+                number:
+                    min: 0
+                    max: 10
+                    step: 0.01
+                    mode: box
+        tpi_coef_ext:
+            name: Coef Ext
+            description: Coefficient External
+            required: false
+            advanced: false
+            example: "0.01"
+            selector:
+                number:
+                    min: 0
+                    max: 1
+                    step: 0.001
+                    mode: box
+        minimal_activation_delay:
+            name: Minimal Activation delay
+            description: Delay in seconds under which the equipment will not be activated
+            required: false
+            advanced: true
+            example: "10"
+            selector:
+                number:
+                    min: 0
+                    max: 1000
+                    step: 1
+                    mode: box
+                    unit_of_measurement: "seconds"
+        minimal_deactivation_delay:
+            name: Minimal Deactivation delay
+            description: Delay in seconds under which the equipment will be kept active
+            required: false
+            advanced: true
+            example: "10"
+            selector:
+                number:
+                    min: 0
+                    max: 1000
+                    step: 1
+                    mode: box
+                    unit_of_measurement: "seconds"
+        tpi_threshold_low:
+            name: Low TPI threshold
+            description: Threshold in ° under which the TPI algorithm will be on. 0 means no threshold
+            required: false
+            advanced: false
+            example: "0.1"
+            selector:
+                number:
+                    min: -10
+                    max: 10
+                    step: 0.1
+                    mode: box
+                    unit_of_measurement: "°"
+        tpi_threshold_high:
+            name: High TPI threshold
+            description: Threshold in ° above which the TPI algorithm will be off. 0 means no threshold
+            required: false
+            advanced: false
+            example: "0.1"
+            selector:
+                number:
+                    min: -10
+                    max: 10
+                    step: 0.1
+                    mode: box
+                    unit_of_measurement: "°"
