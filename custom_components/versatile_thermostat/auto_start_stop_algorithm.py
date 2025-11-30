@@ -155,20 +155,20 @@ class AutoStartStopDetectionAlgorithm:
 
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off
+        previous_should_be_off = self._last_should_be_off
         if requested_hvac_mode == VThermHvacMode_HEAT:
             if self._accumulated_error <= -self._error_threshold and temp_at_dt >= target_temp + TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
                 _LOGGER.info(
                     "%s - auto-start/stop: We need to stop, there is no need for heating for a long time.",
                     self,
                 )
-                self._last_switch_date = now
+
                 self._last_should_be_off = True
             elif temp_at_dt <= target_temp - TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
                 _LOGGER.info(
                     "%s - auto-start/stop: We need to start heating.",
                     self,
                 )
-                self._last_switch_date = now
                 self._last_should_be_off = False
 
         elif requested_hvac_mode == VThermHvacMode_COOL:
@@ -177,7 +177,6 @@ class AutoStartStopDetectionAlgorithm:
                     "%s - We need to stop, there is no need for cooling for a long time.",
                     self,
                 )
-                self._last_switch_date = now
                 self._last_should_be_off = True
 
             elif temp_at_dt >= target_temp + TEMP_HYSTERESIS and nb_minutes_since_last_switch >= self._dt:
@@ -185,10 +184,12 @@ class AutoStartStopDetectionAlgorithm:
                     "%s - We need to start cooling.",
                     self,
                 )
-                self._last_switch_date = now
                 self._last_should_be_off = False
 
         _LOGGER.debug("%s - nothing to do, requested hvac_mode is %s", self, requested_hvac_mode)
+        if previous_should_be_off != self._last_should_be_off:
+            self._last_switch_date = now
+
         return self._last_should_be_off
 
     # def calculate_action(
