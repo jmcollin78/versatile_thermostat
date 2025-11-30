@@ -38,7 +38,7 @@ from .vtherm_state import VThermState  # pylint: disable=unused-import
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 1
+CONFIG_MINOR_VERSION = 2
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
@@ -171,6 +171,8 @@ CONF_CENTRAL_BOILER_DEACTIVATION_SRV = "central_boiler_deactivation_service"
 
 CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
 CONF_WINDOW_ACTION = "window_action"
+
+CONF_UNIQUE_ATTR_ID = "unique_attr_id"
 
 CONF_AUTO_START_STOP_LEVEL = "auto_start_stop_level"
 AUTO_START_STOP_LEVEL_NONE = "auto_start_stop_none"
@@ -548,6 +550,12 @@ def get_tz(hass: HomeAssistant):
     """Get the current timezone"""
 
     return dt_util.get_time_zone(hass.config.time_zone)
+
+
+def gen_attr_uniq_id(unique_id: str, data: dict, suffix: str):
+    """Returns attr_uniq_id based on specified unique_id and entry data"""
+    prefix = data.get(CONF_UNIQUE_ATTR_ID, unique_id)
+    return f"{prefix}_{suffix}"
 
 
 class NowClass:
