@@ -46,6 +46,9 @@ class BaseFeatureManager:
         """Add a listener to the list of active listener"""
         self._active_listener.append(func)
 
+    def restore_state(self, old_state) -> None:
+        """Restore state from old state."""
+
     @property
     def is_configured(self) -> bool:
         """True if the FeatureManager is fully configured"""
