@@ -8,6 +8,7 @@
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
   - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
   - [ByPass Window Check](#bypass-window-check)
+  - [Services de verrouillage / déverrouillage](#services-de-verrouillage--déverrouillage)
   - [Changer les paramètres du TPI](#changer-les-paramètres-du-tpi)
 - [Evènements](#evènements)
 - [Attributs personnalisés](#attributs-personnalisés)
@@ -198,6 +199,14 @@ target:
     entity_id : climate.my_thermostat
 ```
 
+## Services de verrouillage / déverrouillage
+
+Ces services permettent de verrouiller un thermostat afin d'empêcher toute modification de sa configuration, ou de le déverrouiller pour rétablir les changements autorisés :
+
+- `versatile_thermostat.lock` - Verrouille un thermostat pour empêcher les modifications de configuration
+- `versatile_thermostat.unlock` - Déverrouille un thermostat pour autoriser à nouveau les modifications de configuration
+
+Voir [Fonction de verrouillage](feature-lock.md) pour plus de détails.
 ## Changer les paramètres du TPI
 Tous les paramètres du TPI configurables [ici](images/config_tpi.png) sont modifiables par un service. Ces changements sont persistants et resistent à un redémarrage. Ils sont appliqués immédiatement et une mise à jour du thermostat est faite instantanément lorsque les paramètres sont changés.
 

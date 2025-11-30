@@ -30,8 +30,23 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Správa zámku",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zamknutí",
+        "description": "Funkce zamknutí brání změnám termostatu z uživatelského rozhraní nebo automatizací při zachování provozuschopnosti termostatu.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
+          "lock_code": "Volitelný PIN (4 číslice)",
+          "lock_users": "Zamknutí zabrání příkazům uživatelů",
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {
@@ -286,8 +301,22 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Zámek",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zamknutí - {name}",
+        "description": "Funkce zamknutí zabraňuje změnám termostatu z uživatelského rozhraní nebo automatizací, přičemž termostat zůstává funkční.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
+          "lock_users": "Zamknutí zabrání příkazům uživatelů",
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {

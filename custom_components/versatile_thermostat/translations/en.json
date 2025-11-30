@@ -29,8 +29,23 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
+          "lock": "Lock management",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
+        }
+      },
+      "lock": {
+        "title": "Lock Management",
+        "description": "The lock function prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
+        "data": {
+          "use_lock_central_config": "Use central lock configuration",
+          "lock_code": "Optional pincode (4 digits)",
+          "lock_users": "Lock will prevent user commands",
+          "lock_automations": "Lock will prevent commands from automations and integrations (ex: scheduler)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Check to use central lock configuration. Uncheck to use lock configuration specific to this VTherm",
+          "lock_code": "The pincode to unlock the thermostat (4 digits)"
         }
       },
       "main": {
@@ -292,6 +307,7 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
+          "lock": "Lock management",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -516,6 +532,20 @@
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
+        }
+      },
+      "lock": {
+        "title": "Lock Management - {name}",
+        "description": "The lock feature prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
+        "data": {
+          "use_lock_central_config": "Use central lock configuration",
+          "lock_code": "Optional pincode (4 digits)",
+          "lock_users": "Lock will prevent user commands",
+          "lock_automations": "Lock will prevent commands from automations and integrations (ex: scheduler)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Check to use central lock configuration. Uncheck to use lock configuration specific to this VTherm",
+          "lock_code": "The pincode to unlock the thermostat (4 digits)"
         }
       }
     },

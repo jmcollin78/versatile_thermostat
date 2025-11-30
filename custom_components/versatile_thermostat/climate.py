@@ -137,6 +137,19 @@ async def async_setup_entry(
     )
 
     platform.async_register_entity_service(
+        SERVICE_LOCK,
+        {
+            vol.Optional("code"): cv.string,
+        },
+        "service_lock",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_UNLOCK,
+        {
+            vol.Optional("code"): cv.string,
+        },
+        "service_unlock",
         SERVICE_SET_TPI_PARAMETERS,
         {
             vol.Optional(CONF_TPI_COEF_INT): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),

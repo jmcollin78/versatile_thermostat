@@ -8,6 +8,7 @@
   - [Úprava přednastavené teploty](#úprava-přednastavené-teploty)
   - [Úprava bezpečnostních nastavení](#úprava-bezpečnostních-nastavení)
   - [Obejití kontroly okna](#obejití-kontroly-okna)
+  - [Služby zamknutí / odemknutí](#služby-zamknutí--odemknutí)
   - [Change TPI Parameters](#change-tpi-parameters)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
@@ -201,6 +202,14 @@ target:
     entity_id: climate.my_thermostat
 ```
 
+## Služby zamknutí / odemknutí
+
+Tyto služby umožňují uzamknout termostat, aby se zabránilo změnám konfigurace, nebo jej opět odemknout a povolit úpravy:
+
+- `versatile_thermostat.lock` - Uzamkne termostat a brání změnám konfigurace
+- `versatile_thermostat.unlock` - Odemkne termostat a znovu povolí změny konfigurace
+
+Podrobnosti viz [Funkce zámku](feature-lock.md).
 ## Change TPI Parameters
 All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
 

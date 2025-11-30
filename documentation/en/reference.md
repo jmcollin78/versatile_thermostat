@@ -8,6 +8,7 @@
   - [Modify the Preset Temperature](#modify-the-preset-temperature)
   - [Modify Security Settings](#modify-security-settings)
   - [ByPass Window Check](#bypass-window-check)
+  - [Lock / Unlock Services](#lock--unlock-services)
   - [Change TPI Parameters](#change-tpi-parameters)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
@@ -201,6 +202,12 @@ target:
     entity_id: climate.my_thermostat
 ```
 
+## Lock / Unlock Services
+
+- `versatile_thermostat.lock` - Locks a thermostat to prevent configuration changes
+- `versatile_thermostat.unlock` - Unlocks a thermostat to allow configuration changes
+
+See [Lock Feature](feature-lock.md) for details.
 ## Change TPI Parameters
 All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
 

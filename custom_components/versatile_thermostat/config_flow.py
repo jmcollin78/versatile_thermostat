@@ -121,6 +121,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_PRESETS_CENTRAL_CONFIG,
             CONF_USE_PRESENCE_CENTRAL_CONFIG,
             CONF_USE_ADVANCED_CENTRAL_CONFIG,
+            CONF_USE_LOCK_CENTRAL_CONFIG,
             CONF_USE_CENTRAL_MODE,
         ):
             if not is_empty:
@@ -276,6 +277,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH and step_id == "type":
             if not self.check_vswitch_configuration(data):
                 raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
+
+        # Check the lock code format
+        if data.get(CONF_LOCK_CODE) is not None:
+            if not re.match(r"^\d{4}$", str(data.get(CONF_LOCK_CODE))):
+                raise LockCodeIncorrect()
 
     def check_vswitch_configuration(self, data) -> bool:
         """Check the Virtual switch configuration and return True if the configuration is correct"""
@@ -435,6 +441,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "min_opening_degrees_format"
             except VirtualSwitchConfigurationIncorrect as err:
                 errors["base"] = "vswitch_configuration_incorrect"
+            except LockCodeIncorrect:
+                errors["base"] = "lock_code_incorrect"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -524,6 +532,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             menu_options.append("valve_regulation")
 
         menu_options.append("advanced")
+        menu_options.append("lock")
 
         if self.check_config_complete(self._infos):
             menu_options.append("finalize")
@@ -926,6 +935,47 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # This will return to async_step_presence (to keep the "presence" step)
         return await self.generic_step("advanced", schema, user_input, next_step)
+
+    async def async_step_lock(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the lock flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_lock user_input=%s", user_input)
+
+        next_step = self.async_step_menu
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+        else:
+            schema = STEP_LOCK_DATA_SCHEMA
+
+            if (
+                user_input
+                and user_input.get(CONF_USE_LOCK_CENTRAL_CONFIG, False) is False
+            ):
+                if (
+                    user_input
+                    and self._infos.get(COMES_FROM) == "async_step_spec_lock"
+                ):
+                    schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_lock
+
+        return await self.generic_step("lock", schema, user_input, next_step)
+
+    async def async_step_spec_lock(
+        self, user_input: dict | None = None
+    ) -> FlowResult:
+        """Handle the specific lock flow steps"""
+        _LOGGER.debug(
+            "Into ConfigFlow.async_step_spec_lock user_input=%s", user_input
+        )
+
+        schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
+
+        self._infos[COMES_FROM] = "async_step_spec_lock"
+
+        next_step = self.async_step_menu
+
+        return await self.generic_step("lock", schema, user_input, next_step)
 
     async def async_step_finalize(self, _):
         """Finalize the creation. Should be overriden by underlyings"""

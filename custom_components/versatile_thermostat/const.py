@@ -128,6 +128,10 @@ CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 CONF_MAX_CLOSING_DEGREE = "max_closing_degree"
 CONF_OPENING_THRESHOLD_DEGREE = "opening_threshold_degree"
 
+CONF_LOCK_CODE = "lock_code"
+CONF_LOCK_USERS = "lock_users"
+CONF_LOCK_AUTOMATIONS = "lock_automations"
+ 
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
@@ -158,6 +162,7 @@ CONF_USE_POWER_CENTRAL_CONFIG = "use_power_central_config"
 CONF_USE_PRESENCE_CENTRAL_CONFIG = "use_presence_central_config"
 CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
 CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
+CONF_USE_LOCK_CENTRAL_CONFIG = "use_lock_central_config"
 
 CONF_USE_CENTRAL_MODE = "use_central_mode"
 
@@ -389,6 +394,8 @@ SERVICE_SET_WINDOW_BYPASS = "set_window_bypass"
 SERVICE_SET_AUTO_REGULATION_MODE = "set_auto_regulation_mode"
 SERVICE_SET_AUTO_FAN_MODE = "set_auto_fan_mode"
 SERVICE_SET_HVAC_MODE_SLEEP = "set_hvac_mode_sleep"
+SERVICE_LOCK = "lock"
+SERVICE_UNLOCK = "unlock"
 SERVICE_SET_TPI_PARAMETERS = "set_tpi_parameters"
 
 DEFAULT_SAFETY_MIN_ON_PERCENT = 0.5
@@ -586,6 +593,10 @@ class ValveRegulationMinOpeningDegreesIncorrect(HomeAssistantError):
 
 class VirtualSwitchConfigurationIncorrect(HomeAssistantError):
     """Error when a virtual switch is not configured correctly"""
+
+
+class LockCodeIncorrect(HomeAssistantError):
+    """Error when a lock code is not configured correctly"""
 
 
 class overrides:  # pylint: disable=invalid-name
