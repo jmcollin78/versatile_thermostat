@@ -25,6 +25,19 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 
 # Was ist neu?
 ![New](images/new-icon.png)
+
+## Release 8.2
+> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/de/feature-lock.md)
+
+## Release 8.1
+> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
+>    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
+>    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
+>    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+>
+> ![alt text](images/opening-degree-graph.png)
+> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+
 ## Release 8.0
 > Dies ist ein großes Release. Es schreibt einen erheblichen Teil der internen Mechanismen von Versatile Thermostat um, indem es mehrere neue Funktionen einführt:
 >    1. _gewünschter Zustand / aktueller Zustand_: VTherm hat jetzt 2 Zustände. Der gewünschte Zustand ist der vom Benutzer (oder Scheduler) angeforderte Zustand. Der aktuelle Zustand ist der derzeit auf das VTherm angewandte Zustand. Letzterer hängt von den verschiedenen VTherm-Funktionen ab. Zum Beispiel kann der Benutzer (gewünschter Zustand) Heizung mit Comfort-Voreinstellung anfordern, aber da das Fenster als offen erkannt wurde, ist das VTherm tatsächlich aus. Diese doppelte Verwaltung bewahrt immer die Benutzeranforderung und wendet das Ergebnis der verschiedenen Funktionen auf diese Benutzeranforderung an, um den aktuellen Zustand zu erhalten. Dies behandelt besser Fälle, in denen mehrere Funktionen auf den VTherm-Zustand einwirken wollen (Fensteröffnung und Stromlastabwurf beispielsweise). Es stellt auch sicher, dass zur ursprünglichen Benutzeranforderung zurückgekehrt wird, wenn keine Erkennung mehr aktiv ist,

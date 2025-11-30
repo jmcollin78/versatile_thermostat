@@ -26,6 +26,9 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.2
+> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/en/feature-lock.md)
+
 ## Release 8.1
 > - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
 >    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),

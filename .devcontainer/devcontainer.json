@@ -11,7 +11,7 @@
     "mounts": [
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
         // comment/uncomment/adapt this to get the versatile-thermostat-ui-card
-        // "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
+        // "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind"
     ],
     "customizations": {
         "vscode": {

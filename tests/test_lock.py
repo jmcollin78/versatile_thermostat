@@ -75,7 +75,7 @@ async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_st
     assert entity
 
     # 1. Test that lock is off by default
-    assert entity._is_locked is False
+    assert entity.lock_manager.is_locked is False
 
     # 2. Test the lock service
     await hass.services.async_call(
@@ -84,7 +84,7 @@ async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_st
         {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
         blocking=True,
     )
-    assert entity._is_locked is True
+    assert entity.lock_manager.is_locked is True
 
     # 3. Test the unlock service
     await hass.services.async_call(
@@ -93,7 +93,7 @@ async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_st
         {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
         blocking=True,
     )
-    assert entity._is_locked is False
+    assert entity.lock_manager.is_locked is False
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -106,7 +106,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
     entity_id = "climate.theoverswitchmockname"
 
     # 1. Test that lock is off by default
-    assert entity._is_locked is False
+    assert entity.lock_manager.is_locked is False
 
     # 2. Test lock service: correct code
     await hass.services.async_call(
@@ -115,7 +115,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
         {ATTR_ENTITY_ID: entity_id, "code": LOCK_CODE},
         blocking=True,
     )
-    assert entity._is_locked is True
+    assert entity.lock_manager.is_locked is True
 
     # 3. Test unlock service: incorrect code -> should fail/remain locked
     with pytest.raises(HomeAssistantError):
@@ -125,7 +125,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
             {ATTR_ENTITY_ID: entity_id, "code": "9999"},
             blocking=True,
         )
-    assert entity._is_locked is True  # Should remain locked
+    assert entity.lock_manager.is_locked is True  # Should remain locked
 
     # 4. Test unlock service: missing code -> should fail/remain locked
     with pytest.raises(HomeAssistantError):
@@ -135,7 +135,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
             {ATTR_ENTITY_ID: entity_id},
             blocking=True,
         )
-    assert entity._is_locked is True  # Should remain locked
+    assert entity.lock_manager.is_locked is True  # Should remain locked
 
     # 5. Test unlock service: correct code -> should unlock
     await hass.services.async_call(
@@ -144,7 +144,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
         {ATTR_ENTITY_ID: entity_id, "code": LOCK_CODE},
         blocking=True,
     )
-    assert entity._is_locked is False
+    assert entity.lock_manager.is_locked is False
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -174,8 +174,8 @@ async def test_lock_feature_behavior(
     assert entity
 
     # Lock the thermostat
-    await entity.async_set_lock(True)
-    assert entity._is_locked is True
+    entity.lock_manager.change_lock_state(True)
+    assert entity.lock_manager.is_locked is True
 
     # Create a context
     context = Context()
@@ -215,8 +215,8 @@ async def test_lock_feature_behavior(
         assert entity.target_temperature == new_temp
 
     # Test unlock allows changes
-    await entity.async_set_lock(False)
-    assert entity._is_locked is False
+    entity.lock_manager.change_lock_state(False)
+    assert entity.lock_manager.is_locked is False
 
     with patch.object(entity, "_context", context):
         await entity.async_set_preset_mode(PRESET_BOOST)

@@ -25,6 +25,20 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 
 # Co je nového?
 ![Nové](images/new-icon.png)
+
+## Release 8.2
+> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/cs/feature-lock.md)
+
+## Release 8.1
+> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
+>    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
+>    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
+>    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+>
+> ![alt text](images/opening-degree-graph.png)
+> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+
+
 ## Release 8.0
 > Toto je hlavní vydání. Přepisuje významnou část interních mechanismů Versatile Thermostat zavedením několika nových funkcí:
 >    1. _požadovaný stav / aktuální stav_: VTherm nyní má 2 stavy. Požadovaný stav je stav požadovaný uživatelem (nebo Plánovačem). Aktuální stav je stav aktuálně aplikovaný na VTherm. Ten závisí na různých funkcích VTherm. Například uživatel může požadovat (požadovaný stav) zapnuté vytápění s předvolbou Komfort, ale protože bylo detekováno otevřené okno, je VTherm ve skutečnosti vypnutý. Tento duální management vždy zachovává požadavek uživatele a aplikuje výsledek různých funkcí na tento požadavek uživatele pro získání aktuálního stavu. To lépe zpracovává případy, kdy více funkcí chce zasahovat do stavu VTherm (např. otevření okna a omezení spotřeby energie). Také zajišťuje návrat k původnímu požadavku uživatele, když již neprobíhá žádná detekce.
