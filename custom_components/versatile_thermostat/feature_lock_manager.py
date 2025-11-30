@@ -6,6 +6,8 @@ from homeassistant.core import (
     HomeAssistant,
 )
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
 
