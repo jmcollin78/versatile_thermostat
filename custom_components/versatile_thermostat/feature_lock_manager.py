@@ -92,7 +92,7 @@ class FeatureLockManager(BaseFeatureManager):
         """Return True if any lock setting is enabled."""
         return self._is_configured and (self._lock_users or self._lock_automations)
 
-    async def add_custom_attributes(self, extra_state_attributes: dict[str, Any]) -> None:
+    def add_custom_attributes(self, extra_state_attributes: dict[str, Any]) -> None:
         """Add custom attributes to the attributes dict."""
 
         extra_state_attributes.update(
