@@ -405,7 +405,6 @@ STEP_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_LOCK_CENTRAL_CONFIG, default=True): cv.boolean,
-        vol.Optional(CONF_LOCK_CODE): cv.string,
     }
 )
 
