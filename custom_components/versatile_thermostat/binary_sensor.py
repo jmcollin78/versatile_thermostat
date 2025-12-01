@@ -43,6 +43,7 @@ from .const import (
     overrides,
     EventType,
     send_vtherm_event,
+    gen_attr_uniq_id,
 )
 
 _LOGGER = logging.getLogger(__name__)

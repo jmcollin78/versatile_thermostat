@@ -43,6 +43,7 @@ from .const import (
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
+    gen_attr_uniq_id,
     CONF_USE_MAIN_CENTRAL_CONFIG,
 )
 
