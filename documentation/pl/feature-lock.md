@@ -82,5 +82,5 @@ Stan blokady jest:
 
 - Zapobieganie przypadkowym zmianom w okresach krytycznych
 - Funkcja blokady dla dzieci
-- Tymczasowe zapobieganie schedulerowi zmiany aktualnych ustawień
+- Tymczasowe zapobieganie zmianom aktualnych ustawień przez `harmonogram`
 - Zabezpieczenia przed nieautoryzowanym odblokowaniem (przy użyciu kodu PIN)
