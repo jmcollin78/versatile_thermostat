@@ -27,7 +27,7 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 ![New](images/new-icon.png)
 
 ## Wydanie 8.2
-> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/pl/feature-lock.md)
+> Dodano opcjonalną funkcję blokowania/odblokowania termostatu _*VTherm*_ za pomocą kodu. Więcej informacji znajduje się [tutaj](documentation/pl/feature-lock.md).
 
 
 ## Wydanie 8.1
