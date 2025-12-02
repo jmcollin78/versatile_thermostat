@@ -76,7 +76,7 @@ Les commandes possibles dépendent du type de sous-jacents :
 | `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)             |
 | `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                         |
 
-(*) vérifiez les valeurs acceptées par votre équipement dans Outils de developpement / Etat et recherchez votre équipement. Vous verrez les options qu'il accepte. Il faut qu'elles soient identiques y compris la casse.
+(*) Pour pouvoir utiliser ce cas, il est important de vérifier que l'état de sous-jacent est égal au preset Sinon _VTherm_ n'a aucun moyen de savoir si votre équipement est en allumé ou éteint. Pour être sur de cela, il faut aller dans Outils de dev / Etats, rechercher votre sous-jacent et regarder si son état est bien le nom d'un preset. Si vous voyez 'heat' ou 'off' ou 'cool' ce ne sont pas des presets et donc cette configuration ne fonctionnera pas. Vous devez alors utiliser un switch virtuel. Il y a des exemples de switch virtuels dans la page [dépannage](./troubleshooting.md#utilisation-dun-heatzy). Si vous perséverez avec cette configuration, vérifiez bien les valeurs acceptées par votre équipement dans Outils de developpement / Etat et recherchez votre équipement. Vous verrez les options qu'il accepte. Il faut qu'elles soient identiques y compris la casse.
 
 Evidemment, tous ces exemples peuvent être adaptés à votre cas.
 

@@ -71,14 +71,14 @@ Pro přizpůsobení příkazů klikněte na `Přidat` ve spodní části stránk
 Poté zadejte příkazy zapnutí a vypnutí pomocí formátu `příkaz[/atribut[:hodnota]]`.
 Dostupné příkazy závisí na typu podkladového zařízení:
 
-| Typ podkladového zařízení   | Možné příkazy zapnutí                 | Možné příkazy vypnutí                          | Platí pro                         |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
-| `switch` nebo `input_boolean` | `turn_on`                             | `turn_off`                                     | Všechny spínače                   |
+| Typ podkladového zařízení     | Možné příkazy zapnutí                 | Možné příkazy vypnutí                          | Platí pro                       |
+| ----------------------------- | ------------------------------------- | ---------------------------------------------- | ------------------------------- |
+| `switch` nebo `input_boolean` | `turn_on`                             | `turn_off`                                     | Všechny spínače                 |
 | `select` nebo `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 a podobné (*) |
-| `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (přes Tuya Local)           |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
+| `climate` (hvac_mode)         | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (přes Tuya Local)         |
+| `climate` (preset)            | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                      |
 
-(*) Zkontrolujte hodnoty akceptované vaším zařízením v **Developer Tools / States** a vyhledejte vaše zařízení. Uvidíte možnosti, které podporuje. Musí být identické, včetně rozlišování velkých a malých písmen.
+(*) To use this case, it is important to ensure that the state of the underlying entity matches the preset. Otherwise, VTherm has no way of knowing whether your equipment is on or off. To verify this, go to Developer Tools / States, search for your underlying entity, and check if its state matches the name of a preset. If you see 'heat', 'off', or 'cool', these are not presets, and this configuration will not work. In this case, you must use a virtual switch. Examples of virtual switches can be found on the troubleshooting page. If you insist on using this configuration, carefully check the values accepted by your equipment in Developer Tools / States and search for your equipment. You will see the options it accepts. They must be identical, including case sensitivity.
 
 Samozřejmě tyto příklady lze přizpůsobit vašemu konkrétnímu případu.
 
