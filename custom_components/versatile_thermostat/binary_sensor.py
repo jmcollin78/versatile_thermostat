@@ -71,7 +71,7 @@ async def async_setup_entry(
             ]
     else:
         entities = [
-            SecurityBinarySensor(hass, unique_id, name, entry.data),
+            SafetyBinarySensor(hass, unique_id, name, entry.data),
             WindowByPassBinarySensor(hass, unique_id, name, entry.data),
         ]
         if entry.data.get(CONF_USE_MOTION_FEATURE):
@@ -87,7 +87,7 @@ async def async_setup_entry(
         async_add_entities(entities, True)
 
 
-class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
+class SafetyBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
     """Representation of a BinarySensor which exposes the security state"""
 
     def __init__(
@@ -97,9 +97,9 @@ class SecurityBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
         name,  # pylint: disable=unused-argument
         entry_infos,
     ) -> None:
-        """Initialize the SecurityState Binary sensor"""
+        """Initialize the SafetyState Binary sensor"""
         super().__init__(hass, unique_id, name)
-        self._attr_name = "Security state"
+        self._attr_name = "Safety state"
         self._attr_unique_id = f"{self._device_name}_safety_state"
         self._attr_is_on = False
 
