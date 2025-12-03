@@ -1,11 +1,11 @@
 # `over_switch` Thermostattyp
 
-- [`over_switch` Typ Thermostat](#over_switch-typ-thermostat)
+- [`over_switch` Thermostattyp](#over_switch-thermostattyp)
   - [Voraussetzungen](#voraussetzungen)
   - [Konfiguration](#konfiguration)
     - [Die zugehörigen Geräte](#die-zugehörigen-geräte)
-    - [Aufrechterhaltung/Keep-Alive](#aufrechterhaltung-keep-alive)
-    - [Klimaanelagenmodus/AC Modus](#klimaanelagenmodus-AC-modus)
+    - [Aufrechterhaltung/Keep-Alive](#aufrechterhaltungkeep-alive)
+    - [Klimaanelagenmodus/AC Modus](#klimaanelagenmodusac-modus)
     - [Befehlsumkehr](#befehlsumkehr)
     - [Befehlsanpassung](#befehlsanpassung)
 
@@ -71,14 +71,14 @@ Um die Befehle anzupassen, klicken Sie unten auf der Seite auf `Hinzufügen`, so
 Geben Sie dann die Ein- und Ausschaltbefehle im Format `Befehl[/Attribut[:Wert]` an.
 Die verfügbaren Befehle hängen von der Art des zugehörigen Geräts ab:
 
-| zugehöriger Gerätetyp       | Mögliche Einschaltbefehle             | Mögliche Ausschaltbefehle                      | Betrifft                          |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
-| `switch` odr `input_boolean`| `turn_on`                             | `turn_off`                                     | Alle Schalter                     |
-| `select` oder `input_select`| `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 und ähnlich (*) |
-| `climate` (HKL-Modus)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
-| `climate` (Voreinstellung)  | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
+| zugehöriger Gerätetyp        | Mögliche Einschaltbefehle             | Mögliche Ausschaltbefehle                      | Betrifft                          |
+| ---------------------------- | ------------------------------------- | ---------------------------------------------- | --------------------------------- |
+| `switch` odr `input_boolean` | `turn_on`                             | `turn_off`                                     | Alle Schalter                     |
+| `select` oder `input_select` | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 und ähnlich (*) |
+| `climate` (HKL-Modus)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
+| `climate` (Voreinstellung)   | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
 
-(*) Überprüfen Sie die von Ihrem Gerät akzeptierten Werte unter **Entwicklertools / Status** und suchen Sie nach Ihrem Gerät. Sie sehen dann die Optionen, die es unterstützt. Sie müssen identisch sein, einschließlich der Groß- und Kleinschreibung.
+(*) Um diesen Fall nutzen zu können, ist es wichtig sicherzustellen, dass der Zustand der zugrunde liegenden Entität mit dem Preset übereinstimmt. Andernfalls hat VTherm keine Möglichkeit zu wissen, ob Ihr Gerät ein- oder ausgeschaltet ist. Um dies zu überprüfen, gehen Sie zu Entwicklerwerkzeuge / Zustände, suchen Sie Ihre zugrunde liegende Entität und prüfen Sie, ob ihr Zustand mit dem Namen eines Presets übereinstimmt. Wenn Sie 'heat', 'off' oder 'cool' sehen, sind dies keine Presets, und diese Konfiguration wird nicht funktionieren. In diesem Fall müssen Sie einen virtuellen Schalter verwenden. Beispiele für virtuelle Schalter finden Sie auf der Seite Fehlerbehebung. Wenn Sie dennoch mit dieser Konfiguration fortfahren möchten, überprüfen Sie sorgfältig die von Ihrem Gerät akzeptierten Werte in Entwicklerwerkzeuge / Zustände und suchen Sie Ihr Gerät. Sie werden die Optionen sehen, die es akzeptiert. Diese müssen identisch sein, einschließlich der Groß- und Kleinschreibung.
 
 Natürlich können diese Beispiele an Ihren speziellen Fall angepasst werden.
 
