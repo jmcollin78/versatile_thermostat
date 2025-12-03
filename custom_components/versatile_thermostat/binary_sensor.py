@@ -364,7 +364,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
+            entry_type=None,
             identifiers={(DOMAIN, self._config_id)},
             name=self._device_name,
             manufacturer=DEVICE_MANUFACTURER,
