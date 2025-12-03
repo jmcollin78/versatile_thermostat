@@ -16,8 +16,8 @@
         "title": "Menu",
         "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.",
         "menu_options": {
-          "main": "Główne atrybuty",
-          "central_boiler": "Kocioł główny",
+          "main": "Arybuty podstawowe",
+          "central_boiler": "Kocioł centralny",
           "type": "Urządzenia",
           "tpi": "Parametry TPI",
           "features": "Funkcje",
@@ -36,21 +36,21 @@
       },
       "lock": {
         "title": "Zarządzanie blokadą",
-        "description": "Funkcja blokady uniemożliwia modyfikacje termostatu z interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania termostatu.",
+        "description": "Funkcja blokady uniemożliwia modyfikacje termostatu z poziomu interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania termostatu.",
         "data": {
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
-          "lock_code": "Opcjonalny PIN (4 cyfry)",
-          "lock_users": "Blokada uniemożliwi polecenia użytkowników",
-          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
+          "lock_code": "Opcjonalny kod PIN (4 cyfry)",
+          "lock_users": "Blokada uniemożliwi wykonywanie poleceń użytkowników",
+          "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm",
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm",
           "lock_code": "Kod PIN do odblokowania termostatu (4 cyfry)"
         }
       },
       "main": {
         "title": "Dodaj nowy Termostat VTherm",
-        "description": "Podstawowe wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
+        "description": "Wymagane atrybuty podstawowe&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -64,7 +64,7 @@
           "device_power": "Moc urządzenia",
           "use_central_mode": "Załączenie sterowania przez encję centralną (wymaga konfiguracji centralnej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
           "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz, aby korzystać z podstawowej konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, ...).",
-          "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli termostat ma sterować kotłem głównym."
+          "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli termostat ma sterować kotłem centralnym."
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
@@ -80,7 +80,7 @@
           "use_motion_feature": "Użyj detekcji ruchu",
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
-          "use_central_boiler_feature": "Użyj kotła głównego. Zaznacz, aby dodać sterowanie kotłem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem głównym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła głównego są podane na odpowiedniej stronie konfiguracyjnej",
+          "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"
         }
       },
@@ -141,9 +141,9 @@
       },
       "presets": {
         "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
         "data": {
-          "use_presets_central_config": "Użyj konfiguracji głównych presetów"
+          "use_presets_central_config": "Użyj konfiguracji presetów podstawowych"
         }
       },
       "window": {
@@ -234,15 +234,15 @@
         }
       },
       "central_boiler": {
-        "title": "Sterowanie kotłem głównym",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł główny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
+        "title": "Sterowanie kotłem centralnym",
+        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia"
         },
         "data_description": {
-          "central_boiler_activation_service": "Polecenie załączenia kotła głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
-          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła głównego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]"
+          "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
+          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]"
         }
       },
       "valve_regulation": {
@@ -294,8 +294,8 @@
         "title": "Menu",
         "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.",
         "menu_options": {
-          "main": "Główne atrybuty",
-          "central_boiler": "Kocioł główny",
+          "main": "Arybuty podstawowe",
+          "central_boiler": "Kocioł centralny",
           "type": "Urządzenia",
           "tpi": "Parametry TPI",
           "features": "Funkcje",
@@ -326,7 +326,7 @@
       },
       "main": {
         "title": "Główne - {name}",
-        "description": "Główne wymagane atrybuty&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
+        "description": "Wymagane atrybuty podstawowe&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -341,7 +341,7 @@
           "device_power": "Moc urządzenia",
           "use_central_mode": "Załączenie sterowania przez encję główną (wymaga konfiguracji centralnej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
           "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz, aby używać konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, ...).",
-          "used_by_controls_central_boiler": "Używane przez kocioł główny. Zaznacz, jeśli ten termostat powinien sterować kotłem głównym"
+          "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli ten termostat powinien sterować kotłem centralnym"
         },
         "data_description": {
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
@@ -357,7 +357,7 @@
           "use_motion_feature": "Użyj detekcji ruchu",
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
-          "use_central_boiler_feature": "Użyj kotła głównego. Zaznacz, aby dodać sterowanie kotłem głównym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem głównym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła głównego są podane na odpowiedniej stronie konfiguracyjnej",
+          "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"        }
       },
       "type": {
@@ -415,7 +415,7 @@
         }      },
       "presets": {
         "title": "Presety - {name}",
-        "description": "Wybierz, jeśli termostat ma używać głównych presetów - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Użyj centralnej konfiguracji presetów"
         }
@@ -511,15 +511,15 @@
         }
       },
       "central_boiler": {
-        "title": "Sterowanie kotłem głównym - {name}",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł główny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
+        "title": "Sterowanie kotłem centralnym - {name}",
+        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia"
         },
         "data_description": {
-          "central_boiler_activation_service": "Polecenie załączenia kotła głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
-          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła głównego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`"
+          "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
+          "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`"
         }
       },
       "valve_regulation": {

@@ -1,16 +1,16 @@
 # Dokumentacja Referencyjna
 
-- [Dokumentacja Referencyjna](#dokumentacja-referencyjna)
-  - [Parametry](#parametry)
-- [Sensory](#sensory)
-- [Akcje (Usługi)](#akcje-usługi)
-  - [Wymuszanie obecności/zajętości](#wymuszanie-obecnościzajętości)
-  - [Modyfikacja presetów temperatury](#modyfikacja-presetów-temperatury)
-  - [Modyfikacja ustawień bezpieczeństwa](#modyfikacja-ustawień-bezpieczeństwa)
-  - [Pomijanie sprawdzania stanu okna](#pomijanie-sprawdzania-stanu-okna)
-  - [Change TPI Parameters](#change-tpi-parameters)
-- [Zdarzenia](#zdarzenia)
-- [Atrybuty własne](#atrybuty-własne)
+- [Dokumentacja Referencyjna](#reference-documentation)
+  - [Parametry](#parameter-summary)
+- [Sensory](#sensors)
+- [Akcje (Usługi)](#actions-services)
+  - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
+  - [Modyfikacja presetów temperatury](#modify-the-preset-temperature)
+  - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
+  - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
+  - [Zmiana parametrów TPI](#change-tpi-parameters)
+- [Zdarzenia](#events)
+- [Atrybuty własne](#custom-attributes)
 
 ## Parametry
 
@@ -198,14 +198,14 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-## Change TPI Parameters
-All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+## Zmiana parametrów TPI
+Wszystkie konfigurowalne parametry TPI mogą być modyfikowane poprzez wywołanie akcji (usługi): `versatile_thermostat.set_tpi_parameters`. Zmiany te są trwałe i pozostają zachowane także po ponownym uruchomieniu. Są one stosowane niezwłocznie, a aktualizacja termostatu jest wykonywana natychmiast, w chwili zmiany wartości któregokolwiek z tych parametrów.
 
-Each parameter is optional. If it is not provided its current value is kept.
+Każdy parametr jest opcjonalny. Jeśli któryś z parametrów nie zostanie podany, zachowywana jest jego dotychczasowa wartość.
 
-To change the TPI parameters use the following code:
+Oto przykładowy kod zmiany parametrów TPI za pomoca wspomnianej akcji (usługi):
 
-```
+```yaml
 action: versatile_thermostat.set_tpi_parameters
 data:
   tpi_coef_int: 0.5
