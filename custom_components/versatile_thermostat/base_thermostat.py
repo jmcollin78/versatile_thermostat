@@ -797,7 +797,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
+            entry_type=None,
             identifiers={(DOMAIN, self._unique_id)},
             name=self._name,
             manufacturer=DEVICE_MANUFACTURER,
