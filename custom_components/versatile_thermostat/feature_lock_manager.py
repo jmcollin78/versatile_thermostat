@@ -38,7 +38,7 @@ class FeatureLockManager(BaseFeatureManager):
     def restore_state(self, old_state) -> None:
         """Restore locks from old state."""
         if old_state is not None:
-            self._is_locked = bool(old_state.attributes.get("is_locked", False))
+            self._is_locked = bool(old_state.attributes.get("specific_states", {}).get("is_locked", False))
 
     @overrides
     async def start_listening(self):
