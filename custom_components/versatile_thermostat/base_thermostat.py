@@ -67,7 +67,7 @@ from .feature_lock_manager import FeatureLockManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_hvac_mode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -866,7 +866,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        return to_ha_hvac_mode(self._state_manager.current_state.hvac_mode)
+        return to_legacy_ha_hvac_mode(self._state_manager.current_state.hvac_mode)
 
     @property
     def vtherm_hvac_mode(self) -> VThermHvacMode | None:
@@ -1353,10 +1353,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     # Delegate to all underlying
                     for under in self._underlyings:
                         sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
-                    self._attr_hvac_mode = str(self.vtherm_hvac_mode)
+                    self._attr_hvac_mode = to_legacy_ha_hvac_mode(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # Remove eventual overpowering if we want to turn-off
-                    if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
+                    if self.hvac_mode in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and self.power_manager.is_overpowering_detected:
                         await self.power_manager.set_overpowering(False)
 
                 if changed:

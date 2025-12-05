@@ -86,7 +86,7 @@ async def test_update_central_boiler_state_simple(
     # skip_hass_states_is_state,
     init_central_config_with_boiler_fixture,
 ):
-    """Test that the central boiler state behavoir"""
+    """Test that the central boiler state behavior"""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
@@ -1354,7 +1354,7 @@ async def test_bug_339(
 
     await entity.async_set_hvac_mode(VThermHvacMode_AUTO)
     # Simulate a state change in underelying
-    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices(None)
+    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices_and_power(None)
 
     # The VTherm should be active
     assert entity.underlying_entity(0).is_device_active is True

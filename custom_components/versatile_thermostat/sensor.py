@@ -81,7 +81,8 @@ async def async_setup_entry(
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
             entities = [
-                NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data)
+                NbActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data),
+                TotalPowerActiveDeviceForBoilerSensor(hass, unique_id, name, entry.data),
             ]
     else:
         entities = [
@@ -92,7 +93,7 @@ async def async_setup_entry(
         ]
         if entry.data.get(CONF_DEVICE_POWER):
             entities.append(EnergySensor(hass, unique_id, name, entry.data))
-            if entry.data.get(CONF_THERMOSTAT_TYPE) in [
+            if have_valve_regulation or entry.data.get(CONF_THERMOSTAT_TYPE) in [
                 CONF_THERMOSTAT_SWITCH,
                 CONF_THERMOSTAT_VALVE,
             ]:
@@ -648,8 +649,8 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
 
 
 class NbActiveDeviceForBoilerSensor(SensorEntity):
-    """Representation of the threshold of the number of VTherm
-    which should be active to activate the boiler"""
+    """Representation of the  number of VTherm
+    which are active and configured to activate the boiler"""
 
     _entity_component_unrecorded_attributes = SensorEntity._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset({"active_device_ids"})
@@ -719,7 +720,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     async def listen_vtherms_entities(self):
         """Initialize the listening of state change of VTherms"""
 
-        # Listen to all VTherm state change
+        # Listen to all VTherm underlying state change
         self._entities = []
         underlying_entities_id = []
 
@@ -737,7 +738,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
             listener_cancel = async_track_state_change_event(
                 self._hass,
                 underlying_entities_id,
-                self.calculate_nb_active_devices,
+                self.calculate_nb_active_devices_or_power,
             )
             _LOGGER.info(
                 "%s - the underlyings that could control the central boiler are %s",
@@ -748,18 +749,18 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
-        await self.calculate_nb_active_devices(None)
+        await self.calculate_nb_active_devices_or_power(None)
 
-    async def calculate_nb_active_devices(self, event: Event):
-        """Calculate the number of active VTherm that have an
+    async def calculate_nb_active_devices_or_power(self, event: Event):
+        """Calculate the number of active VTherm and the total active power that have an
         influence on the central boiler and update the list of active device names."""
 
-        # _LOGGER.debug("%s- calculate_nb_active_devices - the event is %s ", self, event)
+        # _LOGGER.debug("%s- calculate_nb_active_devices_or_power - the event is %s ", self, event)
 
         if event is not None:
             new_state: State = event.data.get("new_state")
             # _LOGGER.debug(
-            #     "%s - calculate_nb_active_devices new_state is %s", self, new_state
+            #     "%s - calculate_nb_active_devices_or_power new_state is %s", self, new_state
             # )
             if not new_state:
                 return
@@ -768,13 +769,9 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
             # For underlying climate, we need to observe also the hvac_action if available
             new_hvac_action = new_state.attributes.get("hvac_action")
-            old_hvac_action = (
-                old_state.attributes.get("hvac_action")
-                if old_state is not None
-                else None
-            )
+            old_hvac_action = old_state.attributes.get("hvac_action") if old_state is not None else None
 
-            # Filter events that are not interested for us
+            # Filter events that are not interesting for us
             if (
                 old_state is not None
                 and new_state.state == old_state.state
@@ -812,6 +809,132 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
             active_device_ids.extend(device_actives)
 
         self._attr_native_value = nb_active
+        self._attr_active_device_ids = active_device_ids
+
+        self.async_write_ha_state()
+
+    @property
+    def active_device_ids(self) -> list:
+        """Get the list of active device id"""
+        return self._attr_active_device_ids
+
+    def __str__(self):
+        return f"VersatileThermostat-{self.name}"
+
+
+class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
+    """Representation of the total power of VTherm
+    which are active and configured to activate the boiler"""
+
+    _entity_component_unrecorded_attributes = SensorEntity._entity_component_unrecorded_attributes.union(frozenset({"active_device_ids"}))  # pylint: disable=protected-access
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the energy sensor"""
+        super().__init__(hass, unique_id, name, entry_infos)
+        self._attr_name = "Total power active for boiler"
+        self._attr_unique_id = "total_power_active_boiler"
+        self._attr_value = self._attr_native_value = None  # default value
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:flash-auto"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.POWER
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Return the suggested number of decimal digits for display."""
+        return 2
+
+    async def listen_vtherms_entities(self):
+        """Initialize the listening of state change of VTherms"""
+
+        # Listen to all VTherm state change
+        self._entities = []
+        entities_id = []
+
+        component: EntityComponent[ClimateEntity] = self.hass.data.get(CLIMATE_DOMAIN)
+        if component is None:
+            _LOGGER.warning("%s - No climate component found in hass.data", self)
+            return
+        for entity in component.entities:
+            if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
+                self._entities.append(entity)
+                entities_id.append(entity.entity_id)
+
+        if len(self._entities) > 0:
+            # Arme l'écoute de la première entité
+            listener_cancel = async_track_state_change_event(
+                self._hass,
+                entities_id,
+                self.calculate_nb_active_devices_or_power,
+            )
+            _LOGGER.info(
+                "%s - the VTherm that could control the central boiler are %s",
+                self,
+                entities_id,
+            )
+            self.async_on_remove(listener_cancel)
+        else:
+            _LOGGER.debug("%s - no VTherm could control the central boiler", self)
+
+        await self.calculate_nb_active_devices_or_power(None)
+
+    async def calculate_nb_active_devices_or_power(self, event: Event):
+        """Calculate the total active power that have an
+        influence on the central boiler and update the list of active device names."""
+
+        # _LOGGER.debug("%s- calculate_nb_active_devices_or_power - the event is %s ", self, event)
+
+        if event is not None:
+            new_state: State = event.data.get("new_state")
+            # _LOGGER.debug(
+            #     "%s - calculate_nb_active_devices_or_power new_state is %s", self, new_state
+            # )
+            if not new_state:
+                return
+
+            old_state: State = event.data.get("old_state")
+
+            # For underlying climate, we need to observe also the hvac_action if available
+            new_mean_cycle_power = new_state.attributes.get("power_manager", {}).get("mean_cycle_power")
+            old_mean_cycle_power = old_state.attributes.get("power_manager", {}).get("mean_cycle_power") if old_state is not None else None
+
+            # Filter events that are not interesting for us
+            if old_state is not None and new_mean_cycle_power == old_mean_cycle_power:
+                # A false state change
+                return
+
+            _LOGGER.debug(
+                "%s - calculating the total power of active underlying device for boiler activation. change change from %s to %s",
+                self,
+                old_state,
+                new_state,
+            )
+        else:
+            _LOGGER.debug(
+                "%s - calculating the total power of active underlying device for boiler activation. First time calculation",
+                self,
+            )
+
+        total_active_power = 0
+        active_device_ids = []
+
+        for entity in self._entities:
+            mean_cycle_power = entity.power_manager.mean_cycle_power
+            _LOGGER.debug(
+                "After examining the mean_cycle_power of %s, mean_cycle_power is %s",
+                entity.name,
+                mean_cycle_power,
+            )
+
+            active_device_ids.extend(entity.device_actives)
+
+            total_active_power += mean_cycle_power if mean_cycle_power is not None else 0
+
+        self._attr_native_value = total_active_power
         self._attr_active_device_ids = active_device_ids
 
         self.async_write_ha_state()

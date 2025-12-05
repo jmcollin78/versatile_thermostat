@@ -60,6 +60,7 @@ class VersatileThermostatAPI(dict):
         self._safety_mode = None
         self._central_boiler_entity = None
         self._threshold_number_entity = None
+        self._power_threshold_number_entity = None
         self._nb_active_number_entity = None
         self._central_configuration = None
         self._central_mode_select = None
@@ -137,8 +138,12 @@ class VersatileThermostatAPI(dict):
     def register_central_boiler_activation_number_threshold(
         self, threshold_number_entity
     ):
-        """register the two number entities needed for boiler activation"""
+        """register the number entities needed for boiler activation"""
         self._threshold_number_entity = threshold_number_entity
+
+    def register_central_boiler_power_activation_threshold(self, power_threshold_number_entity):
+        """register the power entities needed for boiler activation"""
+        self._power_threshold_number_entity = power_threshold_number_entity
 
     def register_nb_device_active_boiler(self, nb_active_number_entity):
         """register the two number entities needed for boiler activation"""
