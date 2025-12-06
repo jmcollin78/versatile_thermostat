@@ -256,6 +256,10 @@ class MockClimate(ClimateEntity):
         hvac_action: HVACAction = HVACAction.OFF,
         fan_modes: list[str] | None = None,
         hvac_modes: list[str] | None = None,
+        swing_mode: str | None = None,
+        swing_modes: list[str] | None = None,
+        swing_horizontal_mode: str | None = None,
+        swing_horizontal_modes: list[str] | None = None,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -270,6 +274,10 @@ class MockClimate(ClimateEntity):
         self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
         self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
+        self._attr_swing_mode = swing_mode
+        self._attr_swing_modes = swing_modes
+        self._attr_swing_horizontal_mode = swing_horizontal_mode
+        self._attr_swing_horizontal_modes = swing_horizontal_modes
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
@@ -330,6 +338,16 @@ class MockClimate(ClimateEntity):
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
+        self.async_write_ha_state()
+
+    def set_swing_mode(self, swing_mode):
+        """The swing mode"""
+        self._attr_swing_mode = swing_mode
+        self.async_write_ha_state()
+
+    def set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """The swing horizontal mode"""
+        self._attr_swing_horizontal_mode = swing_horizontal_mode
         self.async_write_ha_state()
 
 
@@ -420,11 +438,21 @@ class MagicMockClimate(MagicMock):
         return None
 
     @property
+    def swing_horizontal_modes(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> list[str] | None:
+        return None
+
+    @property
     def fan_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
         return None
 
     @property
     def swing_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
         return None
 
     @property
