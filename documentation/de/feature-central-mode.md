@@ -18,7 +18,7 @@ Wenn Sie eine zentralisierte Konfiguration eingerichtet haben, verfügen Sie üb
 Diese Entität erscheint als eine Liste von Auswahlmöglichkeiten, die die folgenden Optionen enthält:
 1. `Auto`: der 'normale' Modus, in dem jedes _VTherm_ autonom arbeitet,
 2. `Gestoppt`: alle _VTherms_ sind ausgeschaltet (`hvac_off`),
-3. `Nur Heizen`: alle _VTherms_ werden in den Heizmodus versetzt, wenn dies unterstützt wird, andernfalls werden sie anhelaten,
+3. `Nur Heizen`: alle _VTherms_ werden in den Heizmodus versetzt, wenn dies unterstützt wird, andernfalls werden sie angehalten,
 4. `Nur Kühlen`: alle _VTherms_ werden in den Kühlmodus versetzt, wenn dies unterstüzt wird, andernfalls werden sie angehalten,
 5. `Frostschutz`: alle _VTherms_ werden in den Frostschutzmodus versetzt, wenn dies unterstüzt wird, andernfalls werden sie angehalten.
 
