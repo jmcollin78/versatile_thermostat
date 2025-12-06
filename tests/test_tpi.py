@@ -133,9 +133,7 @@ async def test_tpi_calculation(
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
-    """
-    Test the max_on_percent clamping calculations
-    """
+    # Test the max_on_percent clamping calculations
     tpi_algo._max_on_percent = 0.8
 
     # no clamping
