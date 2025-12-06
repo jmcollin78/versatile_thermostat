@@ -2,7 +2,7 @@
 # pylint: disable='line-too-long'
 import logging
 
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ class PropAlgorithm:
                 )
                 self._calculated_on_percent = 0
             else:
-                if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode != VThermHvacMode_OFF:
+                if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
                 else:
                     _LOGGER.warning(

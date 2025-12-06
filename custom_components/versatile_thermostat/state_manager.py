@@ -158,7 +158,7 @@ class StateManager:
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         # Calculate hvac_off_reason
-        if self._current_state.hvac_mode != VThermHvacMode_OFF and vtherm.hvac_off_reason is not None:
+        if self._current_state.hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and vtherm.hvac_off_reason is not None:
             vtherm.set_hvac_off_reason(None)
         elif self._current_state.hvac_mode == VThermHvacMode_SLEEP:
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
