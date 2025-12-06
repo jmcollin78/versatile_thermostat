@@ -62,6 +62,7 @@ class VersatileThermostatAPI(dict):
         self._threshold_number_entity = None
         self._power_threshold_number_entity = None
         self._nb_active_number_entity = None
+        self._total_power_active_entity = None
         self._central_configuration = None
         self._central_mode_select = None
         # A dict that will store all Number entities which holds the temperature
@@ -149,6 +150,10 @@ class VersatileThermostatAPI(dict):
         """register the two number entities needed for boiler activation"""
         self._nb_active_number_entity = nb_active_number_entity
 
+    def register_total_power_active_boiler(self, total_power_active_entity):
+        """register the two number entities needed for boiler activation"""
+        self._total_power_active_entity = total_power_active_entity
+
     def register_temperature_number(
         self,
         config_id: str,
@@ -216,7 +221,11 @@ class VersatileThermostatAPI(dict):
         """Reloads the BinarySensor entity which listen to the number of
         active devices and the thresholds entities"""
         if self._central_boiler_entity:
-            await self._central_boiler_entity.listen_nb_active_vtherm_entity()
+            await self._central_boiler_entity.start_listening_active_vtherm_entity()
+        if self._nb_active_number_entity:
+            await self._nb_active_number_entity.listen_vtherms_entities()
+        if self._total_power_active_entity:
+            await self._total_power_active_entity.listen_vtherms_entities()
 
     async def reload_central_boiler_entities_list(self):
         """Reload the central boiler list of entities if a central boiler is used"""

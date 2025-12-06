@@ -164,7 +164,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             }
         )
 
-        self.async_write_ha_state()
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
@@ -209,6 +208,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             )
 
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
@@ -230,8 +230,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self.hass.create_task(self._check_initial_state())
 
         self.calculate_hvac_action()
-        self.async_write_ha_state()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @property
     def vtherm_type(self) -> str | None:

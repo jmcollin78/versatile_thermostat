@@ -170,11 +170,10 @@ async def test_update_central_boiler_state_simple(
     assert nb_device_active_sensor.active_device_ids == []
 
     # 1. start a heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
         _LOGGER.debug("---- 1. Turn on the switch1")
         now = now + timedelta(minutes=1)
         # await send_temperature_change_event(entity, 10, now)
@@ -220,6 +219,10 @@ async def test_update_central_boiler_state_simple(
             ]
         )
 
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
         assert api.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
@@ -227,11 +230,11 @@ async def test_update_central_boiler_state_simple(
         assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
 
     # 2. stop a heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch1.async_turn_off()
         switch1.async_write_ha_state()
         # Wait for state event propagation
@@ -262,6 +265,10 @@ async def test_update_central_boiler_state_simple(
                 )
             ]
         )
+
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
 
         assert api.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
@@ -395,11 +402,11 @@ async def test_update_central_boiler_state_multiple(
     assert boiler_binary_sensor.state == STATE_OFF
 
     # 1. start a first heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         assert switch1.is_on is False
         # don't work anymore since HA 2025.9.3 - state change event is not thrown
         await switch1.async_turn_on()
@@ -433,11 +440,11 @@ async def test_update_central_boiler_state_multiple(
         assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
 
     # 2. start a 2nd heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch2.async_turn_on()
         switch2.async_write_ha_state()
         # Wait for state event propagation
@@ -472,11 +479,11 @@ async def test_update_central_boiler_state_multiple(
         ]
 
     # 3. start a 3rd heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch3.async_turn_on()
         switch3.async_write_ha_state()
         # Wait for state event propagation
@@ -512,6 +519,10 @@ async def test_update_central_boiler_state_multiple(
             ]
         )
 
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
         assert api.nb_active_device_for_boiler == 3
         assert boiler_binary_sensor.state == STATE_ON
 
@@ -523,11 +534,11 @@ async def test_update_central_boiler_state_multiple(
         ]
 
     # 4. start a 4th heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch4.async_turn_on()
         switch4.async_write_ha_state()
         # Wait for state event propagation
@@ -562,11 +573,11 @@ async def test_update_central_boiler_state_multiple(
         ]
 
     # 5. stop a heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch1.async_turn_off()
         switch1.async_write_ha_state()
         # Wait for state event propagation
@@ -587,11 +598,11 @@ async def test_update_central_boiler_state_multiple(
         ]
 
     # 6. stop a 2nd heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await switch4.async_turn_off()
         switch4.async_write_ha_state()
         # Wait for state event propagation
@@ -622,6 +633,11 @@ async def test_update_central_boiler_state_multiple(
                 )
             ]
         )
+
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
 
         assert api.nb_active_device_for_boiler == 2
         assert boiler_binary_sensor.state == STATE_OFF
@@ -725,11 +741,11 @@ async def test_update_central_boiler_state_simple_valve(
     assert nb_device_active_sensor.active_device_ids == []
 
     # 1. start a valve
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await send_temperature_change_event(entity, 10, now)
         # we have to simulate the valve also else the test don't work
         valve1.set_native_value(10)
@@ -763,6 +779,10 @@ async def test_update_central_boiler_state_simple_valve(
             ]
         )
 
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
         assert api.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
@@ -772,11 +792,11 @@ async def test_update_central_boiler_state_simple_valve(
         ]
 
     # 2. stop a heater
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await send_temperature_change_event(entity, 25, now)
         # Change the valve value to 0
         valve1.set_native_value(0)
@@ -810,6 +830,10 @@ async def test_update_central_boiler_state_simple_valve(
                 )
             ]
         )
+
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
 
         assert api.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
@@ -909,11 +933,11 @@ async def test_update_central_boiler_state_simple_climate(
     assert boiler_binary_sensor.state == STATE_OFF
 
     # 1. start a climate
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await send_temperature_change_event(entity, 10, now)
         # we have to simulate the climate also else the test don't work
         climate1.set_hvac_mode(VThermHvacMode_HEAT)
@@ -949,6 +973,10 @@ async def test_update_central_boiler_state_simple_climate(
             ]
         )
 
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
         assert api.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
@@ -958,11 +986,11 @@ async def test_update_central_boiler_state_simple_climate(
         ]
 
     # 2. stop a climate
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event:
+        # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
+    # fmt: on
+
         await send_temperature_change_event(entity, 25, now)
         climate1.set_hvac_mode(VThermHvacMode_HEAT)
         climate1.set_hvac_action(HVACAction.IDLE)
@@ -996,6 +1024,10 @@ async def test_update_central_boiler_state_simple_climate(
                 )
             ]
         )
+
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
 
         assert api.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
@@ -1159,14 +1191,11 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         State("unknown.entity_id", "unknown"),
     )
 
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event, patch(
-        "homeassistant.core.StateMachine.get",
-        side_effect=mock_get_state_side_effect.get_side_effects(),
-    ):
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event, \
+        patch("homeassistant.core.StateMachine.get",side_effect=mock_get_state_side_effect.get_side_effects()):
+    # fmt: on
         now = now + timedelta(minutes=1)
         entity._set_now(now)
 
@@ -1182,9 +1211,6 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["number.mock_opening_degree"]
-
-        assert api.nb_active_device_for_boiler == 1
-        assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 1
         assert nb_device_active_sensor.active_device_ids == [
@@ -1214,6 +1240,15 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
             ]
         )
 
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
+
+        assert api.nb_active_device_for_boiler == 1
+        assert boiler_binary_sensor.state == STATE_ON
+
+
+
     # 2. stop a climate
     open_degree_entity.set_native_value(0)
     mock_get_state_side_effect = SideEffects(
@@ -1232,14 +1267,13 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         },
         State("unknown.entity_id", "unknown"),
     )
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "custom_components.versatile_thermostat.binary_sensor.send_vtherm_event"
-    ) as mock_send_event, patch(
-        "homeassistant.core.StateMachine.get",
-        side_effect=mock_get_state_side_effect.get_side_effects(),
-    ):
+
+    # fmt: off
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
+        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event, \
+        patch("homeassistant.core.StateMachine.get",side_effect=mock_get_state_side_effect.get_side_effects()):
+    # fmt: on
+
         await send_temperature_change_event(entity, 25, now)
         climate1.set_hvac_mode(VThermHvacMode_HEAT)
         climate1.set_hvac_action(HVACAction.IDLE)
@@ -1275,6 +1309,10 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
                 )
             ]
         )
+
+        # really resend the event to trigger the boiler sensor
+        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
+        await hass.async_block_till_done()
 
         assert api.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
@@ -1354,7 +1392,7 @@ async def test_bug_339(
 
     await entity.async_set_hvac_mode(VThermHvacMode_AUTO)
     # Simulate a state change in underelying
-    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices_and_power(None)
+    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices_or_power(None)
 
     # The VTherm should be active
     assert entity.underlying_entity(0).is_device_active is True

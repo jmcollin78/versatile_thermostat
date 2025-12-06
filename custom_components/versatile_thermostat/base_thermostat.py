@@ -1858,6 +1858,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.async_control_heating()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     async def service_set_window_bypass_state(self, window_bypass: bool):
         """Called by a service call:

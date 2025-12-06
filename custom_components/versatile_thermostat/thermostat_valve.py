@@ -284,6 +284,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             )
 
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",

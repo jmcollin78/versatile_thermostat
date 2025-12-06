@@ -134,9 +134,7 @@ async def async_setup_entry(
     # For central config only
     else:
         if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
-            entities.append(
-                ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
-            )
+            entities.append(ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data))
             entities.append(ActivateBoilerPowerThresholdNumber(hass, unique_id, name, entry.data))
 
         for preset in CONF_PRESETS_WITH_AC_VALUES:
@@ -176,7 +174,7 @@ class ActivateBoilerThresholdNumber(
         self._hass = hass
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
-        self._attr_name = "Boiler Activation threshold"
+        self._attr_name = "Number activation threshold"
         self._attr_unique_id = "boiler_activation_threshold"
         self._attr_value = self._attr_native_value = 1  # default value
         self._attr_native_min_value = 1
@@ -241,11 +239,11 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         self._hass = hass
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
-        self._attr_name = "Boiler Power Activation threshold"
+        self._attr_name = "Power activation threshold"
         self._attr_unique_id = "boiler_power_activation_threshold"
         self._attr_value = self._attr_native_value = 0  # default value
         self._attr_native_min_value = 0
-        self._attr_native_max_value = None
+        self._attr_native_max_value = 10000  # for people who works in Watts
         self._attr_step = 1  # default value
         self._attr_mode = NumberMode.AUTO
 

@@ -8,13 +8,11 @@ from homeassistant.core import (
     callback,
     Event,
     # CoreState,
-    HomeAssistantError,
 )
 
-from homeassistant.const import STATE_ON, STATE_OFF  # , EVENT_HOMEASSISTANT_START
+from homeassistant.const import STATE_ON, STATE_OFF
 
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -25,8 +23,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .vtherm_api import VersatileThermostatAPI
-from .commons import check_and_extract_service_configuration, write_event_log
 from .base_entity import VersatileThermostatBaseEntity
+from .feature_central_boiler_manager import FeatureCentralBoilerManager
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -38,11 +36,8 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_USE_CENTRAL_BOILER_FEATURE,
-    CONF_CENTRAL_BOILER_ACTIVATION_SRV,
-    CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
     overrides,
     EventType,
-    send_vtherm_event,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -351,14 +346,9 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         self._attr_unique_id = "central_boiler_state"
         self._attr_is_on = False
         self._device_name = entry_infos.get(CONF_NAME)
-        self._entities = []
+        self._entry_infos = entry_infos
         self._hass = hass
-        self._service_activate = check_and_extract_service_configuration(
-            entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)
-        )
-        self._service_deactivate = check_and_extract_service_configuration(
-            entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
-        )
+        self._central_boiler_manager: FeatureCentralBoilerManager | None = None
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -389,95 +379,37 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         api.register_central_boiler(self)
 
-    async def listen_nb_active_vtherm_entity(self):
-        """Initialize the listening of state change of VTherms"""
+        # Initialize and start the central boiler manager
+        self._central_boiler_manager = FeatureCentralBoilerManager(self, self._hass)
+        self._central_boiler_manager.post_init(self._entry_infos)
+        await self._central_boiler_manager.start_listening()
 
-        # Listen to all VTherm state change
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-
-        if (
-            api.nb_active_device_for_boiler_entity
-            and api.nb_active_device_for_boiler_threshold_entity
-        ):
-            listener_cancel = async_track_state_change_event(
-                self._hass,
-                [
-                    api.nb_active_device_for_boiler_entity.entity_id,
-                    api.nb_active_device_for_boiler_threshold_entity.entity_id,
-                ],
-                self.calculate_central_boiler_state,
+        # Listen to central boiler events
+        self.async_on_remove(
+            self._hass.bus.async_listen(
+                EventType.CENTRAL_BOILER_EVENT.value,
+                self._handle_central_boiler_event,
             )
-            _LOGGER.debug(
-                "%s - entity to get the nb of active VTherm is %s",
-                self,
-                api.nb_active_device_for_boiler_entity.entity_id,
-            )
-            self.async_on_remove(listener_cancel)
-        else:
-            _LOGGER.debug("%s - no VTherm could controls the central boiler", self)
-
-        await self.calculate_central_boiler_state(None)
-
-    async def calculate_central_boiler_state(self, _):
-        """Calculate the central boiler state depending on all VTherm that
-        controls this central boiler"""
-
-        _LOGGER.debug("%s - calculating the new central boiler state", self)
-        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        if (
-            api.nb_active_device_for_boiler is None
-            or api.nb_active_device_for_boiler_threshold is None
-        ):
-            _LOGGER.warning(
-                "%s - the entities to calculate the boiler state are not initialized. Boiler state cannot be calculated",
-                self,
-            )
-            return False
-
-        active = (
-            api.nb_active_device_for_boiler >= api.nb_active_device_for_boiler_threshold
         )
 
-        if self._attr_is_on != active:
-            try:
-                if active:
-                    write_event_log(_LOGGER, self, f"Central boiler is being turned on ({api.nb_active_device_for_boiler}/{api.nb_active_device_for_boiler_threshold})")
-                    await self.call_service(self._service_activate)
-                    _LOGGER.info("%s - central boiler have been turned on", self)
-                else:
-                    write_event_log(_LOGGER, self, f"Central boiler is being turned off ({api.nb_active_device_for_boiler}/{api.nb_active_device_for_boiler_threshold})")
-                    await self.call_service(self._service_deactivate)
-                    _LOGGER.info("%s - central boiler have been turned off", self)
-                self._attr_is_on = active
-                send_vtherm_event(
-                    hass=self._hass,
-                    event_type=EventType.CENTRAL_BOILER_EVENT,
-                    entity=self,
-                    data={"central_boiler": active},
-                )
+    @callback
+    def _handle_central_boiler_event(self, event):
+        """Handle central boiler event to update internal state."""
+        _LOGGER.debug("%s - Received central boiler event: %s", self, event.data)
+        if "central_boiler" in event.data:
+            new_state = event.data["central_boiler"]
+            if self._attr_is_on != new_state:
+                self._attr_is_on = new_state
                 self.async_write_ha_state()
-            except HomeAssistantError as err:
-                _LOGGER.error(
-                    "%s - Impossible to activate/deactivat boiler due to error %s."
-                    "Central boiler will not being controled by VTherm."
-                    "Please check your service configuration. Cf. README.",
-                    self,
-                    err,
-                )
 
-    async def call_service(self, service_config: dict):
-        """Make a call to a service if correctly configured"""
-        if not service_config:
-            return
+    async def start_listening_active_vtherm_entity(self):
+        """Initialize the listening of state change of VTherms - delegated to manager"""
+        if self._central_boiler_manager:
+            await self._central_boiler_manager.start_listening_active_vtherm_entity()
 
-        await self._hass.services.async_call(
-            service_config["service_domain"],
-            service_config["service_name"],
-            service_data=service_config["data"],
-            target={
-                "entity_id": service_config["entity_id"],
-            },
-        )
+        # Initialize my state
+        self._attr_is_on = self._central_boiler_manager.is_on
+        self.async_write_ha_state()
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"

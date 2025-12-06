@@ -194,18 +194,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self.stop_recalculate_later()
 
-        # if self.vtherm_hvac_mode == VThermHvacMode_SLEEP:
-        #     self._valve_open_percent = 100
-        #     self._is_sleeping = True
-        #     return
-        # else:
-        #     self._is_sleeping = False
-
-        # if not self.is_on:
-        #     # the 0 will be clamped to the min value
-        #     self._valve_open_percent = 0
-        #     return
-
         # For testing purpose. Should call _set_now() before
         now = self.now
 
@@ -311,24 +299,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()
-
-    @overrides
-    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, _=False):
-        """Set new hvac mode"""
-
-        write_event_log(_LOGGER, self, f"Setting hvac_mode to {hvac_mode}")
-        # TODO removes this implementation now
-        # if hvac_mode == VThermHvacMode_SLEEP:
-        #     self._is_sleeping = True
-        #     hvac_mode = VThermHvacMode_OFF
-        #     self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
-        # else:
-        #     self._is_sleeping = False
-        #     if hvac_mode == VThermHvacMode_OFF:
-        #         for under in self._underlyings_valve_regulation:
-        #             await under.turn_off()
-
-        await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
     def build_hvac_list(self) -> list[VThermHvacMode]:

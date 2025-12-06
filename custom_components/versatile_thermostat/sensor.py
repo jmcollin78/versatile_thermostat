@@ -705,17 +705,15 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         api.register_nb_device_active_boiler(self)
 
-        @callback
-        async def _async_startup_internal(*_):
-            _LOGGER.debug("%s - Calling async_startup_internal", self)
-            await self.listen_vtherms_entities()
-
-        if self.hass.state == CoreState.running:
-            await _async_startup_internal()
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_START, _async_startup_internal
-            )
+        # @callback
+        # async def _async_startup_internal(*_):
+        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
+        #     await self.listen_vtherms_entities()
+    #
+    # if self.hass.state == CoreState.running:
+    #     await _async_startup_internal()
+    # else:
+    #     self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup_internal)
 
     async def listen_vtherms_entities(self):
         """Initialize the listening of state change of VTherms"""
@@ -800,7 +798,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         for entity in self._entities:
             device_actives = entity.device_actives
             _LOGGER.debug(
-                "After examining the hvac_action of %s, device_actives is %s",
+                "After examining the device_actives of %s, device_actives is %s",
                 entity.name,
                 device_actives,
             )
@@ -847,6 +845,13 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
         return 2
+
+    @overrides
+    async def async_added_to_hass(self) -> None:
+        # do not ! await super().async_added_to_hass()
+
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        api.register_total_power_active_boiler(self)
 
     async def listen_vtherms_entities(self):
         """Initialize the listening of state change of VTherms"""
