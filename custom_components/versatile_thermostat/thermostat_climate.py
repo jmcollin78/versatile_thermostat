@@ -940,6 +940,28 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return None
 
     @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Return the swing horizontal setting.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_horizontal_mode
+
+        return None
+
+    @property
+    def swing_horizontal_modes(self) -> list[str] | None:
+        """Return the list of available swing horizontal modes.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_horizontal_modes
+
+        return None
+
+    @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self.hass.config.units.temperature_unit
@@ -1087,6 +1109,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         for under in self._underlyings:
             await under.set_swing_mode(swing_mode)
         self._swing_mode = swing_mode
+        self.async_write_ha_state()
+
+    @overrides
+    async def async_set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """Set new target swing horizontal operation."""
+        _LOGGER.info("%s - Set swing horizontal mode: %s", self, swing_horizontal_mode)
+        if swing_horizontal_mode is None:
+            return
+        for under in self._underlyings:
+            await under.set_swing_horizontal_mode(swing_horizontal_mode)
+        self._swing_horizontal_mode = swing_horizontal_mode
         self.async_write_ha_state()
 
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
