@@ -124,6 +124,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._ac_mode = None
 
         self._cur_temp = None
@@ -339,6 +340,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._humidity = None
         self._fan_mode = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._cur_temp = None
         self._cur_ext_temp = None
 
@@ -854,6 +856,22 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return None
 
     @property
+    def swing_horizontal_modes(self) -> list[str] | None:
+        """Return the list of available swing horizonntal modes.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        return None
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Return the swing horizonntal setting.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        return None
+
+    @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self._unit
@@ -1269,6 +1287,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_swing_mode(self, swing_mode: str):
         """Set new target swing operation."""
         write_event_log(_LOGGER, self, f"Set swing mode: {swing_mode}")
+        return
+
+    async def async_set_swing_horizontal_mode(self, swing_horizontal_mode: str):
+        """Set new target swing horizontal operation."""
+        write_event_log(_LOGGER, self, f"Set swing horizontal mode: {swing_horizontal_mode}")
         return
 
     @check_lock
