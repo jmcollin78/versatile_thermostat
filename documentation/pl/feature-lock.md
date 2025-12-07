@@ -9,7 +9,7 @@
 Funkcja blokady jest konfigurowana w ustawieniach termostatu, w sekcji 'Blokada'. Możesz zablokować:
 
 - **użytkowników**: zapobiega zmianom z poziomu interfejsu użytkownika Home Assistant.
-- **uutomatyzacje i integracje**: zapobiega zmianom w automatyzacjach, skryptach i innych integracjach.
+- **automatyzacje i integracje**: zapobiega zmianom w automatyzacjach, skryptach i innych integracjach.
 
 Możesz również skonfigurować opcjonalny **Kod blokady**:
 
