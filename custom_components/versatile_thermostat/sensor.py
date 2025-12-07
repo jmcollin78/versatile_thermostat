@@ -929,15 +929,18 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
         for entity in self._entities:
             mean_cycle_power = entity.power_manager.mean_cycle_power
+            if mean_cycle_power is None or mean_cycle_power <= 0:
+                continue
+
             _LOGGER.debug(
                 "After examining the mean_cycle_power of %s, mean_cycle_power is %s",
                 entity.name,
                 mean_cycle_power,
             )
 
-            active_device_ids.extend(entity.device_actives)
+            active_device_ids.extend([under.entity_id for under in entity.activable_underlying_entities])
 
-            total_active_power += mean_cycle_power if mean_cycle_power is not None else 0
+            total_active_power += mean_cycle_power
 
         self._attr_native_value = total_active_power
         self._attr_active_device_ids = active_device_ids

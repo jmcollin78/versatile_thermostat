@@ -111,6 +111,15 @@ class FeaturePowerManager(BaseFeatureManager):
                     }
                 }
             )
+        else:
+            extra_state_attributes.update(
+                {
+                    "power_manager": {
+                        "device_power": self._device_power,
+                        "mean_cycle_power": self.mean_cycle_power,
+                    }
+                }
+            )
 
     async def check_power_available(self) -> bool:
         """Check if the Vtherm can be started considering overpowering.

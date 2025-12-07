@@ -36,7 +36,7 @@ from custom_components.versatile_thermostat.binary_sensor import (
     CentralBoilerBinarySensor,
 )
 
-from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor
+from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor, TotalPowerActiveDeviceForBoilerSensor
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -135,9 +135,13 @@ async def test_update_central_boiler_state_simple(
             CONF_USE_PRESETS_CENTRAL_CONFIG: False,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
             CONF_USED_BY_CENTRAL_BOILER: True,
+            CONF_DEVICE_POWER: 1500,
         },
     )
 
+    #
+    # 0. start a heater because the temp is low
+    #
     entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps=default_temperatures)
     assert entity
     assert entity.name == "TheOverSwitchMockName"
@@ -167,14 +171,19 @@ async def test_update_central_boiler_state_simple(
     assert boiler_binary_sensor is not None
     assert boiler_binary_sensor.state == STATE_OFF
 
-    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
-        hass, "sensor.nb_device_active_for_boiler", "sensor"
-    )
+    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.nb_device_active_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
 
+    total_power_active_sensor: TotalPowerActiveDeviceForBoilerSensor = search_entity(hass, "sensor.total_power_active_for_boiler", "sensor")
+    assert total_power_active_sensor is not None
+    assert total_power_active_sensor.state == 0
+    assert total_power_active_sensor.active_device_ids == []
+
+    #
     # 1. start a heater because the temp is low
+    #
     _LOGGER.debug("---- 1. Turn on the switch1")
     now = now + timedelta(minutes=1)
     await send_temperature_change_event(entity, 10, now)
@@ -193,7 +202,12 @@ async def test_update_central_boiler_state_simple(
     assert nb_device_active_sensor.state == 1
     assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
 
+    assert total_power_active_sensor.state == 1500
+    assert total_power_active_sensor.active_device_ids == ["switch.switch1"]
+
+    #
     # 2. stop a heater by changing the preset
+    #
     await entity.async_set_preset_mode(VThermPreset.FROST)
     await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.IDLE)
 
@@ -207,6 +221,9 @@ async def test_update_central_boiler_state_simple(
 
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
+
+    assert total_power_active_sensor.state == 0
+    assert total_power_active_sensor.active_device_ids == []
 
     entity.remove_thermostat()
 
