@@ -197,12 +197,12 @@ Zależy to od przyczyny problemu:
 3. Niektóre czujniki temperatury nie wysyłają pomiarów, jeśli temperatura się nie zmieniła. Jeśli więc temperatura pozostaje bardzo stabilna przez długi czas, może uruchomić się tryb *bezpieczny*. Nie stanowi to dużego problemu, ponieważ zostanie on wyłączony, gdy _VTherm_ otrzyma nową temperaturę. W niektórych termometrach (np. TuYA lub Zigbee) można wymusić maksymalne opóźnienie między dwoma pomiarami. Maksymalne opóźnienie powinno być ustawione na wartość niższą, niż `safety_delay_min`.
 4. Gdy tylko temperatura zostanie ponownie odczytana, tryb *bezpieczny* wyłączy się, a poprzednie wartości zadane, temperatura docelowa i tryb zostaną przywrócone.
 5. Jeśli zewnętrzny czujnik temperatury jest uszkodzony, można wyłączyć wyzwalanie trybu *bezpiecznego*, ponieważ ma to minimalny wpływ na wyniki. Aby to zrobić, zajrzyj [tutaj](feature-advanced.md#safety-mode).
-6. Niektóre urządzenia Zigbee mają atrybut `last_seen` ("ostatio widziany”). Często są one ukryte i wymagają aktywacji, aby można było z nich korzystać. Po aktywacji można skonfigurować ten atrybut na głównym ekranie konfiguracji _*VTherm*_ (patrz: główny ekran konfiguracji).
+6. Niektóre urządzenia Zigbee mają atrybut `last_seen` ("ostatnio widziany”). Często są one ukryte i wymagają aktywacji, aby można było z nich korzystać. Po aktywacji można skonfigurować ten atrybut na głównym ekranie konfiguracji _*VTherm*_ (patrz: główny ekran konfiguracji).
 
 
 ## Grupa osób jako sensor obecności
 
-Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w VTherm.
+Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w _VTherm_.
 Rozwiązaniem jest utworzenie szablonu czujnika binarnego za pomocą poniższego kodu:
 
 Plik `template.yaml`:
