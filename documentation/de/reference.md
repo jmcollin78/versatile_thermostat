@@ -74,6 +74,7 @@
 | ``use_central_boiler_feature``            | Hinzufügen der Steuerung eines Zentralheizungskessels                             | -             | -                  | -            | X                        |
 | ``central_boiler_activation_service``     | Dienst zum Anschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
 | ``central_boiler_deactivation_service``   | Dienst zum Abschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
+| ``central_boiler_activation_delay_sec``   | Zpoždění aktivace (v sekundách)                                                   | -             | -                  | -            | X                        |
 | ``used_by_controls_central_boiler``       | Zeigt an, ob VTherm den Zentralheizungskessel steuert                             | X             | X                  | X            | -                        |
 | ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                  | -            | -                        |
 | ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                  | -            | -                        |

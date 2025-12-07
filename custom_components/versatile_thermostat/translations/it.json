@@ -239,11 +239,13 @@
         "description": "Inserisci i servizi da chiamare per accendere/spegnere la caldaia centralizzata. Il servizio chiamato deve essere formattato come segue: `entity_id/nome_servizi[/attributo:valore]` (/attributo:valore è facoltativo)\nAd esempio:\n- per accendere un interruttore: `switch.controle_chaudiere/switch.turn_on`\n- per spegnere un interruttore: `switch.controle_chaudiere/switch.turn_off`\n- per programmare la caldaia a 25° e quindi forzarne l'accensione: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- per inviare 10° alla caldaia e quindi forzarne lo spegnimento: `climate. thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Comando per accendere",
-          "central_boiler_deactivation_service": "Comando per spegnere"
+          "central_boiler_deactivation_service": "Comando per spegnere",
+          "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)"
         },
         "data_description": {
           "central_boiler_activation_service": "Comando per accendere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
-          "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]"
+          "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
+          "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione"
         }
       },
       "valve_regulation": {
@@ -518,11 +520,13 @@
         "description": "Inserire i servizi da chiamare per accendere/spegnere la caldaia centralizzata. Il servizio chiamato deve essere formattato come segue: `entity_id/nome_servizi[/attributo:valore]` (/attributo:valore è facoltativo)\nAd esempio:\n- per accendere un interruttore: `switch.controle_chaudiere/switch.turn_on`\n- per spegnere un interruttore: `switch.controle_chaudiere/switch.turn_off`\n- per programmare la caldaia a 25° e quindi forzarne l'accensione: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- per inviare 10° alla caldaia e quindi forzarne lo spegnimento: `climate. thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?]https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Comando per accendere",
-          "central_boiler_deactivation_service": "Comando per spegnere"
+          "central_boiler_deactivation_service": "Comando per spegnere",
+          "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)"
         },
         "data_description": {
           "central_boiler_activation_service": "Comando per accendere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
-          "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]"
+          "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
+          "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione"
         }
       },
       "valve_regulation": {

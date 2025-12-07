@@ -1,16 +1,16 @@
 # Dokumentacja Referencyjna
 
-- [Dokumentacja Referencyjna](#reference-documentation)
-  - [Parametry](#parameter-summary)
-- [Sensory](#sensors)
-- [Akcje (Usługi)](#actions-services)
-  - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
-  - [Modyfikacja presetów temperatury](#modify-the-preset-temperature)
-  - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
-  - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
-  - [Zmiana parametrów TPI](#change-tpi-parameters)
-- [Zdarzenia](#events)
-- [Atrybuty własne](#custom-attributes)
+- [Dokumentacja Referencyjna](#dokumentacja-referencyjna)
+  - [Parametry](#parametry)
+- [Sensory](#sensory)
+- [Akcje (Usługi)](#akcje-usługi)
+  - [Wymuszanie obecności/zajętości](#wymuszanie-obecnościzajętości)
+  - [Modyfikacja presetów temperatury](#modyfikacja-presetów-temperatury)
+  - [Modyfikacja ustawień bezpieczeństwa](#modyfikacja-ustawień-bezpieczeństwa)
+  - [Pomijanie sprawdzania stanu okna](#pomijanie-sprawdzania-stanu-okna)
+  - [Zmiana parametrów TPI](#zmiana-parametrów-tpi)
+- [Zdarzenia](#zdarzenia)
+- [Atrybuty własne](#atrybuty-własne)
 
 ## Parametry
 
@@ -74,6 +74,7 @@
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                              | -                          | -                         | X                           |
 | ``central_boiler_activation_service``     | Usługa katyewacji kotła                                           | -                              | -                          | -                         | X                           |
 | ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                              | -                          | -                         | X                           |
+| ``central_boiler_activation_delay_sec``   | Opóźnienie załączenia (w sekundach)                               | -                              | -                          | -                         | X                           |
 | ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                              | X                          | X                         | -                           |
 | ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP                    | -                              | X                          | -                         | -                           |
 | ``auto_start_stop_level``                 | Poziom detekcji autoSTART/autoSTOP                                | -                              | X                          | -                         | -                           |

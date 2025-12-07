@@ -76,6 +76,7 @@
 | ``use_central_boiler_feature``            | Add central boiler control                                 | -             | -                   | -            | X                       |
 | ``central_boiler_activation_service``     | Boiler activation service                                  | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Boiler deactivation service                                | -             | -                   | -            | X                       |
+| ``central_boiler_activation_delay_sec``   | Activation delay (seconds)                                 | -             | -                   | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indicates if the VTherm controls the central boiler        | X             | X                   | X            | -                       |
 | ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
 | ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |

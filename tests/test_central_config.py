@@ -520,6 +520,7 @@ async def test_migration_of_central_config(
             "add_central_boiler_control": True,
             CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
             CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+            CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 10,
         },
     )
 

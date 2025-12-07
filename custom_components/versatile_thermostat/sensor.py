@@ -665,7 +665,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
         self._attr_active_device_ids = []  # Holds the entity ids of active devices``
-        self._cancel_listener = None
+        self._cancel_listener_nb_active: callable | None = None
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -717,9 +717,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
 
-        if self._cancel_listener is not None:
-            self._cancel_listener()
-            self._cancel_listener = None
+        self.cancel_listening_nb_active()
 
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
@@ -728,7 +726,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                     underlying_entities_id.append(under.entity_id)
         if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
-            self._cancel_listener = async_track_state_change_event(
+            self._cancel_listener_nb_active = async_track_state_change_event(
                 self._hass,
                 underlying_entities_id,
                 self.calculate_nb_active_devices,
@@ -738,7 +736,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 self,
                 underlying_entities_id,
             )
-            self.async_on_remove(self._cancel_listener)
+            self.async_on_remove(self._cancel_listener_nb_active)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -815,6 +813,15 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
 
+    def cancel_listening_nb_active(self):
+        """Cancel the listening of underlying VTherm state changes"""
+        if self._cancel_listener_nb_active is not None:
+            try:
+                self._cancel_listener_nb_active()
+            except (ValueError, TypeError):  # the listener could be already cancelled
+                pass
+            self._cancel_listener_nb_active = None
+
 
 class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     """Representation of the total power of VTherm
@@ -826,6 +833,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         self._attr_name = "Total power active for boiler"
         self._attr_unique_id = "total_power_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
+        self._cancel_listener_power: callable | None = None
 
     @property
     def icon(self) -> str | None:
@@ -859,9 +867,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
 
-        if self._cancel_listener is not None:
-            self._cancel_listener()
-            self._cancel_listener = None
+        self.cancel_listening_power()
 
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
@@ -870,7 +876,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
         if len(self._entities) > 0:
             # Arme l'écoute de la première entité
-            self._cancel_listener = async_track_state_change_event(
+            self._cancel_listener_power = async_track_state_change_event(
                 self._hass,
                 entities_id,
                 self.calculate_total_power,
@@ -880,7 +886,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
                 self,
                 entities_id,
             )
-            self.async_on_remove(self._cancel_listener)
+            self.async_on_remove(self._cancel_listener_power)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -954,3 +960,12 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
+
+    def cancel_listening_power(self):
+        """Cancel the listening of underlying VTherm state changes"""
+        if self._cancel_listener_power is not None:
+            try:
+                self._cancel_listener_power()
+            except (ValueError, TypeError):  # the listener could be already cancelled
+                pass
+            self._cancel_listener_power = None
