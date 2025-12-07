@@ -202,7 +202,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # Reload the central boiler list of entities
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         if api is not None:
-            await api.reload_central_boiler_entities_list()
+            await api.central_boiler_manager.reload_central_boiler_entities_list()
             await api.init_vtherm_links(entry.entry_id)
 
 

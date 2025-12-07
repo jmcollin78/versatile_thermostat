@@ -311,8 +311,11 @@ class MockClimate(ClimateEntity):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        # To avoid set_temperature outside the main loop error
-        async_call_later(self.hass, 0, self.async_write_ha_state)
+        try:
+            # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
+            self.async_write_ha_state()
+        except RuntimeError:
+            pass
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
