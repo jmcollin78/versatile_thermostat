@@ -14,7 +14,7 @@
 
 ## Parametry
 
-| Parametr                                  | Nazwa                                                             | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie" | "Termostat<br>na Zaworze" | "Konfiguracja<br>Centralna" |
+| Parametr                                  | Nazwa                                                             | Termostat<br>na Przełączniku | Termostat<br>na Klimacie | Termostat<br>na Zaworze | Konfiguracja<br>Centralna |
 | ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------ | -------------------------- | ------------------------- | --------------------------- |
 | ``name``                                  | Nazwa                                                             | X                              | X                          | X                         | -                           |
 | ``thermostat_type``                       | Typ termostatu                                                    | X                              | X                          | X                         | -                           |
@@ -104,7 +104,7 @@ Są to kolejno:
 
 Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 
-Aby pokolorować sensory dodaj w pliku `configuration.yaml` poniższe linie kodu , dostosowując je według własnych potrzeb:
+Aby pokolorować sensory, w pliku `configuration.yaml` dodaj poniższe linie kodu , dostosowując je według własnych potrzeb:
 
 ```yaml
 frontend:
@@ -155,7 +155,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
+...lub, aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
 ```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
@@ -240,7 +240,7 @@ Możesz łatwo przechwytywać te zdarzenia w automatyzacji, na przykład w celu 
 
 # Atrybuty własne
 
-Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia developerskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz coś takiego:
+Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia deweloperskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz:
 
 ![image](images/dev-tools-climate.png)
 
