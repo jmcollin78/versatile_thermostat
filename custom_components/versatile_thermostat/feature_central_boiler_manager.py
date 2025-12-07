@@ -311,11 +311,11 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             return []
         if self._is_ready != old_ready and self._central_boiler_entity:
             # Notify the central boiler entity that the manager is now ready
-            self.refresh_central_boiler_custom_attributes()
+            self.hass.create_task(self.refresh_central_boiler_custom_attributes())
 
         return self._all_boiler_entities
 
-    def refresh_central_boiler_custom_attributes(self):
+    async def refresh_central_boiler_custom_attributes(self):
         """Refresh the custom attributes of the central boiler entity"""
         if self._central_boiler_entity:
             self._central_boiler_entity.refresh_custom_attributes()

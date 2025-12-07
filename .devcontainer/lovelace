@@ -8,7 +8,7 @@
       "views": [
         {
           "type": "sections",
-          "max_columns": 4,
+          "max_columns": 5,
           "title": "Synthèse",
           "path": "default_view",
           "icon": "mdi:alarm-panel",
@@ -395,6 +395,68 @@
                     }
                   ],
                   "title": "Multi-switch"
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Central boiler",
+                  "heading_style": "title",
+                  "icon": "mdi:water-boiler"
+                },
+                {
+                  "type": "vertical-stack",
+                  "cards": [
+                    {
+                      "show_name": true,
+                      "show_icon": true,
+                      "show_state": true,
+                      "type": "glance",
+                      "columns": 3,
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "number.boiler_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "number.boiler_power_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        }
+                      ],
+                      "state_color": true
+                    },
+                    {
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "binary_sensor.central_boiler"
+                        },
+                        {
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
+                        }
+                      ],
+                      "hours_to_show": 1
+                    }
+                  ]
                 }
               ]
             }

@@ -805,7 +805,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_active_device_ids = active_device_ids
 
         self.async_write_ha_state()
-        VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
+        await VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
 
     @property
     def active_device_ids(self) -> list:
@@ -945,7 +945,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         self._attr_active_device_ids = active_device_ids
 
         self.async_write_ha_state()
-        VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
+        await VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
 
     @property
     def active_device_ids(self) -> list:

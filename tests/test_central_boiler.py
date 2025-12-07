@@ -151,6 +151,7 @@ async def test_update_central_boiler_state_simple(
 
     api.central_boiler_manager._set_nb_active_device_threshold(1)
     api.central_boiler_manager._set_total_power_active_threshold(1000)
+    await hass.async_block_till_done()
 
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
     assert api.central_boiler_manager.nb_active_device_for_boiler == 0
@@ -426,6 +427,7 @@ async def test_update_central_boiler_state_multiple(
 
     api.central_boiler_manager._set_nb_active_device_threshold(1)
     api.central_boiler_manager._set_total_power_active_threshold(1000)
+    await hass.async_block_till_done()
 
     nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
         hass, "sensor.nb_device_active_for_boiler", "sensor"
@@ -454,6 +456,7 @@ async def test_update_central_boiler_state_multiple(
 
     # 0. set threshold to 3
     api.central_boiler_manager._set_nb_active_device_threshold(3)
+    await hass.async_block_till_done()
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 3
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
