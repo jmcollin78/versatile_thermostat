@@ -31,7 +31,7 @@ from .const import (
     MSG_TARGET_TEMP_ABSENCE_DETECTED,
 )
 from .vtherm_state import VThermState
-from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT
+from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
 from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
@@ -158,8 +158,10 @@ class StateManager:
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         # Calculate hvac_off_reason
-        if self._current_state.hvac_mode != VThermHvacMode_OFF and vtherm.hvac_off_reason is not None:
+        if self._current_state.hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and vtherm.hvac_off_reason is not None:
             vtherm.set_hvac_off_reason(None)
+        elif self._current_state.hvac_mode == VThermHvacMode_SLEEP:
+            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
         return self._current_state.is_hvac_mode_changed
 

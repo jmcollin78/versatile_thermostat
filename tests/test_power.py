@@ -71,7 +71,10 @@ async def test_power_feature_manager(
     custom_attributes = {}
     power_manager.add_custom_attributes(custom_attributes)
     assert custom_attributes["is_power_configured"] is False
-    assert custom_attributes.get("power_manager") is None
+    assert custom_attributes.get("power_manager") is not None
+    assert custom_attributes["power_manager"].get("device_power") == 0
+    assert custom_attributes["power_manager"].get("mean_cycle_power") is None
+    assert custom_attributes["power_manager"].get("power_sensor_entity_id") is None
 
     # 2. post_init
     vtherm_api.find_central_configuration = MagicMock()
@@ -118,8 +121,8 @@ async def test_power_feature_manager(
 
     # 4. test refresh and check_overpowering with the parametrized
     # fmt:off
-    with patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_max_power", new_callable=PropertyMock, return_value=max_power), \
-        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_power", new_callable=PropertyMock, return_value=power):
+    with patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_max_power", new_callable=PropertyMock, return_value=max_power), \
+        patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_power", new_callable=PropertyMock, return_value=power):
     # fmt:on
 
         # Finish the mock configuration
@@ -197,8 +200,8 @@ async def test_power_feature_manager_set_overpowering(
     power_manager._overpowering_state = current_overpowering_state
 
     # fmt:off
-    with patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_max_power", new_callable=PropertyMock, return_value=2000), \
-        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_power", new_callable=PropertyMock, return_value=1000):
+    with patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_max_power", new_callable=PropertyMock, return_value=2000), \
+        patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_power", new_callable=PropertyMock, return_value=1000):
     # fmt:on
         # Finish mocking
         fake_vtherm.send_event = MagicMock()
@@ -856,6 +859,18 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     #
     #
     #

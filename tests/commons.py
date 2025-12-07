@@ -24,6 +24,7 @@ from homeassistant.const import (
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.event import async_call_later
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
@@ -318,7 +319,11 @@ class MockClimate(ClimateEntity):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        self.async_write_ha_state()
+        try:
+            # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
+            self.async_write_ha_state()
+        except RuntimeError:
+            pass
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -1180,7 +1185,7 @@ async def set_all_climate_preset_temp(
             number_entity_name,
             NUMBER_DOMAIN,
         )
-        assert temp_entity
+        assert temp_entity is not None, f"Cannot find temperature number entity '{number_entity_name}'. Check if central preset is used."
         if not temp_entity:
             raise ConfigurationNotCompleteError(
                 f"'{number_entity_name}' don't exists as number entity"
