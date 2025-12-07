@@ -2,27 +2,27 @@
 
 ## Przegląd
 
-> Funkcja blokady uniemożliwia modyfikacje termostatu z interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania samego termostatu.
+> Funkcja blokady uniemożliwia modyfikacje termostatu z poziomu interfejsu użytkownika lub automatyzacji, przy jednoczesnym zachowaniu działania samego termostatu.
 
 ## Konfiguracja
 
 Funkcja blokady jest konfigurowana w ustawieniach termostatu, w sekcji 'Blokada'. Możesz zablokować:
 
-- **użytkowników**: zapobiega zmianom w interfejsie użytkownika Home Assistant.
+- **użytkowników**: zapobiega zmianom z poziomu interfejsu użytkownika Home Assistant.
 - **uutomatyzacje i integracje**: zapobiega zmianom w automatyzacjach, skryptach i innych integracjach.
 
 Możesz również skonfigurować opcjonalny **Kod blokady**:
 
-- **Kod blokady**: 4-cyfrowy numeryczny `kod PIN` (np. '1234'). Jeśli kod został ustawiony, to będzie on wymagany do blokowania/odblokowywania termostatu. Jest to opcjonalna funkcjonalność, zatem w przypadku braku jej konfiguracji, żaden kod nie będzie wymagany.
+- **Kod blokady**: 4-cyfrowy numeryczny `kod PIN` (np. '1234'). Jeśli kod został ustawiony, wówczas będzie on wymagany do blokowania i odblokowywania termostatu. Jest to opcjonalna funkcjonalność, zatem w przypadku braku jej konfiguracji, żaden kod nie będzie wymagany.
 
 Możesz również wybrać centralną konfigurację dla ustawień blokady.
 
-## Użycie
+## Sposoby użycia
 
-W celu sterowania stanem blokady, użyj następujących usług:
+W celu sterowania stanem blokady użyj następujących usług:
 
 - `versatile_thermostat.lock` - blokuje termostat
-- `versatile_thermostat.unlock` - odblokowuje termostat (wymaga wartości `code`, jeśli została ona skonfigurowana)
+- `versatile_thermostat.unlock` - odblokowuje termostat (wymaga wartości `kod`, jeśli została ona skonfigurowana)
 
 Przykład automatyzacji blokowania:
 
@@ -78,7 +78,7 @@ Stan blokady jest:
 
 - Blokada jest aktywowana jedynie przy wywołaniach zewnętrznych. Operacje wewnętrzne (takie jak: `SafetyManager` lub `PowerManager`) z założenia omijają blokadę, ponieważ `StateManager` nadaje priorytet ich wynikowi nad żądaniami zewnętrznymi. Blokada zapobiega jedynie modyfikacji `requested_state` przez wywołania zewnętrzne.
 
-## Przypadki użycia
+## Zastosowanie
 
 - Zapobieganie przypadkowym zmianom w okresach krytycznych
 - Funkcja blokady dla dzieci
