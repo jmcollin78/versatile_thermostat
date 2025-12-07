@@ -124,6 +124,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._ac_mode = None
 
         self._cur_temp = None
@@ -339,6 +340,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._humidity = None
         self._fan_mode = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._cur_temp = None
         self._cur_ext_temp = None
 
