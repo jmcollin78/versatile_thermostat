@@ -7,7 +7,7 @@
     - [Podtrzymanie aktywności (keep-alive)](#podtrzymanie-aktywności-keep-alive)
     - [Tryb AC](#tryb-ac)
     - [Inwersja poleceń](#inwersja-poleceń)
-    - [Dostosowywanie poleceń](#dostosowywanie-poeceń)
+    - [Dostosowywanie poleceń](#dostosowywanie-poleceń)
 
 
 ## Wymagania wstępne
@@ -83,7 +83,7 @@ Dostępne polecenia zależą od typu urządzenia bazowego:
 | `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)          |
 | `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                      |
 
-(*) Aby skorzystać z tego rozwiązania, należy upewnić się, że stan encji bazowej jest zgodny z presetem. W przeciwnym razie _VTherm_ nie będzie w stanie stwierdzić, czy urządzenie jest włączone, czy wyłączone. Aby to sprawdzić, przejdź do zakładki _Narzędzia deweloperskie -> Stany_ w HA, wyszukaj encję bazową i sprawdź, czy jej stan odpowiada nazwie presetu. Jeśli widzisz `„ogrzewanie”`, `„wyłączone”` lub `„chłodzenie”`, nie są to doposzczalne presety i taka konfiguracja nie zadziała. W takim przypadku należy użyć przełącznika wirtualnego. Przykłady przełączników wirtualnych można znaleźć na stronie rozwiązywania problemów. Jeśli nalegasz na użycie tej konfiguracji, sprawdź dokładnie wartości akceptowane przez urządzenie w _Narzędzia deweloperskie -> Stany_ i wyszukaj swoje urządzenie, aby zobaczyć akceptowane opcje. Muszą być one **identyczne**, łącznie z uwzględnieniem wielkości liter.
+(*) Aby skorzystać z tego rozwiązania, należy upewnić się, że stan encji bazowej jest zgodny z presetem. W przeciwnym razie _VTherm_ nie będzie w stanie stwierdzić, czy urządzenie jest włączone, czy wyłączone. Aby to sprawdzić, przejdź do zakładki _Narzędzia deweloperskie -> Stany_ w HA, wyszukaj encję bazową i sprawdź, czy jej stan odpowiada nazwie presetu. Jeśli widzisz `„ogrzewanie”`, `„wyłączone”` lub `„chłodzenie”`, nie są to dozwolone presety i taka konfiguracja nie zadziała. W takim przypadku należy użyć przełącznika wirtualnego. Przykłady przełączników wirtualnych można znaleźć na stronie rozwiązywania problemów. Jeśli nalegasz na użycie tej konfiguracji, sprawdź dokładnie wartości akceptowane przez urządzenie w _Narzędzia deweloperskie -> Stany_ i wyszukaj swoje urządzenie, aby zobaczyć akceptowane opcje. Muszą być one **identyczne**, łącznie z uwzględnieniem wielkości liter.
 
 Przykład dla Nodon SIN-4-FP-21:
 
