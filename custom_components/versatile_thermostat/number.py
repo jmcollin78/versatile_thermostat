@@ -225,6 +225,7 @@ class ActivateBoilerThresholdNumber(
             return
 
         self._attr_value = self._attr_native_value = int_value
+        VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
@@ -284,6 +285,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
             return
 
         self._attr_value = self._attr_native_value = int_value
+        VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes()
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"

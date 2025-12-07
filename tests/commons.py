@@ -24,6 +24,7 @@ from homeassistant.const import (
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.event import async_call_later
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
@@ -310,7 +311,8 @@ class MockClimate(ClimateEntity):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        self.async_write_ha_state()
+        # To avoid set_temperature outside the main loop error
+        async_call_later(self.hass, 0, self.async_write_ha_state)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""

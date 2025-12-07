@@ -134,8 +134,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         super().update_custom_attributes()
 
         under0: UnderlyingSwitch = self._underlyings[0]
-        self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
-        self._attr_extra_state_attributes["power_percent"] = self.power_percent
 
         self._attr_extra_state_attributes.update(
             {

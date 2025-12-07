@@ -335,6 +335,10 @@ class WindowByPassBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity
 class CentralBoilerBinarySensor(BinarySensorEntity):
     """Representation of a BinarySensor which exposes the Central Boiler state"""
 
+    _entity_component_unrecorded_attributes = BinarySensorEntity._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
+        frozenset({"is_central_boiler_configured", "is_central_boiler_ready", "central_boiler_manager"})
+    )
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -388,6 +392,9 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             )
         )
 
+        self.update_custom_attributes()
+        self.async_write_ha_state()
+
     @callback
     def _handle_central_boiler_event(self, event):
         """Handle central boiler event to update internal state."""
@@ -396,12 +403,16 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             new_state = event.data["central_boiler"]
             if self._attr_is_on != new_state:
                 self._attr_is_on = new_state
-                self.update_custom_attributes()
-                self.async_write_ha_state()
+                self.refresh_custom_attributes()
+
+    def refresh_custom_attributes(self):
+        """Refresh the custom attributes"""
+        self.update_custom_attributes()
+        self.async_write_ha_state()
 
     def update_custom_attributes(self):
         """Update the custom extra attributes for the entity"""
-        self._attr_extra_state_attributes = {"central_boiler_state": self._attr_is_on}
+        self._attr_extra_state_attributes = {"central_boiler_state": STATE_ON if self._attr_is_on else STATE_OFF}
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
         cb_manager = api.central_boiler_manager
         cb_manager.add_custom_attributes(self._attr_extra_state_attributes)

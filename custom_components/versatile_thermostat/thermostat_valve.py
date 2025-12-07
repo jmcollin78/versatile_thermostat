@@ -129,6 +129,8 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         """
         new_state = event.data.get("new_state")
         self.calculate_hvac_action()
+        self.update_custom_attributes()
+        self.async_write_ha_state()
         write_event_log(_LOGGER, self, f"Underlying valve state changed to {new_state}")
 
     @overrides
@@ -136,13 +138,12 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
         """Custom attributes"""
         super().update_custom_attributes()
 
-        self._attr_extra_state_attributes["is_over_valve"] = self.is_over_valve
-        self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
         self._attr_extra_state_attributes.update(
             {
                 "is_over_valve": self.is_over_valve,
                 "on_percent": self._prop_algorithm.on_percent,
                 "power_percent": self.power_percent,
+                "valve_open_percent": self.valve_open_percent,
                 "vtherm_over_valve": {
                     "valve_open_percent": self.valve_open_percent,
                     "underlying_entities": [underlying.entity_id for underlying in self._underlyings],

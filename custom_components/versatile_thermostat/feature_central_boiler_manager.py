@@ -299,6 +299,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         if self._total_power_active_entity:
             self._all_boiler_entities.append(self._total_power_active_entity.entity_id)
 
+        old_ready = self._is_ready
         self._is_ready = self.is_configured and len(self._all_boiler_entities) == 4 and self._central_boiler_entity is not None
         if not self._is_ready:
             _LOGGER.warning(
@@ -308,7 +309,16 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 self._central_boiler_entity,
             )
             return []
+        if self._is_ready != old_ready and self._central_boiler_entity:
+            # Notify the central boiler entity that the manager is now ready
+            self.refresh_central_boiler_custom_attributes()
+
         return self._all_boiler_entities
+
+    def refresh_central_boiler_custom_attributes(self):
+        """Refresh the custom attributes of the central boiler entity"""
+        if self._central_boiler_entity:
+            self._central_boiler_entity.refresh_custom_attributes()
 
     # For testing purpose
     def _set_nb_active_device_threshold(self, value: int) -> None:
