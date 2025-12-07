@@ -7,7 +7,7 @@
     - [Podtrzymanie aktywności (keep-alive)](#podtrzymanie-aktywności-keep-alive)
     - [Tryb AC](#tryb-ac)
     - [Inwersja poleceń](#inwersja-poleceń)
-    - [Dostosowywanie poeceń](#dostosowywanie-poeceń)
+    - [Dostosowywanie poleceń](#dostosowywanie-poeceń)
 
 
 ## Wymagania wstępne
@@ -65,7 +65,7 @@ Można wybrać `termostat na przełączniku` do sterowania klimatyzatorem, zazna
 Jeśli urządzenie jest sterowane przewodem sterującym z diodą, może być konieczne zaznaczenie pola 'Odwróć polecenie'. Spowoduje to ustawienie przełącznika w pozycji załączonej, gdy urządzenie jest wyłączane, i w pozycji wyłączonej, gdy jest załączane. Po wybraniu tej opcji czasy cykli zostaną odwrócone.
 
 
-### Dostosowywanie poeceń
+### Dostosowywanie poleceń
 
 Ta sekcja konfiguracji umożliwia dostosowanie poleceń włączania i wyłączania wysyłanych do urządzenia bazowego. Polecenia te są obowiązkowe, jeśli jedno z urządzeń bazowych nie jest przełącznikiem `switch` (w przypadku przełączników używane są standardowe polecenia włączania/wyłączania (`turn_on` i `turn_off`).
 
