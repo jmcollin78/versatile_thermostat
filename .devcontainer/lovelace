@@ -631,7 +631,7 @@
                       "entity": "binary_sensor.thermostat_switch_1_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.versatile_thermostat_thermostat_switch_1_security_state"
+                      "entity": "binary_sensor.versatile_thermostat_thermostat_switch_1_safety_state"
                     },
                     {
                       "entity": "binary_sensor.thermostat_switch_1_window_state"
@@ -669,18 +669,25 @@
                       "show_icon": true,
                       "show_state": true,
                       "type": "glance",
+                      "columns": 3,
                       "entities": [
                         {
                           "entity": "binary_sensor.central_boiler"
                         },
                         {
-                          "entity": "input_number.fake_boiler_temperature"
+                          "entity": "number.boiler_activation_threshold"
                         },
                         {
                           "entity": "sensor.nb_device_active_for_boiler"
                         },
                         {
-                          "entity": "number.boiler_activation_threshold"
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "number.boiler_power_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
                         }
                       ],
                       "state_color": true
@@ -693,6 +700,12 @@
                         },
                         {
                           "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
                         }
                       ],
                       "hours_to_show": 1
@@ -975,7 +988,7 @@
                       "entity": "binary_sensor.thermostat_climate_2_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.versatile_thermostat_thermostat_climate_2_security_state"
+                      "entity": "binary_sensor.versatile_thermostat_thermostat_climate_2_safety_state"
                     },
                     {
                       "entity": "binary_sensor.thermostat_climate_2_window_state"
@@ -1013,18 +1026,25 @@
                       "show_icon": true,
                       "show_state": true,
                       "type": "glance",
+                      "columns": 3,
                       "entities": [
                         {
                           "entity": "binary_sensor.central_boiler"
                         },
                         {
-                          "entity": "input_number.fake_boiler_temperature"
+                          "entity": "number.boiler_activation_threshold"
                         },
                         {
                           "entity": "sensor.nb_device_active_for_boiler"
                         },
                         {
-                          "entity": "number.boiler_activation_threshold"
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "number.boiler_power_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
                         }
                       ],
                       "state_color": true
@@ -1037,6 +1057,12 @@
                         },
                         {
                           "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
                         }
                       ],
                       "hours_to_show": 1
@@ -1325,7 +1351,7 @@
                       "entity": "binary_sensor.thermostat_valve_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.thermostat_valve_security_state"
+                      "entity": "binary_sensor.thermostat_valve_safety_state"
                     },
                     {
                       "entity": "binary_sensor.thermostat_valve_window_state"
@@ -1363,18 +1389,25 @@
                       "show_icon": true,
                       "show_state": true,
                       "type": "glance",
+                      "columns": 3,
                       "entities": [
                         {
                           "entity": "binary_sensor.central_boiler"
                         },
                         {
-                          "entity": "input_number.fake_boiler_temperature"
+                          "entity": "number.boiler_activation_threshold"
                         },
                         {
                           "entity": "sensor.nb_device_active_for_boiler"
                         },
                         {
-                          "entity": "number.boiler_activation_threshold"
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "number.boiler_power_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
                         }
                       ],
                       "state_color": true
@@ -1387,6 +1420,12 @@
                         },
                         {
                           "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
                         }
                       ],
                       "hours_to_show": 1
@@ -1625,7 +1664,7 @@
                       "entity": "binary_sensor.multi_switch_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.multi_switch_security_state"
+                      "entity": "binary_sensor.multi_switch_safety_state"
                     },
                     {
                       "entity": "binary_sensor.multi_switch_window_state"
@@ -1681,18 +1720,25 @@
                   "show_icon": true,
                   "show_state": true,
                   "type": "glance",
+                  "columns": 3,
                   "entities": [
                     {
                       "entity": "binary_sensor.central_boiler"
                     },
                     {
-                      "entity": "input_number.fake_boiler_temperature"
+                      "entity": "number.boiler_activation_threshold"
                     },
                     {
                       "entity": "sensor.nb_device_active_for_boiler"
                     },
                     {
-                      "entity": "number.boiler_activation_threshold"
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "number.boiler_power_activation_threshold"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
                     }
                   ],
                   "state_color": true
@@ -1705,6 +1751,12 @@
                     },
                     {
                       "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
                     }
                   ],
                   "hours_to_show": 1
@@ -1863,7 +1915,7 @@
                       "entity": "binary_sensor.multi_climate_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.multi_climate_security_state"
+                      "entity": "binary_sensor.multi_climate_safety_state"
                     },
                     {
                       "entity": "binary_sensor.multi_climate_window_state"
@@ -1973,6 +2025,57 @@
               "type": "vertical-stack",
               "cards": [
                 {
+                  "show_name": true,
+                  "show_icon": true,
+                  "show_state": true,
+                  "type": "glance",
+                  "columns": 3,
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "number.boiler_activation_threshold"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "number.boiler_power_activation_threshold"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
+                    }
+                  ],
+                  "state_color": true
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.central_boiler"
+                    },
+                    {
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
+                    }
+                  ],
+                  "hours_to_show": 1
+                }
+              ]
+            },
+            {
+              "type": "vertical-stack",
+              "cards": [
+                {
                   "type": "history-graph",
                   "entities": [
                     {
@@ -2001,44 +2104,6 @@
                   "entity": "sensor.multi_climate_energy",
                   "detail": 1,
                   "name": "Energie Multi-climate"
-                }
-              ]
-            },
-            {
-              "type": "vertical-stack",
-              "cards": [
-                {
-                  "show_name": true,
-                  "show_icon": true,
-                  "show_state": true,
-                  "type": "glance",
-                  "entities": [
-                    {
-                      "entity": "binary_sensor.central_boiler"
-                    },
-                    {
-                      "entity": "input_number.fake_boiler_temperature"
-                    },
-                    {
-                      "entity": "sensor.nb_device_active_for_boiler"
-                    },
-                    {
-                      "entity": "number.boiler_activation_threshold"
-                    }
-                  ],
-                  "state_color": true
-                },
-                {
-                  "type": "history-graph",
-                  "entities": [
-                    {
-                      "entity": "binary_sensor.central_boiler"
-                    },
-                    {
-                      "entity": "input_number.fake_boiler_temperature"
-                    }
-                  ],
-                  "hours_to_show": 1
                 }
               ]
             }
@@ -2236,7 +2301,7 @@
                   "entity": "sensor.thermostat_ac1_power_percent"
                 },
                 {
-                  "entity": "binary_sensor.thermostat_ac1_security_state"
+                  "entity": "binary_sensor.thermostat_ac1_safety_state"
                 },
                 {
                   "entity": "sensor.thermostat_ac1_temperature_slope"
@@ -2256,18 +2321,25 @@
                   "show_icon": true,
                   "show_state": true,
                   "type": "glance",
+                  "columns": 3,
                   "entities": [
                     {
                       "entity": "binary_sensor.central_boiler"
                     },
                     {
-                      "entity": "input_number.fake_boiler_temperature"
+                      "entity": "number.boiler_activation_threshold"
                     },
                     {
                       "entity": "sensor.nb_device_active_for_boiler"
                     },
                     {
-                      "entity": "number.boiler_activation_threshold"
+                      "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "number.boiler_power_activation_threshold"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
                     }
                   ],
                   "state_color": true
@@ -2280,6 +2352,12 @@
                     },
                     {
                       "entity": "input_number.fake_boiler_temperature"
+                    },
+                    {
+                      "entity": "sensor.total_power_active_for_boiler"
+                    },
+                    {
+                      "entity": "sensor.nb_device_active_for_boiler"
                     }
                   ],
                   "hours_to_show": 1
@@ -2441,18 +2519,25 @@
                       "show_icon": true,
                       "show_state": true,
                       "type": "glance",
+                      "columns": 3,
                       "entities": [
                         {
                           "entity": "binary_sensor.central_boiler"
                         },
                         {
-                          "entity": "input_number.fake_boiler_temperature"
+                          "entity": "number.boiler_activation_threshold"
                         },
                         {
                           "entity": "sensor.nb_device_active_for_boiler"
                         },
                         {
-                          "entity": "number.boiler_activation_threshold"
+                          "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "number.boiler_power_activation_threshold"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
                         }
                       ],
                       "state_color": true
@@ -2465,6 +2550,12 @@
                         },
                         {
                           "entity": "input_number.fake_boiler_temperature"
+                        },
+                        {
+                          "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.nb_device_active_for_boiler"
                         }
                       ],
                       "hours_to_show": 1
@@ -2640,7 +2731,7 @@
                   "disable_heat": false,
                   "disable_menu": false,
                   "disable_off": false,
-                  "disable_security_warning": false,
+                  "disable_safety_warning": false,
                   "set_current_as_main": true,
                   "disable_buttons": false,
                   "disable_autoStartStop": false,
@@ -2703,7 +2794,7 @@
                     "disable_heat": false,
                     "disable_menu": false,
                     "disable_off": false,
-                    "disable_security_warning": false,
+                    "disable_safety_warning": false,
                     "set_current_as_main": true,
                     "disable_buttons": false,
                     "disable_autoStartStop": false,
