@@ -7,7 +7,7 @@
   - [Krzywe regulacji z wykresu _*Apex*_](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
   - [Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
-  - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
+  - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 ## Karta _*Versatile Thermostat UI Card*_
 Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better Thermostat*). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów termostatu _*VTherm*_:
@@ -216,7 +216,7 @@ max: 30
 W zależności od warunków pogodowych, takich jak wilgotność powietrza czy wiatr, można wymusić wyższą temperaturę docelową.
 Opis tego pomysłu znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1211).
 
-## Integracja uzupełniająca IHP, przewidująca zmiany ustawień
+## Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów
 Integracja _Intelligent Heating Pilot (IHP)_ oferuje przewidywanie zmian ustawień harmonogramu w taki sposób, aby temperatura docelowa była osiągana już w momencie zmiany harmonogramu. Uczy się ona zachowania termostatu _*VTherm*_ (prędkość i czas narastania temperatury) i stosuje algorytm predykcyjny, aby przewidzieć zmianę harmonogramu w przyszłości.
 To interesujące podejście stanowi doskonałe uzupełnienie dla integracji _VTherm Thermostat_.
 
