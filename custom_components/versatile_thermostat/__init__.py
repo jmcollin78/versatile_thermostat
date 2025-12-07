@@ -131,7 +131,6 @@ async def async_setup(
         )
         await api.init_vtherm_links()
         await api.notify_central_mode_change()
-        await api.reload_central_boiler_entities_list()
 
     if hass.state == CoreState.running:
         await _async_startup_internal()
@@ -183,7 +182,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if hass.state == CoreState.running:
-        await api.reload_central_boiler_entities_list()
         await api.init_vtherm_links(entry.entry_id)
 
     return True
@@ -205,7 +203,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # Reload the central boiler list of entities
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
         if api is not None:
-            await api.reload_central_boiler_entities_list()
+            await api.central_boiler_manager.reload_central_boiler_entities_list()
             await api.init_vtherm_links(entry.entry_id)
 
 

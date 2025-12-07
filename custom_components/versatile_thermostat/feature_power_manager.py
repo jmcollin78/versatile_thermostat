@@ -17,7 +17,7 @@ from homeassistant.core import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import write_event_log
+from .commons import write_event_log, round_to_nearest
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
@@ -107,6 +107,15 @@ class FeaturePowerManager(BaseFeatureManager):
                         "power_temp": self._power_temp,
                         "current_power": vtherm_api.central_power_manager.current_power,
                         "current_max_power": vtherm_api.central_power_manager.current_max_power,
+                        "mean_cycle_power": self.mean_cycle_power,
+                    }
+                }
+            )
+        else:
+            extra_state_attributes.update(
+                {
+                    "power_manager": {
+                        "device_power": self._device_power,
                         "mean_cycle_power": self.mean_cycle_power,
                     }
                 }
@@ -287,9 +296,7 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._device_power or not self._vtherm.proportional_algorithm:
             return None
 
-        return float(
-            self._device_power * self._vtherm.proportional_algorithm.on_percent
-        )
+        return float(round_to_nearest(self._device_power * self._vtherm.proportional_algorithm.on_percent, 0.1))
 
     def __str__(self):
         return f"PowerManager-{self.name}"

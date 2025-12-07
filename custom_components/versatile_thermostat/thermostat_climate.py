@@ -843,6 +843,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Set the flaf follow the underlying temperature changes"""
         self._follow_underlying_temp_change = follow
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @property
     def auto_regulation_mode(self) -> str | None:
@@ -1157,6 +1158,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     async def service_set_auto_fan_mode(self, auto_fan_mode: str):
         """Called by a service call:
@@ -1183,6 +1185,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.choose_auto_fan_mode(CONF_AUTO_FAN_TURBO)
 
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @overrides
     async def async_turn_off(self) -> None:

@@ -8,8 +8,8 @@ import logging
 from custom_components.versatile_thermostat.feature_power_manager import (
     FeaturePowerManager,
 )
-from custom_components.versatile_thermostat.central_feature_power_manager import (
-    CentralFeaturePowerManager,
+from custom_components.versatile_thermostat.feature_central_power_manager import (
+    FeatureCentralPowerManager,
 )
 
 from custom_components.versatile_thermostat.thermostat_switch import (
@@ -44,7 +44,7 @@ async def test_central_power_manager_init(
 ):
     """Test creation and post_init of the Central Power Manager"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
-    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+    central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
 
     assert central_power_manager.is_configured is False
     assert central_power_manager.current_max_power is None
@@ -251,7 +251,7 @@ async def test_central_power_manageer_find_vtherms(
 ):
     """Test the find_all_vtherm_with_power_management_sorted_by_dtemp"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
-    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+    central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
 
     vtherms = []
     for vtherm_config in vtherm_configs:
@@ -266,7 +266,7 @@ async def test_central_power_manageer_find_vtherms(
         vtherms.append(vtherm)
 
     with patch(
-        "custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.get_climate_components_entities",
+        "custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.get_climate_components_entities",
         return_value=vtherms,
     ):
         vtherm_sorted = (
@@ -460,7 +460,7 @@ async def test_central_power_manageer_calculate_shedding(
 ):
     """Test the calculate_shedding of the CentralPowerManager"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
-    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+    central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
 
     registered_calls = {}
 
@@ -501,10 +501,10 @@ async def test_central_power_manageer_calculate_shedding(
         vtherms.append(vtherm)
 
     # fmt:off
-    with patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp", return_value=vtherms), \
-        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_max_power", new_callable=PropertyMock, return_value=current_max_power), \
-        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.current_power", new_callable=PropertyMock, return_value=current_power), \
-        patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.is_configured", new_callable=PropertyMock, return_value=True):
+    with patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.find_all_vtherm_with_power_management_sorted_by_dtemp", return_value=vtherms), \
+        patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_max_power", new_callable=PropertyMock, return_value=current_max_power), \
+        patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.current_power", new_callable=PropertyMock, return_value=current_power), \
+        patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.is_configured", new_callable=PropertyMock, return_value=True):
     # fmt:on
 
         await central_power_manager.calculate_shedding()
@@ -529,7 +529,7 @@ async def test_central_power_manager_power_event(
 ):
     """Tests the Power sensor event"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
-    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+    central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
 
     assert central_power_manager.current_power is None
     assert central_power_manager.power_temperature is None
@@ -568,7 +568,7 @@ async def test_central_power_manager_power_event(
     )
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+         patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
     # fmt:on
         # set a default value to see if it has been replaced
         central_power_manager._current_power = -999
@@ -592,7 +592,7 @@ async def test_central_power_manager_power_event(
     vtherm_api.now = now
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+         patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
     # fmt:on
         central_power_manager._current_power = -999
 
@@ -627,7 +627,7 @@ async def test_central_power_manager_max_power_event(
 ):
     """Tests the Power sensor event"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
-    central_power_manager = CentralFeaturePowerManager(hass, vtherm_api)
+    central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
 
     assert central_power_manager.current_power is None
     assert central_power_manager.power_temperature is None
@@ -668,7 +668,7 @@ async def test_central_power_manager_max_power_event(
     )
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+         patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
     # fmt:on
         # set a default value to see if it has been replaced
         central_power_manager._current_max_power = -999
@@ -692,7 +692,7 @@ async def test_central_power_manager_max_power_event(
     vtherm_api.now = now
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.central_feature_power_manager.CentralFeaturePowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
+         patch("custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.calculate_shedding", new_callable=AsyncMock) as mock_calculate_shedding:
     # fmt:on
         central_power_manager._current_max_power = -999
 

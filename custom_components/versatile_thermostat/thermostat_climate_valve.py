@@ -51,8 +51,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._min_opening_degress: list[int] = []
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
-        # if mode sleep is activated, the valve is fully open but the hvac_mode is off
-        self._is_sleeping: bool = False
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -128,8 +126,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         """Restore my specific attributes from previous state"""
         super().restore_specific_previous_state(old_state)
 
-        self._is_sleeping = self.vtherm_hvac_mode == VThermHvacMode_OFF and old_state.attributes.get("is_sleeping", False)
-        if self._is_sleeping:
+        if self.is_sleeping:
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
     @overrides
@@ -197,15 +194,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self.stop_recalculate_later()
 
-        if self._is_sleeping:
-            self._valve_open_percent = 100
-            return
-
-        if not self.is_on:
-            # the 0 will be clamped to the min value
-            self._valve_open_percent = 0
-            return
-
         # For testing purpose. Should call _set_now() before
         now = self.now
 
@@ -228,33 +216,24 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             self.vtherm_hvac_mode or VThermHvacMode_OFF,
         )
 
-        new_valve_percent = round(
-            max(0, min(self.proportional_algorithm.on_percent, 1)) * 100
-        )
+        if self.is_sleeping:
+            new_valve_percent = 100
+        else:
+            new_valve_percent = round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
 
-        # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
-        if new_valve_percent < self._auto_regulation_dpercent:
-            new_valve_percent = 0
+            # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
+            if new_valve_percent < self._auto_regulation_dpercent:
+                new_valve_percent = 0
 
-        dpercent = (
-            new_valve_percent - self._valve_open_percent
-            if self._valve_open_percent is not None
-            else 0
-        )
-        if (
-            self._last_calculation_timestamp is not None
-            and new_valve_percent > 0
-            and -1 * self._auto_regulation_dpercent
-            <= dpercent
-            < self._auto_regulation_dpercent
-        ):
-            _LOGGER.debug(
-                "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
-                self,
-                dpercent,
-            )
+            dpercent = new_valve_percent - self._valve_open_percent if self._valve_open_percent is not None else 0
+            if self._last_calculation_timestamp is not None and new_valve_percent > 0 and -1 * self._auto_regulation_dpercent <= dpercent < self._auto_regulation_dpercent:
+                _LOGGER.debug(
+                    "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
+                    self,
+                    dpercent,
+                )
 
-            return
+                return
 
         if (
             self._last_calculation_timestamp is not None
@@ -322,23 +301,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             await under.set_valve_open_percent()
 
     @overrides
-    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, _=False):
-        """Set new hvac mode"""
-
-        write_event_log(_LOGGER, self, f"Setting hvac_mode to {hvac_mode}")
-        if hvac_mode == VThermHvacMode_SLEEP:
-            self._is_sleeping = True
-            hvac_mode = VThermHvacMode_OFF
-            self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
-        else:
-            self._is_sleeping = False
-            if hvac_mode == VThermHvacMode_OFF:
-                for under in self._underlyings_valve_regulation:
-                    await under.turn_off()
-
-        await super().async_set_hvac_mode(hvac_mode)
-
-    @overrides
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
@@ -354,7 +316,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if (self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping) or self._valve_open_percent is None:
+        if (self.vtherm_hvac_mode == VThermHvacMode_OFF and not self.is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent
@@ -362,7 +324,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
-        if self._is_sleeping:
+        if self.is_sleeping:
             self._attr_hvac_action = HVACAction.OFF
         else:
             super().calculate_hvac_action(self._underlyings_valve_regulation)
@@ -370,7 +332,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def is_device_active(self) -> bool:
         """A hack to overrides the state from underlyings"""
-        if self._is_sleeping:
+        if self.is_sleeping:
             return False
 
         for under in self._underlyings_valve_regulation:
@@ -395,7 +357,7 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
     @property
     def is_sleeping(self) -> bool:
         """True if the thermostat is in sleep mode"""
-        return self._is_sleeping
+        return self.vtherm_hvac_mode == VThermHvacMode_SLEEP
 
     @overrides
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
