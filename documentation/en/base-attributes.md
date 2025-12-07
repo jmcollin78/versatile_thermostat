@@ -37,7 +37,8 @@ Choose the features you want to use for this VTherm:
 2. **Motion detection**: VTherm can adjust the target temperature when motion is detected in the room. (see [motion detection](feature-motion.md)),
 3. **Power management**: VTherm can stop a device if the power consumption in your home exceeds a threshold. (see [load-shedding management](feature-power.md)),
 4. **Presence detection**: If you have a sensor indicating presence or absence in your home, you can use it to change the target temperature. See [presence management](feature-presence.md). Note the difference between this function and motion detection: presence is typically used at the home level, while motion detection is more room-specific.
-5. **Automatic start/stop**: For `over_climate` VTherms only. This function stops a device when VTherm detects it will not be needed for a while. It uses the temperature curve to predict when the device will be needed again and turns it back on at that time. See [automatic start/stop management](feature-auto-start-stop.md).
+5. **Humidity control**: For AC mode VTherms only. Automatically switches AC to DRY mode when humidity is too high and cooling is not needed. Cooling mode takes priority when temperature control is required. See [humidity control](feature-humidity.md).
+6. **Automatic start/stop**: For `over_climate` VTherms only. This function stops a device when VTherm detects it will not be needed for a while. It uses the temperature curve to predict when the device will be needed again and turns it back on at that time. See [automatic start/stop management](feature-auto-start-stop.md).
 
 > ![Tip](images/tips.png) _*Notes*_
 > 1. The list of available functions adapts to your VTherm type.

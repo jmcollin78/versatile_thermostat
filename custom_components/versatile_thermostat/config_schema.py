@@ -1,4 +1,4 @@
-""" All the schemas for ConfigFlow validation"""
+"""All the schemas for ConfigFlow validation"""
 
 import voluptuous as vol
 
@@ -36,9 +36,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 STEP_USER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(
-            CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH
-        ): selector.SelectSelector(
+        vol.Required(CONF_THERMOSTAT_TYPE, default=CONF_THERMOSTAT_SWITCH): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_THERMOSTAT_TYPES,
                 translation_key="thermostat_type",
@@ -71,6 +69,7 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -80,6 +79,7 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
     }
 )
@@ -90,6 +90,7 @@ STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -99,6 +100,7 @@ STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_BOILER_FEATURE, default=False): cv.boolean,
     }
 )
@@ -158,9 +160,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN, multiple=True),
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
-        vol.Optional(
-            CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
-        ): selector.SelectSelector(
+        vol.Optional(CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_REGULATION_MODES,
                 translation_key="auto_regulation_mode",
@@ -169,9 +169,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
         vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int,
-        vol.Optional(
-            CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH
-        ): selector.SelectSelector(
+        vol.Optional(CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_FAN_MODES,
                 translation_key="auto_fan_mode",
@@ -185,9 +183,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
 STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
-            ),
+            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
             [
@@ -202,9 +198,7 @@ STEP_THERMOSTAT_VALVE = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Optional(
-            CONF_AUTO_START_STOP_LEVEL, default=AUTO_START_STOP_LEVEL_NONE
-        ): selector.SelectSelector(
+        vol.Optional(CONF_AUTO_START_STOP_LEVEL, default=AUTO_START_STOP_LEVEL_NONE): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_START_STOP_LEVELS,
                 translation_key="auto_start_stop",
@@ -267,9 +261,7 @@ STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Optional(CONF_WINDOW_SENSOR): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-            ),
+            selector.EntitySelectorConfig(domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
         ),
         vol.Required(CONF_USE_WINDOW_CENTRAL_CONFIG, default=True): cv.boolean,
     }
@@ -309,9 +301,7 @@ STEP_CENTRAL_WINDOW_WO_AUTO_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
 STEP_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_MOTION_SENSOR): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-            ),
+            selector.EntitySelectorConfig(domain=[BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]),
         ),
         vol.Required(CONF_USE_MOTION_CENTRAL_CONFIG, default=True): cv.boolean,
     }
@@ -379,6 +369,23 @@ STEP_CENTRAL_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_PRESENCE_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_PRESENCE_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
+STEP_HUMIDITY_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_HUMIDITY_SENSOR): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
+        ),
+        vol.Required(CONF_USE_HUMIDITY_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
+STEP_CENTRAL_HUMIDITY_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_HUMIDITY_THRESHOLD, default=60.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0.0, max=100.0, step=1.0, mode=selector.NumberSelectorMode.BOX)
+        ),
     }
 )
 

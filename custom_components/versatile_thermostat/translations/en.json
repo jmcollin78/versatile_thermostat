@@ -26,6 +26,7 @@
           "motion": "Motion detection",
           "power": "Power management",
           "presence": "Presence detection",
+          "humidity": "Humidity control",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
@@ -80,6 +81,7 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
+          "use_humidity_feature": "Use humidity control",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
@@ -217,6 +219,20 @@
           "presence_sensor_entity_id": "Presence sensor entity id"
         }
       },
+      "humidity": {
+        "title": "Humidity control",
+        "description": "Humidity control attributes.\nWhen AC is in COOL mode and temperature is at target, automatically switch to DRY mode if humidity exceeds threshold. Cooling will override DRY mode when needed.",
+        "data": {
+          "humidity_sensor_entity_id": "Humidity sensor",
+          "humidity_threshold": "Humidity threshold (%)",
+          "use_humidity_central_config": "Use central humidity configuration"
+        },
+        "data_description": {
+          "humidity_sensor_entity_id": "Humidity sensor entity id (percentage)",
+          "humidity_threshold": "Humidity threshold in percentage. When humidity exceeds this value and cooling is not needed, AC will switch to DRY mode",
+          "use_humidity_central_config": "Check to use the central humidity configuration. Uncheck to use a specific humidity configuration for this VTherm"
+        }
+      },
       "advanced": {
         "title": "Advanced parameters",
         "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
@@ -272,7 +288,8 @@
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
-      "no_central_config": "You cannot select 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
+      "no_central_config": "You cannot select 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
+      "humidity_sensor_required": "Humidity sensor is required when humidity feature is enabled"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -304,6 +321,7 @@
           "motion": "Motion detection",
           "power": "Power management",
           "presence": "Presence detection",
+          "humidity": "Humidity control",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
@@ -344,6 +362,7 @@
           "use_motion_feature": "Use motion detection",
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
+          "use_humidity_feature": "Use humidity control",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature"
         }
@@ -478,6 +497,20 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id"
+        }
+      },
+      "humidity": {
+        "title": "Humidity control - {name}",
+        "description": "Humidity control attributes.\nWhen AC is in COOL mode and temperature is at target, automatically switch to DRY mode if humidity exceeds threshold. Cooling will override DRY mode when needed.",
+        "data": {
+          "humidity_sensor_entity_id": "Humidity sensor",
+          "humidity_threshold": "Humidity threshold (%)",
+          "use_humidity_central_config": "Use central humidity configuration"
+        },
+        "data_description": {
+          "humidity_sensor_entity_id": "Humidity sensor entity id (percentage)",
+          "humidity_threshold": "Humidity threshold in percentage. When humidity exceeds this value and cooling is not needed, AC will switch to DRY mode",
+          "use_humidity_central_config": "Check to use the central humidity configuration. Uncheck to use a specific humidity configuration for this VTherm"
         }
       },
       "advanced": {

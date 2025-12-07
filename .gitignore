@@ -113,3 +113,10 @@ custom_components/localtuya
 
 .coverage
 htmlcov
+
+
+# virtualenv
+venv
+
+# vs code history extension
+.history

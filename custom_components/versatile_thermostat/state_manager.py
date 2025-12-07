@@ -31,13 +31,14 @@ from .const import (
     MSG_TARGET_TEMP_ABSENCE_DETECTED,
 )
 from .vtherm_state import VThermState
-from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
+from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_DRY
 from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .base_thermostat import BaseThermostat
+
 
 class StateManager:
     """Manages the current and requested state for a VTherm.
@@ -48,8 +49,7 @@ class StateManager:
     """
 
     def __init__(self):
-        """Initialize the StateManager with empty initial states.
-        """
+        """Initialize the StateManager with empty initial states."""
         self._current_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
         self._requested_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
 
@@ -148,6 +148,28 @@ class StateManager:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             elif vtherm.vtherm_hvac_mode != VThermHvacMode_HEAT and VThermHvacMode_HEAT in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_HEAT)
+
+        # Check humidity control - switch to DRY mode when humidity is too high and cooling is not needed
+        elif vtherm.humidity_manager.is_configured and vtherm.ac_mode and self._requested_state.hvac_mode == VThermHvacMode_COOL and VThermHvacMode_DRY in vtherm.vtherm_hvac_modes:
+            # Check if cooling is actively needed
+            # If on_percent is low (<= 0.05), cooling is not needed and we can use DRY mode
+            # If on_percent is high (> 0.05), cooling is needed and COOL mode takes priority
+            cooling_needed = False
+            if vtherm.proportional_algorithm and vtherm.proportional_algorithm.on_percent is not None:
+                cooling_needed = vtherm.proportional_algorithm.on_percent > 0.05
+
+            if not cooling_needed and vtherm.humidity_manager.is_humidity_too_high:
+                # Temperature is at target, but humidity is too high - switch to DRY mode
+                _LOGGER.info(
+                    "%s - Humidity too high (%.1f%% > %.1f%%), switching to DRY mode",
+                    vtherm,
+                    vtherm.humidity_manager.current_humidity,
+                    vtherm.humidity_manager.humidity_threshold,
+                )
+                self._current_state.set_hvac_mode(VThermHvacMode_DRY)
+            else:
+                # Cooling is needed or humidity is OK - use requested COOL mode
+                self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         # all is fine set current_state = requested_state
         else:

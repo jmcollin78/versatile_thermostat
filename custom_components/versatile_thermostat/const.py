@@ -79,6 +79,8 @@ CONF_TPI_COEF_EXT = "tpi_coef_ext"
 CONF_TPI_THRESHOLD_LOW = "tpi_threshold_low"
 CONF_TPI_THRESHOLD_HIGH = "tpi_threshold_high"
 CONF_PRESENCE_SENSOR = "presence_sensor_entity_id"
+CONF_HUMIDITY_SENSOR = "humidity_sensor_entity_id"
+CONF_HUMIDITY_THRESHOLD = "humidity_threshold"
 CONF_PRESET_POWER = "power_temp"
 CONF_MINIMAL_ACTIVATION_DELAY = "minimal_activation_delay"
 CONF_MINIMAL_DEACTIVATION_DELAY = "minimal_deactivation_delay"
@@ -96,6 +98,7 @@ CONF_USE_WINDOW_FEATURE = "use_window_feature"
 CONF_USE_MOTION_FEATURE = "use_motion_feature"
 CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
+CONF_USE_HUMIDITY_FEATURE = "use_humidity_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
 CONF_AC_MODE = "ac_mode"
@@ -160,6 +163,7 @@ CONF_USE_WINDOW_CENTRAL_CONFIG = "use_window_central_config"
 CONF_USE_MOTION_CENTRAL_CONFIG = "use_motion_central_config"
 CONF_USE_POWER_CENTRAL_CONFIG = "use_power_central_config"
 CONF_USE_PRESENCE_CENTRAL_CONFIG = "use_presence_central_config"
+CONF_USE_HUMIDITY_CENTRAL_CONFIG = "use_humidity_central_config"
 CONF_USE_PRESETS_CENTRAL_CONFIG = "use_presets_central_config"
 CONF_USE_ADVANCED_CENTRAL_CONFIG = "use_advanced_central_config"
 CONF_USE_LOCK_CENTRAL_CONFIG = "use_lock_central_config"
@@ -295,6 +299,8 @@ ALL_CONF = (
         CONF_TPI_COEF_INT,
         CONF_TPI_COEF_EXT,
         CONF_PRESENCE_SENSOR,
+        CONF_HUMIDITY_SENSOR,
+        CONF_HUMIDITY_THRESHOLD,
         CONF_MINIMAL_ACTIVATION_DELAY,
         CONF_MINIMAL_DEACTIVATION_DELAY,
         CONF_TEMP_MIN,
@@ -309,6 +315,7 @@ ALL_CONF = (
         CONF_USE_MOTION_FEATURE,
         CONF_USE_PRESENCE_FEATURE,
         CONF_USE_POWER_FEATURE,
+        CONF_USE_HUMIDITY_FEATURE,
         CONF_USE_CENTRAL_BOILER_FEATURE,
         CONF_AC_MODE,
         CONF_AUTO_REGULATION_MODE,
@@ -324,6 +331,7 @@ ALL_CONF = (
         CONF_USE_MOTION_CENTRAL_CONFIG,
         CONF_USE_POWER_CENTRAL_CONFIG,
         CONF_USE_PRESENCE_CENTRAL_CONFIG,
+        CONF_USE_HUMIDITY_CENTRAL_CONFIG,
         CONF_USE_ADVANCED_CENTRAL_CONFIG,
         CONF_USE_CENTRAL_MODE,
         CONF_USED_BY_CENTRAL_BOILER,
@@ -382,11 +390,7 @@ CONF_WINDOW_ACTIONS = [
     CONF_WINDOW_ECO_TEMP,
 ]
 
-SUPPORT_FLAGS = (
-    ClimateEntityFeature.TARGET_TEMPERATURE
-    | ClimateEntityFeature.TURN_OFF
-    | ClimateEntityFeature.TURN_ON
-)
+SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_SAFETY = "set_safety"
@@ -435,26 +439,19 @@ MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
 MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
 MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
 
+
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
     """Light parameters for slow latency regulation"""
 
-    kp: float = (
-        0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
-    )
-    ki: float = (
-        0.8 / 288.0
-    )  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
-    k_ext: float = (
-        1.0 / 25.0
-    )  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    kp: float = 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki: float = 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext: float = 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: float = 2.0  # limit to a final offset of -2°C to +2°C
     stabilization_threshold: float = (
         0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
     )
-    accumulated_error_threshold: float = (
-        2.0 * 288
-    )  # this allows up to 2°C long term offset in both directions
+    accumulated_error_threshold: float = 2.0 * 288  # this allows up to 2°C long term offset in both directions
 
 
 class RegulationParamLight:
@@ -531,14 +528,7 @@ def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
 def get_safe_float(hass, entity_id: str):
     """Get a safe float state value for an entity.
     Return None if entity is not available"""
-    if (
-        entity_id is None
-        or not (state := hass.states.get(entity_id))
-        or state.state is None
-        or state.state == "None"
-        or state.state == "unknown"
-        or state.state == "unavailable"
-    ):
+    if entity_id is None or not (state := hass.states.get(entity_id)) or state.state is None or state.state == "None" or state.state == "unknown" or state.state == "unavailable":
         return None
     float_val = float(state.state)
     return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
