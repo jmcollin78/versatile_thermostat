@@ -3,8 +3,8 @@
 - [Parę istotnych dodatków](#parę-istotnych-dodatków)
   - [Karta _*Versatile Thermostat UI Card*_](#karta-versatile-thermostat-ui-card)
   - [Harmonogram](#harmonogram)
-  - [Krzywe regulacji z wykresu _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
-  - [Krzywe regulacji z wykresu _*Apex*_](#regulation-curves-with-apex-charts-thanks-to-gael1980)
+  - [Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
+  - [Krzywe regulacji na wykresie _*Apex*_](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
   - [Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
   - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
@@ -30,10 +30,10 @@ Zdefiniuj schemat trybu i zapisz go:
 
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
-W tym przykładzie ustawiony został tryb ECO na noc oraz na okres dzienny, gdy nikogo nie ma w domu, BOOST rano i COMFORT wieczorem.
+W tym przykładzie ustawiony został tryb `Eko` na noc oraz na okres dzienny, gdy nikogo nie ma w domu, `Boost` rano i `Komfort` wieczorem.
 
 
-## Krzywe regulacji z wykresu _*Plotly*_ do precyzyjnego dostrajania termostatu
+## Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu
 Można uzyskać krzywą podobną do tej pokazanej na rysunku [Trochę wyników...](../../README-pl.MD#some-results) używając konfiguracji wykresu *Plotly*, wykorzystując opisane niestandardowe atrybuty termostatu [tutaj](reference.md#custom-attributes):
 
 Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
@@ -120,7 +120,7 @@ Przykład krzywych uzyskanych z _*Plotly*_:
 
 ![image](images/plotly-curves.png)
 
-## Krzywe regulacji z wykresu _*Apex*_
+## Krzywe regulacji na wykresie _*Apex*_
 Wykres Apex pozwala wyświetlać krzywe regulacji. Jeden z doskonałych przykładów jego zastosowania znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
 
 ![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
@@ -217,7 +217,7 @@ W zależności od warunków pogodowych, takich jak wilgotność powietrza czy wi
 Opis tego pomysłu znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1211).
 
 ## Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów
-Integracja _Intelligent Heating Pilot (IHP)_ oferuje przewidywanie zmian ustawień harmonogramu w taki sposób, aby temperatura docelowa była osiągana już w momencie zmiany harmonogramu. Uczy się ona zachowania termostatu _*VTherm*_ (prędkość i czas narastania temperatury) i stosuje algorytm predykcyjny, aby przewidzieć zmianę harmonogramu w przyszłości.
-To interesujące podejście stanowi doskonałe uzupełnienie dla integracji _VTherm Thermostat_.
+Integracja _Intelligent Heating Pilot (IHP)_ oferuje przewidywanie zmian ustawień harmonogramu w taki sposób, aby temperatura docelowa była osiągana już w momencie zmiany harmonogramu. Uczy się ona zachowania termostatu _*VTherm*_ (prędkość i czas narastania temperatury) i stosuje algorytm predykcyjny, aby przewidzieć zmianę harmonogramu w nadchodzącej przyszłości na podstawie obserwacji z przeszłości.
+To interesujące podejście stanowi doskonałe uzupełnienie dla integracji _VTherm Termostat_.
 
 Integracja uzupełniająca IHP dostępna jest [tutaj](https://github.com/RastaChaum/Intelligent-Heating-Pilot).
