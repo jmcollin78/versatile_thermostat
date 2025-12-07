@@ -420,17 +420,58 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             except ValueError:
                 return None
 
-        fan_modes = self.fan_modes
+        # Remove special modes like "auto"
+        fan_modes = self.fan_modes or []
+        speed_modes = [
+            mode for mode in fan_modes
+            if mode not in ["auto"]
+        ]
+
+        # We suppose speed_modes are ordered from low to high speed
+        num_speeds = len(speed_modes)
+        if num_speeds == 0:
+            self._auto_activated_fan_mode = None
+            return
+
+        # We suppose that the speed modes contains at least 3 values
+        # fan_modes = low, medium, high :
+        #    |CONF_AUTO_FAN_LOW     |low    |
+        #    |CONF_AUTO_FAN_MEDIUM  |medium |
+        #    |CONF_AUTO_FAN_HIGH    |high   |
+        #    |CONF_AUTO_FAN_TURBO   |high   |
+        # fan_modes =  low, medium, high, turbo :
+        #    |CONF_AUTO_FAN_LOW     |low  |
+        #    |CONF_AUTO_FAN_MEDIUM  |medium    |
+        #    |CONF_AUTO_FAN_HIGH    |high |
+        #    |CONF_AUTO_FAN_TURBO   |turbo   |
+        # fan_modes = low, medium_low, medium, medium_high, high :
+        #    |CONF_AUTO_FAN_LOW     |medium_low  |
+        #    |CONF_AUTO_FAN_MEDIUM  |medium      |
+        #    |CONF_AUTO_FAN_HIGH    |medium_high |
+        #    |CONF_AUTO_FAN_TURBO   |high        |
+        target_index = -1
         if auto_fan_mode == CONF_AUTO_FAN_LOW:
-            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "low")
+            if num_speeds >= 4:
+                target_index = num_speeds - 4
+            else:
+                target_index = 0
         elif auto_fan_mode == CONF_AUTO_FAN_MEDIUM:
-            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "mid")
+            if num_speeds >= 4:
+                target_index = num_speeds - 3
+            else:
+                target_index = 1
         elif auto_fan_mode == CONF_AUTO_FAN_HIGH:
-            self._auto_activated_fan_mode = find_fan_mode(fan_modes, "high")
+            if num_speeds >= 4:
+                target_index = num_speeds - 2
+            else:
+                target_index = 2
         elif auto_fan_mode == CONF_AUTO_FAN_TURBO:
-            self._auto_activated_fan_mode = find_fan_mode(
-                fan_modes, "turbo"
-            ) or find_fan_mode(fan_modes, "high")
+            target_index = num_speeds - 1
+
+        if target_index >= 0:
+            self._auto_activated_fan_mode = speed_modes[target_index]
+        else:
+            self._auto_activated_fan_mode = None
 
         for val in AUTO_FAN_DEACTIVATED_MODES:
             if find_fan_mode(fan_modes, val):
