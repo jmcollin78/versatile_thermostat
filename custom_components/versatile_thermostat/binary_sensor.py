@@ -24,7 +24,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .vtherm_api import VersatileThermostatAPI
 from .base_entity import VersatileThermostatBaseEntity
-from .feature_central_boiler_manager import FeatureCentralBoilerManager
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -61,6 +60,9 @@ async def async_setup_entry(
 
     if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
         if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
+            # we capture here the configuration for central boiler feature
+            api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+            api.central_boiler_manager.post_init(entry.data)
             entities = [
                 CentralBoilerBinarySensor(hass, unique_id, name, entry.data),
             ]
@@ -348,7 +350,6 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         self._device_name = entry_infos.get(CONF_NAME)
         self._entry_infos = entry_infos
         self._hass = hass
-        self._central_boiler_manager: FeatureCentralBoilerManager | None = None
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -377,12 +378,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_central_boiler(self)
-
-        # Initialize and start the central boiler manager
-        self._central_boiler_manager = FeatureCentralBoilerManager(self, self._hass)
-        self._central_boiler_manager.post_init(self._entry_infos)
-        await self._central_boiler_manager.start_listening()
+        api.central_boiler_manager.register_central_boiler(self)
 
         # Listen to central boiler events
         self.async_on_remove(
@@ -400,16 +396,15 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
             new_state = event.data["central_boiler"]
             if self._attr_is_on != new_state:
                 self._attr_is_on = new_state
+                self.update_custom_attributes()
                 self.async_write_ha_state()
 
-    async def start_listening_active_vtherm_entity(self):
-        """Initialize the listening of state change of VTherms - delegated to manager"""
-        if self._central_boiler_manager:
-            await self._central_boiler_manager.start_listening_active_vtherm_entity()
-
-        # Initialize my state
-        self._attr_is_on = self._central_boiler_manager.is_on
-        self.async_write_ha_state()
+    def update_custom_attributes(self):
+        """Update the custom extra attributes for the entity"""
+        self._attr_extra_state_attributes = {"central_boiler_state": self._attr_is_on}
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
+        cb_manager = api.central_boiler_manager
+        cb_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"

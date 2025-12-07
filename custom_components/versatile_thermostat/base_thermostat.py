@@ -23,7 +23,7 @@ from homeassistant.helpers.restore_state import (
 )
 from homeassistant.helpers.entity import Entity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,

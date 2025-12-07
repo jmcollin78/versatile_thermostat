@@ -33,7 +33,7 @@ MIN_DTEMP_SECS = 20
 _LOGGER = logging.getLogger(__name__)
 
 
-class CentralFeaturePowerManager(BaseFeatureManager):
+class FeatureCentralPowerManager(BaseFeatureManager):
     """A central Power feature manager"""
 
     def __init__(self, hass: HomeAssistant, vtherm_api: Any):

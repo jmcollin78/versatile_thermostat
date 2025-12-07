@@ -3,14 +3,13 @@
 import logging
 import math
 
-from homeassistant.core import HomeAssistant, callback, Event, CoreState, State
+from homeassistant.core import HomeAssistant, callback, Event, State
 
 from homeassistant.const import (
     UnitOfTime,
     UnitOfPower,
     UnitOfEnergy,
     PERCENTAGE,
-    EVENT_HOMEASSISTANT_START,
 )
 
 from homeassistant.components.sensor import (
@@ -21,7 +20,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -665,7 +664,8 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_unique_id = "nb_device_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
-        self._attr_active_device_ids = []  # Holds the entity ids of active devices
+        self._attr_active_device_ids = []  # Holds the entity ids of active devices``
+        self._cancel_listener = None
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -703,17 +703,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_nb_device_active_boiler(self)
-
-        # @callback
-        # async def _async_startup_internal(*_):
-        #     _LOGGER.debug("%s - Calling async_startup_internal", self)
-        #     await self.listen_vtherms_entities()
-    #
-    # if self.hass.state == CoreState.running:
-    #     await _async_startup_internal()
-    # else:
-    #     self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup_internal)
+        api.central_boiler_manager.register_nb_device_active_boiler(self)
 
     async def listen_vtherms_entities(self):
         """Initialize the listening of state change of VTherms"""
@@ -726,6 +716,11 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         if component is None:
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
+
+        if self._cancel_listener is not None:
+            self._cancel_listener()
+            self._cancel_listener = None
+
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
@@ -733,23 +728,23 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                     underlying_entities_id.append(under.entity_id)
         if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
-            listener_cancel = async_track_state_change_event(
+            self._cancel_listener = async_track_state_change_event(
                 self._hass,
                 underlying_entities_id,
-                self.calculate_nb_active_devices_or_power,
+                self.calculate_nb_active_devices,
             )
             _LOGGER.info(
                 "%s - the underlyings that could control the central boiler are %s",
                 self,
                 underlying_entities_id,
             )
-            self.async_on_remove(listener_cancel)
+            self.async_on_remove(self._cancel_listener)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
-        await self.calculate_nb_active_devices_or_power(None)
+        await self.calculate_nb_active_devices(None)
 
-    async def calculate_nb_active_devices_or_power(self, event: Event):
+    async def calculate_nb_active_devices(self, event: Event):
         """Calculate the number of active VTherm and the total active power that have an
         influence on the central boiler and update the list of active device names."""
 
@@ -851,7 +846,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         # do not ! await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_total_power_active_boiler(self)
+        api.central_boiler_manager.register_total_power_active_boiler(self)
 
     async def listen_vtherms_entities(self):
         """Initialize the listening of state change of VTherms"""
@@ -864,6 +859,11 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         if component is None:
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
+
+        if self._cancel_listener is not None:
+            self._cancel_listener()
+            self._cancel_listener = None
+
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
@@ -871,23 +871,23 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
         if len(self._entities) > 0:
             # Arme l'écoute de la première entité
-            listener_cancel = async_track_state_change_event(
+            self._cancel_listener = async_track_state_change_event(
                 self._hass,
                 entities_id,
-                self.calculate_nb_active_devices_or_power,
+                self.calculate_total_power,
             )
             _LOGGER.info(
                 "%s - the VTherm that could control the central boiler are %s",
                 self,
                 entities_id,
             )
-            self.async_on_remove(listener_cancel)
+            self.async_on_remove(self._cancel_listener)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
-        await self.calculate_nb_active_devices_or_power(None)
+        await self.calculate_total_power(None)
 
-    async def calculate_nb_active_devices_or_power(self, event: Event):
+    async def calculate_total_power(self, event: Event):
         """Calculate the total active power that have an
         influence on the central boiler and update the list of active device names."""
 

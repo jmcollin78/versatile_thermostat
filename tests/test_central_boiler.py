@@ -1,4 +1,4 @@
-# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
+# pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 # Warning: when running in parellel, some test fails ramdomly. I don't find any solution to this problem
 
@@ -74,19 +74,23 @@ async def test_add_a_central_config_with_boiler(
     central_configuration = api.find_central_configuration()
     assert central_configuration is not None
 
-    # Test that VTherm API have any central boiler entities
-    assert api.nb_active_device_for_boiler_entity is not None
-    assert api.nb_active_device_for_boiler == 0
+    central_boiler_manager = api.central_boiler_manager
+    assert central_boiler_manager is not None
 
-    assert api.nb_active_device_for_boiler_threshold_entity is not None
-    assert api.nb_active_device_for_boiler_threshold == 1  # the default value is 1
+    # Test that VTherm API have any central boiler entities
+    assert central_boiler_manager.nb_active_device_for_boiler == 0
+
+    assert central_boiler_manager.nb_active_device_for_boiler_threshold == 0  # the default value is 0
+
+    assert central_boiler_manager.total_power_active_for_boiler == 0  # the default value is 0
+    assert central_boiler_manager.total_power_active_for_boiler_threshold == 0  # the default value is 0
 
 async def test_update_central_boiler_state_simple(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
     init_central_config_with_boiler_fixture,
 ):
-    """Test that the central boiler state behavior"""
+    """Test that the central boiler state behavior in a full normal conditions (with no mock)"""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
@@ -106,12 +110,12 @@ async def test_update_central_boiler_state_simple(
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
             CONF_CYCLE_MIN: 5,
-            CONF_TEMP_MIN: 8,
+            CONF_TEMP_MIN: 7,
             CONF_TEMP_MAX: 18,
-            "frost_temp": 10,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 21,
+            # "frost_temp": 7,
+            # "eco_temp": 17,
+            # "comfort_temp": 18,
+            # "boost_temp": 21,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
@@ -128,22 +132,22 @@ async def test_update_central_boiler_state_simple(
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
             CONF_USE_TPI_CENTRAL_CONFIG: True,
-            CONF_USE_PRESETS_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
             CONF_USED_BY_CENTRAL_BOILER: True,
         },
     )
 
-    entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps=default_temperatures)
     assert entity
     assert entity.name == "TheOverSwitchMockName"
     assert entity.is_over_switch
     assert entity.underlying_entities[0].entity_id == "switch.switch1"
 
-    assert api.nb_active_device_for_boiler_threshold == 1
-    assert api.nb_active_device_for_boiler == 0
+    api.central_boiler_manager._set_nb_active_device_threshold(1)
+
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -153,6 +157,7 @@ async def test_update_central_boiler_state_simple(
     now: datetime = datetime.now(tz=tz)
     # set temp to 23 to avoid heating and turn on the heater and the boiler
     await send_temperature_change_event(entity, 23, now)
+    await send_ext_temperature_change_event(entity, 19, now)
 
     assert entity.hvac_mode == VThermHvacMode_HEAT
 
@@ -169,112 +174,39 @@ async def test_update_central_boiler_state_simple(
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
 
-    # 1. start a heater
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
-        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
-    # fmt: on
-        _LOGGER.debug("---- 1. Turn on the switch1")
-        now = now + timedelta(minutes=1)
-        # await send_temperature_change_event(entity, 10, now)
-        # methode proposed by ChatGPT to ensure a state change event
-        hass.states.async_set("switch.switch1", "on")
-        await hass.async_block_till_done()
-        await asyncio.sleep(0.5)
+    # 1. start a heater because the temp is low
+    _LOGGER.debug("---- 1. Turn on the switch1")
+    now = now + timedelta(minutes=1)
+    await send_temperature_change_event(entity, 10, now)
 
-        assert entity.hvac_action == HVACAction.HEATING
-        # Not changed because the service is mocked
-        # assert switch1.is_on
-        # assert switch_pompe_chaudiere.is_on
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING)
 
-        assert mock_service_call.call_count == 1
+    # Radiator and central boiler is on
+    assert switch1.is_on
+    assert switch_pompe_chaudiere.is_on
 
-        mock_service_call.assert_has_calls(
-            [
-                # already on
-                # call.service_call(
-                #     "switch",
-                #     "turn_on",
-                #     {"entity_id": "switch.switch1"},
-                # ),
-                call(
-                    "switch",
-                    "turn_on",
-                    service_data={},
-                    target={"entity_id": "switch.pompe_chaudiere"},
-                ),
-            ],
-            any_order=True,
-        )
+    # There should be one device active
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    # boiler binary sensor is on
+    assert boiler_binary_sensor.state == STATE_ON
 
-        assert mock_send_event.call_count >= 1
-        mock_send_event.assert_has_calls(
-            [
-                call.send_vtherm_event(
-                    hass=hass,
-                    event_type=EventType.CENTRAL_BOILER_EVENT,
-                    entity=api.central_boiler_entity,
-                    data={"central_boiler": True},
-                )
-            ]
-        )
+    assert nb_device_active_sensor.state == 1
+    assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
 
-        # really resend the event to trigger the boiler sensor
-        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
-        await hass.async_block_till_done()
+    # 2. stop a heater by changing the preset
+    await entity.async_set_preset_mode(VThermPreset.FROST)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.IDLE)
 
-        assert api.nb_active_device_for_boiler == 1
-        assert boiler_binary_sensor.state == STATE_ON
+    # Radiator and central boiler is off
+    assert not switch1.is_on
 
-        assert nb_device_active_sensor.state == 1
-        assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
+    # Wait for all propagations
+    await wait_for_local_condition(lambda: not switch_pompe_chaudiere.is_on)
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_OFF)
 
-    # 2. stop a heater
-        # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, \
-        patch("custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event") as mock_send_event:
-    # fmt: on
-
-        await switch1.async_turn_off()
-        switch1.async_write_ha_state()
-        # Wait for state event propagation
-        await asyncio.sleep(0.5)
-
-        assert entity.hvac_action == HVACAction.IDLE
-
-        assert mock_service_call.call_count >= 1
-        mock_service_call.assert_has_calls(
-            [
-                call(
-                    "switch",
-                    "turn_off",
-                    service_data={},
-                    target={"entity_id": "switch.pompe_chaudiere"},
-                )
-            ]
-        )
-
-        assert mock_send_event.call_count >= 1
-        mock_send_event.assert_has_calls(
-            [
-                call.send_vtherm_event(
-                    hass=hass,
-                    event_type=EventType.CENTRAL_BOILER_EVENT,
-                    entity=api.central_boiler_entity,
-                    data={"central_boiler": False},
-                )
-            ]
-        )
-
-        # really resend the event to trigger the boiler sensor
-        hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
-        await hass.async_block_till_done()
-
-        assert api.nb_active_device_for_boiler == 0
-        assert boiler_binary_sensor.state == STATE_OFF
-
-        assert nb_device_active_sensor.state == 0
-        assert nb_device_active_sensor.active_device_ids == []
+    assert nb_device_active_sensor.state == 0
+    assert nb_device_active_sensor.active_device_ids == []
 
     entity.remove_thermostat()
 
@@ -392,8 +324,8 @@ async def test_update_central_boiler_state_multiple(
     assert switch_pompe_chaudiere.is_on is False
 
     # 0. set threshold to 3
-    api.nb_active_device_for_boiler_threshold_entity.set_native_value(3)
-    assert api.nb_active_device_for_boiler_threshold == 3
+    api.central_boiler_manager.nb_active_device_for_boiler_threshold_entity.set_native_value(3)
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 3
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
         hass, "binary_sensor.central_boiler", "binary_sensor"
@@ -433,7 +365,7 @@ async def test_update_central_boiler_state_multiple(
         # )
         assert mock_send_event.call_count == 0
 
-        assert api.nb_active_device_for_boiler == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 1
@@ -469,7 +401,7 @@ async def test_update_central_boiler_state_multiple(
         # )
         assert mock_send_event.call_count == 0
 
-        assert api.nb_active_device_for_boiler == 2
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 2
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 2
@@ -523,7 +455,7 @@ async def test_update_central_boiler_state_multiple(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 3
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 3
         assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 3
@@ -561,7 +493,7 @@ async def test_update_central_boiler_state_multiple(
         #     ]
         # )
         assert mock_send_event.call_count == 0
-        assert api.nb_active_device_for_boiler == 4
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 4
         assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 4
@@ -587,7 +519,7 @@ async def test_update_central_boiler_state_multiple(
 
         assert mock_service_call.call_count == 0
         assert mock_send_event.call_count == 0
-        assert api.nb_active_device_for_boiler == 3
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 3
         assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 3
@@ -639,7 +571,7 @@ async def test_update_central_boiler_state_multiple(
         await hass.async_block_till_done()
 
 
-        assert api.nb_active_device_for_boiler == 2
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 2
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 2
@@ -714,8 +646,8 @@ async def test_update_central_boiler_state_simple_valve(
     assert entity.is_over_valve
     assert entity.underlying_entities[0].entity_id == "number.valve1"
 
-    assert api.nb_active_device_for_boiler_threshold == 1
-    assert api.nb_active_device_for_boiler == 0
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -783,7 +715,7 @@ async def test_update_central_boiler_state_simple_valve(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 1
@@ -835,7 +767,7 @@ async def test_update_central_boiler_state_simple_valve(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 0
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 0
@@ -906,8 +838,8 @@ async def test_update_central_boiler_state_simple_climate(
         assert entity.is_over_climate
         assert entity.underlying_entities[0].entity_id == "climate.climate1"
 
-    assert api.nb_active_device_for_boiler_threshold == 1
-    assert api.nb_active_device_for_boiler == 0
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
 
     nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
         hass, "sensor.nb_device_active_for_boiler", "sensor"
@@ -977,7 +909,7 @@ async def test_update_central_boiler_state_simple_climate(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
         assert nb_device_active_sensor.state == 1
@@ -1029,7 +961,7 @@ async def test_update_central_boiler_state_simple_climate(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 0
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 0
@@ -1138,8 +1070,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         assert entity.is_over_climate
         assert entity.underlying_entities[0].entity_id == "climate.climate1"
 
-        assert api.nb_active_device_for_boiler_threshold == 1
-        assert api.nb_active_device_for_boiler == 0
+        assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 0
 
         nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
             hass, "sensor.nb_device_active_for_boiler", "sensor"
@@ -1244,7 +1176,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 1
         assert boiler_binary_sensor.state == STATE_ON
 
 
@@ -1314,7 +1246,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         hass.bus.fire(mock_send_event.mock_calls[0].kwargs["event_type"].value, mock_send_event.mock_calls[0].kwargs["data"])
         await hass.async_block_till_done()
 
-        assert api.nb_active_device_for_boiler == 0
+        assert api.central_boiler_manager.nb_active_device_for_boiler == 0
         assert boiler_binary_sensor.state == STATE_OFF
 
         assert nb_device_active_sensor.state == 0
@@ -1388,15 +1320,15 @@ async def test_bug_339(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
         assert entity.underlying_entities[0].entity_id == "climate.climate1"
-        assert api.nb_active_device_for_boiler_threshold == 1
+        assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
 
     await entity.async_set_hvac_mode(VThermHvacMode_AUTO)
     # Simulate a state change in underelying
-    await api.nb_active_device_for_boiler_entity.calculate_nb_active_devices_or_power(None)
+    await api.central_boiler_manager.nb_active_device_for_boiler_entity.calculate_nb_active_devices_or_power(None)
 
     # The VTherm should be active
     assert entity.underlying_entity(0).is_device_active is True
     assert entity.is_device_active is True
-    assert api.nb_active_device_for_boiler == 1
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
 
     entity.remove_thermostat()

@@ -1152,7 +1152,7 @@ async def set_all_climate_preset_temp(
             number_entity_name,
             NUMBER_DOMAIN,
         )
-        assert temp_entity
+        assert temp_entity is not None, f"Cannot find temperature number entity '{number_entity_name}'. Check if central preset is used."
         if not temp_entity:
             raise ConfigurationNotCompleteError(
                 f"'{number_entity_name}' don't exists as number entity"

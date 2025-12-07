@@ -16,7 +16,7 @@ from homeassistant.components.number import (
     DEFAULT_MIN_VALUE,
     DEFAULT_STEP,
 )
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -176,8 +176,8 @@ class ActivateBoilerThresholdNumber(
         self._device_name = entry_infos.get(CONF_NAME)
         self._attr_name = "Number activation threshold"
         self._attr_unique_id = "boiler_activation_threshold"
-        self._attr_value = self._attr_native_value = 1  # default value
-        self._attr_native_min_value = 1
+        self._attr_value = self._attr_native_value = 0  # default value
+        self._attr_native_min_value = 0
         self._attr_native_max_value = 9
         self._attr_step = 1  # default value
         self._attr_mode = NumberMode.AUTO
@@ -206,7 +206,7 @@ class ActivateBoilerThresholdNumber(
         await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_central_boiler_activation_number_threshold(self)
+        api.central_boiler_manager.register_central_boiler_activation_number_threshold(self)
 
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug(
@@ -267,7 +267,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_central_boiler_power_activation_threshold(self)
+        api.central_boiler_manager.register_central_boiler_power_activation_threshold(self)
 
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
