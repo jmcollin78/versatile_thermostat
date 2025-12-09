@@ -301,12 +301,19 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
 
         old_ready = self._is_ready
         self._is_ready = self.is_configured and len(self._all_boiler_entities) == 4 and self._central_boiler_entity is not None
-        if not self._is_ready:
+        if not self._is_ready and self.is_configured:
             _LOGGER.warning(
                 "%s - central boiler manager is not fully configured. Found only %d/4 entities and central boiler entity=%s. Central boiler control will not work properly. This could a temporary message at startup.",
                 self,
                 len(self._all_boiler_entities),
                 self._central_boiler_entity,
+            )
+            return []
+        if not self._is_ready and not self.is_configured:
+            # Silence warning if the feature is not configured (user doesn't want it)
+            _LOGGER.debug(
+                "%s - central boiler manager is not configured. Ignoring initialization.",
+                self,
             )
             return []
         if self._is_ready != old_ready and self._central_boiler_entity:

@@ -143,7 +143,7 @@ class PropAlgorithm:
                 if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
                 else:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "%s - Proportional algorithm: VTherm is off or unknown %s function. Heating will be disabled",
                         self._vtherm_entity_id,
                         self._function,
