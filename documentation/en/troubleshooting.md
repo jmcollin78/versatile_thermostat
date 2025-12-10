@@ -171,7 +171,7 @@ You can also check the VTherm's attributes for the dates of the last received va
 Example:
 
 ```yaml
-security_state: true
+safety_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -180,7 +180,7 @@ safety_delay_min: 60
 ```
 
 We can see that:
-1. The VTherm is indeed in safety mode (`security_state: true`),
+1. The VTherm is indeed in safety mode (`safety_state: true`),
 2. The current time is 06/12/2023 at 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. The last reception time of the room temperature is 06/12/2023 at 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), so it's recent,
 4. The last reception time of the external temperature is 06/12/2023 at 13:04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). The external temperature is over 5 hours late, which triggered the safety mode, as the threshold is set to 60 minutes (`safety_delay_min: 60`).

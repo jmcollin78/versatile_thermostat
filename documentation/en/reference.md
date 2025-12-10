@@ -8,6 +8,8 @@
   - [Modify the Preset Temperature](#modify-the-preset-temperature)
   - [Modify Security Settings](#modify-security-settings)
   - [ByPass Window Check](#bypass-window-check)
+  - [Lock / Unlock Services](#lock--unlock-services)
+  - [Change TPI Parameters](#change-tpi-parameters)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
 - [State messages](#state-messages)
@@ -74,6 +76,7 @@
 | ``use_central_boiler_feature``            | Add central boiler control                                 | -             | -                   | -            | X                       |
 | ``central_boiler_activation_service``     | Boiler activation service                                  | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Boiler deactivation service                                | -             | -                   | -            | X                       |
+| ``central_boiler_activation_delay_sec``   | Activation delay (seconds)                                 | -             | -                   | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indicates if the VTherm controls the central boiler        | X             | X                   | X            | -                       |
 | ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
 | ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |
@@ -132,11 +135,11 @@ This service allows you to force the presence state independently of the presenc
 The code to call this service is as follows:
 
 ```yaml
-service : versatile_thermostat.set_presence
-Les données:
-    présence : "off"
-cible:
-    entity_id : climate.my_thermostat
+service: versatile_thermostat.set_presence
+data:
+    presence: "off"
+target:
+    entity_id: climate.my_thermostat
 ```
 
 ## Modify the Preset Temperature
@@ -198,6 +201,32 @@ data:
     bypass: true
 target:
     entity_id: climate.my_thermostat
+```
+
+## Lock / Unlock Services
+
+- `versatile_thermostat.lock` - Locks a thermostat to prevent configuration changes
+- `versatile_thermostat.unlock` - Unlocks a thermostat to allow configuration changes
+
+See [Lock Feature](feature-lock.md) for details.
+## Change TPI Parameters
+All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+
+Each parameter is optional. If it is not provided its current value is kept.
+
+To change the TPI parameters use the following code:
+
+```
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
 ```
 
 # Events

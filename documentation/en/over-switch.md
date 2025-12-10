@@ -78,7 +78,7 @@ The available commands depend on the type of underlying device:
 | `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)            |
 | `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                        |
 
-(*) Check the values accepted by your device in **Developer Tools / States** and search for your device. You will see the options it supports. They must be identical, including case sensitivity.
+(*) To use this case, it is important to ensure that the state of the underlying entity matches the preset. Otherwise, VTherm has no way of knowing whether your equipment is on or off. To verify this, go to Developer Tools / States, search for your underlying entity, and check if its state matches the name of a preset. If you see 'heat', 'off', or 'cool', these are not presets, and this configuration will not work. In this case, you must use a virtual switch. Examples of virtual switches can be found on the troubleshooting page. If you insist on using this configuration, carefully check the values accepted by your equipment in Developer Tools / States and search for your equipment. You will see the options it accepts. They must be identical, including case sensitivity.
 
 Of course, these examples can be adapted to your specific case.
 

@@ -1,13 +1,13 @@
-# Typ termostatu `Termostat na Przełączniku`
+# Typ termostatu: `Termostat na Przełączniku`
 
-- [Typ termostatu `Termostat na Przełączniku`](#over_switch-type-thermostat)
-  - [Wymagania wstępne](#prerequisites)
-  - [Konfiguracja](#configuration)
-    - [Podstawowe urządzenia](#the-underlying-devices)
-    - [Podtrzymanie aktywności (keep-alive)](#keep-alive)
-    - [Tryb AC](#ac-mode)
-    - [Inwersja poleceń](#command-inversion)
-    - [Dostosowywanie poleceń](#command-customization)
+- [Typ termostatu: `Termostat na Przełączniku`](#typ-termostatu-termostat-na-przełączniku)
+  - [Wymagania wstępne](#wymagania-wstępne)
+  - [Konfiguracja](#konfiguracja)
+    - [Podstawowe urządzenia](#podstawowe-urządzenia)
+    - [Podtrzymanie aktywności (keep-alive)](#podtrzymanie-aktywności-keep-alive)
+    - [Tryb AC](#tryb-ac)
+    - [Inwersja poleceń](#inwersja-poleceń)
+    - [Dostosowywanie poeceń](#dostosowywanie-poeceń)
 
 
 ## Wymagania wstępne
@@ -21,7 +21,7 @@ Instalacja powinna wyglądać następująco:
 3. Na podstawie wartości zadanych, różnicy temperatur oraz parametrów algorytmu **TPI** (zobacz: [TPI](algorithms.md#lalgorithme-tpi), termostat _VTherm_ obliczy procentowy czas włączenia.
 4. Następnie w regularnych odstępach czasu termostat _VTherm_ będzie wydawał polecenia załączania i wyłączania dla encji podrzędnych typu `switch`, `select` lub `climate`.
 5. Te encje podrzędne będą sterować fizycznym urządzeniem.
-6. Fizyczny przełącznik będzie włączał lub wyłączał grzejnik.  
+6. Fizyczny przełącznik będzie włączał lub wyłączał grzejnik.
 
 Wartość `on-time` jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
 
@@ -43,7 +43,7 @@ Jeśli jedno z urządzeń podrzędnych nie jest przełącznikiem, wówczas dosto
 
 Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm). Jeśli skonfigurowano wiele encji, termostat przeplata ich aktywacje, aby zminimalizować liczbę jednocześnie włączonych przełączników. Pozwala to na lepsze rozłożenie mocy, ponieważ każdy grzejnik włącza się po kolei.
 
-VTherm będzie jak najlepiej wygładzać zużycie energii poprzez naprzemienne aktywacje. 
+VTherm będzie jak najlepiej wygładzać zużycie energii poprzez naprzemienne aktywacje.
 Oto przykład przeplatania aktywacji:
 
 ![image](images/multi-switch-activation.png)
@@ -76,15 +76,14 @@ Aby dostosować polecenia, kliknij „Dodaj” u dołu okna, zarówno dla polece
 Następnie określ polecenia włączania i wyłączania, używając formatu `polecenie[/atrybut[:wartość]]`
 Dostępne polecenia zależą od typu urządzenia bazowego:
 
-| Typ urządzenia bazowego      | Polecenie załączenia                  | Poleenie wyłączenia                            | Zastosowanie                        |
-| ---------------------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------------- |
-| `switch` lub `input_boolean` | `turn_on`                             | `turn_off`                                     | Wszystkie przełączniki              |
-| `select` lub `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 i podobne (*)     |
-| `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)              |
-| `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                          |
+| Typ urządzenia bazowego      | Polecenie załączenia                  | Poleenie wyłączenia                            | Zastosowanie                    |
+| ---------------------------- | ------------------------------------- | ---------------------------------------------- | ------------------------------- |
+| `switch` lub `input_boolean` | `turn_on`                             | `turn_off`                                     | Wszystkie przełączniki          |
+| `select` lub `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 i podobne (*) |
+| `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)          |
+| `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                      |
 
-(*) Sprawdź wartości akceptowane przez Twoje urządzenie w `Narzędzia deweloperskie -> Stany` i wyszukaj swoje urządzenie. Zobaczysz obsługiwane przez nie opcje. Muszą być identyczne, łącznie z uwzględnieniem wielkości liter.
-
+(*) To use this case, it is important to ensure that the state of the underlying entity matches the preset. Otherwise, VTherm has no way of knowing whether your equipment is on or off. To verify this, go to Developer Tools / States, search for your underlying entity, and check if its state matches the name of a preset. If you see 'heat', 'off', or 'cool', these are not presets, and this configuration will not work. In this case, you must use a virtual switch. Examples of virtual switches can be found on the troubleshooting page. If you insist on using this configuration, carefully check the values accepted by your equipment in Developer Tools / States and search for your equipment. You will see the options it accepts. They must be identical, including case sensitivity.
 Oczywiście, przykłady te można dostosować do Twojego konkretnego przypadku.
 
 Przykład dla Nodon SIN-4-FP-21:
@@ -97,7 +96,7 @@ Kliknij 'Zatwierdź' aby potwierdzić zmiany.
 Jeśli pojawi się błąd:
 > Konfiguracja dostosowywania polecenia jest nieprawidłowa. Jest ona wymagana dla urządzeń bazowych innych niż przełączniki, a format musi być następujący: `nazwa_usługi[/atrybut:wartość]`. Więcej szczegółów w pliku README.
 
-oznacza to, że jedno z wprowadzonych poleceń jest nieprawidłowe. 
+oznacza to, że jedno z wprowadzonych poleceń jest nieprawidłowe.
 Należy przestrzegać następujących zasad:
 1. Każde polecenie musi być zgodne z formatem `polecenie[/atrybut[:wartość]]` (np. `select_option/option:comfort` lub `turn_on`) bez spacji ani znaków specjalnych z wyjątkiem _.
 2. Poleceń musi być tyle, ile zadeklarowanych urządzeń bazowych, z wyjątkiem sytuacji, gdy wszystkie urządzenia bazowe są przełącznikami. W takim przypadku dostosowywanie poleceń nie jest wymagane.

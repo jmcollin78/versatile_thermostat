@@ -30,8 +30,21 @@
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
+          "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
+        }
+      },
+      "lock": {
+        "title": "Verwaltung der Sperre",
+        "description": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin funktioniert.",
+        "data": {
+          "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
+          "lock_users": "Sperre verhindert Benutzerbefehle",
+          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm"
         }
       },
       "main": {
@@ -224,11 +237,13 @@
         "description": "Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Befehl zum Einschalten",
-          "central_boiler_deactivation_service": "Befehl zum Ausschalten"
+          "central_boiler_deactivation_service": "Befehl zum Ausschalten",
+          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)"
         },
         "data_description": {
           "central_boiler_activation_service": "Befehl zum Einschalten des Zentralheizungskessels, im Format: entity_id/service_name[/attribut:wert]",
-          "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]"
+          "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]",
+          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll"
         }
       },
       "valve_regulation": {
@@ -290,10 +305,25 @@
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stopp",
           "valve_regulation": "Konfiguration der Ventilsteuerung",
+          "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
         }
-     },
+      },
+      "lock": {
+        "title": "Verwaltung der Sperre - {name}",
+        "description": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat betriebsbereit bleibt.",
+        "data": {
+          "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
+          "lock_code": "Optionaler PIN (4 Ziffern)",
+          "lock_users": "Sperre verhindert Benutzerbefehle",
+          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+          "lock_code": "Der PIN-Code zum Entsperren des Thermostats (4 Ziffern)"
+        }
+      },
       "main": {
         "title": "Attribute - {name}",
         "description": "Wichtigste erforderliche Attribute&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/base-attributes.md)",
@@ -488,11 +518,13 @@
         "description": "Geben Sie die Dienste ein, die zum Ein- und Ausschalten der Zentralheizung benutzt werden sollen. Der verwendete Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribute:wert]` (/attribute:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.control_heizung/switch.turn_on`\n- zum ausschalten eines Schalter: `switch.control_heizung/switch.turn_off`\n- Um den Kessel auf 25° zu programmieren und somit ein Einschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:25`\n- Um 10° an den Heizessel zu senden und so sein Ausschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Einschaltbefehl",
-          "central_boiler_deactivation_service": "Ausschaltbefehl"
+          "central_boiler_deactivation_service": "Ausschaltbefehl",
+          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)"
         },
         "data_description": {
           "central_boiler_activation_service": "Befehl zum Einschalten des Zentralheizungskessels, im Format: entity_id/service_name[/attribut:wert]",
-          "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]"
+          "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]",
+          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll"
         }
       },
       "valve_regulation": {

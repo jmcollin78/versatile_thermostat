@@ -8,9 +8,12 @@ from datetime import datetime, timedelta
 
 import logging
 
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, SERVICE_SET_HVAC_MODE
+from custom_components.versatile_thermostat.switch import (
+    FollowUnderlyingTemperatureChange,
+)
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -650,3 +653,118 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     await vtherm.async_toggle()
     await hass.async_block_till_done()
     assert vtherm.hvac_mode == VThermHvacMode_OFF
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_1220(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test VThermHvac_mode when underlying is unavailable"""
+
+    # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    # 0. initialisation
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_ACTION: CONF_WINDOW_TURN_OFF,
+            CONF_WINDOW_DELAY: 1,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+        },
+    )
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="mock_climate",
+        hvac_mode=VThermHvacMode_COOL,
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_FAN_ONLY],
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
+        assert vtherm is not None
+        vtherm._set_now(now)
+
+    # 1. turns follow on and change state to UNAVAILABLE
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
+
+    follow_entity: FollowUnderlyingTemperatureChange = search_entity(
+        hass,
+        "switch.overclimate_follow_underlying_temp_change",
+        SWITCH_DOMAIN,
+    )
+
+    assert follow_entity is not None
+    assert follow_entity.state is STATE_OFF
+
+    follow_entity.turn_on()
+
+    assert vtherm.follow_underlying_temp_change is True
+    assert follow_entity.state is STATE_ON
+
+    now += timedelta(minutes=10)
+    vtherm._set_now(now)
+    await fake_underlying_climate.async_set_hvac_mode(STATE_UNAVAILABLE)
+    await send_climate_change_event(vtherm, STATE_UNAVAILABLE, HVACMode.OFF, HVACAction.OFF, HVACAction.OFF, now, True, fake_underlying_climate.entity_id)
+    await hass.async_block_till_done()
+
+    # no changes cause underlying state is not known
+    assert vtherm.hvac_mode == HVACMode.OFF
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+
+    # 2 underlying comes back to life
+    now += timedelta(minutes=10)
+    vtherm._set_now(now)
+    await fake_underlying_climate.async_set_hvac_mode(HVACMode.HEAT)
+
+    await send_climate_change_event(vtherm, HVACMode.HEAT, STATE_UNAVAILABLE, HVACAction.OFF, HVACAction.OFF, now, True, fake_underlying_climate.entity_id)
+    await hass.async_block_till_done()
+
+    # No changes on hvac_mode (but only on temperature or hvac_action)
+    assert vtherm.hvac_mode == HVACMode.OFF
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF

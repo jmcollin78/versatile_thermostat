@@ -1,6 +1,8 @@
 """ A custom data class to manage specific HVAC modes for VTherm. """
 
+import logging
 from homeassistant.components.climate.const import HVACMode
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 
 OFF = HVACMode.OFF.value
 HEAT = HVACMode.HEAT.value
@@ -11,16 +13,9 @@ FAN_ONLY = HVACMode.FAN_ONLY.value
 HEAT_COOL = HVACMode.HEAT_COOL.value
 SLEEP = "sleep"
 
-VALID_HVAC_MODES = {
-    OFF,
-    HEAT,
-    COOL,
-    AUTO,
-    DRY,
-    FAN_ONLY,
-    HEAT_COOL,
-    SLEEP,
-}
+VALID_HVAC_MODES = {OFF, HEAT, COOL, AUTO, DRY, FAN_ONLY, HEAT_COOL, SLEEP, STATE_UNAVAILABLE, STATE_UNKNOWN}
+
+_LOGGER = logging.getLogger(__name__)
 
 class VThermHvacMode:
     """
@@ -37,7 +32,8 @@ class VThermHvacMode:
             ValueError: If the mode is not supported.
         """
         if str(hvac_mode) not in VALID_HVAC_MODES or not isinstance(hvac_mode, str):
-            raise ValueError(f"Unsupported HVAC mode: {hvac_mode}")
+            _LOGGER.warning("Unsupported HVAC mode: '%s'. It may be temporary at startup. Your VTherm will be set to OFF mode.", hvac_mode)
+            hvac_mode = STATE_UNKNOWN
         self._hvac_mode: str = hvac_mode
 
     def __str__(self):
@@ -70,6 +66,8 @@ VThermHvacMode_DRY = VThermHvacMode(DRY)
 VThermHvacMode_FAN_ONLY = VThermHvacMode(FAN_ONLY)
 VThermHvacMode_HEAT_COOL = VThermHvacMode(HEAT_COOL)
 VThermHvacMode_SLEEP = VThermHvacMode(SLEEP)
+VThermHvacMode_UNKNOWN = VThermHvacMode(STATE_UNKNOWN)
+VThermHvacMode_UNAVAILABLE = VThermHvacMode(STATE_UNAVAILABLE)
 
 # Map statique pour conversion HA -> VTherm
 HA_TO_VTHERM_MAP = {
@@ -81,6 +79,8 @@ HA_TO_VTHERM_MAP = {
     HVACMode.FAN_ONLY: VThermHvacMode_FAN_ONLY,
     HVACMode.HEAT_COOL: VThermHvacMode_HEAT_COOL,
     SLEEP: VThermHvacMode_SLEEP,
+    STATE_UNAVAILABLE: VThermHvacMode_UNAVAILABLE,
+    STATE_UNKNOWN: VThermHvacMode_UNKNOWN,
 }
 
 # Map statique pour conversion VTherm -> HA
@@ -92,7 +92,22 @@ VTHERM_TO_HA_MAP = {
     DRY: HVACMode.DRY,
     FAN_ONLY: HVACMode.FAN_ONLY,
     HEAT_COOL: HVACMode.HEAT_COOL,
-    SLEEP: SLEEP,  # SLEEP doesn't exist in HA, we for a new String
+    SLEEP: SLEEP,  # SLEEP doesn't exist in HA, we map to a new string
+    STATE_UNAVAILABLE: STATE_UNAVAILABLE,
+    STATE_UNKNOWN: STATE_UNKNOWN,
+}
+
+VTHERM_TO_LEGACY_HA_MAP = {
+    OFF: HVACMode.OFF,
+    HEAT: HVACMode.HEAT,
+    COOL: HVACMode.COOL,
+    AUTO: HVACMode.AUTO,
+    DRY: HVACMode.DRY,
+    FAN_ONLY: HVACMode.FAN_ONLY,
+    HEAT_COOL: HVACMode.HEAT_COOL,
+    SLEEP: HVACMode.OFF,  # SLEEP is mapped to OFF
+    STATE_UNAVAILABLE: STATE_UNAVAILABLE,
+    STATE_UNKNOWN: STATE_UNKNOWN,
 }
 
 
@@ -131,3 +146,18 @@ def to_ha_hvac_mode(vtherm_hvac_mode: VThermHvacMode | None) -> HVACMode | None:
     if vtherm_hvac_mode is None:
         return None
     return VTHERM_TO_HA_MAP.get(str(vtherm_hvac_mode))
+
+
+def to_legacy_ha_hvac_mode(vtherm_hvac_mode: VThermHvacMode | None) -> HVACMode | None:
+    """
+    Convert a VThermHvacMode instance to a Home Assistant HVACMode (enum or str) and replace SLEEP with OFF.
+
+    Args:
+        vtherm_hvac_mode (VThermHvacMode): The VThermHvacMode instance.
+
+    Returns:
+        HVACMode | None: The corresponding Home Assistant HVACMode or None.
+    """
+    if vtherm_hvac_mode is None:
+        return None
+    return VTHERM_TO_LEGACY_HA_MAP.get(str(vtherm_hvac_mode))

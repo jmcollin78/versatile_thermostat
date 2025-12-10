@@ -3,13 +3,16 @@
 - [Steuerung der Zentralheizung](#steuerung-der-zentralheizung)
   - [Prinzip](#prinzip)
   - [Konfiguration](#konfiguration)
-    - [Wie findet man die richtige Maßnahme?](#wie-findet-man-die-richtige-maßnahme?)
+    - [Wie findet man die richtige Maßnahme?](#wie-findet-man-die-richtige-maßnahme)
   - [Ereignisse](#ereignisse)
   - [Warnhinweis](#warnhinweis)
 
 Sie können einen Zentralheizungskessel steuern. Solange es möglich ist, den Heizkessel vom Home Assistant aus zu starten oder zu stoppen, kann der Versatile Thermostat ihn direkt steuern.
 
 ## Prinzip
+
+<please update translation from English version>
+
 Grundlegend funktioniert das so:
 1. Eine neue Entität des Typs `binary_sensor` mit dem Standardnamen `binary_sensor.central_boiler` wird hinzugefügt.
 2. In der Konfiguration des _VTherms_ legen Sie fest, ob das _VTherm_ den Heizkessel steuern soll. In einer heterogenen Installation sollen einige _VTherms_ den Kessel steuern, andere nicht. Daher müssen Sie in jeder _VTherm_-Konfiguration angeben, ob sie den Heizkessel steuert.

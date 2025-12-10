@@ -4,8 +4,11 @@
   - [Versatile Thermostat UI Card](#versatile-thermostat-ui-card)
   - [Composant Scheduler !](#composant-scheduler-)
   - [Courbes de régulattion avec Plotly](#courbes-de-régulattion-avec-plotly)
+  - [Courbes de régulation avec Apex-charts (merci @gael1980)](#courbes-de-régulation-avec-apex-charts-merci-gael1980)
   - [Les notification avec l'AappDaemon NOTIFIER](#les-notification-avec-laappdaemon-notifier)
   - [Une très belle carte (merci @Jeffodilo)](#une-très-belle-carte-merci-jeffodilo)
+  - [Température intérieure ressentie et effet "Froid humide" (merci à @nicola-spreafico)](#température-intérieure-ressentie-et-effet-froid-humide-merci-à-nicola-spreafico)
+  - [Une intégration complémentaire pour anticiper les changements de consigne (merci à @RastaChaum)](#une-intégration-complémentaire-pour-anticiper-les-changements-de-consigne-merci-à-rastachaum)
 
 
 ## Versatile Thermostat UI Card
@@ -56,12 +59,10 @@ Remplacez les valeurs entre [[ ]] par les votres.
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
       name: Power percent
       fill: tozeroy
@@ -125,6 +126,11 @@ Remplacez les valeurs entre [[ ]] par les votres.
 Exemple de courbes obtenues avec Plotly :
 
 ![image](images/plotly-curves.png)
+
+## Courbes de régulation avec Apex-charts (merci @gael1980)
+Apex chart permet l'affiche de courbes de régulation. @Gael1980 nous donne un bel exemple [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+
+![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
 
 ## Les notification avec l'AappDaemon NOTIFIER
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.
@@ -486,3 +492,13 @@ cards:
         layout: horizontal
 ```
 </details>
+
+## Température intérieure ressentie et effet "Froid humide" (merci à @nicola-spreafico)
+Un article brillant pour ajouter une fonctionnalité nommée "Température ressentie" ou "Froid humide". Vous pouvez forcer la température cible à une valeur plus élevée en fonction des conditions météorologiques comme l'humidité ou le vent.
+L'article est disponible [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+
+## Une intégration complémentaire pour anticiper les changements de consigne (merci à @RastaChaum)
+Cette intégration (en béta au 23/11/2025) propose d'anticiper les changements de consigne de votre Scheduler pour que la température consigne soit atteinte à l'heure du changement du Scheduler. Elle apprend le comportement de votre VTherm (temps de montée en température, vitesse et temps de montée en température) et applique un algorithme prédictif permettant d'anticiper le changement du Scheduler.
+La démarche est très intéressante et offre un bon complément au _VTherm_.
+
+Elle est [ici](https://github.com/RastaChaum/Intelligent-Heating-Pilot)

@@ -127,6 +127,9 @@ STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
     {
+        vol.Required(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=600, step=10, mode=selector.NumberSelectorMode.BOX)
+        ),
         vol.Optional(CONF_CENTRAL_BOILER_ACTIVATION_SRV, default=""): str,
         vol.Optional(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, default=""): str,
     }
@@ -217,26 +220,22 @@ STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
 STEP_VALVE_REGULATION = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_OPENING_DEGREE_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
-            ),
+            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
         vol.Optional(CONF_OFFSET_CALIBRATION_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
-            ),
+            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
         vol.Optional(CONF_CLOSING_DEGREE_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
-            ),
+            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
         vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
             [
                 PROPORTIONAL_FUNCTION_TPI,
             ]
         ),
+        vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): cv.positive_int,
         vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
+        vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): cv.positive_int,
     }
 )
 
@@ -403,5 +402,19 @@ STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_ADVANCED_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
+STEP_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_USE_LOCK_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
+STEP_CENTRAL_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_LOCK_CODE): cv.string,
+        vol.Optional(CONF_LOCK_USERS, default=True): cv.boolean,
+        vol.Optional(CONF_LOCK_AUTOMATIONS, default=True): cv.boolean,
     }
 )

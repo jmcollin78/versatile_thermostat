@@ -2,10 +2,13 @@
 
 - [Einige unverzichtbare Ergänzungen](#einige-unverzichtbare-ergänzungen)
   - [Die Versatile Thermostat UI Card](#die-versatile-thermostat-ui-card)
-  - [Die Scheduler-Komponente!](#die-scheduler-komponente)
+  - [Die Scheduler Komponente!](#die-scheduler-komponente)
   - [Regelungskurven mit Plotly](#regelungskurven-mit-plotly)
+  - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Benachrichtigung mit dem AppDaemon NOTIFIER](#benachrichtigung-mit-dem-appdaemon-notifier)
   - [Eine sehr schöne Karte (Danke @Jeffodilo)](#eine-sehr-schöne-karte-danke-jeffodilo)
+  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
+  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 
 ## Die Versatile Thermostat UI Card
@@ -56,12 +59,10 @@ Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
       name: Leistungsprozentsatz
       fill: tozeroy
@@ -126,6 +127,11 @@ Beispiel für mit Plotly erstellte Kurven:
 
 ![image](images/plotly-curves.png)
 
+## Regulation curves with Apex-charts (thanks to @gael1980)
+Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+
+![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
+
 ## Benachrichtigung mit dem AppDaemon NOTIFIER
 Diese Automatisierung nutzt die hervorragende AppDaemon-App namens NOTIFIER, die von Horizon Domotique entwickelt wurde und [hier](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) vorgestellt wird. Der Code ist [hier](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py) verfügbar. Damit können Benutzer über sicherheitsrelevante Ereignisse benachrichtigt werden, die an einem beliebigen Versatile Thermostat auftreten.
 
@@ -134,7 +140,7 @@ Dies ist ein hervorragendes Beispiel für die Verwendung der hier beschriebenen 
 <details>
 
 ```yaml
-alias: Überwachung Heizungsicherheitsmodus 
+alias: Überwachung Heizungsicherheitsmodus
 description: Sendet eine Benachrichtigung, wenn ein Thermostat in den Sicherheits- oder Power-Modus wechselt.
 trigger:
   - platform: event
@@ -486,3 +492,13 @@ cards:
         layout: horizontal
 ```
 </details>
+
+## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
+An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
+The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+
+## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
+This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
+The approach is very interesting and offers a good complement to _VTherm_.
+
+It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)

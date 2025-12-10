@@ -25,6 +25,34 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
+
+## Release 8.3
+1. ajout d'un délai configurable avant l'activation de la chaudière centrale,
+2. ajout d'un déclenchement de la chaudière centrale si le total de la puissance activée dépasse un seuil. Pour faire marcher cette fonction il faut :
+- configurer le seuil de puissance qui va déclencher la chaudière. C'est une nouvelle entité qui est disponible dans l'appareil 'configuration centrale',
+- configurez les puissances des Vtherms. Ca se trouve dans la première page de configuration des VTherms,
+- cochez la case `Utilisé par la chaudière centrale`.
+
+A chaque fois que le VTherm sera activé, sa puissance configurée viendra s'ajoutée et si le seuil est dépassé, la chaudière centrale sera activée après le délai configuré en 1.
+
+L'ancien compteur du nombres de devices activés et son seuil existent toujours. Pour désactiver l'un des seuils (le seuil de puissance ou le seuil du nombre de devices activés), il faut le mettre à zéro. Dès que l'un des 2 seuils différents de zéro est dépassé, la chaudière est activée. C'est donc un "ou logique" entre les 2 seuils qui est appliqué.
+
+Plus d'informations [ici](documentation/fr/feature-central-boiler.md).
+
+## Release 8.2
+> - Ajout d'une fonction permettant de verrouiller / déverouiller un _VTherm_ avec potentiellement un code. Plus d'informations [ici](documentation/fr/feature-lock.md)
+
+## Release 8.1
+> - Pour un VTherm de type `over_climate` avec régulation par contrôle direct de la vanne, deux nouveaux paramètres permettant un contrôle beaucoup plus fin du minimum d'ouverture de la vanne ont été ajoutés au paramètre existant `minimum_opening_degrees`. Les paramètres sont maintenant :
+>    - `opening_threshold` : l'ouverture minimale de la vanne en dessous de laquelle la vanne doit être considérée comme fermée, et par conséquent, le paramètre 'max_closing_degree' s'applique,
+>    - `max_closing_degree` : le pourcentage de fermeture maximum absolu. La vanne ne se fermera jamais plus que ce qui est indiqué dans cette valeur. Si vous voulez autoriser la fermeture complète de la vanne, alors laissez ce paramètre sur 100,
+>    - `minimum_opening_degrees` : le pourcentage d'ouverture minimal lorsque le `opening_threshold` est dépassé et que le VTherm doit chauffer. Ce champ est personnalisable par vanne dans le cas d'un VTherm avec plusieurs vannes. Vous spécifiez la liste des ouvertures minimales séparées par des ','. La valeur par défaut est 0. Exemple : '20, 25, 30'. Lorsque la chauffe démarre (ie l'ouverture demandée est supérieure à `opening_threshold`), la vanne s'ouvrira avec une valeur supérieure ou égale à celle-ci et continuera d'augmenter régulièrement si nécessaire.
+>
+> Si on représente l'ouverture demandée par l'algorithme TPI en abscisse et l'ouverture réellement envoyée sur la vanne en ordonnée, on obtient cette courbe :
+> ![alt text](images/opening-degree-graph.png)
+>
+> Cette évolution a été largement débattue [ici](https://github.com/jmcollin78/versatile_thermostat/issues/1220).
+
 ## Release 8.0
 > Cette version est une version majeure. Elle réécrit une bonne partie des mécanismes internes du Versatile Thermostat en introduisant plusieurs nouveautés:
 >    1. _état souhaité / état courant_ : maintenant VTherm a 2 états. L'état souhaité est l'état demandé par l'utilisateur (ou le Scheduler). L'état courant est l'état couramment appliqué au VTherm. Ce dernier dépend des différentes fonctions de VTherm. Par exemple, l'utilisateur peut demander (état souhaité) d'avoir le chauffage allumé avec le preset Comfort mais comme la fenêtre a été détectée ouverte le VTherm est en fait éteint. Cette double gestion permet de toujours conservé la demande de l'utilisateur et d'appliquer le résultat des différentes fonctions sur cette demande de l'utilisateur pour avoir l'état courant. Cela permet de mieux gérer les cas où plusieurs fonctions veulent agir sur l'état du VTherm (ouverture d'une fenêtre et délestage par exemple). Cela assure aussi un retour à la demande initiale de l'utilisateur lorsque plus aucune détection n'est en cours,
@@ -92,11 +120,13 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 16. [La commande du chauffage central](documentation/fr/feature-central-boiler.md)
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
-19. [Les différents algorithmes](documentation/fr/algorithms.md)
-20. [Documentation de référence](documentation/fr/reference.md)
-21. [Exemple de réglages](documentation/fr/tuning-examples.md)
-22. [Dépannage](documentation/fr/troubleshooting.md)
-23. [Notes de version](documentation/fr/releases.md)
+19. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
+20. [Exemple de réglages](documentation/fr/tuning-examples.md)
+21. [Les algorithmes](documentation/fr/algorithms.md)
+22. [Documentation de référence](documentation/fr/reference.md)
+23. [Exemples de réglages](documentation/fr/tuning-examples.md)
+24. [Dépannage](documentation/fr/troubleshooting.md)
+25. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 
@@ -128,6 +158,10 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 
 
 Enjoy !
+
+# ⭐ Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
 
 # Les contributions sont les bienvenues !
 

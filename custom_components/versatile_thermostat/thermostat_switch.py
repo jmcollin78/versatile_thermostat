@@ -134,12 +134,12 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
         super().update_custom_attributes()
 
         under0: UnderlyingSwitch = self._underlyings[0]
-        self._attr_extra_state_attributes["is_over_switch"] = self.is_over_switch
-        self._attr_extra_state_attributes["power_percent"] = self.power_percent
 
         self._attr_extra_state_attributes.update(
             {
                 "is_over_switch": self.is_over_switch,
+                "on_percent": self._prop_algorithm.on_percent,
+                "power_percent": self.power_percent,
                 "vtherm_over_switch": {
                     "is_inversed": self.is_inversed,
                     "keep_alive_sec": under0.keep_alive_sec,
@@ -151,6 +151,10 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
                     "function": self._proportional_function,
                     "tpi_coef_int": self._tpi_coef_int,
                     "tpi_coef_ext": self._tpi_coef_ext,
+                    "tpi_threshold_low": self._tpi_threshold_low,
+                    "tpi_threshold_high": self._tpi_threshold_high,
+                    "minimal_activation_delay": self._minimal_activation_delay,
+                    "minimal_deactivation_delay": self._minimal_deactivation_delay,
                     "calculated_on_percent": self._prop_algorithm.calculated_on_percent,
                     "vswitch_on_commands": self._lst_vswitch_on,
                     "vswitch_off_commands": self._lst_vswitch_off,
@@ -158,7 +162,6 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             }
         )
 
-        self.async_write_ha_state()
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
@@ -203,6 +206,7 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             )
 
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
@@ -224,8 +228,8 @@ class ThermostatOverSwitch(BaseThermostat[UnderlyingSwitch]):
             self.hass.create_task(self._check_initial_state())
 
         self.calculate_hvac_action()
-        self.async_write_ha_state()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @property
     def vtherm_type(self) -> str | None:

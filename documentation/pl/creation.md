@@ -3,7 +3,7 @@
 - [Wybór termostatu](#choosing-a-vtherm)
   - [Tworzenie nowego termostatu](#creating-a-new-versatile-thermostat)
 - [Wybór typu termostatu](#choosing-a-vtherm-type)
-  - [Główna konfiguracja](#centralized-configuration)
+  - [Konfiguracja centralna](#centralized-configuration)
   - [Termostat na przełączniku](#vtherm-over-a-switch)
   - [Termostat na innym termostacie](#vtherm-over-another-thermostat)
   - [Termostat na zaworze](#vtherm-over-a-valve)
@@ -20,7 +20,7 @@
 
 ## Tworzenie nowego termostatu
 
-Wybierz 'Dodaj integrację' na stronie panelu integracji HA lub kliknij 'Dodaj urządzenie' na podstronie integracji Vtherm...
+Wybierz 'Dodaj integrację' w oknie panelu integracji HA lub kliknij 'Dodaj urządzenie' w oknie integracji Vtherm...
 
 ![image](images/add-an-integration.png)
 
@@ -39,9 +39,9 @@ Postępuj zgodnie z krokami konfiguracji, wybierając z menu właściwą opcję 
 
 # Wybór typu termostatu
 
-## Główna konfiguracja
+## Konfiguracja centralna
 Ta opcja pozwala skonfigurować pewne powtarzalne elementy jednocześnie dla wszystkich termostatów, takie jak:
-1. Parametry dla różnych algorytmów (TPI, detekcja otwartego okna, ruchu, czy obecności, sensory mocy). Parametry te obowiązują dla wszystkich termostatów. Wystarczy wprowadzić je raz w konfiguracji głównej (scentralizowanej). Ta konfiguracja nie tworzy samodzielnie termstatu, lecz centralizuje parametry, których ponowne wprowadzanie dla każdego termostatu byłoby uciążliwe. Zwróć uwagę, że możesz nadpisać te parametry na poszczególnych termostatach, aby móc je dostosować w razie potrzeby.
+1. Parametry dla różnych algorytmów (TPI, detekcja otwartego okna, ruchu, czy obecności, sensory mocy). Parametry te obowiązują dla wszystkich termostatów. Wystarczy wprowadzić je raz w konfiguracji centralnej. Ta konfiguracja nie tworzy samodzielnie termostatu, lecz centralizuje parametry, których ponowne wprowadzanie dla każdego termostatu byłoby uciążliwe. Zwróć uwagę, że możesz nadpisać te parametry na poszczególnych termostatach, aby móc je dostosować w razie potrzeby.
 2. Konfiguracja sterowania centralnym systemem ogrzewania,
 3. Niektóre zaawansowane parametry, takie jak ustawienia bezpieczeństwa.
 

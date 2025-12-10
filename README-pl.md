@@ -4,7 +4,7 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-# Versatile Thermostat (Wszechstronny Termostat)
+# Versatile Thermostat (Termostat _*VTherm*_)
 
 Ten plik README jest dostępny
 w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](README-de.md) | [Czeski](README-cs.md) | [Polski](README-pl.md)
@@ -25,12 +25,43 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 
 # Co nowego?
 ![New](images/new-icon.png)
+
+## Release 8.3
+1. Addition of a configurable delay before activating the central boiler.
+2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
+   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
+   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
+   - Check the `Used by central boiler` box.
+
+Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+
+The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+
+More informations [here](documentation/fr/feature-central-boiler.md).
+
+## Wydanie 8.2
+> Dodano opcjonalną funkcję blokowania/odblokowania termostatu _*VTherm*_ za pomocą kodu PIN. Więcej informacji na ten temat znajduje się [tutaj](documentation/pl/feature-lock.md).
+
+
+## Wydanie 8.1
+> - Dla `termostatu na klimacie` z bezpośrednim sterowaniem zaworem, do istniejącego już parametru `minimum_opening_degrees` dodano dwa nowe, następujące parametry:
+>    - `opening_threshold`: wartość otwarcia zaworu, poniżej której zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr `max_closing_degree`),
+>    - `max_closing_degree`: maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne,
+>    - `minimum_opening_degrees`: minimalna wartość stopnia otwarcia zaworu dla każdego urządzenia bazowego po przekroczeniu progu `opening_threshold`, rozdzielona przecinkami. Domyślna wartość parametru: `0`. Przykład: 20, 25, 30. Po rozpoczęciu grzania zawór zacznie się otwierać z tą wartością i będzie się stale zwiększać, dopóki będzie potrzebne dalsze ogrzewanie.
+>
+> ![alt text](images/opening-degree-graph.png)
+>
+> Więcej informacji na ten temat można uzyskać, przegądając wątek dyskusyjny [#1220](https://github.com/jmcollin78/versatile_thermostat/issues/1220).
+
+
+## Wydanie główne 8.0
+
 Ta wersja wymaga **szczególnej uwagi**. Przebudowano w niej znaczną część wewnętrznych mechanizmów integracji *Versatile Thermostat*, wprowadzając kilka nowych funkcji, a także znacząco poprawiając wydajność tych już działających:
 > 1. `Stan żądany` / `stan bieżący`: termostat _VTherm_ ma teraz 2 stany. `Stan żądany` to stan oczekiwany przez użytkownika (lub harmonogram). `Stan bieżący` to stan aktualny termostatu _VTherm_. Ten ostatni zależy od różnych funkcji termostatu _VTherm_. Np. użytkownik może zażądać (`stan żądany`) włączenia ogrzewania z ustawieniem Komfort, ale ponieważ wykryto otwarte okno, termostat _VTherm_ jest w rzeczywistości wyłączony. To podwójne zarządzanie zawsze zachowuje żądanie użytkownika i aplikuje wyniki różnych funkcji jako odpowiedź na żądanie użytkownika, aby w efekcie uzyskać `stan bieżący`. Takie rozwiązanie lepiej radzi sobie z przypadkami, gdy wiele funkcji chce oddziaływać na stan termostatu (np. otwieranie okna i wyłączanie zasilania). Zapewnia również powrót do pierwotnego `stanu żądanego`, gdy nie ma już żadnych innych zdarzeń, które mogłyby oddziaływać na termostat (np. otwieranie okna i wyłączanie zasilania),
 > 2. `Filtrowanie czasu`: operacja filtrowania czasu została znacznie poprawiona. Filtrowanie czasu zapobiega wysyłaniu zbyt wielu poleceń do urządzenia, co mogłoby prowadzić do nadmiernego zużycia baterii (np. termostatu zasilanego bateryjnie), a także zbyt częstej zmiany ustawień (pompy ciepła, pieca na pellet, ogrzewania podłogowego itp.). Nowa funkcja działa teraz następująco: jawne żądania użytkownika (lub harmonogramu) są zawsze natychmiast uwzględniane i **nie są one filtrowane**. Potencjalnie filtrowane są tylko zmiany związane z warunkami zewnętrznymi (np. temperaturą w pomieszczeniu). Filtrowanie polega na ponownym wysłaniu żądanego polecenia w późniejszym czasie, a nie na jego ignorowaniu, jak to miało miejsce dotychczas. Parametr `auto_regulation_dtemp` umożliwia dostosowanie opóźnienia.
 > 3. Ulepszenie parametru `hvac_action`: parametr `hvac_action` odzwierciedla aktualny stan aktywacji sterowanego urządzenia. W przypadku typu `termostat na przełączniku` odzwierciedla on stan aktywacji przełącznika, w przypadku `termostatu na zaworze` pozostaje aktywny, gdy otwarcie zaworu jest większe, niż minimalne (lub 0, jeśli nie jest skonfigurowany). W przypadku `termostatu na klimacie` odzwierciedla on parametr `hvac_action` klimatu bazowego, jeśli jest dostępny, lub - w przeciwnym razie - jego symulację.
-> 4. `Atrybuty własne`: organizacja atrybutów niestandardowych dostępnych w `Narzędzia deweloperskie -> Stany` została podzielona na sekcje w zależności od typu termostatu _VTherm_ i każdej aktywowanej funkcji. 
-> 5. `Redukcja mocy`: algorytm redukcji mocy uwzględnia teraz wyłączenie urządzeń między dwoma pomiarami zużycia energii w domu. 
+> 4. `Atrybuty własne`: organizacja atrybutów niestandardowych dostępnych w `Narzędzia deweloperskie -> Stany` została podzielona na sekcje w zależności od typu termostatu _VTherm_ i każdej aktywowanej funkcji.
+> 5. `Redukcja mocy`: algorytm redukcji mocy uwzględnia teraz wyłączenie urządzeń między dwoma pomiarami zużycia energii w domu.
 Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. Jeśli grzejnik zostanie wyłączony między dwoma pomiarami, włączenie nowego może zostać autoryzowane. Wcześniej uwzględniano tylko włączenia między dwoma pomiarami. Tak jak poprzednio, kolejny komunikat dotyczący zużycia energii prawdopodobnie spowoduje większą lub mniejszą redukcję mocy.
 > 6. `AutoSTART/autoSTOP`: funkcja autoSTART/autoSTOP jest przydatna tylko dla typu `termostatu na klimacie` bez bezpośredniego sterowania zaworem. Opcja ta została usunięta z pozostałych typów termostatów.
 > 7. Karta `VTherm UI Card`: wszystkie te modyfikacje pozwoliły na znaczną ewolucję karty `VTherm UI Card`, integrując komunikaty wyjaśniające aktualny stan (dlaczego mój VTherm ma taką temperaturę docelową?) oraz czy trwa filtrowanie czasu – w związku z czym aktualizacja stanu bazowego jest opóźniona.
@@ -43,7 +74,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 > - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
 > - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0`, aby zachować kompatybilność,
 >
-> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatury sensora _VTherm_ po instalacji.**
+> **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Po zainstalowaniu aktualizacji, dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatur sensorów _VTherm_.**
 >
 
 
@@ -72,7 +103,7 @@ Wielkie podziękowania dla wszystkich moich 'piwnych' sponsorów za ich donacje 
 
 # Dokumentacja
 
-Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby łatwiej było z niej korzystać:
+Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas konfiguracji, dokumentacja podzielona jest na rozdziały i sekcje:
 1. [Wprowadzenie](documentation/pl/presentation.md)
 2. [Instalacja](documentation/pl/installation.md)
 3. [Szybki start](documentation/pl/quick-start.md)
@@ -81,24 +112,25 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 6. [Konfigurowanie `termostatu na przełączniku`](documentation/pl/over-switch.md)
 7. [Konfigurowanie `termostatu na klimacie`](documentation/pl/over-climate.md)
 8. [Konfigurowanie `termostatu na zaworze`](documentation/pl/over-valve.md)
-9. [Ustawienia wstępne (presety)](documentation/pl/feature-presets.md)
+9. [Ustawienia presetów](documentation/pl/feature-presets.md)
 10. [Zarządzanie oknami](documentation/pl/feature-window.md)
 11. [Zarządzanie obecnością](documentation/pl/feature-presence.md)
 12. [Zarządzanie ruchem](documentation/pl/feature-motion.md)
 13. [Zarządzanie mocą/zasilaniem](documentation/pl/feature-power.md)
 14. [AutoSTART i autoSTOP](documentation/pl/feature-auto-start-stop.md)
 15. [Scentralizowane zarządzanie wszystkimi termostatami _VTherm_](documentation/pl/feature-central-mode.md)
-16. [Sterowanie centralnym ogrzewaniem / kotłem](documentation/pl/feature-central-boiler.md)
-17. [Zaawansowane ustawienia, tryb bezpieczeństwa](documentation/pl/feature-advanced.md)
+16. [Sterowanie kotłem centralnym](documentation/pl/feature-central-boiler.md)
+17. [Zaawansowane ustawienia, tryb bezpieczny](documentation/pl/feature-advanced.md)
 18. [Samoregulacja](documentation/pl/self-regulation.md)
-19. [Algorytmy](documentation/pl/algorithms.md)
-21. [Dokumnetacja referencyjna](documentation/pl/reference.md)
+19. [Funkcja blokady dostępu kodem PIN](documentation/pl/feature-lock.md)
+20. [Algorytmy](documentation/pl/algorithms.md)
+21. [Dokumentacja referencyjna](documentation/pl/reference.md)
 22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
 23. [Usuwanie problemów](documentation/pl/troubleshooting.md)
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
 ---
-# Kilka wyników...
+# Kilka przykładowych efektów...
 
 **Stabilizacja temperatury skonfigurowana dzięki ustawieniu presetu**:
 
@@ -135,11 +167,13 @@ Dokumentacja (w jęz. angielskim) podzielona jest na rozdziały i części, aby 
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
 | ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
 
+# ⭐ Historia gwiazdek
 
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
 
 ## Współpraca mile widziana!
 
-Chciałbyś wnieść swój wkład? Zapoznaj się z [contribution guidelines](CONTRIBUTING.md).
+Chciałbyś wnieść swój wkład do projektu? Zapoznaj się z [zasadami współpracy](CONTRIBUTING-pl.md).
 
 
 

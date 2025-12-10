@@ -8,6 +8,8 @@
   - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
   - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
   - [ByPass Window Check](#bypass-window-check)
+  - [Services de verrouillage / déverrouillage](#services-de-verrouillage--déverrouillage)
+  - [Changer les paramètres du TPI](#changer-les-paramètres-du-tpi)
 - [Evènements](#evènements)
 - [Attributs personnalisés](#attributs-personnalisés)
 - [Messages d'état](#messages-détat)
@@ -73,6 +75,7 @@
 | ``use_central_boiler_feature``            | Ajout du controle d'une chaudière centrale                                        | -             | -                   | -            | X                        |
 | ``central_boiler_activation_service``     | Service d'activation de la chaudière                                              | -             | -                   | -            | X                        |
 | ``central_boiler_deactivation_service``   | Service de desactivation de la chaudière                                          | -             | -                   | -            | X                        |
+| ``central_boiler_activation_delay_sec``   | Délai d'activation de la chaudière centrale en secondes                           | -             | -                   | -            | X                        |
 | ``used_by_controls_central_boiler``       | Indique si le VTherm contrôle la chaudière centrale                               | X             | X                   | X            | -                        |
 | ``use_auto_start_stop_feature``           | Indique si la fonction de démarrage/extinction automatique est activée            | -             | X                   | -            | -                        |
 | ``auto_start_stop_level``                 | Le niveau de détection de l'auto start/stop                                       | -             | X                   | -            | -                        |
@@ -195,6 +198,33 @@ data:
     window_bypass: true
 target:
     entity_id : climate.my_thermostat
+```
+
+## Services de verrouillage / déverrouillage
+
+Ces services permettent de verrouiller un thermostat afin d'empêcher toute modification de sa configuration, ou de le déverrouiller pour rétablir les changements autorisés :
+
+- `versatile_thermostat.lock` - Verrouille un thermostat pour empêcher les modifications de configuration
+- `versatile_thermostat.unlock` - Déverrouille un thermostat pour autoriser à nouveau les modifications de configuration
+
+Voir [Fonction de verrouillage](feature-lock.md) pour plus de détails.
+## Changer les paramètres du TPI
+Tous les paramètres du TPI configurables [ici](images/config_tpi.png) sont modifiables par un service. Ces changements sont persistants et resistent à un redémarrage. Ils sont appliqués immédiatement et une mise à jour du thermostat est faite instantanément lorsque les paramètres sont changés.
+
+Chaque paramètres est optionnel. Si il n'est pas fourni sa valeur courante est conservée.
+
+Pour changer les paramètres du TPI utilisez le code suivant :
+```yaml
+action: versatile_thermostat.set_tpi_parameters
+data:
+  tpi_coef_int: 0.5
+  tpi_coef_ext: 0.01
+  minimal_activation_delay: 10
+  minimal_deactivation_delay: 10
+  tpi_threshold_low: -2
+  tpi_threshold_high: 5
+target:
+  entity_id: climate.sonoff_trvzb
 ```
 
 # Evènements

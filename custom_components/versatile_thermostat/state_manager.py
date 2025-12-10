@@ -31,7 +31,7 @@ from .const import (
     MSG_TARGET_TEMP_ABSENCE_DETECTED,
 )
 from .vtherm_state import VThermState
-from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT
+from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
 from .vtherm_preset import VThermPreset
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class StateManager:
         # if vtherm.power_manager.is_overpowering_detected:
 
         # First check safety
-        if vtherm.last_central_mode is CENTRAL_MODE_STOPPED:
+        if vtherm.last_central_mode == CENTRAL_MODE_STOPPED:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
 
@@ -158,8 +158,10 @@ class StateManager:
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         # Calculate hvac_off_reason
-        if self._current_state.hvac_mode != VThermHvacMode_OFF and vtherm.hvac_off_reason is not None:
+        if self._current_state.hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and vtherm.hvac_off_reason is not None:
             vtherm.set_hvac_off_reason(None)
+        elif self._current_state.hvac_mode == VThermHvacMode_SLEEP:
+            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
 
         return self._current_state.is_hvac_mode_changed
 
@@ -237,7 +239,7 @@ class StateManager:
             updated = True
 
         elif vtherm.presence_manager.is_absence_detected:
-            if vtherm.vtherm_preset_mode is not None:
+            if vtherm.vtherm_preset_mode != VThermPreset.NONE:
                 new_temp = vtherm.find_preset_temp(vtherm.vtherm_preset_mode)
                 _LOGGER.debug("%s - presence will set new target temperature: %.2f", self, new_temp)
                 self._current_state.set_target_temperature(new_temp)

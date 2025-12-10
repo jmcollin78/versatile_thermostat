@@ -17,6 +17,8 @@ In der Regel gibt es zwei Fälle: Erstens
 
 ### Selbstregulierung bei direkter Ventilkontrolle]
 
+-- this § is not updated since v 8.0. Please see the English version --
+
 Diese Art der Selbstregulierung, `Direct Valve Control` genannt, benötigt:
 1. Eine Einheit des Typs `climate`, die in den zugehörigen Geräten des _VTherm_ enthalten ist.
 2. Eine Entität des Typs `number` zur Steuerung der Ventilöffnungsrate des _TRV_.

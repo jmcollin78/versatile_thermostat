@@ -2,7 +2,7 @@
 # pylint: disable='line-too-long'
 import logging
 
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,6 +120,7 @@ class PropAlgorithm:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
 
+            # Apply thresholds
             if (
                 # fmt: off
                 self._apply_threshold
@@ -139,11 +140,11 @@ class PropAlgorithm:
                 )
                 self._calculated_on_percent = 0
             else:
-                if self._function == PROPORTIONAL_FUNCTION_TPI:
+                if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
                 else:
-                    _LOGGER.warning(
-                        "%s - Proportional algorithm: unknown %s function. Heating will be disabled",
+                    _LOGGER.debug(
+                        "%s - Proportional algorithm: VTherm is off or unknown %s function. Heating will be disabled",
                         self._vtherm_entity_id,
                         self._function,
                     )
@@ -234,6 +235,41 @@ class PropAlgorithm:
         self._safety = False
         self._calculate_internal()
 
+    def update_parameters(
+        self,
+        tpi_coef_int,
+        tpi_coef_ext,
+        minimal_activation_delay,
+        minimal_deactivation_delay,
+        tpi_threshold_low,
+        tpi_threshold_high,
+    ):
+        """Update the parameters of the algorithm"""
+        if tpi_coef_int is not None:
+            self._tpi_coef_int = tpi_coef_int
+        if tpi_coef_ext is not None:
+            self._tpi_coef_ext = tpi_coef_ext
+        if tpi_threshold_low is not None:
+            self._tpi_threshold_low = tpi_threshold_low
+        if tpi_threshold_high is not None:
+            self._tpi_threshold_high = tpi_threshold_high
+        if minimal_activation_delay is not None:
+            self._minimal_activation_delay = minimal_activation_delay
+        if minimal_deactivation_delay is not None:
+            self._minimal_deactivation_delay = minimal_deactivation_delay
+
+        self._apply_threshold = self._tpi_threshold_low != 0.0 and self._tpi_threshold_high != 0.0
+        _LOGGER.debug(
+            "%s - Parameters updated. tpi_coef_int: %s, tpi_coef_ext: %s, tpi_threshold_low: %s, tpi_threshold_high: %s, minimal_activation_delay: %s, minimal_deactivation_delay: %s",
+            self._vtherm_entity_id,
+            self._tpi_coef_int,
+            self._tpi_coef_ext,
+            self._tpi_threshold_low,
+            self._tpi_threshold_high,
+            self._minimal_activation_delay,
+            self._minimal_deactivation_delay,
+        )
+
     @property
     def on_percent(self) -> float:
         """Returns the percentage the heater must be ON
@@ -257,3 +293,33 @@ class PropAlgorithm:
     def off_time_sec(self) -> int:
         """Returns the calculated time in sec the heater must be OFF"""
         return int(self._off_time_sec)
+
+    @property
+    def tpi_coef_int(self) -> float:
+        """Returns the TPI coefficient int"""
+        return self._tpi_coef_int
+
+    @property
+    def tpi_coef_ext(self) -> float:
+        """Returns the TPI coefficient ext"""
+        return self._tpi_coef_ext
+
+    @property
+    def tpi_threshold_low(self) -> float:
+        """Returns the TPI threshold low"""
+        return self._tpi_threshold_low
+
+    @property
+    def tpi_threshold_high(self) -> float:
+        """Returns the TPI threshold high"""
+        return self._tpi_threshold_high
+
+    @property
+    def minimal_activation_delay(self) -> int:
+        """Returns the minimal activation delay"""
+        return self._minimal_activation_delay
+
+    @property
+    def minimal_deactivation_delay(self) -> int:
+        """Returns the minimal deactivation delay"""
+        return self._minimal_deactivation_delay

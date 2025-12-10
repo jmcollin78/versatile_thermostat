@@ -29,8 +29,22 @@
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
           "valve_regulation": "Конфигурация регулировки клапана",
+          "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена"
+        }
+      },
+      "lock": {
+        "title": "Управление блокировкой",
+        "description": "Функция блокировки предотвращает изменения в конфигурации термостата из пользовательского интерфейса или автоматизаций, сохраняя при этом работоспособность термостата.",
+        "data": {
+          "use_lock_central_config": "Использовать центральную конфигурацию блокировки",
+          "lock_users": "Блокировка будет предотвращать команды от пользователей",
+          "lock_automations": "Блокировка будет предотвращать команды от автоматизаций и интеграций (например, планировщика)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Отметьте, чтобы использовать центральную конфигурацию блокировки. Снимите флажок, чтобы использовать специальную конфигурацию блокировки для этого VTherm",
+          "lock_code": "Пин-код для разблокировки термостата (4 цифры)"
         }
       },
       "main": {
@@ -223,11 +237,13 @@
         "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Команда включения",
-          "central_boiler_deactivation_service": "Команда выключения"
+          "central_boiler_deactivation_service": "Команда выключения",
+          "central_boiler_activation_delay_sec": "Задержка включения (в секундах)"
         },
         "data_description": {
           "central_boiler_activation_service": "Команда включения центрального котла в формате entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Команда выключения центрального котла в формате entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Команда выключения центрального котла в формате entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Задержка включения (в секундах) перед включением центрального котла после того, как VTherm запросил включение"
         }
       },
       "valve_regulation": {
@@ -288,8 +304,22 @@
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
           "valve_regulation": "Конфигурация регулировки клапана",
+          "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена"
+        }
+      },
+      "lock": {
+        "title": "Управление блокировкой - {name}",
+        "description": "Функция блокировки предотвращает изменения в конфигурации термостата из пользовательского интерфейса или автоматизаций, сохраняя при этом работоспособность термостата.",
+        "data": {
+          "use_lock_central_config": "Использовать центральную конфигурацию блокировки",
+          "lock_users": "Блокировка будет предотвращать команды от пользователей",
+          "lock_automations": "Блокировка будет предотвращать команды от автоматизаций и интеграций (например, планировщика)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Отметьте, чтобы использовать центральную конфигурацию блокировки. Снимите флажок, чтобы использовать специальную конфигурацию блокировки для этого VTherm",
+          "lock_code": "Пин-код для разблокировки термостата (4 цифры)"
         }
       },
       "main": {
@@ -485,11 +515,13 @@
         "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Команда включения",
-          "central_boiler_deactivation_service": "Команда выключения"
+          "central_boiler_deactivation_service": "Команда выключения",
+          "central_boiler_activation_delay_sec": "Задержка включения (в секундах)"
         },
         "data_description": {
           "central_boiler_activation_service": "Команда включения центрального котла в формате entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Команда выключения центрального котла в формате entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Команда выключения центрального котла в формате entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Задержка включения (в секундах) перед включением центрального котла после того, как VTherm запросил включение"
         }
       },
       "valve_regulation": {

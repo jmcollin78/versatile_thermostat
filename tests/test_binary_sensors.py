@@ -13,7 +13,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.binary_sensor import (
-    SecurityBinarySensor,
+    SafetyBinarySensor,
     OverpoweringBinarySensor,
     WindowBinarySensor,
     MotionBinarySensor,
@@ -25,12 +25,12 @@ from .commons import *
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_security_binary_sensors(
+async def test_safety_binary_sensors(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
-):   # pylint: disable=unused-argument
+):  # pylint: disable=unused-argument
     """Test the security binary sensors in thermostat type"""
 
     entry = MockConfigEntry(
@@ -68,10 +68,8 @@ async def test_security_binary_sensors(
     )
     assert entity
 
-    security_binary_sensor: SecurityBinarySensor = search_entity(
-        hass, "binary_sensor.theoverswitchmockname_security_state", "binary_sensor"
-    )
-    assert security_binary_sensor
+    safety_binary_sensor: SafetyBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_safety_state", "binary_sensor")
+    assert safety_binary_sensor
 
     now: datetime = datetime.now(tz=get_tz(hass))
 
@@ -79,8 +77,8 @@ async def test_security_binary_sensors(
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
 
-    assert security_binary_sensor.state == STATE_OFF
-    assert security_binary_sensor.device_class == BinarySensorDeviceClass.SAFETY
+    assert safety_binary_sensor.state == STATE_OFF
+    assert safety_binary_sensor.device_class == BinarySensorDeviceClass.SAFETY
 
     # Set temperature in the past
     event_timestamp = now - timedelta(minutes=6)
@@ -90,15 +88,15 @@ async def test_security_binary_sensors(
 
     assert entity.safety_state is STATE_ON
     # Simulate the event reception
-    await security_binary_sensor.async_my_climate_changed()
-    assert security_binary_sensor.state == STATE_ON
+    await safety_binary_sensor.async_my_climate_changed()
+    assert safety_binary_sensor.state == STATE_ON
 
     # set temperature now
     await send_temperature_change_event(entity, 15, now)
     assert entity.safety_state is not STATE_ON
     # Simulate the event reception
-    await security_binary_sensor.async_my_climate_changed()
-    assert security_binary_sensor.state == STATE_OFF
+    await safety_binary_sensor.async_my_climate_changed()
+    assert safety_binary_sensor.state == STATE_OFF
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -521,10 +519,8 @@ async def test_binary_sensors_over_climate_minimal(
         assert entity
         assert entity.is_over_climate
 
-    security_binary_sensor: SecurityBinarySensor = search_entity(
-        hass, "binary_sensor.theoverclimatemockname_security_state", "binary_sensor"
-    )
-    assert security_binary_sensor is not None
+    safety_binary_sensor: SafetyBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_safety_state", "binary_sensor")
+    assert safety_binary_sensor is not None
 
     overpowering_binary_sensor: OverpoweringBinarySensor = search_entity(
         hass, "binary_sensor.theoverclimatemockname_overpowering_state", "binary_sensor"

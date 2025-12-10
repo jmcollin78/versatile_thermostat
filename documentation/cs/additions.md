@@ -4,7 +4,10 @@
   - [Karta Versatile Thermostat UI](#karta-versatile-thermostat-ui)
   - [Komponenta Scheduler!](#komponenta-scheduler)
   - [Regulační křivky s Plotly pro doladění vašeho termostatu](#regulační-křivky-s-plotly-pro-doladění-vašeho-termostatu)
+  - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Oznámení událostí s AppDaemon NOTIFIER](#oznámení-událostí-s-appdaemon-notifier)
+  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
+  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 ## Karta Versatile Thermostat UI
 Vyhrazená karta pro Versatile Thermostat byla vyvinuta (založená na Better Thermostat). Je k dispozici zde: [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) a nabízí moderní pohled na všechny stavy VTherm:
@@ -51,12 +54,10 @@ Nahraďte hodnoty mezi `[[ ]]` vašimi vlastními.
       attribute: current_temperature
       yaxis: y1
       name: T°
-    - entity: '[[climate]]'
-      attribute: ema_temp
+    - entity: '[[ema_temperature]]'
       yaxis: y1
       name: Ema
-    - entity: '[[climate]]'
-      attribute: on_percent
+    - entity: '[[power_percent]]'
       yaxis: y2
       name: Power percent
       fill: tozeroy
@@ -121,6 +122,12 @@ Příklad křivek získaných s Plotly:
 
 ![image](images/plotly-curves.png)
 
+## Regulation curves with Apex-charts (thanks to @gael1980)
+Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+
+![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
+
+
 ## Oznámení událostí s AppDaemon NOTIFIER
 Tato automatizace využívá vynikající aplikaci AppDaemon s názvem NOTIFIER, vyvinutou Horizon Domotique, demonstrovanou [zde](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a kód je k dispozici [zde](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umožňuje uživatelům být upozorněni na bezpečnostní události probíhající na jakémkoli Versatile Thermostatu.
 
@@ -128,8 +135,8 @@ Toto je skvělý příklad použití oznámení popsaných zde: [event](#notific
 <details>
 
 ```yaml
-alias: Surveillance Mode Sécurité chauffage
-description: Envoi une notification si un thermostat passe en mode sécurité ou power
+alias: Monitorování bezpečnostního režimu vytápění
+description: Odešle oznámení, když se termostat přepne do bezpečnostního nebo výkonového režimu
 trigger:
   - platform: event
     event_type: versatile_thermostat_safety_event
@@ -151,14 +158,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Sécurité
+                Radiátor {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Bezpečnost
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} sécurité car le thermomètre ne répond
-                plus.\n{{ trigger.event.data }}
+                Radiátor {{ trigger.event.data.name }} přešel do {{
+                trigger.event.data.type }} bezpečnostního režimu, protože
+                teploměr nereaguje.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zastavit vytápění
                   event: stopper_chauffage
               image_url: /media/local/alerte-securite.jpg
               click_url: /lovelace-chauffage/4
@@ -173,14 +180,14 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Radiateur {{ trigger.event.data.name }} - {{
-                trigger.event.data.type }} Délestage
+                Radiátor {{ trigger.event.data.name }} - {{
+                trigger.event.data.type }} Omezení výkonu
               message: >-
-                Le radiateur {{ trigger.event.data.name }} est passé en {{
-                trigger.event.data.type }} délestage car la puissance max est
-                dépassée.\n{{ trigger.event.data }}
+                Radiátor {{ trigger.event.data.name }} přešel do {{
+                trigger.event.data.type }} omezení výkonu, protože byla
+                překročena maximální výkonová hranice.\n{{ trigger.event.data }}
               callback:
-                - title: Stopper chauffage
+                - title: Zastavit vytápění
                   event: stopper_chauffage
               image_url: /media/local/alerte-delestage.jpg
               click_url: /lovelace-chauffage/4
@@ -195,11 +202,10 @@ action:
             event_data:
               action: send_to_jmc
               title: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus
+                Teploměr radiátoru {{ trigger.event.data.name }} nereaguje
               message: >-
-                Le thermomètre du radiateur {{ trigger.event.data.name }} ne
-                répond plus depuis longtemps.\n{{ trigger.event.data }}
+                Teploměr radiátoru {{ trigger.event.data.name }} již delší dobu
+                nereaguje.\n{{ trigger.event.data }}
               image_url: /media/local/thermometre-alerte.jpg
               click_url: /lovelace-chauffage/4
               icon: mdi:radiator-disabled
@@ -209,3 +215,13 @@ mode: queued
 max: 30
 ```
 </details>
+
+## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
+An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
+The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+
+## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
+This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
+The approach is very interesting and offers a good complement to _VTherm_.
+
+It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)

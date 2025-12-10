@@ -25,6 +25,32 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 
 # Was ist neu?
 ![New](images/new-icon.png)
+
+## Release 8.3
+1. Addition of a configurable delay before activating the central boiler.
+2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
+   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
+   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
+   - Check the `Used by central boiler` box.
+
+Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+
+The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+
+More informations [here](documentation/fr/feature-central-boiler.md).
+
+## Release 8.2
+> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/de/feature-lock.md)
+
+## Release 8.1
+> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
+>    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
+>    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
+>    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+>
+> ![alt text](images/opening-degree-graph.png)
+> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+
 ## Release 8.0
 > Diese Version ist eine Hauptversion. Es wurde ein Großteil der internen Mechanismen des Versatile Thermostat neu geschrieben und führt mehrere Neuerungen ein:
 >    1. _Gewünschter Zustand / aktueller Zustand_: VTherm hat nun zwei Zustände. Der gewünschte Zustand ist der vom Benutzer (oder vom Scheduler) angeforderte Zustand. Der aktuelle Zustand ist der derzeit auf VTherm angewendete Zustand. Letzterer hängt von den verschiedenen Funktionen von VTherm ab. Der Benutzer kann beispielsweise anfordern (gewünschter Zustand), dass die Heizung mit der Voreinstellung „Komfort” eingeschaltet wird, aber da das Fenster als geöffnet erkannt wurde, ist VTherm tatsächlich ausgeschaltet. Diese doppelte Verwaltung ermöglicht es, die Anfrage des Benutzers immer beizubehalten und das Ergebnis der verschiedenen Funktionen auf diese Anfrage des Benutzers anzuwenden, um den aktuellen Zustand zu erhalten. Dies ermöglicht eine bessere Verwaltung von Fällen, in denen mehrere Funktionen auf den Zustand des VTherm einwirken wollen (z. B. Öffnen eines Fensters und Lastabwurf). Dies gewährleistet auch eine Rückkehr zur ursprünglichen Anfrage des Benutzers, wenn keine Erkennung mehr stattfindet.
@@ -118,15 +144,17 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-Viel Spaß!
-
 # Some comments on the integration
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
 | ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
 
+Viel Spaß!
 
+# ⭐ Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
 
 # Beiträge sind willkommen!
 

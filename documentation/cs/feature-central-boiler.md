@@ -10,6 +10,9 @@
 Můžete ovládat centralizovaný kotel. Pokud je možné spustit nebo zastavit kotel z Home Assistant, Versatile Thermostat jej bude moci přímo ovládat.
 
 ## Princip
+
+<please update translation from English version>
+
 Základní princip je následující:
 1. Přidá se nová entita typu `binary_sensor`, pojmenovaná ve výchozím nastavení `binary_sensor.central_boiler`.
 2. V konfiguraci _VTherm_ specifikujete, zda by _VTherm_ měl ovládat kotel. V heterogenní instalaci by některé _VTherm_ měly ovládat kotel a jiné ne. Proto musíte v každé konfiguraci _VTherm_ uvést, zda ovládá kotel.

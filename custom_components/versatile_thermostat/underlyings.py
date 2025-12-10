@@ -18,11 +18,11 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
-    HVACMode,
     SERVICE_SET_HVAC_MODE,
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HUMIDITY,
     SERVICE_SET_SWING_MODE,
+    SERVICE_SET_SWING_HORIZONTAL_MODE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     SERVICE_SET_TEMPERATURE,
@@ -34,8 +34,10 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
+from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
 from .commons import round_to_nearest
 
@@ -467,7 +469,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             return
 
         # safety mode could have change the on_time percent
-        # TODO why this ? await self._thermostat.safety_manager.refresh_state()
         time = self._on_time_sec
 
         action_label = "start"
@@ -608,7 +609,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL) and not await self.check_overpowering():
             return False
 
-        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": HVACMode(str(hvac_mode))}
+        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
@@ -673,6 +674,22 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_MODE,
+            data,
+        )
+
+    async def set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """Set new target swing horizontal operation."""
+        _LOGGER.info("%s - Set swing horizontal mode: %s", self, swing_horizontal_mode)
+        if not self.is_initialized:
+            return
+        data = {
+            ATTR_ENTITY_ID: self._entity_id,
+            "swing_horizontal_mode": swing_horizontal_mode,
+        }
+
+        await self._hass.services.async_call(
+            CLIMATE_DOMAIN,
+            SERVICE_SET_SWING_HORIZONTAL_MODE,
             data,
         )
 
@@ -773,6 +790,13 @@ class UnderlyingClimate(UnderlyingEntity):
         return self._underlying_climate.swing_mode
 
     @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Get the swing_horizontal_mode of the underlying"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.swing_horizontal_mode
+
+    @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""
         if not self.is_initialized:
@@ -806,6 +830,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return []
         return self._underlying_climate.swing_modes
+
+    @property
+    def swing_horizontal_modes(self) -> list[str]:
+        """Get the swing_horizontal_modes"""
+        if not self.is_initialized:
+            return []
+        return self._underlying_climate.swing_horizontal_modes
 
     @property
     def temperature_unit(self) -> str:
@@ -926,11 +957,6 @@ class UnderlyingClimate(UnderlyingEntity):
 class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
 
-    _hvac_mode: VThermHvacMode
-    # This is the percentage of opening int integer (from 0 to 100)
-    _percent_open: int
-    _last_sent_temperature = None
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -949,10 +975,12 @@ class UnderlyingValve(UnderlyingEntity):
         self._async_cancel_cycle = None
         self._should_relaunch_control_heating = False
         self._hvac_mode = None
-        self._percent_open = None  # self._thermostat.valve_open_percent
+        self._percent_open: int | None = None  # self._thermostat.valve_open_percent
         self._valve_entity_id = valve_entity_id
         self._min_open: float | None = None
         self._max_open: float | None = None
+        self._last_sent_temperature = None
+        self._last_sent_opening_value: int | None = None
 
     async def _send_value_to_number(self, number_entity_id: str, value: int):
         """Send a value to a number entity"""
@@ -971,10 +999,12 @@ class UnderlyingValve(UnderlyingEntity):
             # This could happens in unit test if input_number domain is not yet loaded
             # raise err
 
-    async def send_percent_open(self, fixed_value: float = None):
+    async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
         # This may fails if called after shutdown
-        return await self._send_value_to_number(self._entity_id, self._percent_open if fixed_value is None else fixed_value)
+        value = self._percent_open if fixed_value is None else fixed_value
+        await self._send_value_to_number(self._entity_id, value)
+        self._last_sent_opening_value = value
 
     async def turn_off(self):
         """Turn heater toggleable device off."""
@@ -1097,6 +1127,11 @@ class UnderlyingValve(UnderlyingEntity):
         """The current percent open"""
         return self._percent_open
 
+    @property
+    def last_sent_opening_value(self) -> int | None:
+        """Return the last sent value to the valve"""
+        return self._last_sent_opening_value
+
 
 class UnderlyingValveRegulation(UnderlyingValve):
     """A specific underlying class for Valve regulation"""
@@ -1110,6 +1145,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
         min_opening_degree: int = 0,
+        max_closing_degree: int = 100,
+        opening_threshold: int = 0,
     ) -> None:
         """Initialize the underlying TRV with valve regulation"""
         super().__init__(
@@ -1128,18 +1165,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_offset_calibration: float = None
         self._step_calibration: float = 0.1
         self._min_opening_degree: int = min_opening_degree
+        self._max_closing_degree: int = max_closing_degree
+        self._opening_threshold: int = opening_threshold
 
-    def _normalize_opening_closing_degree(self, opening: float) -> float:
-        """Issue #902 - Normalize the opening and closing degree
-        Issue #927 - Cancel the normalization"""
-
-        new_opening = max(opening, self._min_opening_degree) if self.has_closing_degree_entity else opening
-        new_closing = max(self._max_opening_degree - new_opening, 0) if self.has_closing_degree_entity else 100
-
-        return new_opening, new_closing
-
-    async def send_percent_open(self, _: float = None):
-        """Send the percent open to the underlying valve"""
+    def initialize_min_max(self):
+        """Initialize min and max values for opening and closing degrees"""
         if not self._is_min_max_initialized:
             _LOGGER.debug(
                 "%s - initialize min offset_calibration and max open_degree", self
@@ -1161,28 +1191,36 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
             )
 
+            if self._min_opening_degree >= self._max_opening_degree:
+                self._min_opening_degree = self._opening_threshold
+                raise ValueError(
+                    f"min_opening_degree must be less than the max value of the opening degree of the entity {self._opening_degree_entity_id}. Value has been defaulted to opening threshold ({self._opening_threshold})"
+                )
+
         if not self._is_min_max_initialized:
             _LOGGER.warning(
                 "%s - impossible to initialize max_opening_degree or min_offset_calibration. Abort sending percent open to the valve. This could be a temporary message at startup."
             )
+            return False
+
+        return True
+
+    async def send_percent_open(self, _: float = None):
+        """Send the percent open to the underlying valve"""
+        if not self.initialize_min_max():
             return
 
         # Caclulate percent_open
-        if self._percent_open >= 1:
-            self._percent_open = round(
-                self._min_opening_degree
-                + (self._percent_open
-                   * (100 - self._min_opening_degree) / 100)
-                )
-        else:
-            self._percent_open = 0
-
-        # Send closing_degree if set
-        opening_degree, closing_degree = self._normalize_opening_closing_degree(self._percent_open)
-        # We should not change the _percent_open because it is used to check if value has bchanged
-        # self._percent_open = opening_degree
+        opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
+            brut_valve_open_percent=self._percent_open,
+            min_opening_degree=self._min_opening_degree,
+            max_closing_degree=self._max_closing_degree,
+            max_opening_degree=self._max_opening_degree,
+            opening_threshold=self._opening_threshold,
+        )
 
         # Send opening_degree
+
         await super().send_percent_open(opening_degree)
 
         if self.has_closing_degree_entity:
@@ -1202,16 +1240,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 )
                 is not None
             ):
-                offset = round_to_nearest(
-                    min(
-                        self._max_offset_calibration,
-                        max(
-                            self._min_offset_calibration,
-                            room_temp - (local_temp - current_offset),
-                        ),
-                    ),
-                    self._step_calibration,
-                )
+                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_calibration)
+                offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
 
                 await self._send_value_to_number(
                     self._offset_calibration_entity_id, offset
@@ -1278,11 +1308,23 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @property
     def is_device_active(self):
         """If the opening valve is open."""
-        try:
-            value = get_safe_float(self._hass, self._opening_degree_entity_id)
-            return value > self._min_opening_degree if value is not None else False
-        except Exception:  # pylint: disable=broad-exception-caught
+        if (value := self.last_sent_opening_value) is None:
             return False
+
+        return value > (100 - self._max_closing_degree)
+
+    @property
+    def hvac_action(self) -> HVACAction:
+        """Calculate a hvac_action"""
+        if (value := self.last_sent_opening_value) is None:
+            return HVACAction.OFF
+
+        if value > (100 - self._max_closing_degree):
+            return HVACAction.HEATING
+        elif value > 0:
+            return HVACAction.IDLE
+        else:
+            return HVACAction.OFF
 
     @property
     def valve_entity_ids(self) -> List[str]:
@@ -1308,14 +1350,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             self._percent_open = 100
             await self.send_percent_open()
-        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > self._min_opening_degree):
+        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > 0):
             _LOGGER.info(
                 "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
                 self,
-                self._min_opening_degree,
+                0,
                 self._entity_id,
             )
-            self._percent_open = self._min_opening_degree
+            self._percent_open = 0
             await self.send_percent_open()
         else:
             await super().check_initial_state(hvac_mode)

@@ -10,6 +10,9 @@
 Możesz sterować kotłem głównym. Jak długo możliwe jest jego załączanie lub wyłączanie z poziomu Home Assistanta, integracja `Versatile Thermostat` będzie w stanie kontrolować go bezpośrednio.
 
 ## Zasady
+
+<please update translation from English version>
+
 Podstawowa zasada działania jest następująca:
 1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_boiler`.
 2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem.
@@ -22,12 +25,12 @@ Podstawowa zasada działania jest następująca:
 
 Dzięki temu masz zawsze pod ręką informacje potrzebne do zarządzania i dostosowywania uruchamiania kotła.
 
-Wszystkie te encje są powiązane z konfiguracją główną.
+Wszystkie te encje są powiązane z konfiguracją centralną.
 
 ![Boiler Control Entities](images/entitites-central-boiler.png)
 
 ## Konfiguracja
-Aby skonfigurować tę funkcję, użyj konfiguracji głównej (patrz: [konfiguracja](#configuration)) i zaznacz pole `Dodaj kocioł główny`:
+Aby skonfigurować tę funkcję, użyj konfiguracji centralnej (patrz: [konfiguracja](#configuration)) i zaznacz pole `Dodaj kocioł główny`:
 
 ![Add a Central Boiler](images/config-central-boiler-1.png)
 
@@ -42,7 +45,7 @@ Akcje (np. usługi) są konfigurowane zgodnie z opisem na stronie:
 4. Niektóre usługi wymagają parametru. Może to być `HVAC Mode` dla `climate.set_hvac_mode` lub docelowa temperatura dla `climate.set_temperature`. Parametr ten powinien być skonfigurowany w formacie `attribute:value` na końcu ciągu.
 
 Przykłady (dostosuj je do Twojego przypadku):
-- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat`: aby włączyć termostat kotła w trybie grzania.
+- `climate.chaudiere/climate.set_hvac_mode/hvac_mode:heat`: aby włączyć termostat kotła w tryb grzania.
 - `climate.chaudiere/climate.set_hvac_mode/hvac_mode:off`: aby wyłączyć termostat kotła.
 - `switch.pompe_chaudiere/switch.turn_on`: aby włączyć przełącznik zasilający pompę kotła.
 - `switch.pompe_chaudiere/switch.turn_off`: aby wyłączyć przełącznik zasilający pompę kotła.
@@ -76,7 +79,7 @@ event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
   entity_id: binary_sensor.central_boiler
-  name: Central boiler
+  name: Kocioł główny
   state_attributes: null
 origin: LOCAL
 time_fired: "2024-01-14T11:33:52.342026+00:00"
@@ -89,7 +92,7 @@ event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
   entity_id: binary_sensor.central_boiler
-  name: Central boiler
+  name: Kocioł główny
   state_attributes: null
 origin: LOCAL
 time_fired: "2024-01-14T11:33:52.342026+00:00"
@@ -105,7 +108,7 @@ event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
   entity_id: binary_sensor.central_boiler
-  name: Central boiler
+  name: Kocioł główny
   state_attributes: null
 origin: LOCAL
 time_fired: "2024-01-14T11:43:52.342026+00:00"

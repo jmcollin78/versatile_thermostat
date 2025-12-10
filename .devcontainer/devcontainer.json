@@ -8,13 +8,11 @@
     "appPort": ["8123:8123"],
     // "postCreateCommand": "container install",
     "postCreateCommand": "./container dev-setup",
-
     "mounts": [
-        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-        // uncomment this to get the versatile-thermostat-ui-card
-        "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind,consistency=cached"
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+        // comment/uncomment/adapt this to get the versatile-thermostat-ui-card
+        // "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind"
     ],
-
     "customizations": {
         "vscode": {
             "extensions": [

@@ -334,6 +334,7 @@ async def test_user_config_flow_over_climate(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -405,6 +406,7 @@ async def test_user_config_flow_over_climate(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -452,6 +454,7 @@ async def test_user_config_flow_over_climate(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -489,6 +492,7 @@ async def test_user_config_flow_over_climate(
         "type",
         "presets",
         "advanced",
+        "lock",
         "finalize",  # Now finalize is present
     ]
 
@@ -516,6 +520,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_USE_LOCK_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
@@ -559,6 +564,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -591,6 +597,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "presets",
         "auto_start_stop",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -680,6 +687,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "presets",
         "auto_start_stop",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -733,6 +741,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "presets",
         "auto_start_stop",
         "advanced",
+        "lock",
         "finalize",  # Now finalize is present
     ]
 
@@ -761,6 +770,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_USE_LOCK_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_AUTO_START_STOP_FEATURE: True,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
@@ -806,6 +816,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -856,6 +867,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",  # tpi and presets are not configured and there is no central configuration
     ]
 
@@ -889,6 +901,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "tpi",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",  # advanced, tpi and presets are not configured and there is no central configuration
     ]
 
@@ -930,6 +943,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "tpi",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",  # tpi is not configured and there is no central configuration
     ]
 
@@ -979,6 +993,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "tpi",
         "presets",
         "advanced",
+        "lock",
         "finalize",  # all is now configured
     ]
 
@@ -1010,6 +1025,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_USE_POWER_CENTRAL_CONFIG: False,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+            CONF_USE_LOCK_CENTRAL_CONFIG: False,
             CONF_USE_AUTO_START_STOP_FEATURE: False,
             CONF_USE_CENTRAL_MODE: False,
             CONF_USED_BY_CENTRAL_BOILER: False,
@@ -1020,6 +1036,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
         }
+       
     )
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1060,6 +1077,7 @@ async def test_user_config_flow_over_climate_valve(
         "type",
         "presets",
         "advanced",
+        "lock",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -1133,6 +1151,7 @@ async def test_user_config_flow_over_climate_valve(
         "presets",
         "valve_regulation",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -1220,6 +1239,7 @@ async def test_user_config_flow_over_climate_valve(
         "presets",
         "valve_regulation",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -1240,6 +1260,8 @@ async def test_user_config_flow_over_climate_valve(
             CONF_OPENING_DEGREE_LIST: ["number.opening_degree1"],
             CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
     assert result["type"] == FlowResultType.FORM
@@ -1279,6 +1301,8 @@ async def test_user_config_flow_over_climate_valve(
             ],
             CONF_CLOSING_DEGREE_LIST: [],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -1292,6 +1316,7 @@ async def test_user_config_flow_over_climate_valve(
         "presets",
         "valve_regulation",
         "advanced",
+        "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -1331,6 +1356,7 @@ async def test_user_config_flow_over_climate_valve(
         "presets",
         "valve_regulation",
         "advanced",
+        "lock",
         "finalize",  # Now it is complete
     ]
 
@@ -1362,6 +1388,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_USE_POWER_CENTRAL_CONFIG: False,
         CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
         CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_USE_LOCK_CENTRAL_CONFIG: False,
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
@@ -1376,6 +1403,8 @@ async def test_user_config_flow_over_climate_valve(
         CONF_TPI_COEF_INT: 0.3,
         CONF_TPI_COEF_EXT: 0.1,
         CONF_MIN_OPENING_DEGREES: "10, 20,0",
+        CONF_MAX_CLOSING_DEGREE: 30,
+        CONF_OPENING_THRESHOLD_DEGREE: 5,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
     assert result["result"]

@@ -2,7 +2,8 @@
 
 import pytest
 
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
+from homeassistant.exceptions import ServiceValidationError
+
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm, PROPORTIONAL_FUNCTION_TPI
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -110,12 +111,20 @@ async def test_tpi_calculation(
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.unset_safety()
-    # The calculated values for VThermHvacMode_OFF are the same as for VThermHvacMode_HEAT.
+    # For OFF mode, all values are forced to zero so that apparent power will be zero.
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_OFF)
-    assert tpi_algo.on_percent == 1
-    assert tpi_algo.calculated_on_percent == 1
-    assert tpi_algo.on_time_sec == 300
-    assert tpi_algo.off_time_sec == 0
+    assert tpi_algo.on_percent == 0
+    assert tpi_algo.calculated_on_percent == 0
+    assert tpi_algo.on_time_sec == 0
+    assert tpi_algo.off_time_sec == 300
+
+    tpi_algo.unset_safety()
+    # For SLEEP mode, all values are forced to zero so that apparent power will be zero.
+    tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_SLEEP)
+    assert tpi_algo.on_percent == 0
+    assert tpi_algo.calculated_on_percent == 0
+    assert tpi_algo.on_time_sec == 0
+    assert tpi_algo.off_time_sec == 300
 
     # If target_temp or current_temp are None, _calculated_on_percent is set to 0.
     tpi_algo.calculate(15, None, 7, 0, VThermHvacMode_OFF)
@@ -124,9 +133,7 @@ async def test_tpi_calculation(
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
-    """
-    Test the max_on_percent clamping calculations
-    """
+    # Test the max_on_percent clamping calculations
     tpi_algo._max_on_percent = 0.8
 
     # no clamping
@@ -456,3 +463,209 @@ async def test_prop_algorithm_thresholds(
     tpi_algo.calculate(target_temp, current_temp, ext_current_temp, slope, hvac_mode)
 
     assert tpi_algo.on_percent == expected_on_percent
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
+    """Test the set_tpi_parameters service to change TPI coefficients and verify on_percent changes"""
+    # Initialize a VTherm over_switch with default TPI parameters
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+            CONF_TPI_THRESHOLD_LOW: 0.0,
+            CONF_TPI_THRESHOLD_HIGH: 0.0,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert entity
+
+    # Set initial temperature and external temperature
+    tz = get_tz(hass)  # Get timezone for datetime creation
+    now: datetime = datetime.now(tz=tz)
+
+    await send_temperature_change_event(entity, 15, now)
+    await send_ext_temperature_change_event(entity, 5, now)
+    await hass.async_block_till_done()
+
+    # Activate the VTherm with a preset and mode
+    assert entity.hvac_mode is HVACMode.OFF
+    assert entity.vtherm_preset_mode is VThermPreset.NONE
+    assert entity.target_temperature == 15.0  # temp min
+
+    # Set hvac_mode to HEAT
+    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await hass.async_block_till_done()
+
+    assert entity.hvac_mode is HVACMode.HEAT
+    assert entity.vtherm_preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 18
+
+    # Force a temperature update to trigger TPI calculation
+    await send_temperature_change_event(entity, 17, now)
+    await send_ext_temperature_change_event(entity, 17, now)
+    await hass.async_block_till_done()
+
+    # 1. Get the initial on_percent (should be calculated with default TPI coefficients)
+    initial_on_percent = entity.proportional_algorithm.on_percent
+    assert initial_on_percent is not None
+    assert initial_on_percent > 0  # Should be heating since temp is below target
+
+    # Store initial TPI parameters for verification
+    assert entity.proportional_algorithm.tpi_coef_int == 0.3
+    assert entity.proportional_algorithm.tpi_coef_ext == 0.01
+    assert entity.proportional_algorithm.minimal_activation_delay == 30
+    assert entity.proportional_algorithm.minimal_deactivation_delay == 30
+    assert entity.proportional_algorithm.tpi_threshold_low == 0.0
+    assert entity.proportional_algorithm.tpi_threshold_high == 0.0
+
+    # Call the service to change TPI parameters
+    new_tpi_coef_int = 0.6
+    new_tpi_coef_ext = 0.02
+    new_minimal_activation_delay = 60
+    new_minimal_deactivation_delay = 60
+    new_tpi_threshold_low = -0.5
+    new_tpi_threshold_high = 0.5
+
+    await entity.service_set_tpi_parameters(
+        tpi_coef_int=new_tpi_coef_int,
+        tpi_coef_ext=new_tpi_coef_ext,
+        minimal_activation_delay=new_minimal_activation_delay,
+        minimal_deactivation_delay=new_minimal_deactivation_delay,
+        tpi_threshold_low=new_tpi_threshold_low,
+        tpi_threshold_high=new_tpi_threshold_high,
+    )
+    await hass.async_block_till_done()
+
+    # Verify that TPI parameters have been updated
+    assert entity.proportional_algorithm.tpi_coef_int == new_tpi_coef_int
+    assert entity.proportional_algorithm.tpi_coef_ext == new_tpi_coef_ext
+    assert entity.proportional_algorithm.minimal_activation_delay == new_minimal_activation_delay
+    assert entity.proportional_algorithm.minimal_deactivation_delay == new_minimal_deactivation_delay
+    assert entity.proportional_algorithm.tpi_threshold_low == new_tpi_threshold_low
+    assert entity.proportional_algorithm.tpi_threshold_high == new_tpi_threshold_high
+
+    # Get the new on_percent after parameter change
+    new_on_percent = entity.proportional_algorithm.on_percent
+    assert new_on_percent is not None
+
+    # Verify that on_percent has changed
+    # With higher coefficients, the on_percent should be higher (more aggressive heating)
+    assert new_on_percent != initial_on_percent, f"on_percent should have changed after TPI parameter update. " f"Initial: {initial_on_percent}, New: {new_on_percent}"
+    assert new_on_percent > initial_on_percent, f"on_percent should be higher with increased TPI coefficients. " f"Initial: {initial_on_percent}, New: {new_on_percent}"
+
+    initial_on_percent = new_on_percent
+
+    # Test partial parameter update (only some parameters)
+    await entity.service_set_tpi_parameters(
+        tpi_coef_int=0.4,
+        tpi_coef_ext=None,  # Should keep previous value
+    )
+    await hass.async_block_till_done()
+
+    assert entity.proportional_algorithm.tpi_coef_int == 0.4
+    assert entity.proportional_algorithm.tpi_coef_ext == new_tpi_coef_ext  # Should remain unchanged
+
+    # Get the new on_percent after parameter change
+    new_on_percent = entity.proportional_algorithm.on_percent
+    assert new_on_percent is not None
+
+    assert new_on_percent != initial_on_percent, f"on_percent should have changed after TPI parameter update. " f"Initial: {initial_on_percent}, New: {new_on_percent}"
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
+    """Test that the set_tpi_parameters service cannot be called on a VTherm over_climate.
+    This service is only available for VTherms using TPI algorithm (over_switch, over_valve)."""
+
+    # Create a mock climate entity
+    climate_entity = MockClimate(
+        hass=hass,
+        unique_id="mock_climate_entity",
+        name="Mock Climate Entity",
+        entry_infos={},
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=climate_entity,
+    ):
+        # Initialize a VTherm over_climate (which doesn't use TPI algorithm)
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            title="TheOverClimateMockName",
+            unique_id="uniqueIdOverClimate",
+            data={
+                CONF_NAME: "TheOverClimateMockName",
+                CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+                CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+                CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+                CONF_CYCLE_MIN: 5,
+                CONF_TEMP_MIN: 15,
+                CONF_TEMP_MAX: 30,
+                "eco_temp": 17,
+                "comfort_temp": 18,
+                "boost_temp": 19,
+                CONF_USE_WINDOW_FEATURE: False,
+                CONF_USE_MOTION_FEATURE: False,
+                CONF_USE_POWER_FEATURE: False,
+                CONF_USE_PRESENCE_FEATURE: False,
+                CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+                CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_NONE,
+            },
+        )
+
+        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+        assert entity
+        assert entity.is_over_climate is True
+
+        # Verify that the entity doesn't have a prop_algorithm (TPI is not used for over_climate)
+        assert entity.proportional_algorithm is None
+
+        # Try to call the service - it should raise an error or do nothing
+        # since over_climate doesn't use TPI algorithm
+        try:
+            await entity.service_set_tpi_parameters(
+                tpi_coef_int=0.6,
+                tpi_coef_ext=0.02,
+                minimal_activation_delay=60,
+                minimal_deactivation_delay=60,
+                tpi_threshold_low=-0.5,
+                tpi_threshold_high=0.5,
+            )
+            await hass.async_block_till_done()
+
+        except ServiceValidationError as e:
+            # This is also acceptable - if the service tries to access
+            # prop_algorithm attributes that don't exist
+            assert "No TPI algorithm configured for this thermostat" in str(e)
+
+        finally:
+            entity.remove_thermostat()

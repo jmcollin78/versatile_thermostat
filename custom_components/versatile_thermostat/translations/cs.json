@@ -30,8 +30,23 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Správa zámku",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zamknutí",
+        "description": "Funkce zamknutí brání změnám termostatu z uživatelského rozhraní nebo automatizací při zachování provozuschopnosti termostatu.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
+          "lock_code": "Volitelný PIN (4 číslice)",
+          "lock_users": "Zamknutí zabrání příkazům uživatelů",
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {
@@ -220,11 +235,13 @@
         "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
         }
       },
       "valve_regulation": {
@@ -286,8 +303,22 @@
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
           "valve_regulation": "Konfigurace regulace ventilu",
+          "lock": "Zámek",
           "finalize": "Vše hotovo",
           "configuration_not_complete": "Konfigurace není kompletní"
+        }
+      },
+      "lock": {
+        "title": "Správa zamknutí - {name}",
+        "description": "Funkce zamknutí zabraňuje změnám termostatu z uživatelského rozhraní nebo automatizací, přičemž termostat zůstává funkční.",
+        "data": {
+          "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
+          "lock_users": "Zamknutí zabrání příkazům uživatelů",
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
         }
       },
       "main": {
@@ -475,11 +506,13 @@
         "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
         }
       },
       "valve_regulation": {

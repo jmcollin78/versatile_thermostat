@@ -16,7 +16,7 @@ from homeassistant.components.number import (
     DEFAULT_MIN_VALUE,
     DEFAULT_STEP,
 )
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -134,9 +134,9 @@ async def async_setup_entry(
     # For central config only
     else:
         if entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE):
-            entities.append(
-                ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data)
-            )
+            entities.append(ActivateBoilerThresholdNumber(hass, unique_id, name, entry.data))
+            entities.append(ActivateBoilerPowerThresholdNumber(hass, unique_id, name, entry.data))
+
         for preset in CONF_PRESETS_WITH_AC_VALUES:
             _LOGGER.debug(
                 "%s - configuring Number central, AC, non AWAY for preset %s",
@@ -174,10 +174,10 @@ class ActivateBoilerThresholdNumber(
         self._hass = hass
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
-        self._attr_name = "Boiler Activation threshold"
+        self._attr_name = "Number activation threshold"
         self._attr_unique_id = "boiler_activation_threshold"
-        self._attr_value = self._attr_native_value = 1  # default value
-        self._attr_native_min_value = 1
+        self._attr_value = self._attr_native_value = 0  # default value
+        self._attr_native_min_value = 0
         self._attr_native_max_value = 9
         self._attr_step = 1  # default value
         self._attr_mode = NumberMode.AUTO
@@ -194,7 +194,7 @@ class ActivateBoilerThresholdNumber(
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
+            entry_type=None,
             identifiers={(DOMAIN, self._config_id)},
             name=self._device_name,
             manufacturer=DEVICE_MANUFACTURER,
@@ -206,7 +206,7 @@ class ActivateBoilerThresholdNumber(
         await super().async_added_to_hass()
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        api.register_central_boiler_activation_number_threshold(self)
+        api.central_boiler_manager.register_central_boiler_activation_number_threshold(self)
 
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug(
@@ -225,6 +225,67 @@ class ActivateBoilerThresholdNumber(
             return
 
         self._attr_value = self._attr_native_value = int_value
+        self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
+
+    def __str__(self):
+        return f"VersatileThermostat-{self.name}"
+
+
+class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint: disable=abstract-method
+    """Representation of the threshold of the total power of VTherm
+    which should be active to activate the boiler"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the energy sensor"""
+        self._hass = hass
+        self._config_id = unique_id
+        self._device_name = entry_infos.get(CONF_NAME)
+        self._attr_name = "Power activation threshold"
+        self._attr_unique_id = "boiler_power_activation_threshold"
+        self._attr_value = self._attr_native_value = 0  # default value
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 10000  # for people who works in Watts
+        self._attr_step = 1  # default value
+        self._attr_mode = NumberMode.AUTO
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:water-boiler-auto"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            entry_type=None,
+            identifiers={(DOMAIN, self._config_id)},
+            name=self._device_name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
+
+    @overrides
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        api.central_boiler_manager.register_central_boiler_power_activation_threshold(self)
+
+        old_state: CoreState = await self.async_get_last_state()
+        _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
+        if old_state is not None:
+            self._attr_value = self._attr_native_value = int(float(old_state.state))
+
+    @overrides
+    def set_native_value(self, value: float) -> None:
+        """Change the value"""
+        int_value = int(value)
+        old_value = int(self._attr_native_value)
+
+        if int_value == old_value:
+            return
+
+        self._attr_value = self._attr_native_value = int_value
+        self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
@@ -290,7 +351,7 @@ class CentralConfigTemperatureNumber(
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
+            entry_type=None,
             identifiers={(DOMAIN, self._config_id)},
             name=self._device_name,
             manufacturer=DEVICE_MANUFACTURER,
@@ -332,8 +393,10 @@ class CentralConfigTemperatureNumber(
         # persist the value
         self.async_write_ha_state()
 
-        # We have to reload all VTherm for which uses the central configuration
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        api.register_temperature_number(self._config_id, self._preset_name, self)
+
+        # We have to reload all VTherm for which uses the central configuration
         # Update the VTherms which have temperature in central config
         self.hass.create_task(api.init_vtherm_preset_with_central())
 
@@ -453,7 +516,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         # Update the VTherm temp
         self.hass.create_task(
-            self.my_climate.service_set_preset_temperature(
+            self.my_climate.set_preset_temperature(
                 self._canonical_preset_name,
                 self._attr_native_value if not self._is_away else None,
                 self._attr_native_value if self._is_away else None,
