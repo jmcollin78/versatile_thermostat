@@ -27,7 +27,7 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ![Nouveau](images/new-icon.png)
 
 ## Release 8.3
-1. ajout d'un délai configurable pour l'activation de la chaudière centrale,
+1. ajout d'un délai configurable avant l'activation de la chaudière centrale,
 2. ajout d'un déclenchement de la chaudière centrale si le total de la puissance activée dépasse un seuil. Pour faire marcher cette fonction il faut :
 - configurer le seuil de puissance qui va déclencher la chaudière. C'est une nouvelle entité qui est disponible dans l'appareil 'configuration centrale',
 - configurez les puissances des Vtherms. Ca se trouve dans la première page de configuration des VTherms,
@@ -36,6 +36,8 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 A chaque fois que le VTherm sera activé, sa puissance configurée viendra s'ajoutée et si le seuil est dépassé, la chaudière centrale sera activée après le délai configuré en 1.
 
 L'ancien compteur du nombres de devices activés et son seuil existent toujours. Pour désactiver l'un des seuils (le seuil de puissance ou le seuil du nombre de devices activés), il faut le mettre à zéro. Dès que l'un des 2 seuils différents de zéro est dépassé, la chaudière est activée. C'est donc un "ou logique" entre les 2 seuils qui est appliqué.
+
+Plus d'informations [ici](documentation/fr/feature-central-boiler.md).
 
 ## Release 8.2
 > - Ajout d'une fonction permettant de verrouiller / déverouiller un _VTherm_ avec potentiellement un code. Plus d'informations [ici](documentation/fr/feature-lock.md)
