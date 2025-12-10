@@ -235,11 +235,13 @@
         "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
         }
       },
       "valve_regulation": {
@@ -504,11 +506,13 @@
         "description": "Zadejte služby, které se mají volat pro zapnutí/vypnutí centrálního kotle. Volaná služba musí být naformátována následovně: `entity_id/service_name[/attribute:value]` (/attribute:value je volitelné)\nNapříklad:\n- pro zapnutí spínače: `switch.controle_chaudiere/switch.turn_on`\n- pro vypnutí spínače: `switch.controle_chaudiere/switch.turn_off`\n- pro naprogramování kotle na 25° a tím vynucení jeho zapálení: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pro poslání 10° do kotle a tím vynucení jeho vypnutí: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]"
+          "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
         }
       },
       "valve_regulation": {
