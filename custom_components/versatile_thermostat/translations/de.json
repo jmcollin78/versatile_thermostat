@@ -5,6 +5,7 @@
     "step": {
       "user": {
         "title": "Typ des Versatile Thermostat",
+        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/creation.md)",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -552,7 +553,8 @@
       "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
-      "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30"
+      "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"

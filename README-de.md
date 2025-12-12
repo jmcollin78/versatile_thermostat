@@ -7,7 +7,7 @@
 # Versatile Thermostat
 
 Diese README-Datei ist verfügbar in folgenden
-Sprachen: [English](README.md) | [French](README-fr.md) | [German](README-de.md) | [Czech](README-cs.md) | [Polski](README-pl.md)
+Sprachen: [English](README.md) | [Français](README-fr.md) | [Deutsch](README-de.md) | [Czech](README-cs.md) | [Polski](README-pl.md)
 
 <p align="center">
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
@@ -24,52 +24,54 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
 # Was ist neu?
-![New](images/new-icon.png)
+![Neu](images/new-icon.png)
 
 ## Release 8.3
-1. Addition of a configurable delay before activating the central boiler.
-2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
-   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
-   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
-   - Check the `Used by central boiler` box.
+1. Hinzufügen einer konfigurierbaren Verzögerung vor der Heizkesselaktivierung,
+2. Hinzufügen eines Heizkesselstriggers, sobald die gesamte aktivierte Leistung einen Schwellenwert überschreitet. Um diese Funktion zu aktivieren, muss:
+- der Schwellenwert für die Leistung konfiguriert sein, bei dessen Überschreiten der Heizkessel gestartet wird. Dies ist eine neue Funktion, die im Gerät 'Zentrale Konfiguration' verfügbar ist.
+- die Leistungen der VTherms konfiguriert sein. Diese befindet sich auf der ersten Konfigurationsseite der VTherms.
+- das Kästchen `Vom Zentralheizkessel verwendet` ankreuzt sein.
 
-Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+Jedes Mal, wenn ein VTherm aktiviert wird, wird seine konfigurierte Leistung hinzugefügt, und sobald der Schwellenwert überschritten wird, wird der Zentralheizungskessel nach der in 1 konfigurierten Verzögerungszeit aktiviert.
 
-The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+Der alte Zähler für die Anzahl der aktivierten Geräte und sein Schwellenwert sind weiterhin vorhanden. Um einen der Schwellenwerte (den Leistungsschwellenwert oder den Schwellenwert für die Anzahl der aktivierten Geräte) zu deaktivieren, muss er auf Null gesetzt werden. Sobald einer der beiden Schwellenwerte ungleich Null überschritten wird, wird der Heizkessel aktiviert. Es handelt sich also um eine „logische ODER-Verknüpfung” zwischen den beiden Schwellenwerten.
 
-More informations [here](documentation/fr/feature-central-boiler.md).
+Weitere Informationen [hier](documentation/de/feature-central-boiler.md).
 
 ## Release 8.2
-> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/de/feature-lock.md)
+> - Hinzufügen einer Funktion zum Sperren/Entsperren eines _VTherm_ mit einem möglichen Code. Weitere Informationen [hier](documentation/de/feature-lock.md)
 
 ## Release 8.1
-> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
->    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
->    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
->    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+> - Für einen VTherm vom Typ `over_climate` mit direkter Ventilsteuerung wurden dem bestehenden Parameter `minimum_opening_degrees` zwei neue Parameter hinzugefügt, die eine wesentlich feinere Steuerung der minimalen Ventilöffnung ermöglichen. Die Parameter lauten nun:
+>    - `opening_threshold`: die minimale Ventilöffnung, unterhalb derer das Ventil als geschlossen gilt und somit der Parameter 'max_closing_degree' gilt,
+>    - `max_closing_degree`: der absolute maximale Schließungsprozentsatz. Das Ventil schließt niemals mehr als in diesem Wert angegeben. Wenn Sie das vollständige Schließen des Ventils zulassen möchten, lassen Sie diesen Parameter auf 100 stehen.
+>    - `minimum_opening_degrees`: Der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und das VTherm heizen muss. Dieses Feld kann bei einem VTherm mit mehreren Ventilen für jedes Ventil individuell angepasst werden. Sie geben die Liste der Mindestöffnungen durch Kommas getrennt an. Der Standardwert ist 0. Beispiel: '‚20, 25, 30'. Wenn die Heizung startet (d. h. die angeforderte Öffnung ist größer als `opening_threshold`), öffnet sich das Ventil mit einem Wert, der größer oder gleich diesem ist, und erhöht sich bei Bedarf weiter gleichmäßig.
 >
-> ![alt text](images/opening-degree-graph.png)
-> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+> Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellt, erhält man folgende Kurve:
+> ![alt text](images/opening-degree-graph).
+>
+> Diese Entwicklung wurde [hier](https://github.com/jmcollin78/versatile_thermostat/issues/1220) ausführlich diskutiert.
 
 ## Release 8.0
-> Dies ist ein großes Release. Es schreibt einen erheblichen Teil der internen Mechanismen von Versatile Thermostat um, indem es mehrere neue Funktionen einführt:
->    1. _gewünschter Zustand / aktueller Zustand_: VTherm hat jetzt 2 Zustände. Der gewünschte Zustand ist der vom Benutzer (oder Scheduler) angeforderte Zustand. Der aktuelle Zustand ist der derzeit auf das VTherm angewandte Zustand. Letzterer hängt von den verschiedenen VTherm-Funktionen ab. Zum Beispiel kann der Benutzer (gewünschter Zustand) Heizung mit Comfort-Voreinstellung anfordern, aber da das Fenster als offen erkannt wurde, ist das VTherm tatsächlich aus. Diese doppelte Verwaltung bewahrt immer die Benutzeranforderung und wendet das Ergebnis der verschiedenen Funktionen auf diese Benutzeranforderung an, um den aktuellen Zustand zu erhalten. Dies behandelt besser Fälle, in denen mehrere Funktionen auf den VTherm-Zustand einwirken wollen (Fensteröffnung und Stromlastabwurf beispielsweise). Es stellt auch sicher, dass zur ursprünglichen Benutzeranforderung zurückgekehrt wird, wenn keine Erkennung mehr aktiv ist,
->    2. _Zeitfilterung_: Die Zeitfilterungsoperation wurde überarbeitet. Zeitfilterung verhindert das Senden zu vieler Befehle an ein gesteuertes Gerät, um zu viel Batterie zu verbrauchen (batteriebetriebene TRV beispielsweise) oder Sollwerte zu häufig zu ändern (Wärmepumpe, Pelletofen, Fußbodenheizung, ...). Die neue Operation ist wie folgt: Explizite Benutzer- (oder Scheduler-)Anforderungen werden immer sofort berücksichtigt. Sie werden nicht gefiltert. Nur Änderungen durch externe Bedingungen (Raumtemperatur beispielsweise) werden potenziell gefiltert. Filterung besteht darin, den gewünschten Befehl später erneut zu senden und nicht wie zuvor zu ignorieren. Der Parameter `auto_regulation_dtemp` erlaubt die Anpassung der Verzögerung,
->    3. _hvac_action Verbesserung_: Die `hvac_action` spiegelt den aktuellen Aktivierungszustand des gesteuerten Geräts wider. Für einen `over_switch` Typ spiegelt sie den Schalter-Aktivierungszustand wider, für `over_valve` oder Ventilregelung ist sie aktiv, wenn die Ventilöffnung größer als die minimale Ventilöffnung ist (oder 0 wenn nicht konfiguriert), für `over_climate` spiegelt sie die `hvac_action` des zugrunde liegenden `climate`, falls verfügbar, oder eine Simulation sonst.
->    4. _benutzerdefinierte Attribute_: Die Organisation der benutzerdefinierten Attribute, die in Entwicklertools / Zustände zugänglich sind, wurde in Abschnitte neu organisiert, abhängig vom VTherm-Typ und jeder aktivierten Funktion. Weitere Informationen [hier](documentation/de/reference.md#custom-attributes).
->    5. _Stromlastabwurf_: Der Stromlastabwurf-Algorithmus berücksichtigt jetzt Geräteschaltungen zwischen zwei Messungen des Hausstromverbrauchs. Angenommen, Sie haben Verbrauchsrückmeldungen alle 5 Minuten. Wenn ein Heizkörper zwischen 2 Messungen ausgeschaltet wird, kann das Einschalten eines neuen autorisiert werden. Zuvor wurden zwischen 2 Messungen nur Einschaltungen berücksichtigt. Wie zuvor kann die nächste Verbrauchsrückmeldung mehr oder weniger abschalten.
->    6. _Auto-Start/Stop_: Auto-Start/Stop ist nur für `over_climate` VTherm-Typen ohne direkte Ventilsteuerung nützlich. Die Option wurde für andere VTherm-Typen entfernt.
->    7. _VTherm UI Card_: All diese Änderungen ermöglichten eine große Evolution der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card), um Nachrichten zu integrieren, die den aktuellen Zustand erklären (warum hat mein VTherm diese Zieltemperatur?) und ob Zeitfilterung aktiv ist - somit wurde die zugrunde liegende Zustandsaktualisierung verzögert.
->    8. _Log-Verbesserungen_: Logs wurden verbessert, um das Debuggen zu vereinfachen. Logs in der Form `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` informieren über ein Ereignis, das den VTherm-Zustand beeinflusst.
+> Diese Version ist eine Hauptversion. Es wurde ein Großteil der internen Mechanismen des Versatile Thermostat neu geschrieben und führt mehrere Neuerungen ein:
+>    1. _Gewünschter Zustand / aktueller Zustand_: VTherm hat nun zwei Zustände. Der gewünschte Zustand ist der vom Benutzer (oder vom Scheduler) angeforderte Zustand. Der aktuelle Zustand ist der derzeit auf VTherm angewendete Zustand. Letzterer hängt von den verschiedenen Funktionen von VTherm ab. Der Benutzer kann beispielsweise anfordern (gewünschter Zustand), dass die Heizung mit der Voreinstellung „Komfort” eingeschaltet wird, aber da das Fenster als geöffnet erkannt wurde, ist VTherm tatsächlich ausgeschaltet. Diese doppelte Verwaltung ermöglicht es, die Anfrage des Benutzers immer beizubehalten und das Ergebnis der verschiedenen Funktionen auf diese Anfrage des Benutzers anzuwenden, um den aktuellen Zustand zu erhalten. Dies ermöglicht eine bessere Verwaltung von Fällen, in denen mehrere Funktionen auf den Zustand des VTherm einwirken wollen (z. B. Öffnen eines Fensters und Lastabwurf). Dies gewährleistet auch eine Rückkehr zur ursprünglichen Anfrage des Benutzers, wenn keine Erkennung mehr stattfindet.
+>    2. _Zeitfilterung_: Die Funktionsweise der Zeitfilterung wurde überarbeitet. Die Zeitfilterung verhindert, dass zu viele Befehle an ein gesteuertes Gerät gesendet werden, um einen zu hohen Batterieverbrauch (z. B. bei batteriebetriebenen Thermostaten) oder zu häufige Änderungen der Sollwerte (Wärmepumpe, Pelletofen, Fußbodenheizung usw.) zu vermeiden. Die neue Funktionsweise ist nun wie folgt: Explizite Anfragen des Benutzers (oder Schedulers) werden immer sofort berücksichtigt. Sie werden nicht gefiltert. Nur Änderungen, die mit äußeren Bedingungen zusammenhängen (z. B. Raumtemperaturen), werden möglicherweise gefiltert. Die Filterung besteht darin, den gewünschten Befehl später erneut zu senden und ihn nicht wie bisher zu ignorieren. Mit dem Parameter `auto_regulation_dtemp` kann die Verzögerungszeit eingestellt werden.
+>    3. _Verbesserung der hvac_action_: Die `hvac_action` spiegelt den aktuellen Aktivierungsstatus der gesteuerten Anlage wider. Bei einem Typ `over_switch` spiegelt sie den Aktivierungsstatus des Schalters wider, bei einem `over_valve` oder einer Ventilregelung ist sie aktiv, wenn die Ventilöffnung größer als die minimale Ventilöffnung ist (oder 0, wenn nicht konfiguriert). Bei einem `over_climate` spiegelt sie die `hvac_action` des verknüpften `climate` wider, sofern verfügbar, andernfalls eine Simulation.
+>    4. _Benutzerdefinierte Attribute_: Die Organisation der benutzerdefinierten Attribute, die unter Entwicklertools/Status zugänglich sind, wurde neu strukturiert und hängt nun vom Typ des VTherm und den jeweils aktivierten Funktionen ab. Mehr Information [hier](documentation/de/reference.md#custom-attributes).
+> 5. _Lastabwurf_: Der Lastabwurf-Algorithmus berücksichtigt nun das Abschalten eines Geräts zwischen zwei Messungen des Stromverbrauchs der Wohnung. Nehmen wir an, Sie haben alle 5 Minuten einen Anstieg des Stromverbrauchs. Wenn zwischen zwei Messungen ein Heizkörper ausgeschaltet wird, kann das Einschalten eines neuen Heizkörpers zugelassen werden. Zuvor wurden zwischen zwei Messungen nur Einschaltungen berücksichtigt. Wie zuvor wird der nächste Anstieg des Stromverbrauchs möglicherweise zu einer mehr oder weniger starken Lastabsenkung führen.
+>    6. _auto-start/stop_: Die automatische Start-/Stoppfunktion ist nur für Vtherm-Typen vom Typ `over_climate` ohne direkte Ventilsteuerung nützlich. Die Option wurde für andere VTherm-Typen entfernt.
+>    7. _VTherm UI Card_: All diese Änderungen haben zu einer wesentlichen Weiterentwicklung der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) geführt, sodass nun Meldungen integriert sind, die den aktuellen Status erklären (warum hat mein VTherm diese Zieltemperatur?) und ob eine Zeitfilterung läuft – wodurch die Aktualisierung des Status des Basiswerts verzögert wurde.
+>    8. _Verbesserung der Protokolle_: Die Protokolle wurden verbessert, um die Fehlersuche zu vereinfachen. Protokolle in der Form `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` informieren über ein Ereignis, das sich auf den Status des VTherm auswirkt.
 >
 > ⚠️ **Warnung**
 >
-> Dieses große Release enthält Breaking Changes gegenüber der vorherigen Version:
-> - `versatile_thermostat_security_event` wurde in `versatile_thermostat_safety_event` umbenannt. Wenn Ihre Automatisierungen dieses Event verwenden, müssen Sie diese aktualisieren,
-> - benutzerdefinierte Attribute wurden neu organisiert. Sie müssen Ihre Automatisierungen oder Jinja-Templates aktualisieren, die diese verwenden,
-> - die [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) muss auf mindestens V2.0 aktualisiert werden, um kompatibel zu sein,
+> Diese Hauptversion enthält Änderungen, die mit der vorherigen Version nicht kompatibel sind:
+> - `versatile_thermostat_security_event` wurde in `versatile_thermostat_safety_event` umbenannt. Wenn Ihre Automatisierungen dieses Ereignis verwenden, müssen Sie diese aktualisieren.
+> - Die benutzerdefinierten Attribute wurden neu organisiert. Sie müssen Ihre Automatisierungen oder Jinja-Vorlagen, die diese verwenden, aktualisieren.
+> - Die [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) muss mindestens auf V2.0 aktualisiert werden, um kompatibel zu sein.
 >
-> **Trotz der 342 automatisierten Tests dieser Integration und der Sorgfalt bei diesem großen Release kann ich nicht garantieren, dass die Installation den Zustand Ihrer VTherms nicht stört. Für jedes VTherm müssen Sie nach der Installation die Voreinstellung, hvac_mode und möglicherweise die VTherm-Solltemperatur überprüfen.**
+> **Trotz der 342 automatisierten Tests dieser Integration und der Sorgfalt, mit der diese wichtige Version erstellt wurde, kann ich nicht garantieren, dass die Installation keine Störungen an Ihren VTherm-Geräten verursacht. Für jedes VTherm-Gerät müssen Sie nach der Installation die Voreinstellung, den hvac_mode und gegebenenfalls die Solltemperatur des VTherm überprüfen.**
 >
 
 # 🍻 Danke für die Biere 🍻
@@ -116,13 +118,11 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 16. [Steuerung der Zentralheizung](documentation/de/feature-central-boiler.md)
 17. [Weiterführende Aspekte, Sicherheitsmodus](documentation/de/feature-advanced.md)
 18. [Selbstregulierung](documentation/de/self-regulation.md)
-21. [Sperren / Entsperren](documentation/de/feature-lock.md)
-20. [Tuning-Beispiele](documentation/de/tuning-examples.md)
-21. [Algorithmen](documentation/de/algorithms.md)
-22. [Referenzdokumentation](documentation/de/reference.md)
-23. [Tuning-Beispiele](documentation/de/tuning-examples.md)
-24. [Störungsbeseitigung](documentation/de/troubleshooting.md)
-25. [Veröffentlichungshinweise](documentation/de/releases.md)
+19. [Algorithmen](documentation/de/algorithms.md)
+20. [Referenzdokumentation](documentation/de/reference.md)
+21. [Tuning-Beispiele](documentation/de/tuning-examples.md)
+22. [Störungsbeseitigung](documentation/de/troubleshooting.md)
+23. [Veröffentlichungshinweise](documentation/de/releases.md)
 
 # Einige Ergebnisse
 

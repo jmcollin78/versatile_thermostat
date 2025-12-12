@@ -32,13 +32,13 @@ Wählen Sie das Menü "Eigenschaften".
 ![image](images/config-features.png)
 
 Wählen Sie die Eigenschaften, die Sie für dieses VTherm verwenden möchten:
-1. **Öffnungserkennung** (Türen, Fenster) stoppt die Heizung, wenn eine Öffnung erkannt wird. (siehe [Verwaltung von Öffnungen](feature-window.md)),
-2. **Bewegungserkennung**: VTherm kann die Solltemperatur anpassen, wenn eine Bewegung im Raum erkannt wird (siehe [Bewegungserkennung](feature-motion.md)),
-3. **Energieverwaltung**: VTherm kann ein Gerät abschalten, wenn der Stromverbrauch in Ihrer Wohnung einen Schwellenwert überschreitet. (siehe [Energieverwaltung](feature-power.md)),
-4. **Anwesenheitserkennung**: Wenn Sie einen Sensor haben, der die An- oder Abwesenheit in Ihrer Wohnung anzeigt, können Sie damit die Zieltemperatur ändern. Siehe [Anwesenheitserkennung](feature-presence.md). Beachten Sie den Unterschied zwischen dieser Funktion und der Bewegungserkennung: Anwesenheit wird normalerweise auf Hausebene verwendet, während die Bewegungserkennung eher raumspezifisch ist.
-5. **Automatischer Start/Stopp**: Nur für `Over_climate` VTherms. Diese Funktion stoppt ein Gerät, wenn VTherm feststellt, dass es eine Zeit lang nicht benötigt wird. Anhand der Temperaturkurve wird vorhergesagt, wann das Gerät wieder benötigt wird, und es wird zu diesem Zeitpunkt wieder eingeschaltet. Siehe [Start/Stopp-Automatik](feature-auto-start-stop.md).
+1. Erkennung von Öffnungen (Türen, Fenster), um die Heizung abzuschalten, wenn die Öffnung offen ist. (siehe [Öffnungsmanagement](feature-window.md)),
+2. Bewegungserkennung: VTherm kann eine Temperatursollwert anpassen, wenn eine Bewegung im Raum erkannt wird (siehe [Bewegungserkennung](feature-motion.md)),
+3. Energieverwaltung: VTherm kann ein Gerät abschalten, wenn der Stromverbrauch in Ihrer Wohnung einen Schwellenwert überschreitet. (siehe [Energieverwaltung](feature-power.md)),
+4. Anwesenheitserkennung: Wenn Sie einen Sensor haben, der anzeigt, ob sich jemand in der Wohnung befidnet, kann dieser verwendet werden, um die Solltemperatur zu ändern. Siehe [Anwesenheitserkennung](feature-presence.md). Beachten Sie den Unterschied zwischen dieser Funktion und der Bewegungserkennung. Die Anwesenheitserkennung ist eher für die gesamte Wohnung gedacht, während die Bewegungserkennung eher für einzelne Räume gedacht ist.
+5. Automatischer Start/Stopp: Nur für `over_climate` VTherms. Diese Funktion kann ein Gerätausgeschaltet werden, wenn VTherm feststellt, dass es für einen bestimmten Zeitraum nicht benötigt wird. Anhand der Temperaturkurve wird vorhergesagt, wann das Gerät wieder benötigt wird, und zu diesem Zeitpunkt wieder eingeschaltet. Siehe [Start/Stopp-Automatik](feature-auto-start-stop.md).
 
-> ![Tip](images/tips.png) _*Notes*_
+> ![Tip](images/tips.png) _*Hinweise*_
 > 1. Die Liste der verfügbaren Eigenschaften passt sich an Ihren VTherm-Typ an.
-> 2. Wenn Sie eine Eigenschaften aktivieren, wird ein neuer Menüeintrag zur Konfiguration dieser Eigenschaften hinzugefügt.
+> 2. Wenn eine Eigenschaften aktiviert wurde, wird ein neuer Menüeintrag hinzugefügt, mit dem diese eigenschaft konfiguriert weird.
 > 3. Sie können die Erstellung eines VTherms nicht abschließen, wenn nicht alle Parameter für alle aktivierten Funktionen konfiguriert wurden.

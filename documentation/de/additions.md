@@ -10,6 +10,7 @@
   - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
   - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
+
 ## Die Versatile Thermostat UI Card
 Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basierend auf Better Thermostat). Sie ist hier verfügbar: [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) und bietet einen modernen Überblick über aller VTherm-Statie:
 
@@ -17,7 +18,8 @@ Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basieren
 
 ## Die Scheduler Komponente!
 
-Um die volle Leistungsfähigkeit von Versatile Thermostat voll auszuschöpfen, empfehle ich es zusammen mit der [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) zu verwenden. Die Scheduler-Komponente ermöglicht die Klimasteuerung anhand vordefinierter Modi. Diese Funktion ist bei einem herkömmlichen Thermostat nur von begrenztem Nutzen, wird jedoch mit dem Versatile Thermostat zu einem leistungsstarken Werkzeug:
+Um die volle Leistungsfähigkeit von Versatile Thermostat voll auszuschöpfen, empfehle ich es zusammen mit der [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) zu verwenden. 
+Die Scheduler-Komponente ermöglicht die Klimasteuerung anhand vordefinierter Modi. Diese Funktion ist bei einem herkömmlichen Thermostat nur von begrenztem Nutzen, wird jedoch mit dem Versatile Thermostat zu einem leistungsstarken Werkzeug:
 
 Angenommen, es ist sowohl Versatile Thermostat als auch die Scheduler-Komponente installiert.
 
@@ -32,9 +34,11 @@ Zuerst die Gruppe "Klima" auswählen, dann eine (oder mehrere) Entität(en) wäh
 
 Nun Modusschema definieren und speichern:
 
+
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
 In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag eingestellt, wenn niemand zu Hause ist, den BOOST-Modus für den Morgen und den KOMFORT-Modus für den Abend.
+
 
 Ich hoffe, dieses Beispiel hilft weiter. Über Feedback freuen wir uns!
 
@@ -132,6 +136,7 @@ Apex chart allows to display some great reguation curves. @Gael1980 gives us a v
 Diese Automatisierung nutzt die hervorragende AppDaemon-App namens NOTIFIER, die von Horizon Domotique entwickelt wurde und [hier](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) vorgestellt wird. Der Code ist [hier](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py) verfügbar. Damit können Benutzer über sicherheitsrelevante Ereignisse benachrichtigt werden, die an einem beliebigen Versatile Thermostat auftreten.
 
 Dies ist ein hervorragendes Beispiel für die Verwendung der hier beschriebenen Benachrichtigungen: [Ereignis](reference.md#ereignisse).
+
 <details>
 
 ```yaml
