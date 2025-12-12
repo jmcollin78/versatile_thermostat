@@ -24,7 +24,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
 # Was ist neu?
-![New](images/new-icon.png)
+![Neu](images/new-icon.png)
 
 ## Release 8.3
 1. Hinzufügen einer konfigurierbaren Verzögerung vor der Heizkesselaktivierung,
