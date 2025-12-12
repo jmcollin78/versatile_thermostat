@@ -27,29 +27,31 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ![New](images/new-icon.png)
 
 ## Release 8.3
-1. Addition of a configurable delay before activating the central boiler.
-2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
-   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
-   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
-   - Check the `Used by central boiler` box.
+1. Hinzufügen einer konfigurierbaren Verzögerung vor der Heizkesselaktivierung,
+2. Hinzufügen eines Heizkesselstriggers, sobald die gesamte aktivierte Leistung einen Schwellenwert überschreitet. Um diese Funktion zu aktivieren, muss:
+- der Schwellenwert für die Leistung konfiguriert sein, bei dessen Überschreiten der Heizkessel gestartet wird. Dies ist eine neue Funktion, die im Gerät 'Zentrale Konfiguration' verfügbar ist.
+- die Leistungen der VTherms konfiguriert sein. Diese befindet sich auf der ersten Konfigurationsseite der VTherms.
+- das Kästchen `Vom Zentralheizkessel verwendet` ankreuzt sein.
 
-Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+Jedes Mal, wenn ein VTherm aktiviert wird, wird seine konfigurierte Leistung hinzugefügt, und sobald der Schwellenwert überschritten wird, wird der Zentralheizungskessel nach der in 1 konfigurierten Verzögerungszeit aktiviert.
 
-The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+Der alte Zähler für die Anzahl der aktivierten Geräte und sein Schwellenwert sind weiterhin vorhanden. Um einen der Schwellenwerte (den Leistungsschwellenwert oder den Schwellenwert für die Anzahl der aktivierten Geräte) zu deaktivieren, muss er auf Null gesetzt werden. Sobald einer der beiden Schwellenwerte ungleich Null überschritten wird, wird der Heizkessel aktiviert. Es handelt sich also um eine „logische ODER-Verknüpfung” zwischen den beiden Schwellenwerten.
 
-More informations [here](documentation/fr/feature-central-boiler.md).
+Weitere Informationen [hier](documentation/de/feature-central-boiler.md).
 
 ## Release 8.2
-> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/de/feature-lock.md)
+> - Hinzufügen einer Funktion zum Sperren/Entsperren eines _VTherm_ mit einem möglichen Code. Weitere Informationen [hier](documentation/de/feature-lock.md)
 
 ## Release 8.1
-> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
->    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
->    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
->    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
+> - Für einen VTherm vom Typ `over_climate` mit direkter Ventilsteuerung wurden dem bestehenden Parameter `minimum_opening_degrees` zwei neue Parameter hinzugefügt, die eine wesentlich feinere Steuerung der minimalen Ventilöffnung ermöglichen. Die Parameter lauten nun:
+>    - `opening_threshold`: die minimale Ventilöffnung, unterhalb derer das Ventil als geschlossen gilt und somit der Parameter 'max_closing_degree' gilt,
+>    - `max_closing_degree`: der absolute maximale Schließungsprozentsatz. Das Ventil schließt niemals mehr als in diesem Wert angegeben. Wenn Sie das vollständige Schließen des Ventils zulassen möchten, lassen Sie diesen Parameter auf 100 stehen.
+>    - `minimum_opening_degrees`: Der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und das VTherm heizen muss. Dieses Feld kann bei einem VTherm mit mehreren Ventilen für jedes Ventil individuell angepasst werden. Sie geben die Liste der Mindestöffnungen durch Kommas getrennt an. Der Standardwert ist 0. Beispiel: '‚20, 25, 30'. Wenn die Heizung startet (d. h. die angeforderte Öffnung ist größer als `opening_threshold`), öffnet sich das Ventil mit einem Wert, der größer oder gleich diesem ist, und erhöht sich bei Bedarf weiter gleichmäßig.
 >
-> ![alt text](images/opening-degree-graph.png)
-> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
+> Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellt, erhält man folgende Kurve:
+> ![alt text](images/opening-degree-graph).
+>
+> Diese Entwicklung wurde [hier](https://github.com/jmcollin78/versatile_thermostat/issues/1220) ausführlich diskutiert.
 
 ## Release 8.0
 > Diese Version ist eine Hauptversion. Es wurde ein Großteil der internen Mechanismen des Versatile Thermostat neu geschrieben und führt mehrere Neuerungen ein:
