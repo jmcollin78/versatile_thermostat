@@ -9,7 +9,7 @@ import logging
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
+from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED, CONF_NAME
 
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant, CoreState, callback
@@ -58,6 +58,7 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
     CONF_MAX_ON_PERCENT,
+    CONF_UNIQUE_ATTR_ID,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -236,7 +237,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         thermostat_type = config_entry.data.get(CONF_THERMOSTAT_TYPE)
 
-        if thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        old_version = config_entry.version * 100 + config_entry.minor_version
+
+        if old_version < 201 and thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
             new[CONF_USE_WINDOW_FEATURE] = True
             new[CONF_USE_MOTION_FEATURE] = True
             new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
@@ -294,7 +297,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             # Migration 2.0 to 2.1 -> rename security parameters into safety
 
-        if config_entry.version == CONFIG_VERSION and config_entry.minor_version == 0:
+        if old_version < 201:
             for key in [
                 "security_delay_min",
                 "security_min_on_percent",
@@ -305,6 +308,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 if old_value is not None:
                     new[new_key] = old_value
                 new.pop(key, None)
+
+        if old_version < 202:
+            new[CONF_UNIQUE_ATTR_ID] = config_entry.data.get(CONF_NAME)
 
         hass.config_entries.async_update_entry(
             config_entry,
