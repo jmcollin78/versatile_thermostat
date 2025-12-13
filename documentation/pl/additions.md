@@ -3,11 +3,11 @@
 - [Parę istotnych dodatków](#parę-istotnych-dodatków)
   - [Karta _*Versatile Thermostat UI Card*_](#karta-versatile-thermostat-ui-card)
   - [Harmonogram](#harmonogram)
-  - [Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
-  - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
+  - [Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
+  - [Krzywe regulacji na wykresie _*Apex*_](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
-  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
-  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
+  - [Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
+  - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
 
 ## Karta _*Versatile Thermostat UI Card*_
 Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better Thermostat*). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów termostatu _*VTherm*_:
@@ -30,10 +30,10 @@ Zdefiniuj schemat trybu i zapisz go:
 
 ![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
 
-W tym przykładzie ustawiony został tryb ECO na noc oraz na okres dzienny, gdy nikogo nie ma w domu, BOOST rano i COMFORT wieczorem.
+W tym przykładzie ustawiony został tryb `Eko` na noc oraz na okres dzienny, gdy nikogo nie ma w domu, `Boost` rano i `Komfort` wieczorem.
 
 
-## Krzywe regulacji z _*Plotly*_ do precyzyjnego dostrajania termostatu
+## Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu
 Można uzyskać krzywą podobną do tej pokazanej na rysunku [Trochę wyników...](../../README-pl.MD#some-results) używając konfiguracji wykresu *Plotly*, wykorzystując opisane niestandardowe atrybuty termostatu [tutaj](reference.md#custom-attributes):
 
 Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
@@ -120,8 +120,8 @@ Przykład krzywych uzyskanych z _*Plotly*_:
 
 ![image](images/plotly-curves.png)
 
-## Regulation curves with Apex-charts (thanks to @gael1980)
-Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
+## Krzywe regulacji na wykresie _*Apex*_
+Wykres Apex pozwala wyświetlać krzywe regulacji. Jeden z doskonałych przykładów jego zastosowania znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
 
 ![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
 
@@ -212,12 +212,12 @@ max: 30
 ```
 </details>
 
-## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
-An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
-The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+## Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”
+W zależności od warunków pogodowych, takich jak wilgotność powietrza czy wiatr, można wymusić wyższą temperaturę docelową.
+Opis tego pomysłu znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1211).
 
-## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
-This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
-The approach is very interesting and offers a good complement to _VTherm_.
+## Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów
+Integracja _Intelligent Heating Pilot (IHP)_ oferuje przewidywanie zmian ustawień harmonogramu w taki sposób, aby temperatura docelowa była osiągana już w momencie zmiany harmonogramu. Uczy się ona zachowania termostatu _*VTherm*_ (prędkość i czas narastania temperatury) i stosuje algorytm predykcyjny, aby przewidzieć zmianę harmonogramu w nadchodzącej przyszłości na podstawie obserwacji z przeszłości.
+To interesujące podejście stanowi doskonałe uzupełnienie dla integracji _VTherm Termostat_.
 
-It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)
+Integracja uzupełniająca IHP dostępna jest [tutaj](https://github.com/RastaChaum/Intelligent-Heating-Pilot).

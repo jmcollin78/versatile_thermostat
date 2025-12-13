@@ -14,7 +14,7 @@
 
 ## Parametry
 
-| Parametr                                  | Nazwa                                                             | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie" | "Termostat<br>na Zaworze" | "Konfiguracja<br>Centralna" |
+| Parametr                                  | Nazwa                                                             | Termostat<br>na<br>Przełączniku | Termostat<br>na<br>Klimacie | Termostat<br>na<br>Zaworze | Konfiguracja<br>Centralna |
 | ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------ | -------------------------- | ------------------------- | --------------------------- |
 | ``name``                                  | Nazwa                                                             | X                              | X                          | X                         | -                           |
 | ``thermostat_type``                       | Typ termostatu                                                    | X                              | X                          | X                         | -                           |
@@ -72,7 +72,7 @@
 | ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                      | -                              | X                          | -                         | -                           |
 | ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                        | -                              | X                          | -                         | -                           |
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                              | -                          | -                         | X                           |
-| ``central_boiler_activation_service``     | Usługa katyewacji kotła                                           | -                              | -                          | -                         | X                           |
+| ``central_boiler_activation_service``     | Usługa aktywacji kotła                                            | -                              | -                          | -                         | X                           |
 | ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                              | -                          | -                         | X                           |
 | ``central_boiler_activation_delay_sec``   | Opóźnienie załączenia (w sekundach)                               | -                              | -                          | -                         | X                           |
 | ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                              | X                          | X                         | -                           |
@@ -105,7 +105,7 @@ Są to kolejno:
 
 Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 
-Aby pokolorować sensory dodaj w pliku `configuration.yaml` poniższe linie kodu , dostosowując je według własnych potrzeb:
+Aby nadać kolory poszczególnym sensorom, w pliku `configuration.yaml` dodaj poniższe linie kodu , dostosowując je według własnych potrzeb:
 
 ```yaml
 frontend:
@@ -156,7 +156,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
+...lub, aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
 ```yaml
 service: versatile_thermostat.set_preset_temperature
 data:
@@ -241,7 +241,7 @@ Możesz łatwo przechwytywać te zdarzenia w automatyzacji, na przykład w celu 
 
 # Atrybuty własne
 
-Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia developerskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz coś takiego:
+Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia deweloperskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz:
 
 ![image](images/dev-tools-climate.png)
 

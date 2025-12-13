@@ -88,7 +88,7 @@
         "title": "Encje powiązane",
         "description": "Atrybuty encji powiązanych&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/over-switch.md#configuration)",
         "data": {
-          "underlying_entity_ids": "Sterowane urządzenie(-a)",
+          "underlying_entity_ids": "Sterowane urządzenia",
           "heater_keep_alive": "Czas podtrzymania (w sek.)",
           "proportional_function": "Algorytm",
           "ac_mode": "Tryb AC",
@@ -104,9 +104,9 @@
           "vswitch_off_command": "Opcjonalne polecenia wyłączenia"
         },
         "data_description": {
-          "underlying_entity_ids": "Sterowane urządzenie(-a). Wybierz co najmniej jedno urządzenie",
+          "underlying_entity_ids": "Sterowane urządzenia. Wybierz co najmniej jedno urządzenie",
           "heater_keep_alive": "Opcjonalna zwłoka odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagana, pozostaw puste.",
-          "proportional_function": "Używaj algorytmu (w tej chwili jedynie TPI)",
+          "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "ac_mode": "Użyj trybu AC",
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
@@ -141,7 +141,7 @@
       },
       "presets": {
         "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych. Wyłącz, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Użyj konfiguracji presetów podstawowych"
         }
@@ -208,7 +208,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarządzania obecnością.\nPWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -263,7 +263,7 @@
           "offset_calibration_entity_ids": "Lista encji kalibracji. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
           "opening_degree_entity_ids": "Lista encji 'stopnia otwarcia'. Powinna istnieć jedna dla każdego termostatu głównego.",
           "closing_degree_entity_ids": "Lista encji 'stopnia zamknięcia'. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć co najwyżej jedna taka encja",
-          "proportional_function": "Używaj algorytmu (w tej chwili jedynie TPI)",
+          "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
@@ -382,9 +382,9 @@
           "vswitch_off_command": "Opcjonalne polecenia wyłączenia"
         },
         "data_description": {
-          "underlying_entity_ids": "Sterowane urządzenie(-a). Wybierz co najmniej jedno urządzenie",
+          "underlying_entity_ids": "Sterowane urządzenia. Wybierz co najmniej jedno urządzenie",
           "heater_keep_alive": "Opcjonalny interwał odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagany, pozostał pusty.",
-          "proportional_function": "Używaj algorytmu (w tej chwili jedynie TPI)",
+          "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "ac_mode": "Użyj trybu AC",
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
@@ -545,7 +545,7 @@
           "offset_calibration_entity_ids": "Lista encji kalibracji. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
           "opening_degree_entity_ids": "Lista encji 'stopnia otwarcia'. Powinna istnieć jedna dla każdego termostatu głównego.",
           "closing_degree_entity_ids": "Lista encji 'stopnia zamknięcia'. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
-          "proportional_function": "Używaj algorytmu (w tej chwili jedynie TPI)",
+          "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
