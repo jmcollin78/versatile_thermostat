@@ -1,6 +1,7 @@
 """ This module manages the central boiler feature of the Versatile Thermostat integration. """
 import logging
 from typing import Any
+from datetime import timedelta
 
 from homeassistant.core import (
     HomeAssistant,
@@ -8,7 +9,7 @@ from homeassistant.core import (
 )
 
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event, async_call_later
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import check_and_extract_service_configuration, write_event_log
@@ -39,6 +40,9 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         self._total_power_active_entity = None
         self._all_boiler_entities: list[Entity] = []
 
+        self._activation_delay_sec: int = 0
+        self._call_later_handle = None
+
     @overrides
     def post_init(self, entry_infos: dict):
         """Reinit of the manager"""
@@ -48,6 +52,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         self._service_deactivate = check_and_extract_service_configuration(
             entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
         )
+        self._activation_delay_sec = entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, 0)
         self._is_configured = bool(self._service_activate or self._service_deactivate)
 
     @overrides
@@ -93,6 +98,30 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         controls this central boiler"""
 
         _LOGGER.debug("%s - calculating the new central boiler state", self)
+
+        def _send_vtherm_event(data: dict):
+            send_vtherm_event(
+                hass=self._hass,
+                event_type=EventType.CENTRAL_BOILER_EVENT,
+                entity=self.central_boiler_entity,
+                data=data,
+            )
+
+        async def _activate_later(_):
+            """Activate the central boiler after a delay"""
+            if self._call_later_handle:
+                self._call_later_handle()
+                self._call_later_handle = None
+
+            _LOGGER.info("%s - central boiler have been turned on", self)
+            await self.call_service(self._service_activate)
+            _LOGGER.info("%s - central boiler have been turned on after delay", self)
+
+            self._is_on = True
+            _send_vtherm_event(
+                data={"central_boiler": True},
+            )
+
         if not self.is_ready:
             _LOGGER.warning(
                 "%s - the central boiler manager is not ready. Central boiler state cannot be calculated",
@@ -111,8 +140,17 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         f"Central boiler is being turned on (nb_active= {self.nb_active_device_for_boiler}/{self.nb_active_device_for_boiler_threshold},"
                         "total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
                     )
-                    await self.call_service(self._service_activate)
-                    _LOGGER.info("%s - central boiler have been turned on", self)
+                    if self._call_later_handle:
+                        _LOGGER.debug("%s - central boiler activation is already scheduled", self)
+                        return
+
+                    if self._activation_delay_sec > 0:
+                        self._call_later_handle = async_call_later(self._hass, timedelta(seconds=self._activation_delay_sec), _activate_later)
+                        _send_vtherm_event(
+                            data={"delayed_activation_sec": self._activation_delay_sec},
+                        )
+                    else:
+                        await _activate_later(None)
                 else:
                     write_event_log(
                         _LOGGER,
@@ -120,15 +158,19 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         f"Central boiler is being turned off (nb_active= {self.nb_active_device_for_boiler}/{self.nb_active_device_for_boiler_threshold},"
                         "total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
                     )
+
+                    # Cancel any pending activation
+                    if self._call_later_handle:
+                        self._call_later_handle()
+                        self._call_later_handle = None
+
+                    # call deactivation service
                     await self.call_service(self._service_deactivate)
                     _LOGGER.info("%s - central boiler have been turned off", self)
-                self._is_on = active
-                send_vtherm_event(
-                    hass=self._hass,
-                    event_type=EventType.CENTRAL_BOILER_EVENT,
-                    entity=self.central_boiler_entity,
-                    data={"central_boiler": active},
-                )
+                    self._is_on = active
+                    _send_vtherm_event(
+                        data={"central_boiler": active},
+                    )
             except HomeAssistantError as err:
                 _LOGGER.error(
                     "%s - Impossible to activate/deactivate boiler due to error %s. "
@@ -137,8 +179,6 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                     self,
                     err,
                 )
-
-        return self._is_on
 
     async def call_service(self, service_config: dict):
         """Make a call to a service if correctly configured"""
@@ -180,18 +220,17 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 {
                     "central_boiler_manager": {
                         "is_on": self._is_on,
-                        "service_activate": self._service_activate,
-                        "service_deactivate": self._service_deactivate,
+                        "activation_scheduled": self._call_later_handle is not None,
+                        "delayed_activation_sec": self._activation_delay_sec,
                         "nb_active_device_for_boiler": self.nb_active_device_for_boiler,
                         "nb_active_device_for_boiler_threshold": self.nb_active_device_for_boiler_threshold,
                         "total_power_active_for_boiler": self.total_power_active_for_boiler,
                         "total_power_active_for_boiler_threshold": self.total_power_active_for_boiler_threshold,
+                        "service_activate": self._service_activate,
+                        "service_deactivate": self._service_deactivate,
                     }
                 }
             )
-
-    def __str__(self):
-        return f"FeatureCentralBoilerManager-{self._name}"
 
     def register_central_boiler(self, central_boiler_entity):
         """Register the central boiler entity. This is used by the CentralBoilerBinarySensor
@@ -271,15 +310,11 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
     def is_total_power_active_for_boiler_exceeded(self) -> bool:
         """Returns True if the total power of active VTherm for boiler
         have exceeded the threshold"""
-        if (
-            self._total_power_active_entity is None
-            or self._total_power_active_threshold_number_entity is None
-            or self._total_power_active_threshold_number_entity.native_value == 0
-        ):
+        if self.total_power_active_for_boiler is None or self.total_power_active_for_boiler_threshold is None or self.total_power_active_for_boiler_threshold == 0:
             return False
 
-        total_power = self._total_power_active_entity.native_value
-        power_threshold = self._total_power_active_threshold_number_entity.native_value
+        total_power = self.total_power_active_for_boiler
+        power_threshold = self.total_power_active_for_boiler_threshold
 
         return total_power >= power_threshold
 
@@ -301,12 +336,19 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
 
         old_ready = self._is_ready
         self._is_ready = self.is_configured and len(self._all_boiler_entities) == 4 and self._central_boiler_entity is not None
-        if not self._is_ready:
+        if not self._is_ready and self.is_configured:
             _LOGGER.warning(
                 "%s - central boiler manager is not fully configured. Found only %d/4 entities and central boiler entity=%s. Central boiler control will not work properly. This could a temporary message at startup.",
                 self,
                 len(self._all_boiler_entities),
                 self._central_boiler_entity,
+            )
+            return []
+        if not self._is_ready and not self.is_configured:
+            # Silence warning if the feature is not configured (user doesn't want it)
+            _LOGGER.debug(
+                "%s - central boiler manager is not configured. Ignoring initialization.",
+                self,
             )
             return []
         if self._is_ready != old_ready and self._central_boiler_entity:
@@ -330,3 +372,6 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         """Set the total power of active device threshold"""
         if self._total_power_active_threshold_number_entity:
             self._total_power_active_threshold_number_entity.set_native_value(value)
+
+    def __str__(self):
+        return f"FeatureCentralBoilerManager-{self._name}"

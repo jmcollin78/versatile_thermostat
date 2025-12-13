@@ -129,6 +129,9 @@ STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
     {
+        vol.Required(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=600, step=10, mode=selector.NumberSelectorMode.BOX)
+        ),
         vol.Optional(CONF_CENTRAL_BOILER_ACTIVATION_SRV, default=""): str,
         vol.Optional(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, default=""): str,
     }

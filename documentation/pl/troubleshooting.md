@@ -12,7 +12,7 @@
   - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#dostosowanie-parametrów-detekcji-otwarcia-okna-w-trybie-automatycznym)
   - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#dlaczego-vtherm-przechodzi-w-tryb-bezpieczny)
     - [Jak wykryć tryb *bezpieczny*?](#jak-wykryć-tryb-bezpieczny)
-    - [Jak zostać powiadomionym o wystąpieniu takiej sytuacji?](#jak-zostać-powiadomionym-o-wystąpieniu-takiej-sytuacji)
+    - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-zostać-powiadomionym-o-wystąpieniu-takiej-sytuacji)
     - [Jak to naprawić?](#jak-to-naprawić)
   - [Grupa osób jako sensor obecności](#grupa-osób-jako-sensor-obecności)
   - [Aktywacja logów dla _*Versatile Thermostat*_](#aktywacja-logów-dla-versatile-thermostat)
@@ -97,7 +97,7 @@ Przykład:
           option: eco
 ```
 
-Jeszcze jeden, bardziej złożony przykład znajdziesz [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065)
+Jeszcze jeden, bardziej złożony przykład znajdziesz [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/431#discussioncomment-11393065).
 
 ## System Netatmo
 
@@ -185,8 +185,8 @@ Widać z tego, że:
 3. Czas ostatniego odczytu temperatury w pomieszczeniu to: *06/12/2023 godz. 18:43:28* (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), więc jest aktualny,
 4. Czas ostatniego odczytu temperatury zewnętrznej to: *06/12/2023 godz. 13:04:35* (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). Temperatura zewnętrzna została odczytana ponad 5 godzin później, niż temperatura w pomieszczeniu, co spowodowało załączenie trybu *bezpiecznego*, ponieważ próg załączenia tego trybu został ustawiony na 60 minut (`safety_delay_min: 60`).
 
-### Jak zostać powiadomionym o wystąpieniu takiej sytuacji?
-VTherm wysyła zdarzenie natychmiast po jego wystąpieniua oraz ponownie po zakończeniu alertu bezpieczeństwa. Można rejestrować te zdarzenia w automatyzacji i wysyłać powiadomienia, załączać światło, uruchamiać syrenę itp. Decyzja należy do Ciebie.
+### Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?
+VTherm wysyła zdarzenie natychmiast po jego wystąpieniu oraz ponownie po zakończeniu alertu bezpieczeństwa. Można rejestrować te zdarzenia w automatyzacji i wysyłać powiadomienia, załączać światło, uruchamiać syrenę itp. Decyzja należy do Ciebie.
 
 Informacje na temat obsługi zdarzeń generowanych przez VTherm można znaleźć w sekcji [Zdarzenia](reference.md#events).
 
@@ -197,12 +197,12 @@ Zależy to od przyczyny problemu:
 3. Niektóre czujniki temperatury nie wysyłają pomiarów, jeśli temperatura się nie zmieniła. Jeśli więc temperatura pozostaje bardzo stabilna przez długi czas, może uruchomić się tryb *bezpieczny*. Nie stanowi to dużego problemu, ponieważ zostanie on wyłączony, gdy _VTherm_ otrzyma nową temperaturę. W niektórych termometrach (np. TuYA lub Zigbee) można wymusić maksymalne opóźnienie między dwoma pomiarami. Maksymalne opóźnienie powinno być ustawione na wartość niższą, niż `safety_delay_min`.
 4. Gdy tylko temperatura zostanie ponownie odczytana, tryb *bezpieczny* wyłączy się, a poprzednie wartości zadane, temperatura docelowa i tryb zostaną przywrócone.
 5. Jeśli zewnętrzny czujnik temperatury jest uszkodzony, można wyłączyć wyzwalanie trybu *bezpiecznego*, ponieważ ma to minimalny wpływ na wyniki. Aby to zrobić, zajrzyj [tutaj](feature-advanced.md#safety-mode).
-6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
+6. Niektóre urządzenia Zigbee mają atrybut `last_seen` ("ostatnio widziany”). Często są one ukryte i wymagają aktywacji, aby można było z nich korzystać. Po aktywacji można skonfigurować ten atrybut na głównym ekranie konfiguracji _*VTherm*_ (patrz: główny ekran konfiguracji).
 
 
 ## Grupa osób jako sensor obecności
 
-Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w VTherm.
+Niestety, grupy osób nie są rozpoznawane jako czujniki obecności. Dlatego nie można ich używać bezpośrednio w _VTherm_.
 Rozwiązaniem jest utworzenie szablonu czujnika binarnego za pomocą poniższego kodu:
 
 Plik `template.yaml`:

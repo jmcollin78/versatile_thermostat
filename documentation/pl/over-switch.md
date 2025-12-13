@@ -7,7 +7,7 @@
     - [Podtrzymanie aktywności (keep-alive)](#podtrzymanie-aktywności-keep-alive)
     - [Tryb AC](#tryb-ac)
     - [Inwersja poleceń](#inwersja-poleceń)
-    - [Dostosowywanie poeceń](#dostosowywanie-poeceń)
+    - [Dostosowywanie poleceń](#dostosowywanie-poleceń)
 
 
 ## Wymagania wstępne
@@ -65,7 +65,7 @@ Można wybrać `termostat na przełączniku` do sterowania klimatyzatorem, zazna
 Jeśli urządzenie jest sterowane przewodem sterującym z diodą, może być konieczne zaznaczenie pola 'Odwróć polecenie'. Spowoduje to ustawienie przełącznika w pozycji załączonej, gdy urządzenie jest wyłączane, i w pozycji wyłączonej, gdy jest załączane. Po wybraniu tej opcji czasy cykli zostaną odwrócone.
 
 
-### Dostosowywanie poeceń
+### Dostosowywanie poleceń
 
 Ta sekcja konfiguracji umożliwia dostosowanie poleceń włączania i wyłączania wysyłanych do urządzenia bazowego. Polecenia te są obowiązkowe, jeśli jedno z urządzeń bazowych nie jest przełącznikiem `switch` (w przypadku przełączników używane są standardowe polecenia włączania/wyłączania (`turn_on` i `turn_off`).
 
@@ -83,8 +83,7 @@ Dostępne polecenia zależą od typu urządzenia bazowego:
 | `climate` (hvac_mode)        | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)          |
 | `climate` (preset)           | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                      |
 
-(*) To use this case, it is important to ensure that the state of the underlying entity matches the preset. Otherwise, VTherm has no way of knowing whether your equipment is on or off. To verify this, go to Developer Tools / States, search for your underlying entity, and check if its state matches the name of a preset. If you see 'heat', 'off', or 'cool', these are not presets, and this configuration will not work. In this case, you must use a virtual switch. Examples of virtual switches can be found on the troubleshooting page. If you insist on using this configuration, carefully check the values accepted by your equipment in Developer Tools / States and search for your equipment. You will see the options it accepts. They must be identical, including case sensitivity.
-Oczywiście, przykłady te można dostosować do Twojego konkretnego przypadku.
+(*) Aby skorzystać z tego rozwiązania, należy upewnić się, że stan encji bazowej jest zgodny z presetem. W przeciwnym razie _VTherm_ nie będzie w stanie stwierdzić, czy urządzenie jest włączone, czy wyłączone. Aby to sprawdzić, przejdź do zakładki _Narzędzia deweloperskie -> Stany_ w HA, wyszukaj encję bazową i sprawdź, czy jej stan odpowiada nazwie presetu. Jeśli widzisz `„ogrzewanie”`, `„wyłączone”` lub `„chłodzenie”`, nie są to dozwolone presety i taka konfiguracja nie zadziała. W takim przypadku należy użyć przełącznika wirtualnego. Przykłady przełączników wirtualnych można znaleźć na stronie rozwiązywania problemów. Jeśli nalegasz na użycie tej konfiguracji, sprawdź dokładnie wartości akceptowane przez urządzenie w _Narzędzia deweloperskie -> Stany_ i wyszukaj swoje urządzenie, aby zobaczyć akceptowane opcje. Muszą być one **identyczne**, łącznie z uwzględnieniem wielkości liter.
 
 Przykład dla Nodon SIN-4-FP-21:
 

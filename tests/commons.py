@@ -238,6 +238,7 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_USE_CENTRAL_BOILER_FEATURE: True,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+    CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 0,
 }
 
 
@@ -729,6 +730,11 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Any | None:
         if entity.entity_id == entity_id:
             return entity
     return None
+
+
+def search_simple_entity(hass: HomeAssistant, entity_id) -> Any | None:
+    """Search and return the entity, taking domain from entity id"""
+    return search_entity(hass, entity_id, entity_id.split('.', 1)[0])
 
 
 def count_entities(hass: HomeAssistant, entity_id, domain) -> int:

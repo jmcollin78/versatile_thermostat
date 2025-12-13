@@ -24,12 +24,12 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_auto_fan_mode_turbo(
+async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
-    """Test the init of an over climate thermostat with auto_fan_mode = Turbo which exists"""
+    """Test the init of an over climate thermostat with 3 fan speed values"""
 
-    fan_modes = ["low", "medium", "high", "boost", "mute", "auto", "turbo"]
+    fan_modes = ["1", "2", "3", "auto"]
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -66,6 +66,7 @@ async def test_over_climate_auto_fan_mode_turbo(
         fan_modes=fan_modes,
     )
 
+    # 1. Init with CONF_AUTO_FAN_TURBO
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -74,9 +75,7 @@ async def test_over_climate_auto_fan_mode_turbo(
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
 
-        entity: ThermostatOverClimate = search_entity(
-            hass, "climate.theoverclimatemockname", "climate"
-        )
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
@@ -85,16 +84,40 @@ async def test_over_climate_auto_fan_mode_turbo(
         assert entity.is_over_climate is True
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
-        assert entity._auto_activated_fan_mode == "turbo"
-        assert entity._auto_deactivated_fan_mode == "mute"
+        assert entity._auto_activated_fan_mode == "3"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("High")
+        assert entity._auto_activated_fan_mode == "3"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Medium")
+        assert entity._auto_activated_fan_mode == "2"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Low")
+        assert entity._auto_activated_fan_mode == "1"
+        assert entity._auto_deactivated_fan_mode == "auto"
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_auto_fan_mode_not_turbo(
+async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
-    """Test the init of an over climate thermostat with auto_fan_mode = Turbo which doesn't exists"""
+    """Test the init of an over climate thermostat with 4 fan speed values"""
 
     fan_modes = ["low", "medium", "high", "boost", "auto"]
 
@@ -133,6 +156,7 @@ async def test_over_climate_auto_fan_mode_not_turbo(
         fan_modes=fan_modes,
     )
 
+    # 1. Init with CONF_AUTO_FAN_TURBO
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
@@ -152,9 +176,123 @@ async def test_over_climate_auto_fan_mode_not_turbo(
         assert entity.is_over_climate is True
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
-        # Turbo doesn't exists -> fallback to high
+        assert entity._auto_activated_fan_mode == "boost"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("High")
         assert entity._auto_activated_fan_mode == "high"
-        # Mute doesn't exists -> fallback to auto
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Medium")
+        assert entity._auto_activated_fan_mode == "medium"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Low")
+        assert entity._auto_activated_fan_mode == "low"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
+):
+    """Test the init of an over climate thermostat with 5 fan speed values"""
+
+    fan_modes = ["quiet", "1", "2", "3", "4", "auto"]
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_CLIMATE: "climate.mock_climate",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+        },
+    )
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mockUniqueId",
+        name="MockClimateName",
+        fan_modes=fan_modes,
+    )
+
+    # 1. Init with CONF_AUTO_FAN_TURBO
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(entry.entry_id)
+        assert entry.state is ConfigEntryState.LOADED
+
+        entity: ThermostatOverClimate = search_entity(
+            hass, "climate.theoverclimatemockname", "climate"
+        )
+
+        assert entity
+        assert isinstance(entity, ThermostatOverClimate)
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.fan_modes == fan_modes
+        assert entity._auto_fan_mode == "auto_fan_turbo"
+        assert entity._auto_activated_fan_mode == "4"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("High")
+        assert entity._auto_activated_fan_mode == "3"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Medium")
+        assert entity._auto_activated_fan_mode == "2"
+        assert entity._auto_deactivated_fan_mode == "auto"
+
+    # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Low")
+        assert entity._auto_activated_fan_mode == "1"
         assert entity._auto_deactivated_fan_mode == "auto"
 
 

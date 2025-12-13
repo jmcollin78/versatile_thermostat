@@ -9,7 +9,7 @@ jobs:
     name: Prepare release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: "actions/checkout@v4"
       - name: "Set version number"
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \

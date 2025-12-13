@@ -5,7 +5,6 @@
 - [Sensors](#sensors)
 - [Actions (Services)](#actions-services)
   - [Force Presence/Occupation](#force-presenceoccupation)
-  - [Modify the Preset Temperature](#modify-the-preset-temperature)
   - [Modify Security Settings](#modify-security-settings)
   - [ByPass Window Check](#bypass-window-check)
   - [Lock / Unlock Services](#lock--unlock-services)
@@ -76,6 +75,7 @@
 | ``use_central_boiler_feature``            | Add central boiler control                                 | -             | -                   | -            | X                       |
 | ``central_boiler_activation_service``     | Boiler activation service                                  | -             | -                   | -            | X                       |
 | ``central_boiler_deactivation_service``   | Boiler deactivation service                                | -             | -                   | -            | X                       |
+| ``central_boiler_activation_delay_sec``   | Activation delay (seconds)                                 | -             | -                   | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indicates if the VTherm controls the central boiler        | X             | X                   | X            | -                       |
 | ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
 | ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |
@@ -140,38 +140,6 @@ data:
 target:
     entity_id: climate.my_thermostat
 ```
-
-## Modify the Preset Temperature
-This service is useful if you want to dynamically change the preset temperature. Instead of switching presets, some use cases require modifying the temperature of the preset. This way, you can keep the scheduler unchanged to manage the preset while adjusting the preset temperature.
-If the modified preset is currently selected, the target temperature change is immediate and will be applied in the next calculation cycle.
-
-You can modify one or both temperatures (when present or absent) of each preset.
-
-Use the following code to set the preset temperature:
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost
-    temperature: 17.8
-    temperature_away: 15
-target:
-    entity_id: climate.my_thermostat
-```
-
-Or, to change the preset for the Air Conditioning (AC) mode, add the `_ac` prefix to the preset name like this:
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost_ac
-    temperature: 25
-    temperature_away: 30
-target:
-    entity_id: climate.my_thermostat
-```
-
-> ![Tip](images/tips.png) _*Notes*_
->
->    - After a restart, presets are reset to the configured temperature. If you want your change to be permanent, you need to modify the preset temperature in the integration configuration.
 
 ## Modify Security Settings
 This service allows you to dynamically modify the security settings described here [Advanced Configuration](#advanced-configuration).
@@ -255,6 +223,7 @@ To tune the algorithm, you have access to the entire context seen and calculated
 
 ![image](images/dev-tools-climate.png)
 
+## For a _VTherm_
 The custom attributes are as follows:
 
 | Attribute                                       | Meaning                                                                                                                                                                                                         |
@@ -421,6 +390,71 @@ The custom attributes are as follows:
 | ``auto_regulation_dpercent``                    | The valve will not be controlled if the opening delta is less than this value                                                                                                                                   |
 | ``auto_regulation_period_min``                  | The time filtering parameter value in minutes. Corresponds to the minimum interval between 2 valve commands (excluding user changes).                                                                           |
 | ``last_calculation_timestamp``                  | The date/time of the last valve opening command                                                                                                                                                                 |
+
+## For central configuration
+
+The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+
+| Attribute                                   | Meaning                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
+| ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
+| ``is_central_boiler_ready``                 | Indicates whether the central boiler is ready                                        |
+| **SECTION `central_boiler_manager`**        | ------                                                                               |
+| ``is_on``                                   | true if the central boiler is on                                                     |
+| ``activation_scheduled``                    | true if a boiler activation is scheduled (see `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | The boiler activation delay in seconds                                               |
+| ``nb_active_device_for_boiler``             | The number of active devices controlling the boiler                                  |
+| ``nb_active_device_for_boiler_threshold``   | The threshold of active devices before activating the boiler                         |
+| ``total_power_active_for_boiler``           | The total active power of devices controlling the boiler                             |
+| ``total_power_active_for_boiler_threshold`` | The total power threshold before activating the boiler                               |
+| **SUB-SECTION `service_activate`**          | ------                                                                               |
+| ``service_domain``                          | The domain of the activation service (e.g., switch)                                  |
+| ``service_name``                            | The name of the activation service (e.g., turn_on)                                   |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the activation service                                     |
+| **SUB-SECTION `service_deactivate`**        | ------                                                                               |
+| ``service_domain``                          | The domain of the deactivation service (e.g., switch)                                |
+| ``service_name``                            | The name of the deactivation service (e.g., turn_off)                                |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the deactivation service                                   |
+
+Example values:
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```
 
 These attributes will be requested when seeking help.
 

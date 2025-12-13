@@ -1,82 +1,84 @@
 # Dokumentacja Referencyjna
 
-- [Dokumentacja Referencyjna](#reference-documentation)
-  - [Parametry](#parameter-summary)
-- [Sensory](#sensors)
-- [Akcje (Usługi)](#actions-services)
-  - [Wymuszanie obecności/zajętości](#force-presenceoccupation)
-  - [Modyfikacja presetów temperatury](#modify-the-preset-temperature)
-  - [Modyfikacja ustawień bezpieczeństwa](#modify-security-settings)
-  - [Pomijanie sprawdzania stanu okna](#bypass-window-check)
-  - [Zmiana parametrów TPI](#change-tpi-parameters)
-- [Zdarzenia](#events)
-- [Atrybuty własne](#custom-attributes)
+- [Dokumentacja Referencyjna](#dokumentacja-referencyjna)
+  - [Parametry](#parametry)
+- [Sensory](#sensory)
+- [Akcje (Usługi)](#akcje-usługi)
+  - [Wymuszanie obecności/zajętości](#wymuszanie-obecnościzajętości)
+  - [Modyfikacja ustawień bezpieczeństwa](#modyfikacja-ustawień-bezpieczeństwa)
+  - [Pomijanie sprawdzania stanu okna](#pomijanie-sprawdzania-stanu-okna)
+  - [Zmiana parametrów TPI](#zmiana-parametrów-tpi)
+- [Zdarzenia](#zdarzenia)
+- [Atrybuty własne](#atrybuty-własne)
+  - [For _VTherm_](#for-vtherm)
+  - [For central configuration](#for-central-configuration)
 
 ## Parametry
 
-| Parametr                                  | Nazwa                                                             | "Termostat<br>na Przełączniku" | "Termostat<br>na Klimacie" | "Termostat<br>na Zaworze" | "Konfiguracja<br>Centralna" |
-| ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------ | -------------------------- | ------------------------- | --------------------------- |
-| ``name``                                  | Nazwa                                                             | X                              | X                          | X                         | -                           |
-| ``thermostat_type``                       | Typ termostatu                                                    | X                              | X                          | X                         | -                           |
-| ``temperature_sensor_entity_id``          | Identyfikator encji sensora temperatury                           | X                              | X (auto-regulacja)         | X                         | -                           |
-| ``external_temperature_sensor_entity_id`` | Identyfikator encji sensora temperatury zewnętrznej               | X                              | X (auto-regulacja)         | X                         | X                           |
-| ``cycle_min``                             | Czas trwania cyklu (w min.)                                       | X                              | X                          | X                         | -                           |
-| ``temp_min``                              | Minimalna dopuszczalna temperatura                                | X                              | X                          | X                         | X                           |
-| ``temp_max``                              | Maksymalna dopuszczalna temperatura                               | X                              | X                          | X                         | X                           |
-| ``device_power``                          | Moc urządzenia                                                    | X                              | X                          | X                         | -                           |
-| ``use_central_mode``                      | Sterowanie centralne aktywne                                      | X                              | X                          | X                         | -                           |
-| ``use_window_feature``                    | Z detekcją otwarcia okna                                          | X                              | X                          | X                         | -                           |
-| ``use_motion_feature``                    | Z detekcją ruchu                                                  | X                              | X                          | X                         | -                           |
-| ``use_power_feature``                     | Z zarządzaniem mocą                                               | X                              | X                          | X                         | -                           |
-| ``use_presence_feature``                  | Z detekcją obecności                                              | X                              | X                          | X                         | -                           |
-| ``heater_entity1_id``                     | 1-szy grzejnik                                                    | X                              | -                          | -                         | -                           |
-| ``heater_entity2_id``                     | 2-gi grzejnik                                                     | X                              | -                          | -                         | -                           |
-| ``heater_entity3_id``                     | 3-ci grzejnik                                                     | X                              | -                          | -                         | -                           |
-| ``heater_entity4_id``                     | 4-ty grzejnik                                                     | X                              | -                          | -                         | -                           |
-| ``heater_keep_alive``                     | Częstość odświerzania stanu                                       | X                              | -                          | -                         | -                           |
-| ``proportional_function``                 | Algorytm                                                          | X                              | -                          | -                         | -                           |
-| ``climate_entity1_id``                    | 1-szy termostat podstawowy                                        | -                              | X                          | -                         | -                           |
-| ``climate_entity2_id``                    | 2-gi termostat podstawowy                                         | -                              | X                          | -                         | -                           |
-| ``climate_entity3_id``                    | 3-ci termostat podstawowy                                         | -                              | X                          | -                         | -                           |
-| ``climate_entity4_id``                    | 4-ty termostat podstawowy                                         | -                              | X                          | -                         | -                           |
-| ``valve_entity1_id``                      | 1-szy zawór podstawowy                                            | -                              | -                          | X                         | -                           |
-| ``valve_entity2_id``                      | 2-gi zawór podstawowy                                             | -                              | -                          | X                         | -                           |
-| ``valve_entity3_id``                      | 3-ci zawór podstawowy                                             | -                              | -                          | X                         | -                           |
-| ``valve_entity4_id``                      | 4-ty zawór podstawowy                                             | -                              | -                          | X                         | -                           |
-| ``ac_mode``                               | Tryb AC                                                           | X                              | X                          | X                         | -                           |
-| ``tpi_coef_int``                          | Współczynnik delta temperatury wewnętrznej                        | X                              | -                          | X                         | X                           |
-| ``tpi_coef_ext``                          | Współczynnik delta temperatury zewnętrznej                        | X                              | -                          | X                         | X                           |
-| ``frost_temp``                            | Temperatura antyzamarzania                                        | X                              | X                          | X                         | X                           |
-| ``window_sensor_entity_id``               | Identyfikator encji sensora okna                                  | X                              | X                          | X                         | -                           |
-| ``window_delay``                          | Zwłoka w wyłączeniu (w sek.)                                      | X                              | X                          | X                         | X                           |
-| ``window_auto_open_threshold``            | Górny próg automatycznej detekcji otwarcia okna (°/min)           | X                              | X                          | X                         | X                           |
-| ``window_auto_close_threshold``           | Dolny próg automatycznej detekcji zamknięcia okna (°/min)         | X                              | X                          | X                         | X                           |
-| ``window_auto_max_duration``              | Maksymalny czas trwania automatycznego wyłączenia (w min.)        | X                              | X                          | X                         | X                           |
-| ``motion_sensor_entity_id``               | Identyfikator encji sensora ruchu                                 | X                              | X                          | X                         | -                           |
-| ``motion_delay``                          | Zwłoka początku detekcji ruchu (w sek.)                           | X                              | X                          | X                         | -                           |
-| ``motion_off_delay``                      | Zwłoka końca detekcji ruchu (w sek.)                              | X                              | X                          | X                         | X                           |
-| ``motion_preset``                         | Preset po wykryciu początku ruchu                                 | X                              | X                          | X                         | X                           |
-| ``no_motion_preset``                      | Preset po wykryciu końca ruchu                                    | X                              | X                          | X                         | X                           |
-| ``power_sensor_entity_id``                | Identyfikator encji sensora mocy                                  | X                              | X                          | X                         | X                           |
-| ``max_power_sensor_entity_id``            | Identyfikator encji sensora mocy maksymalnej                      | X                              | X                          | X                         | X                           |
-| ``power_temp``                            | Temperatura podczar redukcji mocy                                 | X                              | X                          | X                         | X                           |
-| ``presence_sensor_entity_id``             | Identyfikator encji sensora obecności (`true`=obecność)           | X                              | X                          | X                         | -                           |
-| ``minimal_activation_delay``              | Minimalna zwłoka aktywacji                                        | X                              | -                          | -                         | X                           |
-| ``minimal_deactivation_delay``            | Minimalna zwłoka deaktywacji                                      | X                              | -                          | -                         | X                           |
-| ``safety_delay_min``                      | Maksymalna zwłoka między dwoma pomiarami temperatury              | X                              | -                          | X                         | X                           |
-| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczny            | X                              | -                          | X                         | X                           |
-| ``auto_regulation_mode``                  | Tryb samoregulacji                                                | -                              | X                          | -                         | -                           |
-| ``auto_regulation_dtemp``                 | Próg samoregulacji                                                | -                              | X                          | -                         | -                           |
-| ``auto_regulation_period_min``            | Minimalny czas samoregulacji                                      | -                              | X                          | -                         | -                           |
-| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie przewodem sterującym) | X                              | -                          | -                         | -                           |
-| ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                      | -                              | X                          | -                         | -                           |
-| ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                        | -                              | X                          | -                         | -                           |
-| ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                              | -                          | -                         | X                           |
-| ``central_boiler_activation_service``     | Usługa katyewacji kotła                                           | -                              | -                          | -                         | X                           |
-| ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                              | -                          | -                         | X                           |
-| ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                              | X                          | X                         | -                           |
-| ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP                    | -                              | X                          | -                         | -                           |
-| ``auto_start_stop_level``                 | Poziom detekcji autoSTART/autoSTOP                                | -                              | X                          | -                         | -                           |
+| Parametr                                  | Nazwa                                                             | Termostat<br>na<br>Przełączniku | Termostat<br>na<br>Klimacie | Termostat<br>na<br>Zaworze | Konfiguracja<br>Centralna |
+| ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------- | --------------------------- | -------------------------- | ------------------------- |
+| ``name``                                  | Nazwa                                                             | X                               | X                           | X                          | -                         |
+| ``thermostat_type``                       | Typ termostatu                                                    | X                               | X                           | X                          | -                         |
+| ``temperature_sensor_entity_id``          | Identyfikator encji sensora temperatury                           | X                               | X (auto-regulacja)          | X                          | -                         |
+| ``external_temperature_sensor_entity_id`` | Identyfikator encji sensora temperatury zewnętrznej               | X                               | X (auto-regulacja)          | X                          | X                         |
+| ``cycle_min``                             | Czas trwania cyklu (w min.)                                       | X                               | X                           | X                          | -                         |
+| ``temp_min``                              | Minimalna dopuszczalna temperatura                                | X                               | X                           | X                          | X                         |
+| ``temp_max``                              | Maksymalna dopuszczalna temperatura                               | X                               | X                           | X                          | X                         |
+| ``device_power``                          | Moc urządzenia                                                    | X                               | X                           | X                          | -                         |
+| ``use_central_mode``                      | Sterowanie centralne aktywne                                      | X                               | X                           | X                          | -                         |
+| ``use_window_feature``                    | Z detekcją otwarcia okna                                          | X                               | X                           | X                          | -                         |
+| ``use_motion_feature``                    | Z detekcją ruchu                                                  | X                               | X                           | X                          | -                         |
+| ``use_power_feature``                     | Z zarządzaniem mocą                                               | X                               | X                           | X                          | -                         |
+| ``use_presence_feature``                  | Z detekcją obecności                                              | X                               | X                           | X                          | -                         |
+| ``heater_entity1_id``                     | 1-szy grzejnik                                                    | X                               | -                           | -                          | -                         |
+| ``heater_entity2_id``                     | 2-gi grzejnik                                                     | X                               | -                           | -                          | -                         |
+| ``heater_entity3_id``                     | 3-ci grzejnik                                                     | X                               | -                           | -                          | -                         |
+| ``heater_entity4_id``                     | 4-ty grzejnik                                                     | X                               | -                           | -                          | -                         |
+| ``heater_keep_alive``                     | Częstość odświerzania stanu                                       | X                               | -                           | -                          | -                         |
+| ``proportional_function``                 | Algorytm                                                          | X                               | -                           | -                          | -                         |
+| ``climate_entity1_id``                    | 1-szy termostat podstawowy                                        | -                               | X                           | -                          | -                         |
+| ``climate_entity2_id``                    | 2-gi termostat podstawowy                                         | -                               | X                           | -                          | -                         |
+| ``climate_entity3_id``                    | 3-ci termostat podstawowy                                         | -                               | X                           | -                          | -                         |
+| ``climate_entity4_id``                    | 4-ty termostat podstawowy                                         | -                               | X                           | -                          | -                         |
+| ``valve_entity1_id``                      | 1-szy zawór podstawowy                                            | -                               | -                           | X                          | -                         |
+| ``valve_entity2_id``                      | 2-gi zawór podstawowy                                             | -                               | -                           | X                          | -                         |
+| ``valve_entity3_id``                      | 3-ci zawór podstawowy                                             | -                               | -                           | X                          | -                         |
+| ``valve_entity4_id``                      | 4-ty zawór podstawowy                                             | -                               | -                           | X                          | -                         |
+| ``ac_mode``                               | Tryb AC                                                           | X                               | X                           | X                          | -                         |
+| ``tpi_coef_int``                          | Współczynnik delta temperatury wewnętrznej                        | X                               | -                           | X                          | X                         |
+| ``tpi_coef_ext``                          | Współczynnik delta temperatury zewnętrznej                        | X                               | -                           | X                          | X                         |
+| ``frost_temp``                            | Temperatura antyzamarzania                                        | X                               | X                           | X                          | X                         |
+| ``window_sensor_entity_id``               | Identyfikator encji sensora okna                                  | X                               | X                           | X                          | -                         |
+| ``window_delay``                          | Zwłoka w wyłączeniu (w sek.)                                      | X                               | X                           | X                          | X                         |
+| ``window_auto_open_threshold``            | Górny próg automatycznej detekcji otwarcia okna (°/min)           | X                               | X                           | X                          | X                         |
+| ``window_auto_close_threshold``           | Dolny próg automatycznej detekcji zamknięcia okna (°/min)         | X                               | X                           | X                          | X                         |
+| ``window_auto_max_duration``              | Maksymalny czas trwania automatycznego wyłączenia (w min.)        | X                               | X                           | X                          | X                         |
+| ``motion_sensor_entity_id``               | Identyfikator encji sensora ruchu                                 | X                               | X                           | X                          | -                         |
+| ``motion_delay``                          | Zwłoka początku detekcji ruchu (w sek.)                           | X                               | X                           | X                          | -                         |
+| ``motion_off_delay``                      | Zwłoka końca detekcji ruchu (w sek.)                              | X                               | X                           | X                          | X                         |
+| ``motion_preset``                         | Preset po wykryciu początku ruchu                                 | X                               | X                           | X                          | X                         |
+| ``no_motion_preset``                      | Preset po wykryciu końca ruchu                                    | X                               | X                           | X                          | X                         |
+| ``power_sensor_entity_id``                | Identyfikator encji sensora mocy                                  | X                               | X                           | X                          | X                         |
+| ``max_power_sensor_entity_id``            | Identyfikator encji sensora mocy maksymalnej                      | X                               | X                           | X                          | X                         |
+| ``power_temp``                            | Temperatura podczar redukcji mocy                                 | X                               | X                           | X                          | X                         |
+| ``presence_sensor_entity_id``             | Identyfikator encji sensora obecności (`true`=obecność)           | X                               | X                           | X                          | -                         |
+| ``minimal_activation_delay``              | Minimalna zwłoka aktywacji                                        | X                               | -                           | -                          | X                         |
+| ``minimal_deactivation_delay``            | Minimalna zwłoka deaktywacji                                      | X                               | -                           | -                          | X                         |
+| ``safety_delay_min``                      | Maksymalna zwłoka między dwoma pomiarami temperatury              | X                               | -                           | X                          | X                         |
+| ``safety_min_on_percent``                 | Procent mocy minimalnej do przejścia w tryb bezpieczny            | X                               | -                           | X                          | X                         |
+| ``auto_regulation_mode``                  | Tryb samoregulacji                                                | -                               | X                           | -                          | -                         |
+| ``auto_regulation_dtemp``                 | Próg samoregulacji                                                | -                               | X                           | -                          | -                         |
+| ``auto_regulation_period_min``            | Minimalny czas samoregulacji                                      | -                               | X                           | -                          | -                         |
+| ``inverse_switch_command``                | Przełącznk inwersji polecenia (przełączanie przewodem sterującym) | X                               | -                           | -                          | -                         |
+| ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                      | -                               | X                           | -                          | -                         |
+| ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                        | -                               | X                           | -                          | -                         |
+| ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                               | -                           | -                          | X                         |
+| ``central_boiler_activation_service``     | Usługa aktywacji kotła                                            | -                               | -                           | -                          | X                         |
+| ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                               | -                           | -                          | X                         |
+| ``central_boiler_activation_delay_sec``   | Opóźnienie załączenia (w sekundach)                               | -                               | -                           | -                          | X                         |
+| ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                               | X                           | X                          | -                         |
+| ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP                    | -                               | X                           | -                          | -                         |
+| ``auto_start_stop_level``                 | Poziom detekcji autoSTART/autoSTOP                                | -                               | X                           | -                          | -                         |
 
 # Sensory
 
@@ -104,7 +106,7 @@ Są to kolejno:
 
 Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 
-Aby pokolorować sensory dodaj w pliku `configuration.yaml` poniższe linie kodu , dostosowując je według własnych potrzeb:
+Aby nadać kolory poszczególnym sensorom, w pliku `configuration.yaml` dodaj poniższe linie kodu , dostosowując je według własnych potrzeb:
 
 ```yaml
 frontend:
@@ -138,37 +140,6 @@ Les données:
 cible:
     entity_id : climate.my_thermostat
 ```
-
-## Modyfikacja presetów temperatury
-Ta usługa jest przydatna, jeśli chcesz dynamicznie zmieniać temperaturę w presecie. Zamiast przełączać ustawienia, w niektórych przypadkach konieczne jest modyfikowanie temperatury w samym ustawieniu. Dzięki temu możesz pozostawić harmonogram bez zmian, aby zarządzał presetem, jednocześnie dostosowując jego temperaturę. Jeśli zmodyfikowane ustawienie jest aktualnie wybrane, zmiana temperatury docelowej następuje natychmiast i zostanie uwzględniona w następnym cyklu obliczeniowym.
-
-Możesz zmodyfikować jedną lub obie temperatury (dla obecności lub nieobecności) każdego z ustawień.
-
-Użyj poniższego kodu, aby ustawić temperaturę:
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost
-    temperature: 17.8
-    temperature_away: 15
-target:
-    entity_id: climate.my_thermostat
-```
-
-...lub aby zmienić ustawienie dla trybu `AC`, dodaj prefiks `_ac` do nazwy ustawienia, jak w przykładzie:
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost_ac
-    temperature: 25
-    temperature_away: 30
-target:
-    entity_id: climate.my_thermostat
-```
-
-> ![Tip](images/tips.png) _*Wskazówki*_
->
->    - Po ponownym uruchomieniu presety zostaną zresetowane do skonfigurowanej temperatury. Aby zmiana była trwała, należy zmodyfikować presety w konfiguracji integracji.
 
 ## Modyfikacja ustawień bezpieczeństwa
 Usługa ta umożliwia dynamiczną modyfikację ustawień bezpieczeństwa, opisanych tutaj: [Zaawansowana konfiguracja](#advanced-configuration).
@@ -240,9 +211,11 @@ Możesz łatwo przechwytywać te zdarzenia w automatyzacji, na przykład w celu 
 
 # Atrybuty własne
 
-Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia developerskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz coś takiego:
+Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i obliczanego przez termostat za pośrednictwem dedykowanych atrybutów. Możesz przeglądać (i używać) te atrybuty w sekcji `Narzędzia deweloperskie -> Stany` w Home Assistant. Wprowadź swój termostat, a zobaczysz:
 
 ![image](images/dev-tools-climate.png)
+
+## For _VTherm_
 
 Atrybuty własne są następujace:
 
@@ -297,4 +270,67 @@ Atrybuty własne są następujace:
 | ``nb_device_actives``              | Liczba urządzeń podrzędnych widocznych jako aktywne                                                                 |
 | ``device_actives``                 | Lista urządzeń podrzędnych widocznych jako aktywne                                                                  |
 
+## For central configuration
 
+The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+
+| Attribute                                   | Meaning                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
+| ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
+| ``is_central_boiler_ready``                 | Indicates whether the central boiler is ready                                        |
+| **SECTION `central_boiler_manager`**        | ------                                                                               |
+| ``is_on``                                   | true if the central boiler is on                                                     |
+| ``activation_scheduled``                    | true if a boiler activation is scheduled (see `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | The boiler activation delay in seconds                                               |
+| ``nb_active_device_for_boiler``             | The number of active devices controlling the boiler                                  |
+| ``nb_active_device_for_boiler_threshold``   | The threshold of active devices before activating the boiler                         |
+| ``total_power_active_for_boiler``           | The total active power of devices controlling the boiler                             |
+| ``total_power_active_for_boiler_threshold`` | The total power threshold before activating the boiler                               |
+| **SUB-SECTION `service_activate`**          | ------                                                                               |
+| ``service_domain``                          | The domain of the activation service (e.g., switch)                                  |
+| ``service_name``                            | The name of the activation service (e.g., turn_on)                                   |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the activation service                                     |
+| **SUB-SECTION `service_deactivate`**        | ------                                                                               |
+| ``service_domain``                          | The domain of the deactivation service (e.g., switch)                                |
+| ``service_name``                            | The name of the deactivation service (e.g., turn_off)                                |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the deactivation service                                   |
+
+Example values:
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```

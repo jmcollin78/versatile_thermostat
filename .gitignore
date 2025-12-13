@@ -120,3 +120,5 @@ venv
 
 # vs code history extension
 .history
+.idea/
+

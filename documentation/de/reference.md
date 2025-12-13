@@ -5,12 +5,13 @@
 - [Sensoren](#sensoren)
 - [Aktionen (Services)](#aktionen-services)
   - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
-  - [Ändern der Voreinstellungstemperatur](#ändern-der-voreinstellungstemperatur)
   - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
   - [ByPass Fensterprüfung](#bypass-fensterprüfung)
   - [Change TPI Parameters](#change-tpi-parameters)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
+  - [Für _VTherm_](#für-vtherm)
+  - [For central configuration](#for-central-configuration)
 - [State messages](#state-messages)
 
 ## Parameterübersicht
@@ -74,6 +75,7 @@
 | ``use_central_boiler_feature``            | Hinzufügen der Steuerung eines Zentralheizungskessels                             | -             | -                  | -            | X                        |
 | ``central_boiler_activation_service``     | Dienst zum Anschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
 | ``central_boiler_deactivation_service``   | Dienst zum Abschalten der Zentralheizung                                          | -             | -                  | -            | X                        |
+| ``central_boiler_activation_delay_sec``   | Zpoždění aktivace (v sekundách)                                                   | -             | -                  | -            | X                        |
 | ``used_by_controls_central_boiler``       | Zeigt an, ob VTherm den Zentralheizungskessel steuert                             | X             | X                  | X            | -                        |
 | ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                  | -            | -                        |
 | ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                  | -            | -                        |
@@ -136,38 +138,6 @@ data:
 target:
     entity_id : climate.my_thermostat
 ```
-
-## Ändern der Voreinstellungstemperatur
-Dieser Service ist nützlich, wenn Sie die voreingestellte Temperatur dynamisch ändern möchten. Anstatt die Voreinstellung zu ändern, muss in bestimmten Anwendungsfällen die Temperatur der Voreinstellung geändert werden. So können Sie den Programmschalter unverändert lassen, um die Voreinstellung zu verwalten, und die Temperatur der Voreinstellung anpassen.
-Wenn die geänderte Voreinstellung aktuell ausgewählt ist, wird die Änderung der Zieltemperatur sofort wirksam und beim nächsten Berechnungszyklus berücksichtigt.
-
-Sie können eine oder beide Temperaturen (sofern vorhanden oder nicht vorhanden) jeder Voreinstellung ändern.
-
-Verwenden Sie den folgenden Code, um die Temperatur der Voreinstellung anzupassen:
-```yaml
-service : versatile_thermostat.set_preset_temperature
-data:
-    preset : boost
-    temperature : 17,8
-    temperature_away : 15
-target:
-    entity_id : climate.my_thermostat
-```
-
-Um die Voreinstellung für den Klimatisierungsmodus (AC) zu ändern, fügen Sie dem Namen der Voreinstellung ein Präfix `_ac` hinzu, wie folgt:
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost_ac
-    temperature: 25
-    temperature_away: 30
-target:
-    entity_id: climate.my_thermostat
-```
-
-> ![Tipp](images/tips.png) _*Notes*_
->
->    - Nach einem Neustart werden die Voreinstellungen auf die konfigurierte Temperatur zurückgesetzt. Wenn Sie möchten, dass Ihre Änderung dauerhaft bleibt, müssen Sie die Temperatureinstellung in der Integrationskonfiguration ändern.
 
 ## Sicherheitseinstellungen ändern
 Mit diesem Service können die hier beschriebenen Sicherheitseinstellungen dynamisch geändert werden [Erweiterte Konfiguration](#erweiterte-konfiguration).
@@ -248,6 +218,8 @@ Die benutzerdefinierten Attribute sind folgende:
 
 > see updated list on English version - please translate
 
+## Für _VTherm_
+
 | Attribut                          | Bedeutung                                                                                                                                                               |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                    | Liste der vom Thermostat unterstützten Modi                                                                                                                             |
@@ -297,6 +269,71 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``last_change_time_from_vtherm``  | Datum/Uhrzeit der letzten Änderung durch VTherm                                                                                                                         |
 | ``nb_device_actives``             | Die Anzahl der zugeordneten Geräte, die derzeit als aktiv angesehen werden                                                                                              |
 | ``device_actives``                | Die Liste der zugrunde liegenden Geräte, die derzeit als aktiv angesehen werden                                                                                         |
+
+## For central configuration
+
+The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+
+| Attribute                                   | Meaning                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
+| ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
+| ``is_central_boiler_ready``                 | Indicates whether the central boiler is ready                                        |
+| **SECTION `central_boiler_manager`**        | ------                                                                               |
+| ``is_on``                                   | true if the central boiler is on                                                     |
+| ``activation_scheduled``                    | true if a boiler activation is scheduled (see `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | The boiler activation delay in seconds                                               |
+| ``nb_active_device_for_boiler``             | The number of active devices controlling the boiler                                  |
+| ``nb_active_device_for_boiler_threshold``   | The threshold of active devices before activating the boiler                         |
+| ``total_power_active_for_boiler``           | The total active power of devices controlling the boiler                             |
+| ``total_power_active_for_boiler_threshold`` | The total power threshold before activating the boiler                               |
+| **SUB-SECTION `service_activate`**          | ------                                                                               |
+| ``service_domain``                          | The domain of the activation service (e.g., switch)                                  |
+| ``service_name``                            | The name of the activation service (e.g., turn_on)                                   |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the activation service                                     |
+| **SUB-SECTION `service_deactivate`**        | ------                                                                               |
+| ``service_domain``                          | The domain of the deactivation service (e.g., switch)                                |
+| ``service_name``                            | The name of the deactivation service (e.g., turn_off)                                |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the deactivation service                                   |
+
+Example values:
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```
 
 Diese Angaben werden bei einer Hilfeanfrage benötigt.
 

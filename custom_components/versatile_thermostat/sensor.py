@@ -51,6 +51,7 @@ from .const import (
     CONF_AUTO_REGULATION_VALVE,
     CONF_AUTO_REGULATION_MODE,
     overrides,
+    gen_attr_uniq_id,
 )
 
 THRESHOLD_WATT_KILO = 100
@@ -128,7 +129,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Energy"
-        self._attr_unique_id = f"{self._device_name}_energy"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "energy")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -183,7 +184,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Mean power cycle"
-        self._attr_unique_id = f"{self._device_name}_mean_power_cycle"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "mean_power_cycle")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -241,7 +242,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Power percent"
-        self._attr_unique_id = f"{self._device_name}_power_percent"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "power_percent")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -296,7 +297,7 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Valve open percent"
-        self._attr_unique_id = f"{self._device_name}_valve_open_percent"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "valve_open_percent")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -342,7 +343,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "On time"
-        self._attr_unique_id = f"{self._device_name}_on_time"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "on_time")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -391,7 +392,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Off time"
-        self._attr_unique_id = f"{self._device_name}_off_time"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "off_time")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -440,7 +441,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last temperature date"
         self._attr_entity_registry_enabled_default = False
-        self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "last_temp_datetime")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -470,7 +471,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Last external temperature date"
         self._attr_entity_registry_enabled_default = False
-        self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "last_ext_temp_datetime")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -499,7 +500,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the slope sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Temperature slope"
-        self._attr_unique_id = f"{self._device_name}_temperature_slope"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "temperature_slope")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -552,7 +553,7 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "Regulated temperature"
-        self._attr_unique_id = f"{self._device_name}_regulated_temperature"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "regulated_temperature")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -603,7 +604,7 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
         self._attr_name = "EMA temperature"
-        self._attr_unique_id = f"{self._device_name}_ema_temperature"
+        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, "ema_temperature")
 
     @callback
     async def async_my_climate_changed(self, event: Event = None):
@@ -665,7 +666,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
         self._attr_active_device_ids = []  # Holds the entity ids of active devices``
-        self._cancel_listener = None
+        self._cancel_listener_nb_active: callable | None = None
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -717,9 +718,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
 
-        if self._cancel_listener is not None:
-            self._cancel_listener()
-            self._cancel_listener = None
+        self.cancel_listening_nb_active()
 
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
@@ -728,7 +727,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                     underlying_entities_id.append(under.entity_id)
         if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
-            self._cancel_listener = async_track_state_change_event(
+            self._cancel_listener_nb_active = async_track_state_change_event(
                 self._hass,
                 underlying_entities_id,
                 self.calculate_nb_active_devices,
@@ -738,7 +737,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 self,
                 underlying_entities_id,
             )
-            self.async_on_remove(self._cancel_listener)
+            self.async_on_remove(self._cancel_listener_nb_active)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -815,6 +814,15 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
 
+    def cancel_listening_nb_active(self):
+        """Cancel the listening of underlying VTherm state changes"""
+        if self._cancel_listener_nb_active is not None:
+            try:
+                self._cancel_listener_nb_active()
+            except (ValueError, TypeError):  # the listener could be already cancelled
+                pass
+            self._cancel_listener_nb_active = None
+
 
 class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     """Representation of the total power of VTherm
@@ -826,6 +834,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         self._attr_name = "Total power active for boiler"
         self._attr_unique_id = "total_power_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
+        self._cancel_listener_power: callable | None = None
 
     @property
     def icon(self) -> str | None:
@@ -859,9 +868,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
             _LOGGER.warning("%s - No climate component found in hass.data", self)
             return
 
-        if self._cancel_listener is not None:
-            self._cancel_listener()
-            self._cancel_listener = None
+        self.cancel_listening_power()
 
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
@@ -870,7 +877,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
         if len(self._entities) > 0:
             # Arme l'écoute de la première entité
-            self._cancel_listener = async_track_state_change_event(
+            self._cancel_listener_power = async_track_state_change_event(
                 self._hass,
                 entities_id,
                 self.calculate_total_power,
@@ -880,7 +887,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
                 self,
                 entities_id,
             )
-            self.async_on_remove(self._cancel_listener)
+            self.async_on_remove(self._cancel_listener_power)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -954,3 +961,12 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
+
+    def cancel_listening_power(self):
+        """Cancel the listening of underlying VTherm state changes"""
+        if self._cancel_listener_power is not None:
+            try:
+                self._cancel_listener_power()
+            except (ValueError, TypeError):  # the listener could be already cancelled
+                pass
+            self._cancel_listener_power = None

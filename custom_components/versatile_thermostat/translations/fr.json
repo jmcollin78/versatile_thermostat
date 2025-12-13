@@ -238,11 +238,13 @@
         "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
-          "central_boiler_deactivation_service": "Commande pour éteindre"
+          "central_boiler_deactivation_service": "Commande pour éteindre",
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
         }
       },
       "valve_regulation": {
@@ -520,11 +522,13 @@
         "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
-          "central_boiler_deactivation_service": "Commande pour éteindre"
+          "central_boiler_deactivation_service": "Commande pour éteindre",
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
         }
       },
       "valve_regulation": {
