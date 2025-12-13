@@ -35,9 +35,9 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 >
 > Za każdym razem, gdy VTherm jest aktywowany, jego skonfigurowana moc jest dodawana do sumy, a w przypadku przekroczenia progu, kocioł centralny zostanie uruchomiony po opóźnieniu skonfigurowanym w kroku 1.
 >
-> Poprzedni licznik liczby aktywowanych urządzeń i jego progu nadal istnieją. Aby wyłączyć jeden z progów (próg mocy lub próg liczby aktywnych urządzeń), ustaw jego wartość na zero ( `0`). Po przekroczeniu któregokolwiek z dwóch niezerowych progów kocioł zostanie uruchomiony. Dlatego pomiędzy dwoma progami stosuje się alternatywę logiczną _'lub'_.
+> Poprzedni licznik liczby aktywowanych urządzeń i jego progu nadal istnieją. Aby wyłączyć jeden z progów (próg mocy lub próg liczby aktywnych urządzeń), ustaw jego wartość na zero (`0`). Po przekroczeniu któregokolwiek z dwóch niezerowych progów kocioł zostanie uruchomiony. Dlatego pomiędzy dwoma progami stosuje się alternatywę logiczną _'lub'_.
 > 
-> Więcej informacji znajdziesz [tutaj](documentation/fr/feature-central-boiler.md).
+> Więcej informacji znajdziesz [tutaj](documentation/pl/feature-central-boiler.md).
 
 ## Wydanie 8.2
 > Dodano opcjonalną funkcję blokowania/odblokowania termostatu _*VTherm*_ za pomocą kodu PIN. Więcej informacji na ten temat znajduje się [tutaj](documentation/pl/feature-lock.md).
@@ -72,7 +72,7 @@ Załóżmy, że co 5 minut otrzymujesz informację zwrotną o zużyciu energii. 
 > Ta wersja integracji zawiera zasadnicze zmiany w stosunku do wersji poprzedniej:
 > - zmianie ulega nazwa zdarzenia z `versatile_thermostat_security_event` na `versatile_thermostat_safety_event`. Jeśli Twoja automatyzacja wykorzystuje to zdarzenie, konieczna jest jej aktualizacja,
 > - atrybuty własne zostały całkowicie zreorganizowane. Wymagana jest odpowiednia aktualizacja Twoich automatyzacji lub szablonów Jinja, korzystających z tych atrybutów,
-> - karta [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0`, aby zachować kompatybilność,
+> - karta [VTherm UI Card](documentation/pl/additions.md#versatile-thermostat-ui-card) musi być zaktualizowana co najmniej do wersji `v2.0`, aby zachować kompatybilność,
 >
 > **Pomimo 342 automatycznych testów tej integracji i maksymalnej staranności włożonej w wydanie nowej wersji, nie ma pewności, że jej instalacja nie zakłóci stanu czujników _VTherm_. Po zainstalowaniu aktualizacji, dla każdego sensora _VTherm_ należy sprawdzić presety, tryb HVAC i ewentualnie ustawienie temperatur sensorów _VTherm_.**
 >
@@ -130,7 +130,7 @@ Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas
 24. [Informacje o wersjach](documentation/pl/releases.md)
 
 ---
-# Kilka przykładowych efektów...
+# Kilka przykładów...
 
 **Stabilizacja temperatury skonfigurowana dzięki ustawieniu presetu**:
 
