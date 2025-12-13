@@ -5,13 +5,14 @@
 - [Capteurs](#capteurs)
 - [Actions (services)](#actions-services)
   - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
-  - [Modifier la température des préréglages](#modifier-la-température-des-préréglages)
   - [Modifier les paramètres de sécurité](#modifier-les-paramètres-de-sécurité)
   - [ByPass Window Check](#bypass-window-check)
   - [Services de verrouillage / déverrouillage](#services-de-verrouillage--déverrouillage)
   - [Changer les paramètres du TPI](#changer-les-paramètres-du-tpi)
 - [Evènements](#evènements)
 - [Attributs personnalisés](#attributs-personnalisés)
+  - [Pour un _VTherm_](#pour-un-vtherm)
+  - [Pour la configuration centrale](#pour-la-configuration-centrale)
 - [Messages d'état](#messages-détat)
 
 ## Synthèse des paramètres
@@ -139,38 +140,6 @@ cible:
     entity_id : climate.my_thermostat
 ```
 
-## Modifier la température des préréglages
-Ce service est utile si vous souhaitez modifier dynamiquement la température préréglée. Au lieu de changer de préréglage, certains cas d'utilisation doivent modifier la température du préréglage. Ainsi, vous pouvez garder le Programmateur inchangé pour gérer le préréglage et ajuster la température du préréglage.
-Si le préréglage modifié est actuellement sélectionné, la modification de la température cible est immédiate et sera prise en compte au prochain cycle de calcul.
-
-Vous pouvez modifier l'une ou les deux températures (lorsqu'elles sont présentes ou absentes) de chaque préréglage.
-
-Utilisez le code suivant pour régler la température du préréglage :
-```yaml
-service : versatile_thermostat.set_preset_temperature
-date:
-    preset : boost
-    temperature : 17,8
-    temperature_away : 15
-target:
-    entity_id : climate.my_thermostat
-```
-
-Ou pour changer le pré-réglage du mode Air Conditionné (AC) ajoutez un préfixe `_ac`` au nom du preset comme ceci :
-```yaml
-service: versatile_thermostat.set_preset_temperature
-data:
-    preset: boost_ac
-    temperature: 25
-    temperature_away: 30
-target:
-    entity_id: climate.my_thermostat
-```
-
-> ![Astuce](images/tips.png) _*Notes*_
->
->    - après un redémarrage, les préréglages sont réinitialisés à la température configurée. Si vous souhaitez que votre changement soit permanent, vous devez modifier le préréglage de la température dans la configuration de l'intégration.
-
 ## Modifier les paramètres de sécurité
 Ce service permet de modifier dynamiquement les paramètres de sécurité décrits ici [Configuration avancée](#configuration-avancée).
 Si le thermostat est en mode ``security`` les nouveaux paramètres sont appliqués immédiatement.
@@ -254,6 +223,7 @@ Pour régler l'algorithme, vous avez accès à tout le contexte vu et calculé p
 
 ![image](images/dev-tools-climate.png)
 
+## Pour un _VTherm_
 Les attributs personnalisés sont les suivants :
 
 | Attribut                                        | Signification                                                                                                                                                                                                       |
@@ -420,6 +390,71 @@ Les attributs personnalisés sont les suivants :
 | ``auto_regulation_dpercent``                    | La vanne ne sera pas commandée si le delta d'ouverture est inférieur à cette valeur                                                                                                                                 |
 | ``auto_regulation_period_min``                  | La valeur du paramètre de filtrage temporel en minutes. Correspond à l'interval minimal entre 2 commandes de la vanne (hors changement de l'utilisateur).                                                           |
 | ``last_calculation_timestamp``                  | La date/heure du dernier envoi d'ouverture de la vanne                                                                                                                                                              |
+
+## Pour la configuration centrale
+
+Les attributs personnalisés de la configuration centrale sont accessibles dans Outils de developpement / Etats sur l'entité `binary_sensor.central_boiler` :
+
+| Attribut                                    | Signification                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | L'état de la chaudière centrale. Peut être `on` ou `off`                                         |
+| ``is_central_boiler_configured``            | Indique si la fonction de chaudière centrale est configurée                                      |
+| ``is_central_boiler_ready``                 | Indique si la chaudière centrale est prête                                                       |
+| **SECTION `central_boiler_manager`**        | ------                                                                                           |
+| ``is_on``                                   | true si la chaudière centrale est allumée                                                        |
+| ``activation_scheduled``                    | true si une activation de la chaudière est planifiée (cf. `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | Le délai d'activation de la chaudière en secondes                                                |
+| ``nb_active_device_for_boiler``             | Le nombre de dispositifs actifs contrôlant la chaudière                                          |
+| ``nb_active_device_for_boiler_threshold``   | Le seuil de nombre de dispositifs actifs avant activation de la chaudière                        |
+| ``total_power_active_for_boiler``           | La puissance totale active des dispositifs contrôlant la chaudière                               |
+| ``total_power_active_for_boiler_threshold`` | Le seuil de puissance totale avant activation de la chaudière                                    |
+| **SOUS-SECTION `service_activate`**         | ------                                                                                           |
+| ``service_domain``                          | Le domaine du service d'activation (ex: switch)                                                  |
+| ``service_name``                            | Le nom du service d'activation (ex: turn_on)                                                     |
+| ``entity_domain``                           | Le domaine de l'entité contrôlant la chaudière (ex: switch)                                      |
+| ``entity_name``                             | Le nom de l'entité contrôlant la chaudière                                                       |
+| ``entity_id``                               | L'identifiant complet de l'entité contrôlant la chaudière                                        |
+| ``data``                                    | Les données additionnelles passées au service d'activation                                       |
+| **SOUS-SECTION `service_deactivate`**       | ------                                                                                           |
+| ``service_domain``                          | Le domaine du service de désactivation (ex: switch)                                              |
+| ``service_name``                            | Le nom du service de désactivation (ex: turn_off)                                                |
+| ``entity_domain``                           | Le domaine de l'entité contrôlant la chaudière (ex: switch)                                      |
+| ``entity_name``                             | Le nom de l'entité contrôlant la chaudière                                                       |
+| ``entity_id``                               | L'identifiant complet de l'entité contrôlant la chaudière                                        |
+| ``data``                                    | Les données additionnelles passées au service de désactivation                                   |
+
+Exemple de valeurs :
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```
 
 Ces attributs vous seront demandés lors d'une demande d'aide.
 

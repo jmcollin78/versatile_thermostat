@@ -12,6 +12,8 @@
   - [Change TPI Parameters](#change-tpi-parameters)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
+  - [For _VTherm_](#for-vtherm)
+  - [For central configuration](#for-central-configuration)
 - [State messages](#state-messages)
 
 ## Přehled parametrů
@@ -257,6 +259,8 @@ Tyto události můžete snadno zachytit v automatizaci, například pro upozorn�
 Pro úpravu algoritmu máte přístup k celému kontextu viděnému a vypočítanému termostatem prostřednictvím vyhrazených atributů. Tyto atributy můžete zobrazit (a použít) v sekci "Developer Tools / States" HA. Zadejte svůj termostat a uvidíte něco takového:
 ![image](images/dev-tools-climate.png)
 
+## For _VTherm_
+
 Vlastní atributy jsou následující:
 
 > see updated list on English version - please translate
@@ -310,6 +314,70 @@ Vlastní atributy jsou následující:
 | ``nb_device_actives``              | Počet podkladových zařízení viděných jako aktivní                                                                      |
 | ``device_actives``                 | Seznam podkladových zařízení viděných jako aktivní                                                                     |
 
+## For central configuration
+
+The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+
+| Attribute                                   | Meaning                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
+| ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
+| ``is_central_boiler_ready``                 | Indicates whether the central boiler is ready                                        |
+| **SECTION `central_boiler_manager`**        | ------                                                                               |
+| ``is_on``                                   | true if the central boiler is on                                                     |
+| ``activation_scheduled``                    | true if a boiler activation is scheduled (see `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | The boiler activation delay in seconds                                               |
+| ``nb_active_device_for_boiler``             | The number of active devices controlling the boiler                                  |
+| ``nb_active_device_for_boiler_threshold``   | The threshold of active devices before activating the boiler                         |
+| ``total_power_active_for_boiler``           | The total active power of devices controlling the boiler                             |
+| ``total_power_active_for_boiler_threshold`` | The total power threshold before activating the boiler                               |
+| **SUB-SECTION `service_activate`**          | ------                                                                               |
+| ``service_domain``                          | The domain of the activation service (e.g., switch)                                  |
+| ``service_name``                            | The name of the activation service (e.g., turn_on)                                   |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the activation service                                     |
+| **SUB-SECTION `service_deactivate`**        | ------                                                                               |
+| ``service_domain``                          | The domain of the deactivation service (e.g., switch)                                |
+| ``service_name``                            | The name of the deactivation service (e.g., turn_off)                                |
+| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
+| ``entity_name``                             | The name of the entity controlling the boiler                                        |
+| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
+| ``data``                                    | Additional data passed to the deactivation service                                   |
+
+Example values:
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```
 
 Tyto atributy budou vyžadovány, když budete potřebovat pomoc.
 

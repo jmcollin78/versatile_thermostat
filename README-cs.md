@@ -37,7 +37,7 @@ Each time a VTherm is activated, its configured power is added to the total and,
 
 The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
 
-More informations [here](documentation/fr/feature-central-boiler.md).
+More informations [here](documentation/cs/feature-central-boiler.md).
 
 ## Release 8.2
 > Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/cs/feature-lock.md)
