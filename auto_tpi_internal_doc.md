@@ -34,6 +34,7 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
     *   Expose les métriques de santé (confiance, constante de temps).
     *   **Rôle Actif** : Il pilote la boucle de régulation TPI via son propre timer interne (`_tick`).
     *   **Synchronisation & Persistance Finale** : Il gère la mise à jour des coefficients et capacités dans les entrées de configuration HA (`async_update_coefficients_config`, `async_update_capacity_config`).
+    *   **Calibration** : Il expose la méthode `service_calibrate_capacity` qui orchestre la récupération d'historique et le calcul de capacité.
     *   **Notification** : Il gère la notification de fin d'apprentissage (`process_learning_completion`).
 
 2.  **`BaseThermostat` (Le Chef d'Orchestre)** :
@@ -275,7 +276,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   **Objectif** : Utiliser un historique de cycles à pleine puissance pour déterminer la Capacité Maximale du système (`max_capacity`) via une **régression linéaire**. La capacité correspond à l'ordonnée à l'origine (Intercept) de la régression : $Slope_{obs} = Capacity - K_{ext} \cdot \Delta T$.
     *   **Détermination des Coefficients** :
         *   **Capacité Maximale (`max_capacity_heat`/`cool`)** : Est directement calculée et mise à jour.
-    *   **Collecte de Données** : Le service utilise le composant `recorder` de Home Assistant pour extraire les états du thermostat et du capteur extérieur sur une période configurable via les paramètres `start_date` et `end_date` (par défaut 30 jours jusqu'à maintenant).
+    *   **Collecte de Données** : La méthode `AutoTpiManager.service_calibrate_capacity` utilise le composant `recorder` de Home Assistant pour extraire les états du thermostat et du capteur extérieur sur une période configurable via les paramètres `start_date` et `end_date` (par défaut 30 jours jusqu'à maintenant).
     *   **Extraction de Cycles** : Seuls les cycles où la puissance TPI était **saturée** (>= 95% de `saturation_threshold`) et qui durent au moins 90% du temps de cycle configuré sont retenus pour la régression. Cela garantit l'utilisation des données où l'émetteur a fonctionné à sa pleine puissance.
     *   **Correction d'Inertie Thermique** : La capacité calculée via l'ordonnée à l'origine (Intercept) correspond à la capacité *effective* sur la durée du cycle. Une correction est appliquée pour compenser le temps de chauffe du radiateur (`heater_heating_time`).
         *   `Facteur Efficacité = (Durée Moyenne Cycle - Temps Chauffe) / Durée Moyenne Cycle`

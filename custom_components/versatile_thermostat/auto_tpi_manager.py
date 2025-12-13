@@ -15,6 +15,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
+from homeassistant.components.recorder import history, get_instance
+from homeassistant.util import dt as dt_util
+from functools import partial
 
 from .const import (
     CONF_TPI_COEF_INT,
@@ -1618,6 +1621,90 @@ class AutoTpiManager:
             "min_power_threshold": min_power_threshold,
             "period": round(period_days, 1)
         }
+    
+    async def service_calibrate_capacity(
+        self,
+        thermostat_entity_id: str,
+        ext_temp_entity_id: str,
+        hvac_mode: str,
+        save_to_config: bool,
+        start_date: datetime | str | None = None,
+        end_date: datetime | str | None = None,
+    ) -> dict:
+        """
+        Orchestrates the capacity calibration service:
+        1. Parses dates
+        2. Fetches history
+        3. Calculates capacity
+        4. Saves to config if requested
+        """
+        # 1. Convert start_date and end_date to datetime objects and adjust for date-only selection.
+        if isinstance(start_date, str):
+            _date = dt_util.parse_date(start_date)
+            start_date = dt_util.start_of_local_day(_date) if _date else None
+            
+        if isinstance(end_date, str):
+            _date = dt_util.parse_date(end_date)
+            # When selecting an end date, we want to include the whole day.
+            # History API query is exclusive of end_time, so we set it to the start of the next day.
+            _end_day_start = dt_util.start_of_local_day(_date) if _date else None
+            end_date = _end_day_start + timedelta(days=1) if _end_day_start else None
+            
+        # 2. Determine History Time Range
+        now = dt_util.now()
+        
+        # history.get_significant_states expects timezone-aware datetime (preferably UTC)
+        start_time = dt_util.as_utc(start_date) if start_date is not None else now - timedelta(days=30)
+        end_time = dt_util.as_utc(end_date) if end_date is not None else now
+        
+        _LOGGER.info("%s - Calibrating capacity using history from %s to %s", self._name, start_time, end_time)
+        
+        entity_ids = [thermostat_entity_id]
+        if ext_temp_entity_id:
+            entity_ids.append(ext_temp_entity_id)
+
+        states = await get_instance(self._hass).async_add_executor_job(
+            partial(
+                history.get_significant_states,
+                self._hass,
+                start_time,
+                end_time=end_time,
+                entity_ids=entity_ids,
+                significant_changes_only=False,
+            )
+        )
+
+        thermostat_history = states.get(thermostat_entity_id, [])
+        outdoor_history = states.get(ext_temp_entity_id, []) if ext_temp_entity_id else []
+
+        _LOGGER.debug("%s - Fetched %d thermostat states and %d outdoor states for capacity calibration.",
+                      self._name, len(thermostat_history), len(outdoor_history))
+
+        # 3. Call Calculation
+        result = await self.calculate_capacity_from_history(
+            thermostat_history,
+            outdoor_history,
+            hvac_mode,
+        )
+
+        _LOGGER.info("%s - Capacity calibration result: %s", self._name, result)
+
+        # 4. Save (if save_to_config is True) - ONLY CAPACITY
+        if save_to_config and result and isinstance(result, dict) and result.get("success"):
+            
+            capacity = result.get("capacity")
+            # We assume hvac_mode string is passed correctly ('heat' or 'cool')
+            is_heat_mode = hvac_mode == 'heat'
+            
+            if capacity is not None:
+                await self.async_update_capacity_config(
+                    capacity=capacity, is_heat_mode=is_heat_mode
+                )
+                
+                mode_str = "Heating" if is_heat_mode else "Cooling"
+                _LOGGER.info("%s - %s capacity calibrated to %.3f °C/h and saved to AutoTpiManager's state and config.", self._name, mode_str, capacity)
+
+        return result
     
     async def on_cycle_started(self, on_time_sec: float, off_time_sec: float,
                              on_percent: float, hvac_mode: str):

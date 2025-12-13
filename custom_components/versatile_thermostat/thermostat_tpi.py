@@ -414,79 +414,20 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         if not self._auto_tpi_manager:
             raise ServiceValidationError(f"{self} - Auto TPI Manager not initialized, cannot calibrate capacity.")
 
-        # 1. Convert start_date and end_date to datetime objects and adjust for date-only selection.
-        # date selector returns 'YYYY-MM-DD' string. We convert it to a timezone-aware datetime.
-        if isinstance(start_date, str):
-            _date = dt_util.parse_date(start_date)
-            start_date = dt_util.start_of_local_day(_date) if _date else None
-            
-        if isinstance(end_date, str):
-            _date = dt_util.parse_date(end_date)
-            # When selecting an end date, we want to include the whole day.
-            # History API query is exclusive of end_time, so we set it to the start of the next day.
-            _end_day_start = dt_util.start_of_local_day(_date) if _date else None
-            end_date = _end_day_start + timedelta(days=1) if _end_day_start else None
-            
-        # 2. Determine History Time Range
-        now = self.now
-        
-        # history.get_significant_states expects timezone-aware datetime (preferably UTC)
-        # Note: start_date and end_date from above are already timezone-aware (local timezone).
-        start_time = dt_util.as_utc(start_date) if start_date is not None else now - timedelta(days=30)
-        end_time = dt_util.as_utc(end_date) if end_date is not None else now
-        
-        _LOGGER.info("%s - Calibrating capacity using history from %s to %s", self, start_time, end_time)
-        
-        entity_ids = [self.entity_id]
-        if self._ext_temp_sensor_entity_id:
-            entity_ids.append(self._ext_temp_sensor_entity_id)
-
-        states = await get_instance(self.hass).async_add_executor_job(
-            partial(
-                history.get_significant_states,
-                self.hass,
-                start_time,
-                end_time=end_time,
-                entity_ids=entity_ids,
-                significant_changes_only=False,
-            )
+        # Delegate to AutoTpiManager
+        result = await self._auto_tpi_manager.service_calibrate_capacity(
+            thermostat_entity_id=self.entity_id,
+            ext_temp_entity_id=self._ext_temp_sensor_entity_id,
+            hvac_mode=hvac_mode,
+            save_to_config=save_to_config,
+            start_date=start_date,
+            end_date=end_date,
         )
 
-        thermostat_history = states.get(self.entity_id, [])
-        outdoor_history = states.get(self._ext_temp_sensor_entity_id, []) if self._ext_temp_sensor_entity_id else []
+        # If capacity was updated, we might need to recalculate (though capacity mainly affects TPI next cycle)
+        if result and result.get("success") and result.get("capacity"):
+             self.recalculate()
 
-        _LOGGER.debug("%s - Fetched %d thermostat states and %d outdoor states for capacity calibration.",
-                      self, len(thermostat_history), len(outdoor_history))
-
-        # 3. Call Calculation
-        result = await self._auto_tpi_manager.calculate_capacity_from_history(
-            thermostat_history,
-            outdoor_history,
-            hvac_mode,
-        )
-
-        _LOGGER.info("%s - Capacity calibration result: %s", self, result)
-
-        # 4. Save (if save_to_config is True) - ONLY CAPACITY
-        if save_to_config and result and isinstance(result, dict) and result.get("success"):
-            
-            capacity = result.get("capacity")
-            is_heat_mode = hvac_mode == HVACMode.HEAT.value
-            
-            if capacity is not None:
-                await self._auto_tpi_manager.async_update_capacity_config(
-                    capacity=capacity, is_heat_mode=is_heat_mode
-                )
-                
-                mode_str = "Heating" if is_heat_mode else "Cooling"
-                _LOGGER.info("%s - %s capacity calibrated to %.3f °C/h and saved to AutoTpiManager's state and config.", self, mode_str, capacity)
-                
-                # Capacity changes don't automatically trigger a recalculate/control heating cycle,
-                # as they only affect auto-TPI calculations, not the proportional algorithm directly.
-                self.recalculate()
-
-        # Return result (as the service has a response schema defined)
-        
         self.update_custom_attributes()
         self.async_write_ha_state()
 
