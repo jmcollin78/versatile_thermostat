@@ -14,7 +14,7 @@
 
 ## Parametry
 
-| Parametr                                  | Nazwa                                                             | Termostat<br>na Przełączniku | Termostat<br>na Klimacie | Termostat<br>na Zaworze | Konfiguracja<br>Centralna |
+| Parametr                                  | Nazwa                                                             | Termostat<br>na<br>Przełączniku | Termostat<br>na<br>Klimacie | Termostat<br>na<br>Zaworze | Konfiguracja<br>Centralna |
 | ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------ | -------------------------- | ------------------------- | --------------------------- |
 | ``name``                                  | Nazwa                                                             | X                              | X                          | X                         | -                           |
 | ``thermostat_type``                       | Typ termostatu                                                    | X                              | X                          | X                         | -                           |
@@ -72,7 +72,7 @@
 | ``auto_fan_mode``                         | Automatyczny tryb wentylacji                                      | -                              | X                          | -                         | -                           |
 | ``auto_regulation_use_device_temp``       | Temperatura wewnętrzna (własna) urządzenia                        | -                              | X                          | -                         | -                           |
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                              | -                          | -                         | X                           |
-| ``central_boiler_activation_service``     | Usługa katyewacji kotła                                           | -                              | -                          | -                         | X                           |
+| ``central_boiler_activation_service``     | Usługa aktywacji kotła                                            | -                              | -                          | -                         | X                           |
 | ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                              | -                          | -                         | X                           |
 | ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                              | X                          | X                         | -                           |
 | ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP                    | -                              | X                          | -                         | -                           |
@@ -104,7 +104,7 @@ Są to kolejno:
 
 Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 
-Aby pokolorować sensory, w pliku `configuration.yaml` dodaj poniższe linie kodu , dostosowując je według własnych potrzeb:
+Aby nadać kolory poszczególnym sensorom, w pliku `configuration.yaml` dodaj poniższe linie kodu , dostosowując je według własnych potrzeb:
 
 ```yaml
 frontend:
