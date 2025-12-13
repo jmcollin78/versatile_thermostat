@@ -266,6 +266,11 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                     force,
                 )
         
+    @property
+    def proportional_algorithm(self):
+        """Get the ProportionalAlgorithm"""
+        return self._prop_algorithm
+
     def recalculate(self, force=False):
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
