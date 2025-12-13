@@ -59,7 +59,6 @@ from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard
 from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingEntity, T
 
-from .prop_algorithm import PropAlgorithm
 from .ema import ExponentialMovingAverage
 
 from .base_manager import BaseFeatureManager
@@ -74,7 +73,6 @@ from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_hvac_mode
-from .auto_tpi_manager import AutoTpiManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,7 +116,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._unique_id = unique_id
         self._name = name
-        self._prop_algorithm = None
+
         self._async_cancel_cycle = None
 
         # Callbacks for TPI cycle events
@@ -214,17 +212,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._lock_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
-
-        self._tpi_coef_int: float = 0
-        self._tpi_coef_ext: float = 0
-        self._minimal_activation_delay: int = 0
-        self._minimal_deactivation_delay: int = 0
-        self._tpi_threshold_low: float = 0
-        self._tpi_threshold_high: float = 0
-        self._auto_tpi_keep_ext_learning: bool = False
-        self._auto_tpi_continuous_learning: bool = False
-        self._auto_tpi_enable_update_config: bool = False
-        self._auto_tpi_enable_notification: bool = False
 
         self.post_init(entry_infos)
 
@@ -322,21 +309,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Initialize underlying entities (will be done in subclasses)
         self._underlyings = []
 
-        self._proportional_function = entry_infos.get(CONF_PROP_FUNCTION)
+
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
         self._last_seen_temp_sensor_entity_id = entry_infos.get(
             CONF_LAST_SEEN_TEMP_SENSOR
         )
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
-
-        self._tpi_coef_int = entry_infos.get(CONF_TPI_COEF_INT)
-        self._tpi_coef_ext = entry_infos.get(CONF_TPI_COEF_EXT)
-        self._tpi_threshold_low = entry_infos.get(CONF_TPI_THRESHOLD_LOW, 0.0)
-        self._tpi_threshold_high = entry_infos.get(CONF_TPI_THRESHOLD_HIGH, 0.0)
-        # If one is 0 then both are 0
-        if self._tpi_threshold_low == 0.0 or self._tpi_threshold_high == 0.0:
-            self._tpi_threshold_low = 0.0
-            self._tpi_threshold_high = 0.0
 
         self.set_hvac_list()
 
@@ -358,26 +336,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._cur_temp = None
         self._cur_ext_temp = None
 
-        # Fix parameters for TPI
-        if (
-            self._proportional_function == PROPORTIONAL_FUNCTION_TPI
-            and self._ext_temp_sensor_entity_id is None
-        ):
-            _LOGGER.warning(
-                "Using TPI function but not external temperature sensor is set. "
-                "Removing the delta temp ext factor. "
-                "Thermostat will not be fully operational."
-            )
-            self._tpi_coef_ext = 0
-
-        self._minimal_activation_delay = entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY, 0)
-        self._minimal_deactivation_delay = entry_infos.get(CONF_MINIMAL_DEACTIVATION_DELAY, 0)
         self._last_temperature_measure = self.now
         self._last_ext_temperature_measure = self.now
 
-        # Initiate the ProportionalAlgorithm
-        if self._prop_algorithm is not None:
-            del self._prop_algorithm
+
 
         self._total_energy = None
         _LOGGER.debug("%s - post_init_ resetting energy to None", self)
@@ -407,100 +369,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._max_on_percent = api.max_on_percent
 
-        # Add a warning if minimal_deactivation_delay or minimal_activation_delay os greater than cycle_min
-        if (self._minimal_activation_delay + self._minimal_deactivation_delay) / 60 > self._cycle_min:
-            _LOGGER.warning(
-                "%s - The sum of minimal_activation_delay (%s sec) and "
-                "minimal_deactivation_delay (%s sec) is greater than cycle_min (%s). "
-                "This can create some unexpected behavior. Please review your configuration",
-                self,
-                self._minimal_activation_delay,
-                self._minimal_deactivation_delay,
-                self._cycle_min,
-            )
-
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
             self,
             self.unique_id,
         )
 
-        # Initialize Auto TPI Manager here because we need self._cycle_min which is initialized in post_init
-        heater_heating_time = entry_infos.get(CONF_HEATER_HEATING_TIME, 0)
-        heater_cooling_time = entry_infos.get(CONF_HEATER_COOLING_TIME, 0)
-        calculation_method = entry_infos.get(CONF_AUTO_TPI_CALCULATION_METHOD, AUTO_TPI_METHOD_EMA)
-        ema_alpha = entry_infos.get(CONF_AUTO_TPI_EMA_ALPHA, 0.2)
-        avg_initial_weight = entry_infos.get(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, 1)
-        max_coef_int = entry_infos.get(CONF_AUTO_TPI_MAX_COEF_INT, 1.5)
-        heating_rate = entry_infos.get(CONF_AUTO_TPI_HEATING_POWER, 1.0)
-        cooling_rate = entry_infos.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
-        self._auto_tpi_enable_update_config = entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
-        self._auto_tpi_enable_notification = entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
-
-        _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
-                     self, self._tpi_coef_int, self._tpi_coef_ext)
-        self._auto_tpi_manager = AutoTpiManager(
-            self._hass,
-            self.config_entry,
-            self.unique_id,
-            self.name,
-            self._cycle_min,
-            self._tpi_threshold_low,
-            self._tpi_threshold_high,
-            self._minimal_deactivation_delay,
-            coef_int=self._tpi_coef_int,
-            coef_ext=self._tpi_coef_ext,
-            heater_heating_time=heater_heating_time,
-            heater_cooling_time=heater_cooling_time,
-            calculation_method=calculation_method,
-            ema_alpha=ema_alpha,
-            avg_initial_weight=avg_initial_weight,
-            max_coef_int=max_coef_int,
-            heating_rate=heating_rate,
-            cooling_rate=cooling_rate,
-            continuous_learning=self._auto_tpi_continuous_learning,
-            keep_ext_learning=self._auto_tpi_keep_ext_learning,
-            enable_update_config=self._auto_tpi_enable_update_config, # Pass the config flags
-            enable_notification=self._auto_tpi_enable_notification, # Pass the config flags
-        )
-        _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
-                     self, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
-
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         _LOGGER.debug("Calling async_added_to_hass")
-
-        # Load data from Auto TPI Manager
-        if self._auto_tpi_manager:
-            _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", 
-                         self, self._tpi_coef_int, self._tpi_coef_ext)
-            await self._auto_tpi_manager.async_load_data()
-            # If we have learned parameters, apply them
-            learned_params = self._auto_tpi_manager.get_calculated_params()
-            if learned_params:
-                _LOGGER.info("%s - DEBUG: Learned params found: %s, learning_active=%s, update_config=%s",
-                             self, learned_params, self._auto_tpi_manager.learning_active, self._auto_tpi_enable_update_config)
-                if self._auto_tpi_enable_update_config:
-                    if self._auto_tpi_manager.learning_active:
-                        self._tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, self._tpi_coef_int)
-                        self._tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, self._tpi_coef_ext)
-                        _LOGGER.info("%s - Restored Auto TPI parameters: %s", self, learned_params)
-                    else:
-                        _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", self)
-                else:
-                    _LOGGER.info("%s - Auto TPI parameters found but not applied because auto_tpi_enable_update_config is False", self)
-            
-            _LOGGER.info("%s - DEBUG: After load_data - int=%.3f, ext=%.3f",
-                         self, self._tpi_coef_int, self._tpi_coef_ext)
-            
-            if self._auto_tpi_manager.learning_active:
-                # Security: if the feature is disabled in config, we must stop learning
-                if not self._entry_infos.get(CONF_AUTO_TPI_MODE, False):
-                    _LOGGER.info("%s - Auto TPI learning was active but feature is disabled in config. Stopping learning.", self)
-                    await self._auto_tpi_manager.stop_learning()
-                else:
-                    _LOGGER.info("%s - Auto TPI learning is active (restored from storage)", self)
 
         await super().async_added_to_hass()
 
@@ -549,18 +427,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self.stop_recalculate_later()
 
-        if self._auto_tpi_manager:
-            self._auto_tpi_manager.stop_cycle_loop()
-
         # stop listening for all managers
         for manager in self._managers:
             manager.stop_listening()
 
         for under in self._underlyings:
             under.remove_entity()
-
-        if self._auto_tpi_manager:
-            self.hass.async_create_task(self._auto_tpi_manager.async_save_data())
 
     def register_cycle_callback(
         self,
@@ -680,14 +552,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.update_states(force=True)
         # self.async_write_ha_state()
-        if self._prop_algorithm:
-            self._prop_algorithm.calculate(
-                self.target_temperature,
-                self._cur_temp,
-                self._cur_ext_temp,
-                self.last_temperature_slope,
-                self.vtherm_hvac_mode or VThermHvacMode_OFF,
-            )
+        self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
         await self._check_initial_state()
@@ -1158,9 +1023,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._presence_manager.presence_state
 
     @property
-    def proportional_algorithm(self) -> PropAlgorithm | None:
+    def proportional_algorithm(self):
         """Get the eventual ProportionalAlgorithm"""
-        return self._prop_algorithm
+        return None
 
     @property
     def last_temperature_measure(self) -> datetime | None:
@@ -1272,7 +1137,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def power_percent(self) -> float | None:
         """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo
         Get the current on_percent value"""
-        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+        if hasattr(self, "_prop_algorithm") and self._prop_algorithm and self._prop_algorithm.on_percent is not None:
             return round(self._prop_algorithm.on_percent * 100, 0)
         else:
             return None
@@ -1280,7 +1145,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def on_percent(self) -> float | None:
         """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
-        if self._prop_algorithm and self._prop_algorithm.on_percent is not None:
+        if hasattr(self, "_prop_algorithm") and self._prop_algorithm and self._prop_algorithm.on_percent is not None:
             return self._prop_algorithm.on_percent
         else:
             return None
@@ -1468,47 +1333,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     ## Calculation and utility functions
     ##
-    async def _get_tpi_data(self) -> dict[str, Any]:
-        """Calculate and return TPI cycle parameters.
-        Called by AutoTpiManager at the start of each cycle.
-        """
-        # Sync coefficients from AutoTpiManager before calculating
-        if self._auto_tpi_manager and self._auto_tpi_manager.learning_active:
-            new_params = await self._auto_tpi_manager.calculate()
-            if new_params:
-                new_coef_int = new_params.get(CONF_TPI_COEF_INT)
-                new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
-                if new_coef_int != self._prop_algorithm.tpi_coef_int or \
-                   new_coef_ext != self._prop_algorithm.tpi_coef_ext:
-                    self._prop_algorithm.update_tpi_coef(new_coef_int, new_coef_ext)
-                    _LOGGER.debug("%s - Synced TPI coeffs before cycle: int=%.3f, ext=%.3f",
-                                  self, new_coef_int, new_coef_ext)
-
-        # Force recalculation with potentially updated coefficients
-        self._prop_algorithm.calculate(
-            self.target_temperature,
-            self._cur_temp,
-            self._cur_ext_temp,
-            self.last_temperature_slope,
-            self.vtherm_hvac_mode or VThermHvacMode_OFF,
-        )
-
-        return {
-            "on_time_sec": self._prop_algorithm.on_time_sec if self._prop_algorithm else 0,
-            "off_time_sec": self._prop_algorithm.off_time_sec if self._prop_algorithm else 0,
-            "on_percent": self._prop_algorithm.on_percent if self._prop_algorithm else 0,
-            "hvac_mode": str(self.vtherm_hvac_mode),
-        }
-
-    async def _on_tpi_cycle_start(self, params: dict[str, Any]):
-        """Called by AutoTpiManager when a new cycle starts."""
-        await self._fire_cycle_start_callbacks(
-            params.get("on_time_sec", 0),
-            params.get("off_time_sec", 0),
-            params.get("on_percent", 0),
-            params.get("hvac_mode", "stop")
-        )
-
     async def update_states(self, force=False):
         """Update the states of the thermostat considering the requested state and the current state"""
         changed = False
@@ -1544,17 +1368,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
                     await self.async_control_heating(force=force or sub_need_control_heating)
-
-                    if self._state_manager.current_state.is_hvac_mode_changed:
-                        if self._auto_tpi_manager:
-                            # Start cycle loop for HEAT or COOL modes, regardless of learning_active
-                            if self.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
-                                await self._auto_tpi_manager.start_cycle_loop(
-                                    self._get_tpi_data,
-                                    self._on_tpi_cycle_start
-                                )
-                            else:
-                                self._auto_tpi_manager.stop_cycle_loop()
 
             self.calculate_hvac_action()
             self.update_custom_attributes()
@@ -1602,52 +1415,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             return True
 
-        # Feed the Auto TPI manager (Before starting the cycle to apply new coeffs if any)
-        if self._auto_tpi_manager:
-            await self._auto_tpi_manager.update(
-                room_temp=self._cur_temp,
-                ext_temp=self._cur_ext_temp,
-                target_temp=self.target_temperature,
-                hvac_mode=str(self.vtherm_hvac_mode),
-                is_overpowering_detected=self.power_manager.is_overpowering_detected,
-            )
-
-            # Check if we have new learned parameters
-            new_params = await self._auto_tpi_manager.calculate()
-            if self._auto_tpi_manager.learning_active and new_params:
-                finalized_values = await self._auto_tpi_manager.process_learning_completion(new_params)
-                
-                if finalized_values:
-                    # Update local configured values to match persisted ones
-                    self._tpi_coef_int = finalized_values.get(CONF_TPI_COEF_INT, self._tpi_coef_int)
-                    self._tpi_coef_ext = finalized_values.get(CONF_TPI_COEF_EXT, self._tpi_coef_ext)
-                    
-                    # Update PropAlgorithm with the newly persisted values for the current cycle
-                    if self._prop_algorithm:
-                        self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
-                        _LOGGER.info("%s - Synced PropAlgorithm with final persisted Auto TPI coeffs: int=%.3f, ext=%.3f",
-                                      self, self._tpi_coef_int, self._tpi_coef_ext)
-        
-        # Stop here if we are off
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
-            _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
-            # A security to force stop heater if still active
-            if self.is_device_active:
-                await self.async_underlying_entity_turn_off()
-        else:
-            for under in self._underlyings:
-                await under.start_cycle(
-                    self.vtherm_hvac_mode,
-                    self._prop_algorithm.on_time_sec if self._prop_algorithm else None,
-                    self._prop_algorithm.off_time_sec if self._prop_algorithm else None,
-                    self._prop_algorithm.on_percent if self._prop_algorithm else None,
-                    force,
-                )
+        # Call specific control heating
+        await self._control_heating_specific(force)
 
         self.calculate_hvac_action()
         self.update_custom_attributes()
         self.async_write_ha_state()
         return True
+
+    async def _control_heating_specific(self, force=False):
+        """To be overridden by subclasses"""
+        pass
 
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
@@ -1835,24 +1613,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "is_sleeping": self.is_sleeping,
                 "is_locked": self.lock_manager.is_locked,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
-                "auto_tpi_state": (
-                    "on"
-                    if self._auto_tpi_manager and self._auto_tpi_manager.learning_active
-                    else "off"
-                ),
-                "auto_tpi_learning": (
-                    self._auto_tpi_manager.state.to_dict()
-                    if self._auto_tpi_manager
-                    else None
-                ),
             },
             "configuration": {
                 "ac_mode": self._ac_mode,
                 "type": self.vtherm_type,
                 "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
                 "target_temperature_step": self.target_temperature_step,
-                "minimal_activation_delay_sec": self._minimal_activation_delay,
-                "minimal_deactivation_delay_sec": self._minimal_deactivation_delay,
                 "timezone": str(self._current_tz),
                 "temperature_unit": self.temperature_unit,
                 "is_used_by_central_boiler": self.is_used_by_central_boiler,
@@ -2079,10 +1845,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if default_on_percent:
             self._safety_manager.set_safety_default_on_percent(default_on_percent)
 
-        if self._prop_algorithm:
-            self._prop_algorithm.set_safety(
-                self._safety_manager.safety_default_on_percent
-            )
 
         await self.async_control_heating()
         self.update_custom_attributes()
@@ -2114,91 +1876,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         raise NotImplementedError("service_set_hva_mode_sleep not implemented for this kind of thermostat. Only for over_climate with valve regulation is supported")
 
-    async def _async_update_tpi_config_entry(self):
-        """Update the config entry with current TPI parameters."""
-        entry = self.hass.config_entries.async_get_entry(self._unique_id)
-        if entry:
-            new_data = entry.data.copy()
-            new_data[CONF_TPI_COEF_INT] = self._tpi_coef_int
-            new_data[CONF_TPI_COEF_EXT] = self._tpi_coef_ext
-            new_data[CONF_TPI_THRESHOLD_LOW] = self._tpi_threshold_low
-            new_data[CONF_TPI_THRESHOLD_HIGH] = self._tpi_threshold_high
-            new_data[CONF_MINIMAL_ACTIVATION_DELAY] = self._minimal_activation_delay
-            new_data[CONF_MINIMAL_DEACTIVATION_DELAY] = self._minimal_deactivation_delay
-
-            result = self.hass.config_entries.async_update_entry(
-                entry, data=new_data
-            )
-            _LOGGER.debug("%s - Config entry updated with new TPI params: %s", self, result)
-
-
-    async def service_set_tpi_parameters(
-        self,
-        tpi_coef_int: float | None = None,
-        tpi_coef_ext: float | None = None,
-        minimal_activation_delay: int | None = None,
-        minimal_deactivation_delay: int | None = None,
-        tpi_threshold_low: float | None = None,
-        tpi_threshold_high: float | None = None,
-    ):
-        """Called by a service call:
-        service: versatile_thermostat.set_tpi_parameters
-        data:
-            tpi_coef_int: 0.6
-            tpi_coef_ext: 0.01
-            minimal_activation_delay: 30
-            minimal_deactivation_delay: 30
-            tpi_threshold_low: 0.1
-            tpi_threshold_high: 0.9
-        target:
-            entity_id: climate.thermostat_1
-        """
-
-        if self.lock_manager.check_is_locked("service_set_tpi_parameters"):
-            return
-
-        write_event_log(
-            _LOGGER,
-            self,
-            f"Calling SERVICE_SET_TPI_PARAMETERS, tpi_coef_int: {tpi_coef_int}, "
-            f"tpi_coef_ext: {tpi_coef_ext}"
-            f"minimal_activation_delay: {minimal_activation_delay}, "
-            f"minimal_deactivation_delay: {minimal_deactivation_delay}, "
-            f"tpi_threshold_low: {tpi_threshold_low}, "
-            f"tpi_threshold_high: {tpi_threshold_high}",
-        )
-
-        if self._prop_algorithm is None:
-            raise ServiceValidationError(f"{self} - No TPI algorithm configured for this thermostat.")
-
-        entry = self.hass.config_entries.async_get_entry(self._unique_id)
-        if not entry:
-            raise ServiceValidationError(f"{self} - No config entry has been found for this thermostat.")
-
-        if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, False):
-            raise ServiceValidationError(f"{self} - Impossible to set TPI parameters when using central TPI configuration.")
-
-        self._prop_algorithm.update_parameters(
-            tpi_coef_int,
-            tpi_coef_ext,
-            minimal_activation_delay,
-            minimal_deactivation_delay,
-            tpi_threshold_low,
-            tpi_threshold_high,
-        )
-        self._tpi_coef_int = self._prop_algorithm.tpi_coef_int
-        self._tpi_coef_ext = self._prop_algorithm.tpi_coef_ext
-        self._minimal_activation_delay = self._prop_algorithm.minimal_activation_delay
-        self._minimal_deactivation_delay = self._prop_algorithm.minimal_deactivation_delay
-        self._tpi_threshold_low = self._prop_algorithm.tpi_threshold_low
-        self._tpi_threshold_high = self._prop_algorithm.tpi_threshold_high
-
-        # Update the configuration attributes
-        await self._async_update_tpi_config_entry()
-
-        self.recalculate()
-        await self.async_control_heating(force=True)
-
     async def service_lock(self, code: str | None = None):
         """Handle the lock service call."""
 
@@ -2215,190 +1892,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if self.lock_manager.change_lock_state(False, code):
             self.update_custom_attributes()
             self.async_write_ha_state()
-
-    async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool):
-        """Called by a service call:
-        service: versatile_thermostat.set_auto_tpi_mode
-        data:
-            auto_tpi_mode: True
-        target:
-            entity_id: climate.thermostat_1
-        """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}")
-        await self.async_set_auto_tpi_mode(auto_tpi_mode)
-
-    async def service_calibrate_capacity(
-        self,
-        hvac_mode: str,
-        save_to_config: bool,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None,
-    ):
-        """Called by a service call:
-        service: versatile_thermostat.calibrate_capacity
-        data:
-            start_date: 2023-11-01T00:00:00+00:00
-            end_date: 2023-12-01T00:00:00+00:00
-            hvac_mode: heat
-            save_to_config: true
-        target:
-            entity_id: climate.thermostat_1
-        """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_CALIBRATE_CAPACITY, hvac_mode: {hvac_mode}, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}")
-
-        if not self._auto_tpi_manager:
-            raise ServiceValidationError(f"{self} - Auto TPI Manager not initialized, cannot calibrate capacity.")
-
-        # 1. Convert start_date and end_date to datetime objects and adjust for date-only selection.
-        # date selector returns 'YYYY-MM-DD' string. We convert it to a timezone-aware datetime.
-        if isinstance(start_date, str):
-            _date = dt_util.parse_date(start_date)
-            start_date = dt_util.start_of_local_day(_date) if _date else None
-            
-        if isinstance(end_date, str):
-            _date = dt_util.parse_date(end_date)
-            # When selecting an end date, we want to include the whole day.
-            # History API query is exclusive of end_time, so we set it to the start of the next day.
-            _end_day_start = dt_util.start_of_local_day(_date) if _date else None
-            end_date = _end_day_start + timedelta(days=1) if _end_day_start else None
-            
-        # 2. Determine History Time Range
-        now = self.now
-        
-        # history.get_significant_states expects timezone-aware datetime (preferably UTC)
-        # Note: start_date and end_date from above are already timezone-aware (local timezone).
-        start_time = dt_util.as_utc(start_date) if start_date is not None else now - timedelta(days=30)
-        end_time = dt_util.as_utc(end_date) if end_date is not None else now
-        
-        _LOGGER.info("%s - Calibrating capacity using history from %s to %s", self, start_time, end_time)
-        
-        entity_ids = [self.entity_id]
-        if self._ext_temp_sensor_entity_id:
-            entity_ids.append(self._ext_temp_sensor_entity_id)
-
-        states = await get_instance(self.hass).async_add_executor_job(
-            partial(
-                history.get_significant_states,
-                self.hass,
-                start_time,
-                end_time=end_time,
-                entity_ids=entity_ids,
-                significant_changes_only=False,
-            )
-        )
-
-        thermostat_history = states.get(self.entity_id, [])
-        outdoor_history = states.get(self._ext_temp_sensor_entity_id, []) if self._ext_temp_sensor_entity_id else []
-
-        _LOGGER.debug("%s - Fetched %d thermostat states and %d outdoor states for capacity calibration.",
-                      self, len(thermostat_history), len(outdoor_history))
-
-        # 3. Call Calculation
-        result = await self._auto_tpi_manager.calculate_capacity_from_history(
-            thermostat_history,
-            outdoor_history,
-            hvac_mode,
-        )
-
-        _LOGGER.info("%s - Capacity calibration result: %s", self, result)
-
-        # 4. Save (if save_to_config is True) - ONLY CAPACITY
-        if save_to_config and result and isinstance(result, dict) and result.get("success"):
-            
-            capacity = result.get("capacity")
-            is_heat_mode = hvac_mode == HVACMode.HEAT.value
-            
-            if capacity is not None:
-                await self._auto_tpi_manager.async_update_capacity_config(
-                    capacity=capacity, is_heat_mode=is_heat_mode
-                )
-                
-                mode_str = "Heating" if is_heat_mode else "Cooling"
-                _LOGGER.info("%s - %s capacity calibrated to %.3f °C/h and saved to AutoTpiManager's state and config.", self, mode_str, capacity)
-                
-                # Capacity changes don't automatically trigger a recalculate/control heating cycle,
-                # as they only affect auto-TPI calculations, not the proportional algorithm directly.
-                self.recalculate()
-
-        # Return result (as the service has a response schema defined)
-        
-        self.update_custom_attributes()
-        self.async_write_ha_state()
-
-        return result
-
-
-    async def async_set_auto_tpi_mode(self, auto_tpi_mode: bool):
-        """Set the auto TPI mode"""
-        _LOGGER.debug("%s - async_set_auto_tpi_mode called with %s", self, auto_tpi_mode)
-        if not self._auto_tpi_manager:
-            _LOGGER.warning("%s - Auto TPI Manager not initialized", self)
-            return
-
-        # Safety check: Prevent enabling learning if the feature is disabled in config
-        if auto_tpi_mode and not self._entry_infos.get(CONF_AUTO_TPI_MODE, False):
-            _LOGGER.warning("%s - Cannot start Auto TPI Learning: feature is disabled in configuration", self)
-            # Ensure it is stopped
-            await self._auto_tpi_manager.stop_learning()
-            return
-
-        if auto_tpi_mode:
-            # Use the original configured default values, not current (potentially learned) values
-            # This ensures a fresh start when restarting learning
-            await self._auto_tpi_manager.start_learning(
-                coef_int=self._auto_tpi_manager._default_coef_int,
-                coef_ext=self._auto_tpi_manager._default_coef_ext
-            )
-
-            # Sync PropAlgorithm with the configured coefficients
-            if self._prop_algorithm:
-                self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
-                _LOGGER.info("%s - PropAlgorithm synced with config: Kint=%.3f, Kext=%.3f",
-                             self, self._tpi_coef_int, self._tpi_coef_ext)
-
-            # If we enable auto_tpi, we must disable central config for TPI
-            # to avoid overriding the calculated values
-            if self._entry_infos:
-                self._entry_infos[CONF_USE_TPI_CENTRAL_CONFIG] = False
-            
-            # Persist the change to the config entry
-            entry = self.hass.config_entries.async_get_entry(self._unique_id)
-            if entry and entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, True):
-                new_data = entry.data.copy()
-                new_data[CONF_USE_TPI_CENTRAL_CONFIG] = False
-                self.hass.config_entries.async_update_entry(entry, data=new_data)
-
-            # Start timer if we are in HEAT or COOL
-            if self.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
-                await self._auto_tpi_manager.start_cycle_loop(
-                    self._get_tpi_data,
-                    self._on_tpi_cycle_start
-                )
-        else:
-            await self._auto_tpi_manager.stop_learning()
-            self._auto_tpi_manager.stop_cycle_loop()
-            
-            # Apply configured coefficients to PropAlgorithm to ensure
-            # learned values are not kept in the regulation loop
-            if self._prop_algorithm:
-                self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
-                _LOGGER.info(
-                    "%s - PropAlgorithm reset to config values: Kint=%.3f, Kext=%.3f",
-                    self, self._tpi_coef_int, self._tpi_coef_ext
-                )
-
-        # Fire event to notify potential listeners (like the switch if it existed, or UI)
-        self.hass.bus.async_fire(
-            EventType.AUTO_TPI_EVENT.value,
-            {
-                "entity_id": self.entity_id,
-                "auto_tpi_mode": self._auto_tpi_manager.learning_active,
-            },
-        )
-
-        # Force update of state attributes
-        self.update_custom_attributes()
-        self.async_write_ha_state()
 
     ##
     ## For testing purpose

@@ -195,16 +195,20 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
+        mean_power = self.my_climate.power_manager.mean_cycle_power
+        if mean_power is None:
+            return
+
         if math.isnan(
-            float(self.my_climate.power_manager.mean_cycle_power)
-        ) or math.isinf(self.my_climate.power_manager.mean_cycle_power):
+            float(mean_power)
+        ) or math.isinf(mean_power):
             raise ValueError(
-                f"Sensor has illegal state {self.my_climate.power_manager.mean_cycle_power}"
+                f"Sensor has illegal state {mean_power}"
             )
 
         old_state = self._attr_native_value
         self._attr_native_value = round(
-            self.my_climate.power_manager.mean_cycle_power,
+            mean_power,
             self.suggested_display_precision,
         )
         if old_state != self._attr_native_value:

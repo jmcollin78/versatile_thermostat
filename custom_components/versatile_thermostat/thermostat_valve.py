@@ -12,7 +12,7 @@ from homeassistant.helpers.event import (
 from homeassistant.core import Event, HomeAssistant, callback
 
 from .base_thermostat import BaseThermostat, ConfigData
-from .prop_algorithm import PropAlgorithm
+from .thermostat_tpi import ThermostatTPI
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -21,7 +21,7 @@ from .underlyings import UnderlyingValve
 
 _LOGGER = logging.getLogger(__name__)
 
-class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=abstract-method
+class ThermostatOverValve(ThermostatTPI[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -75,18 +75,7 @@ class ThermostatOverValve(BaseThermostat[UnderlyingValve]):  # pylint: disable=a
             else 0
         )
 
-        self._prop_algorithm = PropAlgorithm(
-            self._proportional_function,
-            self._tpi_coef_int,
-            self._tpi_coef_ext,
-            self._cycle_min,
-            self._minimal_activation_delay,
-            self._minimal_deactivation_delay,
-            self.name,
-            max_on_percent=self._max_on_percent,
-            tpi_threshold_low=self._tpi_threshold_low,
-            tpi_threshold_high=self._tpi_threshold_high,
-        )
+
 
         lst_valves = config_entry.get(CONF_UNDERLYING_LIST)
 

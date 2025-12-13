@@ -177,9 +177,13 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
+                on_percent = 0
+                if self._vtherm.proportional_algorithm and self._vtherm.proportional_algorithm.on_percent:
+                    on_percent = self._vtherm.proportional_algorithm.on_percent
+
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                    self._device_power * on_percent,
                 )
         return power_consumption_max
 
@@ -208,9 +212,12 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
+                on_percent = 0
+                if self._vtherm.proportional_algorithm and self._vtherm.proportional_algorithm.on_percent:
+                    on_percent = self._vtherm.proportional_algorithm.on_percent
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                    self._device_power * on_percent,
                 )
 
         vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
