@@ -1,8 +1,14 @@
 # Self-regulation
 
 - [Self-regulation](#self-regulation)
+  - [Configuration](#configuration)
+    - [Self-regulation by direct valve control](#self-regulation-by-direct-valve-control)
+      - [How to properly adjust the parameters that control the opening?](#how-to-properly-adjust-the-parameters-that-control-the-opening)
+        - [Case 1: you have a 15% dead zone on your valve (the first 15% do not allow hot water to circulate)](#case-1-you-have-a-15-dead-zone-on-your-valve-the-first-15-do-not-allow-hot-water-to-circulate)
+        - [Case 2: you never want to completely close the valve](#case-2-you-never-want-to-completely-close-the-valve)
+    - [Other self-regulation](#other-self-regulation)
       - [Self-regulation in Expert Mode](#self-regulation-in-expert-mode)
-      - [Summary of the Self-regulation Algorithm](#summary-of-the-self-regulation-algorithm)
+  - [Summary of the Auto-Regulation Algorithm](#summary-of-the-auto-regulation-algorithm)
 
 You have the option to activate the self-regulation feature only for _VTherms_ of type `over_climate`.
 
