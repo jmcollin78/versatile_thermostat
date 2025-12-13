@@ -331,6 +331,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "last_learning_status": manager.state.last_learning_status,  # Reason for last learning outcome
             "max_capacity_heat": manager.state.max_capacity_heat,
             "max_capacity_cool": manager.state.max_capacity_cool,
+            "learning_start_dt": manager.state.learning_start_date,
         }
         
         # Add calculated TPI coefficients

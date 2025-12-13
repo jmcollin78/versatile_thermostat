@@ -75,6 +75,7 @@ class AutoTpiState:
     consecutive_boosts: int = 0  # Track consecutive boost attempts
     recent_errors: list = field(default_factory=list) # Store last N errors for regime change detection
     regime_change_detected: bool = False # Flag for temporary alpha boost
+    learning_start_date: Optional[datetime] = None # Date when learning started
 
     def to_dict(self):
         return asdict(self)
@@ -83,7 +84,7 @@ class AutoTpiState:
     def from_dict(cls, data):
         d = data.copy()
         # Date conversion from ISO format
-        for date_field in ["last_update_date", "cycle_start_date", "last_heater_stop_time"]:
+        for date_field in ["last_update_date", "cycle_start_date", "last_heater_stop_time", "learning_start_date"]:
             if d.get(date_field):
                 try:
                     d[date_field] = datetime.fromisoformat(d[date_field])
@@ -404,6 +405,10 @@ class AutoTpiManager:
                  self.state.coeff_indoor_cool_autolearn = self._avg_initial_weight
                  self.state.coeff_outdoor_autolearn = 0
                  self.state.coeff_outdoor_cool_autolearn = 0
+
+            # Migration for learning_start_date: if learning is active but no date set, set it to now
+            if self.state.autolearn_enabled and self.state.learning_start_date is None:
+                self.state.learning_start_date = datetime.now()
 
             _LOGGER.info("%s - Auto TPI: State loaded. Cycles: %d, Indoor learn count: %d",
                         self._name, self.state.total_cycles, self.state.coeff_indoor_autolearn)
@@ -1049,7 +1054,8 @@ class AutoTpiManager:
             self.state.consecutive_failures += 1
             if self.state.consecutive_failures >= 3:
                 self.state.autolearn_enabled = False
-                _LOGGER.error("%s - Auto TPI: Learning disabled due to %d consecutive failures.", 
+                self.state.learning_start_date = None
+                _LOGGER.error("%s - Auto TPI: Learning disabled due to %d consecutive failures.",
                              self._name, self.state.consecutive_failures)
         else:
             self.state.consecutive_failures = 0
@@ -1837,6 +1843,7 @@ class AutoTpiManager:
         self.state.consecutive_failures = 0
         self.state.last_learning_status = "learning_started"
         self.state.autolearn_enabled = True
+        self.state.learning_start_date = datetime.now()
         self.state.cycle_start_date = datetime.now()
         self.state.cycle_active = False
         
@@ -1854,6 +1861,7 @@ class AutoTpiManager:
     async def stop_learning(self):
         _LOGGER.info("%s - Auto TPI: Stopping learning", self._name)
         self.state.autolearn_enabled = False
+        self.state.learning_start_date = None
         self.state.last_learning_status = "learning_stopped"
         await self.async_save_data()
         

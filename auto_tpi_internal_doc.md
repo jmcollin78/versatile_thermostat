@@ -216,6 +216,7 @@ Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
 *   **`heating_cycles_count`** : Nombre total de cycles observés.
 *   **`coeff_int_cycles` / `coeff_ext_cycles`** : Nombre de cycles d'apprentissage validés pour chaque coefficient.
 *   **`max_capacity_heat` / `max_capacity_cool`** : Capacité maximale détectée (en °C/h).
+*   **`learning_start_dt`** : Date et heure du début de l'apprentissage (utile pour les graphiques).
 
 ---
 
@@ -264,7 +265,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 *   **Fichier** : `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 *   **Version** : 8
-*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, et capacités maximales (`max_capacity_heat` / `max_capacity_cool`).
+*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, capacités maximales (`max_capacity_heat` / `max_capacity_cool`) et date de début (`learning_start_date`).
 *   **Restauration** : Au démarrage d'Home Assistant, le `BaseThermostat` recharge cet état. Deux actions sont effectuées au chargement :
     1.  **Clamping (Plafonnement)**: Les coefficients intérieurs (`coeff_indoor_heat`/`cool`) chargés depuis le stockage sont **immédiatement plafonnés** à la valeur configurée de `CONF_AUTO_TPI_MAX_COEF_INT` (nouvellement prise en compte après un changement de configuration). Cela garantit que si un utilisateur baisse la limite, l'ancien coefficient (si supérieur) est ramené à la nouvelle limite pour les calculs futurs.
     2.  **Application des Valeurs** : Si des coefficients valides sont trouvés, que la configuration l'autorise (`auto_tpi_enable_update_config`) **ET** que l'apprentissage est actif (`learning_active`), ils écrasent les valeurs de la configuration HA au démarrage, si ces dernières ont été écrites. Sinon, les valeurs de configuration sont utilisées.

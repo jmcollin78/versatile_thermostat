@@ -163,6 +163,7 @@ Un capteur dédié `sensor.<nom_thermostat>_auto_tpi_learning_state` permet de s
 *   `model_confidence` : Indice de confiance (0.0 à 1.0) sur la qualité des réglages.
 *   `last_learning_status` : Raison du dernier succès ou échec (ex: `learned_indoor_heat`, `power_out_of_range`).
 *   `calculated_coef_int` / `calculated_coef_ext` : Valeurs actuelles des coefficients.
+*   `learning_start_dt`: Date et heure du début de l'apprentissage (utile pour les graphiques).
 
 ## Services
 
