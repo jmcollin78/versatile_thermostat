@@ -582,7 +582,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
     def icon(self) -> str | None:
         if self._attr_native_value is None or self._attr_native_value == 0:
             return "mdi:thermometer"
-        elif self._attr_native_value > 0:
+        elif isinstance(self._attr_native_value, (int, float)) and self._attr_native_value > 0:
             return "mdi:thermometer-chevron-up"
         else:
             return "mdi:thermometer-chevron-down"
@@ -781,8 +781,9 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         for entity in component.entities:
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
-                for under in entity.activable_underlying_entities:
-                    underlying_entities_id.append(under.entity_id)
+                if entity.activable_underlying_entities:
+                    for under in entity.activable_underlying_entities:
+                        underlying_entities_id.append(under.entity_id)
         if len(underlying_entities_id) > 0:
             # Arme l'écoute de la première entité
             self._cancel_listener_nb_active = async_track_state_change_event(
