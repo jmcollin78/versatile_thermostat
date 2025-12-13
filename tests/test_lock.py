@@ -1,11 +1,10 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument
 
 """ Test the Lock feature """
-from unittest.mock import patch, call
-from datetime import timedelta, datetime
+from unittest.mock import patch
 import logging
 
-from homeassistant.core import HomeAssistant, ServiceCall, Context
+from homeassistant.core import HomeAssistant, Context, State
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.components.climate.const import PRESET_BOOST, HVACMode
 from homeassistant.const import ATTR_ENTITY_ID
@@ -229,3 +228,44 @@ async def test_lock_feature_behavior(
     with patch.object(entity, "_context", context):
         await entity.async_set_temperature(temperature=new_temp)
     assert entity.target_temperature == new_temp
+
+
+# Add a test to verify that the locked state is restored after a restart
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_lock_state_persistence(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test that the lock state is persisted across restarts"""
+    entity = await setup_thermostat(hass, True, True, "1234")
+    assert entity
+    assert entity.lock_manager.is_locked is False  # The lock state should be initially unlocked
+
+    # call the LockMangager restores_state method to simulate restoration after restart
+    old_state: State = State(
+        "climate.theoverswitchmockname",
+        "heat",
+        attributes={"specific_states": {"is_locked": True}},
+    )
+    entity.lock_manager.restore_state(old_state)
+    assert entity.lock_manager.is_locked is True  # The lock state should be restored to locked
+
+    # do anything if state is None
+    entity.lock_manager.restore_state(None)
+    assert entity.lock_manager.is_locked is True  # No change on lock state
+
+    # restore to False
+    old_state: State = State(
+        "climate.theoverswitchmockname",
+        "cool",
+        attributes={"specific_states": {"is_locked": False}},
+    )
+    entity.lock_manager.restore_state(old_state)
+    assert entity.lock_manager.is_locked is False  # The lock state should be restored to unlocked
+
+    # default to false if no specific_states found
+    old_state: State = State(
+        "climate.theoverswitchmockname",
+        "cool",
+        attributes={"an_attribute": "value"},
+    )
+    entity.lock_manager.restore_state(old_state)
+    assert entity.lock_manager.is_locked is False  # No change on lock state

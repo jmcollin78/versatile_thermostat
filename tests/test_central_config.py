@@ -96,11 +96,8 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
     assert central_configuration is not None
 
     # Test that VTherm API doesn't have any central boiler entities
-    assert api.nb_active_device_for_boiler_entity is None
-    assert api.nb_active_device_for_boiler is None
-
-    assert api.nb_active_device_for_boiler_threshold_entity is None
-    assert api.nb_active_device_for_boiler_threshold is None
+    assert api.central_boiler_manager.nb_active_device_for_boiler is None
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold is None
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -523,6 +520,7 @@ async def test_migration_of_central_config(
             "add_central_boiler_control": True,
             CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
             CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+            CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 10,
         },
     )
 
@@ -547,8 +545,5 @@ async def test_migration_of_central_config(
 
     # Test that VTherm API have any central boiler entities
     # It should have been migrated and initialized
-    assert api.nb_active_device_for_boiler_entity is not None
-    assert api.nb_active_device_for_boiler == 0
-
-    assert api.nb_active_device_for_boiler_threshold_entity is not None
-    assert api.nb_active_device_for_boiler_threshold == 1  # the default value is 1
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 0  # the default value is 0

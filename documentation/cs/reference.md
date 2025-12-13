@@ -76,6 +76,7 @@
 | ``use_central_boiler_feature``            | Přidat ovládání centrálního kotle                            | -             | -                 | -            | X                       |
 | ``central_boiler_activation_service``     | Služba aktivace kotle                                        | -             | -                 | -            | X                       |
 | ``central_boiler_deactivation_service``   | Služba deaktivace kotle                                      | -             | -                 | -            | X                       |
+| ``central_boiler_activation_delay_sec``   | Verzögerung bei der Aktivierung (Sekunden)                   | -             | -                 | -            | X                       |
 | ``used_by_controls_central_boiler``       | Indikuje, zda VTherm ovládá centrální kotel                  | X             | X                 | X            | -                       |
 | ``use_auto_start_stop_feature``           | Indikuje, zda je povolena funkce auto start/stop             | -             | X                 | -            | -                       |
 | ``auto_start_stop_level``                 | Úroveň detekce pro auto start/stop                           | -             | X                 | -            | -                       |

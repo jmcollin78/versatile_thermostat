@@ -18,11 +18,11 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
-    HVACMode,
     SERVICE_SET_HVAC_MODE,
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HUMIDITY,
     SERVICE_SET_SWING_MODE,
+    SERVICE_SET_SWING_HORIZONTAL_MODE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     SERVICE_SET_TEMPERATURE,
@@ -37,7 +37,7 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
 from .commons import round_to_nearest
 
@@ -609,7 +609,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL) and not await self.check_overpowering():
             return False
 
-        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": HVACMode(str(hvac_mode))}
+        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
@@ -674,6 +674,22 @@ class UnderlyingClimate(UnderlyingEntity):
         await self._hass.services.async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_MODE,
+            data,
+        )
+
+    async def set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """Set new target swing horizontal operation."""
+        _LOGGER.info("%s - Set swing horizontal mode: %s", self, swing_horizontal_mode)
+        if not self.is_initialized:
+            return
+        data = {
+            ATTR_ENTITY_ID: self._entity_id,
+            "swing_horizontal_mode": swing_horizontal_mode,
+        }
+
+        await self._hass.services.async_call(
+            CLIMATE_DOMAIN,
+            SERVICE_SET_SWING_HORIZONTAL_MODE,
             data,
         )
 
@@ -774,6 +790,13 @@ class UnderlyingClimate(UnderlyingEntity):
         return self._underlying_climate.swing_mode
 
     @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Get the swing_horizontal_mode of the underlying"""
+        if not self.is_initialized:
+            return None
+        return self._underlying_climate.swing_horizontal_mode
+
+    @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""
         if not self.is_initialized:
@@ -807,6 +830,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return []
         return self._underlying_climate.swing_modes
+
+    @property
+    def swing_horizontal_modes(self) -> list[str]:
+        """Get the swing_horizontal_modes"""
+        if not self.is_initialized:
+            return []
+        return self._underlying_climate.swing_horizontal_modes
 
     @property
     def temperature_unit(self) -> str:

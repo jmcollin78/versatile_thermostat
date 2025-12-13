@@ -2,7 +2,7 @@
 # pylint: disable='line-too-long'
 import logging
 
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,6 +120,7 @@ class PropAlgorithm:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
 
+            # Apply thresholds
             if (
                 # fmt: off
                 self._apply_threshold
@@ -139,11 +140,11 @@ class PropAlgorithm:
                 )
                 self._calculated_on_percent = 0
             else:
-                if self._function == PROPORTIONAL_FUNCTION_TPI:
+                if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
                 else:
-                    _LOGGER.warning(
-                        "%s - Proportional algorithm: unknown %s function. Heating will be disabled",
+                    _LOGGER.debug(
+                        "%s - Proportional algorithm: VTherm is off or unknown %s function. Heating will be disabled",
                         self._vtherm_entity_id,
                         self._function,
                     )

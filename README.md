@@ -26,6 +26,19 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.3
+1. Addition of a configurable delay before activating the central boiler.
+2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
+   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
+   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
+   - Check the `Used by central boiler` box.
+
+Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+
+The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+
+More informations [here](documentation/fr/feature-central-boiler.md).
+
 ## Release 8.2
 > Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/en/feature-lock.md)
 

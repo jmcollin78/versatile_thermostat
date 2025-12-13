@@ -111,12 +111,20 @@ async def test_tpi_calculation(
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
 
     tpi_algo.unset_safety()
-    # The calculated values for VThermHvacMode_OFF are the same as for VThermHvacMode_HEAT.
+    # For OFF mode, all values are forced to zero so that apparent power will be zero.
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_OFF)
-    assert tpi_algo.on_percent == 1
-    assert tpi_algo.calculated_on_percent == 1
-    assert tpi_algo.on_time_sec == 300
-    assert tpi_algo.off_time_sec == 0
+    assert tpi_algo.on_percent == 0
+    assert tpi_algo.calculated_on_percent == 0
+    assert tpi_algo.on_time_sec == 0
+    assert tpi_algo.off_time_sec == 300
+
+    tpi_algo.unset_safety()
+    # For SLEEP mode, all values are forced to zero so that apparent power will be zero.
+    tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_SLEEP)
+    assert tpi_algo.on_percent == 0
+    assert tpi_algo.calculated_on_percent == 0
+    assert tpi_algo.on_time_sec == 0
+    assert tpi_algo.off_time_sec == 300
 
     # If target_temp or current_temp are None, _calculated_on_percent is set to 0.
     tpi_algo.calculate(15, None, 7, 0, VThermHvacMode_OFF)
@@ -125,9 +133,7 @@ async def test_tpi_calculation(
     assert tpi_algo.on_time_sec == 0
     assert tpi_algo.off_time_sec == 300
 
-    """
-    Test the max_on_percent clamping calculations
-    """
+    # Test the max_on_percent clamping calculations
     tpi_algo._max_on_percent = 0.8
 
     # no clamping

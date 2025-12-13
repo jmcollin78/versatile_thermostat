@@ -843,6 +843,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Set the flaf follow the underlying temperature changes"""
         self._follow_underlying_temp_change = follow
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @property
     def auto_regulation_mode(self) -> str | None:
@@ -936,6 +937,28 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """
         if self.underlying_entity(0):
             return self.underlying_entity(0).swing_modes
+
+        return None
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Return the swing horizontal setting.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_horizontal_mode
+
+        return None
+
+    @property
+    def swing_horizontal_modes(self) -> list[str] | None:
+        """Return the list of available swing horizontal modes.
+
+        Requires ClimateEntityFeature.SWING_HORIZONTAL_MODE.
+        """
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).swing_horizontal_modes
 
         return None
 
@@ -1089,6 +1112,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._swing_mode = swing_mode
         self.async_write_ha_state()
 
+    @overrides
+    async def async_set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """Set new target swing horizontal operation."""
+        _LOGGER.info("%s - Set swing horizontal mode: %s", self, swing_horizontal_mode)
+        if swing_horizontal_mode is None:
+            return
+        for under in self._underlyings:
+            await under.set_swing_horizontal_mode(swing_horizontal_mode)
+        self._swing_horizontal_mode = swing_horizontal_mode
+        self.async_write_ha_state()
+
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):
         """Called by a service call:
         service: versatile_thermostat.set_auto_regulation_mode
@@ -1124,6 +1158,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         await self._send_regulated_temperature()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     async def service_set_auto_fan_mode(self, auto_fan_mode: str):
         """Called by a service call:
@@ -1150,6 +1185,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.choose_auto_fan_mode(CONF_AUTO_FAN_TURBO)
 
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     @overrides
     async def async_turn_off(self) -> None:

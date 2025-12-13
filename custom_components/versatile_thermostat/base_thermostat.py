@@ -23,7 +23,7 @@ from homeassistant.helpers.restore_state import (
 )
 from homeassistant.helpers.entity import Entity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.helpers.event import (
     async_track_state_change_event,
@@ -67,7 +67,7 @@ from .feature_lock_manager import FeatureLockManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_hvac_mode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -124,6 +124,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._ac_mode = None
 
         self._cur_temp = None
@@ -339,6 +340,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._humidity = None
         self._fan_mode = None
         self._swing_mode = None
+        self._swing_horizontal_mode = None
         self._cur_temp = None
         self._cur_ext_temp = None
 
@@ -866,7 +868,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return current operation."""
-        return to_ha_hvac_mode(self._state_manager.current_state.hvac_mode)
+        return to_legacy_ha_hvac_mode(self._state_manager.current_state.hvac_mode)
 
     @property
     def vtherm_hvac_mode(self) -> VThermHvacMode | None:
@@ -1353,10 +1355,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     # Delegate to all underlying
                     for under in self._underlyings:
                         sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
-                    self._attr_hvac_mode = str(self.vtherm_hvac_mode)
+                    self._attr_hvac_mode = to_legacy_ha_hvac_mode(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # Remove eventual overpowering if we want to turn-off
-                    if self.hvac_mode == VThermHvacMode_OFF and self.power_manager.is_overpowering_detected:
+                    if self.hvac_mode in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and self.power_manager.is_overpowering_detected:
                         await self.power_manager.set_overpowering(False)
 
                 if changed:
@@ -1858,6 +1860,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.async_control_heating()
         self.update_custom_attributes()
+        self.async_write_ha_state()
 
     async def service_set_window_bypass_state(self, window_bypass: bool):
         """Called by a service call:

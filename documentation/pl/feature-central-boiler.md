@@ -10,6 +10,9 @@
 Możesz sterować kotłem głównym. Jak długo możliwe jest jego załączanie lub wyłączanie z poziomu Home Assistanta, integracja `Versatile Thermostat` będzie w stanie kontrolować go bezpośrednio.
 
 ## Zasady
+
+<please update translation from English version>
+
 Podstawowa zasada działania jest następująca:
 1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_boiler`.
 2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem.

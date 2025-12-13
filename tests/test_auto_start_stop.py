@@ -12,9 +12,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 )
 from custom_components.versatile_thermostat.auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
-    AUTO_START_STOP_ACTION_NOTHING,
-    AUTO_START_STOP_ACTION_OFF,
-    AUTO_START_STOP_ACTION_ON,
 )
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 

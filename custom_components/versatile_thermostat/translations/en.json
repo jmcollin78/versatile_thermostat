@@ -29,23 +29,22 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
-          "lock": "Lock management",
+          "lock": "Lock",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
       },
       "lock": {
-        "title": "Lock Management",
-        "description": "The lock function prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
+        "title": "Lock management",
+        "description": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
         "data": {
           "use_lock_central_config": "Use central lock configuration",
           "lock_code": "Optional pincode (4 digits)",
-          "lock_users": "Lock will prevent user commands",
-          "lock_automations": "Lock will prevent commands from automations and integrations (ex: scheduler)"
+          "lock_users": "Lock will prevent commands from Users",
+          "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
         },
         "data_description": {
-          "use_lock_central_config": "Check to use central lock configuration. Uncheck to use lock configuration specific to this VTherm",
-          "lock_code": "The pincode to unlock the thermostat (4 digits)"
+          "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
         }
       },
       "main": {
@@ -238,11 +237,13 @@
         "description": "Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Command to turn-on",
-          "central_boiler_deactivation_service": "Command to turn-off"
+          "central_boiler_deactivation_service": "Command to turn-off",
+          "central_boiler_activation_delay_sec": "Activation delay (seconds)"
         },
         "data_description": {
           "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
         }
       },
       "valve_regulation": {
@@ -307,9 +308,22 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
-          "lock": "Lock management",
+          "lock": "Lock",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
+        }
+      },
+      "lock": {
+        "title": "Lock management - {name}",
+        "description": "The Lock feature prevents changes to a thermostat's configuration from the UI or automations while keeping the thermostat operational.",
+        "data": {
+          "use_lock_central_config": "Use central lock configuration",
+          "lock_code": "Optional pincode (4 digits)",
+          "lock_users": "Lock will prevent commands from Users",
+          "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
+        },
+        "data_description": {
+          "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
         }
       },
       "main": {
@@ -505,11 +519,13 @@
         "description": "Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
         "data": {
           "central_boiler_activation_service": "Command to turn-on",
-          "central_boiler_deactivation_service": "Command to turn-off"
+          "central_boiler_deactivation_service": "Command to turn-off",
+          "central_boiler_activation_delay_sec": "Activation delay (seconds)"
         },
         "data_description": {
           "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]"
+          "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
+          "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
         }
       },
       "valve_regulation": {
@@ -532,20 +548,6 @@
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
-        }
-      },
-      "lock": {
-        "title": "Lock Management - {name}",
-        "description": "The lock feature prevents modifications to a thermostat from the user interface or automations while keeping the thermostat operational.",
-        "data": {
-          "use_lock_central_config": "Use central lock configuration",
-          "lock_code": "Optional pincode (4 digits)",
-          "lock_users": "Lock will prevent user commands",
-          "lock_automations": "Lock will prevent commands from automations and integrations (ex: scheduler)"
-        },
-        "data_description": {
-          "use_lock_central_config": "Check to use central lock configuration. Uncheck to use lock configuration specific to this VTherm",
-          "lock_code": "The pincode to unlock the thermostat (4 digits)"
         }
       }
     },

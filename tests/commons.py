@@ -24,6 +24,7 @@ from homeassistant.const import (
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.event import async_call_later
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
@@ -237,6 +238,7 @@ FULL_CENTRAL_CONFIG_WITH_BOILER = {
     CONF_USE_CENTRAL_BOILER_FEATURE: True,
     CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_on",
     CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.pompe_chaudiere/switch.turn_off",
+    CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 0,
 }
 
 
@@ -256,6 +258,10 @@ class MockClimate(ClimateEntity):
         hvac_action: HVACAction = HVACAction.OFF,
         fan_modes: list[str] | None = None,
         hvac_modes: list[str] | None = None,
+        swing_mode: str | None = None,
+        swing_modes: list[str] | None = None,
+        swing_horizontal_mode: str | None = None,
+        swing_horizontal_modes: list[str] | None = None,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -270,6 +276,10 @@ class MockClimate(ClimateEntity):
         self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
         self._attr_hvac_mode = hvac_mode
         self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
+        self._attr_swing_mode = swing_mode
+        self._attr_swing_modes = swing_modes
+        self._attr_swing_horizontal_mode = swing_horizontal_mode
+        self._attr_swing_horizontal_modes = swing_horizontal_modes
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
@@ -310,7 +320,11 @@ class MockClimate(ClimateEntity):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        self.async_write_ha_state()
+        try:
+            # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
+            self.async_write_ha_state()
+        except RuntimeError:
+            pass
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -330,6 +344,16 @@ class MockClimate(ClimateEntity):
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
+        self.async_write_ha_state()
+
+    def set_swing_mode(self, swing_mode):
+        """The swing mode"""
+        self._attr_swing_mode = swing_mode
+        self.async_write_ha_state()
+
+    def set_swing_horizontal_mode(self, swing_horizontal_mode):
+        """The swing horizontal mode"""
+        self._attr_swing_horizontal_mode = swing_horizontal_mode
         self.async_write_ha_state()
 
 
@@ -420,11 +444,21 @@ class MagicMockClimate(MagicMock):
         return None
 
     @property
+    def swing_horizontal_modes(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> list[str] | None:
+        return None
+
+    @property
     def fan_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
         return None
 
     @property
     def swing_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
         return None
 
     @property
@@ -1152,7 +1186,7 @@ async def set_all_climate_preset_temp(
             number_entity_name,
             NUMBER_DOMAIN,
         )
-        assert temp_entity
+        assert temp_entity is not None, f"Cannot find temperature number entity '{number_entity_name}'. Check if central preset is used."
         if not temp_entity:
             raise ConfigurationNotCompleteError(
                 f"'{number_entity_name}' don't exists as number entity"
