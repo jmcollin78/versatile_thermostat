@@ -1,4 +1,6 @@
 # Warning: For automatic run of test in Gitlab CI, we must not include other things that pytest-homeassistant-custom-component
+# full reload dependencies: pip cache purge && pip install --use-feature=fast-deps -r requirements_test.txt
+# list all version of pytest-homeassistant-custom-component: pip index versions pytest-homeassistant-custom-component
 -r requirements_dev.txt
 aiodiscover
 ulid_transform
