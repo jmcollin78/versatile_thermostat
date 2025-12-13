@@ -12,12 +12,20 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.13
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_test.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -36,11 +44,11 @@ jobs:
             tests
 
       - name: Coverage
-        if: 0
+        if: false
         run: |
           coverage run -m pytest tests/
           coverage report
 
       - name: Generate HTML Coverage Report
-        if: 0
+        if: false
         run: coverage html
