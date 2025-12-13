@@ -1,5 +1,5 @@
 # pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
-""" Test the Window management """
+"""Test the Window management"""
 import logging
 from unittest.mock import patch, PropertyMock, MagicMock
 
@@ -8,7 +8,7 @@ from homeassistant.components.climate import HVACMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.state_manager import StateManager
 from custom_components.versatile_thermostat.vtherm_state import VThermState
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_DRY
 from custom_components.versatile_thermostat.vtherm_preset import VThermPreset
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -66,9 +66,9 @@ async def test_state_manager_create(
 
     json = state_manager.current_state.to_dict()
     assert json == {
-       "hvac_mode": str(VThermHvacMode_HEAT),
-       "preset": str(VThermPreset.ECO),
-       "target_temperature": 22,
+        "hvac_mode": str(VThermHvacMode_HEAT),
+        "preset": str(VThermPreset.ECO),
+        "target_temperature": 22,
     }
 
     json["hvac_mode"] = str(VThermHvacMode_COOL)
@@ -79,6 +79,7 @@ async def test_state_manager_create(
     assert restored_state.hvac_mode == VThermHvacMode_COOL
     assert restored_state.preset == VThermPreset.BOOST
     assert restored_state.target_temperature == 24
+
 
 async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     """Test saving and restoring the VTherm states with new format"""
@@ -106,10 +107,9 @@ async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     mock_state = MagicMock()
     mock_state.state = HVACMode.OFF
     mock_state.attributes = state_dict
-    with patch.object(vtherm_restored, 'async_get_last_state', return_value=mock_state):
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
         # Create a new thermostat instance to simulate restoration
         await vtherm_restored.get_my_previous_state()
-
 
     # Check that the current state has been restored
     assert vtherm_restored.current_state.hvac_mode == VThermHvacMode_HEAT
@@ -120,6 +120,7 @@ async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     assert vtherm_restored.requested_state.hvac_mode == VThermHvacMode_COOL
     assert vtherm_restored.requested_state.preset == VThermPreset.COMFORT
     assert vtherm_restored.requested_state.target_temperature == 23
+
 
 async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     """Test saving and restoring the VTherm states with old format (ie retrocompatibility)"""
@@ -134,7 +135,7 @@ async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     mock_state = MagicMock()
     mock_state.attributes = state_dict
     mock_state.state = HVACMode.HEAT
-    with patch.object(vtherm_restored, 'async_get_last_state', return_value=mock_state):
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
         # Create a new thermostat instance to simulate restoration
         await vtherm_restored.get_my_previous_state()
 
@@ -470,3 +471,86 @@ async def test_state_manager_calculate_current_target_temperature(
         fake_vtherm.set_temperature_reason.assert_called_with(expected_temperature_reason)
     else:
         fake_vtherm.set_temperature_reason.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "ac_mode, requested_hvac_mode, is_humidity_configured, is_humidity_too_high, on_percent, hvac_modes_include_dry, expected_hvac_mode",
+    # fmt: off
+    [
+        # AC mode, COOL requested, humidity configured, humidity too high, cooling not needed -> DRY
+        (True,  VThermHvacMode_COOL, True,  True,  0.0,   True,  VThermHvacMode_DRY),
+        # AC mode, COOL requested, humidity configured, humidity too high, cooling needed -> COOL (priority)
+        (True,  VThermHvacMode_COOL, True,  True,  0.1,   True,  VThermHvacMode_COOL),
+        # AC mode, COOL requested, humidity configured, humidity OK -> COOL
+        (True,  VThermHvacMode_COOL, True,  False, 0.0,   True,  VThermHvacMode_COOL),
+        # AC mode, COOL requested, humidity not configured -> COOL
+        (True,  VThermHvacMode_COOL, False, False, 0.0,   True,  VThermHvacMode_COOL),
+        # Not AC mode -> COOL (humidity control doesn't apply)
+        (False, VThermHvacMode_COOL, True,  True,  0.0,   True,  VThermHvacMode_COOL),
+        # HEAT requested -> HEAT (humidity control doesn't apply)
+        (True,  VThermHvacMode_HEAT, True,  True,  0.0,   True,  VThermHvacMode_HEAT),
+        # DRY mode not available -> COOL
+        (True,  VThermHvacMode_COOL, True,  True,  0.0,   False, VThermHvacMode_COOL),
+        # Cooling needed (on_percent > 0.05) -> COOL takes priority
+        (True,  VThermHvacMode_COOL, True,  True,  0.06,  True,  VThermHvacMode_COOL),
+    ],
+    # fmt: on
+)
+async def test_state_manager_humidity_control(
+    hass: HomeAssistant,
+    ac_mode: bool,
+    requested_hvac_mode: VThermHvacMode,
+    is_humidity_configured: bool,
+    is_humidity_too_high: bool,
+    on_percent: float,
+    hvac_modes_include_dry: bool,
+    expected_hvac_mode: VThermHvacMode,
+) -> None:
+    """Test the state manager's humidity control integration."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=False)
+    type(fake_vtherm).is_sleeping = PropertyMock(return_value=False)
+    type(fake_vtherm).hvac_off_reason = PropertyMock(return_value=None)
+    type(fake_vtherm).ac_mode = PropertyMock(return_value=ac_mode)
+    type(fake_vtherm).last_central_mode = PropertyMock(return_value=None)
+
+    hvac_modes = [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
+    if hvac_modes_include_dry:
+        hvac_modes.append(VThermHvacMode_DRY)
+    type(fake_vtherm).vtherm_hvac_modes = PropertyMock(return_value=hvac_modes)
+
+    fake_vtherm.set_hvac_off_reason = MagicMock()
+
+    state_manager = StateManager()
+    state_manager.requested_state.set_state(hvac_mode=requested_hvac_mode, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.current_state.set_state(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.requested_state.reset_changed()
+    state_manager.current_state.reset_changed()
+
+    # Mock managers
+    fake_vtherm.safety_manager = MagicMock()
+    type(fake_vtherm.safety_manager).is_safety_detected = PropertyMock(return_value=False)
+    type(fake_vtherm.safety_manager).safety_default_on_percent = PropertyMock(return_value=0.1)
+
+    fake_vtherm.window_manager = MagicMock()
+    type(fake_vtherm.window_manager).is_window_detected = PropertyMock(return_value=False)
+    type(fake_vtherm.window_manager).window_action = PropertyMock(return_value=CONF_WINDOW_TURN_OFF)
+
+    fake_vtherm.auto_start_stop_manager = None
+
+    fake_vtherm.humidity_manager = MagicMock()
+    type(fake_vtherm.humidity_manager).is_configured = PropertyMock(return_value=is_humidity_configured)
+    type(fake_vtherm.humidity_manager).is_humidity_too_high = PropertyMock(return_value=is_humidity_too_high)
+    type(fake_vtherm.humidity_manager).current_humidity = PropertyMock(return_value=65.0 if is_humidity_too_high else 50.0)
+    type(fake_vtherm.humidity_manager).humidity_threshold = PropertyMock(return_value=60.0)
+
+    # Mock proportional algorithm
+    fake_vtherm.proportional_algorithm = MagicMock()
+    type(fake_vtherm.proportional_algorithm).on_percent = PropertyMock(return_value=on_percent)
+
+    ret = await state_manager.calculate_current_hvac_mode(fake_vtherm)
+
+    assert state_manager.current_state.hvac_mode == expected_hvac_mode
+    # Should return True if mode changed
+    assert ret == (expected_hvac_mode != VThermHvacMode_OFF)
