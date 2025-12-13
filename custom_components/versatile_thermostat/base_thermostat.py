@@ -1137,16 +1137,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def power_percent(self) -> float | None:
         """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo
         Get the current on_percent value"""
-        if hasattr(self, "_prop_algorithm") and self._prop_algorithm and self._prop_algorithm.on_percent is not None:
-            return round(self._prop_algorithm.on_percent * 100, 0)
+        prop_algo = getattr(self, '_prop_algorithm', None)
+        if prop_algo and prop_algo.on_percent is not None:
+            return round(prop_algo.on_percent * 100, 0)
         else:
             return None
 
     @property
     def on_percent(self) -> float | None:
         """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
-        if hasattr(self, "_prop_algorithm") and self._prop_algorithm and self._prop_algorithm.on_percent is not None:
-            return self._prop_algorithm.on_percent
+        prop_algo = getattr(self, '_prop_algorithm', None)
+        if prop_algo and prop_algo.on_percent is not None:
+            return prop_algo.on_percent
         else:
             return None
 
