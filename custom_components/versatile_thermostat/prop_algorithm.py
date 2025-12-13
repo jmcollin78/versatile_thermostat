@@ -237,12 +237,12 @@ class PropAlgorithm:
 
     def update_parameters(
         self,
-        tpi_coef_int,
-        tpi_coef_ext,
-        minimal_activation_delay,
-        minimal_deactivation_delay,
-        tpi_threshold_low,
-        tpi_threshold_high,
+        tpi_coef_int=None,
+        tpi_coef_ext=None,
+        minimal_activation_delay=None,
+        minimal_deactivation_delay=None,
+        tpi_threshold_low=None,
+        tpi_threshold_high=None,
     ):
         """Update the parameters of the algorithm"""
         if tpi_coef_int is not None:
@@ -324,13 +324,3 @@ class PropAlgorithm:
         """Returns the minimal deactivation delay"""
         return self._minimal_deactivation_delay
 
-    def update_tpi_coef(self, tpi_coef_int, tpi_coef_ext):
-        """Update the TPI coefficients"""
-        self._tpi_coef_int = tpi_coef_int
-        self._tpi_coef_ext = tpi_coef_ext
-        _LOGGER.debug(
-            "%s - Proportional algorithm: TPI coefficients updated. int: %s, ext: %s",
-            self._vtherm_entity_id,
-            self._tpi_coef_int,
-            self._tpi_coef_ext,
-        )

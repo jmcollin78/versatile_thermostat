@@ -198,7 +198,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
                 if new_coef_int != self._prop_algorithm.tpi_coef_int or \
                    new_coef_ext != self._prop_algorithm.tpi_coef_ext:
-                    self._prop_algorithm.update_tpi_coef(new_coef_int, new_coef_ext)
+                    self._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
                     _LOGGER.debug("%s - Synced TPI coeffs before cycle: int=%.3f, ext=%.3f",
                                   self, new_coef_int, new_coef_ext)
 
@@ -246,7 +246,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                     
                     # Update PropAlgorithm with the newly persisted values for the current cycle
                     if self._prop_algorithm:
-                        self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
+                        self._prop_algorithm.update_parameters(tpi_coef_int=self._tpi_coef_int, tpi_coef_ext=self._tpi_coef_ext)
                         _LOGGER.info("%s - Synced PropAlgorithm with final persisted Auto TPI coeffs: int=%.3f, ext=%.3f",
                                       self, self._tpi_coef_int, self._tpi_coef_ext)
         
@@ -517,7 +517,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
             # Sync PropAlgorithm with the configured coefficients
             if self._prop_algorithm:
-                self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
+                self._prop_algorithm.update_parameters(tpi_coef_int=self._tpi_coef_int, tpi_coef_ext=self._tpi_coef_ext)
                 _LOGGER.info("%s - PropAlgorithm synced with config: Kint=%.3f, Kext=%.3f",
                              self, self._tpi_coef_int, self._tpi_coef_ext)
 
@@ -546,7 +546,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             # Apply configured coefficients to PropAlgorithm to ensure
             # learned values are not kept in the regulation loop
             if self._prop_algorithm:
-                self._prop_algorithm.update_tpi_coef(self._tpi_coef_int, self._tpi_coef_ext)
+                self._prop_algorithm.update_parameters(tpi_coef_int=self._tpi_coef_int, tpi_coef_ext=self._tpi_coef_ext)
                 _LOGGER.info(
                     "%s - PropAlgorithm reset to config values: Kint=%.3f, Kext=%.3f",
                     self, self._tpi_coef_int, self._tpi_coef_ext

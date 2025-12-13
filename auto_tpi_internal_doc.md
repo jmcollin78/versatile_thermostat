@@ -302,7 +302,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 *   **Arrêt de l'apprentissage (`stop_learning`)** : L'appel à `stop_learning()` (ex: via le service `set_auto_tpi_mode` avec `auto_tpi_mode: false`) provoque :
     *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête.
     *   **Préservation de l'état** : Tous les attributs appris (coefficients, compteurs, capacités) sont **conservés** en mémoire et persistés. Cela permet de reprendre l'apprentissage ultérieurement sans perdre les données acquises.
-    *   **Synchronisation PropAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`PropAlgorithm.update_tpi_coef()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
+    *   **Synchronisation PropAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`PropAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
 
 ## 9. Flux de Configuration (Config Flow)
     
