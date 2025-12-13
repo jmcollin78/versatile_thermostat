@@ -254,3 +254,122 @@ set_tpi_parameters:
                     step: 0.1
                     mode: box
                     unit_of_measurement: "°"
+
+set_auto_tpi_mode:
+    name: Set Auto TPI mode
+    description: Enable or disable the Auto TPI learning mode.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        auto_tpi_mode:
+            name: Auto TPI mode
+            description: Enable (true) or disable (false) the Auto TPI learning
+            required: true
+            advanced: false
+            default: true
+            selector:
+                boolean:
+
+
+calibrate_capacity:
+    name: Calibrate Capacity
+    description: Calibrate the heating/cooling capacity (in min/°) using linear regression on the entity's history data.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        start_date:
+            name: History from date
+            description: Date from which to retrieve history (default is 30 days ago)
+            required: false
+            advanced: false
+            example: "2023-11-01"
+            selector:
+                date:
+        end_date:
+            name: History to date
+            description: Date until which to retrieve history (default is now)
+            required: false
+            advanced: false
+            example: "2023-12-01"
+            selector:
+                date:
+        hvac_mode:
+            name: HVAC Mode
+            description: Which mode to calibrate (heat or cool)
+            required: true
+            advanced: false
+            example: "heat"
+            selector:
+                select:
+                    options:
+                        - "heat"
+                        - "cool"
+        save_to_config:
+            name: Save to Config
+            description: Whether to apply the calculated capacity to the entity's configuration
+            required: true
+            advanced: false
+            example: true
+            selector:
+                boolean:
+
+    response:
+        success:
+            name: Success
+            description: Whether the calibration was successful.
+            selector:
+                boolean:
+        capacity:
+            name: Calculated Capacity
+            description: The calculated capacity (in °C/h).
+            selector:
+                number:
+                    min: 0
+                    max: 1.0
+                    step: 0.001
+                    mode: box
+                    unit_of_measurement: "°/h"
+        cycles_used:
+            name: Cycles Used
+            description: Number of heating/cooling cycles used for calibration.
+            selector:
+                number:
+                    min: 0
+                    mode: box
+        reliability:
+            name: Reliability
+            description: Reliability of the calibration (in %).
+            selector:
+                number:
+                    min: 0
+                    max: 100
+                    mode: box
+                    unit_of_measurement: "%"
+        k_ext:
+            name: K_ext
+            description: Estimated external heat loss coefficient (slope).
+            selector:
+                number:
+                    mode: box
+        min_power_threshold:
+            name: Min Power Threshold
+            description: Power threshold used to filter cycles.
+            selector:
+                number:
+                    min: 0
+                    max: 1.0
+                    mode: box
+        period:
+            name: Period
+            description: Period of history analyzed (in days).
+            selector:
+                number:
+                    min: 0
+                    mode: box
+                    unit_of_measurement: "days"

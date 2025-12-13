@@ -323,3 +323,14 @@ class PropAlgorithm:
     def minimal_deactivation_delay(self) -> int:
         """Returns the minimal deactivation delay"""
         return self._minimal_deactivation_delay
+
+    def update_tpi_coef(self, tpi_coef_int, tpi_coef_ext):
+        """Update the TPI coefficients"""
+        self._tpi_coef_int = tpi_coef_int
+        self._tpi_coef_ext = tpi_coef_ext
+        _LOGGER.debug(
+            "%s - Proportional algorithm: TPI coefficients updated. int: %s, ext: %s",
+            self._vtherm_entity_id,
+            self._tpi_coef_int,
+            self._tpi_coef_ext,
+        )

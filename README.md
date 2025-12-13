@@ -116,7 +116,7 @@ The documentation is now divided into several pages for easier reading and searc
 16. [Central heating control](documentation/en/feature-central-boiler.md)
 17. [Advanced aspects, security mode](documentation/en/feature-advanced.md)
 18. [Self-regulation](documentation/en/self-regulation.md)
-19. [Tuning examples](documentation/en/tuning-examples.md)
+19. [Auto TPI learning](documentation/en/feature-autotpi.md)
 20. [Algorithms](documentation/en/algorithms.md)
 21. [Lock / Unlock](documentation/en/feature-lock.md)
 22. [Reference documentation](documentation/en/reference.md)
