@@ -167,7 +167,7 @@ Un capteur dédié `sensor.<nom_thermostat>_auto_tpi_learning_state` permet de s
 
 ## Services
 
-### Service de Calibration (`versatile_thermostat.calibrate_capacity`)
+### Service de Calibration (`versatile_thermostat.auto_tpi_calibrate_capacity`)
 
 
 Ce service permet d'estimer la **Capacité Maximale** de votre système (`max_capacity` en °C/h) en se basant sur une analyse statistique de vos cycles de chauffe passés à pleine puissance.
@@ -177,7 +177,7 @@ Ce service permet d'estimer la **Capacité Maximale** de votre système (`max_ca
 
 
 ```yaml
-service: versatile_thermostat.calibrate_capacity
+service: versatile_thermostat.auto_tpi_calibrate_capacity
 target:
   entity_id: climate.my_thermostat
 data:

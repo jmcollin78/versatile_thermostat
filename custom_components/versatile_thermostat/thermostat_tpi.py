@@ -392,7 +392,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}")
         await self.async_set_auto_tpi_mode(auto_tpi_mode)
 
-    async def service_calibrate_capacity(
+    async def service_auto_tpi_calibrate_capacity(
         self,
         hvac_mode: str,
         save_to_config: bool,
@@ -400,7 +400,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         end_date: datetime | None = None,
     ):
         """Called by a service call:
-        service: versatile_thermostat.calibrate_capacity
+        service: versatile_thermostat.auto_tpi_calibrate_capacity
         data:
             start_date: 2023-11-01T00:00:00+00:00
             end_date: 2023-12-01T00:00:00+00:00
@@ -409,7 +409,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_CALIBRATE_CAPACITY, hvac_mode: {hvac_mode}, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}")
+        write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, hvac_mode: {hvac_mode}, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}")
 
         if not self._auto_tpi_manager:
             raise ServiceValidationError(f"{self} - Auto TPI Manager not initialized, cannot calibrate capacity.")

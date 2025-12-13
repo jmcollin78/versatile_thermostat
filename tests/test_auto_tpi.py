@@ -232,7 +232,7 @@ async def test_cycle_lifecycle(manager):
     assert manager.state.total_cycles == 1
 
 
-# Fixture for mocked BaseThermostat with service_calibrate_capacity
+# Fixture for mocked BaseThermostat with service_auto_tpi_calibrate_capacity
 @pytest.fixture
 def mock_vtherm_for_capacity():
     """Mock a BaseThermostat that is able to return a dummy manager and mock the service dependencies"""
@@ -269,7 +269,7 @@ def mock_vtherm_for_capacity():
             vtherm.auto_tpi_manager.state.max_capacity_heat = res.get("capacity")
 
     # Set the service method on the mock to be an AsyncMock with the logic
-    vtherm.service_calibrate_capacity = AsyncMock(side_effect=mock_service_calibrate_capacity_impl)
+    vtherm.service_auto_tpi_calibrate_capacity = AsyncMock(side_effect=mock_service_calibrate_capacity_impl)
     
     return vtherm
 
@@ -292,8 +292,8 @@ async def test_service_calibrate_capacity(mock_vtherm_for_capacity):
         ]
         mock_get_history.return_value = mock_history_states
 
-        # 1. Simulate the service call - assuming BaseThermostat.service_calibrate_capacity is now correct
-        await vtherm.service_calibrate_capacity(
+        # 1. Simulate the service call - assuming BaseThermostat.service_auto_tpi_calibrate_capacity is now correct
+        await vtherm.service_auto_tpi_calibrate_capacity(
             "climate.test_thermostat",
             "sensor.outdoor_temp",
             10, # cycle_time_min

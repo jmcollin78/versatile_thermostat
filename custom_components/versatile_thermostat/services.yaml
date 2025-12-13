@@ -274,8 +274,8 @@ set_auto_tpi_mode:
                 boolean:
 
 
-calibrate_capacity:
-    name: Calibrate Capacity
+auto_tpi_calibrate_capacity:
+    name: Auto Tpi Calibrate Capacity
     description: Calibrate the heating/cooling capacity (in min/°) using linear regression on the entity's history data.
     target:
         entity:

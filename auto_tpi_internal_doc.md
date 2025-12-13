@@ -140,7 +140,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
  **Algorithme de calcul Indoor :**
  1.  **Sécurité** : `real_rise` doit être > 0.01°C (filtrage du bruit capteur).
  2.  **Capacité de Référence (`ref_capacity`)** :
-     *   La Capacité de Référence est la **capacité adiabatique** du système (mesurée en °C/h). Elle est calculée de manière externe par le service **`calibrate_capacity`** et stockée dans `max_capacity_heat`/`cool`.
+     *   La Capacité de Référence est la **capacité adiabatique** du système (mesurée en °C/h). Elle est calculée de manière externe par le service **`auto_tpi_calibrate_capacity`** et stockée dans `max_capacity_heat`/`cool`.
      *   *Fallback* : Si aucune capacité n'est encore calibrée (`max_capacity` <= 0), on utilise une valeur par défaut de **1.0 °C/h** pour permettre le démarrage de l'apprentissage du Kint.
      *   **Si la capacité est nulle ou non définie** (et qu'aucun fallback ne s'applique), l'apprentissage est sauté pour ce cycle (statut `no_capacity_defined`).
  3.  **Calcul de la Capacité Effective (Seuil de Saturation Dynamique)** :
@@ -270,7 +270,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     1.  **Clamping (Plafonnement)**: Les coefficients intérieurs (`coeff_indoor_heat`/`cool`) chargés depuis le stockage sont **immédiatement plafonnés** à la valeur configurée de `CONF_AUTO_TPI_MAX_COEF_INT` (nouvellement prise en compte après un changement de configuration). Cela garantit que si un utilisateur baisse la limite, l'ancien coefficient (si supérieur) est ramené à la nouvelle limite pour les calculs futurs.
     2.  **Application des Valeurs** : Si des coefficients valides sont trouvés, que la configuration l'autorise (`auto_tpi_enable_update_config`) **ET** que l'apprentissage est actif (`learning_active`), ils écrasent les valeurs de la configuration HA au démarrage, si ces dernières ont été écrites. Sinon, les valeurs de configuration sont utilisées.
 *   **Sécurité Concurrente** : L'écriture du fichier est protégée par un `asyncio.Lock` (`_save_lock`) pour éviter les "Race Conditions" si plusieurs sauvegardes sont déclenchées simultanément (ex: fin de cycle + interaction utilisateur). Cela garantit que le fichier temporaire `.tmp` n'est pas écrasé par un autre thread avant d'être renommé.
-*   **Nouveau Service de Calibration (`calibrate_capacity`)** :
+*   **Nouveau Service de Calibration (`auto_tpi_calibrate_capacity`)** :
     *   Ce service remplace la détection de capacité en temps réel (anciennement `_detect_max_capacity`).
     *   **Objectif** : Utiliser un historique de cycles à pleine puissance pour déterminer la Capacité Maximale du système (`max_capacity`) via une **régression linéaire**. La capacité correspond à l'ordonnée à l'origine (Intercept) de la régression : $Slope_{obs} = Capacity - K_{ext} \cdot \Delta T$.
     *   **Détermination des Coefficients** :

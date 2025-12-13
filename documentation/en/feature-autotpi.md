@@ -170,7 +170,7 @@ A dedicated sensor `sensor.<thermostat_name>_auto_tpi_learning_state` allows tra
 
 ## Services
 
-### Calibration Service (`versatile_thermostat.calibrate_capacity`)
+### Calibration Service (`versatile_thermostat.auto_tpi_calibrate_capacity`)
 
 This service estimates the **Maximum Capacity** of your system (`max_capacity` in °C/h) based on a statistical analysis of your past heating cycles at full power.
 
@@ -178,7 +178,7 @@ This service estimates the **Maximum Capacity** of your system (`max_capacity` i
 > **Taking into Account Minimal Deactivation Delay** : The analysis of full-power cycles considers the configured `minimal_deactivation_delay`. If the calculated TPI power is higher than the minimal power required for the relay to stay **continuously ON** (due to the deactivation delay constraint), the cycle is included in the regression to ensure an accurate capacity estimation.
 
 ```yaml
-service: versatile_thermostat.calibrate_capacity
+service: versatile_thermostat.auto_tpi_calibrate_capacity
 target:
   entity_id: climate.my_thermostat
 data:

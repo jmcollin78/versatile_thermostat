@@ -832,8 +832,8 @@
       "name": "Réinitialiser les Capacités Auto TPI",
       "description": "Réinitialise les capacités maximales de chauffage et de refroidissement à 1.0 °C/h. Les coefficients appris ne sont PAS réinitialisés."
     },
-    "calibrate_capacity": {
-      "name": "Calibrer la Capacité",
+    "auto_tpi_calibrate_capacity": {
+      "name": "Auto Tpi Calibrer la Capacité",
       "description": "Calibre la capacité de chauffage/refroidissement (en °C/heure) en utilisant la régression linéaire sur les données d'historique de l'entité. Les coefficients TPI appris ne sont PAS mis à jour.",
       "fields": {
         "from": {

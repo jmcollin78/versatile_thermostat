@@ -174,14 +174,14 @@ async def async_setup_entry(
     )
 
     platform.async_register_entity_service(
-        SERVICE_CALIBRATE_CAPACITY,
+        SERVICE_AUTO_TPI_CALIBRATE_CAPACITY,
         {
             vol.Optional("start_date"): selector.DateTimeSelector(),
             vol.Optional("end_date"): selector.DateTimeSelector(),
             vol.Required("hvac_mode"): vol.In(["heat", "cool"]),
             vol.Optional("save_to_config", default=False): vol.In([True, False]),
         },
-        "service_calibrate_capacity",
+        "service_auto_tpi_calibrate_capacity",
         supports_response=SupportsResponse.OPTIONAL,
     )
 

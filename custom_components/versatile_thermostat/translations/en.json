@@ -844,8 +844,8 @@
       "name": "Reset Auto TPI Capacities",
       "description": "Reset the learned maximum heating and cooling capacities to 1.0 °C/h. Learned coefficients are NOT reset."
     },
-    "calibrate_capacity": {
-      "name": "Calibrate Capacity",
+    "auto_tpi_calibrate_capacity": {
+      "name": "Auto Tpi Calibrate Capacity",
       "description": "Calibrate the heating/cooling capacity (in °C/hour) using linear regression on the entity's history data. Learned coefficients are NOT updated.",
       "fields": {
         "from": {
