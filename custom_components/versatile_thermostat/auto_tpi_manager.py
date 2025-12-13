@@ -406,10 +406,6 @@ class AutoTpiManager:
                  self.state.coeff_outdoor_autolearn = 0
                  self.state.coeff_outdoor_cool_autolearn = 0
 
-            # Migration for learning_start_date: if learning is active but no date set, set it to now
-            if self.state.autolearn_enabled and self.state.learning_start_date is None:
-                self.state.learning_start_date = datetime.now()
-
             _LOGGER.info("%s - Auto TPI: State loaded. Cycles: %d, Indoor learn count: %d",
                         self._name, self.state.total_cycles, self.state.coeff_indoor_autolearn)
         else:
@@ -899,7 +895,7 @@ class AutoTpiManager:
             self._name, gap_in, self.state.last_power * 100
         )
 
-        ratio_influence = gap_in / gap_out
+        # ratio_influence = gap_in / gap_out
         current_indoor = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
         current_outdoor = self.state.coeff_outdoor_cool if is_cool else self.state.coeff_outdoor_heat
         
