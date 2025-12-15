@@ -74,7 +74,7 @@
 | ``use_central_boiler_feature``            | Dodanie sterowania kotłem głównym                                 | -                              | -                          | -                         | X                           |
 | ``central_boiler_activation_service``     | Usługa aktywacji kotła                                            | -                              | -                          | -                         | X                           |
 | ``central_boiler_deactivation_service``   | Usługa deaktywacji kotła                                          | -                              | -                          | -                         | X                           |
-| ``central_boiler_activation_delay_sec``   | Opóźnienie załączenia (w sekundach)                               | -                              | -                          | -                         | X                           |
+| ``central_boiler_activation_delay_sec``   | Zwłoka załączenia (w sekundach)                                   | -                              | -                          | -                         | X                           |
 | ``used_by_controls_central_boiler``       | Wskaźnik sterowania kotła termostatem                             | X                              | X                          | X                         | -                           |
 | ``use_auto_start_stop_feature``           | Wskażnik załączenia funkcji autoSTART/autoSTOP                    | -                              | X                          | -                         | -                           |
 | ``auto_start_stop_level``                 | Poziom detekcji autoSTART/autoSTOP                                | -                              | X                          | -                         | -                           |
@@ -245,20 +245,67 @@ Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i oblicza
 
 ![image](images/dev-tools-climate.png)
 
-Atrybuty własne są następujace:
+### Atrybuty własne są następujace:
 
 | Atrybut                            | Znaczenie                                                                                                           |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | ``hvac_modes``                     | Lista trybów obsługiwanych przez termostat                                                                          |
 | ``temp_min``                       | Temperatura minimana                                                                                                |
 | ``temp_max``                       | Temperatura maksymalna                                                                                              |
-| ``preset_modes``                   | Preset widoczny dla tego termostatu. Ukryte ustawienia nie są tu wyświetlane.                                       |
-| ``temperature_actuelle``           | Aktualna temperatura raportowana przez czujnik                                                                      |
+| ``target_temp_step``               | Krok temperatury docelowej                                                                                          |
+| ``preset_modes``                   | Preset dostępny dla termostatu. Ukryte ustawienia nie są tu wyświetlane.                                            |
+| ``current_temperature``            | Aktualna temperatura raportowana przez czujnik                                                                      |
 | ``temperature``                    | Temperatura docelowa                                                                                                |
 | ``action_hvac``                    | Akcja aktualnie wykonywana przez grzejnik. Może być `idle` lub `heating`.                                           |
 | ``preset_mode``                    | Aktualnie wybrany preset. Może być jednym z `preset_modes` lub ukrytym presetem, np. `moc`                          |
-| ``[eco/confort/boost]_temp``       | Temperatura skonfigurowana dla presetu `xxx`                                                                        |
-| ``[eco/confort/boost]_away_temp``  | Temperatura skonfigurowana dla presetu `xxx`, gdy `obecność` jest wyłączona lub ma wartość `not_home`.              |
+| ``hvac_mode``                      | Aktualnie wybrany tryb. Może być jednym z następujących: `heat`, `cool`, `fan_only`, lub `off`                      |
+| ``friendly_name``                  | Przyjazna nazwa termostatu                                                                                          |
+| ``supported_features``             | Wszystkie funkcjonalności tego termostatu. Sprawdź oficjalną integrację `climate`, aby dowiedzieć się więcej        |
+| ``is_presence_configured``         | Wskaźnik konfiguracji detekcji obecności                                                                            |
+| ``is_power_configured``            | Wskaźnik konfiguracji funkcji redukcji mocy                                                                         |
+| ``is_motion_configured``           | Wskaźnik konfiguracji detekcji ruchu                                                                                |
+| ``is_window_configured``           | Wskaźnik konfiguracji detekcji okna przez sensor                                                                    |
+| ``is_window_auto_configured``      | Wskaźnik konfiguracji detekcji okna przez spadek temperatury                                                        |
+| ``is_safety_configured``           | Wskaźnik konfiguracji detekcji spadku temperatury                                                                   |
+| ``is_auto_start_stop_configured``  | Wskaźnik konfiguracji funkcji autoSTART / autoSTOP (tylko dla `termostatu na klimacie`)                             |
+| ``is_over_switch``                 | Wskaźnik typu termostatu VTherm `termostat na przełączniku`                                                         |
+| ``is_over_valve``                  | Wskaźnik typu termostatu VTherm `termostat na zaworze`                                                              |
+| ``is_over_climate``                | Wskaźnik typu termostatu VTherm `termostat na klimacie`                                                          |
+| ``is_over_climate_valve``          | Wskaźnik typu termostatu VTherm `termostat na klimacie` z kontrolą zaworu        |
+| **SEKCJA `specyficzne stany`**     | ------                                                                                                              |
+| ``is_on``                                       | `prawda` jeśli termostat jest załączony (stan `hvac_mode` inny niż `Off`)                              |
+| ``last_central_mode``                           | Ostatnio użyty tryb centralnego starowania (`brak` jeśli termostat nie jest sterowany centralnie)      |
+| ``last_update_datetime``                        | Data i czas w formacie ISO8866 dla trybu centralnego sterowania                                        |
+| ``ext_current_temperature``                     | Aktualna temperatura zewnętrzna                                                                        |
+| ``last_temperature_datetime``                   | Data i czas w formacie ISO8866 dla ostatniego odczytu temperatury wewnętrznej                          |
+| ``last_ext_temperature_datetime``               | Data i czas w formacie ISO8866 dla ostatniego odczytu temperatury zewnętrznej                          |
+| ``is_device_active``                            | `prawda`, jeśli urządzenie jest aktywne                                                                |
+| ``device_actives``                              | Lista aktualnie aktywnych urządzeń                                                                     |
+| ``nb_device_actives``                           | Ilość aktualnie aktywnych urządzeń                                                                     |
+| ``ema_temp``                                    | Bieżąca temperatura uśredniona, obliczana jako ruchoma średnia wykładnicza z poprzednich wartości. Służy do obliczania kąta nachylenia krzywej temperatur.  |
+| ``temperature_slope``                           | Kąt nachylenia aktualnej temperatury w `°/godz`                                                                                                                                                                         |
+| ``hvac_off_reason``                             | Przyczyna wyłączenia termostatu (`hvac_off`). Może być to: `okno`, `AutoSTART/autoSTOP` lub `Manual`     |
+| ``total_energy``                                | Łączna energia zużyta przez termostat VTherm                                               |
+| ``last_change_time_from_vtherm``                | Data i czas ostatniej zmiany dokonanej przez termostat VTherm                                          |
+| ``messages``                                    | Lista komunikatów wyjaśniających obliczenie aktualnej wartości. Patrz: [Komunikaty](#state-messages)    |
+| ``is_sleeping``                                 | Wskaźnik trybu uśpienia termostatu (tylko dla `termostatu na klimacie` z kontrolą zaworu)              |
+| ``is_recalculate_scheduled``                    | Wskaźnik zwłoki dla powtórnych obliczeń wartości, spowodowanego przez filtrowanie czasu w celu ograniczenia liczby interakcji z urządzeniem   |
+| **SEKCJA `konfiguracje`**                       | ------                                                                                                 |
+| ``ac_mode``                                     | `prawda` jeśli urządzenie wspiera tryb `chłodzenia` oraz `grzania`                                     |
+| ``type``                                        | Typ termostatu VTherm (`termostat na przełączniku, termostat na zaworze, termostat na klimacie`, czy `termostat na klimacie z kontrolą zaworu`) |
+| ``is_controlled_by_central_mode``               | `prawda`, jeśli termostat jest sterowany centralnie                                                    |
+| ``target_temperature_step``                     | Krok temperatury docelowej (tożsame z `target_temp_step`)                                              |
+| ``minimal_activation_delay_sec``                | Minimalna zwłoka aktywacji (w sek.). Używana jest tylko w TPI                                          |
+| ``minimal_deactivation_delay_sec``              | Minimalna zwłoka deaktywacji (w sek.) Używana test tylko w TPI                                         |
+| ``timezone``                                    | Strefa czasowa używana w znacznikach czasu                                                             |
+| ``temperature_unit``                            | Jednostka temperatury                                                                                  |
+| ``is_used_by_central_boiler``                   | Wskaźnik sterowania kotłem centralnym przez termostat VTherm                                           |
+| ``max_on_percent``                              | Maksymalny procent mocy. Używany tylko w TPI                                                           |
+| ``have_valve_regulation``                       | Wskaźnik regulacji termostatu zaworem (`termostat na klimacie` ze sterowaniem zaworu)                  |
+| ``cycle_min``                                   | Czas trwania cyklu (w min.)                                                                            |
+| **SEKCJA `presety temperatur`**                 | ------                                                                                                 |
+| ``[eco/confort/boost]_temp``       | Temperatura skonfigurowana dla wybranego presetu                                                                    |
+| ``[eco/confort/boost]_away_temp``  | Temperatura skonfigurowana dla wybranego presetu , gdy `obecność` jest wyłączona lub ma wartość `not_home`.         |
 | ``temp_power``                     | Temperatura używana podczas wykrywania utraty sygnału                                                               |
 | ``on_percent``                     | Obliczony procent włączenia przez algorytm TPI                                                                      |
 | ``on_time_sec``                    | Okres załączenia (w sek.). Powinien wynosić ```on_percent * cycle_min```                                            |
@@ -280,11 +327,11 @@ Atrybuty własne są następujace:
 | ``last_temperature_datetime``      | Data i czas ostatniego odczytu temperatury wewnętrznej (w formacie ISO8866)                                         |
 | ``last_ext_temperature_datetime``  | Data i czas ostatniego odczytu temperatury zewnętrznej (w formacie ISO8866)                                         |
 | ``safety_state``                   | Stan bezpieczny. `True` lub `false`                                                                                 |
-| ``minimal_activation_delay_sec``   | Minimalne opóźnienie aktywacji (w sek.)                                                                             |
-| ``minimal_deactivation_delay_sec`` | Minimalne opóźnienie deaktywacji (w sek.)                                                                           |
-| ``last_update_datetime``           | Data i czas tego stanu (w formacie ISO8866)                                                                         |
+| ``minimal_activation_delay_sec``   | Minimalna zwłoka aktywacji (w sek.)                                                                             |
+| ``minimal_deactivation_delay_sec`` | Minimalna zwłoka deaktywacji (w sek.)                                                                           |
+| ``last_update_datetime``           | Data i czas wartości stanu (w formacie ISO8866)                                                                         |
 | ``friendly_name``                  | Przyjazna nazwa termostatu                                                                                          |
-| ``supported_features``             | Kombinacja wszystkich funkcji obsługiwanych przez ten termostat. Zobacz dokumentację, aby uzyskać więcej informacji |
+| ``supported_features``             | Lista wszystkich funkcji obsługiwanych przez termostat. Zobacz dokumentację, aby uzyskać więcej informacji |
 | ``valve_open_percent``             | Procent otwarcia zaworu                                                                                             |
 | ``regulated_target_temperature``   | Temperatura docelowa obliczona przez samoregulację                                                                  |
 | ``is_inversed``                    | `True`, jeśli sterowanie jest odwrócone (dotyczy sterowania przewodowego z diodą)                                   |
@@ -299,3 +346,90 @@ Atrybuty własne są następujace:
 | ``device_actives``                 | Lista urządzeń podrzędnych widocznych jako aktywne                                                                  |
 
 
+## Atrybuty własne dla konfiguracji centralnej
+
+Atrybuty własne w konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_boiler`:
+
+| Atrybut                                     | znaczenie                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ``central_boiler_state``                    | Stan kotła centralnego. Może być `on` lub `off`                                      |
+| ``is_central_boiler_configured``            | Wkaźnik konfiguracji funkcji kotła centralnego                           |
+| ``is_central_boiler_ready``                 | Wskaźnik gotowości kotła centralnego                                        |
+| **SEKCJA `zarządzanie kotłem centralnym`**  | ------                                                                               |
+| ``is_on``                                   | `prawda` jeśli kocioł centralny jest załączony                                       |
+| ``activation_scheduled``                    | `prawda` jeśli aktywacja kotła centralnego została ustawiona (patrz: `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | Zwłoka aktywacji kotła centralnego (w sek.)                                              |
+| ``nb_active_device_for_boiler``             | Liczba aktywnych urządzeń sterujących kotłem centralnym                              |
+| ``nb_active_device_for_boiler_threshold``   | Próg ilości aktywnych urządzeń przed aktywacją kotła centralnego                     |
+| ``total_power_active_for_boiler``           | Łączna moc wszystkich urządzeń sterujących kotłem centralnym                           |
+| ``total_power_active_for_boiler_threshold`` | Próg łącznej mocy urządzeń przed aktywacją kotła centralnego                         |
+| **SEKCJA `aktywacja usług`**                | ------                                                                               |
+| ``service_domain``                          | Domena urządzenia aktywującego (np. `switch`)                                  |
+| ``service_name``                            | Nazwa usługi aktywującej (np. `turn_on`)                                   |
+| ``entity_domain``                           | Domena sensora kontrolującego kocioł centralny (np. `switch`)                       |
+| ``entity_name``                             | Nazwa sensora kontrolującego kocioł centralny                                        |
+| ``entity_id``                               | Identyfikator encji kontrolującej kocioł centralny                         |
+| ``data``                                    | Dodatkowe dane przesyłane do usługi aktywującej                                     |
+| **SEKCJA `deaktywacja usług`**              | ------                                                                               |
+| ``service_domain``                          | Domena urządzenia deaktywującego (np. `switch`)                                |
+| ``service_name``                            | Nazwa usługi deaktywującej (np. `turn_off`)                                  |
+| ``entity_domain``                           | Domena sensora kontrolującego kocioł centralny (np. `switch`)                       |
+| ``entity_name``                             | Nazwa sensora kontrolującego kocioł centralny                                        |
+| ``entity_id``                               | Identyfikator encji kontrolującej kocioł centralny                       |
+| ``data``                                    | Dodatkowe dane przesyłane do usługi deaktywującej                                   |
+
+Przykładowe warości:
+
+```yaml
+central_boiler_state: "off"
+is_central_boiler_configured: true
+is_central_boiler_ready: true
+central_boiler_manager:
+  is_on: false
+  activation_scheduled: false
+  delayed_activation_sec: 10
+  nb_active_device_for_boiler: 1
+  nb_active_device_for_boiler_threshold: 3
+  total_power_active_for_boiler: 50
+  total_power_active_for_boiler_threshold: 500
+  service_activate:
+    service_domain: switch
+    service_name: turn_on
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+  service_deactivate:
+    service_domain: switch
+    service_name: turn_off
+    entity_domain: switch
+    entity_name: controle_chaudiere
+    entity_id: switch.controle_chaudiere
+    data: {}
+device_class: running
+icon: mdi:water-boiler-off
+friendly_name: Central boiler
+```
+
+Te atrybuty należy podać w przypadku prośby o pomoc techniczną.
+
+# Komunikaty
+
+Sensor `specific_states.messages` zawiera listę kodów komunikatów, wyjaśniających aktualny stan. Oto lista możliwych komunikatów:
+
+| Code                                | Meaning                                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| `overpowering_detected`             | Wykryto przekroczenie mocy                                                          |
+| `safety_detected`                   | Błąd pomiaru temperatury skutkujący przejściem do trybu _bezpiecznego_             |
+| `target_temp_window_eco`            | Preset `Eko` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna     |
+| `target_temp_window_frost`          | Preset `Mróz` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna    |
+| `target_temp_power`                 | Redukcja mocy wymuszona temperaturą docelową skonfigurowaną dla potrzeb redukcji mocy |
+| `target_temp_central_mode`          | Wymuszenie temperatury doceowej przez tryb centralny                                   |
+| `target_temp_activity_detected`     | Wymuszenie temperatury doceowej detekcją ruchu                                      |
+| `target_temp_activity_not_detected` | Wymuszenie temperatury doceowej detekcją braku ruchu                                |
+| `target_temp_absence_detected`      | Wymuszenie temperatury doceowej brakiem obecności                                   |
+
+> ![Tip](images/tips.png) _*Wskazówka*_
+>
+>    Komunikaty te są widoczne na karcie [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) pod ikoną informacyjną.
+> 
