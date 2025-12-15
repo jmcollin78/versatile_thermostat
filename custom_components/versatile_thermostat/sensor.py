@@ -736,7 +736,8 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 self,
                 underlying_entities_id,
             )
-            self.async_on_remove(self._cancel_listener_nb_active)
+            # Fix 1406
+            # self.async_on_remove(self._cancel_listener_nb_active)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -822,6 +823,11 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
                 pass
             self._cancel_listener_nb_active = None
 
+    @overrides
+    async def async_will_remove_from_hass(self) -> None:
+        """Called when entity is about to be removed from hass"""
+        self.cancel_listening_nb_active()
+
 
 class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     """Representation of the total power of VTherm
@@ -886,7 +892,8 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
                 self,
                 entities_id,
             )
-            self.async_on_remove(self._cancel_listener_power)
+            # Fix 1406
+            # self.async_on_remove(self._cancel_listener_power)
         else:
             _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
@@ -961,11 +968,13 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
 
+    @overrides
+    async def async_will_remove_from_hass(self) -> None:
+        """Called when entity is about to be removed from hass"""
+        self.cancel_listening_power()
+
     def cancel_listening_power(self):
         """Cancel the listening of underlying VTherm state changes"""
         if self._cancel_listener_power is not None:
-            try:
-                self._cancel_listener_power()
-            except (ValueError, TypeError):  # the listener could be already cancelled
-                pass
+            self._cancel_listener_power()
             self._cancel_listener_power = None
