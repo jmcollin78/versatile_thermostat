@@ -1,8 +1,8 @@
 # Detekcja otwarcia drzwi / okien
 
 - [Detekcja otwarcia drzwi / okien](#doorwindow-open-detection)
-  - [Sensor Mode](#sensor-mode)
-  - [Auto Mode](#auto-mode)
+  - [Tryb `Sensor`](#sensor-mode)
+  - [Tryb `Auto`](#auto-mode)
 
 Musisz wybrać funkcję `Detekcja otwarcia okna` na pierwszej stronie konfiguracyjnej, aby przejść do tej sekcji.
 Detekcja otwarcia może być realizowane na dwa sposoby:
@@ -61,4 +61,4 @@ Aby odpowiednio go dostosować, zaleca się wyświetlenie zarówno krzywej tempe
 > 3. Dozwolony jest tylko jeden tryb. Nie można skonfigurować termostatu zarówno z czujnikiem, jak i z automatycznym wykrywaniem. Tryby mogą się wzajemnie wykluczać, więc nie mogą być aktywne jednocześnie.
 > 4. Nie zaleca się używania trybu `auto` dla urządzeń narażonych na częste i normalne wahania temperatury (korytarze, otwarte przestrzenie itp.).
 > 5. Aby nie zakłócać bieżących ustawień, akcje `ochrony przed mrozem` oraz `Eko` zmieniają temperaturę docelową bez zmiany presetu. Możesz więc zauważyć rozbieżność między wybranym presetem a wartością docelową.
-> 6. Jeśli używasz karty Versatile Thermostat UI Card (patrz: [tutaj](additions.md#even-better-with-the-versatile-thermostat-ui-card)), wykrywanie otwarcia jest reprezentowane jako: ![window](images/window-detection-icon.png).
+> 6. Jeśli używasz karty _Versatile Thermostat UI Card_ (patrz: [tutaj](additions.md#even-better-with-the-versatile-thermostat-ui-card)), wykrywanie otwarcia jest reprezentowane jako: ![window](images/window-detection-icon.png).
