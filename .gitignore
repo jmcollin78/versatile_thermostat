@@ -113,6 +113,3 @@ custom_components/localtuya
 
 .coverage
 htmlcov
-
-.idea/
-

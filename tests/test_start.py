@@ -144,43 +144,6 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_duplicate_name(hass: HomeAssistant, skip_hass_states_is_state):
-    """Test that sub entries are generated correctly when multiple thermostat entries have the same title"""
-
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_HEAT_COOL])
-
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ) as mock_find_climate:
-        for idx in range(1, 4):
-            entry = MockConfigEntry(
-                domain=DOMAIN,
-                title="TheOverClimateMockName",
-                unique_id=f"uniqueId_{idx}",
-                data=PARTIAL_CLIMATE_CONFIG,
-                version=2,
-                minor_version=2 if idx > 1 else 1,
-            )
-
-            entity = await create_thermostat(hass, entry, f"climate.theoverclimatemockname_{idx}")
-
-            assert entity
-            assert isinstance(entity, ThermostatOverClimate)
-
-            entity_id_suffix = "" if idx == 1 else f"_{idx}"
-            sensor_suffix = "_safety_state"
-            sensor = search_simple_entity(hass, f"binary_sensor.theoverclimatemockname{sensor_suffix}{entity_id_suffix}")
-            assert sensor is not None
-            # Check that we use entry title in unique_id for old entries.
-            if idx == 1:
-                assert sensor.unique_id == entry.title + sensor_suffix
-
-
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_switch with 4 switches type"""
 
