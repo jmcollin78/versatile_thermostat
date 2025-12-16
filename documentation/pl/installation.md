@@ -1,4 +1,4 @@
-# Jak zainstalować Versatile Thermostat?
+# Jak zainstalować Termostat VTherm?
 
 ## Instalacja z HACS (rekomendowana)
 
