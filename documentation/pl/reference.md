@@ -415,7 +415,7 @@ Atrybuty te należy podać w przypadku prośby o pomoc techniczną.
 
 # Komunikaty
 
-Sensor `specific_states.messages` zawiera listę komunikatów, wskazujących i wyjaśniających aktualny stan. Oto lista możliwych komunikatów:
+Sensor `specific_states.messages` zawiera listę komunikatów wskazujących i wyjaśniających aktualny status. Oto lista możliwych komunikatów:
 
 | Code                                | Meaning                                                                             |
 | ----------------------------------- | ----------------------------------------------------------------------------------- |
@@ -424,10 +424,10 @@ Sensor `specific_states.messages` zawiera listę komunikatów, wskazujących i w
 | `target_temp_window_eco`            | Preset `Eko` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna     |
 | `target_temp_window_frost`          | Preset `Mróz` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna    |
 | `target_temp_power`                 | Redukcja mocy wymuszona temperaturą docelową skonfigurowaną dla potrzeb redukcji mocy |
-| `target_temp_central_mode`          | Wymuszenie temperatury doceowej przez tryb centralny                                   |
-| `target_temp_activity_detected`     | Wymuszenie temperatury doceowej detekcją ruchu                                      |
-| `target_temp_activity_not_detected` | Wymuszenie temperatury doceowej detekcją braku ruchu                                |
-| `target_temp_absence_detected`      | Wymuszenie temperatury doceowej brakiem obecności                                   |
+| `target_temp_central_mode`          | Wymuszenie temperatury docelowej przez tryb centralny                                   |
+| `target_temp_activity_detected`     | Wymuszenie temperatury docelowej detekcją ruchu                                      |
+| `target_temp_activity_not_detected` | Wymuszenie temperatury docelowej detekcją braku ruchu                                |
+| `target_temp_absence_detected`      | Wymuszenie temperatury docelowej brakiem obecności                                   |
 
 > ![Tip](images/tips.png) _*Wskazówka*_
 >
