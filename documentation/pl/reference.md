@@ -11,6 +11,8 @@
   - [Zmiana parametrów TPI](#zmiana-parametrów-tpi)
 - [Zdarzenia](#zdarzenia)
 - [Atrybuty własne](#atrybuty-własne)
+  - [Atrybuty własne konfiguracji centralnej](#atrybuty-wlasne-dla-konfiguracji-centralnej)
+  - [Komunikaty](#messages) 
 
 ## Parametry
 
@@ -346,9 +348,9 @@ Aby dostosować algorytm, masz dostęp do całego kontekstu widzianego i oblicza
 | ``device_actives``                 | Lista urządzeń podrzędnych widocznych jako aktywne                                                                  |
 
 
-## Atrybuty własne dla konfiguracji centralnej
+## Atrybuty własne konfiguracji centralnej
 
-Atrybuty własne w konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_boiler`:
+Atrybuty własne konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_boiler`:
 
 | Atrybut                                     | znaczenie                                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------------------ |
