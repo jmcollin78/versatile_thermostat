@@ -24,7 +24,7 @@ Wybierz 'Dodaj integrację' w oknie panelu integracji HA lub kliknij 'Dodaj urz�
 
 ![image](images/add-an-integration.png)
 
-...i wyszukaj integrację 'Versatile Thermostat':
+...i wyszukaj integrację 'Termostat VTherm':
 
 ![image](images/choose-integration.png)
 
