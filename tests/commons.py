@@ -732,11 +732,6 @@ def search_entity(hass: HomeAssistant, entity_id, domain) -> Any | None:
     return None
 
 
-def search_simple_entity(hass: HomeAssistant, entity_id) -> Any | None:
-    """Search and return the entity, taking domain from entity id"""
-    return search_entity(hass, entity_id, entity_id.split('.', 1)[0])
-
-
 def count_entities(hass: HomeAssistant, entity_id, domain) -> int:
     """Search and return the entity in the domain"""
     component = hass.data[domain]

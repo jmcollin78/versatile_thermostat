@@ -43,7 +43,6 @@ from .const import (
     CONF_USE_PRESENCE_FEATURE,
     CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
-    gen_attr_uniq_id,
     CONF_USE_MAIN_CENTRAL_CONFIG,
 )
 
@@ -434,7 +433,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         self._attr_translation_key = preset_name
         self.entity_id = f"{NUMBER_DOMAIN}.{slugify(name)}_preset_{preset_name}"
 
-        self._attr_unique_id = gen_attr_uniq_id(unique_id, entry_infos, f"_preset_{preset_name}")
+        self._attr_unique_id = f"{self._device_name}_preset_{preset_name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_native_unit_of_measurement = hass.config.units.temperature_unit
