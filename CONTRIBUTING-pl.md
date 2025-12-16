@@ -1,6 +1,6 @@
 # Zasady współpracy
 
-Twój wkład w ten projekt powinien być jak najłatwiejszy i najbardziej przejrzysty, niezależnie od tego, czy chodzi o:
+Twój wkład w ten projekt powinien być jak najprostszy i najbardziej przejrzysty, niezależnie od tego, czy chodzi o:
 
 - Zgłoszenie błędu
 - Omówienie aktualnego stanu kodu
@@ -27,7 +27,7 @@ Krótko mówiąc, gdy przesyłasz zmiany w kodzie, uznaje się, że Twoje zgłos
 ## Zgłaszaj błędy za pomocą [problemów](../../issues) w GitHubie
 
 Zgłoszenia w GitHubie służą do śledzenia publicznych błędów.
-Zgłoś błąd, [otwierając nowe zgłoszenie](../../issues/new/choose). To przecież takie proste!
+Zgłoś błąd, [otwierając nowe zgłoszenie](../../issues/new/choose). To takie proste..
 
 ## Twórz zgłoszenia błędów ze szczegółami, opisem kontekstu i przykładowym kodem.
 
@@ -41,7 +41,7 @@ Zgłoś błąd, [otwierając nowe zgłoszenie](../../issues/new/choose). To prze
 - Co się faktycznie dzieje
 - Notatki (ewentualnie z wyjaśnieniem, dlaczego tak się dzieje lub co próbowałeś, ale nie zadziałało)
 
-Ludzie *uwielbiają* dokładne raporty o błędach. Nie żartuję!
+Ludzie *uwielbiają* dokładne raporty o błędach!
 
 ## Używaj spójnego stylu kodowania
 
