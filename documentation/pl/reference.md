@@ -378,7 +378,7 @@ Atrybuty własne w konfiguracji centralnej są dostepne w panelu _Narzędzia dew
 | ``entity_id``                               | Identyfikator encji kontrolującej kocioł centralny                       |
 | ``data``                                    | Dodatkowe dane przesyłane do usługi deaktywującej                                   |
 
-Przykładowe warości:
+Przykładowe wartości atrybutów:
 
 ```yaml
 central_boiler_state: "off"
@@ -411,16 +411,16 @@ icon: mdi:water-boiler-off
 friendly_name: Central boiler
 ```
 
-Te atrybuty należy podać w przypadku prośby o pomoc techniczną.
+Atrybuty te należy podać w przypadku prośby o pomoc techniczną.
 
 # Komunikaty
 
-Sensor `specific_states.messages` zawiera listę kodów komunikatów, wyjaśniających aktualny stan. Oto lista możliwych komunikatów:
+Sensor `specific_states.messages` zawiera listę komunikatów, wskazujących i wyjaśniających aktualny stan. Oto lista możliwych komunikatów:
 
 | Code                                | Meaning                                                                             |
 | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | `overpowering_detected`             | Wykryto przekroczenie mocy                                                          |
-| `safety_detected`                   | Błąd pomiaru temperatury skutkujący przejściem do trybu _bezpiecznego_             |
+| `safety_detected`                   | Błąd pomiaru temperatury, skutkujący przejściem do trybu _bezpiecznego_             |
 | `target_temp_window_eco`            | Preset `Eko` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna     |
 | `target_temp_window_frost`          | Preset `Mróz` zmieniający temperaturę docelową, wymuszony detekcją otwarcia okna    |
 | `target_temp_power`                 | Redukcja mocy wymuszona temperaturą docelową skonfigurowaną dla potrzeb redukcji mocy |
