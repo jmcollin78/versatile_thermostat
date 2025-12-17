@@ -999,17 +999,17 @@ class AutoTpiManager:
                 if old > self._default_coef_int:
                     self.state.coeff_indoor_cool = max(old * DEBOOST_FACTOR, self._default_coef_int)
                     _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f", self._name, old, self.state.coeff_indoor_cool)
-
             # Reset boost counter
             if hasattr(self.state, "consecutive_boosts"):
                 self.state.consecutive_boosts = 0
 
-    def _detect_failures(self, current_temp_in: float):
+    async def _detect_failures(self, current_temp_in: float):
         """Detect system failures."""
         OFFSET_FAILURE = 1.0
         MIN_LEARN_FOR_DETECTION = 25
 
         failure_detected = False
+        reason = "unknown"
 
         if (
             self.state.last_state == "heat"
@@ -1018,6 +1018,7 @@ class AutoTpiManager:
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
         ):
             failure_detected = True
+            reason = "Temperature dropped while heating"
             _LOGGER.warning("%s - Auto TPI: Failure detected in HEAT mode", self._name)
 
         elif (
@@ -1027,13 +1028,39 @@ class AutoTpiManager:
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
         ):
             failure_detected = True
+            reason = "Temperature rose while cooling"
             _LOGGER.warning("%s - Auto TPI: Failure detected in COOL mode", self._name)
 
         if failure_detected:
             self.state.consecutive_failures += 1
             if self.state.consecutive_failures >= 3:
                 self.state.autolearn_enabled = False
-                _LOGGER.error("%s - Auto TPI: Learning disabled due to %d consecutive failures.", self._name, self.state.consecutive_failures)
+                _LOGGER.error(
+                    "%s - Auto TPI: Learning disabled due to %d consecutive failures.",
+                    self._name,
+                    self.state.consecutive_failures,
+                )
+                
+                # Send persistent notification
+                # Note: We use English strings here. Localization keys are added to json files 
+                # (notification.auto_tpi_learning_stopped_...) but not currently loaded dynamically.
+                title = "Versatile Thermostat: Auto TPI Learning Stopped"
+                message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+                
+                try:
+                    await self._hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": title,
+                            "message": message,
+                            "notification_id": f"autotpi_learning_stopped_{self._unique_id}",
+                        },
+                        blocking=False,
+                    )
+                except Exception as e:
+                    _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
+
         else:
             self.state.consecutive_failures = 0
 
@@ -1612,7 +1639,7 @@ class AutoTpiManager:
             self.state.last_learning_status = reason
 
         # Check for failures
-        self._detect_failures(self._current_temp_in)
+        await self._detect_failures(self._current_temp_in)
 
         # The Max Capacity detection logic has been removed as capacity is now set by service.
         await self.async_save_data()

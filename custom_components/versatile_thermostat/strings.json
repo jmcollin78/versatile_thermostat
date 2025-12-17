@@ -693,5 +693,9 @@
         "name": "Boost ac away"
       }
     }
+  },
+  "notification": {
+    "auto_tpi_learning_stopped_title": "Versatile Thermostat: Auto TPI Learning Stopped",
+    "auto_tpi_learning_stopped_message": "Auto TPI learning for {name} has been stopped due to 3 consecutive failures. Please check your configuration."
   }
 }

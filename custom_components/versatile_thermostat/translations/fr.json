@@ -862,5 +862,9 @@
         }
       }
     }
+  },
+  "notification": {
+    "auto_tpi_learning_stopped_title": "Versatile Thermostat : Apprentissage Auto TPI arrêté",
+    "auto_tpi_learning_stopped_message": "L'apprentissage Auto TPI pour {name} a été arrêté car 3 échecs consécutifs ont été détectés. Veuillez vérifier votre configuration."
   }
 }
