@@ -14,12 +14,14 @@ from typing import Callable
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers import entity_platform, service, translation
 from homeassistant.helpers.storage import Store
 from homeassistant.components.recorder import history, get_instance
 from homeassistant.util import dt as dt_util
 from functools import partial
 
 from .const import (
+    DOMAIN,
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
     CONF_AUTO_TPI_HEATING_POWER,
@@ -1042,12 +1044,28 @@ class AutoTpiManager:
                 )
                 
                 # Send persistent notification
-                # Note: We use English strings here. Localization keys are added to json files 
-                # (notification.auto_tpi_learning_stopped_...) but not currently loaded dynamically.
+                # Retrieve the message from translations
+                # We use the "exceptions" category in strings.json
+                # The key is "component.versatile_thermostat.exceptions.auto_tpi_learning_stopped.message"
                 title = "Versatile Thermostat: Auto TPI Learning Stopped"
-                message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
-                
                 try:
+                    translations = await translation.async_get_translations(
+                        self._hass, 
+                        self._hass.config.language, 
+                        "exceptions", 
+                        {DOMAIN}
+                    )
+                    
+                    # Key format for exceptions: component.{domain}.exceptions.{key}.message
+                    key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
+                    message_template = translations.get(key)
+                    
+                    if message_template:
+                        message = message_template.format(name=self._name, reason=reason)
+                    else:
+                        # Fallback if translation not found
+                         message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+
                     await self._hass.services.async_call(
                         "persistent_notification",
                         "create",
