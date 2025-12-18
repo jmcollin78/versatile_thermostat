@@ -47,8 +47,12 @@ Une fois coché, un assistant de configuration dédié s'affiche en plusieurs é
 *   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe-refroidissement) )
 *   **Taux de refroidissement** (`auto_tpi_cooling_rate`): Taux cible de descente en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe-refroidissement) )
 
-    *Note: On ne veut pas forcément utiliser le taux de chauffe/refroidissement maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage/clim.
+    *Note: On ne veut pas forcément utiliser le taux de chauffe/refroidissement maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage/clim, **et c'est très conseillé**.
     Plus vous serez proche de la capacité maximale, plus le coefficient Kint trouvé lors de l'apprentissage sera elevé.*
+
+    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe/refroidissement inférieur.
+   **Le plus important étant de ne pas être au dessus de ce que votre radiateur peut fournir dans cette pièce.**
+    ex: Votre capacité adiabatique mesurée est de 1.5°/h, 1°/h est une constante standard et raisonable à utiliser.*
 
 ### Étape 2 : Méthode
 
