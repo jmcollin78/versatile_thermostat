@@ -574,19 +574,26 @@ class AutoTpiManager:
         """Get reason why learning is not happening."""
         if not self.state.autolearn_enabled:
             return "learning_disabled"
+
         saturation_threshold = self.saturation_threshold  # pylint: disable=no-member
         if not (0 < self.state.last_power < saturation_threshold):
             return f"power_out_of_range({self.state.last_power * 100:.1f}% vs Saturation {saturation_threshold * 100:.1f}%)"
+
+        if self._current_cycle_interrupted:
+            return "cycle_interrupted_by_overpowering"
+
         if self.state.consecutive_failures >= 3:
             return f"too_many_failures({self.state.consecutive_failures})"
 
-        # Check passive drift conditions
-        # is_heat = self.state.last_state == 'heat'
-        # is_cool = self.state.last_state == 'cool'
-        # if is_heat and self.state.last_temp_in > self.state.last_order:
-        #     return f"passive_cooling(T_in={self.state.last_temp_in:.1f}>Target={self.state.last_order:.1f})"
-        # if is_cool and self.state.last_temp_in < self.state.last_order:
-        #     return f"passive_heating(T_in={self.state.last_temp_in:.1f}<Target={self.state.last_order:.1f})"
+        if self.state.previous_state == "stop":
+            return "startup_cycle"
+
+        if self.state.last_order == 0:
+            return "target_temp_is_zero"
+
+        delta_out = self.state.last_order - self._current_temp_out
+        if abs(delta_out) < 1.0:
+            return f"outdoor_delta_too_small({delta_out:.1f})"
 
         return "unknown"
 
