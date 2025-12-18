@@ -796,7 +796,7 @@
         },
         "min_power_threshold": {
           "name": "Minimum Power Threshold",
-          "description": "Minimum power percentage to consider a cycle as saturated (default 100%). Lower values (e.g., 95%) will include more cycles but may be less accurate."
+          "description": "Minimum power percentage to consider a cycle as saturated (default 95%). Lower values will include more cycles but may be less accurate."
         }
       }
     },

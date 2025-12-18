@@ -1448,6 +1448,11 @@ class AutoTpiManager:
 
         _LOGGER.info("%s - Calibrating capacity using history from %s to %s", self._name, start_time, end_time)
 
+        # Handle percentage value for min_power_threshold (e.g. 95 -> 0.95)
+        if min_power_threshold > 1.0:
+            _LOGGER.debug("%s - Converting min_power_threshold from %.1f to %.2f", self._name, min_power_threshold, min_power_threshold / 100.0)
+            min_power_threshold = min_power_threshold / 100.0
+
         # 4. Fetch sensor histories
         entity_ids = [slope_sensor_id, power_sensor_id]
 

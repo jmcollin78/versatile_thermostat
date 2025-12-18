@@ -798,7 +798,7 @@
         },
         "min_power_threshold": {
           "name": "Seuil de puissance minimum",
-          "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 100%). Des valeurs plus basses (ex: 95%) incluront plus de cycles mais peuvent être moins précises."
+          "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
         }
       },
       "response": {
