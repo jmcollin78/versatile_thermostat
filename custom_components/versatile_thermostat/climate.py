@@ -5,7 +5,7 @@ import logging
 
 import voluptuous as vol
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, SupportsResponse
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import selector
@@ -164,3 +164,28 @@ async def async_setup_entry(
         },
         "service_set_tpi_parameters",
     )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_AUTO_TPI_MODE,
+        {
+            vol.Required("auto_tpi_mode"): vol.In([True, False]),
+            vol.Optional("reinitialise", default=True): vol.In([True, False]),
+        },
+        "service_set_auto_tpi_mode",
+    )
+
+    platform.async_register_entity_service(
+        SERVICE_AUTO_TPI_CALIBRATE_CAPACITY,
+        {
+            vol.Optional("start_date"): selector.DateTimeSelector(),
+            vol.Optional("end_date"): selector.DateTimeSelector(),
+            vol.Required("hvac_mode"): vol.In(["heat", "cool"]),
+            vol.Optional("save_to_config", default=False): vol.In([True, False]),
+            vol.Optional("min_power_threshold", default=100): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=80, max=100, step=1, mode=selector.NumberSelectorMode.SLIDER)
+            ),
+        },
+        "service_auto_tpi_calibrate_capacity",
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+

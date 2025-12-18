@@ -58,6 +58,21 @@ from .const import (
     CONF_THERMOSTAT_CLIMATE,
     CONF_THERMOSTAT_VALVE,
     CONF_MAX_ON_PERCENT,
+    CONF_AUTO_TPI_MODE,
+    CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG,
+    CONF_AUTO_TPI_ENABLE_NOTIFICATION,
+    CONF_AUTO_TPI_CALCULATION_METHOD,
+    CONF_AUTO_TPI_EMA_ALPHA,
+    CONF_AUTO_TPI_AVG_INITIAL_WEIGHT,
+    CONF_AUTO_TPI_MAX_COEF_INT,
+    CONF_AUTO_TPI_EMA_DECAY_RATE,
+    CONF_AUTO_TPI_KEEP_EXT_LEARNING,
+    CONF_AUTO_TPI_CONTINUOUS_LEARNING,
+    CONF_AUTO_TPI_HEATER_HEATING_TIME,
+    CONF_AUTO_TPI_HEATER_COOLING_TIME,
+    CONF_AUTO_TPI_HEATING_POWER,
+    CONF_AUTO_TPI_COOLING_POWER,
+    AUTO_TPI_METHOD_AVG,
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -306,12 +321,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     new[new_key] = old_value
                 new.pop(key, None)
 
+        # Update the config entry with migrated data
         hass.config_entries.async_update_entry(
             config_entry,
             data=new,
             version=CONFIG_VERSION,
-            minor_version=CONFIG_MINOR_VERSION,
+            minor_version=CONFIG_MINOR_VERSION
         )
-        _LOGGER.info("Migration to version %s successful", config_entry.version)
+
+        _LOGGER.info("Migration to version %s.%s successful", CONFIG_VERSION, CONFIG_MINOR_VERSION)
 
     return True

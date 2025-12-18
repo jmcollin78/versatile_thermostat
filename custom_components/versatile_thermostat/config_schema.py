@@ -247,15 +247,57 @@ STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 
 STEP_CENTRAL_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
-        vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.001, mode=selector.NumberSelectorMode.BOX)),
+        vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.001, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
         vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
         vol.Required(CONF_MINIMAL_DEACTIVATION_DELAY, default=0): cv.positive_int,
         vol.Optional(CONF_TPI_THRESHOLD_LOW, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)
+            selector.NumberSelectorConfig(
+                min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
         ),
         vol.Optional(CONF_TPI_THRESHOLD_HIGH, default=0): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX)
+            selector.NumberSelectorConfig(
+                min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_AUTO_TPI_MODE, default=False): cv.boolean,
+    }
+)
+# Duplicating schema for central config
+# as we don't want to display the use_auto_tpi checkbox
+# in central config but only in device config.
+STEP_CENTRAL_TPI_DATA_SCHEMA_CENTRAL = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_TPI_COEF_INT, default=0.6): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=10.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(CONF_TPI_COEF_EXT, default=0.01): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.001, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(CONF_MINIMAL_ACTIVATION_DELAY, default=10): cv.positive_int,
+        vol.Required(CONF_MINIMAL_DEACTIVATION_DELAY, default=0): cv.positive_int,
+        vol.Optional(CONF_TPI_THRESHOLD_LOW, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_TPI_THRESHOLD_HIGH, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
         ),
     }
 )
@@ -265,7 +307,6 @@ STEP_PRESETS_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_USE_PRESETS_CENTRAL_CONFIG, default=True): cv.boolean,
     }
 )
-
 
 STEP_WINDOW_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
@@ -416,5 +457,60 @@ STEP_CENTRAL_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_LOCK_CODE): cv.string,
         vol.Optional(CONF_LOCK_USERS, default=True): cv.boolean,
         vol.Optional(CONF_LOCK_AUTOMATIONS, default=True): cv.boolean,
+    }
+)
+
+STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, default=True): cv.boolean,
+        vol.Required(CONF_AUTO_TPI_ENABLE_NOTIFICATION, default=True): cv.boolean,
+        vol.Optional(CONF_AUTO_TPI_KEEP_EXT_LEARNING, default=True): cv.boolean,
+        vol.Optional(CONF_AUTO_TPI_CONTINUOUS_LEARNING, default=False): cv.boolean,
+        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=0): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=0): cv.positive_int,
+        vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=1.0): cv.positive_float,
+        vol.Required(CONF_AUTO_TPI_COOLING_POWER, default=1.0): cv.positive_float,
+        vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=3.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+    }
+)
+
+STEP_AUTO_TPI_2_SCHEMA = vol.Schema(
+    {
+        vol.Required(
+            CONF_AUTO_TPI_CALCULATION_METHOD, default=AUTO_TPI_METHOD_AVG
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_AUTO_TPI_CALCULATION_METHODS,
+                translation_key="auto_tpi_calculation_method",
+                mode="dropdown",
+            )
+        ),
+    }
+)
+
+STEP_AUTO_TPI_3_AVG_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, default=1): cv.positive_int,
+    }
+)
+
+STEP_AUTO_TPI_3_EMA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_AUTO_TPI_EMA_ALPHA, default=0.15): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(
+            CONF_AUTO_TPI_EMA_DECAY_RATE, default=0.08
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
     }
 )

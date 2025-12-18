@@ -45,7 +45,8 @@
           "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
         },
         "data_description": {
-          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm"
+          "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
+          "lock_code": "Le code pin pour déverouiller le thermostat (4 digits)"
         }
       },
       "main": {
@@ -127,7 +128,8 @@
           "tpi_threshold_high": "TPI seuil haut",
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
-          "use_tpi_central_config": "Utiliser la configuration TPI centrale"
+          "use_tpi_central_config": "Utiliser la configuration TPI centrale",
+          "auto_tpi_mode": "Activer l'apprentissage Auto TPI"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient à utiliser pour le delta de température interne",
@@ -136,7 +138,8 @@
           "tpi_threshold_high": "Seuil en ° au-dessus duquel l'algorithme TPI sera désactivé. 0 signifie pas de seuil",
           "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique",
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
-          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif"
+          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif",
+          "auto_tpi_mode": "Cochez pour activer l'apprentissage automatique des coefficients TPI"
         }
       },
       "presets": {
@@ -311,15 +314,20 @@
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
           "lock": "Verrouillage",
+          "auto_tpi_1": "Auto TPI - Général",
+          "auto_tpi_2": "Auto TPI - Méthode",
+          "auto_tpi_3_avg": "Auto TPI - Moyenne",
+          "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
         }
       },
       "lock": {
-        "title": "Gestion du verrouillage - {name}",
+        "title": "Gestion du Verrouillage - {name}",
         "description": "La fonction de verrouillage empêche les modifications d'un thermostat depuis l'interface utilisateur ou les automatisations tout en gardant le thermostat opérationnel.",
         "data": {
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
+          "lock_code": "Code pin optionel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
           "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
         },
@@ -407,7 +415,8 @@
           "tpi_threshold_high": "TPI seuil haut",
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
-          "use_tpi_central_config": "Utiliser la configuration TPI centrale"
+          "use_tpi_central_config": "Utiliser la configuration TPI centrale",
+          "auto_tpi_mode": "Activer l'apprentissage Auto TPI"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient à utiliser pour le delta de température interne",
@@ -552,6 +561,62 @@
           "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
           "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
         }
+      },
+      "auto_tpi_1": {
+        "title": "Auto TPI - Général - {name}",
+        "description": "Paramètres généraux de l'apprentissage Auto TPI.",
+        "data": {
+          "auto_tpi_enable_update_config": "Mise à jour de la configuration",
+          "auto_tpi_enable_notification": "Notifications",
+          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
+          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "heater_heating_time": "Temps de chauffe (min)",
+          "heater_cooling_time": "Temps de refroidissement (min)",
+          "auto_tpi_max_coef_int": "Coefficient Interne Max",
+          "auto_tpi_heating_rate": "Taux de chauffe (°C/h)",
+          "auto_tpi_cooling_rate": "Taux de refroidissement (°C/h)"
+        },
+        "data_description": {
+          "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
+          "auto_tpi_enable_notification": "Envoyer une notification lorsque l'apprentissage est terminé",
+          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
+          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
+          "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
+          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)"
+        }
+      },
+      "auto_tpi_2": {
+        "title": "Auto TPI - Méthode - {name}",
+        "description": "Choisissez la méthode de calcul pour l'apprentissage.",
+        "data": {
+          "auto_tpi_calculation_method": "Méthode de calcul"
+        },
+        "data_description": {
+          "auto_tpi_calculation_method": "Moyenne : moyenne simple. EMA : Moyenne Mobile Exponentielle (favorise les valeurs récentes)"
+        }
+      },
+      "auto_tpi_3_avg": {
+        "title": "Auto TPI - Moyenne - {name}",
+        "description": "Paramètres pour la méthode Moyenne.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Poids Initial"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Poids de la valeur initiale/précédente dans le calcul de la moyenne"
+        }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA - {name}",
+        "description": "Paramétres pour la méthode EMA.\n\nRecommandations :\n| Situation | Alpha (ema_alpha) | Taux de Décroissance (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Apprentissage initial | 0.15 | 0.08 |\n| Apprentissage fin | 0.08 | 0.12 |\n| Apprentissage continu | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Taux de décroissance"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
+          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
+        }
       }
     },
     "error": {
@@ -621,6 +686,12 @@
         "auto_start_stop_medium": "Medium",
         "auto_start_stop_fast": "Rapide"
       }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Moyenne",
+        "ema": "Moyenne Mobile Exponentielle (EMA)"
+      }
     }
   },
   "entity": {
@@ -684,6 +755,117 @@
       "boost_ac_away_temp": {
         "name": "Boost clim abs"
       }
+    }
+  },
+  "services": {
+    "set_auto_tpi_mode": {
+      "name": "Définir le mode Auto TPI",
+      "description": "Active ou désactive le mode d'apprentissage Auto TPI",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Mode Auto TPI",
+          "description": "Activer (vrai) ou désactiver (faux) l'apprentissage Auto TPI"
+        },
+        "reinitialise": {
+          "name": "Réinitialiser les données d'apprentissage",
+          "description": "Réinitialiser toutes les données d'apprentissage lors de l'activation du mode Auto TPI (par défaut vrai)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Réinitialiser les Capacités Auto TPI",
+      "description": "Réinitialise les capacités maximales de chauffage et de refroidissement à 1.0 °C/h. Les coefficients appris ne sont PAS réinitialisés."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Auto Tpi Calibrer la Capacité",
+      "description": "Calibre la capacité de chauffage/refroidissement (en °C/heure) en utilisant la régression linéaire sur les données d'historique de l'entité. Les coefficients TPI appris ne sont PAS mis à jour.",
+      "fields": {
+        "start_date": {
+          "name": "Date de début de l'historique",
+          "description": "Date à partir de laquelle récupérer l'historique (par défaut il y a 30 jours)"
+        },
+        "end_date": {
+          "name": "Date de fin de l'historique",
+          "description": "Date jusqu'à laquelle récupérer l'historique (par défaut maintenant)"
+        },
+        "hvac_mode": {
+          "name": "Mode HVAC",
+          "description": "Quel mode calibrer (heat ou cool)."
+        },
+        "save_to_config": {
+          "name": "Sauvegarder dans la configuration",
+          "description": "Appliquer la capacité calculée à la configuration Auto TPI"
+        },
+        "min_power_threshold": {
+          "name": "Seuil de puissance minimum",
+          "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 100%). Des valeurs plus basses (ex: 95%) incluront plus de cycles mais peuvent être moins précises."
+        }
+      },
+      "response": {
+        "reliability": {
+          "name": "Fiabilité",
+          "description": "Fiabilité de la calibration (en %)."
+        },
+        "k_ext": {
+          "name": "K_ext",
+          "description": "Coefficient de perte de chaleur externe estimé (pente)."
+        },
+        "min_power_threshold": {
+          "name": "Seuil de puissance min",
+          "description": "Seuil de puissance utilisé pour filtrer les cycles."
+        },
+        "period": {
+          "name": "Période",
+          "description": "Période de l'historique analysée (en jours)."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "Définir les paramètres TPI",
+      "description": "Modifier les paramètres TPI",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Délai minimal d'activation",
+          "description": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Délai de désactivation minimal",
+          "description": "Délai en secondes en-dessous duquel l'équipement sera laissé actif"
+        },
+        "tpi_threshold_low": {
+          "name": "Seuil TPI bas",
+          "description": "Seuil en ° en dessous duquel le TPI sera activé. 0 signifie pas de seuil"
+        },
+        "tpi_threshold_high": {
+          "name": "Seuil TPI haut",
+          "description": "Seuil en ° au-dessus duquel l'algorithme TPI sera désactivé. 0 signifie pas de seuil"
+        }
+      }
+    },
+    "lock": {
+      "name": "Verrouiller",
+      "description": "Verrouille le thermostat, empêchant toute modification de sa configuration depuis l'interface utilisateur ou les automatisations.",
+      "fields": {
+        "code": {
+          "name": "Code de verrouillage",
+          "description": "Le code de verrouillage optionnel"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Déverrouiller",
+      "description": "Déverrouille le thermostat, autorisant les modifications de sa configuration.",
+      "fields": {
+        "code": {
+          "name": "Code de verrouillage",
+          "description": "Le code de verrouillage optionnel"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "L'apprentissage Auto TPI pour {name} a été arrêté car 3 échecs consécutifs ont été détectés. Raison : {reason}. Veuillez vérifier votre configuration."
     }
   }
 }

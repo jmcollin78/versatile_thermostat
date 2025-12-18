@@ -237,12 +237,12 @@ class PropAlgorithm:
 
     def update_parameters(
         self,
-        tpi_coef_int,
-        tpi_coef_ext,
-        minimal_activation_delay,
-        minimal_deactivation_delay,
-        tpi_threshold_low,
-        tpi_threshold_high,
+        tpi_coef_int=None,
+        tpi_coef_ext=None,
+        minimal_activation_delay=None,
+        minimal_deactivation_delay=None,
+        tpi_threshold_low=None,
+        tpi_threshold_high=None,
     ):
         """Update the parameters of the algorithm"""
         if tpi_coef_int is not None:
@@ -323,3 +323,4 @@ class PropAlgorithm:
     def minimal_deactivation_delay(self) -> int:
         """Returns the minimal deactivation delay"""
         return self._minimal_deactivation_delay
+
