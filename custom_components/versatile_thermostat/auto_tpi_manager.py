@@ -254,13 +254,13 @@ class AutoTpiManager:
         is_cool_mode = self._current_hvac_mode == "cool"
 
         if is_cool_mode:
-            k_int = current_params.get("coeff_indoor_cool", self._default_coef_int)
-            k_ext = current_params.get("coeff_outdoor_cool", self._default_coef_ext)
+            k_int = self.state.coeff_indoor_cool
+            k_ext = self.state.coeff_outdoor_cool
             int_cycles_count = self.state.coeff_indoor_cool_autolearn
             ext_cycles_count = self.state.coeff_outdoor_cool_autolearn
         else:
-            k_int = current_params.get("coeff_indoor_heat", self._default_coef_int)
-            k_ext = current_params.get("coeff_outdoor_heat", self._default_coef_ext)
+            k_int = self.state.coeff_indoor_heat
+            k_ext = self.state.coeff_outdoor_heat
             int_cycles_count = self.state.coeff_indoor_autolearn
             ext_cycles_count = self.state.coeff_outdoor_autolearn
 
@@ -294,7 +294,8 @@ class AutoTpiManager:
                 )
                 return None
             else:
-                _LOGGER.info("%s - Auto TPI: Learning completed. Persisting final coefficients.", self._name)
+                _LOGGER.info("%s - Auto TPI: Learning completed. Persisting final coefficients and stopping learning.", self._name)
+                await self.stop_learning()
 
         # 3. Persist coefficients to HA config if enabled
         await self.async_update_coefficients_config(k_int, k_ext)
