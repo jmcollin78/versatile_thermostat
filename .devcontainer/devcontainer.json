@@ -10,8 +10,11 @@
     "postCreateCommand": "./container dev-setup",
     "mounts": [
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-        // comment/uncomment/adapt this to get the versatile-thermostat-ui-card
-        // "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind"
+        // comment/uncomment/adapt this to get some usefull cards
+        // the versatile-thermostat-ui-card
+        "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind",
+        // the auto-tpi-learning-card
+        "source=${localEnv:HOME}/SugarSync/Projets/home-assistant/auto-tpi-learning-card/dist,target=/workspaces/versatile_thermostat/config/www/community/auto-tpi-learning-card,type=bind"
     ],
     "customizations": {
         "vscode": {
