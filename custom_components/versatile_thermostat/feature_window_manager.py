@@ -317,8 +317,9 @@ class FeatureWindowManager(BaseFeatureManager):
 
         if self._window_auto_algo.is_window_open_detected() and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF] and self._vtherm.hvac_mode != VThermHvacMode_OFF:
             if (
-                self._vtherm.proportional_algorithm
-                and self._vtherm.proportional_algorithm.on_percent <= 0.0
+                self._vtherm.has_tpi
+                and self._vtherm.proportional_algorithm  # Added check to avoid initialization issues
+                and self._vtherm.safe_on_percent <= 0.0
             ):
                 _LOGGER.info(
                     "%s - Start auto detection of open window slope=%.3f but no heating detected (on_percent<=0). Forget the event",

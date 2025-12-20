@@ -9,12 +9,11 @@ from homeassistant.components.climate import HVACAction
 from homeassistant.helpers.event import async_call_later
 
 
-from .underlyings import UnderlyingValveRegulation
+from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 
-# from .commons import NowClass, round_to_nearest
 from .base_thermostat import ConfigData
 from .thermostat_climate import ThermostatOverClimate
-from .prop_algorithm import PropAlgorithm
+from .thermostat_tpi import ThermostatTPI
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -25,7 +24,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverClimateValve(ThermostatOverClimate):
+class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOverClimate):
     """This class represent a VTherm over a climate with a direct valve regulation"""
 
     _entity_component_unrecorded_attributes = ThermostatOverClimate._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -71,20 +70,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
             config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN)
             if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
             else 0
-        )
-
-        # Initialization of the TPI algo
-        self._prop_algorithm = PropAlgorithm(
-            self._proportional_function,
-            self._tpi_coef_int,
-            self._tpi_coef_ext,
-            self._cycle_min,
-            self._minimal_activation_delay,
-            self._minimal_deactivation_delay,
-            self.name,
-            max_on_percent=self._max_on_percent,
-            tpi_threshold_low=self._tpi_threshold_low,
-            tpi_threshold_high=self._tpi_threshold_high,
         )
 
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
@@ -153,14 +138,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
 
         self._attr_extra_state_attributes["valve_open_percent"] = self.valve_open_percent
         self._attr_extra_state_attributes["power_percent"] = self.power_percent
-        self._attr_extra_state_attributes["on_percent"] = self._prop_algorithm.on_percent
+        self._attr_extra_state_attributes["on_percent"] = self.safe_on_percent
         self._attr_extra_state_attributes.update(
             {
                 "vtherm_over_climate_valve": {
                     "have_valve_regulation": self.have_valve_regulation,
                     "valve_regulation": {
                         "underlyings_valve_regulation": [underlying.valve_entity_ids for underlying in self._underlyings_valve_regulation],
-                        "on_percent": self._prop_algorithm.on_percent,
+                        "on_percent": self.safe_on_percent,
                         "power_percent": self.power_percent,
                         "function": self._proportional_function,
                         "tpi_coef_int": self._tpi_coef_int,
@@ -208,18 +193,14 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
                 self.do_recalculate_later()
                 return
 
-        self._prop_algorithm.calculate(
-            self.target_temperature,
-            self._cur_temp,
-            self._cur_ext_temp,
-            self.last_temperature_slope,
-            self.vtherm_hvac_mode or VThermHvacMode_OFF,
-        )
+        # Call parent TPI recalculate to perform the TPI algorithm calculation
+        super().recalculate(force)
 
         if self.is_sleeping:
             new_valve_percent = 100
         else:
-            new_valve_percent = round(max(0, min(self.proportional_algorithm.on_percent, 1)) * 100)
+            on_percent = self.safe_on_percent
+            new_valve_percent = round(max(0, min(on_percent, 1)) * 100)
 
             # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
             if new_valve_percent < self._auto_regulation_dpercent:
@@ -245,8 +226,6 @@ class ThermostatOverClimateValve(ThermostatOverClimate):
         self._valve_open_percent = new_valve_percent
 
         self._last_calculation_timestamp = now
-
-        super().recalculate()
 
     def do_recalculate_later(self):
         """A utility function to set the valve open percent later on all underlyings"""

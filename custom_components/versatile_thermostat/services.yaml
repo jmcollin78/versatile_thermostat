@@ -254,3 +254,89 @@ set_tpi_parameters:
                     step: 0.1
                     mode: box
                     unit_of_measurement: "°"
+
+set_auto_tpi_mode:
+    name: Set Auto TPI mode
+    description: Enable or disable the Auto TPI learning mode.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        auto_tpi_mode:
+            name: Auto TPI mode
+            description: Enable (true) or disable (false) the Auto TPI learning
+            required: true
+            advanced: false
+            default: true
+            selector:
+                boolean:
+        reinitialise:
+            name: Reset learning data
+            description: Reset all learning data when enabling Auto TPI mode (default is true)
+            required: false
+            advanced: false
+            default: true
+            selector:
+                boolean:
+
+
+auto_tpi_calibrate_capacity:
+    name: Auto Tpi Calibrate Capacity
+    description: Calibrate the heating/cooling capacity (in min/°) using linear regression on the entity's history data.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        start_date:
+            name: History from date
+            description: Date from which to retrieve history (default is 30 days ago)
+            required: false
+            advanced: false
+            example: "2023-11-01"
+            selector:
+                date:
+        end_date:
+            name: History to date
+            description: Date until which to retrieve history (default is now)
+            required: false
+            advanced: false
+            example: "2023-12-01"
+            selector:
+                date:
+        hvac_mode:
+            name: HVAC Mode
+            description: Which mode to calibrate (heat or cool)
+            required: true
+            advanced: false
+            example: "heat"
+            selector:
+                select:
+                    options:
+                        - "heat"
+                        - "cool"
+        save_to_config:
+            name: Save to Config
+            description: Whether to apply the calculated capacity to the entity's configuration
+            required: true
+            advanced: false
+            example: true
+            selector:
+                boolean:
+        min_power_threshold:
+            name: Minimum Power Threshold
+            description: Minimum power percentage to consider a cycle as saturated (default 95%). Lower values (e.g., 90%) will include more cycles but may be less accurate.
+            required: false
+            advanced: true
+            example: 100
+            default: 95
+            selector:
+                number:
+                    min: 80
+                    max: 100
+                    step: 1
+                    unit_of_measurement: "%"
+                    mode: slider

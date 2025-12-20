@@ -33,7 +33,7 @@ def config_entry() -> MockConfigEntry:
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_HEATER_KEEP_ALIVE: 1,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
