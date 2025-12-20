@@ -181,7 +181,7 @@ async def async_setup_entry(
             vol.Optional("end_date"): selector.DateTimeSelector(),
             vol.Required("hvac_mode"): vol.In(["heat", "cool"]),
             vol.Optional("save_to_config", default=False): vol.In([True, False]),
-            vol.Optional("min_power_threshold", default=100): selector.NumberSelector(
+            vol.Required("min_power_threshold"): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=80, max=100, step=1, mode=selector.NumberSelectorMode.SLIDER)
             ),
         },

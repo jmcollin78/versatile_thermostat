@@ -293,13 +293,11 @@ async def test_service_calibrate_capacity(mock_vtherm_for_capacity):
 
         # 1. Simulate the service call - assuming BaseThermostat.service_auto_tpi_calibrate_capacity is now correct
         await vtherm.service_auto_tpi_calibrate_capacity(
-            "climate.test_thermostat",
-            "sensor.outdoor_temp",
-            10, # cycle_time_min
-            95, # min_power_percent
-            None, # kext_override
-            None, # start_date
-            None # end_date
+            hvac_mode="heat",
+            save_to_config=True,
+            min_power_threshold=95,
+            start_date=None,
+            end_date=None,
         )
 
         # 2. Check that the manager's calculate_capacity_from_history was called

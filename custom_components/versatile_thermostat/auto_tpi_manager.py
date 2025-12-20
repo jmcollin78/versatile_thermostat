@@ -1414,9 +1414,9 @@ class AutoTpiManager:
         ext_temp_entity_id: str,
         hvac_mode: str,
         save_to_config: bool,
+        min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
-        min_power_threshold: float = 0.95,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope

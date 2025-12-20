@@ -456,9 +456,9 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self,
         hvac_mode: str,
         save_to_config: bool,
+        min_power_threshold: int,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
-        min_power_threshold: int = 95,
     ):
         """Called by a service call:
         service: versatile_thermostat.auto_tpi_calibrate_capacity
