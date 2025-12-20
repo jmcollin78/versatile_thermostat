@@ -91,7 +91,7 @@ Niektóre termostaty typu TRV są niekompatybilne z integracją _Versatile Therm
 | **Homematic / Homematic IP** | Ograniczenia protokołu RF, problemy przy sterowaniu wieloma termostatami jednocześnie | Grupowanie termostatów przez procedury Homematic (np. termostat ścienny) i sterowanie tylko nim; alternatywnie sterowanie jednym termostatem i propagowanie zmian przez automatyzację |
 | **Heatzy** | Brak obsługi komend `set_temperature` | Brak obejścia – niezalecane użycie |
 | **Rointe** | Samoczynne wybudzanie się urządzenia | Akceptacja tego zachowania – pozostałe funkcje działają normalnie |
-| **Aqara SRTS-A01 / MOES TV01-ZB** | Brak feedbacku `hvac_action` → nie wiadomo, czy grzeją | Można używać, ale stan jest niedokładny; pozostałe funkcje działają |
+| **Aqara SRTS-A01 / MOES TV01-ZB** | Brak informacji zwrotnej `hvac_action` → nie wiadomo, czy grzeją | Można używać, ale stan jest niedokładny; pozostałe funkcje działają |
 | **Airwell (Midea AC LAN)** | Jeśli dwa polecenia VTherm są zbyt blisko siebie, klimatyzator sam się zatrzymuje | Wydłużenie odstępów między poleceniami |
 | **Overkiz (klimatyzacja)** | Brak możliwości wyłączenia lub zmiany temperatury | Brak obejścia – niekompatybilne |
 | **Netatmo (systemy grzewcze)** | Harmonogramy Netatmo kolidują z VTherm | Brak obejścia – niekompatybilne |

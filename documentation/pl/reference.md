@@ -12,6 +12,7 @@
 - [Atrybuty własne](#atrybuty-własne)
   - [For _VTherm_](#for-vtherm)
   - [For central configuration](#for-central-configuration)
+  - [Atrybuty własne konfiguracji centralnej](#atrybuty-własne-konfiguracji-centralnej)
 
 ## Parametry
 
@@ -272,9 +273,11 @@ Atrybuty własne są następujace:
 
 ## For central configuration
 
-The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+## Atrybuty własne konfiguracji centralnej
 
-| Attribute                                   | Meaning                                                                              |
+Atrybuty własne konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_boiler`:
+
+| Atrybut                                     | znaczenie                                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------------------ |
 | ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
 | ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
