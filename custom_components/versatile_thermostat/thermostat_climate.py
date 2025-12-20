@@ -420,6 +420,19 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             except ValueError:
                 return None
 
+        def fix_order_speed_modes(speed_modes: list) -> list:
+            """Determine if speed_modes list is ordered from high to low speed and reverse it"""
+            index = -1
+            if "low" in speed_modes:
+                index = speed_modes.index("low")
+            elif "1" in speed_modes:
+                index = speed_modes.index("1")
+
+            if index > -1 and index >= len(speed_modes) / 2:
+                speed_modes.reverse()
+
+            return speed_modes
+
         # Remove special modes like "auto"
         fan_modes = self.fan_modes or []
         speed_modes = [
@@ -427,11 +440,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             if mode not in ["auto"]
         ]
 
-        # We suppose speed_modes are ordered from low to high speed
         num_speeds = len(speed_modes)
         if num_speeds == 0:
             self._auto_activated_fan_mode = None
             return
+
+        # We suppose speed_modes are ordered from low to high speed
+        speed_modes = fix_order_speed_modes(speed_modes)
 
         # We suppose that the speed modes contains at least 3 values
         # fan_modes = low, medium, high :
