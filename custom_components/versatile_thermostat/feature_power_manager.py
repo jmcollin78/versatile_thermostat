@@ -177,9 +177,11 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
+                on_percent = self._vtherm.safe_on_percent
+
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                    self._device_power * on_percent,
                 )
         return power_consumption_max
 
@@ -208,9 +210,11 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
+                on_percent = self._vtherm.safe_on_percent
+
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * self._vtherm.proportional_algorithm.on_percent,
+                    self._device_power * on_percent,
                 )
 
         vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
@@ -293,10 +297,10 @@ class FeaturePowerManager(BaseFeatureManager):
     @property
     def mean_cycle_power(self) -> float | None:
         """Returns the mean power consumption during the cycle"""
-        if not self._device_power or not self._vtherm.proportional_algorithm:
+        if not self._device_power:
             return None
 
-        return float(round_to_nearest(self._device_power * self._vtherm.proportional_algorithm.on_percent, 0.1))
+        return float(round_to_nearest(self._device_power * self._vtherm.safe_on_percent, 0.1))
 
     def __str__(self):
         return f"PowerManager-{self.name}"

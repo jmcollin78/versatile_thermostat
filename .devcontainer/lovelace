@@ -693,7 +693,7 @@
                       "entity": "binary_sensor.thermostat_switch_1_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.versatile_thermostat_thermostat_switch_1_safety_state"
+                      "entity": "binary_sensor.thermostat_switch_1_security_state"
                     },
                     {
                       "entity": "binary_sensor.thermostat_switch_1_window_state"
@@ -711,6 +711,19 @@
                   "title": "Thermostat Switch 1",
                   "theme": "versatile_thermostat_theme",
                   "columns": 4
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "sensor.kint_vtherm_switch"
+                    },
+                    {
+                      "entity": "sensor.kext_vtherm_switch"
+                    }
+                  ],
+                  "title": "TPI",
+                  "hours_to_show": 4
                 }
               ]
             },
@@ -773,6 +786,10 @@
                       "hours_to_show": 1
                     }
                   ]
+                },
+                {
+                  "type": "markdown",
+                  "content": "Auto-tpi attributes:\n\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.state }}\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.attributes | tojson(indent=4)}}"
                 }
               ]
             },

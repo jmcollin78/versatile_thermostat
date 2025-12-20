@@ -549,6 +549,18 @@
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA - {name}",
+        "description": "Parameters for the EMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial learning | 0.15 | 0.08 |\n| Fine learning | 0.08 | 0.12 |\n| Continuous learning | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Decay Rate"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
+          "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)"
+        }
       }
     },
     "error": {
@@ -680,6 +692,11 @@
       "boost_ac_away_temp": {
         "name": "Boost ac away"
       }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "Auto TPI learning for {name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
     }
   }
 }

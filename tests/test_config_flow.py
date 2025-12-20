@@ -1370,6 +1370,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_MINIMAL_DEACTIVATION_DELAY: 0,
         CONF_TPI_THRESHOLD_LOW: 0.0,
         CONF_TPI_THRESHOLD_HIGH: 0.0,
+        CONF_AUTO_TPI_MODE: False,
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,

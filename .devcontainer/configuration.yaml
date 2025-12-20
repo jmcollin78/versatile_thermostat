@@ -310,76 +310,46 @@ template:
                 {% if energy < 0 %}{{none}}{% else %}
                   {{ energy | round(2, default=0) }}
                 {% endif %}
-
-template:
+          - name: "Kint VTherm switch"
+            unique_id: kint_vtherm_switch
+            state: "{{ state_attr('climate.thermostat_switch_1', 'vtherm_over_switch').tpi_coef_int }}"
+            state_class: measurement
+          - name: "Kext VTherm switch"
+            unique_id: kext_vtherm_switch
+            state: "{{ state_attr('climate.thermostat_switch_1', 'vtherm_over_switch').tpi_coef_ext }}"
+            state_class: measurement
     - switch:
-        - turn_on:
-            - action: select.select_option
-              data:
-                  option: comfort
-              target:
-                  entity_id:
-                    - select.seche_serviettes_sdb_rdc_cable_outlet_mode
-          turn_off:
-            - action: select.select_option
-              data:
-                  option: comfort-2
-              target:
-                  entity_id:
-                  - select.seche_serviettes_sdb_rdc_cable_outlet_mode
-          default_entity_id: switch.pilote_sdb_rdc
-          name: Pilote chauffage SDB RDC
-          state: '{{ is_state_attr(''switch_seche_serviettes_sdb_rdc'', ''sensor_state'', ''on'') }}'
-    - switch:
-        - turn_on:
-            - action: input_boolean.turn_on
-              target:
-                entity_id:
-                  - input_boolean.fake_inversed_heater
-          turn_off:
-            - action: input_boolean.turn_off
-              target:
-                entity_id:
-                  - input_boolean.fake_inversed_heater
-          default_entity_id: switch.fake_inversed_switch
-          name: A fake inversed switch
-          state: '{{ is_state(''input_boolean.fake_inversed_heater'', ''on'') }}'
+          - turn_on:
+                - action: select.select_option
+                  data:
+                      option: comfort
+                  target:
+                      entity_id:
+                          - select.seche_serviettes_sdb_rdc_cable_outlet_mode
+            turn_off:
+                - action: select.select_option
+                  data:
+                      option: comfort-2
+                  target:
+                      entity_id:
+                          - select.seche_serviettes_sdb_rdc_cable_outlet_mode
+            default_entity_id: switch.pilote_sdb_rdc
+            name: Pilote chauffage SDB RDC
+            state: "{{ is_state_attr('switch_seche_serviettes_sdb_rdc', 'sensor_state', 'on') }}"
+          - turn_on:
+                - action: input_boolean.turn_on
+                  target:
+                      entity_id:
+                          - input_boolean.fake_inversed_heater
+            turn_off:
+                - action: input_boolean.turn_off
+                  target:
+                      entity_id:
+                          - input_boolean.fake_inversed_heater
+            default_entity_id: switch.fake_inversed_switch
+            name: A fake inversed switch
+            state: "{{ is_state('input_boolean.fake_inversed_heater', 'on') }}"
 
-# Old style legacy template
-# switch:
-#     - platform: template
-#       switches:
-#           pilote_sdb_rdc:
-#               friendly_name: "Pilote chauffage SDB RDC"
-#               value_template: "{{ is_state_attr('switch_seche_serviettes_sdb_rdc', 'sensor_state', 'on') }}"
-#               turn_on:
-#                   action: select.select_option
-#                   data:
-#                       option: comfort
-#                   target:
-#                       entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
-#
-#               turn_off:
-#                   action: select.select_option
-#                   data:
-#                       option: comfort-2
-#                   target:
-#                       entity_id: select.seche_serviettes_sdb_rdc_cable_outlet_mode
-#     - platform: template
-#       switches:
-#           fake_inversed_switch:
-#               friendly_name: "A fake inversed switch"
-#               value_template: "{{ is_state('input_boolean.fake_inversed_heater', 'on') }}"
-#               turn_on:
-#                   action: input_boolean.turn_on
-#                   data: {}
-#                   target:
-#                       entity_id: input_boolean.fake_inversed_heater
-#               turn_off:
-#                   action: input_boolean.turn_off
-#                   data: {}
-#                   target:
-#                       entity_id: input_boolean.fake_inversed_heater
 
 frontend:
     extra_module_url:

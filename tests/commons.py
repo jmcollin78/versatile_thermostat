@@ -269,12 +269,13 @@ class MockClimate(ClimateEntity):
 
         self.hass = hass
         self.platform = "climate"
-        self.entity_id = self.platform + "." + unique_id
+        self.entity_id = (self.platform + "." + unique_id).lower()
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
         self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
         self._attr_hvac_mode = hvac_mode
+        self._attr_available = True
         self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_swing_mode = swing_mode
         self._attr_swing_modes = swing_modes
@@ -328,12 +329,22 @@ class MockClimate(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
-        self._attr_hvac_mode = hvac_mode
+        if hvac_mode == STATE_UNAVAILABLE:
+            self._attr_available = False
+            self._attr_hvac_mode = HVACMode.OFF
+        else:
+            self._attr_available = True
+            self._attr_hvac_mode = hvac_mode
         self.async_write_ha_state()
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
-        self._attr_hvac_mode = hvac_mode
+        if hvac_mode == STATE_UNAVAILABLE:
+            self._attr_available = False
+            self._attr_hvac_mode = HVACMode.OFF
+        else:
+            self._attr_available = True
+            self._attr_hvac_mode = hvac_mode
         self.async_write_ha_state()
 
     def set_hvac_action(self, hvac_action: HVACAction):
