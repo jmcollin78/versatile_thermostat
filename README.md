@@ -26,6 +26,10 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.4 (experimental)
+1. Addition of the auto TPI feature. This new feature aims to calculate automatically the best coefficients for TPI algorithm. M%ore informations [here](./auto_tpi_internal_doc.md)
+
+
 ## Release 8.3
 1. Addition of a configurable delay before activating the central boiler.
 2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:

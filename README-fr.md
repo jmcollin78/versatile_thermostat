@@ -26,6 +26,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
 
+## Release 8.4 (experimental)
+1. ajout de l'auto TPI. Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](./auto_tpi_internal_doc.md)
+
 ## Release 8.3
 1. ajout d'un délai configurable avant l'activation de la chaudière centrale,
 2. ajout d'un déclenchement de la chaudière centrale si le total de la puissance activée dépasse un seuil. Pour faire marcher cette fonction il faut :

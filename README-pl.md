@@ -26,6 +26,9 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Release 8.4 (experimental)
+1. Addition of the auto TPI feature. This new feature aims to calculate automatically the best coefficients for TPI algorithm. M%ore informations [here](./auto_tpi_internal_doc.md)
+
 ## Wydanie 8.3
 > 1. Dodanie konfigurowalnego opóźnienia przed załączeniem kotła centralnego.
 > 2. Dodanie wyzwalacza kotła centralnego, gdy całkowita moc aktywowana przekroczy założony próg. Aby ta funkcja działała, musisz:
@@ -36,7 +39,7 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 > Za każdym razem, gdy VTherm jest aktywowany, jego skonfigurowana moc jest dodawana do sumy, a w przypadku przekroczenia progu, kocioł centralny zostanie uruchomiony po opóźnieniu skonfigurowanym w kroku 1.
 >
 > Poprzedni licznik liczby aktywowanych urządzeń i jego progu nadal istnieją. Aby wyłączyć jeden z progów (próg mocy lub próg liczby aktywnych urządzeń), ustaw jego wartość na zero (`0`). Po przekroczeniu któregokolwiek z dwóch niezerowych progów kocioł zostanie uruchomiony. Dlatego pomiędzy dwoma progami stosuje się alternatywę logiczną _'lub'_.
-> 
+>
 > Więcej informacji znajdziesz [tutaj](documentation/pl/feature-central-boiler.md).
 
 ## Wydanie 8.2

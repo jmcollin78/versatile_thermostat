@@ -26,6 +26,9 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 8.4 (experimental)
+1. Addition of the auto TPI feature. This new feature aims to calculate automatically the best coefficients for TPI algorithm. M%ore informations [here](./auto_tpi_internal_doc.md)
+
 ## Release 8.3
 1. Hinzufügen einer konfigurierbaren Verzögerung vor der Heizkesselaktivierung,
 2. Hinzufügen eines Heizkesselstriggers, sobald die gesamte aktivierte Leistung einen Schwellenwert überschreitet. Um diese Funktion zu aktivieren, muss:
