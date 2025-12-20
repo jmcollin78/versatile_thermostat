@@ -18,8 +18,6 @@ Istnieją dwa typowe przypadki zastosowań tej funkcji:
 
 ### Samoregulacja z bezpośrednim sterowaniem zaworem
 
--- this § is not updated since v 8.0. Please see the English version --
-
 Ten typ samoregulacji, nazwany 'Bezpośrednim sterowaniem zaworami', wymaga:
 1. Encji typu `climate` pochodzącej z urządzenia bazowego _VTherm_.
 2. Encji typu `number` do sterowania szybkością otwierania zaworu _TRV_.

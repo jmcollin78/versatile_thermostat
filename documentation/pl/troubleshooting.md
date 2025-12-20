@@ -103,11 +103,7 @@ Jeszcze jeden, bardziej złożony przykład znajdziesz [tutaj](https://github.co
 
 System oparty na termostatach TRV Netatmo nie współpracuje dobrze z _VTherm_. Dyskusję na temat konkretnego działania systemów Netatmo (w języku francuskim) można znaleźć [tutaj](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
 
-Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo w następujący sposób:
-
-```
-(...)
-```
+Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo.
 
 
 ## Gdy grzeje tylko pierwszy grzejnik

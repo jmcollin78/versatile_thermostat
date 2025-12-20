@@ -12,9 +12,9 @@ Podaj wymagane atrybuty główne. Te atrybuty są wspólne dla wszystkich termos
 2. Identyfikator encji sensora temperatury, który dostarcza temperaturę pomieszczenia, w którym zainstalowany jest grzejnik,
 3. Opcjonalna encja sensora podająca datę i godzinę ostatniego odczytu (last_seen). Jeśli jest dostępna, określ ją tutaj. Pomaga to zapobiec awaryjnemu wyłączeniu, gdy temperatura jest stabilna, a czujnik przestaje raportować przez długi czas (patrz [tutaj](troubleshooting.md#why-does-my-versatile-thermostat-go-into-safety-mode)),
 4. Czas trwania cyklu w minutach. W każdym cyklu:
-   1. Dla `Termostat na Przełączniku`: VTherm włączy/wyłączy grzejnik, modulując proporcję czasu, w którym jest włączony,
-   2. Dla `Termostat na Zaworze`: VTherm obliczy nowy poziom otwarcia zaworu i wyśle go, jeśli uległ zmianie,
-   3. Dla `Termostat na Klimacie`: Cykl wykonuje podstawowe sterowanie i ponownie oblicza współczynniki samoregulacji. Cykl może skutkować nowym ustawieniem docelowej temperatury wysłanym do urządzeń podrzędnych lub regulacją otwarcia zaworu w przypadku sterowalnego TRV.
+   1. dla `Termostat na Przełączniku`: VTherm włączy/wyłączy grzejnik, modulując proporcję czasu, w którym jest włączony,
+   2. dla `Termostat na Zaworze`: VTherm obliczy nowy poziom otwarcia zaworu i wyśle go, jeśli uległ zmianie,
+   3. dla `Termostat na Klimacie`: Cykl wykonuje podstawowe sterowanie i ponownie oblicza współczynniki samoregulacji. Cykl może skutkować nowym ustawieniem docelowej temperatury wysłanym do urządzeń podrzędnych lub regulacją otwarcia zaworu w przypadku sterowalnego TRV.
 5. Moc urządzenia, która aktywuje sensory mocy i zużycia energii dla urządzenia. Jeśli wiele urządzeń jest powiązanych z tym samym termostatem VTherm, podaj tutaj całkowitą maksymalną moc wszystkich urządzeń. Jednostka mocy nie ma tu znaczenia. Ważne jest, aby wszystkie termostaty i wszystkie sensory mocy miały tę samą jednostkę (zobacz: funkcja redukcji mocy),
 6. Opcja użycia dodatkowych parametrów z konfiguracji podstawowej:
    1. Sensor temperatury zewnętrznej,

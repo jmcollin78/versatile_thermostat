@@ -112,7 +112,7 @@ W takim przypadku do urządzenia _VTherm_ dodano sensor "Śledzenie zmiany tempe
 
 Gdy ta opcja jest aktywna, wszystkie zmiany temperatury lub stanu dokonane bezpośrednio na sterowanym urządzeniu są odzwierciedlane w termostacie VTherm.
 
-**Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejasności co do aktualnego stanu urządzenia. 
+**Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejednoznaczności aktualnego stanu urządzenia. 
 Termostat _VTherm_ posiada mechanizm opóźnienia, który zapobiega zapętleniom: użytkownik ustawia żądaną wartość, termostat _VTherm_ ją przechwytuje i odpowiednio zmienia wartość. To opóźnienie może powodować zignorowanie zmiany dokonanej bezpośrednio na urządzeniu, jeśli nastąpi w zbyt krótkim czasie.
 
 Niektóre urządzenia (np. Daikin) zmieniają stan samodzielnie. Jeśli zaznaczono tę opcję, może to spowodować wyłączenie termostatu _VTherm_, mimo że nie było to zamierzone. Dlatego lepiej jej nie używać — generuje to wiele niejasności i niepotrzebnych zapytań o wsparcie techniczne.

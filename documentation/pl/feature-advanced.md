@@ -38,7 +38,7 @@ versatile_thermostat:
         check_outdoor_sensor: false
 ```
 
-Domyślnie termometr zewnętrzny może uruchomić Tryb Bezpieczny (Safety Mode), jeśli przestanie wysyłać dane. Pamiętaj, że Home Assistant musi zostać ponownie uruchomiony, aby te zmiany zaczęły obowiązywać. To ustawienie dotyczy wszystkich termostatów, które współdzielą termometr zewnętrzny.
+Domyślnie termometr zewnętrzny może uruchomić _*tryb bezpieczny*_ (_safety mode_), jeśli przestanie wysyłać dane. Pamiętaj, że Home Assistant musi zostać ponownie uruchomiony, aby te zmiany zaczęły obowiązywać. To ustawienie dotyczy wszystkich termostatów, które współdzielą termometr zewnętrzny.
 
 > ![Tip](images/tips.png) _*Wskazówki*_
 > 1. Gdy czujnik temperatury wznowi raportowanie, preset zostanie przywrócony do poprzedniej wartości.
