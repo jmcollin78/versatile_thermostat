@@ -57,7 +57,7 @@ class BaseFeatureManager:
     @property
     def name(self) -> str:
         """The name"""
-        return self._name
+        return self._name if self._name else "Unnamed FeatureManager"
 
     @property
     def hass(self) -> HomeAssistant:
