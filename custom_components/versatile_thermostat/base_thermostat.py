@@ -824,38 +824,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._ac_mode
 
     @property
-    def fan_mode(self) -> str | None:
-        """Return the fan setting.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        return None
-
-    @property
-    def fan_modes(self) -> list[str] | None:
-        """Return the list of available fan modes.
-
-        Requires ClimateEntityFeature.FAN_MODE.
-        """
-        return []
-
-    @property
-    def swing_mode(self) -> str | None:
-        """Return the swing setting.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        return None
-
-    @property
-    def swing_modes(self) -> list[str] | None:
-        """Return the list of available swing modes.
-
-        Requires ClimateEntityFeature.SWING_MODE.
-        """
-        return None
-
-    @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self._unit
@@ -927,14 +895,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def current_outdoor_temperature(self) -> float | None:
         """Return the outdoor sensor temperature."""
         return self._cur_ext_temp
-
-    @property
-    def is_aux_heat(self) -> bool | None:
-        """Return true if aux heater.
-
-        Requires ClimateEntityFeature.AUX_HEAT.
-        """
-        return None
 
     @property
     def total_energy(self) -> float | None:
@@ -1266,11 +1226,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
         write_event_log(_LOGGER, self, f"Set humidity: {humidity}")
-        return
-
-    async def async_set_swing_mode(self, swing_mode: str):
-        """Set new target swing operation."""
-        write_event_log(_LOGGER, self, f"Set swing mode: {swing_mode}")
         return
 
     @check_lock
