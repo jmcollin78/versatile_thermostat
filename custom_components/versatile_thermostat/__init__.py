@@ -14,6 +14,7 @@ from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant, CoreState, callback
 from homeassistant.helpers.service import async_register_admin_service
+from homeassistant.const import UnitOfTemperature
 
 from .base_thermostat import BaseThermostat
 
@@ -76,9 +77,7 @@ from .const import (
     CONF_TEMP_MIN,
     CONF_TEMP_MAX,
     CONF_STEP_TEMPERATURE,
-    CONF_TEMP_UNIT,
-    TEMP_UNIT_C,
-    TEMP_UNIT_F,
+
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -327,19 +326,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     new[new_key] = old_value
                 new.pop(key, None)
 
-        # Migration 2.1 to 2.2 -> add default temperature values based on system unit
-        if new.get(CONF_TEMP_MIN) is None:
-            unit = hass.config.units.temperature_unit
-            if unit == TEMP_UNIT_F:
-                new[CONF_TEMP_MIN] = 45
-                new[CONF_TEMP_MAX] = 95
-                new[CONF_STEP_TEMPERATURE] = 1.0
-                new[CONF_TEMP_UNIT] = TEMP_UNIT_F
-            else:
-                new[CONF_TEMP_MIN] = 7
-                new[CONF_TEMP_MAX] = 35
-                new[CONF_STEP_TEMPERATURE] = 0.1
-                new[CONF_TEMP_UNIT] = TEMP_UNIT_C
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(

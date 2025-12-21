@@ -35,7 +35,6 @@ Once checked, a dedicated configuration wizard appears in several steps:
 ### Step 1: General
 
 *   **Enable Auto TPI**: Allows enabling or disabling learning.
-*   **Temperature Unit**: Allows selecting the temperature unit (Celsius or Fahrenheit). If Fahrenheit is selected, the internal thresholds used for learning are automatically scaled.
 *   **Notification**: If enabled, a notification will be sent **only** when learning is considered complete ( 50 cycles per coefficient ).
 *   **Update Configuration**: If this option is checked, the learned TPI coefficients will be **automatically** saved to the thermostat's configuration **only when learning is considered complete**. If this option is unchecked, the learned coefficients are used for the ongoing TPI regulation but are not saved to the configuration.
 *   **Continuous Learning** (`auto_tpi_continuous_learning`): If enabled, learning will continue indefinitely, even after the initial 50 cycles are completed. This allows the thermostat to continuously adapt to gradual changes in the thermal environment (e.g., seasonal changes, house aging). If this option is checked, learned parameters will be saved to config (if **Update Configuration** is also checked) at the end of every cycle once the model is considered "stable" (e.g., after the first 50 cycles).

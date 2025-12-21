@@ -28,10 +28,7 @@ from .const import (
     CONF_TPI_COEF_EXT,
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
-    TEMP_UNIT_F,
-    TEMP_UNIT_C,
 )
-
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 8
@@ -141,7 +138,7 @@ class AutoTpiManager:
         keep_ext_learning: bool = False,
         enable_update_config: bool = False,
         enable_notification: bool = False,
-        temp_unit: str = TEMP_UNIT_C,
+
     ):
         self._hass = hass
         self._config_entry = config_entry
@@ -156,8 +153,8 @@ class AutoTpiManager:
         self._heater_heating_time = heater_heating_time
         self._heater_cooling_time = heater_cooling_time
 
-        self._temp_unit = temp_unit
-        self._unit_factor = 1.8 if temp_unit == TEMP_UNIT_F else 1.0
+        self._temp_unit = self._hass.config.units.temperature_unit
+        self._unit_factor = 1.8 if self._temp_unit == UnitOfTemperature.FAHRENHEIT else 1.0
 
         self._calculation_method = calculation_method
         self._ema_alpha = ema_alpha
@@ -211,7 +208,7 @@ class AutoTpiManager:
         """Convert temperature to Celsius if needed."""
         if temp is None:
             return 0.0
-        if self._temp_unit == TEMP_UNIT_F:
+        if self._temp_unit == UnitOfTemperature.FAHRENHEIT:
             return TemperatureConverter.convert(temp, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.CELSIUS)
         return temp
 
@@ -474,7 +471,7 @@ class AutoTpiManager:
         elif hvac_mode == "heat":
             calc_state_str = "heat"
 
-        return self.calculate_power(target_temp, room_temp, ext_temp, calc_state_str)
+        return self.calculate_power(self._current_target_temp, self._current_temp_in, self._current_temp_out, calc_state_str)
 
     async def calculate(self) -> Optional[dict]:
         """Return the current calculated TPI parameters."""
