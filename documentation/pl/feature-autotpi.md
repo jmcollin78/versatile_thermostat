@@ -1,13 +1,23 @@
-# Auto TPI Feature
+# Funkcja Auto TPI
 
 
-## Introduction
+## Wstęp
 
-The **Auto TPI** (or self-learning) feature is a major advancement in Versatile Thermostat. It allows the thermostat to **automatically** adjust its regulation coefficients (Kp and Ki) by analyzing the thermal behavior of your room.
+Funkcja **Auto TPI** (lub samouczenia) stanowi istotny postęp w rozwoju integracji _*Termostat VTherm*_. Umożliwia ona termostatowi **automatyczny** dobór współczynników regulacji (`Kp` i `Ki`) poprzez analizę zachowania termicznego pomieszczenia.
 
-In TPI (Time Proportional & Integral) mode, the thermostat calculates an opening percentage or heating time based on the gap between the target and indoor temperature (`Kp`), and the influence of the outdoor temperature (`Ki`).
+W trybie TPI _*(Time Proportional & Integral)*_ termostat oblicza procent otwarcia lub czas grzania na podstawie różnicy między temperaturą docelową a temperaturą wewnętrzną (`Kp`) oraz wpływu temperatury zewnętrznej (`Ki`).
 
-Finding the right coefficients (`tpi_coef_int` and `tpi_coef_ext`) is often complex and requires many trials. **Auto TPI does this for you.**
+Znalezienie odpowiednich współczynników (`tpi_coef_int` i `tpi_coef_ext`) jest często skomplikowane i wymaga wielu prób. Od teraz **Auto TPI robi to za Ciebie.**
+
+## Wymagania wstępne
+
+Aby funkcja _*Auto TPI*_ działała efektywnie, potrzebne są:
+1. **Niezawodny czujnik temperatury**: Czujnik nie może być narażony na bezpośredni wpływ źródła ciepła (nie umieszczaj go na grzejniku!).
+2. **Czujnik temperatury zewnętrznej**: Dokładny pomiar temperatury zewnętrznej jest niezbędny.
+3. **Włączony tryb TPI**: Ta funkcja ma zastosowanie tylko w przypadku korzystania z algorytmu TPI (`termostat na przełączniku`, `termostat na zaworze` lub `termostat na klimacie` w trybie TPI).
+4. **Prawidłowa konfiguracja zasilania**: Prawidłowo zdefiniuj parametry związane z czasem grzania (patrz poniżej).
+5. **Optymalny rozruch (ważne)**: Aby funkcja uczenia się działała efektywnie, zaleca się jej włączenie, gdy różnica między aktualną temperaturą a temperaturą docelową jest znacząca (**co najmniej 2°C**).
+* *Wskazówka*: ochłodź pomieszczenie, włącz funkcję uczenia się, a następnie przywróć żądane ustawienie komfortowe.
 
 ## Prerequisites
 
@@ -18,6 +28,19 @@ For Auto TPI to work effectively:
 4.  **Correct Power Configuration**: Correctly define the parameters related to heating time (see below).
 5.  **Optimal Startup (Important)**: For learning to start effectively, it is recommended to enable it when the gap between the current temperature and the target is significant (**2°C is sufficient**).
     *   *Tip*: cool the room, enable learning, then restore the comfort setpoint.
+
+## Konfiguracja
+
+Automatyczna konfiguracja TPI jest zintegrowana z procesem konfiguracji TPI dla **każdego termostatu**.
+
+> **Uwaga**: Automatycznego uczenia się TPI nie można skonfigurować z poziomu konfiguracji centralnej, ponieważ każdy termostat wymaga własnych parametrów uczenia się.
+
+1. Przejdź do konfiguracji jednostki VTherm (**Konfiguracja**).
+2. Wybierz **Parametry TPI**.
+3. **Ważne**: Aby uzyskać dostęp do parametrów lokalnych, należy wyłączyć opcję **Użyj centralnej konfiguracji TPI**.
+4. Na następnym ekranie (Atrybuty TPI) zaznacz pole wyboru **Włącz uczenie się Auto TPI** na samym dole.
+
+Po tym zaznaczeniu pojawi się dedykowany kreator konfiguracji, składający się z kilku kroków:
 
 ## Configuration
 
@@ -31,6 +54,28 @@ Auto TPI configuration is integrated into the TPI configuration flow for **each 
 4.  On the next screen (TPI Attributes), check the **Enable Auto TPI Learning** box at the very bottom.
 
 Once checked, a dedicated configuration wizard appears in several steps:
+
+### Krok 1: Informacje ogólne
+
+* **Włącz Auto TPI**: Umożliwia załączenie lub wyłączenie uczenia się.
+* **Powiadomienie**: Jeśli ta opcja jest włączona, powiadomienie zostanie wysłane **tylko** po uznaniu procesu uczenia się za zakończony (50 cykli na współczynnik).
+* **Aktualizuj konfigurację**: Jeśli ta opcja jest zaznaczona, zapamiętane współczynniki TPI zostaną **automatycznie** zapisane w konfiguracji termostatu **tylko po uznaniu procesu uczenia się za zakończony**. Jeśli ta opcja jest odznaczona, zapamiętane współczynniki są używane do bieżącej regulacji TPI, ale nie są zapisywane w konfiguracji.
+* **Ciągłe uczenie się** (`auto_tpi_continuous_learning`): Jeśli ta opcja jest włączona, uczenie się będzie kontynuowane w nieskończoność, nawet po zakończeniu początkowych 50 cykli. Pozwala to termostatowi na ciągłe dostosowywanie się do stopniowych zmian temperatury otoczenia (np. zmian sezonowych, starzenia się budynku). Jeśli ta opcja jest zaznaczona, zapamiętane parametry zostaną zapisane w konfiguracji (jeśli zaznaczona jest również opcja **Aktualizuj konfigurację**) na koniec każdego cyklu, gdy model zostanie uznany za stabilny (np. po pierwszych 50 cyklach).
+* **Wykrywanie zmian w reżimie**: Po włączeniu ciągłego uczenia się system monitoruje ostatnie błędy uczenia się. W przypadku wykrycia **systematycznego błędu** (np. spowodowanego zmianą pory roku, izolacji lub systemu grzewczego), szybkość uczenia się (alfa) jest **tymczasowo zwiększana** (do 3x, z ograniczeniem do 15%) w celu przyspieszenia adaptacji. Ta funkcja pomaga termostatowi szybko dostosować się do nowych warunków termicznych bez konieczności ręcznej interwencji.
+* **Zapis wyuczonego współczynnika zewnętrznego** (`auto_tpi_keep_ext_learning`): Po włączeniu, współczynnik zewnętrzny (`Kext`) będzie kontynuował uczenie się nawet po osiągnięciu 50 cykli, dopóki współczynnik wewnętrzny (`Kint`) nie osiągnie stabilności.
+**Uwaga:** Konfiguracja jest zachowywana tylko wtedy, gdy oba współczynniki są stabilne.
+* **Czas grzania/chłodzenia**: Zdefiniuj bezwładność grzejnika ([patrz: Konfiguracja termiczna](#thermal-configuration-critical)).
+* **Próg współczynnika temperatury wewnętrznej**: Limity bezpieczeństwa dla współczynnika temperatury wewnętrznej (maks. 3,0). **Uwaga**: Jeśli ten limit zostanie zmieniony w procesie konfiguracji, nowa wartość zostanie **natychmiast** zastosowana do zapamiętanych współczynników, jeśli przekroczą one nowy limit (wymaga to ponownego uruchomienia integracji, co ma miejsce po zapisaniu modyfikacji za pomocą opcji).
+
+* **Szybkość grzania** (`auto_tpi_heating_rate`): Docelowa szybkość wzrostu temperatury w °C/h. ([patrz: Konfiguracja parametrów](#heating-cooling-rate-configuration))
+* **Szybkość chłodzenia** (`auto_tpi_cooling_rate`): Docelowa szybkość spadku temperatury w °C/h. ([patrz: Konfiguracja parametrów](#heating-cooling-rate-configuration))
+
+*Uwaga: Niekoniecznie należy używać maksymalnej szybkości grzania/chłodzenia. Można bez problemu użyć niższej wartości, w zależności od rozmiaru systemu ogrzewania, **co jest zdecydowanie zalecane**.
+Im bliżej maksymalnej wydajności, tym wyższy będzie współczynnik `Kint`, określony podczas procesu uczenia.*
+
+*Dlatego po zdefiniowaniu wydajności za pomocą usługi dedykowanej lub ręcznego jej oszacowania, należy użyć niższej szybkości grzania/chłodzenia.
+**Najważniejsze, aby nie przekraczać wydajności grzejnika w tym pomieszczeniu.**
+Np.: Zmierzona wydajność adiabatyczna wynosi 1,5°/h. Wobec tego 1°/h to standardowa i rozsądna stała.*
 
 ### Step 1: General
 
