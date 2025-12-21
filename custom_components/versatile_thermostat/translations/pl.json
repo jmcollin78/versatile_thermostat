@@ -45,7 +45,7 @@
           "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm",
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm"
         }
       },
       "main": {
@@ -609,11 +609,11 @@
         "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowe uczenie się | 0.15 | 0.08 |\n| Dokładne uczenie się | 0.08 | 0.12 |\n| Permanentne uczenie się | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alfa",
-          "auto_tpi_ema_decay_rate": "Tempo rozkładu"
+          "auto_tpi_ema_decay_rate": "Wpółczynnik rozkładu"
         },
         "data_description": {
-          "auto_tpi_ema_alpha": "Współczynnik wygładzania (0-1). Wyższy = szybsza adaptacja",
-          "auto_tpi_ema_decay_rate": "Szybkość, z jaką alfa maleje w czasie (stabilizacja)"
+          "auto_tpi_ema_alpha": "Współczynnik wygładzania (0-1). Im wyższy, tym szybsza adaptacja",
+          "auto_tpi_ema_decay_rate": "Szybkość, z jaką rozkład alfa maleje w czasie (stabilizacja)"
         }
       }
     },
@@ -754,7 +754,7 @@
         "name": "Boost AC poza domem"
       }
     }
- },
+  },
   "services": {
     "set_auto_tpi_mode": {
       "name": "Tryb Auto TPI",
@@ -762,7 +762,7 @@
       "fields": {
         "auto_tpi_mode": {
           "name": "Tryb Auto TPI",
-          "description": "Załącza (`true`) lub wyłącza (`false`) uczenie się Auto TPI"
+          "description": "Załącza (`true`) lub wyłącza (`false`) proces uczenia się Auto TPI"
         },
         "reinitialise": {
           "name": "Zresetuj dane wyuczone",
