@@ -5,6 +5,7 @@
     "step": {
       "user": {
         "title": "Typ Termostatu VTherm",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",		
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -45,7 +46,6 @@
         },
         "data_description": {
           "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm",
-          "lock_code": "Kod PIN do odblokowania termostatu (4 cyfry)"
         }
       },
       "main": {
@@ -128,6 +128,7 @@
           "use_tpi_central_config": "Użyj centralnej konfiguracji TPI",
           "minimal_activation_delay": "Minimalna zwłoka czasowa aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji"
+          "auto_tpi_mode": "Aktywuj uczenie się Auto TPI"		  
         },
         "data_description": {
           "tpi_coef_int": "Współczynnik do zastosowania w przypadku delty temperatury wewnętrznej",
@@ -137,6 +138,7 @@
           "use_tpi_central_config": "Zaznacz, aby używać centralnej konfiguracji TPI. Odznacz, aby używać konfiguracji TPI dedykowanej wyłącznie dla tego termostatu",
           "minimal_activation_delay": "Zwłoka (w sek.), w czasie której urządzenie nie zostanie aktywowane",
           "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości"
+          "auto_tpi_mode": "Zaznacz, aby aktywować uczenie wpółczynników TPI"		  
         }
       },
       "presets": {
@@ -285,6 +287,7 @@
     "step": {
       "user": {
         "title": "Typ - {name}",
+		"description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -310,6 +313,10 @@
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "lock": "Blokada",
+          "auto_tpi_1": "Auto TPI - Ogólne",
+          "auto_tpi_2": "Auto TPI - Metoda",
+          "auto_tpi_3_avg": "Auto TPI - Średnia",
+          "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
         }
@@ -319,6 +326,7 @@
         "description": "Funkcja blokady zapobiega modyfikacjom termostatu z interfejsu użytkownika lub automatyzacji, jednocześnie utrzymując termostat w stanie pracy.",
         "data": {
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
+		  "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",
           "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
         },
@@ -406,6 +414,7 @@
           "use_tpi_central_config": "Użyj centralnej konfiguracji TPI",
           "minimal_activation_delay": "Minimalna zwłoka czasowa aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji"
+          "auto_tpi_mode": "Aktywuj uczenie się Auto TPI"		  
         },
         "data_description": {
           "tpi_coef_int": "Współczynnik do zastosowania w przypadku delty temperatury wewnętrznej",
@@ -550,6 +559,62 @@
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
+      },
+      "auto_tpi_1": {
+        "title": "Auto TPI - Ogólne - {name}",
+        "description": "Ogólne parametry uczenia się Auto TPI.",
+        "data": {
+          "auto_tpi_enable_update_config": "Aktualizuj konfigurację",
+          "auto_tpi_enable_notification": "Powiadomienia",
+          "auto_tpi_keep_ext_learning": "Kontynuuj uczenie się współczynnika zewnętrznego",
+          "auto_tpi_continuous_learning": "Permanentne uczenie się",
+          "heater_heating_time": "Czas nagrzewania się grzejnika (w min.)",
+          "heater_cooling_time": "Czas wychładzania się grzejnika (w min.)",
+          "auto_tpi_max_coef_int": "Maksymalna wartość współczynnika wewnętrznego",
+          "auto_tpi_heating_rate": "Szybkość nagrzewania (°C/h)",
+          "auto_tpi_cooling_rate": "Szybkość wystudzania (°C/h)"
+        },
+        "data_description": {
+          "auto_tpi_enable_update_config": "Automatycznie aktualizuj konfigurację o wyuczone współczynniki",
+          "auto_tpi_enable_notification": "Wyślij powiadomienie gdy uczenie się zostanie zakończone",
+          "auto_tpi_keep_ext_learning": "Uczenie się wpółczynnika zewnętrznego będzie kontynuowane nawet po osiągnieciu 50 cykli, dopóki współczynnik wewnętrzny nie ustabilizuje się.",
+          "auto_tpi_continuous_learning": "Po zakończeniu procesu uczenia się system będzie obliczał i aplikował w tle nowe wartości współczynników (zalecana metoda EMA).",
+          "heater_heating_time": "Czas osiągnięcia pełnej mocy (w min.)",
+          "heater_cooling_time": "Czas wychłodzenia po zatrzymaniu (w min.)",
+          "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego"
+        }
+      },
+      "auto_tpi_2": {
+        "title": "Auto TPI - Metoda - {name}",
+        "description": "Wybierz metodę obliczeniową dla procesu uczenia się.",
+        "data": {
+          "auto_tpi_calculation_method": "Metoda obliczeniowa"
+        },
+        "data_description": {
+          "auto_tpi_calculation_method": "Średnia: proste uśrednianie. EMA: Zmienna Średnia Wykładnicza (preferuje niedawne wartości)"
+        }
+      },
+      "auto_tpi_3_avg": {
+        "title": "Auto TPI - Średnia - {name}",
+        "description": "Parametry metody uśredniania.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Waga początkowa"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Waga początkowej/poprzedniej wartości w obliczaniu średniej"
+        }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA - {name}",
+        "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowe uczenie się | 0.15 | 0.08 |\n| Dokładne uczenie się | 0.08 | 0.12 |\n| Permanentne uczenie się | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alfa",
+          "auto_tpi_ema_decay_rate": "Tempo rozkładu"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Współczynnik wygładzania (0-1). Wyższy = szybsza adaptacja",
+          "auto_tpi_ema_decay_rate": "Szybkość, z jaką alfa maleje w czasie (stabilizacja)"
+        }
       }
     },
     "error": {
@@ -560,6 +625,7 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"	  
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -617,6 +683,12 @@
         "auto_start_stop_slow": "Powolna detekcja",
         "auto_start_stop_medium": "Średnia detekcja",
         "auto_start_stop_fast": "Szybka detekcja"
+      }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Średnia",
+        "ema": "Zmienna Średnia Wykładnicza (EMA)"
       }
     }
   },
@@ -681,6 +753,99 @@
       "boost_ac_away_temp": {
         "name": "Boost AC poza domem"
       }
+    }
+ },
+  "services": {
+    "set_auto_tpi_mode": {
+      "name": "Tryb Auto TPI",
+      "description": "Załącz lub wyłącz tryb uczenia się Auto TPI",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Tryb Auto TPI",
+          "description": "Załącza (`true`) lub wyłącza (`false`) uczenie się Auto TPI"
+        },
+        "reinitialise": {
+          "name": "Zresetuj dane wyuczone",
+          "description": "Resetuje wszystkie dane wyuczone podczas aktywności trybu Auto TPI (domyślnie `true`)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Reset wydajności Auto TPI",
+      "description": "Zresetuj zapamiętane maksymalne wydajności grzania i chłodzenia do 1,0 °C/h. Zapamiętane współczynniki NIE są resetowane."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Kalibracja wydajności Auto TPI",
+      "description": "Skalibruj wydajność ogrzewania/chłodzenia (w °C/godzinę) za pomocą regresji liniowej na danych historycznych obiektu. Wyuczone współczynniki NIE są aktualizowane.",
+      "fields": {
+        "start_date": {
+          "name": "Historia od dnia",
+          "description": "Data, od której ma zostać pobrana historia (domyślnie: 30 dni temu)."
+        },
+        "end_date": {
+          "name": "Historia do dnia",
+          "description": "Data, do której ma zostać pobrana historia (domyślnie: dzisiaj)."
+        },
+        "hvac_mode": {
+          "name": "Tryb HVAC",
+          "description": "Który tryb ma być kalibrowany (grzanie lub chłodzenie)."
+        },
+        "save_to_config": {
+          "name": "Zapis w konfiguracji",
+          "description": "Zastosuj obliczone wydajności do konfiguracji Auto TPI."
+        },
+        "min_power_threshold": {
+          "name": "Próg mocy minimalnej",
+          "description": "Minimalny procent mocy, przy którym cykl jest uznawany za nasycony (domyślnie: 95%). Niższe wartości uwzględniają więcej cykli, ale mogą być mniej dokładne."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "Ustawienia parametrów TPI",
+      "description": "Zmień parametry TPI",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Minimalna zwłoka aktywacji",
+          "description": "Zwłoka (w sek.) aktywacji urządzeń"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Minimalna zwłoka deaktywacji",
+          "description": "Zwłoka (w sek.) deaktywacji urządzeń (czas podtrzymania działania)"
+        },
+        "tpi_threshold_low": {
+          "name": "Dolny próg TPI",
+          "description": "Próg w °, poniżej którego algorytm TPI zostanie załączony. `0` oznacza brak progu."
+        },
+        "tpi_threshold_high": {
+          "name": "Górny próg TPI",
+          "description": "Próg w °, powyżej którego algorytm TPI zostanie wyłączony. `0` oznacza brak progu."
+        }
+      }
+    },
+    "lock": {
+      "name": "Blokada",
+      "description": "Blokada termostatu przed zmianą jego konfiguracji przez użytkownika lub automatyzacje.",
+      "fields": {
+        "code": {
+          "name": "Kod blokady",
+          "description": "Opcjonalny kod blokady"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Odblokowanie",
+      "description": "Odblokowuje termostat, umozliwiając zmianę jego konfiguracji.",
+      "fields": {
+        "code": {
+          "name": "Kod blokady",
+          "description": "Opcjonalny kod blokady"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "Uczenie Auto TPI dla {name} zostało zatrzymane z powodu 3-ech kolejnych błędów. Powód: {reason}. Sprawdź swoją konfigurację."
     }
   }
 }
