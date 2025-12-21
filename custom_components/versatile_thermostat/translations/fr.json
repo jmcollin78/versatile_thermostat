@@ -287,8 +287,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({°C|°F}/h)",
-          "auto_tpi_cooling_rate": "Taux de refroidissement ({°C|°F}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_cooling_rate": "Taux de refroidissement ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
@@ -633,8 +633,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({°C|°F}/h)",
-          "auto_tpi_cooling_rate": "Taux de refroidissement ({°C|°F}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_cooling_rate": "Taux de refroidissement ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
