@@ -289,6 +289,7 @@ Where:
 - Cycle 1: weight_old = 1 → new coefficient has a weight of 50%
 - Cycle 10: weight_old = 10 → new coefficient has a weight of ~9%
 - Cycle 50: weight_old = 50 → new coefficient has a weight of ~2%
+- Cycle 100+: weight_old = 50 (capped) → new coefficient still has a weight of ~2% to ensure responsiveness
 
 ### Main Characteristics
 
@@ -338,7 +339,7 @@ Over cycles, **alpha decreases gradually** to stabilize learning:
 | 0 | 0.20 | 20% |
 | 10 | 0.10 | 10% |
 | 50 | 0.033 | 3.3% |
-| 100 | 0.018 | 1.8% |
+| 100 | 0.033 | 3.3% (capped at 50 cycles) |
 
 ### Parameters
 
@@ -353,7 +354,7 @@ Over cycles, **alpha decreases gradually** to stabilize learning:
 alpha(n) = alpha_initial / (1 + decay_rate × n)
 ```
 
-Where `n` is the number of learning cycles.
+Where `n` is the number of learning cycles (capped at 50).
 
 ### Special Cases
 
@@ -398,7 +399,7 @@ Where `n` is the number of learning cycles.
 
   * Cycle 1 : α = 0.08
   * Cycle 25 : α = 0.024
-  * Cycle 50 : α = 0.013
+  * Cycle 50+ : α = 0.013 (capped)
 
 
   *Decay Rate:* 0.12
@@ -418,8 +419,7 @@ Where `n` is the number of learning cycles.
 
   * Cycle 1 : α = 0.05
   * Cycle 50 : α = 0.025
-  * Cycle 100 : α = 0.017
-  * Cycle 200 : α = 0.011
+  * Cycle 100+ : α = 0.025 (capped)
 
 
   *Decay Rate:* 0.02

@@ -809,23 +809,28 @@ class AutoTpiManager:
         count = self.state.coeff_indoor_cool_autolearn if is_cool else self.state.coeff_indoor_autolearn
 
         # 5. Calculation Method
+        # 5. Calculation Method
+        # Cap the effective count to keep the system responsive
+        # Even if we have 1000 cycles history, we weigh the new sample as if we had at most 50 cycles.
+        effective_count = min(count, 50)
+
         if self._calculation_method == "average":
             # Weighted average
             # avg_coeff = ((old_coeff * count + coeff_new) / (count + 1))
             # We must use the current count (not incremented) as weight for old_coeff
 
             # If count is 0 (should not happen for valid state), treat as 1
-            weight_old = max(count, 1)
+            weight_old = max(effective_count, 1)
 
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Weighted Average: old=%.3f (weight=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, coeff_new, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
 
         else:  # EMA
             # EMA Smoothing (20% weight by default)
             # new_avg = (old_avg * (1 - alpha)) + (new_sample * alpha)
-            alpha = self._get_adaptive_alpha(count)
+            alpha = self._get_adaptive_alpha(effective_count)
             avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.2f (count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, count, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
 
         # Update counters
         new_count = count + 1
@@ -948,14 +953,16 @@ class AutoTpiManager:
         old_coeff = current_outdoor
 
         # Apply EMA or average
+        effective_count = min(count, 50)
+
         if self._calculation_method == "average":
-            weight_old = max(count, 1)  # Same as _learn_indoor
+            weight_old = max(effective_count, 1)  # Same as _learn_indoor
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d), new=%.3f, result=%.3f", self._name, old_coeff, count, coeff_new, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
         else:  # EMA
-            alpha = self._get_adaptive_alpha(count)
+            alpha = self._get_adaptive_alpha(effective_count)
             avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: Outdoor EMA: old=%.3f, new=%.3f, alpha=%.2f (count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, count, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Outdoor EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
 
         new_count = count + 1
 
