@@ -44,13 +44,12 @@ Once checked, a dedicated configuration wizard appears in several steps:
 *   **Heating/Cooling Time**: Define your radiator's inertia ([see Thermal Configuration](#thermal-configuration-critical)).
 *   **Indoor Coefficient Cap**: Safety limits for indoor coefficient (`max 3.0`). **Note**: If this limit is changed in the configuration flow, the new value is **immediately** applied to the learned coefficients if they exceed the new limit (which requires an integration reload, which is the case after saving a modification via options).
 
-*   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-cooling-rate-configuration))
-*   **Cooling Rate** (`auto_tpi_cooling_rate`): Target rate of temperature decrease in °C/h. ([see rates Configuration](#heating-cooling-rate-configuration))
+*   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-rate-configuration))
 
-    *Note: You don’t necessarily want to use the maximum heating/cooling rate. You can perfectly well use a lower value depending on the heating/AC system sizing, **and it is highly recommended**.
+    *Note: You don’t necessarily want to use the maximum heating rate. You can perfectly well use a lower value depending on the heating system sizing, **and it is highly recommended**.
     The closer you are to the maximum capacity, the higher the Kint coefficient determined during the learning process will be.*
 
-    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a lower heating/cooling rate.
+    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a lower heating rate.
    **The most important thing is not to be above what your radiator can provide in this room.**
     ex: Your measured adiabatic capacity is 1.5°/h, 1°/h is a standard and reasonable constant to use.*
 
@@ -88,12 +87,12 @@ It must include:
 
 > An incorrect value can skew the efficiency calculation and prevent learning.
 
-#### `heater_cooling_time` (Cooling Time)
+#### `heater_cooling_time` (Heater Cooling Time)
 Time required for the radiator to become cold after stopping. Used to estimate if the radiator is "hot" or "cold" at the start of a cycle via the `cold_factor`. The `cold_factor` corrects the radiator's inertia and acts as a **filter**: if the heating time is too short compared to the estimated warm-up time, learning for that cycle will be ignored (to prevent noise).
 
-### Heating-Cooling Rate Configuration
+### Heating Rate Configuration
 
-The algorithm uses the **Heating/Cooling Rate** (`auto_tpi_heating_rate`/`cooling_rate` in °C/h) as a reference for calculating the indoor coefficient (`Kint`). This value should represent the **desired** or **achievable** rate of temperature increase or decrease when regulation is at 100% power.
+The algorithm uses the **Heating Rate** (`auto_tpi_heating_rate` in °C/h) as a reference for calculating the indoor coefficient (`Kint`). This value should represent the **desired** or **achievable** rate of temperature increase when regulation is at 100% power.
 
 > **Calibration** : This value can be automatically learned using the Calibrate capacity service from the thermostat’s HA history.
 
@@ -101,7 +100,7 @@ If you're not using the service above, you must manually define them:
 
 We want an estimate of the so-called **"adiabatic"** value (without heat loss).
 
-To estimate it yourself, the method is quite simple (example for heating):
+To estimate it yourself, the method is quite simple:
 
 ***I - First, we need the cooling coefficient*** (which should be quite close to the Ext Coeff of the TPI regulation).
 
@@ -140,9 +139,9 @@ note: you can also use this k value as the starting External Coefficient in the 
 
 Auto TPI operates cyclically:
 
-1.  **Observation**: At each cycle (e.g., every 10 min), the thermostat (which is in `HEAT` or `COOL` mode) measures the temperature at the start and end, as well as the power used.
+1.  **Observation**: At each cycle (e.g., every 10 min), the thermostat (which is in `HEAT` mode) measures the temperature at the start and end, as well as the power used.
 2.  **Validation**: It checks if the cycle is valid for learning:
-    *   Learning is based on the thermostat's `hvac_mode` (`HEAT` or `COOL`), regardless of the current state of the heat emitter (`heating`/`idle`).
+    *   Learning is based on the thermostat's `HEAT` mode, regardless of the current state of the heat emitter (`heating`/`idle`).
     *   Power was not saturated (between 0% and 100% excluded).
     *   The temperature difference is significant.
     *   The system is stable (no consecutive failures).
@@ -187,12 +186,11 @@ target:
 data:
   start_date: "2023-11-01T00:00:00+00:00" # Optional. Default is 30 days before "end_date".
   end_date: "2023-12-01T00:00:00+00:00"   # Optional. Default is now.
-  hvac_mode: heat                  # Required. 'heat' or 'cool'.
   min_power_threshold: 0.95        # Optional. Power threshold (0.0-1.0). Default 0.95 (100%).
   save_to_config: true             # Optional. Save calculated capacity to config. Default false.
 ```
 
-> **Result** : The Adiabatic Capacity value (`max_capacity_heat`/`cool`) is updated in the learning state sensor attributes.
+> **Result** : The Adiabatic Capacity value (`max_capacity_heat`) is updated in the learning state sensor attributes.
 >
 > The service also returns the following information to analyze the calibration quality:
 > *   **`capacity`**: The estimated adiabatic capacity (in °C/h).

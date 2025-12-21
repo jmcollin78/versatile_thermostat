@@ -307,17 +307,7 @@ auto_tpi_calibrate_capacity:
             example: "2023-12-01"
             selector:
                 date:
-        hvac_mode:
-            name: HVAC Mode
-            description: Which mode to calibrate (heat or cool)
-            required: true
-            advanced: false
-            example: "heat"
-            selector:
-                select:
-                    options:
-                        - "heat"
-                        - "cool"
+
         save_to_config:
             name: Save to Config
             description: Whether to apply the calculated capacity to the entity's configuration

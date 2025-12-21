@@ -285,8 +285,7 @@
           "heater_heating_time": "Heater warm-up time (min)",
           "heater_cooling_time": "Heater cool-down time (min)",
           "auto_tpi_max_coef_int": "Max Internal Coefficient",
-          "auto_tpi_heating_rate": "Heating rate ({unit}/h)",
-          "auto_tpi_cooling_rate": "Cooling rate ({unit}/h)"
+          "auto_tpi_heating_rate": "Heating rate ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",

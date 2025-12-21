@@ -472,7 +472,6 @@ STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
         vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=0): cv.positive_int,
         vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=0): cv.positive_int,
         vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=1.0): cv.positive_float,
-        vol.Required(CONF_AUTO_TPI_COOLING_POWER, default=1.0): cv.positive_float,
         vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.0, max=3.0, step=0.01, mode=selector.NumberSelectorMode.BOX

@@ -1231,7 +1231,6 @@ class AutoTpiManager:
         self,
         slope_history: list,
         power_history: list,
-        hvac_mode: str,
         min_power_threshold: float = 0.95,
         kext_coeff: float = 0.0,
         current_indoor_temp: Optional[float] = None,
@@ -1250,7 +1249,6 @@ class AutoTpiManager:
         Args:
             slope_history: History of temperature_slope sensor
             power_history: History of power_percent sensor
-            hvac_mode: 'heat' or 'cool'
             min_power_threshold: Minimum power (0.0-1.0) to consider. Default 0.95 (95%)
             kext_coeff: Current Kext coefficient for adiabatic correction
             current_indoor_temp: Current indoor temperature for delta_T estimation
@@ -1259,7 +1257,8 @@ class AutoTpiManager:
         Returns:
             Dictionary with adiabatic capacity result and metrics
         """
-        is_heat_mode = hvac_mode == "heat"
+        # Always True now
+        is_heat_mode = True
         power_threshold_percent = min_power_threshold * 100.0
 
         _LOGGER.debug(
@@ -1310,17 +1309,10 @@ class AutoTpiManager:
                     rejected_low_power += 1
                     continue
 
-                # Check slope direction
-                if is_heat_mode and slope_value <= 0:
+                # Check slope direction (always heating check now)
+                if slope_value <= 0:
                     rejected_wrong_direction += 1
                     continue
-                elif not is_heat_mode and slope_value >= 0:
-                    rejected_wrong_direction += 1
-                    continue
-
-                # For cooling, use absolute value (capacity is always positive)
-                if not is_heat_mode:
-                    slope_value = abs(slope_value)
 
                 raw_slopes.append(slope_value)
 
@@ -1449,7 +1441,6 @@ class AutoTpiManager:
         self,
         thermostat_entity_id: str,
         ext_temp_entity_id: str,
-        hvac_mode: str,
         save_to_config: bool,
         min_power_threshold: float,
         start_date: datetime | str | None = None,
@@ -1468,7 +1459,6 @@ class AutoTpiManager:
         Args:
             thermostat_entity_id: The climate entity ID (e.g., "climate.thermostat_salon")
             ext_temp_entity_id: External temperature sensor (unused in new algorithm but kept for API compatibility)
-            hvac_mode: 'heat' or 'cool'
             save_to_config: Whether to save the result to config
             start_date: Start of history period (default: 30 days ago)
             end_date: End of history period (default: now)
@@ -1588,7 +1578,6 @@ class AutoTpiManager:
         result = await self.calculate_capacity_from_slope_sensor(
             slope_history,
             power_history,
-            hvac_mode,
             min_power_threshold=min_power_threshold,
             kext_coeff=kext_coeff,
             current_indoor_temp=current_indoor_temp,
@@ -1601,13 +1590,13 @@ class AutoTpiManager:
         if save_to_config and result and isinstance(result, dict) and result.get("success"):
 
             capacity = result.get("capacity")
-            is_heat_mode = hvac_mode == "heat"
+            # Always heat mode
+            is_heat_mode = True
 
             if capacity is not None:
                 await self.async_update_capacity_config(capacity=capacity, is_heat_mode=is_heat_mode)
 
-                mode_str = "Heating" if is_heat_mode else "Cooling"
-                _LOGGER.info("%s - %s capacity calibrated to %.3f °C/h and saved to config.", self._name, mode_str, capacity)
+                _LOGGER.info("%s - Heating capacity calibrated to %.3f °C/h and saved to config.", self._name, capacity)
 
         return result
 
