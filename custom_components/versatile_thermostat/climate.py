@@ -179,10 +179,12 @@ async def async_setup_entry(
         {
             vol.Optional("start_date"): selector.DateTimeSelector(),
             vol.Optional("end_date"): selector.DateTimeSelector(),
-            vol.Required("hvac_mode"): vol.In(["heat", "cool"]),
             vol.Optional("save_to_config", default=False): vol.In([True, False]),
-            vol.Required("min_power_threshold"): selector.NumberSelector(
+            vol.Optional("min_power_threshold", default=95): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=80, max=100, step=1, mode=selector.NumberSelectorMode.SLIDER)
+            ),
+            vol.Optional("capacity_safety_margin", default=20): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=90, step=1, mode=selector.NumberSelectorMode.SLIDER)
             ),
         },
         "service_auto_tpi_calibrate_capacity",

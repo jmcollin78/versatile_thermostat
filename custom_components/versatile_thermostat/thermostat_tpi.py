@@ -459,6 +459,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self,
         save_to_config: bool,
         min_power_threshold: int,
+        capacity_safety_margin: int = 20,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ):
@@ -469,10 +470,11 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             end_date: 2023-12-01T00:00:00+00:00
             save_to_config: true
             min_power_threshold: 95
+            capacity_safety_margin: 20
         target:
             entity_id: climate.thermostat_1
         """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}")
+        write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}, capacity_safety_margin: {capacity_safety_margin}")
 
         if not self._auto_tpi_manager:
             raise ServiceValidationError(f"{self} - Auto TPI Manager not initialized, cannot calibrate capacity.")
@@ -485,10 +487,11 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             start_date=start_date,
             end_date=end_date,
             min_power_threshold=min_power_threshold / 100.0,  # Convert from % to decimal
+            capacity_safety_margin=capacity_safety_margin / 100.0, # Convert from % to decimal
         )
 
         # If capacity was updated, we might need to recalculate (though capacity mainly affects TPI next cycle)
-        if result and result.get("success") and result.get("capacity"):
+        if result and result.get("success") and result.get("recommended_capacity"):
              self.recalculate()
 
         self.update_custom_attributes()

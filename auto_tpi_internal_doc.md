@@ -284,8 +284,11 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
         4.  **Élimination des Outliers** : La méthode IQR (Interquartile Range) est utilisée pour éliminer les valeurs aberrantes (pics dus au soleil, cuisson, etc.).
         5.  **Calcul du 75ème Percentile** : Le 75ème percentile des slopes filtrés est utilisé (plutôt que la médiane) pour biaiser vers les valeurs les plus élevées, plus proches de l'adiabatique.
         6.  **Correction Adiabatique** : Une compensation est appliquée : `Capacity_adiabatique = Slope_75p + Kext_config × ΔT_moyen`. Le Kext utilisé est celui configuré par l'utilisateur dans le config flow (pas la valeur apprise).
+        7.  **Application de la Marge de Sécurité** : Une marge de sécurité (défaut 20%, configurable via `capacity_safety_margin`) est soustraite de la capacité calculée pour obtenir la **Capacité Recommandée**. C'est cette valeur qui sera utilisée pour éviter de sous-estimer la puissance de chauffe. `Recommended = Capacity × (1 - margin)`.
     *   **Résultats et Métriques** : Le service retourne :
-        *   **`capacity`** : La capacité adiabatique estimée en °C/h.
+        *   **`max_capacity`** : La capacité adiabatique estimée brute en °C/h.
+        *   **`recommended_capacity`** : La capacité recommandée après application de la marge (en °C/h). **C'est la valeur sauvegardée**.
+        *   **`margin_percent`** : La marge de sécurité appliquée (en %).
         *   **`observed_capacity`** : Le 75ème percentile brut (avant correction).
         *   **`kext_compensation`** : La valeur de correction Kext × ΔT.
         *   **`avg_delta_t`** : Le ΔT moyen utilisé pour la correction.
