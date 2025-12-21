@@ -320,6 +320,7 @@ auto_tpi_calibrate_capacity:
             name: Minimum Power Threshold
             description: Minimum power percentage to consider a cycle as saturated (default 95%). Lower values (e.g., 90%) will include more cycles but may be less accurate.
             required: true
+            default: 95
             advanced: true
             example: 95
             selector:
