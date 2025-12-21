@@ -293,7 +293,13 @@ class FeaturePowerManager(BaseFeatureManager):
     @property
     def mean_cycle_power(self) -> float | None:
         """Returns the mean power consumption during the cycle"""
-        if not self._device_power or not self._vtherm.proportional_algorithm:
+        if not self._device_power:
+            return None
+
+        if self._vtherm.is_over_climate:
+            return self._device_power if self._vtherm.is_device_active else 0.0
+
+        if not self._vtherm.proportional_algorithm:
             return None
 
         return float(round_to_nearest(self._device_power * self._vtherm.proportional_algorithm.on_percent, 0.1))
