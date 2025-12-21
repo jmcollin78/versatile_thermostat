@@ -307,17 +307,7 @@ auto_tpi_calibrate_capacity:
             example: "2023-12-01"
             selector:
                 date:
-        hvac_mode:
-            name: HVAC Mode
-            description: Which mode to calibrate (heat or cool)
-            required: true
-            advanced: false
-            example: "heat"
-            selector:
-                select:
-                    options:
-                        - "heat"
-                        - "cool"
+
         save_to_config:
             name: Save to Config
             description: Whether to apply the calculated capacity to the entity's configuration
@@ -330,6 +320,7 @@ auto_tpi_calibrate_capacity:
             name: Minimum Power Threshold
             description: Minimum power percentage to consider a cycle as saturated (default 95%). Lower values (e.g., 90%) will include more cycles but may be less accurate.
             required: true
+            default: 95
             advanced: true
             example: 95
             selector:
