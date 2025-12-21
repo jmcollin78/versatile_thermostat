@@ -768,3 +768,62 @@ async def test_bug_1220(hass: HomeAssistant, skip_hass_states_is_state):
     # No changes on hvac_mode (but only on temperature or hvac_action)
     assert vtherm.hvac_mode == HVACMode.OFF
     assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+
+
+async def test_bug_1379(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that switching from preset mode to no preset mode conserve the last target temperature set manually"""
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        # default value are min 15°, max 30°, step 0.1
+        data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
+    )
+
+    # Min_temp is 15 and max_temp is 19
+    fake_underlying_climate = MagicMockClimate()
+
+    # fmt:off
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", return_value=fake_underlying_climate):
+    # fmt:on
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+        assert entity
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
+
+    # 1. Set a manual temperature first (no preset)
+    await entity.async_set_temperature(temperature=17.5)
+
+    # check that the requested temperature is set
+    assert entity.target_temperature == 17.5
+    assert entity.requested_state.target_temperature == 17.5
+
+    # 2. Set preset to Comfort
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    # target temperature should be the comfort temperature
+    assert entity.target_temperature == 19
+    assert entity.requested_state.target_temperature == 17.5
+    assert entity.current_state.target_temperature == 19
+
+    # 3. set back to manual mode (no preset)
+    await entity.async_set_preset_mode(VThermPreset.NONE)
+    assert entity.preset_mode == VThermPreset.NONE
+    # target temperature should be the last manual temperature
+    assert entity.target_temperature == 17.5
+    assert entity.requested_state.target_temperature == 17.5
+    assert entity.current_state.target_temperature == 17.5
+
+    entity.remove_thermostat()

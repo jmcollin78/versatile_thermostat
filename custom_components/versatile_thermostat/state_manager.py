@@ -251,8 +251,9 @@ class StateManager:
             self.update_current_temp_from_requested(vtherm)
 
         # update requested state temperature to set it in concordance with preset
-        if self._requested_state.preset != VThermPreset.NONE:
-            self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
+        # 1379 - do not overwrite requested_target_temp to keep the last manual tempe.
+        # if self._requested_state.preset != VThermPreset.NONE:
+        #     self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
 
         return self._current_state.is_target_temperature_changed
 
