@@ -860,36 +860,6 @@
           "name": "Safety Margin for Capacity",
           "description": "Margin percentage to subtract from max capacity before saving (default 20%). Valid range 0-90%."
         }
-      },
-      "response": {
-        "max_capacity": {
-          "name": "Max Capacity",
-          "description": "Max estimated adiabatic capacity (in °C/h)"
-        },
-        "recommended_capacity": {
-          "name": "Recommended Capacity",
-          "description": "Recommended capacity after safety margin (in °C/h)"
-        },
-        "margin_percent": {
-          "name": "Safety Margin",
-          "description": "Safety margin applied (in %)"
-        },
-        "reliability": {
-          "name": "Reliability",
-          "description": "Reliability of the calibration (in %)."
-        },
-        "k_ext": {
-          "name": "K_ext",
-          "description": "Estimated external heat loss coefficient (slope)."
-        },
-        "min_power_threshold": {
-          "name": "Min Power Threshold",
-          "description": "Power threshold used to filter cycles."
-        },
-        "period": {
-          "name": "Period",
-          "description": "History period analyzed (in days)."
-        }
       }
     },
     "set_tpi_parameters": {

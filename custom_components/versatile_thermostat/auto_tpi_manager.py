@@ -1398,7 +1398,7 @@ class AutoTpiManager:
 
         # Reliability: higher with more samples and lower variance
         sample_factor = min(1.0, len(filtered_slopes) / 20.0)  # Max at 20 samples
-        variance_factor = max(0.0, 1.0 - cv)  # Lower if high variance
+        variance_factor = max(0.0, 1.0 - (cv / 2.0))  # Lower if high variance
         reliability = 100.0 * sample_factor * variance_factor
 
         # Period calculation (in days)
