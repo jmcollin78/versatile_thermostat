@@ -1445,6 +1445,7 @@ class AutoTpiManager:
         min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
+        capacity_safety_margin: float = 0.2,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope
@@ -1464,6 +1465,8 @@ class AutoTpiManager:
             end_date: End of history period (default: now)
             min_power_threshold: Minimum power percentage (0.0-1.0) to consider a sample.
                                  Default is 1.0 (100%). Lower values (e.g., 0.90) include more samples.
+            capacity_safety_margin: Margin percentage (0.0-1.0) to subtract from the calculated capacity.
+                                    Default is 0.20 (20%).
         """
         # 1. Derive sensor entity IDs from thermostat entity ID
         # climate.thermostat_salon -> sensor.thermostat_salon_temperature_slope
@@ -1587,16 +1590,37 @@ class AutoTpiManager:
         _LOGGER.info("%s - Capacity calibration result: %s", self._name, result)
 
         # 6. Save to config if requested
-        if save_to_config and result and isinstance(result, dict) and result.get("success"):
+        if result and isinstance(result, dict) and result.get("success"):
 
-            capacity = result.get("capacity")
-            # Always heat mode
-            is_heat_mode = True
+            max_capacity = result.get("capacity")
+            # Calculate recommended capacity with margin
+            if max_capacity is not None:
+                # Ensure margin is valid (0-1)
+                margin = max(0.0, min(1.0, capacity_safety_margin)) if capacity_safety_margin is not None else 0.2
+                recommended_capacity = max_capacity * (1.0 - margin)
+                
+                # Rename capacity to max_capacity
+                if "capacity" in result:
+                    del result["capacity"]
+                
+                result["max_capacity"] = max_capacity
+                result["recommended_capacity"] = recommended_capacity
+                result["margin_percent"] = margin * 100
 
-            if capacity is not None:
-                await self.async_update_capacity_config(capacity=capacity, is_heat_mode=is_heat_mode)
+                # Update the displayed capacity in the result to be the recommended one or make it clear
+                # The prompt asks: "The servcice output shoud display the max capacity , and the recommended capacity"
+                # We add them to the dict.
 
-                _LOGGER.info("%s - Heating capacity calibrated to %.3f °C/h and saved to config.", self._name, capacity)
+                if save_to_config:
+                    # Always heat mode
+                    is_heat_mode = True
+                    
+                    await self.async_update_capacity_config(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
+
+                    _LOGGER.info(
+                        "%s - Heating capacity calibrated. Max: %.3f °C/h, Margin: %.0f%%, Saved: %.3f °C/h", 
+                        self._name, max_capacity, margin * 100, recommended_capacity
+                    )
 
         return result
 

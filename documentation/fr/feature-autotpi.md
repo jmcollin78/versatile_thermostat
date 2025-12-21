@@ -184,14 +184,17 @@ target:
 data:
   start_date: "2023-11-01T00:00:00+00:00" # Optionnel. Par défaut, 30 jours avant "end_date".
   end_date: "2023-12-01T00:00:00+00:00"   # Optionnel. Par défaut, maintenant.
-  min_power_threshold: 0.95        # Optionnel. Seuil de puissance (0.0-1.0). Défaut 0.95 (95%).
-  save_to_config: true             # Optionnel. Enregistrer la capacité calculée dans la configuration. Défaut false.
+  min_power_threshold: 95          # Optionnel. Seuil de puissance en % (0-100). Défaut 95.
+  capacity_safety_margin: 20       # Optionnel. Marge de sécurité en % (0-100) à retirer de la capacité calculée. Défaut 20.
+  save_to_config: true             # Optionnel. Enregistrer la capacité recommandée (après marge) dans la configuration. Défaut false.
 ```
 
-> **Résultat** : La valeur de la Capacité Adiabatique (`max_capacity_heat`) est mise à jour dans les attributs du capteur d'état d'apprentissage.
+> **Résultat** : La valeur de la Capacité Adiabatique (`max_capacity_heat`) est mise à jour dans les attributs du capteur d'état d'apprentissage avec la **valeur recommandée** (Capacité calculée - marge de sécurité).
 >
 > Le service retourne également les informations suivantes pour analyser la qualité de la calibration :
-> *   **`capacity`** : La capacité adiabatique estimée (en °C/h).
+> *   **`max_capacity`** : La capacité adiabatique estimée brute (en °C/h).
+> *   **`recommended_capacity`** : La capacité recommandée après application de la marge de sécurité (en °C/h). C'est cette valeur qui est sauvegardée.
+> *   **`margin_percent`** : La marge de sécurité appliquée (en %).
 > *   **`observed_capacity`** : Le 75ème percentile brut (avant correction Kext).
 > *   **`kext_compensation`** : La valeur de correction appliquée (Kext × ΔT).
 > *   **`avg_delta_t`** : Le ΔT moyen utilisé pour la correction.

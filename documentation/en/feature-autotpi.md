@@ -186,14 +186,17 @@ target:
 data:
   start_date: "2023-11-01T00:00:00+00:00" # Optional. Default is 30 days before "end_date".
   end_date: "2023-12-01T00:00:00+00:00"   # Optional. Default is now.
-  min_power_threshold: 0.95        # Optional. Power threshold (0.0-1.0). Default 0.95 (100%).
-  save_to_config: true             # Optional. Save calculated capacity to config. Default false.
+  min_power_threshold: 95          # Optional. Power threshold in % (0-100). Default 95.
+  capacity_safety_margin: 20       # Optional. Safety margin in % (0-100) subtracted from calculated capacity. Default 20.
+  save_to_config: true             # Optional. Save recommended capacity (after margin) to config. Default false.
 ```
 
-> **Result** : The Adiabatic Capacity value (`max_capacity_heat`) is updated in the learning state sensor attributes.
+> **Result** : The Adiabatic Capacity value (`max_capacity_heat`) is updated in the learning state sensor attributes with the **recommended value** (Calculated capacity - safety margin).
 >
 > The service also returns the following information to analyze the calibration quality:
-> *   **`capacity`**: The estimated adiabatic capacity (in °C/h).
+> *   **`max_capacity`**: The gross estimated adiabatic capacity (in °C/h).
+> *   **`recommended_capacity`**: The recommended capacity after applying safety margin (in °C/h). This is the value saved.
+> *   **`margin_percent`**: The safety margin applied (in %).
 > *   **`observed_capacity`**: The raw 75th percentile (before Kext correction).
 > *   **`kext_compensation`**: The correction value applied (Kext × ΔT).
 > *   **`avg_delta_t`**: The average ΔT used for correction.

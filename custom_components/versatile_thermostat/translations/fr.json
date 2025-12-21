@@ -857,9 +857,25 @@
         "min_power_threshold": {
           "name": "Seuil de puissance minimum",
           "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
+        },
+        "capacity_safety_margin": {
+          "name": "Marge de sécurité",
+          "description": "Marge de sécurité en pourcentage à soustraire de la capacité maximale avant sauvegarde (défaut 20%). Plage valide 0-90%."
         }
       },
       "response": {
+        "max_capacity": {
+          "name": "Capacité Maximale",
+          "description": "Capacité adiabatique maximale (en °C/h)"
+        },
+        "recommended_capacity": {
+          "name": "Capacité Recommandée",
+          "description": "Capacité recommandée après marge de sécurité (en °C/h)"
+        },
+        "margin_percent": {
+          "name": "Marge de sécurité",
+          "description": "Marge de sécurité appliquée (en %)"
+        },
         "reliability": {
           "name": "Fiabilité",
           "description": "Fiabilité de la calibration (en %)."
