@@ -44,13 +44,12 @@ Une fois coché, un assistant de configuration dédié s'affiche en plusieurs é
 *   **Temps de chauffe/refroidissement** : Définissez l'inertie de votre radiateur ([voir Configuration Thermique](#configuration-thermique-critique)).
 *   **Plafond Coefficient Intérieur** : Limites de sécurité pour le coefficient Interieur (`max 3.0`). **Remarque** : En cas de modification de cette limite dans le flux de configuration, la nouvelle valeur est **immédiatement** appliquée aux coefficients appris si ces derniers sont supérieurs à la nouvelle limite (ce qui nécessite un rechargement de l'intégration, ce qui est le cas après avoir enregistré une modification via les options).
 
-*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe-refroidissement) )
-*   **Taux de refroidissement** (`auto_tpi_cooling_rate`): Taux cible de descente en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe-refroidissement) )
+*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe) )
 
-    *Note: On ne veut pas forcément utiliser le taux de chauffe/refroidissement maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage/clim, **et c'est très conseillé**.
+    *Note: On ne veut pas forcément utiliser le taux de chauffe maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage, **et c'est très conseillé**.
     Plus vous serez proche de la capacité maximale, plus le coefficient Kint trouvé lors de l'apprentissage sera elevé.*
 
-    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe/refroidissement inférieur.
+    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe inférieur.
    **Le plus important étant de ne pas être au dessus de ce que votre radiateur peut fournir dans cette pièce.**
     ex: Votre capacité adiabatique mesurée est de 1.5°/h, 1°/h est une constante standard et raisonable à utiliser.*
 
@@ -88,12 +87,12 @@ Il doit inclure :
 
 > Une valeur incorrecte peut fausser le calcul de l'efficacité et empêcher l'apprentissage.
 
-#### `heater_cooling_time` (Temps de refroidissement)
+#### `heater_cooling_time` (Temps de refroidissement du radiateur)
 Temps nécessaire pour que le radiateur devienne froid après l'arrêt. Utilisé pour estimer si le radiateur est "chaud" ou "froid" au début d'un cycle via le `cold_factor`. Le `cold_factor` permet de corriger l'inertie du radiateur, et il sert de **filtre** : si le temps de chauffe est trop court par rapport au temps de réchauffement estimé, l'apprentissage pour ce cycle sera ignoré (pour éviter le bruit).
 
-### Configuration des Taux de chauffe-refroidissement
+### Configuration des Taux de chauffe
 
-L'algorithme utilise le **taux de chauffe/refroidissement** (`auto_tpi_heating_rate`/`cooling_rate` en °C/h) comme référence pour le calcul du coefficient intérieur (`Kint`). Cette valeur doit représenter le taux de montée ou de descente en température **souhaité** ou **atteignable** lorsque la régulation est à 100%.
+L'algorithme utilise le **taux de chauffe** (`auto_tpi_heating_rate` en °C/h) comme référence pour le calcul du coefficient intérieur (`Kint`). Cette valeur doit représenter le taux de montée en température **souhaité** ou **atteignable** lorsque la régulation est à 100%.
 
 > **Calibration** : Cette valeur peut être apprise automatiqueement avec le service **Calibrer la capacité** depuis l'historique HA du thermostat.
 
@@ -101,7 +100,7 @@ Si vous n'utilisez pas le service ci-dessus, vous devez les définir manuellemen
 
 On veut une éstimation de la valeur dite **"adiabatique"** (sans perte de chaleur).
 
-Pour l'estimer soit même la méthode est assez simple ( exemple pour le chauffage):
+Pour l'estimer soit même la méthode est assez simple:
 
  ***I - Il faut d'abord le coefficient de refroidissement*** ( qui devrait d'ailleurs être assez proche de Coeff Ext de la régulation TPI ).
    
@@ -137,11 +136,11 @@ Pour l'estimer soit même la méthode est assez simple ( exemple pour le chauffa
 
 L'Auto TPI fonctionne de manière cyclique :
 
-1.  **Observation** : À chaque cycle (ex: toutes les 10 min), le thermostat (qui est en mode `HEAT` ou `COOL`) mesure la température au début et à la fin, ainsi que la puissance utilisée.
+1.  **Observation** : À chaque cycle (ex: toutes les 10 min), le thermostat (qui est en mode `HEAT`) mesure la température au début et à la fin, ainsi que la puissance utilisée.
 2.  **Validation** : Il vérifie si le cycle est valide pour l'apprentissage :
-    *   L'apprentissage est basé sur le `hvac_mode` du thermostat (`HEAT` ou `COOL`), indépendamment de l'état actuel de l'émetteur de chaleur (`heating`/`idle`).
+    *   L'apprentissage est basé sur le mode `HEAT` du thermostat, indépendamment de l'état actuel de l'émetteur de chaleur (`heating`/`idle`).
     *   La puissance n'était pas saturée (entre 0% et 100% exclu).
-    *   L'écart de température est significatif.
+    *   Le m de température est significatif.
     *   Le système est stable (pas d'échecs consécutifs).
     *   Le cycle n'a pas été interrompu par un délestage de puissance (Power Shedding), ou une ouverture de fenêtre.
 3.  **Calcul (Apprentissage)** :
@@ -185,12 +184,11 @@ target:
 data:
   start_date: "2023-11-01T00:00:00+00:00" # Optionnel. Par défaut, 30 jours avant "end_date".
   end_date: "2023-12-01T00:00:00+00:00"   # Optionnel. Par défaut, maintenant.
-  hvac_mode: heat                  # Requis. 'heat' ou 'cool'.
   min_power_threshold: 0.95        # Optionnel. Seuil de puissance (0.0-1.0). Défaut 0.95 (95%).
   save_to_config: true             # Optionnel. Enregistrer la capacité calculée dans la configuration. Défaut false.
 ```
 
-> **Résultat** : La valeur de la Capacité Adiabatique (`max_capacity_heat`/`cool`) est mise à jour dans les attributs du capteur d'état d'apprentissage.
+> **Résultat** : La valeur de la Capacité Adiabatique (`max_capacity_heat`) est mise à jour dans les attributs du capteur d'état d'apprentissage.
 >
 > Le service retourne également les informations suivantes pour analyser la qualité de la calibration :
 > *   **`capacity`** : La capacité adiabatique estimée (en °C/h).

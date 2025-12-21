@@ -54,8 +54,8 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 
 1.  **Démarrage** :
     La boucle est démarrée (`manager.start_cycle_loop`) dans deux cas :
-    *   **Changement de mode** : Lorsque le thermostat passe en mode `HEAT` ou `COOL` (via `BaseThermostat.update_states`).
-    *   **Initialisation** : Au démarrage de l'intégration (`async_startup`), si le mode restauré est déjà `HEAT` ou `COOL`.
+    *   **Changement de mode** : Lorsque le thermostat passe en mode `HEAT` (via `BaseThermostat.update_states`).
+    *   **Initialisation** : Au démarrage de l'intégration (`async_startup`), si le mode restauré est déjà `HEAT`.
 
 2.  **Boucle (`_tick`)** :
     Le manager exécute une boucle infinie (via timer `async_call_later`) toutes les `cycle_min` minutes.
@@ -67,7 +67,7 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 3.  **Fin de Cycle** :
     Au tick suivant, le manager vérifie la durée écoulée. Si elle correspond à `cycle_min`, il valide la fin du cycle précédent (`on_cycle_completed`), puis déclenche la logique d'apprentissage (si conditions réunies).
 
-**Précision sur le Mode de Régulation :** La logique d'apprentissage et le calcul de puissance se basent uniquement sur le `hvac_mode` du thermostat (`HEAT` ou `COOL`). Le statut de commande de chauffe/refroidissement (`hvac_action`: `heating`/`cooling`/`idle`) n'est **pas** utilisé pour déterminer si l'apprentissage doit avoir lieu, car un cycle TPI complet inclut naturellement les phases `heating`/`cooling` (ON) et `idle` (OFF).
+**Précision sur le Mode de Régulation :** La logique d'apprentissage et le calcul de puissance se basent uniquement sur le `hvac_mode` du thermostat (`HEAT`). Le statut de commande de chauffe/refroidissement (`hvac_action`: `heating`/`idle`) n'est **pas** utilisé pour déterminer si l'apprentissage doit avoir lieu, car un cycle TPI complet inclut naturellement les phases `heating` (ON) et `idle` (OFF).
 
 ---
 
@@ -93,7 +93,7 @@ L'algorithme suit une séquence stricte de validations et de calculs.
 
 #### 1. Pré-requis (Validations)
 Avant tout calcul, les conditions suivantes sont vérifiées.
-*   **Mode** : Le système doit être en mode `heat` ou `cool`.
+*   **Mode** : Le système doit être en mode `heat`.
 *   **Delta Extérieur Suffisant** : `|Consigne - Temp_Ext| >= 0.1`.
 
 #### 2. Cycle Interruption Handling
@@ -129,7 +129,7 @@ L'algorithme tente d'apprendre le coefficient indoor.
 L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
 
 **Conditions d'activation :**
-1.  **Direction Extérieure Cohérente** : Heat (`Text < Consigne`) ou Cool (`Text > Consigne`).
+1.  **Direction Extérieure Cohérente** : Heat (`Text < Consigne`).
 2.  **Gap Significatif** : `abs(gap_in) > 0.05` (On cherche à corriger même les petits écarts persistants).
 
 **Validation Intelligente (Overshoot) :**
@@ -144,7 +144,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
  **Algorithme de calcul Indoor :**
  1.  **Sécurité** : `real_rise` doit être > 0.01°C (filtrage du bruit capteur).
  2.  **Capacité de Référence (`ref_capacity`)** :
-     *   La Capacité de Référence est la **capacité adiabatique** du système (mesurée en °C/h). Elle est calculée de manière externe par le service **`auto_tpi_calibrate_capacity`** et stockée dans `max_capacity_heat`/`cool`.
+     *   La Capacité de Référence est la **capacité adiabatique** du système (mesurée en °C/h). Elle est calculée de manière externe par le service **`auto_tpi_calibrate_capacity`** et stockée dans `max_capacity_heat`.
      *   *Fallback* : Si aucune capacité n'est encore calibrée (`max_capacity` <= 0), on utilise une valeur par défaut de **1.0 °C/h** pour permettre le démarrage de l'apprentissage du Kint.
      *   **Si la capacité est nulle ou non définie** (et qu'aucun fallback ne s'applique), l'apprentissage est sauté pour ce cycle (statut `no_capacity_defined`).
  3.  **Calcul de la Capacité Effective (Seuil de Saturation Dynamique)** :
@@ -219,7 +219,7 @@ Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
 *   **`time_constant`** (heures) : Inertie thermique estimée (`1 / coeff_indoor`).
 *   **`heating_cycles_count`** : Nombre total de cycles observés.
 *   **`coeff_int_cycles` / `coeff_ext_cycles`** : Nombre de cycles d'apprentissage validés pour chaque coefficient.
-*   **`max_capacity_heat` / `max_capacity_cool`** : Capacité maximale détectée (en °C/h).
+*   **`max_capacity_heat`** : Capacité maximale détectée (en °C/h).
 *   **`learning_start_dt`** : Date et heure du début de l'apprentissage (utile pour les graphiques).
 
 ---
@@ -269,7 +269,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 *   **Fichier** : `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 *   **Version** : 8
-*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, capacités maximales (`max_capacity_heat` / `max_capacity_cool`) et date de début (`learning_start_date`).
+*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, capacités maximales (`max_capacity_heat`) et date de début (`learning_start_date`).
 *   **Restauration** : Au démarrage d'Home Assistant, le `BaseThermostat` recharge cet état. Deux actions sont effectuées au chargement :
     1.  **Clamping (Plafonnement)**: Les coefficients intérieurs (`coeff_indoor_heat`/`cool`) chargés depuis le stockage sont **immédiatement plafonnés** à la valeur configurée de `CONF_AUTO_TPI_MAX_COEF_INT` (nouvellement prise en compte après un changement de configuration). Cela garantit que si un utilisateur baisse la limite, l'ancien coefficient (si supérieur) est ramené à la nouvelle limite pour les calculs futurs.
     2.  **Application des Valeurs** : Si des coefficients valides sont trouvés, que la configuration l'autorise (`auto_tpi_enable_update_config`) **ET** que l'apprentissage est actif (`learning_active`), ils écrasent les valeurs de la configuration HA au démarrage, si ces dernières ont été écrites. Sinon, les valeurs de configuration sont utilisées.
@@ -280,7 +280,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   **Algorithme (V3 - Basé sur les capteurs)** :
         1.  **Récupération des Historiques** : Le service récupère l'historique des capteurs `sensor.{nom}_temperature_slope` et `sensor.{nom}_power_percent` sur la période spécifiée (par défaut 30 jours).
         2.  **Filtrage par Puissance** : Pour chaque point de l'historique du slope, on cherche la valeur de puissance correspondante. Seuls les points où `power >= min_power_threshold` (défaut 95%) sont conservés.
-        3.  **Filtrage par Direction** : En mode `heat`, seuls les slopes positifs sont gardés (la température monte). En mode `cool`, seuls les slopes négatifs sont gardés.
+        3.  **Filtrage par Direction** : Seuls les slopes positifs sont gardés (la température monte).
         4.  **Élimination des Outliers** : La méthode IQR (Interquartile Range) est utilisée pour éliminer les valeurs aberrantes (pics dus au soleil, cuisson, etc.).
         5.  **Calcul du 75ème Percentile** : Le 75ème percentile des slopes filtrés est utilisé (plutôt que la médiane) pour biaiser vers les valeurs les plus élevées, plus proches de l'adiabatique.
         6.  **Correction Adiabatique** : Une compensation est appliquée : `Capacity_adiabatique = Slope_75p + Kext_config × ΔT_moyen`. Le Kext utilisé est celui configuré par l'utilisateur dans le config flow (pas la valeur apprise).
@@ -299,7 +299,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 *   **Fichier** : `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 *   **Version** : 8
-*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, et capacités maximales (`max_capacity_heat` / `max_capacity_cool`).
+*   **Données** : Coefficients (Heat/Cool), compteurs, snapshot du dernier cycle, et capacités maximales (`max_capacity_heat`).
 *   **Restauration** : Au démarrage d'Home Assistant, le `BaseThermostat` recharge cet état. Une action est effectuée au chargement :
     1.  **Clamping (Plafonnement)**: Les coefficients intérieurs (`coeff_indoor_heat`/`cool`) chargés depuis le stockage sont **immédiatement plafonnés** à la valeur configurée de `CONF_AUTO_TPI_MAX_COEF_INT` (nouvellement prise en compte après un changement de configuration). Cela garantit que si un utilisateur baisse la limite, l'ancien coefficient (si supérieur) est ramené à la nouvelle limite pour les calculs futurs.
 *   **Sécurité Concurrente** : L'écriture du fichier est protégée par un `asyncio.Lock` (`_save_lock`) pour éviter les "Race Conditions" si plusieurs sauvegardes sont déclenchées simultanément (ex: fin de cycle + interaction utilisateur). Cela garantit que le fichier temporaire `.tmp` n'est pas écrasé par un autre thread avant d'être renommé.
@@ -325,7 +325,7 @@ Elle est **exclue** du flux de configuration de la configuration centrale, car c
 2.  **Auto TPI - Général** (`auto_tpi_1`) :
     *   Si l'Auto TPI est activé, cette étape permet de configurer les paramètres généraux : mise à jour de la config, notifications, temps de chauffe/refroidissement, coefficient max.
 3.  **Auto TPI - Puissance** (`auto_tpi_2`) :
-    *   Elle permet de saisir manuellement les capacités de chauffe et de refroidissement (`auto_tpi_heating_rate`, `auto_tpi_cooling_rate`) en °C/h.
+    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.
 271 | 4.  **Auto TPI - Méthode** (`auto_tpi_2`) :
 272 |     *   Choix de la méthode de calcul :
 273 |         *   **Moyenne (Average)** : Utilise une moyenne pondérée qui accorde de moins en moins d'importance aux nouvelles valeurs. Idéale pour un apprentissage initial rapide et unique. Ne convient pas à l'apprentissage continu.
