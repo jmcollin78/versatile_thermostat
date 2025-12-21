@@ -6,6 +6,8 @@ import os
 import math
 from datetime import datetime, timedelta
 from typing import Optional
+from homeassistant.util.unit_conversion import TemperatureConverter
+from homeassistant.const import UnitOfTemperature
 from dataclasses import dataclass, asdict, field
 
 import asyncio
@@ -26,6 +28,8 @@ from .const import (
     CONF_TPI_COEF_EXT,
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
+    TEMP_UNIT_F,
+    TEMP_UNIT_C,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -137,6 +141,7 @@ class AutoTpiManager:
         keep_ext_learning: bool = False,
         enable_update_config: bool = False,
         enable_notification: bool = False,
+        temp_unit: str = TEMP_UNIT_C,
     ):
         self._hass = hass
         self._config_entry = config_entry
@@ -151,12 +156,16 @@ class AutoTpiManager:
         self._heater_heating_time = heater_heating_time
         self._heater_cooling_time = heater_cooling_time
 
+        self._temp_unit = temp_unit
+        self._unit_factor = 1.8 if temp_unit == TEMP_UNIT_F else 1.0
+
         self._calculation_method = calculation_method
         self._ema_alpha = ema_alpha
         self._avg_initial_weight = avg_initial_weight
         self._max_coef_int = max_coef_int
-        self._heating_rate = heating_rate
-        self._cooling_rate = cooling_rate
+        # Convert rates to Celsius/h if needed
+        self._heating_rate = heating_rate / self._unit_factor
+        self._cooling_rate = cooling_rate / self._unit_factor
         self._ema_decay_rate = ema_decay_rate
         self._continuous_learning = continuous_learning
         self._keep_ext_learning = keep_ext_learning
@@ -167,8 +176,10 @@ class AutoTpiManager:
 
         storage_key = f"{STORAGE_KEY_PREFIX}.{unique_id.replace('.', '_')}"
         self._store = Store(hass, STORAGE_VERSION, storage_key)
-        self._default_coef_int = coef_int if coef_int is not None else 0.6
-        self._default_coef_ext = coef_ext if coef_ext is not None else 0.04
+        # Convert config coefficients (User Unit) to Internal (Celsius)
+        # K_C = K_F * 1.8
+        self._default_coef_int = (coef_int if coef_int is not None else 0.6) * self._unit_factor
+        self._default_coef_ext = (coef_ext if coef_ext is not None else 0.04) * self._unit_factor
 
         self.state = AutoTpiState(
             coeff_indoor_heat=self._default_coef_int, coeff_outdoor_heat=self._default_coef_ext, coeff_indoor_cool=self._default_coef_int, coeff_outdoor_cool=self._default_coef_ext
@@ -196,6 +207,14 @@ class AutoTpiManager:
         # Interruption management
         self._current_cycle_interrupted: bool = False
 
+    def _to_celsius(self, temp: float) -> float:
+        """Convert temperature to Celsius if needed."""
+        if temp is None:
+            return 0.0
+        if self._temp_unit == TEMP_UNIT_F:
+            return TemperatureConverter.convert(temp, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.CELSIUS)
+        return temp
+
     async def async_update_coefficients_config(self, coef_int: float, coef_ext: float):
         """Update CONF_TPI_COEF_INT and CONF_TPI_COEF_EXT in the HA config entry."""
 
@@ -205,8 +224,8 @@ class AutoTpiManager:
 
         new_data = {
             **self._config_entry.data,
-            CONF_TPI_COEF_INT: round(coef_int, 3),
-            CONF_TPI_COEF_EXT: round(coef_ext, 3),
+            CONF_TPI_COEF_INT: round(coef_int / self._unit_factor, 3),
+            CONF_TPI_COEF_EXT: round(coef_ext / self._unit_factor, 3),
         }
 
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
@@ -223,7 +242,7 @@ class AutoTpiManager:
 
         new_data = {
             **self._config_entry.data,
-            rate_key: round(capacity, 3),
+            rate_key: round(capacity * self._unit_factor, 3),
         }
 
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
@@ -329,7 +348,14 @@ class AutoTpiManager:
                 except Exception as e:
                     _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
 
-        return {CONF_TPI_COEF_INT: k_int, CONF_TPI_COEF_EXT: k_ext}
+        # Return learned coefficients converted back to User Unit
+        # Internal: C. Output: F/C. If F, output = internal / 1.8 (internal * 0.55 ?)
+        # Wait, K_F = K_C / 1.8. 
+        # Correct.
+        return {
+            CONF_TPI_COEF_INT: k_int / self._unit_factor,
+            CONF_TPI_COEF_EXT: k_ext / self._unit_factor
+        }
 
     async def async_save_data(self):
         """Save data."""
@@ -434,9 +460,10 @@ class AutoTpiManager:
                 self._current_cycle_interrupted = True
 
         # Store current values for later use in cycle callbacks
-        self._current_temp_in = room_temp if room_temp is not None else 0.0
-        self._current_temp_out = ext_temp if ext_temp is not None else 0.0
-        self._current_target_temp = target_temp if target_temp is not None else 0.0
+        # Convert inputs to Celsius for internal logic
+        self._current_temp_in = self._to_celsius(room_temp) if room_temp is not None else 0.0
+        self._current_temp_out = self._to_celsius(ext_temp) if ext_temp is not None else 0.0
+        self._current_target_temp = self._to_celsius(target_temp) if target_temp is not None else 0.0
         self._current_hvac_mode = hvac_mode
 
         # Calculate and return power
@@ -461,11 +488,11 @@ class AutoTpiManager:
         is_cool_mode = self._current_hvac_mode == "cool"
 
         if is_cool_mode:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
         else:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
 
         self._calculated_params = params
         return params
@@ -550,8 +577,9 @@ class AutoTpiManager:
         # 2. Mild Weather Exclusion (Safe Ratio)
         # Avoid division by small numbers or learning when delta is too small to be significant
         delta_out = self.state.last_order - self._current_temp_out
-        if abs(delta_out) < 1.0:
-            _LOGGER.debug("%s - Auto TPI: Not learning - Delta out too small (< 1.0)", self._name)
+        delta_out_threshold = 1.0  # Celsius
+        if abs(delta_out) < delta_out_threshold:
+            _LOGGER.debug("%s - Auto TPI: Not learning - Delta out too small (< %.1f)", self._name, delta_out_threshold)
             return False
 
         # Natural drift exclusion - check temperature at CYCLE START
@@ -629,7 +657,9 @@ class AutoTpiManager:
         # - Power not saturated (0 < power < 0.99)
 
         if 0 < self.state.last_power < 0.99:
-            if temp_progress > 0.05 and target_diff > 0.01:
+            temp_progress_threshold = 0.05
+            target_diff_threshold = 0.01
+            if temp_progress > temp_progress_threshold and target_diff > target_diff_threshold:
                 # Indoor learning attempt
                 error = self._learn_indoor(target_diff, temp_progress, self._last_cycle_power_efficiency, is_cool)
                 if error is not None:
@@ -669,8 +699,9 @@ class AutoTpiManager:
         # - Significant remaining gap
 
         gap_in = target_temp - current_temp_in
+        gap_threshold = 0.05
 
-        if outdoor_condition and abs(gap_in) > 0.05:
+        if outdoor_condition and abs(gap_in) > gap_threshold:
             if self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
                 self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
                 _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
@@ -690,9 +721,11 @@ class AutoTpiManager:
 
         real_rise = delta_real
         # We use full cycle delta (passed as delta_real), not ON-time delta.
+        
+        rise_threshold = 0.01
 
-        if real_rise <= 0.01:  # Minimal rise required (0.01 to account for float precision/small sensors)
-            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= 0.01. Will try outdoor learning.", self._name, real_rise)
+        if real_rise <= rise_threshold:  # Minimal rise required (0.01 to account for float precision/small sensors)
+            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= %.3f. Will try outdoor learning.", self._name, real_rise, rise_threshold)
             self.state.last_learning_status = "real_rise_too_small"
             return None  # Return None on failure
 

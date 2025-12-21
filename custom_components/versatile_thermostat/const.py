@@ -38,7 +38,7 @@ from .vtherm_state import VThermState  # pylint: disable=unused-import
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 1
+CONFIG_MINOR_VERSION = 2
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
@@ -206,6 +206,11 @@ CONF_AUTO_START_STOP_LEVELS = [
     AUTO_START_STOP_LEVEL_FAST,
 ]
 
+CONF_TEMP_UNIT = "temperature_unit"
+TEMP_UNIT_C = "celsius"
+TEMP_UNIT_F = "fahrenheit"
+CONF_TEMP_UNITS = [TEMP_UNIT_C, TEMP_UNIT_F]
+
 # For explicit typing purpose only
 TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_FAST,
@@ -368,6 +373,7 @@ ALL_CONF = (
         CONF_AUTO_TPI_EMA_DECAY_RATE,
         CONF_AUTO_TPI_KEEP_EXT_LEARNING,
         CONF_AUTO_TPI_CONTINUOUS_LEARNING,
+        CONF_TEMP_UNIT,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES

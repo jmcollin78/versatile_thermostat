@@ -35,6 +35,7 @@ Une fois coché, un assistant de configuration dédié s'affiche en plusieurs é
 ### Étape 1 : Général
 
 *   **Activer l'Auto TPI** : Permet d'activer ou désactiver l'apprentissage.
+*   **Unité de température** : Permet de choisir l'unité de température (Celsius ou Fahrenheit). Si Fahrenheit est sélectionné, les seuils internes utilisés pour l'apprentissage sont automatiquement ajustés.
 *   **Notification** : Si activé, une notification sera envoyée **uniquement** lorsque l'apprentissage est considéré comme terminé (50 cycles par coefficient).
 *   **Mise à jour de la configuration** : Si cette option est cochée, les coefficients TPI appris seront **automatiquement** enregistrés dans la configuration du thermostat **uniquement lorsque l'apprentissage est considéré comme terminé**. Si cette option est décochée, les coefficients appris sont utilisés pour la régulation TPI en cours, mais ne sont pas enregistrés dans la configuration.
 *   **Apprentissage Continu** (`auto_tpi_continuous_learning`): Si activé, l'apprentissage se poursuivra indéfiniment, même après l'achèvement des 50 cycles initiaux. Cela permet au thermostat de s'adapter en continu aux changements progressifs de l'environnement thermique (ex: changements saisonniers, vieillissement de la maison). Si cette option est cochée, les paramètres appris seront sauvegardés dans la configuration (si **Mise à jour de la configuration** est également cochée) à la fin de chaque cycle une fois le modèle considéré comme "stable" (ex: après les 50 premiers cycles).

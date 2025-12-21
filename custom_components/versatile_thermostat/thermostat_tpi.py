@@ -121,7 +121,9 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
         self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
         self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
+        self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
         self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING)
+        temp_unit = self._entry_infos.get(CONF_TEMP_UNIT, TEMP_UNIT_C)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      self, self._tpi_coef_int, self._tpi_coef_ext)
@@ -148,6 +150,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             keep_ext_learning=self._auto_tpi_keep_ext_learning,
             enable_update_config=self._auto_tpi_enable_update_config, # Pass the config flags
             enable_notification=self._auto_tpi_enable_notification, # Pass the config flags
+            temp_unit=temp_unit,
         )
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
                      self, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
