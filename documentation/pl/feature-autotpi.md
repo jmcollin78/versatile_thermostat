@@ -12,22 +12,12 @@ Znalezienie odpowiednich współczynników (`tpi_coef_int` i `tpi_coef_ext`) jes
 ## Wymagania wstępne
 
 Aby funkcja _*Auto TPI*_ działała efektywnie, potrzebne są:
-1. **Niezawodny czujnik temperatury**: Czujnik nie może być narażony na bezpośredni wpływ źródła ciepła (nie umieszczaj go na grzejniku!).
-2. **Czujnik temperatury zewnętrznej**: Dokładny pomiar temperatury zewnętrznej jest niezbędny.
-3. **Włączony tryb TPI**: Ta funkcja ma zastosowanie tylko w przypadku korzystania z algorytmu TPI (`termostat na przełączniku`, `termostat na zaworze` lub `termostat na klimacie` w trybie TPI).
+1. **Niezawodny sensor temperatury**: Sensor nie może być narażony na bezpośredni wpływ źródła ciepła (nie umieszczaj go na grzejniku!).
+2. **Sensor temperatury zewnętrznej**: Dokładny pomiar temperatury zewnętrznej jest niezbędny.
+3. **Załączony tryb TPI**: Ta funkcja ma zastosowanie tylko w przypadku korzystania z algorytmu TPI (`termostat na przełączniku`, `termostat na zaworze` lub `termostat na klimacie` w trybie TPI).
 4. **Prawidłowa konfiguracja zasilania**: Prawidłowo zdefiniuj parametry związane z czasem grzania (patrz poniżej).
-5. **Optymalny rozruch (ważne)**: Aby funkcja uczenia się działała efektywnie, zaleca się jej włączenie, gdy różnica między aktualną temperaturą a temperaturą docelową jest znacząca (**co najmniej 2°C**).
-* *Wskazówka*: ochłodź pomieszczenie, włącz funkcję uczenia się, a następnie przywróć żądane ustawienie komfortowe.
-
-## Prerequisites
-
-For Auto TPI to work effectively:
-1.  **Reliable Temperature Sensor**: The sensor must not be directly influenced by the heat source (do not place it on the radiator!).
-2.  **Outdoor Temperature Sensor**: Accurate measurement of the outdoor temperature is essential.
-3.  **TPI Mode Enabled**: This feature only applies if you use the TPI algorithm (thermostat over switch, valve, or climate in TPI mode).
-4.  **Correct Power Configuration**: Correctly define the parameters related to heating time (see below).
-5.  **Optimal Startup (Important)**: For learning to start effectively, it is recommended to enable it when the gap between the current temperature and the target is significant (**2°C is sufficient**).
-    *   *Tip*: cool the room, enable learning, then restore the comfort setpoint.
+5. **Optymalny rozruch (ważne)**: Aby funkcja uczenia się działała efektywnie, zaleca się jej załączenie, gdy różnica między aktualną temperaturą a temperaturą docelową jest znacząca (**co najmniej 2°C**).
+   * *Wskazówka*: Schłodź pomieszczenie, załącz funkcję uczenia się, a następnie przywróć żądane ustawienie docelowe (komfort termiczny).
 
 ## Konfiguracja
 
@@ -38,31 +28,18 @@ Automatyczna konfiguracja TPI jest zintegrowana z procesem konfiguracji TPI dla 
 1. Przejdź do konfiguracji jednostki VTherm (**Konfiguracja**).
 2. Wybierz **Parametry TPI**.
 3. **Ważne**: Aby uzyskać dostęp do parametrów lokalnych, należy wyłączyć opcję **Użyj centralnej konfiguracji TPI**.
-4. Na następnym ekranie (Atrybuty TPI) zaznacz pole wyboru **Włącz uczenie się Auto TPI** na samym dole.
+4. U dołu następnego ekranu (Atrybuty TPI) zaznacz pole wyboru **Załącz uczenie się Auto TPI**.
 
-Po tym zaznaczeniu pojawi się dedykowany kreator konfiguracji, składający się z kilku kroków:
-
-## Configuration
-
-Auto TPI configuration is integrated into the TPI configuration flow for **each individual thermostat**.
-
-> **Note** : Auto TPI learning cannot be configured from the central configuration, as each thermostat requires its own learning parameters.
-
-1.  Go to the Versatile Thermostat entity configuration (**Configure**).
-2.  Choose **TPI Parameters**.
-3.  **Important**: You must uncheck **Use TPI central configuration** to access local parameters.
-4.  On the next screen (TPI Attributes), check the **Enable Auto TPI Learning** box at the very bottom.
-
-Once checked, a dedicated configuration wizard appears in several steps:
+Po dokonaniu tego wyboru pojawi się dedykowany kreator konfiguracji, składający się z kilku kroków:
 
 ### Krok 1: Informacje ogólne
 
-* **Włącz Auto TPI**: Umożliwia załączenie lub wyłączenie uczenia się.
-* **Powiadomienie**: Jeśli ta opcja jest włączona, powiadomienie zostanie wysłane **tylko** po uznaniu procesu uczenia się za zakończony (50 cykli na współczynnik).
-* **Aktualizuj konfigurację**: Jeśli ta opcja jest zaznaczona, zapamiętane współczynniki TPI zostaną **automatycznie** zapisane w konfiguracji termostatu **tylko po uznaniu procesu uczenia się za zakończony**. Jeśli ta opcja jest odznaczona, zapamiętane współczynniki są używane do bieżącej regulacji TPI, ale nie są zapisywane w konfiguracji.
-* **Ciągłe uczenie się** (`auto_tpi_continuous_learning`): Jeśli ta opcja jest włączona, uczenie się będzie kontynuowane w nieskończoność, nawet po zakończeniu początkowych 50 cykli. Pozwala to termostatowi na ciągłe dostosowywanie się do stopniowych zmian temperatury otoczenia (np. zmian sezonowych, starzenia się budynku). Jeśli ta opcja jest zaznaczona, zapamiętane parametry zostaną zapisane w konfiguracji (jeśli zaznaczona jest również opcja **Aktualizuj konfigurację**) na koniec każdego cyklu, gdy model zostanie uznany za stabilny (np. po pierwszych 50 cyklach).
-* **Wykrywanie zmian w reżimie**: Po włączeniu ciągłego uczenia się system monitoruje ostatnie błędy uczenia się. W przypadku wykrycia **systematycznego błędu** (np. spowodowanego zmianą pory roku, izolacji lub systemu grzewczego), szybkość uczenia się (alfa) jest **tymczasowo zwiększana** (do 3x, z ograniczeniem do 15%) w celu przyspieszenia adaptacji. Ta funkcja pomaga termostatowi szybko dostosować się do nowych warunków termicznych bez konieczności ręcznej interwencji.
-* **Zapis wyuczonego współczynnika zewnętrznego** (`auto_tpi_keep_ext_learning`): Po włączeniu, współczynnik zewnętrzny (`Kext`) będzie kontynuował uczenie się nawet po osiągnięciu 50 cykli, dopóki współczynnik wewnętrzny (`Kint`) nie osiągnie stabilności.
+* **Załącz Auto TPI**: Umożliwia załączenie lub wyłączenie uczenia się.
+* **Powiadomienie**: Jeśli ta opcja jest załączona, powiadomienie zostanie wysłane **tylko** po uznaniu procesu uczenia się za zakończony (50 cykli na współczynnik).
+* **Aktualizuj konfigurację**: Jeśli ta opcja jest zaznaczona, zapamiętane współczynniki TPI zostaną **automatycznie** zapisane w konfiguracji termostatu **tylko po uznaniu procesu uczenia się za zakończony**. Jeśli ta opcja jest odznaczona, zapamiętane współczynniki będą używane do bieżącej regulacji TPI, ale nie są zapisywane w konfiguracji.
+* **Ciągłe uczenie się** (`auto_tpi_continuous_learning`): Jeśli ta opcja jest załączona, uczenie się będzie kontynuowane w nieskończoność, nawet po zakończeniu początkowych 50 cykli. Pozwala to termostatowi na ciągłe dostosowywanie się do stopniowych zmian temperatury otoczenia (np. zmian sezonowych, starzenia się budynku). Jeśli ta opcja jest zaznaczona, zapamiętane parametry zostaną zapisane w konfiguracji (jeśli zaznaczona jest również opcja **Aktualizuj konfigurację**) na koniec każdego cyklu, gdy model zostanie uznany za stabilny (np. po pierwszych 50 cyklach).
+* **Wykrywanie zmian w reżimie**: Po załączeniu ciągłego uczenia się system monitoruje ostatnie błędy uczenia się. W przypadku wykrycia **systematycznego błędu** (np. spowodowanego zmianą pory roku, izolacji lub systemu grzewczego), szybkość uczenia się (alfa) jest **tymczasowo zwiększana** (do 3x, z ograniczeniem do 15%) w celu przyspieszenia adaptacji. Ta funkcja pomaga termostatowi szybko dostosować się do nowych warunków termicznych bez konieczności ręcznej interwencji.
+* **Zapis wyuczonego współczynnika zewnętrznego** (`auto_tpi_keep_ext_learning`): Po załączeniu, współczynnik zewnętrzny (`Kext`) będzie kontynuował uczenie się nawet po osiągnięciu 50 cykli, dopóki współczynnik wewnętrzny (`Kint`) nie osiągnie stabilności.
 **Uwaga:** Konfiguracja jest zachowywana tylko wtedy, gdy oba współczynniki są stabilne.
 * **Czas grzania/chłodzenia**: Zdefiniuj bezwładność grzejnika ([patrz: Konfiguracja termiczna](#thermal-configuration-critical)).
 * **Próg współczynnika temperatury wewnętrznej**: Limity bezpieczeństwa dla współczynnika temperatury wewnętrznej (maks. 3,0). **Uwaga**: Jeśli ten limit zostanie zmieniony w procesie konfiguracji, nowa wartość zostanie **natychmiast** zastosowana do zapamiętanych współczynników, jeśli przekroczą one nowy limit (wymaga to ponownego uruchomienia integracji, co ma miejsce po zapisaniu modyfikacji za pomocą opcji).
@@ -70,405 +47,372 @@ Once checked, a dedicated configuration wizard appears in several steps:
 * **Szybkość grzania** (`auto_tpi_heating_rate`): Docelowa szybkość wzrostu temperatury w °C/h. ([patrz: Konfiguracja parametrów](#heating-cooling-rate-configuration))
 * **Szybkość chłodzenia** (`auto_tpi_cooling_rate`): Docelowa szybkość spadku temperatury w °C/h. ([patrz: Konfiguracja parametrów](#heating-cooling-rate-configuration))
 
-*Uwaga: Niekoniecznie należy używać maksymalnej szybkości grzania/chłodzenia. Można bez problemu użyć niższej wartości, w zależności od rozmiaru systemu ogrzewania, **co jest zdecydowanie zalecane**.
+    *Uwaga: Niekoniecznie należy używać maksymalnej szybkości grzania/chłodzenia. Można bez problemu użyć niższej wartości, w zależności od rozmiaru systemu ogrzewania, **co jest zdecydowanie zalecane**.
 Im bliżej maksymalnej wydajności, tym wyższy będzie współczynnik `Kint`, określony podczas procesu uczenia.*
 
-*Dlatego po zdefiniowaniu wydajności za pomocą usługi dedykowanej lub ręcznego jej oszacowania, należy użyć niższej szybkości grzania/chłodzenia.
+    *Dlatego po zdefiniowaniu wydajności za pomocą usługi dedykowanej lub ręcznego jej oszacowania, należy użyć niższej szybkości grzania/chłodzenia.
 **Najważniejsze, aby nie przekraczać wydajności grzejnika w tym pomieszczeniu.**
-Np.: Zmierzona wydajność adiabatyczna wynosi 1,5°/h. Wobec tego 1°/h to standardowa i rozsądna stała.*
-
-### Step 1: General
-
-*   **Enable Auto TPI**: Allows enabling or disabling learning.
-*   **Notification**: If enabled, a notification will be sent **only** when learning is considered complete ( 50 cycles per coefficient ).
-*   **Update Configuration**: If this option is checked, the learned TPI coefficients will be **automatically** saved to the thermostat's configuration **only when learning is considered complete**. If this option is unchecked, the learned coefficients are used for the ongoing TPI regulation but are not saved to the configuration.
-*   **Continuous Learning** (`auto_tpi_continuous_learning`): If enabled, learning will continue indefinitely, even after the initial 50 cycles are completed. This allows the thermostat to continuously adapt to gradual changes in the thermal environment (e.g., seasonal changes, house aging). If this option is checked, learned parameters will be saved to config (if **Update Configuration** is also checked) at the end of every cycle once the model is considered "stable" (e.g., after the first 50 cycles).
-    *   **Regime Change Detection**: When continuous learning is enabled, the system monitors recent learning errors. If a **systematic bias** is detected (e.g., due to a change in season, insulation, or heating system), the learning rate (alpha) is **temporarily boosted** (up to 3x, capped at 15%) to accelerate adaptation. This feature helps the thermostat quickly adjust to new thermal conditions without manual intervention.
-*   **Keep external coefficient learning** (`auto_tpi_keep_ext_learning`): If enabled, the external coefficient (`Kext`) will continue learning even after reaching 50 cycles, as long as the internal coefficient (`Kint`) has not reached stability.  
-**Note:** Persistence to the configuration only occurs when both coefficients are stable.
-*   **Heating/Cooling Time**: Define your radiator's inertia ([see Thermal Configuration](#thermal-configuration-critical)).
-*   **Indoor Coefficient Cap**: Safety limits for indoor coefficient (`max 3.0`). **Note**: If this limit is changed in the configuration flow, the new value is **immediately** applied to the learned coefficients if they exceed the new limit (which requires an integration reload, which is the case after saving a modification via options).
-
-*   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-cooling-rate-configuration))
-*   **Cooling Rate** (`auto_tpi_cooling_rate`): Target rate of temperature decrease in °C/h. ([see rates Configuration](#heating-cooling-rate-configuration))
-
-    *Note: You don’t necessarily want to use the maximum heating/cooling rate. You can perfectly well use a lower value depending on the heating/AC system sizing, **and it is highly recommended**.
-    The closer you are to the maximum capacity, the higher the Kint coefficient determined during the learning process will be.*
-
-    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a lower heating/cooling rate.
-   **The most important thing is not to be above what your radiator can provide in this room.**
-    ex: Your measured adiabatic capacity is 1.5°/h, 1°/h is a standard and reasonable constant to use.*
-
-### Step 2: Method
-
-Choose the learning algorithm:
-*   **Average**: Simple weighted average. Ideal for fast, one-time learning (resets easily).
-*   **EMA (Exponential Moving Average)**: Exponential moving average. Highly recommended for continuous, long-term learning and fine-tuning, as it favors recent values.
+Np.: zmierzona wydajność adiabatyczna wynosi 1,5°/h. Wobec tego 1°/h to standardowa i rozsądna stała.*
 
 
-### Step 3: Method Parameters
+### Krok 2: Metoda
 
-Configure the specific parameters for the chosen method:
-*   **Average**: Initial weight.
-*   **EMA**: Initial Alpha and Decay Rate.
+Wybierz algorytm uczenia się:
+* **Średnia**: Prosta średnia ważona. Idealnie nadaje się do szybkiej, jednorazowej nauki (łatwe resetowanie).
+* **EMA**: Zmienna Średnia Wykładnicza. Zdecydowanie zalecana jest do ciągłego, długoterminowego procesu uczenia się i dostrajania systemu, ponieważ faworyzuje ona ostatnie wartości.
 
-### Thermal Configuration (Critical)
+### Krok 3: Parametry metody
 
-The algorithm needs to understand the responsiveness of your heating system.
+Skonfiguruj określone parametry dla wybranej metody:
+* **Średnia**: Waga początkowa.
+* **EMA**: Początkowa wartość alfa i szybkość rozkładu.
 
-#### `heater_heating_time` (Thermal Response Time)
-This is the total time required for the system to have a measurable effect on the room temperature.
+### Konfiguracja termiczna (krytyczna)
 
-It must include:
-*   The heating time of the radiator (material inertia).
-*   The heat propagation time in the room to the sensor.
+Algorytm musi rozumieć responsywność systemu grzewczego.
 
-**Suggested Values:**
+#### `heater_heating_time` (Czas reakcji termicznej)
+Jest to całkowity czas potrzebny na to, aby system miał mierzalny wpływ na temperaturę w pomieszczeniu.
 
-| Heater Type | Suggested Value |
+Musi on obejmować:
+* Czas nagrzewania grzejnika (bezwładność materiału).
+* Czas propagacji ciepła w pomieszczeniu do czujnika.
+
+**Sugerowane wartości:**
+
+| Typ grzejnika | Sugerowana<br>wartość |
 |---|---|
-| Electric radiator (convector), sensor nearby | 2-5 min |
-| Inertia radiator (oil-filled, cast iron), sensor nearby | 5-10 min |
-| Underfloor heating, or large room with distant sensor | 10-20 min |
+| Grzejnik elektryczny (konwektor), sensor w pobliżu | 2-5 min |
+| Grzejnik bezwładnościowy (olejowy, żeliwny), sensor w pobliżu | 5-10 min |
+| Ogrzewanie podłogowe lub duże pomieszczenie z oddalonym czujnikiem | 10-20 min |
 
-> An incorrect value can skew the efficiency calculation and prevent learning.
+> Nieprawidłowa wartość może zaburzyć obliczenia sprawności i uniemożliwić poprawne uczenie się.
 
-#### `heater_cooling_time` (Cooling Time)
-Time required for the radiator to become cold after stopping. Used to estimate if the radiator is "hot" or "cold" at the start of a cycle via the `cold_factor`. The `cold_factor` corrects the radiator's inertia and acts as a **filter**: if the heating time is too short compared to the estimated warm-up time, learning for that cycle will be ignored (to prevent noise).
+#### `heater_cooling_time` (Czas chłodzenia)
+Czas potrzebny do schłodzenia grzejnika po zatrzymaniu. Służy do oszacowania, czy grzejnik jest „gorący”, czy „zimny” na początku cyklu za pomocą `cold_factor`. `cold_factor` koryguje bezwładność grzejnika i działa jak **filtr**: jeśli czas nagrzewania jest zbyt krótki w porównaniu z szacowanym czasem nagrzewania, uczenie się dla tego cyklu zostanie zignorowane (aby zapobiec zakłóceniom).
 
-### Heating-Cooling Rate Configuration
+### Konfiguracja szybkości grzania/chłodzenia
 
-The algorithm uses the **Heating/Cooling Rate** (`auto_tpi_heating_rate`/`cooling_rate` in °C/h) as a reference for calculating the indoor coefficient (`Kint`). This value should represent the **desired** or **achievable** rate of temperature increase or decrease when regulation is at 100% power.
+Algorytm wykorzystuje **Szybkość grzania/chłodzenia** (`auto_tpi_heating_rate`/`cooling_rate` w °C/h) jako punkt odniesienia do obliczenia współczynnika temperatury wewnętrznej (`Kint`). Wartość ta powinna reprezentować **pożądaną** lub **osiągalną** szybkość wzrostu lub spadku temperatury przy regulacji na poziomie 100%.
 
-> **Calibration** : This value can be automatically learned using the Calibrate capacity service from the thermostat’s HA history.
+> **Kalibracja**: Tę wartość można automatycznie odczytać za pomocą usługi `Kalibracja wydajności` z historii termostatu w _*Home Assistancie*_.
 
-If you're not using the service above, you must manually define them:
+Jeśli nie korzystasz z tej usługi, musisz ją ręcznie zdefiniować.
 
-We want an estimate of the so-called **"adiabatic"** value (without heat loss).
+Chcemy oszacować tzw. wartość **adiabatyczną** (bez strat ciepła).
+Aby oszacować ją samodzielnie, metoda jest dość prosta (przykład dla grzania):
 
-To estimate it yourself, the method is quite simple (example for heating):
+***I - Najpierw ustalamy współczynnik chłodzenia*** (który powinien być dość zbliżony do współczynnika zewnętrznego regulacji TPI).
 
-***I - First, we need the cooling coefficient*** (which should be quite close to the Ext Coeff of the TPI regulation).
+1) Schładzamy pomieszczenie, wyłączając ogrzewanie na określony czas (na przykład 1 godzinę) i mierzymy zmianę temperatury, którą nazwiemy `**ΔTcool = Tend - Tstart**` (np. jeśli temperatura wzrośnie z 19°C do 18°C ​​w ciągu 1 godziny, `ΔTcool` = -1).
+Zanotujmy również czas, jaki upłynął między dwoma pomiarami, który nazwiemy `**Δtcool**` (w godzinach).
+1) Obliczamy szybkość schładzania:
+**`Rcool` = `ΔTcool` / `Δtcool`** (będzie wartością ujemną)
+1) Następnie współczynnik chłodzenia:
+`Tavg` = średnia między 2 zmierzonymi temperaturami
+`Text` = temperatura zewnętrzna (zachowaj średnią, jeśli zmieniała się podczas pomiaru)
 
-1) We will cool the room by turning off the heating for a period of time (1 hour for example) and measure the temperature variation that we will call **ΔTcool = Tend - Tstart** (e.g., we go from 19°C to 18°C in 1h, ΔTcool = -1).
-We also note the time elapsed between the two measurements that we call **Δtcool** (in hours)
-1) We calculate the cooling rate:
-**Rcool = ΔTcool / Δtcool** (will be negative)
-1) Then the Cooling Coefficient:
-Tavg = the average between the 2 measured temperatures
-Text = outdoor temperature (keep the average if it varied during the measurement)
+**`k` ≃ `-(Rcool / (Tavg - Text))`**
 
-**k ≃ -(Rcool / (Tavg - Text))**
+**Uwaga**: Możesz również użyć wartości `k` jako początkowego współczynnika zewnętrznego w konfiguracji TPI.
 
-note: you can also use this k value as the starting External Coefficient in the TPI configuration
+***II - Teraz możemy obliczyć pojemność adiabatyczną***
 
-***II - We can now calculate the adiabatic capacity***
+1) Grzanie trwa tyle samo, co chłodzenie, z termostatem ustawionym na 100% mocy.
 
-1) We heat for the same duration as the cooling with the thermostat at 100% power.
-    
-    ***Important:** the heater must already be hot, so run a heating cycle first to bring it up to its maximum temperature.*
+***Ważne:** grzejnik musi być już gorący, dlatego najpierw należy uruchomić cykl grzania, aby osiągnąć maksymalną temperaturę.*
 
-    To ensure that we have the full capacity of the radiator throughout the measurement, we raise the setpoint well above.
+Aby zapewnić pełną wydajność grzejnika przez cały czas pomiaru, znacznie podnosimy żądaną temperaturę docelową.
 
-    Note the starting temperature, the arrival temperature, and the measurement time.
+Zanotuj temperaturę początkową, temperaturę docelową i czas pomiaru.
 
-2) We calculate Rheat, which is the observed temperature variation:
+2) Obliczamy `Rheat`, czyli obserwowaną zmianę temperatury:
 
-- **ΔTheat = Tend - Tstart**
-- **Δtheat: the time elapsed between the 2 measurements**
-- **Rheat = ΔTheat / Δtheat**
-  
-3) We can finally find our adiabatic capacity:
-- **Radiab = Rheat + k(Tavg − Text)**
+- **`ΔTheat = Tend - Tstart`**
+- **`Δtheat`:** czas, jaki upłynął między dwoma pomiarami
+- **`Rheat = ΔTheat / Δtheat`**
 
-## How it Works
+3) Możemy wreszcie obliczyć naszą pojemność adiabatyczną:
+- **`Radiab = Rheat + k(Tavg − Text)`**
 
-Auto TPI operates cyclically:
+## Jak to działa?
 
-1.  **Observation**: At each cycle (e.g., every 10 min), the thermostat (which is in `HEAT` or `COOL` mode) measures the temperature at the start and end, as well as the power used.
-2.  **Validation**: It checks if the cycle is valid for learning:
-    *   Learning is based on the thermostat's `hvac_mode` (`HEAT` or `COOL`), regardless of the current state of the heat emitter (`heating`/`idle`).
-    *   Power was not saturated (between 0% and 100% excluded).
-    *   The temperature difference is significant.
-    *   The system is stable (no consecutive failures).
-    *   The cycle was not interrupted by power shedding or by a window being opened.
-3.  **Calculation (Learning)**:
-    *   **Case 1: Indoor Coefficient**. If the temperature moved in the right direction significantly (> 0.05°C), it calculates the ratio between the real evolution **(over the full cycle, including inertia)** and the expected theoretical evolution (corrected by the calibrated capacity). It adjusts `CoeffInt` to reduce the gap.
-    *   **Case 2: Outdoor Coefficient**. If indoor learning was not possible (conditions not met or failure) and outdoor learning is relevant (significant temperature gap > 0.1°C), it adjusts `CoeffExt` **progressively** to compensate for thermal losses. The formula allows this coefficient to increase or decrease as needed to reach equilibrium.
-4.  **Update**: The new coefficients are smoothed and saved for the next cycle.
+Auto TPI działa cyklicznie:
 
-### Activation Safety
-To avoid unintended activation:
-1.  The `set_auto_tpi_mode` service refuses to enable learning if the "Enable Auto TPI Learning" checkbox is not checked in the thermostat configuration.
-2.  If you uncheck this box in the configuration while learning was active, it will be automatically stopped upon reloading the integration.
+1. **Obserwacja**: W każdym cyklu (np. co 10 min) termostat (który jest w trybie `HEAT` lub `COOL`) mierzy temperaturę na początku i na końcu cyklu, a także zużycie energii.
+2. **Walidacja**: Sprawdza, czy cykl nadaje się do procesu uczenia się:
+   * Proces uczenia się jest oparty na trybie `hvac_mode` termostatu (`HEAT` lub `COOL`), niezależnie od aktualnego stanu grzejnika (`heating`/`jałowy`).
+   * Moc nie jest nasycona (z wyłączeniem zakresu od 0% do 100%).
+   * Różnica temperatur jest znacząca.
+   * System jest stabilny (bez kolejnych awarii).
+   * Cykl nie został przerwany przez rozkład zasilania ani otwarcie okna.
+3. **Obliczanie (uczenie się)**:
+   * **Przypadek 1: Współczynnik temperatury wewnętrznej**. Jeśli temperatura zmieniła się znacząco w prawidłowym kierunku (> 0,05°C), obliczany jest stosunek między rzeczywistą ewolucją **(w całym cyklu, wliczając bezwładność)** a oczekiwaną ewolucją teoretyczną (skorygowaną o skalibrowaną wydajność). Dostosowuje `CoeffInt`, aby zmniejszyć różnicę.
+   * **Przypadek 2: Współczynnik temperatury zewnętrznej**. Jeśli uczenie się w pomieszczeniu nie było możliwe (niespełnione warunki lub awaria), a uczenie się jest istotne (znaczna różnica temperatur > 0,1°C), funkcja dostosowuje `CoeffExt` **progresywnie**, aby skompensować straty ciepła. Wzór pozwala na zwiększanie lub zmniejszanie tego współczynnika w zależności od potrzeb, aby osiągnąć stabilność.
+4. **Aktualizacja**: Nowe współczynniki są wygładzane i zapisywane na potrzeby następnego cyklu.
 
-## Attributes and Sensors
+### Bezpieczeństwo aktywacji
+Aby uniknąć niezamierzonej aktywacji:
+1. Usługa `set_auto_tpi_mode` odmawia załączenia uczenia się, jeśli pole wyboru „Załącz uczenie się Auto TPI” nie jest zaznaczone w konfiguracji termostatu.
+2. Jeśli odznaczysz to pole w konfiguracji, gdy uczenie się było aktywne, zostanie ono automatycznie zatrzymane po ponownym załadowaniu integracji.
 
-A dedicated sensor `sensor.<thermostat_name>_auto_tpi_learning_state` allows tracking the learning status.
+## Atrybuty i sensory
 
-**Available Attributes:**
+Dedykowany sensor `sensor.<thermostat_name>_auto_tpi_learning_state` umożliwia śledzenie stanu uczenia się.
 
-*   `active`: Learning is enabled.
-*   `heating_cycles_count`: Total number of observed cycles.
-*   `coeff_int_cycles`: Number of times the indoor coefficient has been adjusted.
-*   `coeff_ext_cycles`: Number of times the outdoor coefficient has been adjusted.
-*   `model_confidence`: Confidence index (0.0 to 1.0) in the quality of the settings. Capped at 100% after 50 cycles for each coefficient (even if learning continues).
-*   `last_learning_status`: Reason for the last success or failure (e.g., `learned_indoor_heat`, `power_out_of_range`).
-*   `calculated_coef_int` / `calculated_coef_ext`: Current values of the coefficients.
-*   `learning_start_dt`: Date and time when learning started (useful for graphs).
+**Dostępne atrybuty:**
 
-## Services
+* `active`: Uczenie się jest załączone.
+* `heating_cycles_count`: Łączna liczba obserwowanych cykli.
+* `coeff_int_cycles`: Liczba korekt współczynnika temperatury wewnętrznej.
+* `coeff_ext_cycles`: Liczba korekt współczynnika temperatury zewnętrznej.
+* `model_confidence`: Wskaźnik ufności (od 0,0 do 1,0) co do jakości ustawień. Ograniczony do 100% po 50 cyklach dla każdego współczynnika (nawet jeśli uczenie się jest kontynuowane).
+* `last_learning_status`: Przyczyna ostatniego sukcesu lub niepowodzenia (np. `learned_indoor_heat`, `power_out_of_range`).
+* `calculated_coef_int` / `calculated_coef_ext`: Bieżące wartości współczynników.
+* `learning_start_dt`: Data i godzina rozpoczęcia uczenia (przydatne w przypadku wykresów).
 
-### Calibration Service (`versatile_thermostat.auto_tpi_calibrate_capacity`)
+## Usługi
 
-This service estimates the **Adiabatic Capacity** of your system (`max_capacity` in °C/h) by analyzing sensor histories.
+### Usługa kalibracji (`versatile_thermostat.auto_tpi_calibrate_capacity`)
 
-**Principle:** The service uses the history of **sensors** `temperature_slope` and `power_percent` to identify moments when heating was at full power. It uses the **75th percentile** (closer to adiabatic than median) and applies a **Kext correction**: `Capacity = P75 + Kext_config × ΔT`.
+Ta usługa szacuje **wydajność adiabatyczną** systemu (`max_capacity` w °C/h) poprzez analizę historii sensorów.
+
+**Zasada działania:** Usługa wykorzystuje historię **sensorów** `temperature_slope` i `power_percent` do identyfikacji momentów, w których ogrzewanie działało z pełną mocą. Używa **75. percentyla** (bliższego wartości adiabatycznej, niż mediana) i stosuje **poprawkę `Kext`**: `Wydajność = P75 + Kext_config × ΔT`.
 
 ```yaml
 service: versatile_thermostat.auto_tpi_calibrate_capacity
 target:
-  entity_id: climate.my_thermostat
+entity_id: climate.my_thermostat
 data:
-  start_date: "2023-11-01T00:00:00+00:00" # Optional. Default is 30 days before "end_date".
-  end_date: "2023-12-01T00:00:00+00:00"   # Optional. Default is now.
-  hvac_mode: heat                  # Required. 'heat' or 'cool'.
-  min_power_threshold: 0.95        # Optional. Power threshold (0.0-1.0). Default 0.95 (100%).
-  save_to_config: true             # Optional. Save calculated capacity to config. Default false.
+start_date: "2023-11-01T00:00:00+00:00" # Opcjonalne. Domyślnie 30 dni przed datą „end_date”.
+end_date: "2023-12-01T00:00:00+00:00" # Opcjonalne. Domyślnie teraz.
+hvac_mode: heat # Wymagane. „heat” lub „cool”.
+min_power_threshold: 0.95 # Opcjonalne. Próg mocy (0.0-1.0). Domyślnie 0.95 (100%).
+save_to_config: true # Opcjonalne. Zapisz obliczoną wydajność w konfiguracji. Domyślnie false.
 ```
 
-> **Result** : The Adiabatic Capacity value (`max_capacity_heat`/`cool`) is updated in the learning state sensor attributes.
+> **Wynik**: Wartość pojemności adiabatycznej (`max_capacity_heat`/`cool`) jest aktualizowana w atrybutach czujnika stanu uczenia się.
 >
-> The service also returns the following information to analyze the calibration quality:
-> *   **`capacity`**: The estimated adiabatic capacity (in °C/h).
-> *   **`observed_capacity`**: The raw 75th percentile (before Kext correction).
-> *   **`kext_compensation`**: The correction value applied (Kext × ΔT).
-> *   **`avg_delta_t`**: The average ΔT used for correction.
-> *   **`reliability`**: Reliability index (in %) based on sample count and variance.
-> *   **`samples_used`**: Number of samples used after filtering.
-> *   **`outliers_removed`**: Number of outliers eliminated.
-> *   **`min_power_threshold`**: Power threshold used.
-> *   **`period`**: Number of days of history analyzed.
+> Usługa zwraca również następujące informacje w celu analizy jakości kalibracji:
+> * **`capacity`**: Szacowana pojemność adiabatyczna (w °C/h).
+> * **`observed_capacity`**: Surowy 75. percentyl (przed korektą Kext).
+> * **`kext_compensation`**: Zastosowana wartość korekty (Kext × ΔT).
+> * **`avg_delta_t`**: Średnia wartość ΔT użyta do korekty.
+> * **`reliability`**: Wskaźnik niezawodności (w %) na podstawie liczby próbek i wariancji.
+> * **`samples_used`**: Liczba próbek użytych po filtrowaniu.
+> * **`outliers_removed`**: Liczba wyeliminowanych wartości odbiegających.
+> * **`min_power_threshold`**: Użyty próg mocy.
+> * **`period`**: Liczba dni analizowanej historii.
 >
-> The TPI coefficients (`Kint`/`Kext`) are then learned or adjusted by the normal learning loop using this capacity as a reference.
+> Współczynniki TPI (`Kint`/`Kext`) są następnie zapamiętywane lub dostosowywane w standardowej pętli uczenia, wykorzystując tę ​​pojemność jako punkt odniesienia.
 
-### Enable/Disable Learning (`versatile_thermostat.set_auto_tpi_mode`)
+### Załączanie/wyłączanie uczenia (`versatile_thermostat.set_auto_tpi_mode`)
 
-This service allows controlling Auto TPI learning without going through the thermostat configuration.
+Ta usługa umożliwia sterowanie automatycznym zapamiętywaniem TPI bez konieczności konfigurowania termostatu.
 
-#### Parameters
+#### Parametry
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `auto_tpi_mode` | boolean | - | Enables (`true`) or disables (`false`) learning |
-| `reinitialise` | boolean | `true` | Controls data reset when enabling learning |
+| Parametr | Typ | Domyślny | Opis |
+|-----------|------|---------|------------|
+| `auto_tpi_mode` | wartość logiczna | - | Załącza (`true`) lub wyłącza (`false`) uczenie się |
+| `reinitialise` | wartość logiczna | `true` | Kontroluje resetowanie danych podczas załączania uczenia się |
 
-#### Behavior of the `reinitialise` parameter
+#### Zachowanie parametru `reinitialise`
 
-The `reinitialise` parameter determines how existing learning data is handled when enabling learning:
+Parametr `reinitialise` określa sposób obsługi istniejących danych uczenia się podczas załączania procesu uczenia się:
 
-- **`reinitialise: true`** (default): Clears all learning data (coefficients and counters) and restarts learning from scratch. Calibrated capacities (`max_capacity_heat`/`cool`) are preserved.
-- **`reinitialise: false`**: Resumes learning with existing data without clearing it. Previous coefficients and counters are preserved and learning continues from these values.
+- **`reinitialise: true`** (domyślnie): Czyści wszystkie dane uczenia się (współczynniki i liczniki) i rozpoczyna uczenie się od nowa. Skalibrowane pojemności (`max_capacity_heat`/`cool`) są zachowywane.
+- **`reinitialise: false`**: Wznawia uczenie się z istniejącymi danymi bez ich czyszczenia. Poprzednie współczynniki i liczniki są zachowywane, a uczenie się jest kontynuowane od tych wartości.
 
-**Use case:** Allows temporarily disabling learning (for example during a vacation or renovation period) and then reactivating it without losing already achieved progress.
+**Przykład użycia:** Umożliwia tymczasowe wyłączenie uczenia (np. podczas wakacji lub remontu), a następnie jego ponowne uruchomienie bez utraty osiągniętych postępów.
 
-#### Examples
+#### Przykłady
 
-**Start new learning (complete reset):**
+Rozpoczęcie nowego procesu uczenia (całkowity reset):
+```yaml
+service: versatile_thermostat.set_auto_tpi_mode
+target:
+entity_id: climate.my_thermostat
+data:
+auto_tpi_mode: true
+reinitialise: true # lub pomiń, ponieważ jest to wartość domyślna
+```
+
+Wznowienie proces uczenia się bez utraty danych:
+```yaml
+service: versatile_thermostat.set_auto_tpi_mode
+target:
+entity_id: climate.my_thermostat
+data:
+auto_tpi_mode: true
+reinitialise: false
+```
+
+Zatrzymanie procesu uczenia:
 ```yaml
 service: versatile_thermostat.set_auto_tpi_mode
 target:
   entity_id: climate.my_thermostat
 data:
-  auto_tpi_mode: true
-  reinitialise: true  # or omitted since it's the default
-```
-
-**Resume learning without losing data:**
-```yaml
-service: versatile_thermostat.set_auto_tpi_mode
-target:
-  entity_id: climate.my_thermostat
-data:
-  auto_tpi_mode: true
+  auto_tpi_mode: false
   reinitialise: false
 ```
+Po zatrzymaniu procesu uczenia:
+- Uczenie się jest **wyłączone**, ale nauczone dane pozostają **widoczne** w atrybutach encji auto_tpi_learning_state.
+- Regulacja wykorzystuje współczynniki **konfiguracyjne** (a nie współczynniki wyuczone)
 
-**Stop learning:**
+## Metoda obliczania średniej ważonej
 
-When learning is stopped:
+Metoda **średniej ważonej** to proste i skuteczne podejście do uczenia się współczynników TPI. Jest szczególnie przydatna do szybkiego, jednorazowego uczenia się lub gdy chcesz łatwo zresetować współczynniki.
 
-- Learning is **disabled** but learned data stays **visible** in the auto_tpi_learning_state entity attributes.
-- Regulation uses **configuration** coefficients (not learned coefficients)
+### Zachowanie
+
+Metoda średniej ważonej oblicza średnią ważoną między istniejącymi współczynnikami a nowo obliczonymi wartościami. Podobnie jak metoda EMA, stopniowo zmniejsza wpływ nowych cykli w miarę postępu uczenia się, ale stosuje inne podejście.
+
+**Kluczowa cecha**: Wraz ze wzrostem liczby cykli, waga istniejącego współczynnika staje się ważniejsza w porównaniu z nowym współczynnikiem. Oznacza to, że wpływ nowych cykli stopniowo maleje w miarę postępu uczenia się.
 
 
+### Parametry
 
-## Weighted Average Calculation Method
+| Parametr | Opis | Domyślne |
+|-----------|------------|--------|
+| **Waga początkowa**<br>(`avg_initial_weight`) | Początkowa waga nadawana<br>współczynnikom konfiguracji<br>podczas uruchamiania | 1 |
 
-The **Weighted Average** method is a simple and effective approach for learning TPI coefficients. It is particularly well-suited for quick, one-time learning, or when you want to easily reset coefficients.
+### Wzór
 
-### Behavior
-
-The Weighted Average method calculates a weighted average between existing coefficients and newly calculated values. Like the EMA method, it gradually reduces the influence of new cycles as learning progresses, but uses a different approach.
-
-**Key characteristic**: As the number of cycles increases, the weight of the existing coefficient becomes more important compared to the new coefficient. This means that the influence of new cycles gradually decreases as learning progresses.
-
-### Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|--------|
-| **Initial Weight** (`avg_initial_weight`) | Initial weight given to configuration coefficients at startup | 1 |
-
-### Formula
-
-```
+```yaml
 avg_coeff = ((old_coeff × weight_old) + coeff_new) / (weight_old + 1)
 ```
 
-Where:
-- `old_coeff` is the current coefficient
-- `coeff_new` is the new coefficient calculated for this cycle
-- `weight_old` is the number of learning cycles already performed (with a minimum of 1)
+gdzie:
+- `old_coeff` to aktualny współczynnik
+- `coeff_new` to nowy współczynnik obliczony dla tego cyklu
+- `weight_old` to liczba cykli uczenia się, które zostały już wykonane (minimalnie 1)
 
-**Weight evolution example**:
-- Cycle 1: weight_old = 1 → new coefficient has a weight of 50%
-- Cycle 10: weight_old = 10 → new coefficient has a weight of ~9%
-- Cycle 50: weight_old = 50 → new coefficient has a weight of ~2%
+**Przykład ewolucji wag**:
+- Cykl 1: weight_old = 1 → nowy współczynnik ma wagę 50%
+- Cykl 10: weight_old = 10 → nowy współczynnik ma wagę ~9%
+- Cykl 50: weight_old = 50 → nowy współczynnik ma wagę ~2%
 
-### Main Characteristics
+### Główne cechy
 
-1. **Simplicity**: The method is easy to understand
-2. **Easy Reset**: Coefficients can be easily reset by restarting learning
-3. **Progressive Learning**: The influence of new cycles decreases over time, gradually stabilizing coefficients
-4. **Rapid Convergence**: The method reaches stability after about 50 cycles
+1. **Prostota**: Metoda jest łatwa do zrozumienia
+2. **Łatwy reset**: Współczynniki można łatwo zresetować, ponownie uruchamiając uczenie.
+3. **Uczenie progresywne**: Wpływ nowych cykli maleje z czasem, stopniowo stabilizując współczynniki.
+4. **Szybka konwergencja**: Metoda osiąga stabilność po około 50 cyklach.
 
-### Comparison with EMA
+### Porównanie z EMA
 
-| Aspect | Weighted Average | EMA |
+| Aspekt | Średnia ważona | EMA |
 |--------|------------------|-----|
-| **Complexity** | Simple | More complex |
-| **Reduction Mechanism** | Weight based on number of cycles | Adaptive alpha with decay |
-| **Stability** | Stable after 50 cycles | Stable after 50 cycles with alpha decay |
-| **Continuous Adaptation** | Less suitable | More suitable (better for gradual changes) |
-| **Reset** | Very easy | Easy |
+| **Złożoność** | Prosta | Bardziej złożona |
+| **Mechanizm redukcji** | Waga oparta na liczbie cykli | Adaptacyjne alfa z rozkładiem |
+| **Stabilność** | Stabilna po 50 cyklach | Stabilna po 50 cyklach z rozkładiem alfa |
+| **Ciągła adaptacja** | Mniej odpowiednia | Bardziej odpowiednia (lepsza do stopniowych zmian) |
+| **Reset** | Bardzo łatwa | Łatwa |
 
-### Usage Recommendations
+### Zalecenia dotyczące użycia
 
-- **Initial Learning**: The Weighted Average method is excellent for fast initial learning
-- **One-time Adjustments**: Ideal when you want to adjust coefficients only once
-- **Stable Environments**: Well-suited for relatively stable thermal environments
+1. **Początkowe uczenie się**: Metoda średniej ważonej doskonale nadaje się do szybkiego, początkowego uczenia się
+2. **Jednorazowe korekty**: Idealna, gdy chcesz dostosować współczynniki tylko raz
+3. **Stabilne środowiska**: Dobrze nadaje się do względnie stabilnych środowisk termicznych
 
-### Progression Example
+### Przykład progresji
 
-| Cycle | Old Weight | New Weight | New Coefficient | Result |
-|-------|--------------|---------------|---------------------|----------|
-| 1 | 1 | 1 | 0.15 | (0.10 × 1 + 0.15 × 1) / 2 = 0.125 |
-| 2 | 2 | 1 | 0.18 | (0.125 × 2 + 0.18 × 1) / 3 = 0.142 |
-| 10 | 10 | 1 | 0.20 | (0.175 × 10 + 0.20 × 1) / 11 = 0.177 |
-| 50 | 50 | 1 | 0.19 | (0.185 × 50 + 0.19 × 1) / 51 = 0.185 |
+| Cykl | Stara<br>waga | Nowa<br>waga | Nowy<br>współczynnik | Wynik |
+|-------|--------------|-----------|----------|---------|
+| 1 | 1 | 1 | 0,15 | (0,10 × 1 + 0,15 × 1) / 2 = 0,125 |
+| 2 | 2 | 1 | 0,18 | (0,125 × 2 + 0,18 × 1) / 3 = 0,142 |
+| 10 | 10 | 1 | 0,20 | (0,175 × 10 + 0,20 × 1) / 11 = 0,177 |
+| 50 | 50 | 1 | 0,19 | (0,185 × 50 + 0,19 × 1) / 51 = 0,185 |
 
-**Note**: After 50 cycles, the coefficient is considered stable and learning stops (unless continuous learning is enabled). At this stage, the new coefficient has only about 2% weight in the average.
+**Uwaga**: Po 50 cyklach współczynnik uznaje się za stabilny, a uczenie się zatrzymuje się (chyba że załączono uczenie ciągłe). Na tym etapie nowy współczynnik ma zaledwie około 2% wagi w średniej.
 
-## Adaptive EMA Calculation Method
+## Adaptacyjna metoda obliczania EMA
 
-The EMA (Exponential Moving Average) method uses an **alpha** coefficient that determines 
-the influence of each new cycle on the learned coefficients.
+Metoda EMA (zmiennej sredniej wykładniczej) wykorzystuje współczynnik **alfa**, który określa wpływ każdego nowego cyklu na wyuczone współczynniki.
 
-### Behavior
+### Zachowanie
 
-Over cycles, **alpha decreases gradually** to stabilize learning:
+W miarę upływu cykli **alfa stopniowo maleje**, aby ustabilizować proces uczenia się:
 
-| Cycles | Alpha (with α₀=0.2, k=0.1) | Influence of new cycle |
+| Cykle | Alfa (przy α₀=0,2, k=0,1) | Wpływ nowego cyklu |
 |--------|----------------------------|------------------------|
-| 0 | 0.20 | 20% |
-| 10 | 0.10 | 10% |
-| 50 | 0.033 | 3.3% |
-| 100 | 0.018 | 1.8% |
+| 0 | 0,20 | 20% |
+| 10 | 0,10 | 10% |
+| 50 | 0,033 | 3,3% |
+| 100 | 0,018 | 1,8% |
 
-### Parameters
+### Parametry
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| **Initial Alpha** (`ema_alpha`) | Influence at startup | 0.2 (20%) |
-| **Decay Rate** (`ema_decay_rate`) | Stabilization speed | 0.1 |
+| Parametr | Opis | Domyślne |
+|-----------|------------|---------|
+| **Początkowa wartość alfa** (`ema_alpha`) | Wpływ na rozruch | 0,2 (20%) |
+| **Tempo rozkładu** (`ema_decay_rate`) | Prędkość stabilizacji | 0,1 |
 
-### Formula
+### Wzór
 
-```
+```yaml
 alpha(n) = alpha_initial / (1 + decay_rate × n)
 ```
+gdzie `n` to liczba cykli uczenia.
 
-Where `n` is the number of learning cycles.
+### Przypadki szczególne
 
-### Special Cases
+- **decay_rate = 0**: Wartość alfa pozostaje stała (klasyczne zachowanie EMA)
+- **decay_rate = 1, alpha = 1**: Odpowiednik metody „średniej ważonej”
 
-- **decay_rate = 0**: Alpha remains fixed (classic EMA behavior)
-- **decay_rate = 1, alpha = 1**: Equivalent to the "Weighted Average" method
+### Zalecenia
 
-### Recommendations
-
-| Situation | Alpha (`ema_alpha`) | Decay Rate (`ema_decay_rate`) |
+| Sytuacja | Alfa (`ema_alpha`) | Tempo rozkładu (`ema_decay_rate`) |
 |---|---|---|
-| **Initial Learning** | `0.15` | `0.08` |
-| **Fine-tuning Learning** | `0.08` | `0.12` |
-| **Continuous Learning** | `0.05` | `0.02` |
+| **Początkowe uczenie się** | `0,15` | `0,08` |
+| **Uczenie się dostrajające** | `0,08` | `0,12` |
+| **Ciągłe uczenie się** | `0,05` | `0,02` |
 
-**Explanations:**
+**Objaśnienia:**
 
-- **Initial Learning:**
+  - **Początkowe uczenie się:**
 
-  *Alpha:* 0.15 (15% initial weight)
+    *Alfa:* 0,15 (15% wagi początkowej)
+    *Przy tych parametrach system pamięta głównie ostatnich 20 cykli*
+      * Cykl 1: α = 0,15 (silna reaktywność początkowa)
+      * Cykl 10: α = 0,083 (zaczyna się stabilizować)
+      * Cykl 25: α = 0,050 (zwiększone filtrowanie)
+      * Cykl 50: α = 0,036 (odporność końcowa)
 
-  *With these parameters, the system mainly keeps the last 20 cycles in mind*
+  - *Szybkość rozkładu:* 0,08
+    Umiarkowany rozkład, umożliwiający szybką adaptację do pierwszych 10 cykli. 
+    Optymalna równowaga między szybkością (unikanie stagnacji) a stabilnością (unikanie nadmiernej regulacji)
 
-  * Cycle 1: α = 0.15 (strong initial reactivity)
-  * Cycle 10: α = 0.083 (starts to stabilize)
-  * Cycle 25: α = 0.050 (increased filtering)
-  * Cycle 50: α = 0.036 (final robustness)
+ - **Uczenie się precyzyjnego dostrajania**
 
+   *Alfa:* 0,08 (8% wagi początkowej),
+     * Dzięki tym parametrom system pamięta głównie ostatnich 50 cykli*,
+     * Konserwatywny start (współczynniki już dobre),
+     * Unika brutalnych, nadmiernych korekt:
+  * Cykl 1: α = 0,08
+  * Cykl 25: α = 0,024
+  * Cykl 50: α = 0,013
 
-  *Decay Rate:* 0.08
+*Szybkość rozkładu:* 0,12
+Szybszy rozkład, niż początkowe uczenie,
+Zbieżność w kierunku bardzo silnego filtrowania (stabilność),
+Główna adaptacja w pierwszych 15 cyklach.
 
-  Moderate decay allowing rapid adaptation to the first 10 cycles
-  Optimal balance between speed (avoid stagnation) and stability (avoid over-adjustment)
+- **Ciągłe uczenie się**
 
-- **Fine-tuning Learning**
+*Alfa* = 0,05 (5% początkowej wagi)
+Dzięki tym parametrom system pamięta głównie ostatnich 100 cykli*,
+Bardzo konserwatywny, aby zapobiec dryftowi,
+Umiarkowana reaktywność na stopniowe zmiany:
+  * Cykl 1: α = 0,05
+  * Cykl 50: α = 0,025
+  * Cykl 100: α = 0,017
+  * Cykl 200: α = 0,011
 
-  *Alpha:* 0.08 (8% initial weight)
+*Szybkość rozkładu:* 0,02
 
-  With these parameters, the system mainly keeps the last 50 cycles in mind*
-
-  Conservative startup (coefficients already good)
-  Avoids brutal over-corrections
-
-  * Cycle 1 : α = 0.08
-  * Cycle 25 : α = 0.024
-  * Cycle 50 : α = 0.013
-
-
-  *Decay Rate:* 0.12
-
-  Faster decay than initial learning
-  Converges towards very strong filtering (stability)
-  Major adaptation in the first 15 cycles
-
-- **Continuous Learning**
-  
-  *Alpha* = 0.05 (5% initial weight)
-
-  With these parameters, the system mainly keeps the last 100 cycles in mind*
-
-  Very conservative to prevent drift
-  Moderate reactivity to gradual changes
-
-  * Cycle 1 : α = 0.05
-  * Cycle 50 : α = 0.025
-  * Cycle 100 : α = 0.017
-  * Cycle 200 : α = 0.011
-
-
-  *Decay Rate:* 0.02
-
-  Very slow decay (long-term learning)
-  Maintains an ability to adapt even after hundreds of cycles
-  Suitable for seasonal variations (winter/summer)
+Bardzo powolny rozkład (długotrwała nauka), 
+Zachowuje zdolność adaptacji nawet po setkach cykli,
+Nadaje się do zmian sezonowych (zima/lato).
