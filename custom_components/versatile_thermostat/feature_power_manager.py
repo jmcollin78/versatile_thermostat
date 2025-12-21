@@ -300,6 +300,12 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._device_power:
             return None
 
+        if self._vtherm.is_over_climate:
+            return self._device_power if self._vtherm.is_device_active else 0.0
+
+        if not self._vtherm.proportional_algorithm:
+            return None
+
         return float(round_to_nearest(self._device_power * self._vtherm.safe_on_percent, 0.1))
 
     def __str__(self):

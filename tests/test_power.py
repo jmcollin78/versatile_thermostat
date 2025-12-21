@@ -732,7 +732,6 @@ async def test_power_management_energy_over_climate(
     assert entity.current_temperature == 15
 
     # Not initialised yet
-    # Not initialised yet
     assert entity.power_manager.mean_cycle_power == 0.0
     assert entity._underlying_climate_start_hvac_action_date is None
 
@@ -861,6 +860,8 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     # 1. Set VTherm to overpowering
     # Send power max mesurement too low and VThermHvacMode is on and device is active
+    #
+    #
     #
     #
     #

@@ -966,6 +966,144 @@ async def test_update_central_boiler_state_simple_climate(
     entity.remove_thermostat()
 
 
+async def test_update_central_boiler_state_simple_climate_power(
+    hass: HomeAssistant,
+    # skip_hass_states_is_state,
+    init_central_config_with_boiler_fixture,
+):
+    """Test that the central boiler state behavoir"""
+
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    climate1 = MockClimate(hass, "climate1", "theClimate1")
+    await register_mock_entity(hass, climate1, CLIMATE_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 8,
+            CONF_TEMP_MAX: 18,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: [climate1.entity_id],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USED_BY_CENTRAL_BOILER: True,
+            CONF_DEVICE_POWER: 1001,
+        },
+    )
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=climate1,
+    ):
+        entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+        assert entity
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate
+        assert entity.underlying_entities[0].entity_id == "climate.climate1"
+
+    api.central_boiler_manager._set_nb_active_device_threshold(0)
+    api.central_boiler_manager._set_total_power_active_threshold(1000)
+    assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 0
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    assert api.central_boiler_manager.total_power_active_for_boiler_threshold == 1000
+    assert api.central_boiler_manager.total_power_active_for_boiler == 0
+
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.nb_device_active_for_boiler", "sensor")) is not None
+    assert (total_power_active_sensor := search_entity(hass, "sensor.total_power_active_for_boiler", "sensor")) is not None
+
+    assert nb_device_active_sensor.state == 0
+    assert nb_device_active_sensor.active_device_ids == []
+
+    assert total_power_active_sensor.state == 0
+    assert total_power_active_sensor.active_device_ids == []
+
+    # Force the VTherm to heat
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    await send_temperature_change_event(entity, 25, now)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.FROST)
+
+    assert entity.hvac_mode == VThermHvacMode_HEAT
+    assert entity.device_actives == []
+
+    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
+    assert boiler_binary_sensor is not None
+    assert boiler_binary_sensor.state == STATE_OFF
+
+    # 1. start a climate
+    now = now + timedelta(minutes=10)
+    await send_temperature_change_event(entity, 10, now)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    # Simulate that the climate is heating
+    climate1.set_hvac_mode(VThermHvacMode_HEAT)
+    climate1.set_hvac_action(HVACAction.HEATING)
+    climate1.async_write_ha_state()
+    # Wait for state event propagation
+    await asyncio.sleep(0.5)
+
+    assert entity.hvac_action == HVACAction.HEATING
+    assert entity.device_actives == ["climate.climate1"]
+
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    assert api.central_boiler_manager.total_power_active_for_boiler == 1001
+    assert boiler_binary_sensor.state == STATE_ON
+
+    assert nb_device_active_sensor.state == 1
+    assert nb_device_active_sensor.active_device_ids == [
+        "climate.climate1",
+    ]
+
+    # Power is not configured
+    assert total_power_active_sensor.state == 1001
+    assert total_power_active_sensor.active_device_ids == ["climate.climate1"]
+
+    # 2. stop a climate
+    await send_temperature_change_event(entity, 25, now)
+    climate1.set_hvac_mode(VThermHvacMode_HEAT)
+    climate1.set_hvac_action(HVACAction.IDLE)
+    climate1.async_write_ha_state()
+    # Wait for state event propagation
+    await asyncio.sleep(0.5)
+
+    assert entity.hvac_action == HVACAction.IDLE
+    assert entity.device_actives == []
+
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    assert boiler_binary_sensor.state == STATE_OFF
+
+    assert nb_device_active_sensor.state == 0
+    assert nb_device_active_sensor.active_device_ids == []
+
+    # Power is not configured
+    assert total_power_active_sensor.state == 0
+    assert total_power_active_sensor.active_device_ids == []
+
+    entity.remove_thermostat()
+
+
 # @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
 async def test_update_central_boiler_state_simple_climate_valve_regulation(
     hass: HomeAssistant,

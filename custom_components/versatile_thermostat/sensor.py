@@ -199,20 +199,18 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        mean_power = self.my_climate.power_manager.mean_cycle_power
-        if mean_power is None:
+        mean_cycle_power = self.my_climate.power_manager.mean_cycle_power
+        if mean_cycle_power is None:
             return
 
-        if math.isnan(
-            float(mean_power)
-        ) or math.isinf(mean_power):
-            raise ValueError(
-                f"Sensor has illegal state {mean_power}"
-            )
+        if math.isnan(float(mean_cycle_power)) or math.isinf(float(mean_cycle_power)):
+            raise ValueError(f"Sensor has illegal state {mean_cycle_power}")
+
+        mean_cycle_power = float(mean_cycle_power)
 
         old_state = self._attr_native_value
         self._attr_native_value = round(
-            mean_power,
+            mean_cycle_power,
             self.suggested_display_precision,
         )
         if old_state != self._attr_native_value:
@@ -315,27 +313,27 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
     @callback
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
-        
+
         # Verify has_tpi and proportional_algorithm
         # proportional_algorithm can be None during initialization even if has_tpi is True
         if not self.my_climate or not self.my_climate.has_tpi or not self.my_climate.proportional_algorithm:
             self._attr_native_value = "disabled"
             self.async_write_ha_state()
             return
-        
+
         if not hasattr(self.my_climate, "_auto_tpi_manager") or not self.my_climate._auto_tpi_manager:
              self._attr_native_value = "disabled"
              self.async_write_ha_state()
              return
 
         manager = self.my_climate._auto_tpi_manager
-        
+
         # Determine state
         if manager.learning_active:
             self._attr_native_value = "Active"
         else:
             self._attr_native_value = "Off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
-            
+
         # Update attributes
         self._attr_extra_state_attributes = {
             "coeff_int_cycles": manager.int_cycles,
@@ -348,7 +346,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "max_capacity_cool": manager.state.max_capacity_cool,
             "learning_start_dt": manager.state.learning_start_date,
         }
-        
+
         # Add calculated TPI coefficients
         calculated = manager.get_calculated_params()
         self._attr_extra_state_attributes.update({
