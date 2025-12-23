@@ -7,12 +7,13 @@
   - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
   - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
   - [ByPass Fensterprüfung](#bypass-fensterprüfung)
-  - [Change TPI Parameters](#change-tpi-parameters)
+  - [Sperr-/Entsperrdienste](#Sperr-Entsperrdienste)
+  - [TPI-Einstellungen ändern](#TPI-Einstellungen-ändern)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
   - [Für _VTherm_](#für-vtherm)
-  - [For central configuration](#for-central-configuration)
-- [State messages](#state-messages)
+  - [Für die zentrale Konfiguration](#Für-die-zentrale-Konfiguration)
+- [Statusmeldungen](#statusmeldungen)
 
 ## Parameterübersicht
 
@@ -168,14 +169,20 @@ target:
     entity_id : climate.my_thermostat
 ```
 
-## Change TPI Parameters
-All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
+## Sperr-/Entsperrdienste
 
-Each parameter is optional. If it is not provided its current value is kept.
+Mit diesen Diensten kann ein Thermostat gesperrt werden, um Änderungen an seiner Konfiguration zu verhindern, oder entsperrt werden, um die zulässigen Änderungen wiederherzustellen:
 
-To change the TPI parameters use the following code:
+- `versatile_thermostat.lock` - Sperrt einen Thermostat, um Änderungen an der Konfiguration zu verhindern.
+- `versatile_thermostat.unlock` - Entsperrt einen Thermostat, um Konfigurationsänderungen wieder zuzulassen.
 
-```
+## TPI-Einstellungen ändern
+Alle konfigurierbaren TPI-Parameter [hier](images/config_tpi.png) können über einen Dienst geändert werden. Diese Änderungen sind dauerhaft und bleiben auch nach einem Neustart erhalten. Sie werden sofort angewendet und der Thermostat wird sofort aktualisiert, wenn die Parameter geändert werden.
+
+Jeder Parameter ist optional. Wenn er nicht angegeben wird, bleibt sein aktueller Wert erhalten.
+
+Um die TPI-Einstellungen zu ändern, verwenden Sie den folgenden Code:
+```yaml
 action: versatile_thermostat.set_tpi_parameters
 data:
   tpi_coef_int: 0.5
@@ -270,39 +277,39 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``nb_device_actives``             | Die Anzahl der zugeordneten Geräte, die derzeit als aktiv angesehen werden                                                                                              |
 | ``device_actives``                | Die Liste der zugrunde liegenden Geräte, die derzeit als aktiv angesehen werden                                                                                         |
 
-## For central configuration
+## Für die zentrale Konfiguration
 
-The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+Folgende benutzerdefinierten Attribute der zentralen Konfiguration sind unter "Entwicklungstools / Status" für die Entität `binary_sensor.central_boiler` verfügbar:
 
-| Attribute                                   | Meaning                                                                              |
-| ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| ``central_boiler_state``                    | The state of the central boiler. Can be `on` or `off`                                |
-| ``is_central_boiler_configured``            | Indicates whether the central boiler feature is configured                           |
-| ``is_central_boiler_ready``                 | Indicates whether the central boiler is ready                                        |
-| **SECTION `central_boiler_manager`**        | ------                                                                               |
-| ``is_on``                                   | true if the central boiler is on                                                     |
-| ``activation_scheduled``                    | true if a boiler activation is scheduled (see `central_boiler_activation_delay_sec`) |
-| ``delayed_activation_sec``                  | The boiler activation delay in seconds                                               |
-| ``nb_active_device_for_boiler``             | The number of active devices controlling the boiler                                  |
-| ``nb_active_device_for_boiler_threshold``   | The threshold of active devices before activating the boiler                         |
-| ``total_power_active_for_boiler``           | The total active power of devices controlling the boiler                             |
-| ``total_power_active_for_boiler_threshold`` | The total power threshold before activating the boiler                               |
-| **SUB-SECTION `service_activate`**          | ------                                                                               |
-| ``service_domain``                          | The domain of the activation service (e.g., switch)                                  |
-| ``service_name``                            | The name of the activation service (e.g., turn_on)                                   |
-| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
-| ``entity_name``                             | The name of the entity controlling the boiler                                        |
-| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
-| ``data``                                    | Additional data passed to the activation service                                     |
-| **SUB-SECTION `service_deactivate`**        | ------                                                                               |
-| ``service_domain``                          | The domain of the deactivation service (e.g., switch)                                |
-| ``service_name``                            | The name of the deactivation service (e.g., turn_off)                                |
-| ``entity_domain``                           | The domain of the entity controlling the boiler (e.g., switch)                       |
-| ``entity_name``                             | The name of the entity controlling the boiler                                        |
-| ``entity_id``                               | The complete identifier of the entity controlling the boiler                         |
-| ``data``                                    | Additional data passed to the deactivation service                                   |
+| Attribute                                   | Bedeutung                                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| ``central_boiler_state``                    | Der Zustand des Zentralheizungskessels. Kann `on` or `off` sein                                       |
+| ``is_central_boiler_configured``            | Gibt an, ob die Zentralheizungsfunktion konfiguriert ist                                              |
+| ``is_central_boiler_ready``                 | Gibt an, ob der Heizungskessel betriebsbereit ist                                                     |
+| **ABSCHNITT `central_boiler_manager`**      | ------                                                                                                |
+| ``is_on``                                   | true, wenn der Heizungskessel eingeschaltet ist                                                       |
+| ``activation_scheduled``                    | true, wenn eine Aktivierung des Heizkessels geplant ist (siehe `central_boiler_activation_delay_sec`) |
+| ``delayed_activation_sec``                  | Aktivierungszeit des Heizkessels in Sekunden seconds                                                  |
+| ``nb_active_device_for_boiler``             | Anzahl der aktiven Geräte, die den Heizkessel steuern                                                 |
+| ``nb_active_device_for_boiler_threshold``   | Schwelle für die Anzahl aktiver Geräte vor der Aktivierung des Heizkessels                            |
+| ``total_power_active_for_boiler``           | Gesamte Wirkleistung der Geräte, die den Heizkessel steuern                                           |
+| ``total_power_active_for_boiler_threshold`` | Gesamtleistungsschwelle vor Aktivierung des Heizkessels                                               |
+| **UNTERABSCHNITT `service_activate`**       | ------                                                                                                |
+| ``service_domain``                          | Bereich des Aktivierungsdienstes (z.B. switch)                                                        |
+| ``service_name``                            | Name des Aktivierungsdienstes (z.B. turn_on)                                                          |
+| ``entity_domain``                           | Bereich der Entity, die den Heizkessel steuert (z.B. switch)                                          |
+| ``entity_name``                             | Name der Entity, welche den Heizkessel steuert                                                        |
+| ``entity_id``                               | Vollständige Kennung der Stelle, die den Heizkessel steuert                                           |
+| ``data``                                    | Zusätzliche Daten, die an den Aktivierungsdienst übermittelt wurden                                   |
+| **UNTERABSCHNITT `service_deactivate`**     | ------                                                                                                |
+| ``service_domain``                          | Bereich des Aktivierungsdienstes (z.B. switch)                                                        |
+| ``service_name``                            | Name des Deaktivierungsdienstes (z.B. turn_off)                                                       |
+| ``entity_domain``                           | Bereich der Entity, die den Heizkessel steuert (z.B. switch)                                          |
+| ``entity_name``                             | Name der Entity, welche den Heizkessel steuert                                                        |
+| ``entity_id``                               | Vollständige Kennung der Stelle, die den Heizkessel steuert                                           |
+| ``data``                                    | Zusätzliche Daten, die an den Deaktivierungsdienst übermittelt wurden                                 |
 
-Example values:
+Beispielwerte:
 
 ```yaml
 central_boiler_state: "off"
@@ -337,19 +344,19 @@ friendly_name: Central boiler
 
 Diese Angaben werden bei einer Hilfeanfrage benötigt.
 
-# State messages
+# Statusmeldungen
 
-The `specific_states.messages` custom attribute contains a list of message codes that explain the current state. Messages can be:
-| Code                                | Meaning                                                                             |
-| ----------------------------------- | ----------------------------------------------------------------------------------- |
-| `overpowering_detected`             | An overpowering situation is detected                                               |
-| `safety_detected`                   | A temperature measurement fault is detected that triggered VTherm safety mode       |
-| `target_temp_window_eco`            | Window detection forced the target temperature to the Eco preset                    |
-| `target_temp_window_frost`          | Window detection forced the target temperature to the Frost preset                  |
-| `target_temp_power`                 | Power shedding forced the target temperature with the value configured for shedding |
-| `target_temp_central_mode`          | The target temperature was forced by central mode                                   |
-| `target_temp_activity_detected`     | The target temperature was forced by motion detection                               |
-| `target_temp_activity_not_detected` | The target temperature was forced by no motion detection                            |
-| `target_temp_absence_detected`      | The target temperature was forced by absence detection                              |
+Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste von Mitteilungscodes, die den aktuellen Status erklären. Die Mitteilungen können sein:
+| Code                                | Bedeutung                                                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `overpowering_detected`             | Eine Überlastung wird erkannt.                                                                                       |
+| `safety_detected`                   | Ein Fehler bei der Temperaturmessung wurde festgestellt, der zu einer Sicherheitsabschaltung des VTherm geführt hat. |
+| `target_temp_window_eco`            | Die Fenstererkennung hat die Zieltemperatur auf die Voreinstellung "Eco" gesetzt.                                    |
+| `target_temp_window_frost`          | Die Fenstererkennung hat die Zieltemperatur auf die Voreinstellung "Frostschutz" gesetzt.                            |
+| `target_temp_power`                 | Die Lastabwurf-Funktion hat die Solltemperatur auf den für den Lastabwurf konfigurierten Wert gesenkt.               |
+| `target_temp_central_mode`          | Die Zieltemperatur wurde durch den Zentralmodus erzwungen.                                                           |
+| `target_temp_activity_detected`     | Die Zieltemperatur wurde durch die Bewegungserkennung erzwungen.                                                     |
+| `target_temp_activity_not_detected` | Die Zieltemperatur wurde durch das Fehlen von Bewegung erzwungen.                                                    |
+| `target_temp_absence_detected`      | Die Solltemperatur wurde durch die Abwesenheitserkennung erzwungen.                                                  |
 
-Note: these messages are available in the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) under the information icon.
+Hinweis: Diese Meldungen sind in der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
