@@ -3,6 +3,9 @@
 - [Selbstregulierung](#selbstregulierung)
     - [Konfiguration](#konfiguration)
       - [Selbstregulierung bei direkter Ventilkontrolle](#selbstregulierung-bei-direkter-ventilkontrolle)
+        - [Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?](#Wie-werden-die-Parameter-die-die-Öffnungweite-steuern-richtig-eingestellt)
+        - [Fall 1: Es gibt eine 15-prozentige Totzone an dem Ventil (die ersten 15% lassen kein heißes Wasser durch)](#Fall-1-Es-gibt-eine-15-prozentige-Totzone-an-dem-Ventil-die-ersten-15-lassen-kein-heißes-Wasser-durch)
+        - [Fall 2: Das Ventil soll niemals vollständig schließen](#Fall-2-Das-Ventil-soll-niemals-vollständig-schließen)
       - [Andere Selbsregulierung](#andere-selbsregulierung)
       - [Selbstregulierung im Expertenmodus](#selbstregulierung-im-expertenmodus)
       - [Zusammenfassung des Selbstregulierungsalgorithmus](#zusammenfassung-des-selbstregulierungsalgorithmus)
@@ -15,9 +18,7 @@ In der Regel gibt es zwei Fälle: Erstens
 
 ## Konfiguration
 
-### Selbstregulierung bei direkter Ventilkontrolle]
-
--- this § is not updated since v 8.0. Please see the English version --
+### Selbstregulierung bei direkter Ventilkontrolle
 
 Diese Art der Selbstregulierung, `Direct Valve Control` genannt, benötigt:
 1. Eine Einheit des Typs `climate`, die in den zugehörigen Geräten des _VTherm_ enthalten ist.
@@ -47,6 +48,39 @@ Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate
 > 1. Seit Version 7.2.2 ist es möglich, die Entity "Schließungsgrad" auf Sonoff TRVZB zu verwenden.
 > 2. Das Attribut `hvac_action` von Sonoff TRVZB TRVs ist unzuverlässig. Wenn die Innentemperatur des TRV zu sehr von der Raumtemperatur abweicht, kann die `climate`-Entity anzeigen, dass das _TRV_ nicht heizt, auch wenn das Ventil durch _VTherm_ zwangsweise geöffnet wird. Dieses Problem hat keine Auswirkungen, da die `climate`-Entity von _VTherm_ korrigiert wird und die Ventilöffnung bei der Festlegung des Attributs `hvac_action` berücksichtigt. Dieses Problem wird durch die Konfiguration der Temperatur-Offset-Kalibrierung abgeschwächt, aber nicht vollständig beseitigt.
 > 3. Das Attribut `valve_open_percent` von _VTherm_ stimmt möglicherweise nicht mit dem an das Ventil gesendeten `Öffnungsgrad`-Wert überein. Wenn Sie einen Mindestöffnungswert konfiguriert haben oder die Schließsteuerung verwenden, wird eine Anpassung vorgenommen. Das Attribut `valve_open_percent` stellt den von _VTherm_ berechneten Rohwert dar. Der an das Ventil gesendete `Öffnungsgrad`-Wert kann entsprechend angepasst werden.
+
+#### Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?
+
+Die 3 Einstellparameter der Ventilöffnung ermöglichen eine Feinabstimmung des Ventilverhaltens, insbesondere zu Beginn des Heizzyklus. Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellen, erhält man diese Kurve:
+
+<img src="../../images/opening-degree-graph.png" alt="Öffnungsparameter einstellen" width="600">
+
+##### Fall 1: Es gibt eine 15-prozentige Totzone an dem Ventil (die ersten 15% lassen kein heißes Wasser durch)
+
+Die Einstellungen können dann wie folgt lauten:
+1. `minimum_opening_degrees`: 15. Sobald Heizen erforderlich ist, muss mindestens um 15% geöffnet werden.
+2. `max_closing_degree`: Der Standardwert (100) ermöglicht ein vollständiges Schließen.
+3. `opening_threshold`: Der Standardwert (0) löst Heizen aus, sobald dies erforderlich ist.
+
+Sie erhalten dann folgende Kurve:
+
+<img src="../../images/opening-degree-default-1.png" alt="Öffnungsparameter einstellen" width="400">
+
+oder wenn kein `regulation_threshold` definiert ist:
+
+<img src="../../images/opening-degree-default-2.png" alt="Öffnungsparameter einstellen" width="400">
+
+##### Fall 2: Das Ventil soll niemals vollständig schließen
+
+Dieser Fall ermöglicht es, Störgeräuschen beim vollständigen Schließens zu behandeln oder dient als Sicherheitsmaßnahme, um immer etwas Wasser zirkulieren zu lassen und eine Beschädigung der Umwälzpumpe zu vermeiden.
+Die Einstellungen können dann wie folgt sein:
+1. `minimum_opening_degrees`: 10, um bei Heizbedarf mindestens 10% zu öffnen,
+2. `max_closing_degree`: 90, um immer mindestens 10% Öffnungweite zu haben,
+3. `opening_threshold`: 10, zur Berücksichtigung, dass die ersten 10 % nicht heizen. Das TRV befindet sich dann im `Idle`-Modus.
+
+Sie erhalten dann folgende Kurve:
+
+<img src="../../images/opening-degree-default-3.png" alt="Öffnungsparameter einstellen" width="400">
 
 ### Andere Selbsregulierung
 
