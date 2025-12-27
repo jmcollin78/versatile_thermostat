@@ -14,6 +14,7 @@ from homeassistant.const import SERVICE_RELOAD, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.core import HomeAssistant, CoreState, callback
 from homeassistant.helpers.service import async_register_admin_service
+from homeassistant.const import UnitOfTemperature
 
 from .base_thermostat import BaseThermostat
 
@@ -73,6 +74,10 @@ from .const import (
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
     AUTO_TPI_METHOD_AVG,
+    CONF_TEMP_MIN,
+    CONF_TEMP_MAX,
+    CONF_STEP_TEMPERATURE,
+
 )
 
 from .vtherm_api import VersatileThermostatAPI
@@ -320,6 +325,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 if old_value is not None:
                     new[new_key] = old_value
                 new.pop(key, None)
+
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(

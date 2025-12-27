@@ -286,6 +286,7 @@ Où :
 - Cycle 1 : weight_old = 1 → nouveau coefficient a un poids de 50%
 - Cycle 10 : weight_old = 10 → nouveau coefficient a un poids de ~9%
 - Cycle 50 : weight_old = 50 → nouveau coefficient a un poids de ~2%
+- Cycle 100+ : weight_old = 50 (plafonné) → nouveau coefficient a encore un poids ~2% pour assurer la réactivité
 
 ### Caractéristiques principales
 
@@ -335,7 +336,7 @@ Au fil des cycles, **alpha décroît progressivement** pour stabiliser l'apprent
 | 0 | 0.20 | 20% |
 | 10 | 0.10 | 10% |
 | 50 | 0.033 | 3.3% |
-| 100 | 0.018 | 1.8% |
+| 100 | 0.033 | 3.3% (plafonné à 50 cycles) |
 
 ### Paramètres
 
@@ -350,7 +351,7 @@ Au fil des cycles, **alpha décroît progressivement** pour stabiliser l'apprent
 alpha(n) = alpha_initial / (1 + decay_rate × n)
 ```
 
-Où `n` est le nombre de cycles d'apprentissage.
+Où `n` est le nombre de cycles d'apprentissage (plafonné à 50).
 
 ### Cas particuliers
 
@@ -395,7 +396,7 @@ Où `n` est le nombre de cycles d'apprentissage.
 
   * Cycle 1 : α = 0.08
   * Cycle 25 : α = 0.024
-  * Cycle 50 : α = 0.013
+  * Cycle 50+ : α = 0.013 (plafonné)
 
 
   *Taux de décroissance:*: 0.12
@@ -415,8 +416,7 @@ Où `n` est le nombre de cycles d'apprentissage.
 
   * Cycle 1 : α = 0.05
   * Cycle 50 : α = 0.025
-  * Cycle 100 : α = 0.017
-  * Cycle 200 : α = 0.011
+  * Cycle 100+ : α = 0.025 (plafonné)
 
 
   *Taux de décroissance:* = 0.02

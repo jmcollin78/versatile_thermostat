@@ -58,6 +58,7 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN, NUMBER_DOMAIN]),
         ),
         vol.Required(CONF_CYCLE_MIN, default=5): selector.NumberSelector(selector.NumberSelectorConfig(min=1, max=1000, step=1, mode=selector.NumberSelectorMode.BOX)),
+
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
         vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
@@ -110,6 +111,7 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+
         vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
     }
 )
@@ -121,6 +123,7 @@ STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+
         vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
     }
 )
