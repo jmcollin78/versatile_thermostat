@@ -121,7 +121,9 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
         self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
         self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
+        self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
         self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING)
+
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      self, self._tpi_coef_int, self._tpi_coef_ext)
@@ -148,6 +150,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             keep_ext_learning=self._auto_tpi_keep_ext_learning,
             enable_update_config=self._auto_tpi_enable_update_config, # Pass the config flags
             enable_notification=self._auto_tpi_enable_notification, # Pass the config flags
+
         )
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
                      self, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
@@ -454,9 +457,9 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
     async def service_auto_tpi_calibrate_capacity(
         self,
-        hvac_mode: str,
         save_to_config: bool,
         min_power_threshold: int,
+        capacity_safety_margin: int = 20,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ):
@@ -465,13 +468,13 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         data:
             start_date: 2023-11-01T00:00:00+00:00
             end_date: 2023-12-01T00:00:00+00:00
-            hvac_mode: heat
             save_to_config: true
             min_power_threshold: 95
+            capacity_safety_margin: 20
         target:
             entity_id: climate.thermostat_1
         """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, hvac_mode: {hvac_mode}, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}")
+        write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}, capacity_safety_margin: {capacity_safety_margin}")
 
         if not self._auto_tpi_manager:
             raise ServiceValidationError(f"{self} - Auto TPI Manager not initialized, cannot calibrate capacity.")
@@ -480,15 +483,15 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         result = await self._auto_tpi_manager.service_calibrate_capacity(
             thermostat_entity_id=self.entity_id,
             ext_temp_entity_id=self._ext_temp_sensor_entity_id,
-            hvac_mode=hvac_mode,
             save_to_config=save_to_config,
             start_date=start_date,
             end_date=end_date,
             min_power_threshold=min_power_threshold / 100.0,  # Convert from % to decimal
+            capacity_safety_margin=capacity_safety_margin / 100.0, # Convert from % to decimal
         )
 
         # If capacity was updated, we might need to recalculate (though capacity mainly affects TPI next cycle)
-        if result and result.get("success") and result.get("capacity"):
+        if result and result.get("success") and result.get("recommended_capacity"):
              self.recalculate()
 
         self.update_custom_attributes()
