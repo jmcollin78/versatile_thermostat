@@ -7,8 +7,8 @@
   - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Benachrichtigung mit dem AppDaemon NOTIFIER](#benachrichtigung-mit-dem-appdaemon-notifier)
   - [Eine sehr schöne Karte (Danke @Jeffodilo)](#eine-sehr-schöne-karte-danke-jeffodilo)
-  - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
-  - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
+  - [Gefühlte Innentemperatur und "feuchte Kälte"-Effekt (Danke @nicola-spreafico)](#gefühlte-innentemperatur-und-feuchte-kälte-Effekt-danke-nicola-spreafico)
+  - [Eine zusätzliche Integration, um Vorgabeänderungen vorauszusehen (Danke @RastaChaum)](#eine-zusätzliche-integration-um-vorgabeänderungen-vorauszusehen-danke-rastachaum)
 
 
 ## Die Versatile Thermostat UI Card
@@ -493,12 +493,12 @@ cards:
 ```
 </details>
 
-## Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)
-An brillant post to add a feature name "Feels like" or "Damp Cold". You can force the target temperature to a higher value depending on weather conditions like humidity or wind.
-The post is [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1211)
+## Gefühlte Innentemperatur und "feuchte Kälte"-Effekt (Danke @nicola-spreafico)
+Ein brillanter Artikel über die Einführung einer Funktion namens „gefühlte Temperatur“ oder „nasse Kälte“. Sie können die Zieltemperatur je nach Wetterbedingungen wie Luftfeuchtigkeit oder Wind auf einen höheren Wert einstellen.
+Der Beitrag ist [hier](https://github.com/jmcollin78/versatile_thermostat/discussions/1211) zu finden.
 
-## A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)
-This integration (in beta as of 11/23/2025) proposes to anticipate the setpoint changes of your Scheduler so that the target temperature is reached at the time of the Scheduler change. It learns the behavior of your VTherm (temperature rise time, speed and temperature rise time) and applies a predictive algorithm to anticipate the Scheduler change.
-The approach is very interesting and offers a good complement to _VTherm_.
+## Eine zusätzliche Integration, um Vorgabeänderungen vorauszusehen (Danke @RastaChaum)
+Diese Integration (in der Beta-Phase bis zum 23.11.2025) ermöglicht es, Änderungen der Sollwerte Ihres Schedulers zu prognostizieren, damit die Solltemperatur zum Zeitpunkt der Änderung des Schedulers erreicht ist. Sie lernt das Verhalten Ihres VTherm (Aufheizzeit, Geschwindigkeit und Aufheizzeit) und wendet einen vorausschauenden Algorithmus an, um die Änderung des Schedulers vorwegzunehmen.
+Der Ansatz ist sehr interessant und bietet eine gute Ergänzung zum _VTherm_.
 
-It is available [here](https://github.com/RastaChaum/Intelligent-Heating-Pilot)
+Es ist [hier](https://github.com/RastaChaum/Intelligent-Heating-Pilot) zu finden.
