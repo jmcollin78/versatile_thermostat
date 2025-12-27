@@ -5,6 +5,7 @@
 aiodiscover
 ulid_transform
 pytest
+pytest-socket
 coverage
 pytest-asyncio
 pytest-homeassistant-custom-component

@@ -1014,81 +1014,127 @@ class AutoTpiManager:
                 self.state.consecutive_boosts = 0
 
     async def _detect_failures(self, current_temp_in: float):
-        """Detect system failures."""
+        """Detect system failures.
+
+        A failure is logged when the indoor temperature moves in the opposite
+        direction of the latest heating/cooling order. When the duty cycle is
+        below saturation, we treat the deviation as a learning opportunity and
+        avoid incrementing the failure counter. Continuous learning mode also
+        keeps learning active even after repeated failures.
+        """
         OFFSET_FAILURE = 1.0
         MIN_LEARN_FOR_DETECTION = 25
 
-        failure_detected = False
         reason = "unknown"
+        failure_status = None
+        spare_capacity_status = None
+        mode = None
+        # Use a small buffer below saturation to avoid floating-point jitter when
+        # deciding whether the system still has headroom to learn.
+        saturation_threshold = max(0.0, self.saturation_threshold - 0.05)
 
-        if (
+        heat_issue = (
             self.state.last_state == "heat"
             and current_temp_in < self.state.last_order - OFFSET_FAILURE
             and current_temp_in < self.state.last_temp_in
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
-        ):
-            failure_detected = True
-            reason = "Temperature dropped while heating"
-            _LOGGER.warning("%s - Auto TPI: Failure detected in HEAT mode", self._name)
-
-        elif (
+        )
+        cool_issue = (
             self.state.last_state == "cool"
             and current_temp_in > self.state.last_order + OFFSET_FAILURE
             and current_temp_in > self.state.last_temp_in
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
-        ):
-            failure_detected = True
+        )
+
+        issue_detected = heat_issue or cool_issue
+        # If we're below the saturation threshold, the system still has headroom
+        # to learn and compensate, so we should not count the event as a failure.
+        has_spare_capacity = issue_detected and self.state.last_power < saturation_threshold
+        is_failure = issue_detected and not has_spare_capacity
+
+        if heat_issue:
+            reason = "Temperature dropped while heating"
+            failure_status = "temp_drop_while_heating"
+            spare_capacity_status = "temp_drop_with_spare_capacity"
+            mode = "HEAT"
+        elif cool_issue:
             reason = "Temperature rose while cooling"
-            _LOGGER.warning("%s - Auto TPI: Failure detected in COOL mode", self._name)
+            failure_status = "temp_rise_while_cooling"
+            spare_capacity_status = "temp_rise_with_spare_capacity"
+            mode = "COOL"
 
-        if failure_detected:
-            self.state.consecutive_failures += 1
-            if self.state.consecutive_failures >= 3:
-                self.state.autolearn_enabled = False
-                _LOGGER.error(
-                    "%s - Auto TPI: Learning disabled due to %d consecutive failures.",
-                    self._name,
-                    self.state.consecutive_failures,
-                )
-                
-                # Send persistent notification
-                # Retrieve the message from translations
-                # We use the "exceptions" category in strings.json
-                # The key is "component.versatile_thermostat.exceptions.auto_tpi_learning_stopped.message"
-                title = "Versatile Thermostat: Auto TPI Learning Stopped"
-                try:
-                    translations = await translation.async_get_translations(
-                        self._hass, 
-                        self._hass.config.language, 
-                        "exceptions", 
-                        {DOMAIN}
-                    )
-                    
-                    # Key format for exceptions: component.{domain}.exceptions.{key}.message
-                    key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
-                    message_template = translations.get(key)
-                    
-                    if message_template:
-                        message = message_template.format(name=self._name, reason=reason)
-                    else:
-                        # Fallback if translation not found
-                         message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
-
-                    await self._hass.services.async_call(
-                        "persistent_notification",
-                        "create",
-                        {
-                            "title": title,
-                            "message": message,
-                            "notification_id": f"autotpi_learning_stopped_{self._unique_id}",
-                        },
-                        blocking=False,
-                    )
-                except Exception as e:
-                    _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
-
-        else:
+        if has_spare_capacity:
             self.state.consecutive_failures = 0
+            self.state.last_learning_status = spare_capacity_status or "failure_with_spare_capacity"
+            _LOGGER.debug(
+                "%s - Auto TPI: Failure conditions met in %s mode but power %.3f < saturation %.3f; not counting as failure",
+                self._name,
+                mode,
+                self.state.last_power,
+                saturation_threshold,
+            )
+
+        if is_failure:
+            self.state.consecutive_failures += 1
+            self.state.last_learning_status = failure_status or self.state.last_learning_status
+            _LOGGER.warning("%s - Auto TPI: Failure detected in %s mode", self._name, mode)
+
+        if not issue_detected:
+            self.state.consecutive_failures = 0
+
+        # In continuous learning mode we must not disable learning due to failures.
+        # Failures can happen transiently (weather, occupancy, open windows, etc.) and
+        # continuous learning is expected to keep running and adapt over time.
+        disable_learning = (not self._continuous_learning) and is_failure and self.state.consecutive_failures >= 3
+        if disable_learning:
+            self.state.autolearn_enabled = False
+            _LOGGER.error(
+                "%s - Auto TPI: Learning disabled due to %d consecutive failures.",
+                self._name,
+                self.state.consecutive_failures,
+            )
+
+            # Send persistent notification
+            # Retrieve the message from translations
+            # We use the "exceptions" category in strings.json
+            # The key is "component.versatile_thermostat.exceptions.auto_tpi_learning_stopped.message"
+            title = "Versatile Thermostat: Auto TPI Learning Stopped"
+            try:
+                translations = await translation.async_get_translations(
+                    self._hass,
+                    self._hass.config.language,
+                    "exceptions",
+                    {DOMAIN},
+                )
+
+                # Key format for exceptions: component.{domain}.exceptions.{key}.message
+                key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
+                message_template = translations.get(key)
+
+                if message_template:
+                    message = message_template.format(name=self._name, reason=reason)
+                else:
+                    # Fallback if translation not found
+                    message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+
+                await self._hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": title,
+                        "message": message,
+                        "notification_id": f"autotpi_learning_stopped_{self._unique_id}",
+                    },
+                    blocking=False,
+                )
+            except Exception as e:
+                _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
+        elif self._continuous_learning and is_failure and self.state.consecutive_failures >= 3:
+            _LOGGER.error(
+                "%s - Auto TPI: %d consecutive failures detected but continuous learning is enabled; learning remains active.",
+                self._name,
+                self.state.consecutive_failures,
+            )
 
     @property
     def saturation_threshold(self) -> float:
@@ -1154,7 +1200,7 @@ class AutoTpiManager:
 
         best_idx = -1
         closest_diff = float("inf")
-        
+
         # We start searching from start_idx to keep O(N+M) complexity
         for i in range(start_idx, len(power_history)):
             state = power_history[i]
@@ -1167,17 +1213,17 @@ class AutoTpiManager:
                     if abs_diff < closest_diff:
                         closest_diff = abs_diff
                         best_idx = i
-                
-                # If we passed the target_dt by more than tolerance, 
+
+                # If we passed the target_dt by more than tolerance,
                 # and we already found something or the diff is increasing, we can stop.
                 if diff > tolerance_seconds:
                     break
-                    
+
             except (AttributeError, TypeError):
                 continue
 
         if best_idx == -1:
-            # If we didn't find anything but we are moving forward in time, 
+            # If we didn't find anything but we are moving forward in time,
             # we should still return the current start_idx for the next call
             # unless we find that slope_dt is already way ahead of power_history.
             return None, start_idx
@@ -1477,15 +1523,15 @@ class AutoTpiManager:
         entity_ids = [slope_sensor_id, power_sensor_id]
         slope_history = []
         power_history = []
-        
+
         # We use 2-day chunks for robustness
         chunk_delta = timedelta(days=2)
         current_start = start_time
-        
+
         while current_start < end_time:
             current_end = min(current_start + chunk_delta, end_time)
             _LOGGER.debug("%s - Fetching history chunk from %s to %s", self._name, current_start, current_end)
-            
+
             try:
                 chunk_states = await get_instance(self._hass).async_add_executor_job(
                     partial(
@@ -1497,14 +1543,14 @@ class AutoTpiManager:
                         significant_changes_only=False,
                     )
                 )
-                
+
                 if chunk_states:
                     slope_history.extend(chunk_states.get(slope_sensor_id, []))
                     power_history.extend(chunk_states.get(power_sensor_id, []))
-                    
+
             except Exception as e:
                 _LOGGER.warning("%s - Error fetching history chunk %s to %s: %s", self._name, current_start, current_end, e)
-            
+
             current_start = current_end
 
         _LOGGER.debug("%s - Fetched %d slope sensor states and %d power sensor states for capacity calibration.", self._name, len(slope_history), len(power_history))
