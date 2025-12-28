@@ -947,11 +947,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return [VThermHvacMode_HEAT, VThermHvacMode_OFF]
 
     @property
-    def mean_cycle_power(self) -> float | None:
-        """Returns the mean power consumption during the cycle"""
-        return None
-
-    @property
     def fan_mode(self) -> str | None:
         """Return the fan setting.
 
