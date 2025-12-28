@@ -236,13 +236,18 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         return self._safety_state == STATE_ON
 
+    async def _async_update_states_later(self, _=None):
+        """Called at next tick to update states without recursion"""
+        self._vtherm.requested_state.force_changed()
+        await self._vtherm.update_states(force=True)
+
     async def refresh_and_update_if_changed(self) -> bool:
         """Refresh the safety state and update_states of VTherm if changed
         Returns True if the state has changed, False otherwise"""
         old_safety: bool = self.is_safety_detected
         if old_safety != await self.refresh_state():
-            self._vtherm.requested_state.force_changed()
-            await self._vtherm.update_states(force=True)
+            # issue 1450 - schedule update_states at next tick to avoid recursion
+            self._hass.async_create_task(self._async_update_states_later())
             return True
 
         return False
