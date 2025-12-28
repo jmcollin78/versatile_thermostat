@@ -1387,7 +1387,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # still not found, we an stop here
                 return False
 
-        if await self._safety_manager.refresh_and_update_if_changed():
+        if timestamp and await self._safety_manager.refresh_and_update_if_changed():
             return False
 
         if self._safety_manager.is_safety_detected and self.is_over_climate:
