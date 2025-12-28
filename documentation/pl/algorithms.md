@@ -1,15 +1,22 @@
 # Użycie różnych algorytmów
 
-- [Różne algorytmy](#the-different-algorithms-used)
-  - [Algorytm TPI](#the-tpi-algorithm)
-    - [Konfigurowanie współczynników algorytmu TPI](#configuring-the-tpi-algorithm-coefficients)
-    - [Zasady](#principle)
-    - [Minimalna zwłoka aktywacji lub dezaktywacji](#minimum-activation-or-deactivation-delay)
-    - [Górne i dolne progi aktywacji algorytmu](#upper-and-lower-activation-thresholds-of-the-algorithm)
-  - [Algorytm autoregulacji (bez sterowania zaworem)](#the-self-regulation-algorithm-without-valve-control)
-  - [Algorytm autoSTART i autoSTOP](#the-auto-startstop-function-algorithm)
+- [Użycie różnych algorytmów](#użycie-różnych-algorytmów)
+  - [Algorytm TPI](#algorytm-tpi)
+    - [Konfigurowanie współczynników algorytmu TPI](#konfigurowanie-współczynników-algorytmu-tpi)
+    - [Zasady](#zasady)
+    - [Minimalna zwłoka aktywacji lub dezaktywacji](#minimalna-zwłoka-aktywacji-lub-dezaktywacji)
+    - [Górne i dolne progi aktywacji algorytmu](#górne-i-dolne-progi-aktywacji-algorytmu)
+  - [Algorytm autoregulacji (bez sterowania zaworem)](#algorytm-autoregulacji-bez-sterowania-zaworem)
+  - [Algorytm autoSTART i autoSTOP](#algorytm-autostart-i-autostop)
 
 ## Algorytm TPI
+
+TPI is applicable only for _VTherm_ which does the regulation itself. This kind of _VTherm_ is concerned:
+1. `over_switch`,
+2. `over_valve`,
+3. `over_climate` with direct valve control.
+
+`over_climate` with self-regulation that doesn't control the valve directly don't have any TPI algorithm embedded and thus this chapter is not applicable for them.
 
 ### Konfigurowanie współczynników algorytmu TPI
 
@@ -27,7 +34,7 @@ Musisz tutaj określić:
 
 ### Zasady
 
-Algorytm TPI oblicza procent załączenia/wyłączenia grzejnika w każdym cyklu, wykorzystując temperaturę docelową, aktualną temperaturę w pomieszczeniu i aktualną temperaturę zewnętrzną. Algorytm ten ma zastosowanie tylko dla termostatów, działających w trybach `na Przełączniku` lub `na Zaworze`.
+Algorytm TPI oblicza procent załączenia/wyłączenia grzejnika w każdym cyklu, wykorzystując temperaturę docelową, aktualną temperaturę w pomieszczeniu i aktualną temperaturę zewnętrzną.
 
 Procent ten obliczany jest na podstawie następującej formuły:
 
@@ -42,7 +49,7 @@ Określając wartości współczynników, należy pamiętać, że:
 3. **Jeśli osiąganie docelowej temperatury jest zbyt wolne**, zwiększ `współczynnik delty dla temperatury wewnętrznej`, aby dostarczyć więcej mocy do ogrzewania,
 4. **Jeśli osiąganie docelowej temperatury jest zbyt szybkie** i występują oscylacje wokół celu, zmniejsz `współczynnik delty dla temperatury wewnętrznej`, aby dostarczyć mniej mocy do grzejnika.
 
-W trybie `Termostat na Zaworze`, wartość `procent` jest konwertowana na procent (0 do 100%) i bezpośrednio steruje stopniem otwarcia zaworu.
+Wartość `on_percent` jest konwertowana na procent (0 do 100%) i bezpośrednio steruje stopniem otwarcia zaworu.
 
 ### Minimalna zwłoka aktywacji lub dezaktywacji
 

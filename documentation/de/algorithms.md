@@ -11,6 +11,13 @@
 
 ## Der TPI-Algorithmus
 
+TPI ist nur für _VTherm_ anwendbar, welche die Regelung selbst durchführen. Dies betrifft folgende _VTherm_-Typen:
+1. `over_switch`,
+2. `over_valve`,
+3. `over_climate` mit direkter Ventilsteuerung.
+
+`over_climate` mit Selbstregulierung, die das Ventil nicht direkt steuern, haben keinen TPI-Algorithmus integriert; daher ist dieses Kapitel für sie nicht anwendbar.
+
 ### Konfigurieren der TPI-Algorithmusfaktoren
 
 Wenn Sie einen Thermostat vom Typ `over_switch`, `over_valve` oder `over_climate` mit Selbstregulierung im Modus `Direkte Ventilsteuerung` ausgewählt haben und im Menü die Option "TPI" wählen, gelangen Sie auf diese Seite:
@@ -32,7 +39,7 @@ Der TPI-Algorithmus berechnet den Prozentsatz für Ein- und Ausschalten des Heiz
 Der Prozentsatz wird anhand dieser Formel berechnet:
 
     on_percent = coef_int * (ziel_temperatur - aktuelle_temperatur) + coef_ext * (ziel_temperatur - aussen_temperature)
-    Danach stellt der Algorithmus sicher, dass 0 <= on_percent <= 1 gilt. 
+    Danach stellt der Algorithmus sicher, dass 0 <= on_percent <= 1 gilt.
 
 Die Standardwerte für `coef_int` und `coef_ext` sind `0,6` bzw. `0,01`. Diese Standardwerte eignen sich für einen gedämmten Durchschnittsraum.
 

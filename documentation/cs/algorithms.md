@@ -9,6 +9,13 @@
 
 ## Algoritmus TPI
 
+TPI is applicable only for _VTherm_ which does the regulation itself. This kind of _VTherm_ is concerned:
+1. `over_switch`,
+2. `over_valve`,
+3. `over_climate` with direct valve control.
+
+`over_climate` with self-regulation that doesn't control the valve directly don't have any TPI algorithm embedded and thus this chapter is not applicable for them.
+
 ### Konfigurace koeficientů algoritmu TPI
 
 Pokud jste vybrali termostat typu `over_switch`, `over_valve` nebo `over_climate` se samo-regulací v režimu `Přímé ovládání ventilu` a zvolíte možnost "TPI" v menu, dostanete se na tuto stránku:
@@ -21,7 +28,7 @@ Musíte zadat:
 
 ### Princip
 
-Algoritmus TPI vypočítá procento Zapnuto vs Vypnuto pro radiátor v každém cyklu, používaje cílovou teplotu, aktuální teplotu místnosti a aktuální venkovní teplotu. Tento algoritmus je použitelný pouze pro Versatile Thermostaty pracující v režimech `over_switch` a `over_valve`.
+Algoritmus TPI vypočítá procento Zapnuto vs Vypnuto pro radiátor v každém cyklu, používaje cílovou teplotu, aktuální teplotu místnosti a aktuální venkovní teplotu.
 
 Procento se vypočítá pomocí tohoto vzorce:
 
@@ -36,7 +43,7 @@ Při úpravě těchto koeficientů mějte na paměti následující:
 3. **Pokud je dosažení cílové teploty příliš pomalé**, zvyšte `coef_int` pro poskytnutí více výkonu ohřívači,
 4. **Pokud je dosažení cílové teploty příliš rychlé a dochází k oscilacím** kolem cíle, snižte `coef_int` pro poskytnutí menšího výkonu radiátoru.
 
-V režimu `over_valve` se hodnota `on_percent` převede na procento (0 až 100%) a přímo ovládá úroveň otevření ventilu.
+`on_percent` převede na procento (0 až 100%) a přímo ovládá úroveň otevření ventilu.
 
 ## Algoritmus samo-regulace (bez ovládání ventilu)
 

@@ -11,9 +11,16 @@
 
 ## The TPI Algorithm
 
+TPI is applicable only for _VTherm_ which does the regulation itself. This kind of _VTherm_ is concerned:
+1. `over_switch`,
+2. `over_valve`,
+3. `over_climate` with direct valve control.
+
+`over_climate` with self-regulation that doesn't control the valve directly don't have any TPI algorithm embedded and thus this chapter is not applicable for them.
+
 ### Configuring the TPI Algorithm Coefficients
 
-If you have selected a thermostat of type `over_switch`, `over_valve`, or `over_climate` with self-regulation in `Direct Valve Control` mode and choose the "TPI" option in the menu, you will land on this page:
+If you have selected a thermostat with a TPI algorithm and choose the "TPI" option in the menu, you will land on this page:
 
 ![image](images/config-tpi.png)
 
@@ -27,7 +34,7 @@ You must provide:
 
 ### Principle
 
-The TPI algorithm calculates the On vs Off percentage for the radiator at each cycle, using the target temperature, the current room temperature, and the current outdoor temperature. This algorithm is only applicable for Versatile Thermostats operating in `over_switch` and `over_valve` modes.
+The TPI algorithm calculates the On vs Off percentage for the radiator at each cycle, using the target temperature, the current room temperature, and the current outdoor temperature.
 
 The percentage is calculated using this formula:
 
@@ -42,7 +49,7 @@ When adjusting these coefficients, keep the following in mind:
 3. **If reaching the target temperature is too slow**, increase `coef_int` to provide more power to the heater,
 4. **If reaching the target temperature is too fast and oscillations occur** around the target, decrease `coef_int` to provide less power to the radiator.
 
-In `over_valve` mode, the `on_percent` value is converted to a percentage (0 to 100%) and directly controls the valve's opening level.
+The `on_percent` value is converted to a percentage (0 to 100%) and directly controls the valve's opening level.
 
 ### Minimum Activation or Deactivation Delay
 

@@ -11,9 +11,16 @@
 
 ## L'algorithme TPI
 
+TPI n'est applicable que pour les _VTherm_ qui effectuent eux-mêmes la régulation. Ce type de _VTherm_ est concerné :
+1. `over_switch`,
+2. `over_valve`,
+3. `over_climate` avec contrôle direct de la vanne.
+
+Les `over_climate` avec auto-régulation qui ne contrôlent pas directement la vanne n'intègrent pas d'algorithme TPI et ce chapitre ne s'applique donc pas à eux.
+
 ### Configurez les coefficients de l'algorithme TPI
 
-Si vous avez choisi un thermostat de type ```over_switch``` ou  ```over_valve``` ou `over_climate` avec l'auto-régulation `Controle direct de la vanne` et que vous sélectionnez l'option "TPI" vous menu, vous arriverez sur cette page :
+Si votre _Vtherm_ a un TPI et que vous sélectionnez l'option "TPI" vous menu, vous arriverez sur cette page :
 
 ![image](images/config-tpi.png)
 
@@ -28,7 +35,7 @@ Vous devez donner :
 
 ### Principe
 
-L'algorithme TPI consiste à calculer à chaque cycle un pourcentage d'état On vs Off pour le radiateur en utilisant la température cible, la température actuelle dans la pièce et la température extérieure actuelle. Cet algorithme n'est donc valable que pour les Versatile Thermostat qui régulent : `over_switch` et `over_valve`.
+L'algorithme TPI consiste à calculer à chaque cycle un pourcentage d'état On vs Off pour le radiateur en utilisant la température cible, la température actuelle dans la pièce et la température extérieure actuelle.
 
 Le pourcentage est calculé avec cette formule :
 
@@ -43,7 +50,7 @@ Pour régler ces coefficients, gardez à l'esprit que :
 3. **si l'atteinte de la température cible est trop lente**, vous pouvez augmenter le ``coef_int`` pour donner plus de puissance au réchauffeur,
 4. **si l'atteinte de la température cible est trop rapide et que des oscillations apparaissent** autour de la cible, vous pouvez diminuer le ``coef_int`` pour donner moins de puissance au radiateur.
 
-En type `over_valve` le `on_percent` est ramené à une valeur entre 0 et 100% et sert directement à commander l'ouverture de la vanne.
+Le `on_percent` est ramené à une valeur entre 0 et 1 (100%) et sert directement à commander l'ouverture de la vanne.
 
 ### Délai minimal d'activation ou de désactivation
 
