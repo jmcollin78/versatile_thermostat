@@ -1220,7 +1220,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         entity._set_now(now)
 
         await send_temperature_change_event(entity, 30, now)
-        await send_ext_temperature_change_event(entity, 30, now)
+        await send_ext_temperature_change_event(entity, 18, now)
         await hass.async_block_till_done()
 
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -1238,7 +1238,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         assert boiler_binary_sensor is not None
         assert boiler_binary_sensor.state == STATE_OFF
 
-    # 1. start a climate
+    # 1. start a climate with not 100% open degree
     open_degree_entity.set_native_value(100)
     mock_get_state_side_effect = SideEffects(
         {
@@ -1263,7 +1263,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         now = now + timedelta(minutes=1)
         entity._set_now(now)
 
-        await send_temperature_change_event(entity, 10, now)
+        # in Boost setpoint is 21°C
+        await send_temperature_change_event(entity, 19.5, now)
         # we have to simulate the climate also else the test don't work
         climate1.set_hvac_mode(VThermHvacMode_HEAT)
         climate1.set_hvac_action(HVACAction.HEATING)
@@ -1280,7 +1281,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
             "number.mock_opening_degree",
         ]
 
-        assert total_power_active_sensor.state == 1500
+        assert entity.on_percent == 0.75 # (21-19.5)*0.3 + (21-18)*0.1 = 0.75
+        assert total_power_active_sensor.state == 1125 # on_percent is 75% x 1500W = 1125W
         assert total_power_active_sensor.active_device_ids == [
             "number.mock_opening_degree",
         ]
