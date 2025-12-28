@@ -12,8 +12,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_one_switch_cycle(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -162,7 +160,7 @@ async def test_one_switch_cycle(
             None
         )
         # wait restart
-        await asyncio.sleep(0.1)
+        await wait_for_local_condition(lambda: mock_heater_on.call_count == 1)
 
         assert mock_heater_on.call_count == 1
         # normal ? assert entity.underlying_entity(0)._should_relaunch_control_heating is False
@@ -212,8 +210,6 @@ async def test_one_switch_cycle(
         # assert entity.underlying_entity(0)._should_relaunch_control_heating is False
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switchs(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -348,8 +344,6 @@ async def test_multiple_switchs(
         assert mock_heater_on.call_count == 1
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -450,8 +444,6 @@ async def test_multiple_climates(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -592,8 +584,6 @@ async def test_multiple_climates_underlying_changes(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes_not_aligned(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -698,8 +688,6 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switch_power_management(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):

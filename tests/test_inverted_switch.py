@@ -13,8 +13,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window auto management"""
 

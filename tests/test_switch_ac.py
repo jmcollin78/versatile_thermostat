@@ -20,8 +20,6 @@ from custom_components.versatile_thermostat.vtherm_preset import VThermPreset, V
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_switch_ac_full_start(
     hass: HomeAssistant, skip_hass_states_is_state
 ):  # pylint: disable=unused-argument

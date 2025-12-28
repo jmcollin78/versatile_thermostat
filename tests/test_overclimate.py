@@ -24,8 +24,6 @@ from .commons import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_56(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -102,8 +100,6 @@ async def test_bug_56(
         entity.update_custom_attributes()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_82(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -198,8 +194,6 @@ async def test_bug_82(
             # assert entity._saved_preset_mode == "none"
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_underlying_change_follow(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -344,8 +338,6 @@ async def test_underlying_change_follow(
         assert entity.preset_mode is VThermPreset.NONE
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_underlying_change_not_follow(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -436,8 +428,6 @@ async def test_underlying_change_not_follow(
         assert entity.preset_mode == VThermPreset.COMFORT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_615(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -507,7 +497,6 @@ async def test_bug_615(
         mock_underlying_set_hvac_mode.assert_not_called()
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_508(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -602,8 +591,6 @@ async def test_bug_508(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
     """Test when switching from Cool to Heat the new temperature in Heat mode should be used"""
 
@@ -719,8 +706,6 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
     await hass.async_block_till_done()
     assert vtherm.target_temperature == 25
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_ignore_temp_outside_minmax_range(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -868,8 +853,6 @@ async def test_ignore_temp_outside_minmax_range(
         assert entity.target_temperature == 17
         assert entity.hvac_action == HVACAction.IDLE
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_manual_hvac_off_should_take_the_lead_over_window(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1042,8 +1025,6 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -1226,8 +1207,6 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
         assert mock_send_event.call_count == 0  # nothing have change
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_underlying_from_comes_back_to_life(
     hass: HomeAssistant,
     skip_hass_states_is_state,

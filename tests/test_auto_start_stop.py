@@ -287,8 +287,6 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     assert ret is True
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_none_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -380,8 +378,6 @@ async def test_auto_start_stop_none_vtherm(
     )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -644,8 +640,6 @@ async def test_auto_start_stop_medium_heat_vtherm(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_ac_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -884,8 +878,6 @@ async def test_auto_start_stop_fast_ac_vtherm(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -1093,8 +1085,6 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -1232,8 +1222,6 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -1411,8 +1399,6 @@ async def test_auto_start_stop_fast_heat_window(
         assert vtherm.window_state == STATE_OFF
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window_mixed(
     hass: HomeAssistant, skip_hass_states_is_state
@@ -1610,8 +1596,6 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_disable_vtherm_off(
     hass: HomeAssistant, skip_hass_states_is_state

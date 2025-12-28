@@ -21,8 +21,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -120,8 +118,6 @@ async def test_over_climate_regulation(
             assert entity.regulated_target_temp == 18 - 2.5
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_ac_mode(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -234,8 +230,6 @@ async def test_over_climate_regulation_ac_mode(
             )  # +0.4 without round_to_nearest
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_limitations(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -351,8 +345,6 @@ async def test_over_climate_regulation_limitations(
         assert entity.regulated_target_temp == 17 + 1.5
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # Disable this test which is not working when run in // of others.
 # I couldn't find out why
 @pytest.mark.skip
@@ -514,8 +506,6 @@ async def test_over_climate_regulation_use_device_temp(
                 ]
             )
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_dtemp_null(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -623,8 +613,6 @@ async def test_over_climate_regulation_dtemp_null(
             assert entity.regulated_target_temp > old_regulated_temp
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the scheduled calculation of regulation for an over climate thermostat
     We should delay the calculation, if room temp changes too frequently

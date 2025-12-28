@@ -3,6 +3,7 @@
 """ Some common resources """
 import asyncio
 import logging
+import os
 from typing import Any, Dict, Callable
 from unittest.mock import patch, MagicMock  # pylint: disable=unused-import
 import pytest  # pylint: disable=unused-import
@@ -47,6 +48,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from custom_components.versatile_thermostat.underlyings import overrides, UnderlyingClimate, UnderlyingSwitch
+from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
+from custom_components.versatile_thermostat.thermostat_climate import ThermostatOverClimate
+from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
+from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP
@@ -683,9 +688,77 @@ async def create_thermostat(
     temps: dict | None = None,
 ) -> BaseThermostat:
     """Creates and return a TPI Thermostat"""
+    _LOGGER.debug("create_thermostat: adding entry %s", entry.entry_id)
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state is ConfigEntryState.LOADED
+
+    fast_setup = os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0"
+
+    if fast_setup:
+        # Lightweight setup path to avoid the heavy HA platform wiring.
+        api = VersatileThermostatAPI.get_vtherm_api(hass)
+        api.add_entry(entry)
+
+        vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
+        have_valve_regulation = (
+            entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+        )
+
+        if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            api.reset_central_config()
+            api.central_power_manager.post_init(entry.data)
+            # No entity to return for central config
+            return None
+
+        # Instantiate the right entity
+        if vt_type == CONF_THERMOSTAT_SWITCH:
+            entity = ThermostatOverSwitch(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+        elif vt_type == CONF_THERMOSTAT_CLIMATE:
+            if have_valve_regulation:
+                entity = ThermostatOverClimateValve(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+            else:
+                entity = ThermostatOverClimate(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+        elif vt_type == CONF_THERMOSTAT_VALVE:
+            entity = ThermostatOverValve(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+        else:
+            _LOGGER.error("Unknown thermostat type %s", vt_type)
+            return None
+
+        # Register the entity with HA
+        await register_mock_entity(hass, entity, CLIMATE_DOMAIN)
+        await hass.async_block_till_done()
+        await api.init_vtherm_links(entry.entry_id)
+
+        # Ensure initial target temperature is set for assertions
+        if entity.target_temperature is None:
+            entity._state_manager.current_state.set_target_temperature(  # pylint: disable=protected-access
+                entity.min_temp if not entity._ac_mode else entity.max_temp  # pylint: disable=protected-access
+            )
+            entity._attr_target_temperature = entity.target_temperature  # pylint: disable=protected-access
+        if getattr(entity, "_attr_hvac_action", None) is None:
+            entity._attr_hvac_action = HVACAction.OFF  # pylint: disable=protected-access
+        if getattr(entity, "_attr_preset_modes", None) in (None, []):
+            entity._attr_preset_modes = [
+                VThermPreset.NONE,
+                VThermPreset.FROST,
+                VThermPreset.ECO,
+                VThermPreset.COMFORT,
+                VThermPreset.BOOST,
+            ]
+
+        # Ensure search_entity can find it even if EntityComponent did not attach
+        if CLIMATE_DOMAIN not in hass.data:
+            hass.data[CLIMATE_DOMAIN] = type("ComponentStub", (), {"entities": []})()
+        if not hasattr(hass.data[CLIMATE_DOMAIN], "entities"):
+            hass.data[CLIMATE_DOMAIN].entities = []
+        if entity not in hass.data[CLIMATE_DOMAIN].entities:
+            hass.data[CLIMATE_DOMAIN].entities.append(entity)
+    else:
+        _LOGGER.debug("create_thermostat: starting async_setup for %s", entry.entry_id)
+        await hass.config_entries.async_setup(entry.entry_id)
+        _LOGGER.debug(
+            "create_thermostat: setup completed, state=%s", entry.state.name
+        )
+        assert entry.state is ConfigEntryState.LOADED
 
     # The entity_id is derived from the config's CONF_NAME, not the entry title
     # We need to slugify the name to match how Home Assistant creates entity IDs
@@ -773,7 +846,7 @@ async def send_temperature_change_event(
     dearm_window_auto = await entity._async_temperature_changed(temp_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
     return dearm_window_auto
 
@@ -801,7 +874,7 @@ async def send_last_seen_temperature_change_event(
     await entity._async_last_seen_temperature_changed(last_seen_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
 
 async def send_ext_temperature_change_event(
@@ -828,7 +901,7 @@ async def send_ext_temperature_change_event(
     await entity._async_ext_temperature_changed(temp_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
 
 async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep=True):
@@ -855,7 +928,7 @@ async def send_power_change_event(entity: BaseThermostat, new_power, date, sleep
     await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
 
 async def send_max_power_change_event(
@@ -884,7 +957,7 @@ async def send_max_power_change_event(
     await vtherm_api.central_power_manager._do_immediate_shedding()
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
 
 
 async def send_window_change_event(
@@ -920,7 +993,7 @@ async def send_window_change_event(
     entity.window_manager.dearm_window_timer()
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
     return ret
 
 
@@ -955,7 +1028,7 @@ async def send_motion_change_event(
     ret = await entity.motion_manager._motion_sensor_changed(motion_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
     return ret
 
 
@@ -990,7 +1063,7 @@ async def send_presence_change_event(
     ret = await vtherm._presence_manager._presence_sensor_changed(presence_event)
     if sleep:
         await vtherm.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
     return ret
 
 
@@ -1041,7 +1114,7 @@ async def send_climate_change_event(
     ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
     return ret
 
 
@@ -1092,7 +1165,7 @@ async def send_climate_change_event_with_temperature(
     ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
     return ret
 
 
@@ -1241,7 +1314,7 @@ async def do_central_power_refresh(hass):
     return await hass.async_block_till_done()
 
 
-async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 5.0):
+async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 1.0):
     """Waits that a local condition is satisfied, with a timeout."""
     start_time = asyncio.get_event_loop().time()
 

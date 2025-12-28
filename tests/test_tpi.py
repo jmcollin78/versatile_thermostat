@@ -9,8 +9,6 @@ from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm,
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_tpi_calculation(
     hass: HomeAssistant, skip_hass_states_is_state: None
 ):  # pylint: disable=unused-argument
@@ -165,8 +163,6 @@ async def test_tpi_calculation(
     assert tpi_algo.off_time_sec == 60
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_minimal_deactivation_delay(
     hass: HomeAssistant, skip_hass_states_is_state: None
 ):  # pylint: disable=unused-argument
@@ -253,8 +249,6 @@ async def test_minimal_deactivation_delay(
     assert tpi_algo.off_time_sec == 60
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_wrong_tpi_parameters(
     hass: HomeAssistant, skip_hass_states_is_state: None
 ):  # pylint: disable=unused-argument
@@ -465,8 +459,6 @@ async def test_prop_algorithm_thresholds(
     assert tpi_algo.on_percent == expected_on_percent
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
     """Test the set_tpi_parameters service to change TPI coefficients and verify on_percent changes"""
     # Initialize a VTherm over_switch with default TPI parameters
@@ -599,8 +591,6 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
     """Test that the set_tpi_parameters service cannot be called on a VTherm over_climate.
     This service is only available for VTherms using TPI algorithm (over_switch, over_valve)."""

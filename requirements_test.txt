@@ -8,6 +8,4 @@ pytest
 coverage
 pytest-asyncio
 pytest-homeassistant-custom-component
-# Remove this when incompatibility is resolved:
-aiodns==3.5.0
-pycares==4.11.0
+pytest-socket

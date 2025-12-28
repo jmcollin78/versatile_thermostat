@@ -66,8 +66,6 @@ async def setup_thermostat(
     return entity
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the lock feature and services (legacy, no code)"""
     entity = await setup_thermostat(hass, True, True, None)
@@ -95,8 +93,6 @@ async def test_lock_feature_services(hass: HomeAssistant, skip_hass_states_is_st
     assert entity.lock_manager.is_locked is False
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the lock feature services with a lock code"""
     LOCK_CODE = "1234"
@@ -146,8 +142,6 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
     assert entity.lock_manager.is_locked is False
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.parametrize(
     "lock_users, lock_automations, is_user_context, is_automation_context, should_be_locked",
     [
@@ -231,8 +225,6 @@ async def test_lock_feature_behavior(
 
 
 # Add a test to verify that the locked state is restored after a restart
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_lock_state_persistence(hass: HomeAssistant, skip_hass_states_is_state):
     """Test that the lock state is persisted across restarts"""
     entity = await setup_thermostat(hass, True, True, "1234")

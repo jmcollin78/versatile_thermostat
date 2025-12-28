@@ -15,8 +15,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_management_time_not_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -106,8 +104,6 @@ async def test_window_management_time_not_enough(
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_management_time_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -235,7 +231,7 @@ async def test_window_management_time_enough(
         await try_function(None)
 
         # Wait for initial delay of heater
-        await asyncio.sleep(0.3)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_OFF and mock_heater_on.call_count >= 1)
 
         assert entity.window_state == STATE_OFF
         assert mock_heater_on.call_count == 1
@@ -255,8 +251,6 @@ async def test_window_management_time_enough(
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the auto Window management with fast slope down"""
 
@@ -462,8 +456,6 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state):
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_fast_and_sensor(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -593,8 +585,6 @@ async def test_window_auto_fast_and_sensor(
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window auto management"""
 
@@ -758,8 +748,6 @@ async def test_window_auto_auto_stop(hass: HomeAssistant, skip_hass_states_is_st
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_no_on_percent(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -888,8 +876,6 @@ async def test_window_auto_no_on_percent(
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management when bypass enabled"""
 
@@ -1016,7 +1002,7 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
         await try_function(None)
 
         # Wait for initial delay of heater
-        await asyncio.sleep(0.3)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_OFF)
 
         assert entity.window_state == STATE_OFF
         assert mock_heater_on.call_count == 0
@@ -1029,8 +1015,6 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state):
 
 
 # PR - Adding Window bypass for window auto algorithm
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window auto management"""
 
@@ -1158,8 +1142,6 @@ async def test_window_auto_bypass(hass: HomeAssistant, skip_hass_states_is_state
 
 
 # PR - Adding Window bypass AFTER detection have been done should reactivate the heater
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management when window is open and then bypass is set to on"""
 
@@ -1291,8 +1273,6 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with the fan_only option"""
 
@@ -1437,8 +1417,6 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_fan_only_ko(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1560,7 +1538,7 @@ async def test_window_action_fan_only_ko(
         await try_function(None)
 
         # Wait for initial delay of heater
-        await asyncio.sleep(0.3)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_OFF)
 
         assert entity.window_state == STATE_OFF
         assert mock_send_event.call_count == 1
@@ -1585,8 +1563,6 @@ async def test_window_action_fan_only_ko(
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with the eco_temp option"""
 
@@ -1784,8 +1760,6 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with the frost_temp option"""
 
@@ -1983,8 +1957,6 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_66(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -2131,8 +2103,6 @@ async def test_bug_66(
         assert entity.preset_mode == VThermPreset.BOOST
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_frost_temp_preset_change(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -2242,8 +2212,6 @@ async def test_window_action_frost_temp_preset_change(
     vtherm.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_frost_temp_temp_change(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -2353,8 +2321,6 @@ async def test_window_action_frost_temp_temp_change(
     vtherm.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with window action = FROST when window is open and then bypass is set to on"""
 
@@ -2473,8 +2439,6 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with the turn_off option and change the preset during
     the window is open. This should restore the new preset and temperature when the window is closed"""
@@ -2578,8 +2542,6 @@ async def test_window_action_turn_off_preset_change(hass: HomeAssistant, skip_ha
     vtherm.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window management with the turn_off option and change the temperature during
     the window is open. This should restore the new temperature when the window is closed"""
@@ -2683,8 +2645,6 @@ async def test_window_action_turn_off_temperature_change(hass: HomeAssistant, sk
     vtherm.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the Window management and the central mode with a heat only."""
 
@@ -2809,7 +2769,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
         await try_function(None)
 
         # Wait for initial delay of heater
-        await asyncio.sleep(0.3)
+        await wait_for_local_condition(lambda: entity.window_state == STATE_OFF and mock_heater_on.call_count >= 1)
 
         assert entity.window_state == STATE_OFF
         assert mock_heater_on.call_count == 1
@@ -2829,8 +2789,6 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_window_no_motion_absence(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the Window management and a Vtherm in Activity with no motion and absence."""
 

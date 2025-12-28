@@ -11,8 +11,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
     """Test that the form is served with no input"""
     result = await hass.config_entries.flow.async_init(
@@ -23,8 +21,6 @@ async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
     assert result["step_id"] == SOURCE_USER
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test make the others tests failed
 @pytest.mark.skip
 async def test_user_config_flow_over_switch(
@@ -302,8 +298,6 @@ async def test_user_config_flow_over_switch(
     assert result["result"].title == "TheOverSwitchMockName"
     assert isinstance(result["result"], ConfigEntry)
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO this test fails when run in // but works alone
 # @pytest.mark.skip
 async def test_user_config_flow_over_climate(
@@ -533,8 +527,6 @@ async def test_user_config_flow_over_climate(
     assert isinstance(result["result"], ConfigEntry)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
 # @pytest.mark.skip
 async def test_user_config_flow_over_climate_auto_start_stop(
@@ -783,8 +775,6 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     assert isinstance(result["result"], ConfigEntry)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
 # @pytest.mark.skip
 async def test_user_config_flow_over_switch_bug_552_tpi(
@@ -1046,7 +1036,6 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 # TODO Disable this test which only works alone
 # @pytest.mark.skip
 async def test_user_config_flow_over_climate_valve(

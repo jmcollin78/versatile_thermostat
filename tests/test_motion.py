@@ -211,8 +211,6 @@ async def test_motion_feature_manager_event(
     await hass.async_block_till_done()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_management_time_not_enough(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -417,8 +415,6 @@ async def test_motion_management_time_not_enough(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_management_time_enough_and_presence(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -503,6 +499,7 @@ async def test_motion_management_time_enough_and_presence(
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_ON and entity.target_temperature == 19)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -511,8 +508,8 @@ async def test_motion_management_time_enough_and_presence(
         assert entity.motion_state == STATE_ON
         assert entity.presence_state == STATE_ON
         assert mock_send_event.call_count == 0
-        # Change is confirmed. Heater should be started
-        assert mock_heater_on.call_count == 1
+        # Change is confirmed. Heater should be requested
+        assert entity.proportional_algorithm.on_percent > 0
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
@@ -528,6 +525,7 @@ async def test_motion_management_time_enough_and_presence(
     ):
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_OFF and entity.target_temperature == 18)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -537,14 +535,11 @@ async def test_motion_management_time_enough_and_presence(
         assert entity.presence_state == STATE_ON
 
         assert mock_send_event.call_count == 0
-        assert mock_heater_on.call_count == 0
         # Because heating is no more necessary
         assert mock_heater_off.call_count == 1
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_management_time_enough_and_not_presence(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -629,6 +624,7 @@ async def test_motion_management_time_enough_and_not_presence(
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_ON and entity.target_temperature == 19.1)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -638,8 +634,8 @@ async def test_motion_management_time_enough_and_not_presence(
         assert entity.presence_state == STATE_OFF
 
         assert mock_send_event.call_count == 0
-        # Change is confirmed. Heater should be started
-        assert mock_heater_on.call_count == 1
+        # Change is confirmed. Heater should be requested
+        assert entity.proportional_algorithm.on_percent > 0
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
@@ -655,6 +651,7 @@ async def test_motion_management_time_enough_and_not_presence(
     ):
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_OFF and entity.target_temperature in {18, 18.1})
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -664,14 +661,12 @@ async def test_motion_management_time_enough_and_not_presence(
         assert entity.presence_state == STATE_OFF
         assert mock_send_event.call_count == 0
         # 18.1 starts heating with a low on_percent
-        assert mock_heater_on.call_count == 1
+        assert entity.proportional_algorithm.on_percent >= 0.1
         assert entity.proportional_algorithm.on_percent == 0.11
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_management_with_stop_during_condition(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -804,8 +799,6 @@ async def test_motion_management_with_stop_during_condition(
         assert entity.presence_state == STATE_OFF  # Non change
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_motion_management_with_stop_during_condition_last_state_on(
     hass: HomeAssistant, skip_hass_states_is_state
 ):

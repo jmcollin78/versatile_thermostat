@@ -24,8 +24,6 @@ from custom_components.versatile_thermostat.vtherm_preset import PRESET_AC_SUFFI
 from .commons import *
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_central_config(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -117,8 +115,6 @@ async def test_add_number_for_central_config(
         assert val == value
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_central_config_without_temp(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -212,8 +208,6 @@ async def test_add_number_for_central_config_without_temp(
         assert val == value
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_central_config_without_temp_ac_mode(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -308,8 +302,6 @@ async def test_add_number_for_central_config_without_temp_ac_mode(
         assert val == value
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_central_config_without_temp_restore(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -408,8 +400,6 @@ async def test_add_number_for_central_config_without_temp_restore(
         assert val == value
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_over_switch_use_central(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -492,7 +482,6 @@ async def test_add_number_for_over_switch_use_central(
         assert val is None
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_over_switch_use_central_presence(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -622,7 +611,6 @@ async def test_add_number_for_over_switch_use_central_presence(
         VThermPresetWithACAway.BOOST: temps["boost_ac_away"],
     }
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_number_for_over_switch_use_central_presets_and_restore(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -762,7 +750,6 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     }
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_change_central_config_temperature(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -872,8 +859,7 @@ async def test_change_central_config_temperature(
     await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
-    # Wait for async job to complete
-    await asyncio.sleep(0.1)
+    await wait_for_local_condition(lambda: vtherm.find_preset_temp(preset_name) == 20.3)
 
     assert vtherm.find_preset_temp(preset_name) == 20.3
     # No change for VTherm 2
@@ -882,7 +868,6 @@ async def test_change_central_config_temperature(
     )  # 15 is the min temp which is the default
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_change_vtherm_temperature(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -996,8 +981,7 @@ async def test_change_vtherm_temperature(
     await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
-    # Wait for async job to complete
-    await asyncio.sleep(0.1)
+    await wait_for_local_condition(lambda: vtherm.find_preset_temp(preset_name) == 20.3)
 
     assert vtherm.find_preset_temp(preset_name) == 20.3
     # No change for VTherm 2
@@ -1010,7 +994,6 @@ async def test_change_vtherm_temperature(
     await wait_for_local_condition(lambda: vtherm2.target_temperature == 15)
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_change_vtherm_temperature_with_presence(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_config
 ):
@@ -1123,8 +1106,7 @@ async def test_change_vtherm_temperature_with_presence(
     await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
-    # Wait for async job to complete
-    await asyncio.sleep(0.1)
+    await wait_for_local_condition(lambda: vtherm.find_preset_temp(preset_name) == 30)
 
     # 30 because I change the preset _away but someeone is present
     assert vtherm.find_preset_temp(preset_name) == 30
@@ -1148,8 +1130,7 @@ async def test_change_vtherm_temperature_with_presence(
     await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
-    # Wait for async job to complete
-    await asyncio.sleep(0.1)
+    await wait_for_local_condition(lambda: vtherm.find_preset_temp(preset_name) == 20.3)
 
     # the target should have been change
     assert vtherm.find_preset_temp(preset_name) == 20.3

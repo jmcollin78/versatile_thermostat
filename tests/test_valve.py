@@ -14,7 +14,6 @@ from custom_components.versatile_thermostat.thermostat_valve import ThermostatOv
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_valve_full_start(
     hass: HomeAssistant, skip_hass_states_is_state
 ):  # pylint: disable=unused-argument
@@ -323,7 +322,6 @@ async def test_over_valve_full_start(
             assert entity.valve_open_percent == 10
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_valve_regulation(
     hass: HomeAssistant, skip_hass_states_is_state
 ):  # pylint: disable=unused-argument
@@ -557,8 +555,6 @@ async def test_over_valve_regulation(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_533(
     hass: HomeAssistant, skip_hass_states_is_state
 ):  # pylint: disable=unused-argument

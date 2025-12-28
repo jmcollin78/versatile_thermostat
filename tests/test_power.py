@@ -261,8 +261,6 @@ async def test_power_feature_manager_set_overpowering(
     await hass.async_block_till_done()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_hvac_off(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
@@ -369,8 +367,6 @@ async def test_power_management_hvac_off(
         assert mock_heater_off.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_hvac_on(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
@@ -539,8 +535,6 @@ async def test_power_management_hvac_on(
         assert mock_heater_off.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_energy_over_switch(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
@@ -670,8 +664,6 @@ async def test_power_management_energy_over_switch(
     assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_energy_over_climate(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -773,8 +765,6 @@ async def test_power_management_energy_over_climate(
     assert entity.total_energy == 2 * 100 * 3.0 / 60
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Test the Power management and that we can turn off a Vtherm that
     is in overpowering state"""

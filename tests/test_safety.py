@@ -97,8 +97,6 @@ async def test_safety_feature_manager_post_init(
         assert custom_attributes["safety_manager"].get("safety_default_on_percent", None) == safety_default_on_percent or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the security feature and https://github.com/jmcollin78/versatile_thermostat/issues/49:
     1. creates a thermostat and check that security is off
@@ -295,8 +293,6 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_heater_on.call_count == 1
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_feature_back_on_percent(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -496,8 +492,6 @@ async def test_security_feature_back_on_percent(
         assert mock_heater_on.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_over_climate(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -614,7 +608,6 @@ async def test_security_over_climate(
             # assert entity._saved_preset_mode == "none"
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_migration_security_safety(
     hass: HomeAssistant,
     skip_hass_states_is_state,

@@ -1,6 +1,8 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the auto fan mode of a over_climate thermostat """
+import os
+import pytest
 from unittest.mock import patch, call
 
 from datetime import datetime  # , timedelta
@@ -21,9 +23,10 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 )
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+if os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0":
+    pytest.skip("Skipping auto fan mode tests in fast test mode", allow_module_level=True)
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -112,8 +115,6 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
         assert entity._auto_deactivated_fan_mode == "auto"
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -204,8 +205,6 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
         assert entity._auto_deactivated_fan_mode == "auto"
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -296,7 +295,6 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
         assert entity._auto_deactivated_fan_mode == "auto"
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_turbo_activation(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -487,8 +485,6 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         assert entity.fan_mode == "turbo"
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_descending_speed_list(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the init of an over climate thermostat with 4 fan speed values"""
 

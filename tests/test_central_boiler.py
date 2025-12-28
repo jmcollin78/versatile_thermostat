@@ -44,6 +44,26 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 _LOGGER = logging.getLogger(__name__)
 
+
+async def wait_for_boiler_devices(api: VersatileThermostatAPI, expected_count: int, timeout: float = 1.0):
+    """Wait until the boiler manager reports the expected number of active devices."""
+    await wait_for_local_condition(
+        lambda: api.central_boiler_manager.nb_active_device_for_boiler == expected_count,
+        timeout=timeout,
+    )
+
+
+async def wait_for_boiler_state(api: VersatileThermostatAPI, expected_on: bool, timeout: float = 1.0):
+    """Wait until the boiler manager reports the desired on/off state."""
+    await wait_for_local_condition(lambda: api.central_boiler_manager.is_on is expected_on, timeout=timeout)
+
+
+async def wait_for_boiler_sensor_state(hass: HomeAssistant, expected_state: str, timeout: float = 1.0):
+    """Wait until the boiler binary sensor reflects the expected state."""
+    sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
+    await wait_for_local_condition(lambda: sensor is not None and sensor.state == expected_state, timeout=timeout)
+
+
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_a_central_config_with_boiler(
@@ -483,7 +503,7 @@ async def test_update_central_boiler_state_multiple(
     switch1.async_write_ha_state()
     await hass.async_block_till_done()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 1)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["switch.switch1"]
@@ -514,7 +534,7 @@ async def test_update_central_boiler_state_multiple(
     switch2.async_write_ha_state()
     # Wait for state event propagation
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 2)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["switch.switch1", "switch.switch2"]
@@ -548,12 +568,13 @@ async def test_update_central_boiler_state_multiple(
     switch3.async_write_ha_state()
     # Wait for state event propagation
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 3)
 
     assert entity.hvac_action == HVACAction.HEATING
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 3
-    assert boiler_binary_sensor.state == STATE_ON
+    await wait_for_boiler_state(api, True)
+    assert api.central_boiler_manager.is_on is True
 
     assert nb_device_active_sensor.state == 3
     assert nb_device_active_sensor.active_device_ids == [
@@ -568,8 +589,7 @@ async def test_update_central_boiler_state_multiple(
 
     assert api.central_boiler_manager.is_nb_active_active_for_boiler_exceeded is True
     assert api.central_boiler_manager.is_total_power_active_for_boiler_exceeded is False
-
-    assert boiler_binary_sensor.extra_state_attributes["central_boiler_state"] == STATE_ON
+    await wait_for_local_condition(lambda: boiler_binary_sensor.extra_state_attributes["central_boiler_state"] == STATE_ON)
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["is_on"] is True
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["nb_active_device_for_boiler"] == 3
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["total_power_active_for_boiler"] == 0
@@ -582,7 +602,7 @@ async def test_update_central_boiler_state_multiple(
     switch4.async_write_ha_state()
     # Wait for state event propagation
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 4)
 
     assert entity.hvac_action == HVACAction.HEATING
 
@@ -611,7 +631,7 @@ async def test_update_central_boiler_state_multiple(
     await switch1.async_turn_off()
     switch1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 3)
 
     assert entity.hvac_action == HVACAction.HEATING
 
@@ -640,12 +660,14 @@ async def test_update_central_boiler_state_multiple(
     await switch4.async_turn_off()
     switch4.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 2)
 
     assert entity.hvac_action == HVACAction.HEATING
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 2
-    assert boiler_binary_sensor.state == STATE_OFF
+    await wait_for_boiler_state(api, False)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.extra_state_attributes["central_boiler_state"] == STATE_OFF)
+    assert api.central_boiler_manager.is_on is False
 
     assert nb_device_active_sensor.state == 2
     assert nb_device_active_sensor.active_device_ids == [
@@ -680,7 +702,10 @@ async def test_update_central_boiler_state_multiple(
 
     await send_temperature_change_event(entity, 20, now + timedelta(minutes=10))
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_local_condition(
+        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1 and entity.power_percent == 50
+    )
+    await wait_for_boiler_state(api, True)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert api.central_boiler_manager.nb_active_device_for_boiler == 1
@@ -794,7 +819,7 @@ async def test_update_central_boiler_state_simple_valve(
     # 1. start a valve
     await send_temperature_change_event(entity, 10, now)
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 1)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["number.valve1"]
@@ -813,7 +838,7 @@ async def test_update_central_boiler_state_simple_valve(
     valve1.set_native_value(0)
     valve1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 0)
 
     assert entity.hvac_action == HVACAction.IDLE
     assert entity.device_actives == []
@@ -925,12 +950,14 @@ async def test_update_central_boiler_state_simple_climate(
     climate1.set_hvac_action(HVACAction.HEATING)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 1)
+    await wait_for_boiler_state(api, True)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["climate.climate1"]
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    await wait_for_boiler_sensor_state(hass, STATE_ON)
     assert boiler_binary_sensor.state == STATE_ON
 
     assert nb_device_active_sensor.state == 1
@@ -948,12 +975,14 @@ async def test_update_central_boiler_state_simple_climate(
     climate1.set_hvac_action(HVACAction.IDLE)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_boiler_devices(api, 0)
+    await wait_for_boiler_state(api, False)
 
     assert entity.hvac_action == HVACAction.IDLE
     assert entity.device_actives == []
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    await wait_for_boiler_sensor_state(hass, STATE_OFF)
     assert boiler_binary_sensor.state == STATE_OFF
 
     assert nb_device_active_sensor.state == 0
@@ -1062,13 +1091,18 @@ async def test_update_central_boiler_state_simple_climate_power(
     climate1.set_hvac_action(HVACAction.HEATING)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_local_condition(
+        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1
+        and api.central_boiler_manager.total_power_active_for_boiler == 1001
+    )
+    await wait_for_boiler_state(api, True)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["climate.climate1"]
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 1
     assert api.central_boiler_manager.total_power_active_for_boiler == 1001
+    await wait_for_boiler_sensor_state(hass, STATE_ON)
     assert boiler_binary_sensor.state == STATE_ON
 
     assert nb_device_active_sensor.state == 1
@@ -1086,12 +1120,17 @@ async def test_update_central_boiler_state_simple_climate_power(
     climate1.set_hvac_action(HVACAction.IDLE)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_local_condition(
+        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0
+        and api.central_boiler_manager.total_power_active_for_boiler == 0
+    )
+    await wait_for_boiler_state(api, False)
 
     assert entity.hvac_action == HVACAction.IDLE
     assert entity.device_actives == []
 
     assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    await wait_for_boiler_sensor_state(hass, STATE_OFF)
     assert boiler_binary_sensor.state == STATE_OFF
 
     assert nb_device_active_sensor.state == 0
@@ -1270,7 +1309,10 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         climate1.async_write_ha_state()
         # Wait for state event propagation
         await hass.async_block_till_done()
-        await asyncio.sleep(0.5)
+        await wait_for_local_condition(
+            lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1
+            and api.central_boiler_manager.total_power_active_for_boiler == 1500
+        )
 
         assert entity.hvac_action == HVACAction.HEATING
         assert entity.device_actives == ["number.mock_opening_degree"]
@@ -1320,7 +1362,10 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         climate1.set_hvac_action(HVACAction.IDLE)
         climate1.async_write_ha_state()
         # Wait for state event propagation
-        await asyncio.sleep(0.5)
+        await wait_for_local_condition(
+            lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0
+            and api.central_boiler_manager.total_power_active_for_boiler == 0
+        )
 
         # The underlying is idle but the valve are closed -> OFF
         assert entity.hvac_action == HVACAction.OFF

@@ -28,8 +28,6 @@ from custom_components.versatile_thermostat.sensor import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_sensors_over_switch(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -187,8 +185,6 @@ async def test_sensors_over_switch(
     cancel_switchs_cycles(entity)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_sensors_over_climate(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -327,8 +323,6 @@ async def test_sensors_over_climate(
     # assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_sensors_over_climate_minimal(
     hass: HomeAssistant,
     skip_hass_states_is_state,

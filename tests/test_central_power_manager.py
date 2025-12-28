@@ -788,7 +788,7 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 1000)
 
         # the power of Vtherm should have been added
         assert central_power_manager.started_vtherm_total_power == 1000
@@ -846,7 +846,12 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
         assert entity2.hvac_mode == VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
-        await asyncio.sleep(0.1)
+        await wait_for_local_condition(
+            lambda: (
+                entity2.power_manager.overpowering_state is STATE_ON
+                or central_power_manager.started_vtherm_total_power == 1000
+            )
+        )
 
         # the power of Vtherm should have not been added (cause it has not started) and the entity2 should be shedding
         assert central_power_manager.started_vtherm_total_power == 1000
