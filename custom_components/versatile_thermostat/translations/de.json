@@ -114,7 +114,7 @@
           "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
           "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der internen Temperatur, zur Beschleunigung der Selbstregulierung",
+          "auto_regulation_use_device_temp": "Ausgleich der internen Temperatur, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Kehrt die Schaltersteuerung für Installationen mit Pilotdraht und Diode um.",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichungen",
           "on_command_text": "Für Basiswerte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
@@ -395,7 +395,7 @@
           "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
           "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom Basiswert benutzen, zur Beschleunigung der Selbstregulierung",
+          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom Basiswert benutzen, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Kehr die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
           "on_command_text": "Für Basiswerte des Typs `select` oder `climate`."

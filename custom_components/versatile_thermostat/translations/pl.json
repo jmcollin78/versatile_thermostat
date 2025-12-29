@@ -115,7 +115,7 @@
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczne odwrócenie kolejności poleceń",
           "auto_fan_mode": "Automatycznie uruchom wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia sterujące."
@@ -397,7 +397,7 @@
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczna odwrotna kolejność polecenia",
           "auto_fan_mode": "Automatycznie aktywuj wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia."

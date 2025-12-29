@@ -164,9 +164,8 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN, multiple=True),
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
-        vol.Optional(
-            CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE
-        ): selector.SelectSelector(
+        vol.Optional(CONF_SYNC_DEVICE_INTERNAL_TEMP, default=False): cv.boolean,
+        vol.Optional(CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_REGULATION_MODES,
                 translation_key="auto_regulation_mode",
@@ -175,9 +174,7 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=0.5): vol.Coerce(float),
         vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int,
-        vol.Optional(
-            CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH
-        ): selector.SelectSelector(
+        vol.Optional(CONF_AUTO_FAN_MODE, default=CONF_AUTO_FAN_HIGH): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_AUTO_FAN_MODES,
                 translation_key="auto_fan_mode",
@@ -225,9 +222,6 @@ STEP_VALVE_REGULATION = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_OPENING_DEGREE_LIST): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
-        vol.Optional(CONF_OFFSET_CALIBRATION_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
-        ),
         vol.Optional(CONF_CLOSING_DEGREE_LIST): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
@@ -239,6 +233,15 @@ STEP_VALVE_REGULATION = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): cv.positive_int,
         vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
         vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): cv.positive_int,
+    }
+)
+
+STEP_SYNC_DEVICE_INTERNAL_TEMP = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Optional(CONF_SYNC_WITH_CALIBRATION, default=True): cv.boolean,
+        vol.Required(CONF_SYNC_ENTITY_LIST): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
+        ),
     }
 )
 

@@ -116,7 +116,7 @@
           "auto_regulation_mode": "Automatické přizpůsobení cílové teploty",
           "auto_regulation_dtemp": "Práh v ° (nebo % pro ventil), pod kterým nebude změna teploty odeslána",
           "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
-          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace",
+          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace (ve většině případů není potřeba)",
           "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
           "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
           "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."
@@ -392,7 +392,7 @@
           "auto_regulation_mode": "Automatické přizpůsobení cílové teploty",
           "auto_regulation_dtemp": "Práh v ° (nebo % pro ventil), pod kterým nebude změna teploty odeslána",
           "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
-          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace",
+          "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace (ve většině případů není potřeba)",
           "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
           "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
           "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."

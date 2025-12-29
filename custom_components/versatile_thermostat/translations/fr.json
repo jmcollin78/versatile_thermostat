@@ -120,7 +120,7 @@
           "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
           "on_command_text": "Pour les sous-jacents de type `select` ou `climate` vous devez personnaliser les commandes."
@@ -467,7 +467,7 @@
           "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
           "on_command_text": "Pour les sous-jacents de type `select` ou `climate`"

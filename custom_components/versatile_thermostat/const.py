@@ -127,6 +127,9 @@ CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 CONF_MAX_CLOSING_DEGREE = "max_closing_degree"
 CONF_OPENING_THRESHOLD_DEGREE = "opening_threshold_degree"
+CONF_SYNC_DEVICE_INTERNAL_TEMP = "sync_device_internal_temp"
+CONF_SYNC_WITH_CALIBRATION = "sync_with_calibration"
+CONF_SYNC_ENTITY_LIST = "sync_entity_ids"
 
 CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
@@ -368,6 +371,8 @@ ALL_CONF = (
         CONF_AUTO_TPI_EMA_DECAY_RATE,
         CONF_AUTO_TPI_KEEP_EXT_LEARNING,
         CONF_AUTO_TPI_CONTINUOUS_LEARNING,
+        CONF_SYNC_DEVICE_INTERNAL_TEMP,
+        CONF_SYNC_WITH_CALIBRATION,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -621,6 +626,11 @@ class ConfigurationNotCompleteError(HomeAssistantError):
 
 class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
     """Error to indicate there is an error in the configuration of the TRV with valve regulation.
+    The number of specific entities is incorrect."""
+
+
+class SyncDeviceInternalTempNbEntitiesIncorrect(HomeAssistantError):
+    """Error to indicate there is an error in the configuration of the TRV with synchronize device internal temperature.
     The number of specific entities is incorrect."""
 
 

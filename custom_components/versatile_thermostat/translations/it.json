@@ -116,7 +116,7 @@
           "auto_regulation_mode": "Correzione automatica della temperatura desiderata",
           "auto_regulation_dtemp": "La soglia in ° (o % per la valvola) al di sotto della quale la variazione di temperatura non verrà inviata",
           "auto_regulation_periode_min": "Durata in minuti tra due aggiornamenti della regolazione",
-          "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione",
+          "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione (non necessario nella maggior parte dei casi)",
           "inverse_switch_command": "Per gli interruttori con filo pilota e diodo potrebbe essere necessario invertire il comando",
           "auto_fan_mode": "Attivare automaticamente la ventilazione quando è necessario un riscaldamento/raffreddamento intenso",
           "on_command_text": "Per i sottostanti di tipo “select” o “climate” è necessario personalizzare i comandi."
@@ -397,7 +397,7 @@
           "auto_regulation_mode": "Correzione automatica della temperatura desiderata",
           "auto_regulation_dtemp": "La soglia in ° (o % per la valvola) al di sotto della quale la variazione di temperatura non verrà inviata",
           "auto_regulation_periode_min": "Durata in minuti tra due aggiornamenti della regolazione",
-          "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione",
+          "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione (non necessario nella maggior parte dei casi)",
           "inverse_switch_command": "Per gli interruttori con filo pilota e diodo potrebbe essere necessario invertire il comando",
           "auto_fan_mode": "Attivare automaticamente la ventilazione quando è necessario un riscaldamento/raffreddamento intenso",
           "on_command_text": "Per i sottostanti di tipo “select” o “climate” è necessario personalizzare i comandi."
