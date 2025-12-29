@@ -420,6 +420,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             except ValueError:
                 return None
 
+        def determine_fan_mode_contains_speed(fan_modes: list[str]) -> bool:
+            """Determine if the fan_modes contains speed modes by searching for the keywords "low"/"1"."""
+            for val in ["low", "1"]:
+                if find_fan_mode(fan_modes, val):
+                    return True
+            return False
+
         def fix_order_speed_modes(speed_modes: list) -> list:
             """Determine if speed_modes list is ordered from high to low speed and reverse it"""
             index = -1
@@ -465,6 +472,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         #    |CONF_AUTO_FAN_HIGH    |medium_high |
         #    |CONF_AUTO_FAN_TURBO   |high        |
         target_index = -1
+
+        if determine_fan_mode_contains_speed(fan_modes) is False:
+            self._auto_activated_fan_mode = None
+            _LOGGER.warning(
+                "%s - #1419 - choose_auto_fan_mode cannot define value because fan_modes=%s doesn't contains speed values",
+                self,
+                self.fan_modes,
+            )
+
+            return
+
         if auto_fan_mode == CONF_AUTO_FAN_LOW:
             if num_speeds >= 4:
                 target_index = num_speeds - 4
