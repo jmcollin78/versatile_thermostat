@@ -347,8 +347,7 @@ class AutoTpiManager:
 
         # Return learned coefficients converted back to User Unit
         # Internal: C. Output: F/C. If F, output = internal / 1.8 (internal * 0.55 ?)
-        # Wait, K_F = K_C / 1.8. 
-        # Correct.
+        # K_F = K_C / 1.8.
         return {
             CONF_TPI_COEF_INT: k_int / self._unit_factor,
             CONF_TPI_COEF_EXT: k_ext / self._unit_factor
@@ -718,7 +717,7 @@ class AutoTpiManager:
 
         real_rise = delta_real
         # We use full cycle delta (passed as delta_real), not ON-time delta.
-        
+
         rise_threshold = 0.01
 
         if real_rise <= rise_threshold:  # Minimal rise required (0.01 to account for float precision/small sensors)
@@ -1087,7 +1086,7 @@ class AutoTpiManager:
                     self._name,
                     self.state.consecutive_failures,
                 )
-                
+
                 # Send persistent notification
                 # Retrieve the message from translations
                 # We use the "exceptions" category in strings.json
@@ -1100,16 +1099,16 @@ class AutoTpiManager:
                         "exceptions", 
                         {DOMAIN}
                     )
-                    
+
                     # Key format for exceptions: component.{domain}.exceptions.{key}.message
                     key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
                     message_template = translations.get(key)
-                    
+
                     if message_template:
                         message = message_template.format(name=self._name, reason=reason)
                     else:
                         # Fallback if translation not found
-                         message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+                        message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
 
                     await self._hass.services.async_call(
                         "persistent_notification",
@@ -1191,7 +1190,7 @@ class AutoTpiManager:
 
         best_idx = -1
         closest_diff = float("inf")
-        
+
         # We start searching from start_idx to keep O(N+M) complexity
         for i in range(start_idx, len(power_history)):
             state = power_history[i]
@@ -1204,17 +1203,17 @@ class AutoTpiManager:
                     if abs_diff < closest_diff:
                         closest_diff = abs_diff
                         best_idx = i
-                
-                # If we passed the target_dt by more than tolerance, 
+
+                # If we passed the target_dt by more than tolerance,
                 # and we already found something or the diff is increasing, we can stop.
                 if diff > tolerance_seconds:
                     break
-                    
+
             except (AttributeError, TypeError):
                 continue
 
         if best_idx == -1:
-            # If we didn't find anything but we are moving forward in time, 
+            # If we didn't find anything but we are moving forward in time,
             # we should still return the current start_idx for the next call
             # unless we find that slope_dt is already way ahead of power_history.
             return None, start_idx
@@ -1445,7 +1444,7 @@ class AutoTpiManager:
         min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
-        capacity_safety_margin: float = 0.2,
+        capacity_safety_margin: float | None = None,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope
@@ -1466,7 +1465,7 @@ class AutoTpiManager:
             min_power_threshold: Minimum power percentage (0.0-1.0) to consider a sample.
                                  Default is 1.0 (100%). Lower values (e.g., 0.90) include more samples.
             capacity_safety_margin: Margin percentage (0.0-1.0) to subtract from the calculated capacity.
-                                    Default is 0.20 (20%).
+                                    Default is None (0%).
         """
         # 1. Derive sensor entity IDs from thermostat entity ID
         # climate.thermostat_salon -> sensor.thermostat_salon_temperature_slope
@@ -1507,15 +1506,15 @@ class AutoTpiManager:
         entity_ids = [slope_sensor_id, power_sensor_id]
         slope_history = []
         power_history = []
-        
+
         # We use 2-day chunks for robustness
         chunk_delta = timedelta(days=2)
         current_start = start_time
-        
+
         while current_start < end_time:
             current_end = min(current_start + chunk_delta, end_time)
             _LOGGER.debug("%s - Fetching history chunk from %s to %s", self._name, current_start, current_end)
-            
+
             try:
                 chunk_states = await get_instance(self._hass).async_add_executor_job(
                     partial(
@@ -1527,14 +1526,14 @@ class AutoTpiManager:
                         significant_changes_only=False,
                     )
                 )
-                
+
                 if chunk_states:
                     slope_history.extend(chunk_states.get(slope_sensor_id, []))
                     power_history.extend(chunk_states.get(power_sensor_id, []))
-                    
+
             except Exception as e:
                 _LOGGER.warning("%s - Error fetching history chunk %s to %s: %s", self._name, current_start, current_end, e)
-            
+
             current_start = current_end
 
         _LOGGER.debug("%s - Fetched %d slope sensor states and %d power sensor states for capacity calibration.", self._name, len(slope_history), len(power_history))
@@ -1595,14 +1594,24 @@ class AutoTpiManager:
             max_capacity = result.get("capacity")
             # Calculate recommended capacity with margin
             if max_capacity is not None:
-                # Ensure margin is valid (0-1)
-                margin = max(0.0, min(1.0, capacity_safety_margin)) if capacity_safety_margin is not None else 0.2
+                # Ensure margin is valid (0-0.30)
+                # capacity_safety_margin is required (defaults to 20 in services.yaml)
+                # If None, we default to 0.20 (20%)
+
+                if capacity_safety_margin is None:
+                    margin = 0.20
+                else:
+                    # Handle percentage input (e.g. 20 -> 0.20)
+                    # We assume if value > 1.0 it is a percentage (0-30)
+                    val = capacity_safety_margin / 100.0 if capacity_safety_margin > 1.0 else capacity_safety_margin
+                    margin = max(0.0, min(0.30, val))
+
                 recommended_capacity = max_capacity * (1.0 - margin)
-                
+
                 # Rename capacity to max_capacity
                 if "capacity" in result:
                     del result["capacity"]
-                
+
                 result["max_capacity"] = max_capacity
                 result["recommended_capacity"] = recommended_capacity
                 result["margin_percent"] = margin * 100
@@ -1614,7 +1623,7 @@ class AutoTpiManager:
                 if save_to_config:
                     # Always heat mode
                     is_heat_mode = True
-                    
+
                     await self.async_update_capacity_config(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
 
                     _LOGGER.info(

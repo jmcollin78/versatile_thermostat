@@ -482,12 +482,12 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             start_date=start_date,
             end_date=end_date,
             min_power_threshold=min_power_threshold / 100.0,  # Convert from % to decimal
-            capacity_safety_margin=capacity_safety_margin / 100.0, # Convert from % to decimal
+            capacity_safety_margin=capacity_safety_margin / 100.0  # Convert from % to decimal
         )
 
         # If capacity was updated, we might need to recalculate (though capacity mainly affects TPI next cycle)
         if result and result.get("success") and result.get("recommended_capacity"):
-             self.recalculate()
+            self.recalculate()
 
         self.update_custom_attributes()
         self.async_write_ha_state()

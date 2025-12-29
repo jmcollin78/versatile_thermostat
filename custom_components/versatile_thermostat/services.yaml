@@ -307,26 +307,17 @@ auto_tpi_calibrate_capacity:
             example: "2023-12-01"
             selector:
                 date:
-
-        save_to_config:
-            name: Save to Config
-            description: Whether to apply the calculated capacity to the entity's configuration
-            required: true
-            advanced: false
-            example: true
-            selector:
-                boolean:
         capacity_safety_margin:
             name: "Safety Margin for Capacity"
-            description: "Margin percentage to subtract from max capacity before saving (default 20%). Valid range 0-90%."
-            required: false
-            default: 20
+            description: "Margin percentage to subtract from max capacity before saving. Valid range 0-30%. Default is 20%."
+            required: true
             advanced: false
             example: 20
+            default: 20
             selector:
                 number:
                     min: 0
-                    max: 90
+                    max: 30
                     step: 1
                     unit_of_measurement: "%"
                     mode: slider
@@ -344,3 +335,11 @@ auto_tpi_calibrate_capacity:
                     step: 1
                     unit_of_measurement: "%"
                     mode: slider
+        save_to_config:
+            name: Save to Config
+            description: Whether to apply the calculated capacity to the entity's configuration
+            required: true
+            advanced: false
+            example: true
+            selector:
+                boolean:
