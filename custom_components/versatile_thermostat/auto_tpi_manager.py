@@ -34,6 +34,12 @@ _LOGGER = logging.getLogger(__name__)
 STORAGE_VERSION = 8
 STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
+# Configurable constants for learning algorithm behavior
+MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
+OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
+OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
+OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
+
 
 @dataclass
 class AutoTpiState:
@@ -654,6 +660,30 @@ class AutoTpiManager:
             target_diff = self.state.last_temp_in - self.state.last_order
             outdoor_condition = current_temp_out > self.state.last_order
 
+        # CASE 0: Overshoot Correction (BEFORE standard learning)
+        # ----------------------------------------------------------
+        # When room is overheating despite heat still being applied,
+        # Kext is clearly too high. Correct it aggressively before
+        # attempting normal learning.
+        if is_heat:
+            overshoot = current_temp_in - target_temp
+            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD:
+                _LOGGER.info(
+                    "%s - Auto TPI: Overshoot detected (%.2f°C > %.2f°C threshold, power=%.1f%%)",
+                    self._name, overshoot, OVERSHOOT_THRESHOLD, self.state.last_power * 100
+                )
+                if self._correct_kext_overshoot(overshoot, is_cool=False):
+                    return  # Skip other learning for this cycle
+        elif is_cool:
+            overshoot = target_temp - current_temp_in
+            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD:
+                _LOGGER.info(
+                    "%s - Auto TPI: Overcooling detected (%.2f°C > %.2f°C threshold, power=%.1f%%)",
+                    self._name, overshoot, OVERSHOOT_THRESHOLD, self.state.last_power * 100
+                )
+                if self._correct_kext_overshoot(overshoot, is_cool=True):
+                    return  # Skip other learning for this cycle
+
         # CASE 1: Indoor Learning
         # ---------------------------
         # Strict conditions to avoid false positives:
@@ -839,6 +869,14 @@ class AutoTpiManager:
             alpha = self._get_adaptive_alpha(effective_count)
             avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
             _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
+
+        # Apply minimum Kint threshold to maintain temperature responsiveness
+        if avg_coeff < MIN_KINT:
+            _LOGGER.warning(
+                "%s - Auto TPI: Calculated Kint %.4f is below minimum %.4f, capping to minimum",
+                self._name, avg_coeff, MIN_KINT
+            )
+            avg_coeff = MIN_KINT
 
         # Update counters
         new_count = count + 1
@@ -1057,6 +1095,81 @@ class AutoTpiManager:
             # Reset boost counter
             if hasattr(self.state, "consecutive_boosts"):
                 self.state.consecutive_boosts = 0
+
+    def _correct_kext_overshoot(self, overshoot: float, is_cool: bool) -> bool:
+        """Aggressively reduce Kext when room is overshooting with significant power.
+
+        This method is called when the room temperature exceeds the setpoint
+        while heat is still being applied. This indicates Kext is too high.
+
+        Args:
+            overshoot: Temperature above setpoint (positive value) in °C
+            is_cool: True if in cooling mode
+
+        Returns:
+            True if correction was applied, False otherwise
+        """
+        current_kext = self.state.coeff_outdoor_cool if is_cool else self.state.coeff_outdoor_heat
+        current_kint = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
+
+        # Calculate delta_ext for the correction
+        delta_ext = self.state.last_order - self._current_temp_out
+        if abs(delta_ext) < 0.1:
+            _LOGGER.debug("%s - Auto TPI: Cannot correct Kext overshoot - delta_ext too small (%.2f)", self._name, delta_ext)
+            return False
+
+        # Calculate how much Kext should be reduced
+        # At setpoint, Power = Kext * delta_ext
+        # To allow temperature to fall, we need to reduce power by at least: overshoot * Kint
+        # So: needed_power_reduction = overshoot * Kint
+        # And: needed_kext_reduction = needed_power_reduction / delta_ext
+        needed_reduction = (overshoot * current_kint) / delta_ext
+
+        # Target Kext that would produce correct power at setpoint
+        target_kext = max(0.001, current_kext - needed_reduction)
+
+        # Get base alpha for calculation
+        count = self.state.coeff_outdoor_cool_autolearn if is_cool else self.state.coeff_outdoor_autolearn
+        effective_count = min(count, 50)
+
+        old_kext = current_kext
+
+        if self._calculation_method == "average":
+            # For average mode: reduce effective weight to give more influence to correction
+            # Instead of weight = effective_count, use weight / OVERSHOOT_CORRECTION_BOOST
+            boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
+            new_kext = ((old_kext * boosted_weight) + target_kext) / (boosted_weight + 1)
+            _LOGGER.debug(
+                "%s - Auto TPI: Overshoot correction (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
+                self._name, old_kext, target_kext, boosted_weight, effective_count, new_kext
+            )
+        else:  # EMA
+            # Use boosted alpha for faster correction
+            base_alpha = self._get_adaptive_alpha(effective_count)
+            boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
+            new_kext = (old_kext * (1.0 - boosted_alpha)) + (target_kext * boosted_alpha)
+            _LOGGER.debug(
+                "%s - Auto TPI: Overshoot correction (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
+                self._name, old_kext, target_kext, boosted_alpha, base_alpha, new_kext
+            )
+
+        # Ensure Kext doesn't go below minimum
+        new_kext = max(0.001, new_kext)
+
+        if is_cool:
+            self.state.coeff_outdoor_cool = new_kext
+        else:
+            self.state.coeff_outdoor_heat = new_kext
+
+        self.state.last_learning_status = "corrected_kext_overshoot"
+        self._learning_just_completed = True
+
+        _LOGGER.info(
+            "%s - Auto TPI: Overshoot correction applied! Kext: %.4f -> %.4f (overshoot=%.2f°C, power=%.1f%%)",
+            self._name, old_kext, new_kext, overshoot, self.state.last_power * 100
+        )
+
+        return True
 
     async def _detect_failures(self, current_temp_in: float):
         """Detect system failures."""
