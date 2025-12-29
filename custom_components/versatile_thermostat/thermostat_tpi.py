@@ -66,8 +66,6 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             self._tpi_threshold_low = 0.0
             self._tpi_threshold_high = 0.0
 
-
-
         self._minimal_activation_delay = self._entry_infos.get(CONF_MINIMAL_ACTIVATION_DELAY, 0)
         self._minimal_deactivation_delay = self._entry_infos.get(CONF_MINIMAL_DEACTIVATION_DELAY, 0)
 
@@ -120,10 +118,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         cooling_rate = self._entry_infos.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
         self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
         self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
-        self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
-        self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING)
-        self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING)
-
+        self._auto_tpi_continuous_learning = (self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING, False),)
+        self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING, True)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      self, self._tpi_coef_int, self._tpi_coef_ext)
@@ -176,10 +172,10 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                         _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", self)
                 else:
                     _LOGGER.info("%s - Auto TPI parameters found but not applied because auto_tpi_enable_update_config is False", self)
-            
+
             _LOGGER.info("%s - DEBUG: After load_data - int=%.3f, ext=%.3f",
                          self, self._tpi_coef_int, self._tpi_coef_ext)
-            
+
             if self._auto_tpi_manager.learning_active:
                 # Security: if the feature is disabled in config, we must stop learning
                 if not self._entry_infos.get(CONF_AUTO_TPI_MODE, False):
@@ -224,7 +220,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
             )
-        
+
         # Sync coefficients from AutoTpiManager before calculating
         if self._auto_tpi_manager and self._auto_tpi_manager.learning_active:
             new_params = await self._auto_tpi_manager.calculate()
@@ -258,7 +254,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
     async def _control_heating_specific(self, force=False):
         """Implement the specific control heating logic for TPI"""
-        
+
         # Feed the Auto TPI manager (Before starting the cycle to apply new coeffs if any)
         if self._auto_tpi_manager:
             await self._auto_tpi_manager.update(
@@ -278,27 +274,26 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 new_coef_int = new_params.get(CONF_TPI_COEF_INT)
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
                 if new_coef_int is not None and new_coef_ext is not None:
-                     if self._prop_algorithm:
-                         self._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
-                         # Also update local members for consistency
-                         self._tpi_coef_int = new_coef_int
-                         self._tpi_coef_ext = new_coef_ext
-                         _LOGGER.debug("%s - Synced PropAlgorithm with current Auto TPI coeffs: int=%.3f, ext=%.3f",
-                                       self, new_coef_int, new_coef_ext)
+                    if self._prop_algorithm:
+                        self._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
+                        # Also update local members for consistency
+                        self._tpi_coef_int = new_coef_int
+                        self._tpi_coef_ext = new_coef_ext
+                        _LOGGER.debug("%s - Synced PropAlgorithm with current Auto TPI coeffs: int=%.3f, ext=%.3f", self, new_coef_int, new_coef_ext)
 
                 finalized_values = await self._auto_tpi_manager.process_learning_completion(new_params)
-                
+
                 if finalized_values:
                     # Update local configured values to match persisted ones
                     self._tpi_coef_int = finalized_values.get(CONF_TPI_COEF_INT, self._tpi_coef_int)
                     self._tpi_coef_ext = finalized_values.get(CONF_TPI_COEF_EXT, self._tpi_coef_ext)
-                    
+
                     # Update PropAlgorithm with the newly persisted values to be sure
                     if self._prop_algorithm:
                         self._prop_algorithm.update_parameters(tpi_coef_int=self._tpi_coef_int, tpi_coef_ext=self._tpi_coef_ext)
                         _LOGGER.info("%s - Synced PropAlgorithm with final persisted Auto TPI coeffs: int=%.3f, ext=%.3f",
                                       self, self._tpi_coef_int, self._tpi_coef_ext)
-        
+
         # Stop here if we are off
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", self)
@@ -314,7 +309,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                     self._prop_algorithm.on_percent if self._prop_algorithm else None,
                     force,
                 )
-        
+
     @property
     def proportional_algorithm(self):
         """Get the ProportionalAlgorithm"""
@@ -344,7 +339,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
     async def update_states(self, force=False):
         """Update states and eventually start cycle loop"""
         changed = await super().update_states(force)
-        
+
         # If we have a change, we may need to start/stop the cycle loop
         if changed:
             if self._state_manager.current_state.is_hvac_mode_changed:
@@ -492,13 +487,12 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
         # If capacity was updated, we might need to recalculate (though capacity mainly affects TPI next cycle)
         if result and result.get("success") and result.get("capacity"):
-             self.recalculate()
+            self.recalculate()
 
         self.update_custom_attributes()
         self.async_write_ha_state()
 
         return result
-
 
     async def async_set_auto_tpi_mode(self, auto_tpi_mode: bool, reinitialise: bool = True):
         """Set the auto TPI mode"""
@@ -533,7 +527,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             # to avoid overriding the calculated values
             if self._entry_infos:
                 self._entry_infos[CONF_USE_TPI_CENTRAL_CONFIG] = False
-            
+
             # Persist the change to the config entry
             entry = self.hass.config_entries.async_get_entry(self._unique_id)
             if entry and entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, True):
@@ -550,7 +544,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         else:
             await self._auto_tpi_manager.stop_learning()
             self._auto_tpi_manager.stop_cycle_loop()
-            
+
             # Apply configured coefficients to PropAlgorithm to ensure
             # learned values are not kept in the regulation loop
             if self._prop_algorithm:
@@ -576,7 +570,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
     def update_custom_attributes(self):
         """Update custom attributes"""
         super().update_custom_attributes()
-        
+
         self._attr_extra_state_attributes["specific_states"].update({
             "auto_tpi_state": (
                 "on"
