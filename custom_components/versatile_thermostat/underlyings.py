@@ -1168,7 +1168,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self,
         hass: HomeAssistant,
         thermostat: Any,
-        offset_calibration_entity_id: str,
+        sync_entity_id: str,
+        sync_with_calibration: bool,
         opening_degree_entity_id: str,
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
@@ -1183,15 +1184,16 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_degree_entity_id,
             entity_type=UnderlyingEntityType.VALVE_REGULATION,
         )
-        self._offset_calibration_entity_id: str = offset_calibration_entity_id
+        self._sync_entity_id: str = sync_entity_id
+        self._sync_with_calibration: bool = sync_with_calibration
         self._opening_degree_entity_id: str = opening_degree_entity_id
         self._closing_degree_entity_id: str = closing_degree_entity_id
         self._climate_underlying = climate_underlying
         self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = None
-        self._min_offset_calibration: float = None
-        self._max_offset_calibration: float = None
-        self._step_calibration: float = 0.1
+        self._min_sync_entity: float = None
+        self._max_sync_entity: float = None
+        self._step_sync_entity: float = 0.1
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
@@ -1206,17 +1208,13 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._opening_degree_entity_id
             ).attributes.get("max")
 
-            if self.has_offset_calibration_entity:
-                self._min_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("min")
-                self._max_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("max")
-                self._step_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("step") or 0.1  # default step is 0.1
+            if self.has_sync_entity:
+                self._min_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("min")
+                self._max_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("max")
+                self._step_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("step") or 0.1  # default step is 0.1
 
             self._is_min_max_initialized = self._max_opening_degree is not None and (
-                not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
+                not self.has_sync_entity or (self._min_sync_entity is not None and self._max_sync_entity is not None)
             )
 
             if self._min_opening_degree >= self._max_opening_degree:
@@ -1254,39 +1252,57 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self.has_closing_degree_entity:
             await self._send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
+        # Since 8.5.0 the syncrhonization is done upon reception of a new temperature from sensor
         # send offset_calibration to the difference between target temp and local temp
-        offset = None
-        if self.has_offset_calibration_entity:
-            if (
-                (local_temp := self._climate_underlying.underlying_current_temperature)
-                is not None
-                and (room_temp := self._thermostat.current_temperature) is not None
-                and (
-                    current_offset := get_safe_float(
-                        self._hass, self._offset_calibration_entity_id
-                    )
-                )
-                is not None
-            ):
-                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_calibration)
-                offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
-
-                await self._send_value_to_number(
-                    self._offset_calibration_entity_id, offset
-                )
+        # offset = None
+        # if self.has_offset_calibration_entity:
+        #     if (
+        #         (local_temp := self._climate_underlying.underlying_current_temperature)
+        #         is not None
+        #         and (room_temp := self._thermostat.current_temperature) is not None
+        #         and (
+        #             current_offset := get_safe_float(
+        #                 self._hass, self._offset_calibration_entity_id
+        #             )
+        #         )
+        #         is not None
+        #     ):
+        #         val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entoty)
+        #         offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
+        #
+        #         await self._send_value_to_number(
+        #             self._offset_calibration_entity_id, offset
+        #         )
 
         _LOGGER.debug(
-            "%s - valve regulation - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
+            "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
             self,
-            offset,
             opening_degree,
             closing_degree,
         )
 
+    async def synchronize_device_temperature(self):
+        """Synchronize the device temperature by sending the offset calibration"""
+        if not self.initialize_min_max():
+            return
+
+        # send offset_calibration to the difference between target temp and local temp
+        offset = None
+        if self.has_sync_entity:
+            if (
+                (local_temp := self._climate_underlying.underlying_current_temperature) is not None
+                and (room_temp := self._thermostat.current_temperature) is not None
+                and (current_offset := get_safe_float(self._hass, self._sync_entity_id)) is not None
+            ):
+                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entity)
+                offset = min(self._max_sync_entity, max(self._min_sync_entity, val))
+
+                await self._send_value_to_number(self._sync_entity_id, offset)
+
     @property
-    def offset_calibration_entity_id(self) -> str:
-        """The offset_calibration_entity_id"""
-        return self._offset_calibration_entity_id
+    def sync_entity_id(self) -> str:
+        """The sync_entity_id"""
+        return self._sync_entity_id
 
     @property
     def opening_degree_entity_id(self) -> str:
@@ -1309,9 +1325,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
         return self._closing_degree_entity_id is not None
 
     @property
-    def has_offset_calibration_entity(self) -> bool:
-        """Return True if the underlying have a offset_calibration entity"""
-        return self._offset_calibration_entity_id is not None
+    def has_sync_entity(self) -> bool:
+        """Return True if the underlying have a sync entity"""
+        return self._sync_entity_id is not None
+
+    @property
+    def is_sync_with_calibration(self) -> bool:
+        """Return True if the underlying is synchronized with calibration (or with temperature copying)"""
+        return self._sync_with_calibration
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:
@@ -1361,7 +1382,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         for entity in [
             self.opening_degree_entity_id,
             self.closing_degree_entity_id,
-            self.offset_calibration_entity_id,
+            self.sync_entity_id,
         ]:
             if entity:
                 ret.append(entity)

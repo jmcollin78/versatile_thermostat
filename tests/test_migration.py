@@ -11,9 +11,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
-from custom_components.versatile_thermostat.feature_safety_manager import (
-    FeatureSafetyManager,
-)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -126,3 +123,111 @@ async def test_migration_of_central_config(
     # It should have been migrated and initialized
     assert api.central_boiler_manager.nb_active_device_for_boiler == 0
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 0  # the default value is 0
+
+
+async def test_migration_offset_calibration_configured(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+):
+    """Tests the migration of security parameters to safety in English"""
+    config_entry = MockConfigEntry(
+        # old version is 2.1
+        version=2,
+        minor_version=1,
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data={
+            CONF_NAME: "migrationName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_UNDERLYING_LIST: ["climate.under1", "climate.under2"],
+            "safety_delay_min": 61,
+            "safety_min_on_percent": 0.5,
+            "safety_default_on_percent": 0.2,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_OFFSET_CALIBRATION_LIST: ["number.calib1", "number.calib2"],
+            CONF_OPENING_DEGREE_LIST: ["number.opening1", "number.opening2"],
+            CONF_CLOSING_DEGREE_LIST: ["number.closing1", "number.closing2"],
+        },
+    )
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    assert config_entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(hass, "climate.migrationname", "climate")
+
+    assert entity is not None
+
+    new_config_entry = hass.config_entries.async_get_entry(config_entry.entry_id)
+    assert new_config_entry is not None
+    assert new_config_entry.data.get(CONF_SYNC_DEVICE_INTERNAL_TEMP) is True
+    assert new_config_entry.data.get(CONF_SYNC_WITH_CALIBRATION) is True
+    assert new_config_entry.data.get(CONF_SYNC_ENTITY_LIST) == ["number.calib1", "number.calib2"]
+
+    assert entity.activable_underlying_entities[0].has_sync_entity is True
+    assert entity.activable_underlying_entities[0].is_sync_with_calibration is True
+    assert entity.activable_underlying_entities[0].sync_entity_id == "number.calib1"
+    assert entity.activable_underlying_entities[1].has_sync_entity is True
+    assert entity.activable_underlying_entities[1].is_sync_with_calibration is True
+    assert entity.activable_underlying_entities[1].sync_entity_id == "number.calib2"
+
+    entity.remove_thermostat()
+
+
+async def test_migration_offset_calibration_not_configured(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+):
+    """Tests the migration of security parameters to safety in English"""
+    config_entry = MockConfigEntry(
+        # old version is 2.1
+        version=2,
+        minor_version=1,
+        domain=DOMAIN,
+        title="TheCentralConfigMockName",
+        unique_id="centralConfigUniqueId",
+        data={
+            CONF_NAME: "migrationName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_UNDERLYING_LIST: ["climate.under1", "climate.under2"],
+            "safety_delay_min": 61,
+            "safety_min_on_percent": 0.5,
+            "safety_default_on_percent": 0.2,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_OFFSET_CALIBRATION_LIST: [],
+            CONF_OPENING_DEGREE_LIST: ["number.opening1", "number.opening2"],
+            CONF_CLOSING_DEGREE_LIST: [],
+        },
+    )
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    assert config_entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(hass, "climate.migrationname", "climate")
+
+    assert entity is not None
+
+    new_config_entry = hass.config_entries.async_get_entry(config_entry.entry_id)
+    assert new_config_entry is not None
+    assert new_config_entry.data.get(CONF_SYNC_DEVICE_INTERNAL_TEMP) is False
+    assert new_config_entry.data.get(CONF_SYNC_WITH_CALIBRATION) is False
+    assert new_config_entry.data.get(CONF_SYNC_ENTITY_LIST) is None
+
+    assert entity.activable_underlying_entities[0].has_sync_entity is False
+    assert entity.activable_underlying_entities[0].is_sync_with_calibration is False
+    assert entity.activable_underlying_entities[0].sync_entity_id is None
+    assert entity.activable_underlying_entities[1].has_sync_entity is False
+    assert entity.activable_underlying_entities[1].is_sync_with_calibration is False
+    assert entity.activable_underlying_entities[1].sync_entity_id is None
+
+    entity.remove_thermostat()

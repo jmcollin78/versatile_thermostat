@@ -72,9 +72,10 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             else 0
         )
 
-        offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
+        sync_list = config_entry.get(CONF_SYNC_ENTITY_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
+        sync_with_calibration = config_entry.get(CONF_SYNC_WITH_CALIBRATION, False)
         self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
         self._opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
         regulation_threshold = config_entry.get(CONF_AUTO_REGULATION_DTEMP, 0)
@@ -87,7 +88,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             ]
 
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
-            offset = offset_list[idx] if idx < len(offset_list) else None
+            sync_entity = sync_list[idx] if idx < len(sync_list) else None
             # number of opening should equal number of underlying
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
@@ -96,7 +97,8 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             under = UnderlyingValveRegulation(
                 hass=self._hass,
                 thermostat=self,
-                offset_calibration_entity_id=offset,
+                sync_entity_id=sync_entity,
+                sync_with_calibration=sync_with_calibration,
                 opening_degree_entity_id=opening,
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
@@ -127,11 +129,14 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "hvac_action": under.hvac_action,
                         "percent_open": under.percent_open,
                         "last_sent_opening_value": under.last_sent_opening_value,
-                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
-                        "min_offset_calibration": under._min_offset_calibration,  # pylint: disable=protected-access
-                        "max_offset_calibration": under._max_offset_calibration,  # pylint: disable=protected-access
-                        "step_calibration": under._step_calibration,  # pylint: disable=protected-access
+                        "has_sync_entity": under.has_sync_entity,
+                        "sync_entity_id": under.sync_entity_id,
+                        "is_sync_with_calibration": under.is_sync_with_calibration,
                         "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
+                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
+                        "min_sync_entity": under._min_sync_entity,  # pylint: disable=protected-access
+                        "max_sync_entity": under._max_sync_entity,  # pylint: disable=protected-access
+                        "step_calibration": under._step_sync_entity,  # pylint: disable=protected-access
                     }
                 }
             )
