@@ -147,6 +147,7 @@ Auto TPI operates cyclically:
     *   The temperature difference is significant.
     *   The system is stable (no consecutive failures).
     *   The cycle was not interrupted by power shedding or by a window being opened.
+    *   **Central Boiler**: If the thermostat depends on a central boiler, learning is suspended if the boiler is not activated (even if the thermostat is calling for heat).
 3.  **Calculation (Learning)**:
     *   **Case 1: Indoor Coefficient**. If the temperature moved in the right direction significantly (> 0.05°C), it calculates the ratio between the real evolution **(over the full cycle, including inertia)** and the expected theoretical evolution (corrected by the calibrated capacity). It adjusts `CoeffInt` to reduce the gap.
     *   **Case 2: Outdoor Coefficient**. If indoor learning was not possible (conditions not met or failure) and outdoor learning is relevant (significant temperature gap > 0.1°C), it adjusts `CoeffExt` **progressively** to compensate for thermal losses. The formula allows this coefficient to increase or decrease as needed to reach equilibrium.

@@ -13,6 +13,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.exceptions import ServiceValidationError
 
 from .base_thermostat import BaseThermostat, ConfigData
+from .vtherm_api import VersatileThermostatAPI
 from .prop_algorithm import PropAlgorithm
 from .auto_tpi_manager import AutoTpiManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -213,12 +214,20 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         # Feed current temperatures to AutoTpiManager BEFORE getting params
         # This ensures the snapshot in on_cycle_started() uses current values
         if self._auto_tpi_manager:
+            # Check central boiler state
+            is_central_boiler_off = False
+            if self.is_used_by_central_boiler:
+                 api = VersatileThermostatAPI.get_vtherm_api()
+                 if api and api.central_boiler_manager:
+                     is_central_boiler_off = not api.central_boiler_manager.is_on
+
             await self._auto_tpi_manager.update(
                 room_temp=self._cur_temp,
                 ext_temp=self._cur_ext_temp,
                 target_temp=self.target_temperature,
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
+                is_central_boiler_off=is_central_boiler_off,
             )
 
         # Sync coefficients from AutoTpiManager before calculating
@@ -257,12 +266,20 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
         # Feed the Auto TPI manager (Before starting the cycle to apply new coeffs if any)
         if self._auto_tpi_manager:
+            # Check central boiler state
+            is_central_boiler_off = False
+            if self.is_used_by_central_boiler:
+                 api = VersatileThermostatAPI.get_vtherm_api()
+                 if api and api.central_boiler_manager:
+                     is_central_boiler_off = not api.central_boiler_manager.is_on
+
             await self._auto_tpi_manager.update(
                 room_temp=self._cur_temp,
                 ext_temp=self._cur_ext_temp,
                 target_temp=self.target_temperature,
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
+                is_central_boiler_off=is_central_boiler_off,
             )
 
             # Check if we have new learned parameters

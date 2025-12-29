@@ -83,6 +83,7 @@ Pour qu'un cycle soit valide :
 4.  **Durée Significative** : Le temps d'activation (`on_time`) doit être supérieur au temps de montée en température effectif (`effective_heating_time`).
 5.  **Exclusion du Premier Cycle** : Le cycle suivant un démarrage (état précédent 'stop') est ignoré car le système n'est pas stabilisé (démarrage à froid).
 6.  **Différentiel Extérieur Significatif** : `|Consigne - Temp_Ext| >= 1.0`. Évite d'apprendre sur de trop faibles écarts de température.
+7.  **Chaudière Centrale Active** : Si le VTherm est utilisé avec une chaudière centrale (`is_used_by_central_boiler`), le cycle est ignoré si la chaudière est éteinte (`central_boiler_manager.is_on` est False). Cela évite d'interpréter l'absence de chauffe comme une fuite thermique massive.
 
 ### B. Capacité Maximale et Inertie
 **(SUPPRIMÉ)** Le mécanisme d'apprentissage de la capacité en temps réel (`_detect_max_capacity`) a été remplacé par un service de calibration basé sur la régression linéaire d'historique. Voir Section **"Nouveau Service de Calibration"** ci-dessous.
