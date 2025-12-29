@@ -14,9 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # To filter bad values
 MIN_DELTA_T_SEC = 0  # two temp mesure should be > 0 sec
-MAX_SLOPE_VALUE = (
-    120  # slope cannot be > 2°/min or < -2°/min -> else this is an aberrant point
-)
+MAX_SLOPE_VALUE = 120  # slope cannot be > 2°/min or < -2°/min -> else this is an aberrant point
 
 MAX_DURATION_MIN = 30  # a fake data point is added in the cycle if last measurement was older than 30 min
 
@@ -49,9 +47,7 @@ class WindowOpenDetectionAlgorithm:
             # do nothing
             return self._last_slope
 
-    def add_temp_measurement(
-        self, temperature: float, datetime_measure: datetime, store_date: bool = True
-    ) -> float:
+    def add_temp_measurement(self, temperature: float, datetime_measure: datetime, store_date: bool = True) -> float:
         """Add a new temperature measurement
         returns the last slope
         """

@@ -61,9 +61,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
 
     # 1. creates a thermostat and check that security is off
     now: datetime = datetime.now(tz=tz)
-    entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     entity._set_now(now)
@@ -75,9 +73,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
-    assert (
-        entity._last_ext_temperature_measure.astimezone(tz) - now
-    ).total_seconds() < 1
+    assert (entity._last_ext_temperature_measure.astimezone(tz) - now).total_seconds() < 1
 
     # set a preset
     assert entity.preset_mode is VThermPreset.NONE
@@ -92,9 +88,7 @@ async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state)
     last_change_time_from_vtherm = entity._last_change_time_from_vtherm
 
     # 2. activate security feature when date is expired
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = now - timedelta(minutes=6)

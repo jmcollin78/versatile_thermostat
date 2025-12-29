@@ -57,19 +57,14 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
         use_auto_start_stop = entry_infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False)
         if use_auto_start_stop:
-            self._auto_start_stop_level = (
-                entry_infos.get(CONF_AUTO_START_STOP_LEVEL, None)
-                or AUTO_START_STOP_LEVEL_NONE
-            )
+            self._auto_start_stop_level = entry_infos.get(CONF_AUTO_START_STOP_LEVEL, None) or AUTO_START_STOP_LEVEL_NONE
             self._is_configured = True
         else:
             self._auto_start_stop_level = AUTO_START_STOP_LEVEL_NONE
             self._is_configured = False
 
         # Instanciate the auto start stop algo
-        self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(
-            self._auto_start_stop_level, self.name
-        )
+        self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(self._auto_start_stop_level, self.name)
 
         # Fix an eventual incoherent state
         if self._vtherm.is_on and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:

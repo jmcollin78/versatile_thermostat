@@ -24,9 +24,7 @@ from custom_components.versatile_thermostat.vtherm_preset import PRESET_AC_SUFFI
 from .commons import *
 
 
-async def test_add_number_for_central_config(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_add_number_for_central_config(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the construction of a central configuration and the
     creation and registration of the NumberEntity which holds
     the temperature initialized from config_entry"""
@@ -100,24 +98,14 @@ async def test_add_number_for_central_config(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=central_config_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=central_config_entry.entry_id, preset_name=preset_name)
         assert val == value
 
 
-async def test_add_number_for_central_config_without_temp(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_add_number_for_central_config_without_temp(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the construction of a central configuration and the
     creation and registration of the NumberEntity which holds
     the temperature not intialized from confif_entry.
@@ -193,24 +181,14 @@ async def test_add_number_for_central_config_without_temp(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=central_config_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=central_config_entry.entry_id, preset_name=preset_name)
         assert val == value
 
 
-async def test_add_number_for_central_config_without_temp_ac_mode(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_add_number_for_central_config_without_temp_ac_mode(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the construction of a central configuration and the
     creation and registration of the NumberEntity which holds
     the temperature not intialized from confif_entry.
@@ -287,24 +265,14 @@ async def test_add_number_for_central_config_without_temp_ac_mode(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=central_config_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=central_config_entry.entry_id, preset_name=preset_name)
         assert val == value
 
 
-async def test_add_number_for_central_config_without_temp_restore(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_add_number_for_central_config_without_temp_restore(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the construction of a central configuration and the
     creation and registration of the NumberEntity which holds
     the temperature not intialized from confif_entry"""
@@ -385,24 +353,14 @@ async def test_add_number_for_central_config_without_temp_restore(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=central_config_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=central_config_entry.entry_id, preset_name=preset_name)
         assert val == value
 
 
-async def test_add_number_for_over_switch_use_central(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_add_number_for_over_switch_use_central(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the construction of a over switch vtherm with
     use central config for PRESET and PRESENCE.
     It also have old temp config value which should be not used.
@@ -476,15 +434,11 @@ async def test_add_number_for_over_switch_use_central(
         assert temp_entity is None
 
         # Find temp Number into vtherm_api
-        val = vtherm_api.get_temperature_number_value(
-            config_id=vtherm_entry.entry_id, preset_name=preset_name
-        )
+        val = vtherm_api.get_temperature_number_value(config_id=vtherm_entry.entry_id, preset_name=preset_name)
         assert val is None
 
 
-async def test_add_number_for_over_switch_use_central_presence(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_add_number_for_over_switch_use_central_presence(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the construction of a over switch vtherm with
     use central config for PRESET and PRESENCE.
     It also have old temp config value which should be not used.
@@ -554,13 +508,7 @@ async def test_add_number_for_over_switch_use_central_presence(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
         val = vtherm_api.get_temperature_number_value(config_id=vtherm_entry.entry_id, preset_name=preset_name + PRESET_TEMP_SUFFIX)
@@ -611,9 +559,8 @@ async def test_add_number_for_over_switch_use_central_presence(
         VThermPresetWithACAway.BOOST: temps["boost_ac_away"],
     }
 
-async def test_add_number_for_over_switch_use_central_presets_and_restore(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+
+async def test_add_number_for_over_switch_use_central_presets_and_restore(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the construction of a over switch vtherm with
     use central config for PRESET and PRESENCE.
     It also have old temp config value which should be not used.
@@ -692,13 +639,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
 
         # This test is dependent to translation en.json. If translations change
         # this may fails
-        assert (
-            temp_entity.name.lower()
-            == preset_name.replace(PRESET_TEMP_SUFFIX, "")
-            .replace(PRESET_AC_SUFFIX, " ac")
-            .replace(PRESET_AWAY_SUFFIX, " away")
-            .lower()
-        )
+        assert temp_entity.name.lower() == preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AC_SUFFIX, " ac").replace(PRESET_AWAY_SUFFIX, " away").lower()
 
         # Find temp Number into vtherm_api
         val = vtherm_api.get_temperature_number_value(
@@ -750,9 +691,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
     }
 
 
-async def test_change_central_config_temperature(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_central_config_temperature(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the construction of a over valve vtherm with
     use central config for PRESET and PRESENCE.
     When changing the central configuration temperature, the VTherm
@@ -788,9 +727,7 @@ async def test_change_central_config_temperature(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm: BaseThermostat = await create_thermostat(
-        hass, vtherm_entry, "climate.theovervalvevtherm"
-    )
+    vtherm: BaseThermostat = await create_thermostat(hass, vtherm_entry, "climate.theovervalvevtherm")
 
     assert vtherm.use_central_config_temperature is True
 
@@ -824,9 +761,7 @@ async def test_change_central_config_temperature(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm2: BaseThermostat = await create_thermostat(
-        hass, vtherm2_entry, "climate.theovervalvevtherm2"
-    )
+    vtherm2: BaseThermostat = await create_thermostat(hass, vtherm2_entry, "climate.theovervalvevtherm2")
 
     assert vtherm2.use_central_config_temperature is False
 
@@ -838,13 +773,9 @@ async def test_change_central_config_temperature(
         NUMBER_DOMAIN,
     )
     assert not temp_entity
-    assert (
-        vtherm.find_preset_temp(preset_name) == 19.1
-    )  # 19.1 is the value of the central_config boost preset temp
+    assert vtherm.find_preset_temp(preset_name) == 19.1  # 19.1 is the value of the central_config boost preset temp
 
-    assert (
-        vtherm2.find_preset_temp(preset_name) == 15
-    )  # 15 is the min temp which is the default
+    assert vtherm2.find_preset_temp(preset_name) == 15  # 15 is the min temp which is the default
 
     # 2. change the central_config temp Number entity value
     temp_entity = search_entity(
@@ -863,14 +794,10 @@ async def test_change_central_config_temperature(
 
     assert vtherm.find_preset_temp(preset_name) == 20.3
     # No change for VTherm 2
-    assert (
-        vtherm2.find_preset_temp(preset_name) == 15
-    )  # 15 is the min temp which is the default
+    assert vtherm2.find_preset_temp(preset_name) == 15  # 15 is the min temp which is the default
 
 
-async def test_change_vtherm_temperature(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the construction of a over valve vtherm with
     use central config for PRESET and PRESENCE.
     When changing the central configuration temperature, the VTherm
@@ -904,9 +831,7 @@ async def test_change_vtherm_temperature(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm: BaseThermostat = await create_thermostat(
-        hass, vtherm_entry, "climate.theovervalvevtherm"
-    )
+    vtherm: BaseThermostat = await create_thermostat(hass, vtherm_entry, "climate.theovervalvevtherm")
 
     assert vtherm.use_central_config_temperature is True
 
@@ -940,9 +865,7 @@ async def test_change_vtherm_temperature(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm2: BaseThermostat = await create_thermostat(
-        hass, vtherm2_entry, "climate.theovervalvevtherm2"
-    )
+    vtherm2: BaseThermostat = await create_thermostat(hass, vtherm2_entry, "climate.theovervalvevtherm2")
 
     assert vtherm2.use_central_config_temperature is False
 
@@ -954,13 +877,9 @@ async def test_change_vtherm_temperature(
         NUMBER_DOMAIN,
     )
     assert not temp_entity
-    assert (
-        vtherm.find_preset_temp(preset_name) == 19.1
-    )  # 19.1 is the value of the central_config boost preset temp
+    assert vtherm.find_preset_temp(preset_name) == 19.1  # 19.1 is the value of the central_config boost preset temp
 
-    assert (
-        vtherm2.find_preset_temp(preset_name) == 15
-    )  # 15 is the min temp which is the default
+    assert vtherm2.find_preset_temp(preset_name) == 15  # 15 is the min temp which is the default
 
     # 2. change the preset of the VTherms to Boost
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
@@ -985,18 +904,14 @@ async def test_change_vtherm_temperature(
 
     assert vtherm.find_preset_temp(preset_name) == 20.3
     # No change for VTherm 2
-    assert (
-        vtherm2.find_preset_temp(preset_name) == 15
-    )  # 15 is the min temp which is the default
+    assert vtherm2.find_preset_temp(preset_name) == 15  # 15 is the min temp which is the default
 
     # the current target temp should change for vtherm 1 but not for vtherm2
     await wait_for_local_condition(lambda: vtherm.target_temperature == 20.3)
     await wait_for_local_condition(lambda: vtherm2.target_temperature == 15)
 
 
-async def test_change_vtherm_temperature_with_presence(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_vtherm_temperature_with_presence(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """Test the construction of a over valve vtherm with
     no central config for PRESET and PRESENCE.
     When changing the Vtherm temperature, the VTherm
@@ -1034,15 +949,11 @@ async def test_change_vtherm_temperature_with_presence(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm: BaseThermostat = await create_thermostat(
-        hass, vtherm_entry, "climate.theovervalvevtherm"
-    )
+    vtherm: BaseThermostat = await create_thermostat(hass, vtherm_entry, "climate.theovervalvevtherm")
     assert vtherm.use_central_config_temperature is False
     await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
     await vtherm.async_set_preset_mode(VThermPreset.BOOST)
-    await send_presence_change_event(
-        vtherm, STATE_ON, STATE_OFF, NowClass.get_now(hass), True
-    )
+    await send_presence_change_event(vtherm, STATE_ON, STATE_OFF, NowClass.get_now(hass), True)
     assert vtherm.target_temperature == 30  # default value
 
     # Creates another VTherm which is NOT binded to central configuration
@@ -1074,9 +985,7 @@ async def test_change_vtherm_temperature_with_presence(
     )
 
     # Their is nothing to restore so temp values should be initialized with default values
-    vtherm2: BaseThermostat = await create_thermostat(
-        hass, vtherm2_entry, "climate.theovervalvevtherm2"
-    )
+    vtherm2: BaseThermostat = await create_thermostat(hass, vtherm2_entry, "climate.theovervalvevtherm2")
     assert vtherm2.use_central_config_temperature is True
 
     # 1. Temp Number should be present cause no central config mode
@@ -1113,9 +1022,7 @@ async def test_change_vtherm_temperature_with_presence(
     assert vtherm.target_temperature == 30  # default value
 
     # No change for VTherm 2
-    assert (
-        vtherm2.find_preset_temp(preset_name) == 19.1
-    )  # 15 is the min temp which is the default
+    assert vtherm2.find_preset_temp(preset_name) == 19.1  # 15 is the min temp which is the default
 
     # 3. We change now the current preset temp
     temp_entity = search_entity(

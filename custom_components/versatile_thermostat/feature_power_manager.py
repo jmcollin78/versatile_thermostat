@@ -64,9 +64,7 @@ class FeaturePowerManager(BaseFeatureManager):
     @overrides
     async def start_listening(self):
         """Start listening the underlying entity. There is nothing to listen"""
-        central_power_configuration = (
-            VersatileThermostatAPI.get_vtherm_api().central_power_manager.is_configured
-        )
+        central_power_configuration = VersatileThermostatAPI.get_vtherm_api().central_power_manager.is_configured
 
         if self._use_power_feature and self._device_power and central_power_configuration:
             self._is_configured = True
@@ -128,23 +126,14 @@ class FeaturePowerManager(BaseFeatureManager):
         """
 
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
-        if (
-            not self._is_configured
-            or not vtherm_api.central_power_manager.is_configured
-        ):
+        if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
             return True, 0
 
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
-        if (
-            current_power is None
-            or current_max_power is None
-            or self._device_power is None
-        ):
-            _LOGGER.warning(
-                "%s - power not valued. check_power_available not available", self
-            )
+        if current_power is None or current_max_power is None or self._device_power is None:
+            _LOGGER.warning("%s - power not valued. check_power_available not available", self)
             return True, 0
 
         _LOGGER.debug(

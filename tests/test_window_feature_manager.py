@@ -613,9 +613,7 @@ async def test_window_feature_manager_window_auto(
 
     # Add a fake temp point for the window_auto_algo. We need at least 4 points
     for i in range(0, 4):
-        window_manager._window_auto_algo.add_temp_measurement(
-            17 + (i * (new_temp - 17) / 4), now, True
-        )
+        window_manager._window_auto_algo.add_temp_measurement(17 + (i * (new_temp - 17) / 4), now, True)
         now = now + timedelta(minutes=5)
 
     # fmt:off

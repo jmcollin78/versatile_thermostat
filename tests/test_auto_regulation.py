@@ -21,9 +21,7 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-async def test_over_climate_regulation(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the regulation of an over climate thermostat"""
 
     entry = MockConfigEntry(
@@ -90,9 +88,7 @@ async def test_over_climate_regulation(
         ):
             await entity.async_set_temperature(temperature=18)
 
-            fake_underlying_climate.set_hvac_action(
-                HVACAction.HEATING
-            )  # simulate under heating
+            fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under heating
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
@@ -118,9 +114,7 @@ async def test_over_climate_regulation(
             assert entity.regulated_target_temp == 18 - 2.5
 
 
-async def test_over_climate_regulation_ac_mode(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the regulation of an over climate thermostat"""
 
     entry = MockConfigEntry(
@@ -185,18 +179,14 @@ async def test_over_climate_regulation_ac_mode(
         ):
             await entity.async_set_temperature(temperature=25)
 
-            fake_underlying_climate.set_hvac_action(
-                HVACAction.COOLING
-            )  # simulate under heating
+            fake_underlying_climate.set_hvac_action(HVACAction.COOLING)  # simulate under heating
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.COOLING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
             # the regulated temperature should be lower
             assert entity.regulated_target_temp < entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 25 - 2.5
-            )  # In medium we could go up to -3 degre
+            assert entity.regulated_target_temp == 25 - 2.5  # In medium we could go up to -3 degre
             assert entity.hvac_action == HVACAction.COOLING
 
         # change temperature so that the regulated temperature should slow down
@@ -210,9 +200,7 @@ async def test_over_climate_regulation_ac_mode(
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 25 - 1
-            )  # +2.3 without round_to_nearest
+            assert entity.regulated_target_temp == 25 - 1  # +2.3 without round_to_nearest
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=3)
@@ -225,14 +213,10 @@ async def test_over_climate_regulation_ac_mode(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert (
-                entity.regulated_target_temp == 25 + 3
-            )  # +0.4 without round_to_nearest
+            assert entity.regulated_target_temp == 25 + 3  # +0.4 without round_to_nearest
 
 
-async def test_over_climate_regulation_limitations(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the limitations of the regulation of an over climate thermostat:
     1. test the period_min parameter: do not send regulation event too frequently
     2. test the dtemp parameter: do not send regulation event if offset temp is lower than dtemp
@@ -302,9 +286,7 @@ async def test_over_climate_regulation_limitations(
         # A timer is not started (change target temperature forces the change)
         assert entity.is_recalculate_scheduled is False
 
-        fake_underlying_climate.set_hvac_action(
-            HVACAction.HEATING
-        )  # simulate under heating
+        fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under heating
         entity.calculate_hvac_action()
         assert entity.hvac_action == HVACAction.HEATING
         await hass.async_block_till_done()
@@ -348,9 +330,7 @@ async def test_over_climate_regulation_limitations(
 # Disable this test which is not working when run in // of others.
 # I couldn't find out why
 @pytest.mark.skip
-async def test_over_climate_regulation_use_device_temp(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_over_climate_regulation_use_device_temp(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the regulation of an over climate thermostat"""
 
     entry = MockConfigEntry(
@@ -379,9 +359,7 @@ async def test_over_climate_regulation_use_device_temp(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        entity: ThermostatOverClimate = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
 
@@ -411,9 +389,7 @@ async def test_over_climate_regulation_use_device_temp(
         ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
             await entity.async_set_temperature(temperature=16)
 
-            fake_underlying_climate.set_hvac_action(
-                HVACAction.HEATING
-            )  # simulate under heating
+            fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under heating
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
@@ -421,9 +397,7 @@ async def test_over_climate_regulation_use_device_temp(
             # the regulated temperature should be higher
             assert entity.regulated_target_temp < entity.target_temperature
             # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
-            assert (
-                entity.regulated_target_temp == 15
-            )  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
+            assert entity.regulated_target_temp == 15  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
             assert entity.hvac_action == HVACAction.HEATING
 
             mock_service_call.assert_has_calls(
@@ -506,9 +480,8 @@ async def test_over_climate_regulation_use_device_temp(
                 ]
             )
 
-async def test_over_climate_regulation_dtemp_null(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+
+async def test_over_climate_regulation_dtemp_null(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the regulation of an over climate thermostat with no Dtemp limitation"""
 
     entry = MockConfigEntry(
@@ -561,9 +534,7 @@ async def test_over_climate_regulation_dtemp_null(
         ):
             await entity.async_set_temperature(temperature=20)
 
-            fake_underlying_climate.set_hvac_action(
-                HVACAction.HEATING
-            )  # simulate under cooling
+            fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under cooling
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode

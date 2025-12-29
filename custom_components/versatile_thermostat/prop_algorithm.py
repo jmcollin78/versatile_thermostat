@@ -1,4 +1,5 @@
 """ The TPI calculation module """
+
 # pylint: disable='line-too-long'
 import logging
 
@@ -71,9 +72,7 @@ class PropAlgorithm:
                 minimal_activation_delay,
                 minimal_deactivation_delay,
             )
-            raise TypeError(
-                "TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values"
-            )
+            raise TypeError("TPI parameters are not set correctly. VTherm will not work as expected. Please reconfigure it correctly. See previous log for values")
 
         self._vtherm_entity_id = vtherm_entity_id
         self._function = function_type
@@ -323,4 +322,3 @@ class PropAlgorithm:
     def minimal_deactivation_delay(self) -> int:
         """Returns the minimal deactivation delay"""
         return self._minimal_deactivation_delay
-

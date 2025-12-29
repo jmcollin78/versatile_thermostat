@@ -133,6 +133,4 @@ class IntervalCaller:
                 _LOGGER.error(e)
                 self.cancel()
 
-        self._remove_handle = async_track_time_interval(
-            self._hass, callback, timedelta(seconds=self._interval_sec)
-        )
+        self._remove_handle = async_track_time_interval(self._hass, callback, timedelta(seconds=self._interval_sec))

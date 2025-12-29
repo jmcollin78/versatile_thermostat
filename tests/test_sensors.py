@@ -67,44 +67,28 @@ async def test_sensors_over_switch(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
-    energy_sensor: EnergySensor = search_entity(
-        hass, "sensor.theoverswitchmockname_energy", "sensor"
-    )
+    energy_sensor: EnergySensor = search_entity(hass, "sensor.theoverswitchmockname_energy", "sensor")
     assert energy_sensor
 
-    mean_power_sensor: MeanPowerSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_mean_power_cycle", "sensor"
-    )
+    mean_power_sensor: MeanPowerSensor = search_entity(hass, "sensor.theoverswitchmockname_mean_power_cycle", "sensor")
     assert mean_power_sensor
 
-    on_percent_sensor: OnPercentSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_power_percent", "sensor"
-    )
+    on_percent_sensor: OnPercentSensor = search_entity(hass, "sensor.theoverswitchmockname_power_percent", "sensor")
     assert on_percent_sensor
 
-    on_time_sensor: OnTimeSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_on_time", "sensor"
-    )
+    on_time_sensor: OnTimeSensor = search_entity(hass, "sensor.theoverswitchmockname_on_time", "sensor")
     assert on_time_sensor
 
-    off_time_sensor: OffTimeSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_off_time", "sensor"
-    )
+    off_time_sensor: OffTimeSensor = search_entity(hass, "sensor.theoverswitchmockname_off_time", "sensor")
     assert off_time_sensor
 
-    last_temperature_sensor: LastTemperatureSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_last_temperature_date", "sensor"
-    )
+    last_temperature_sensor: LastTemperatureSensor = search_entity(hass, "sensor.theoverswitchmockname_last_temperature_date", "sensor")
     assert last_temperature_sensor is None  # Not crearted by default now
 
-    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
-        hass, "sensor.theoverswitchmockname_last_external_temperature_date", "sensor"
-    )
+    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(hass, "sensor.theoverswitchmockname_last_external_temperature_date", "sensor")
     assert last_ext_temperature_sensor is None  # Not crearted by default now
 
     # Simulate the event reception
@@ -227,26 +211,18 @@ async def test_sensors_over_climate(
             },
         )
 
-        entity: BaseThermostat = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.is_over_climate
 
-    energy_sensor: EnergySensor = search_entity(
-        hass, "sensor.theoverclimatemockname_energy", "sensor"
-    )
+    energy_sensor: EnergySensor = search_entity(hass, "sensor.theoverclimatemockname_energy", "sensor")
     assert energy_sensor
 
-    last_temperature_sensor: LastTemperatureSensor = search_entity(
-        hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor"
-    )
+    last_temperature_sensor: LastTemperatureSensor = search_entity(hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor")
     # last_temperature_sensor is not created by default now
     assert last_temperature_sensor is None
 
-    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
-        hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor"
-    )
+    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor")
     # last_ext_temperature_sensor is not created by default now
     assert last_ext_temperature_sensor is None
 
@@ -363,24 +339,16 @@ async def test_sensors_over_climate_minimal(
             },
         )
 
-        entity: BaseThermostat = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.is_over_climate
 
-    energy_sensor: EnergySensor = search_entity(
-        hass, "sensor.theoverclimatemockname_energy", "sensor"
-    )
+    energy_sensor: EnergySensor = search_entity(hass, "sensor.theoverclimatemockname_energy", "sensor")
     assert energy_sensor is None
 
     # LastTemperatureSensor and LastExtTemperatureSensor are now not created by default
-    last_temperature_sensor: LastTemperatureSensor = search_entity(
-        hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor"
-    )
+    last_temperature_sensor: LastTemperatureSensor = search_entity(hass, "sensor.theoverclimatemockname_last_temperature_date", "sensor")
     assert last_temperature_sensor is None
 
-    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(
-        hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor"
-    )
+    last_ext_temperature_sensor: LastExtTemperatureSensor = search_entity(hass, "sensor.theoverclimatemockname_last_external_temperature_date", "sensor")
     assert last_ext_temperature_sensor is None

@@ -200,9 +200,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
 
-        self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(
-            self, hass
-        )
+        self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(self, hass)
         self._power_manager: FeaturePowerManager = FeaturePowerManager(self, hass)
         self._motion_manager: FeatureMotionManager = FeatureMotionManager(self, hass)
         self._window_manager: FeatureWindowManager = FeatureWindowManager(self, hass)
@@ -227,16 +225,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Register a manager"""
         self._managers.append(manager)
 
-    def clean_central_config_doublon(
-        self, config_entry: ConfigData, central_config: ConfigEntry | None
-    ) -> dict[str, Any]:
+    def clean_central_config_doublon(self, config_entry: ConfigData, central_config: ConfigEntry | None) -> dict[str, Any]:
         """Removes all values from config with are concerned by central_config"""
 
         def clean_one(cfg, schema: vol.Schema):
             """Clean one schema"""
             for marker in schema.schema:
                 # Extract the actual key from Voluptuous Marker objects
-                key = marker.schema if hasattr(marker, 'schema') else marker
+                key = marker.schema if hasattr(marker, "schema") else marker
                 if key in cfg:
                     del cfg[key]
 
@@ -298,11 +294,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         for manager in self._managers:
             manager.post_init(entry_infos)
 
-        self._use_central_config_temperature = entry_infos.get(
-            CONF_USE_PRESETS_CENTRAL_CONFIG
-        ) or (
-            entry_infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG)
-            and entry_infos.get(CONF_USE_PRESENCE_FEATURE)
+        self._use_central_config_temperature = entry_infos.get(CONF_USE_PRESETS_CENTRAL_CONFIG) or (
+            entry_infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG) and entry_infos.get(CONF_USE_PRESENCE_FEATURE)
         )
 
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
@@ -320,9 +313,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._underlyings = []
 
         self._temp_sensor_entity_id = entry_infos.get(CONF_TEMP_SENSOR)
-        self._last_seen_temp_sensor_entity_id = entry_infos.get(
-            CONF_LAST_SEEN_TEMP_SENSOR
-        )
+        self._last_seen_temp_sensor_entity_id = entry_infos.get(CONF_LAST_SEEN_TEMP_SENSOR)
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
 
         self.set_hvac_list()
@@ -366,13 +357,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             short_ema_params.get("max_alpha"),
         )
 
-        self._is_central_mode = not (
-            entry_infos.get(CONF_USE_CENTRAL_MODE) is False
-        )  # Default value (None) is True
+        self._is_central_mode = not (entry_infos.get(CONF_USE_CENTRAL_MODE) is False)  # Default value (None) is True
 
-        self._is_used_by_central_boiler = (
-            entry_infos.get(CONF_USED_BY_CENTRAL_BOILER) is True
-        )
+        self._is_used_by_central_boiler = entry_infos.get(CONF_USED_BY_CENTRAL_BOILER) is True
 
         self._max_on_percent = api.max_on_percent
 
@@ -421,9 +408,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_will_remove_from_hass(self):
         """Try to force backup of entity"""
-        _LOGGER.debug(
-            "%s - force write before remove. Energy is %s", self, self.total_energy
-        )
+        _LOGGER.debug("%s - force write before remove. Energy is %s", self, self.total_energy)
         # Force dump in background
         await restore_async_get(self.hass).async_dump_states()
 
@@ -462,18 +447,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Fire cycle start callbacks."""
         for callback in self._on_cycle_start_callbacks:
             try:
-                if is_async := (
-                    asyncio.iscoroutinefunction(callback)
-                    or (hasattr(callback, "__call__") and asyncio.iscoroutinefunction(callback.__call__))
-                ):
+                if is_async := (asyncio.iscoroutinefunction(callback) or (hasattr(callback, "__call__") and asyncio.iscoroutinefunction(callback.__call__))):
                     await callback(on_time_sec, off_time_sec, on_percent, hvac_mode)
                 else:
-                    await self.hass.async_add_executor_job(
-                        callback, on_time_sec, off_time_sec, on_percent, hvac_mode
-                    )
+                    await self.hass.async_add_executor_job(callback, on_time_sec, off_time_sec, on_percent, hvac_mode)
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("%s - Error calling cycle start callback: %s", self, ex)
-
 
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""
@@ -483,7 +462,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_startup(self, central_configuration):
         """Triggered on startup, used to get old state and set internal states
-         accordingly. This is triggered by VTherm API"""
+        accordingly. This is triggered by VTherm API"""
         write_event_log(_LOGGER, self, "Start up VTherm")
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
@@ -519,9 +498,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             await self._async_update_temp(temperature_state)
 
         if self._ext_temp_sensor_entity_id:
-            ext_temperature_state = self.hass.states.get(
-                self._ext_temp_sensor_entity_id
-            )
+            ext_temperature_state = self.hass.states.get(self._ext_temp_sensor_entity_id)
             if ext_temperature_state and ext_temperature_state.state not in (
                 STATE_UNAVAILABLE,
                 STATE_UNKNOWN,
@@ -534,14 +511,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 await self._async_update_ext_temp(ext_temperature_state)
             else:
                 _LOGGER.debug(
-                    "%s - external temperature sensor have NOT been retrieved "
-                    "cause unknown or unavailable",
+                    "%s - external temperature sensor have NOT been retrieved " "cause unknown or unavailable",
                     self,
                 )
         else:
             _LOGGER.debug(
-                "%s - external temperature sensor have NOT been retrieved "
-                "cause no external sensor",
+                "%s - external temperature sensor have NOT been retrieved " "cause no external sensor",
                 self,
             )
 
@@ -577,9 +552,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Try to get my previous state"""
         # Check If we have an old state
         old_state = await self.async_get_last_state()
-        _LOGGER.debug(
-            "%s - Calling get_my_previous_state old_state is %s", self, old_state
-        )
+        _LOGGER.debug("%s - Calling get_my_previous_state old_state is %s", self, old_state)
         if old_state is not None:
             # Restore current_state
             if current_state_attr := old_state.attributes.get(ATTR_CURRENT_STATE, None):
@@ -1062,7 +1035,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def activable_underlying_entities(self) -> list | None:
         """Returns the activable underlying entities for controlling
-         the central boiler"""
+        the central boiler"""
         return self.underlying_entities
 
     def find_underlying_by_entity_id(self, entity_id: str) -> Entity | None:
@@ -1120,7 +1093,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def power_percent(self) -> float | None:
         """Get the current on_percent as a percentage value. valid only for Vtherm with a TPI algo
         Get the current on_percent value"""
-        prop_algo = getattr(self, '_prop_algorithm', None)
+        prop_algo = getattr(self, "_prop_algorithm", None)
         if prop_algo and prop_algo.on_percent is not None:
             return round(prop_algo.on_percent * 100, 0)
         else:
@@ -1129,7 +1102,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def on_percent(self) -> float | None:
         """Get the current on_percent value. valid only for Vtherm with a TPI algo"""
-        prop_algo = getattr(self, '_prop_algorithm', None)
+        prop_algo = getattr(self, "_prop_algorithm", None)
         if prop_algo and prop_algo.on_percent is not None:
             return prop_algo.on_percent
         else:
@@ -1185,10 +1158,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @staticmethod
     def check_lock(func):
         """Decorator to check if the thermostat is locked."""
+
         async def wrapper(self, *args, **kwargs):
             if self.lock_manager.check_is_locked(func.__name__):
                 return
             return await func(self, *args, **kwargs)
+
         return wrapper
 
     @overrides
@@ -1410,20 +1385,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
         self._last_change_time_from_vtherm = self.now
-        _LOGGER.debug(
-            "%s - last_change_time is now %s", self, self._last_change_time_from_vtherm
-        )
+        _LOGGER.debug("%s - last_change_time is now %s", self, self._last_change_time_from_vtherm)
 
     def reset_last_temperature_time(self, old_preset_mode: VThermPreset | str | None = None):
         """Reset to now the last temperature time if conditions are satisfied"""
         if self._state_manager.current_state.preset not in HIDDEN_PRESETS and old_preset_mode not in HIDDEN_PRESETS:
-            self._last_temperature_measure = self._last_ext_temperature_measure = (
-                self.now
-            )
+            self._last_temperature_measure = self._last_ext_temperature_measure = self.now
 
     def find_preset_temp(self, preset_mode: VThermPreset):
         """Find the right temperature of a preset considering
-         the presence if configured"""
+        the presence if configured"""
         if preset_mode is None or preset_mode == VThermPreset.NONE:
             return self._attr_max_temp if self._ac_mode and self.vtherm_hvac_mode == VThermHvacMode_COOL else self._attr_min_temp
 
@@ -1481,19 +1452,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     def get_state_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
-        return (
-            state.last_changed.astimezone(self._current_tz)
-            if isinstance(state.last_changed, datetime)
-            else self.now
-        )
+        return state.last_changed.astimezone(self._current_tz) if isinstance(state.last_changed, datetime) else self.now
 
     def get_last_updated_date_or_now(self, state: State) -> datetime:
         """Extract the last_changed state from State or return now if not available"""
-        return (
-            state.last_updated.astimezone(self._current_tz)
-            if isinstance(state.last_updated, datetime)
-            else self.now
-        )
+        return state.last_updated.astimezone(self._current_tz) if isinstance(state.last_updated, datetime) else self.now
 
     async def async_underlying_entity_turn_off(self):
         """Turn heater toggleable device off. Used by Window, overpowering,
@@ -1825,7 +1788,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if default_on_percent:
             self._safety_manager.set_safety_default_on_percent(default_on_percent)
 
-
         await self.async_control_heating()
         self.update_custom_attributes()
         self.async_write_ha_state()
@@ -1883,31 +1845,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         tpi_threshold_high: float | None = None,
     ):
         """Stub method for TPI parameter service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
-        raise ServiceValidationError(
-            f"{self} - The set_tpi_parameters service is only available for switch/valve type thermostats. "
-            "This thermostat does not use TPI algorithm."
-        )
+        raise ServiceValidationError(f"{self} - The set_tpi_parameters service is only available for switch/valve type thermostats. " "This thermostat does not use TPI algorithm.")
 
     async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool):
         """Stub method for Auto TPI mode service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
-        raise ServiceValidationError(
-            f"{self} - The set_auto_tpi_mode service is only available for switch/valve type thermostats. "
-            "This thermostat does not use TPI algorithm."
-        )
+        raise ServiceValidationError(f"{self} - The set_auto_tpi_mode service is only available for switch/valve type thermostats. " "This thermostat does not use TPI algorithm.")
 
     async def service_auto_tpi_calibrate_capacity(
         self,
@@ -1917,16 +1873,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         end_date: datetime | None = None,
     ):
         """Stub method for Auto TPI capacity calibration service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
         raise ServiceValidationError(
-            f"{self} - The auto_tpi_calibrate_capacity service is only available for switch/valve type thermostats. "
-            "This thermostat does not use TPI algorithm."
+            f"{self} - The auto_tpi_calibrate_capacity service is only available for switch/valve type thermostats. " "This thermostat does not use TPI algorithm."
         )
 
     ##

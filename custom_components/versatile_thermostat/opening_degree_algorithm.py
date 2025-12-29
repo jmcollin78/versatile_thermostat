@@ -11,11 +11,7 @@ class OpeningClosingDegreeCalculation:
 
     @staticmethod
     def calculate_opening_closing_degree(
-        brut_valve_open_percent: float,
-        min_opening_degree: float,
-        max_closing_degree: float,
-        max_opening_degree: float,
-        opening_threshold: float
+        brut_valve_open_percent: float, min_opening_degree: float, max_closing_degree: float, max_opening_degree: float, opening_threshold: float
     ) -> float:
         """
         Calculate the opening/closing degree based on parameters. See explanation on README
@@ -35,7 +31,7 @@ class OpeningClosingDegreeCalculation:
             "Calculate opening/closing degree - Input: brut_valve_open_percent=%.2f, min_opening_degree=%.2f, max_closing_degree=%.2f",
             brut_valve_open_percent,
             min_opening_degree,
-            max_closing_degree
+            max_closing_degree,
         )
 
         # for direct test. Already done in underlyings.py

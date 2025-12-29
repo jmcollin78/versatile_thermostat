@@ -148,9 +148,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
     # 1. creates a thermostat and check that security is off
     now: datetime = datetime.now(tz=tz)
-    entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
@@ -168,9 +166,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
-    assert (
-        entity._last_ext_temperature_measure.astimezone(tz) - now
-    ).total_seconds() < 1
+    assert (entity._last_ext_temperature_measure.astimezone(tz) - now).total_seconds() < 1
 
     # set a preset
     assert entity.preset_mode is VThermPreset.NONE
@@ -183,9 +179,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
     assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
     # 2. activate security feature when date is expired
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = now - timedelta(minutes=6)
@@ -232,9 +226,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_heater_on.call_count == 1
 
     # 3. Change the preset to Boost (we should stay in SAFETY)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         await entity.async_set_preset_mode(VThermPreset.BOOST)
@@ -250,9 +242,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.target_temperature == 19  # Boost
 
     # 5. resolve the datetime issue
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = datetime.now()
@@ -293,9 +283,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_heater_on.call_count == 1
 
 
-async def test_security_feature_back_on_percent(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_security_feature_back_on_percent(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the security feature and https://github.com/jmcollin78/versatile_thermostat/issues/49:
     1. creates a thermostat and check that security is off, preset Boost
     2. change temperature so that on_percent is high
@@ -342,9 +330,7 @@ async def test_security_feature_back_on_percent(
 
     # 1. creates a thermostat and check that security is off
     now: datetime = datetime.now(tz=tz)
-    entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
@@ -356,9 +342,7 @@ async def test_security_feature_back_on_percent(
     assert entity._last_ext_temperature_measure is not None
     assert entity._last_temperature_measure is not None
     assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
-    assert (
-        entity._last_ext_temperature_measure.astimezone(tz) - now
-    ).total_seconds() < 1
+    assert (entity._last_ext_temperature_measure.astimezone(tz) - now).total_seconds() < 1
 
     # set a preset
     assert entity.preset_mode is VThermPreset.NONE
@@ -371,9 +355,7 @@ async def test_security_feature_back_on_percent(
     assert entity.hvac_mode == VThermHvacMode_HEAT
 
     # 2. activate on_percent
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         event_timestamp = now + timedelta(minutes=1)
@@ -390,9 +372,7 @@ async def test_security_feature_back_on_percent(
         assert mock_heater_on.call_count == 1
 
     # 3. Set safety mode with a preset change
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         # 6 min between two mesure
@@ -449,9 +429,7 @@ async def test_security_feature_back_on_percent(
     assert entity.preset_mode == VThermPreset.SAFETY
 
     # 5. resolve the datetime issue
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on:
         # +2 min between two mesure
@@ -512,9 +490,7 @@ async def test_security_over_climate(
 
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
@@ -571,12 +547,8 @@ async def test_security_over_climate(
         # Force safety mode
         assert entity._last_ext_temperature_measure is not None
         assert entity._last_temperature_measure is not None
-        assert (
-            entity._last_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
-        assert (
-            entity._last_ext_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
+        assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
+        assert (entity._last_ext_temperature_measure.astimezone(tz) - now).total_seconds() < 1
 
         # Tries to turns on the Thermostat
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -594,9 +566,7 @@ async def test_security_over_climate(
         )
 
         # 2. activate security feature when date is expired
-        with patch(
-            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-        ) as mock_send_event, patch(
+        with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
         ):
             event_timestamp = now - timedelta(minutes=6)
@@ -648,9 +618,7 @@ async def test_migration_security_safety(
     await hass.config_entries.async_setup(central_config_entry.entry_id)
     assert central_config_entry.state is ConfigEntryState.LOADED
 
-    entity: ThermostatOverSwitch = search_entity(
-        hass, "climate.migrationname", "climate"
-    )
+    entity: ThermostatOverSwitch = search_entity(hass, "climate.migrationname", "climate")
 
     assert entity is not None
 

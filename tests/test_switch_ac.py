@@ -1,4 +1,5 @@
 """ Test the normal start of a Switch AC Thermostat """
+
 from unittest.mock import patch, call
 from datetime import datetime, timedelta
 
@@ -20,9 +21,7 @@ from custom_components.versatile_thermostat.vtherm_preset import VThermPreset, V
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-async def test_over_switch_ac_full_start(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_is_state):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     temps = {
@@ -54,9 +53,7 @@ async def test_over_switch_ac_full_start(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
@@ -144,9 +141,7 @@ async def test_over_switch_ac_full_start(
         # Open a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=2)
-            try_condition = await send_window_change_event(
-                entity, True, False, event_timestamp
-            )
+            try_condition = await send_window_change_event(entity, True, False, event_timestamp)
 
             # Confirme the window event
             await try_condition(None)
@@ -159,18 +154,13 @@ async def test_over_switch_ac_full_start(
         # Close a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=2)
-            try_condition = await send_window_change_event(
-                entity, False, True, event_timestamp
-            )
+            try_condition = await send_window_change_event(entity, False, True, event_timestamp)
 
             # Confirme the window event
             await try_condition(None)
 
             assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
-            assert (
-                entity.hvac_action is HVACAction.OFF
-                or entity.hvac_action is HVACAction.IDLE
-            )
+            assert entity.hvac_action is HVACAction.OFF or entity.hvac_action is HVACAction.IDLE
             assert entity.target_temperature == 27  # eco_ac_away (no change)
 
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)

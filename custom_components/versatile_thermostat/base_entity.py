@@ -83,9 +83,7 @@ class VersatileThermostatBaseEntity(Entity):
 
         # Check delay condition
         async def try_find_climate(_):
-            _LOGGER.debug(
-                "%s - Calling VersatileThermostatBaseEntity.async_added_to_hass", self
-            )
+            _LOGGER.debug("%s - Calling VersatileThermostatBaseEntity.async_added_to_hass", self)
             mcl = self.my_climate
             if mcl:
                 if self._cancel_call:
@@ -100,9 +98,7 @@ class VersatileThermostatBaseEntity(Entity):
                 )
             else:
                 _LOGGER.debug("%s - no entity to listen. Try later", self)
-                self._cancel_call = async_call_later(
-                    self.hass, timedelta(seconds=1), try_find_climate
-                )
+                self._cancel_call = async_call_later(self.hass, timedelta(seconds=1), try_find_climate)
 
         await try_find_climate(None)
 
@@ -112,9 +108,7 @@ class VersatileThermostatBaseEntity(Entity):
         return
 
     @callback
-    async def async_my_climate_changed(
-        self, event: Event
-    ):  # pylint: disable=unused-argument
+    async def async_my_climate_changed(self, event: Event):  # pylint: disable=unused-argument
         """Called when my climate have change
         This method aims to be overridden to take the status change
         """

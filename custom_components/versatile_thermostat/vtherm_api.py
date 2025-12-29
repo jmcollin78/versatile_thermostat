@@ -73,13 +73,8 @@ class VersatileThermostatAPI(dict):
     def find_central_configuration(self):
         """Search for a central configuration"""
         if not self._central_configuration:
-            for (
-                config_entry
-            ) in VersatileThermostatAPI._hass.config_entries.async_entries(DOMAIN):
-                if (
-                    config_entry.data.get(CONF_THERMOSTAT_TYPE)
-                    == CONF_THERMOSTAT_CENTRAL_CONFIG
-                ):
+            for config_entry in VersatileThermostatAPI._hass.config_entries.async_entries(DOMAIN):
+                if config_entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
                     self._central_configuration = config_entry
                     break
                     # return self._central_configuration
@@ -122,9 +117,7 @@ class VersatileThermostatAPI(dict):
 
         self._max_on_percent = config.get(CONF_MAX_ON_PERCENT)
         if self._max_on_percent:
-            _LOGGER.debug(
-                "We have found max_on_percent setting %s", self._max_on_percent
-            )
+            _LOGGER.debug("We have found max_on_percent setting %s", self._max_on_percent)
 
     def register_temperature_number(
         self,
@@ -158,9 +151,7 @@ class VersatileThermostatAPI(dict):
         await self.central_boiler_manager.reload_central_boiler_binary_listener()
         await self.central_boiler_manager.reload_central_boiler_entities_list()
         # Initialization of all preset for all VTherm
-        component: EntityComponent[ClimateEntity] = self._hass.data.get(
-            CLIMATE_DOMAIN, None
-        )
+        component: EntityComponent[ClimateEntity] = self._hass.data.get(CLIMATE_DOMAIN, None)
         if component:
             for entity in component.entities:
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
@@ -180,9 +171,7 @@ class VersatileThermostatAPI(dict):
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""
         # Initialization of all preset for all VTherm
-        component: EntityComponent[ClimateEntity] = self._hass.data.get(
-            CLIMATE_DOMAIN, None
-        )
+        component: EntityComponent[ClimateEntity] = self._hass.data.get(CLIMATE_DOMAIN, None)
         if component:
             for entity in component.entities:
                 if entity.device_info and entity.device_info.get("model", None) == DOMAIN and entity.use_central_config_temperature:  # pyright: ignore[reportAttributeAccessIssue]
@@ -207,9 +196,7 @@ class VersatileThermostatAPI(dict):
                     "Changing the central_mode. We have find %s to update",
                     entity.name,
                 )
-                await entity.check_central_mode(
-                    self._central_mode_select.state, old_central_mode
-                )
+                await entity.check_central_mode(self._central_mode_select.state, old_central_mode)
 
     @classmethod
     def reset_vtherm_api(cls):

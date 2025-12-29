@@ -1,4 +1,5 @@
 """ Implements the VersatileThermostat binary sensors component """
+
 # pylint: disable=unused-argument, line-too-long
 
 import logging
@@ -48,9 +49,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat binary sensors with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
+    _LOGGER.debug("Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data)
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
@@ -189,10 +188,7 @@ class WindowBinarySensor(VersatileThermostatBaseEntity, BinarySensorEntity):
             STATE_ON,
             STATE_OFF,
         ] or self.my_climate.window_auto_state in [STATE_ON, STATE_OFF]:
-            self._attr_is_on = (
-                self.my_climate.window_state == STATE_ON
-                or self.my_climate.window_auto_state == STATE_ON
-            )
+            self._attr_is_on = self.my_climate.window_state == STATE_ON or self.my_climate.window_auto_state == STATE_ON
             if old_state != self._attr_is_on:
                 self.async_write_ha_state()
         return

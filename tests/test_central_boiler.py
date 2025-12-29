@@ -82,9 +82,7 @@ async def test_add_a_central_config_with_boiler(
     await hass.config_entries.async_setup(central_config_entry.entry_id)
     assert central_config_entry.state is ConfigEntryState.LOADED
 
-    entity: ThermostatOverClimate = search_entity(
-        hass, "climate.thecentralconfigmockname", "climate"
-    )
+    entity: ThermostatOverClimate = search_entity(hass, "climate.thecentralconfigmockname", "climate")
 
     assert entity is None
 
@@ -105,6 +103,7 @@ async def test_add_a_central_config_with_boiler(
 
     assert central_boiler_manager.total_power_active_for_boiler == 0  # the default value is 0
     assert central_boiler_manager.total_power_active_for_boiler_threshold == 0  # the default value is 0
+
 
 async def test_update_central_boiler_state_simple(
     hass: HomeAssistant,
@@ -449,9 +448,7 @@ async def test_update_central_boiler_state_multiple(
     api.central_boiler_manager._set_total_power_active_threshold(1000)
     await hass.async_block_till_done()
 
-    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
-        hass, "sensor.nb_device_active_for_boiler", "sensor"
-    )
+    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.nb_device_active_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
@@ -479,9 +476,7 @@ async def test_update_central_boiler_state_multiple(
     await hass.async_block_till_done()
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 3
 
-    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
-        hass, "binary_sensor.central_boiler", "binary_sensor"
-    )
+    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
     assert boiler_binary_sensor is not None
     assert boiler_binary_sensor.state == STATE_OFF
 
@@ -702,9 +697,7 @@ async def test_update_central_boiler_state_multiple(
 
     await send_temperature_change_event(entity, 20, now + timedelta(minutes=10))
     # Wait for state event propagation
-    await wait_for_local_condition(
-        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1 and entity.power_percent == 50
-    )
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1 and entity.power_percent == 50)
     await wait_for_boiler_state(api, True)
 
     assert entity.hvac_action == HVACAction.HEATING
@@ -807,9 +800,7 @@ async def test_update_central_boiler_state_simple_valve(
     assert entity.hvac_mode == VThermHvacMode_HEAT
     assert entity.device_actives == []
 
-    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
-        hass, "binary_sensor.central_boiler", "binary_sensor"
-    )
+    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
     assert boiler_binary_sensor is not None
     assert boiler_binary_sensor.state == STATE_OFF
 
@@ -935,9 +926,7 @@ async def test_update_central_boiler_state_simple_climate(
     assert entity.hvac_mode == VThermHvacMode_HEAT
     assert entity.device_actives == []
 
-    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
-        hass, "binary_sensor.central_boiler", "binary_sensor"
-    )
+    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
     assert boiler_binary_sensor is not None
     assert boiler_binary_sensor.state == STATE_OFF
 
@@ -1091,10 +1080,7 @@ async def test_update_central_boiler_state_simple_climate_power(
     climate1.set_hvac_action(HVACAction.HEATING)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await wait_for_local_condition(
-        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1
-        and api.central_boiler_manager.total_power_active_for_boiler == 1001
-    )
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1 and api.central_boiler_manager.total_power_active_for_boiler == 1001)
     await wait_for_boiler_state(api, True)
 
     assert entity.hvac_action == HVACAction.HEATING
@@ -1120,10 +1106,7 @@ async def test_update_central_boiler_state_simple_climate_power(
     climate1.set_hvac_action(HVACAction.IDLE)
     climate1.async_write_ha_state()
     # Wait for state event propagation
-    await wait_for_local_condition(
-        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0
-        and api.central_boiler_manager.total_power_active_for_boiler == 0
-    )
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0 and api.central_boiler_manager.total_power_active_for_boiler == 0)
     await wait_for_boiler_state(api, False)
 
     assert entity.hvac_action == HVACAction.IDLE
@@ -1216,12 +1199,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
                 open_degree_entity.state,
                 {"min": 0, "max": 100},
             ),
-            "number.mock_closing_degree": State(
-                "number.mock_closing_degree", "0", {"min": 0, "max": 100}
-            ),
-            "number.mock_offset_calibration": State(
-                "number.mock_offset_calibration", "0", {"min": -12, "max": 12}
-            ),
+            "number.mock_closing_degree": State("number.mock_closing_degree", "0", {"min": 0, "max": 100}),
+            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12}),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -1271,9 +1250,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
         assert entity.activable_underlying_entities[0]._percent_open == 0
         assert entity.device_actives == []
 
-        boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
-            hass, "binary_sensor.central_boiler", "binary_sensor"
-        )
+        boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_boiler", "binary_sensor")
         assert boiler_binary_sensor is not None
         assert boiler_binary_sensor.state == STATE_OFF
 
@@ -1286,12 +1263,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
                 open_degree_entity.state,
                 {"min": 0, "max": 100},
             ),
-            "number.mock_closing_degree": State(
-                "number.mock_closing_degree", "0", {"min": 0, "max": 100}
-            ),
-            "number.mock_offset_calibration": State(
-                "number.mock_offset_calibration", "0", {"min": -12, "max": 12}
-            ),
+            "number.mock_closing_degree": State("number.mock_closing_degree", "0", {"min": 0, "max": 100}),
+            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12}),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -1441,9 +1414,7 @@ async def test_bug_339(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=climate1,
     ):
-        entity: ThermostatOverValve = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: ThermostatOverValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate

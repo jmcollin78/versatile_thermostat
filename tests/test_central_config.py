@@ -73,9 +73,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
         },
     )
 
-    entity = await create_thermostat(
-        hass, central_config_entry, "climate.thecentralconfigmockname"
-    )
+    entity = await create_thermostat(hass, central_config_entry, "climate.thecentralconfigmockname")
     # central_config_entry.add_to_hass(hass)
     # await hass.config_entries.async_setup(central_config_entry.entry_id)
     # assert central_config_entry.state is ConfigEntryState.LOADED
@@ -99,9 +97,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-async def test_minimal_over_switch_wo_central_config(
-    hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
-):
+async def test_minimal_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api):
     """Tests that a VTherm without any central_configuration is working with its own attributes"""
     # Add a Switch VTherm
     entry = MockConfigEntry(
@@ -150,9 +146,7 @@ async def test_minimal_over_switch_wo_central_config(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_switch
@@ -178,9 +172,7 @@ async def test_minimal_over_switch_wo_central_config(
     entity.remove_thermostat()
 
 
-async def test_full_over_switch_wo_central_config(
-    hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api
-):
+async def test_full_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api):
     """Tests that a VTherm without any central_configuration is working with its own attributes"""
 
     temps = {
@@ -245,9 +237,7 @@ async def test_full_over_switch_wo_central_config(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname", temps
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
         assert entity
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_switch
@@ -276,47 +266,28 @@ async def test_full_over_switch_wo_central_config(
         assert entity.safety_manager.safety_default_on_percent == 0.1
         assert entity.is_inversed is False
 
-        assert (
-            entity.window_manager.is_window_auto_configured is False
-        )  # we have an entity_id
-        assert (
-            entity.window_manager._window_sensor_entity_id
-            == "binary_sensor.mock_window_sensor"
-        )
+        assert entity.window_manager.is_window_auto_configured is False  # we have an entity_id
+        assert entity.window_manager._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
         assert entity.window_manager.window_delay_sec == 30
         assert entity.window_manager.window_auto_close_threshold == 0.1
         assert entity.window_manager.window_auto_open_threshold == 3
         assert entity.window_manager.window_auto_max_duration == 5
 
-        assert (
-            entity.motion_manager.motion_sensor_entity_id
-            == "binary_sensor.mock_motion_sensor"
-        )
+        assert entity.motion_manager.motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
         assert entity.motion_manager.motion_delay_sec == 10
         assert entity.motion_manager.motion_off_delay_sec == 29
         assert entity.motion_manager.motion_preset == "comfort"
         assert entity.motion_manager.no_motion_preset == "eco"
 
-        assert (
-            VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id
-            is None
-        )
-        assert (
-            VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id
-            is None
-        )
+        assert VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id is None
+        assert VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id is None
 
-        assert (
-            entity._presence_manager.presence_sensor_entity_id
-            == "binary_sensor.mock_presence_sensor"
-        )
+        assert entity._presence_manager.presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
 
     entity.remove_thermostat()
 
 
-async def test_full_over_switch_with_central_config(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Tests that a VTherm with central_configuration is working with the central_config attributes"""
     # Add a Switch VTherm
     entry = MockConfigEntry(
@@ -370,9 +341,7 @@ async def test_full_over_switch_with_central_config(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_switch
@@ -402,50 +371,31 @@ async def test_full_over_switch_with_central_config(
 
         # We have an entity so window auto is not enabled
         assert entity.window_manager.is_window_auto_configured is False
-        assert (
-            entity.window_manager._window_sensor_entity_id
-            == "binary_sensor.mock_window_sensor"
-        )
+        assert entity.window_manager._window_sensor_entity_id == "binary_sensor.mock_window_sensor"
         assert entity.window_manager.window_delay_sec == 15
         assert entity.window_manager.window_auto_close_threshold == 1
         assert entity.window_manager.window_auto_open_threshold == 4
         assert entity.window_manager.window_auto_max_duration == 31
 
-        assert (
-            entity.motion_manager.motion_sensor_entity_id
-            == "binary_sensor.mock_motion_sensor"
-        )
+        assert entity.motion_manager.motion_sensor_entity_id == "binary_sensor.mock_motion_sensor"
         assert entity.motion_manager.motion_delay_sec == 31
         assert entity.motion_manager.motion_off_delay_sec == 301
         assert entity.motion_manager.motion_preset == "boost"
         assert entity.motion_manager.no_motion_preset == "frost"
 
-        assert (
-            VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id
-            == "sensor.the_power_sensor"
-        )
-        assert (
-            VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id
-            == "sensor.the_max_power_sensor"
-        )
+        assert VersatileThermostatAPI.get_vtherm_api().central_power_manager.power_sensor_entity_id == "sensor.the_power_sensor"
+        assert VersatileThermostatAPI.get_vtherm_api().central_power_manager.max_power_sensor_entity_id == "sensor.the_max_power_sensor"
 
-        assert (
-            entity._presence_manager.presence_sensor_entity_id
-            == "binary_sensor.mock_presence_sensor"
-        )
+        assert entity._presence_manager.presence_sensor_entity_id == "binary_sensor.mock_presence_sensor"
 
     entity.remove_thermostat()
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_with_central_config_but_no_central_config(
-    hass: HomeAssistant, skip_hass_states_get, init_vtherm_api
-):
+async def test_over_switch_with_central_config_but_no_central_config(hass: HomeAssistant, skip_hass_states_get, init_vtherm_api):
     """Tests that a VTherm with a central_configuration flag but no central config. Should lead to an error"""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_USER}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == SOURCE_USER
@@ -459,9 +409,7 @@ async def test_over_switch_with_central_config_but_no_central_config(
 
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "main"}
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "main"})
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "main"
@@ -522,9 +470,7 @@ async def test_migration_of_central_config(
     await hass.config_entries.async_setup(central_config_entry.entry_id)
     assert central_config_entry.state is ConfigEntryState.LOADED
 
-    entity: ThermostatOverClimate = search_entity(
-        hass, "climate.thecentralconfigmockname", "climate"
-    )
+    entity: ThermostatOverClimate = search_entity(hass, "climate.thecentralconfigmockname", "climate")
 
     assert entity is None
 

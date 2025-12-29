@@ -14,9 +14,7 @@ from custom_components.versatile_thermostat.thermostat_valve import ThermostatOv
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-async def test_over_valve_full_start(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_state):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -69,9 +67,7 @@ async def test_over_valve_full_start(
     now: datetime = datetime.now(tz=tz)
 
     # 1. create the entity
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
 
         entity = await create_thermostat(hass, entry, "climate.theovervalvemockname")
 
@@ -96,9 +92,7 @@ async def test_over_valve_full_start(
             VThermPreset.ACTIVITY,
         ]
         assert entity.preset_mode is VThermPreset.NONE
-        assert (
-            entity.safety_manager.is_safety_detected is False
-        )  # pylint: disable=protected-access
+        assert entity.safety_manager.is_safety_detected is False  # pylint: disable=protected-access
         assert entity.window_state is STATE_UNKNOWN
         assert entity.motion_state is STATE_UNKNOWN
         assert entity.presence_state is STATE_UNKNOWN
@@ -118,9 +112,7 @@ async def test_over_valve_full_start(
         )
 
     # 2. Set the VThermHvacMode to HEAT, with manual preset and target_temp to 18 before receiving temperature
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         # Select a hvacmode, presence and preset
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         #
@@ -146,9 +138,7 @@ async def test_over_valve_full_start(
         assert mock_send_event.call_count == 1
 
     # 3. Set temperature and external temperature
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -208,17 +198,11 @@ async def test_over_valve_full_start(
         assert entity.hvac_action == HVACAction.HEATING
 
     # 4. Change internal temperature
-    expected_state = State(
-        entity_id="number.mock_valve", state="0", attributes={"min": 10, "max": 50}
-    )
+    expected_state = State(entity_id="number.mock_valve", state="0", attributes={"min": 10, "max": 50})
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.get", return_value=expected_state
-    ):
+    ) as mock_service_call, patch("homeassistant.core.StateMachine.get", return_value=expected_state):
         # Force reload the underlying valve entity. For test only
         entity.underlying_entity(0).init_min_max_open(force=True)
         event_timestamp = now - timedelta(minutes=2)
@@ -254,9 +238,7 @@ async def test_over_valve_full_start(
                 call.async_call(
                     domain="number",
                     service="set_value",
-                    service_data={
-                        "value": 34
-                    },  # 34 is 50 x open_percent (69%) and is the max allowed value
+                    service_data={"value": 34},  # 34 is 50 x open_percent (69%) and is the max allowed value
                     target={"entity_id": "number.mock_valve"},
                 ),
             ]
@@ -277,26 +259,18 @@ async def test_over_valve_full_start(
         assert entity.hvac_action == HVACAction.IDLE
 
     # 5. Test window open/close (with a normal min/max so that is_device_active is False when open_percent is 0)
-    expected_state = State(
-        entity_id="number.mock_valve", state="0", attributes={"min": 0, "max": 255}
-    )
+    expected_state = State(entity_id="number.mock_valve", state="0", attributes={"min": 0, "max": 255})
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.get", return_value=expected_state
-    ):
+    ) as mock_service_call, patch("homeassistant.core.StateMachine.get", return_value=expected_state):
         # Force reload the underlying valve entity. For test only
         entity.underlying_entity(0).init_min_max_open(force=True)
 
         # Open a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=1)
-            try_condition = await send_window_change_event(
-                entity, True, False, event_timestamp
-            )
+            try_condition = await send_window_change_event(entity, True, False, event_timestamp)
 
             # Confirme the window event
             await try_condition(None)
@@ -309,9 +283,7 @@ async def test_over_valve_full_start(
         # Close a window
         with patch("homeassistant.helpers.condition.state", return_value=True):
             event_timestamp = now - timedelta(minutes=0)
-            try_condition = await send_window_change_event(
-                entity, False, True, event_timestamp
-            )
+            try_condition = await send_window_change_event(entity, False, True, event_timestamp)
 
             # Confirme the window event
             await try_condition(None)
@@ -322,9 +294,7 @@ async def test_over_valve_full_start(
             assert entity.valve_open_percent == 10
 
 
-async def test_over_valve_regulation(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_valve_regulation(hass: HomeAssistant, skip_hass_states_is_state):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -366,12 +336,8 @@ async def test_over_valve_regulation(
     now: datetime = datetime.now(tz=tz)
 
     # 1. prepare the Valve at now
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
-        entity: ThermostatOverValve = await create_thermostat(
-            hass, entry, "climate.theovervalvemockname"
-        )
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
+        entity: ThermostatOverValve = await create_thermostat(hass, entry, "climate.theovervalvemockname")
         assert entity
         assert isinstance(entity, ThermostatOverValve)
 
@@ -384,9 +350,7 @@ async def test_over_valve_regulation(
 
     # 2. Set the VThermHvacMode to HEAT, with manual preset and target_temp to 18 before receiving temperature
     # at now +1
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         now = now + timedelta(minutes=1)
         entity._set_now(now)
 
@@ -408,9 +372,7 @@ async def test_over_valve_regulation(
 
     # 3. Set the preset
     # at now +1
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         now = now + timedelta(minutes=1)
         entity._set_now(now)
 
@@ -437,9 +399,7 @@ async def test_over_valve_regulation(
 
     # 4. Set temperature and external temperature
     # at now + 1 (but the _last_calculation_timestamp is still not send)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -473,9 +433,7 @@ async def test_over_valve_regulation(
 
     # 5. Set external temperature
     # at now + 1
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -497,9 +455,7 @@ async def test_over_valve_regulation(
 
     # 6. Set temperature
     # at now + 5 (to avoid the period_min threshold)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -531,9 +487,7 @@ async def test_over_valve_regulation(
 
     # 7. Set small temperature update to test dtemp threshold
     # at now + 5
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -555,9 +509,7 @@ async def test_over_valve_regulation(
         assert mock_send_event.call_count == 0
 
 
-async def test_bug_533(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state):  # pylint: disable=unused-argument
     """Test that with an over_valve and _auto_regulation_dpercent is set that the valve could close totally"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -603,9 +555,7 @@ async def test_bug_533(
     #     hass=hass, unique_id="mock_number", name="mock_number"
     # )
 
-    vtherm: ThermostatOverValve = await create_thermostat(
-        hass, config_entry, "climate.overvalve"
-    )
+    vtherm: ThermostatOverValve = await create_thermostat(hass, config_entry, "climate.overvalve")
 
     assert vtherm is not None
 

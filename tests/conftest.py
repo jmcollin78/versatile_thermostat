@@ -1,4 +1,5 @@
 """Global fixtures for integration_blueprint integration."""
+
 # pylint: disable=line-too-long
 
 # Fixtures allow you to replace functions with a Mock object. You can perform
@@ -23,6 +24,7 @@ from aiohttp.resolver import ThreadedResolver
 import homeassistant.util.dt as ha_dt
 import pytest
 import pytest_asyncio
+
 # https://github.com/miketheman/pytest-socket/pull/275
 from pytest_socket import socket_allow_hosts
 import asyncio
@@ -52,9 +54,7 @@ from .commons import (
 
 def pytest_runtest_setup():
     """setup tests"""
-    socket_allow_hosts(
-        allowed=["localhost", "127.0.0.1", "::1"], allow_unix_socket=True
-    )
+    socket_allow_hosts(allowed=["localhost", "127.0.0.1", "::1"], allow_unix_socket=True)
 
 
 async def _fast_async_get_time_zone(time_zone_str: str):
@@ -88,6 +88,7 @@ ha_dt._async_get_time_zone = _fast_async_get_time_zone
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
+
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
@@ -104,18 +105,14 @@ def auto_enable_custom_integrations(
 @pytest.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
-    with patch("homeassistant.components.persistent_notification.async_create"), patch(
-        "homeassistant.components.persistent_notification.async_dismiss"
-    ):
+    with patch("homeassistant.components.persistent_notification.async_create"), patch("homeassistant.components.persistent_notification.async_dismiss"):
         yield
 
 
 @pytest.fixture(name="skip_turn_on_off_heater")
 def skip_turn_on_off_heater():
     """Skip turning on and off the heater"""
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingEntity.turn_on"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingEntity.turn_on"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingEntity.turn_off"
     ):
         yield
@@ -140,18 +137,14 @@ def skip_hass_states_get_fixture():
 @pytest.fixture(name="skip_control_heating")
 def skip_control_heating_fixture():
     """Skip the control_heating of VersatileThermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         yield
 
 
 @pytest.fixture(name="skip_find_underlying_climate")
 def skip_find_underlying_climate_fixture():
     """Skip the find_underlying_climate of VersatileThermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate"
-    ):
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate"):
         yield
 
 
@@ -214,16 +207,10 @@ async def cleanup_event_loop_tasks():
     yield
 
     loop = asyncio.get_running_loop()
-    pending = [
-        task
-        for task in asyncio.all_tasks(loop)
-        if task is not asyncio.current_task(loop) and not task.done()
-    ]
+    pending = [task for task in asyncio.all_tasks(loop) if task is not asyncio.current_task(loop) and not task.done()]
 
     # Cancel any scheduled timer handles to avoid long waits on shutdown
-    scheduled = [
-        handle for handle in list(getattr(loop, "_scheduled", ())) if not handle.cancelled()
-    ]
+    scheduled = [handle for handle in list(getattr(loop, "_scheduled", ())) if not handle.cancelled()]
     for handle in scheduled:
         handle.cancel()
 
@@ -372,9 +359,7 @@ def init_vtherm_api_fixture(hass):
 
 
 @pytest.fixture(name="init_central_config")
-async def init_central_config_fixture(
-    hass, init_vtherm_api
-):  # pylint: disable=unused-argument
+async def init_central_config_fixture(hass, init_vtherm_api):  # pylint: disable=unused-argument
     """Initialize the VTherm API"""
     await create_central_config(hass, FULL_CENTRAL_CONFIG)
 
@@ -382,9 +367,7 @@ async def init_central_config_fixture(
 
 
 @pytest.fixture(name="init_central_config_with_boiler_fixture")
-async def init_central_config_with_boiler_fixture(
-    hass, init_vtherm_api
-):  # pylint: disable=unused-argument
+async def init_central_config_with_boiler_fixture(hass, init_vtherm_api):  # pylint: disable=unused-argument
     """Initialize the VTherm API"""
     await create_central_config(hass, FULL_CENTRAL_CONFIG_WITH_BOILER)
 
@@ -392,9 +375,7 @@ async def init_central_config_with_boiler_fixture(
 
 
 @pytest.fixture(name="init_central_power_manager")
-async def init_central_power_manager_fixture(
-    hass, init_central_config
-):  # pylint: disable=unused-argument
+async def init_central_power_manager_fixture(hass, init_central_config):  # pylint: disable=unused-argument
     """Initialize the central power_manager"""
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
 

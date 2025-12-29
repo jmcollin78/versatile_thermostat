@@ -172,9 +172,7 @@ class UnderlyingEntity:
             await self.set_hvac_mode(hvac_mode)
 
     # override to be able to mock the call
-    def call_later(
-        self, hass: HomeAssistant, delay_sec: int, called_method
-    ) -> CALLBACK_TYPE:
+    def call_later(self, hass: HomeAssistant, delay_sec: int, called_method) -> CALLBACK_TYPE:
         """Call the method after a delay"""
         return async_call_later(hass, delay_sec, called_method)
 
@@ -211,6 +209,7 @@ class UnderlyingEntity:
             return False
 
         return True
+
 
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -300,8 +299,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         if state is None or state.state == STATE_UNAVAILABLE:
             if timer.is_ready():
                 _LOGGER.warning(
-                    "Entity %s is not available (state: %s). Will keep trying "
-                    "keep alive calls, but won't log this condition every time.",
+                    "Entity %s is not available (state: %s). Will keep trying " "keep alive calls, but won't log this condition every time.",
                     self._entity_id,
                     state.state if state else "None",
                 )
@@ -431,9 +429,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         # If we should heat, starts the cycle with delay
         if self._hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL] and on_time_sec > 0:
             # Starts the cycle after the initial delay
-            self._async_cancel_cycle = self.call_later(
-                self._hass, self._initial_delay_sec, self._turn_on_later
-            )
+            self._async_cancel_cycle = self.call_later(self._hass, self._initial_delay_sec, self._turn_on_later)
             _LOGGER.debug("%s - _async_cancel_cycle=%s", self, self._async_cancel_cycle)
 
         # if we not heat but device is active
@@ -767,14 +763,8 @@ class UnderlyingClimate(UnderlyingEntity):
 
         hvac_action = self._underlying_climate.hvac_action
         if hvac_action is None:
-            target = (
-                self.underlying_target_temperature
-                or self._thermostat.target_temperature
-            )
-            current = (
-                self.underlying_current_temperature
-                or self._thermostat.current_temperature
-            )
+            target = self.underlying_target_temperature or self._thermostat.target_temperature
+            current = self.underlying_current_temperature or self._thermostat.current_temperature
             hvac_mode = self.hvac_mode
 
             _LOGGER.debug(
@@ -952,16 +942,9 @@ class UnderlyingClimate(UnderlyingEntity):
             return value
 
         # Gets the min_temp and max_temp
-        if (
-            self._underlying_climate.min_temp is not None
-            and self._underlying_climate is not None
-        ):
-            min_val = TemperatureConverter.convert(
-                self._underlying_climate.min_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
-            )
-            max_val = TemperatureConverter.convert(
-                self._underlying_climate.max_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
-            )
+        if self._underlying_climate.min_temp is not None and self._underlying_climate is not None:
+            min_val = TemperatureConverter.convert(self._underlying_climate.min_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit)
+            max_val = TemperatureConverter.convert(self._underlying_climate.max_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit)
 
             new_value = max(min_val, min(value, max_val))
         else:
@@ -1138,9 +1121,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._percent_open = caped_val
         # Send the new command to valve via a service call
 
-        _LOGGER.info(
-            "%s - Setting valve ouverture percent to %s", self, self._percent_open
-        )
+        _LOGGER.info("%s - Setting valve ouverture percent to %s", self, self._percent_open)
         # Send the change to the valve, in background
         # self._hass.create_task(self.send_percent_open())
         await self.send_percent_open()
@@ -1199,20 +1180,12 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def initialize_min_max(self):
         """Initialize min and max values for opening and closing degrees"""
         if not self._is_min_max_initialized:
-            _LOGGER.debug(
-                "%s - initialize min offset_calibration and max open_degree", self
-            )
-            self._max_opening_degree = self._hass.states.get(
-                self._opening_degree_entity_id
-            ).attributes.get("max")
+            _LOGGER.debug("%s - initialize min offset_calibration and max open_degree", self)
+            self._max_opening_degree = self._hass.states.get(self._opening_degree_entity_id).attributes.get("max")
 
             if self.has_offset_calibration_entity:
-                self._min_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("min")
-                self._max_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("max")
+                self._min_offset_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("min")
+                self._max_offset_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("max")
                 self._step_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("step") or 0.1  # default step is 0.1
 
             self._is_min_max_initialized = self._max_opening_degree is not None and (
@@ -1258,22 +1231,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
         offset = None
         if self.has_offset_calibration_entity:
             if (
-                (local_temp := self._climate_underlying.underlying_current_temperature)
-                is not None
+                (local_temp := self._climate_underlying.underlying_current_temperature) is not None
                 and (room_temp := self._thermostat.current_temperature) is not None
-                and (
-                    current_offset := get_safe_float(
-                        self._hass, self._offset_calibration_entity_id
-                    )
-                )
-                is not None
+                and (current_offset := get_safe_float(self._hass, self._offset_calibration_entity_id)) is not None
             ):
                 val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_calibration)
                 offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
 
-                await self._send_value_to_number(
-                    self._offset_calibration_entity_id, offset
-                )
+                await self._send_value_to_number(self._offset_calibration_entity_id, offset)
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",

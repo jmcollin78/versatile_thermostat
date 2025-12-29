@@ -1,4 +1,5 @@
 """ This module manages the lock feature of the Versatile Thermostat integration. """
+
 import logging
 from typing import Any
 
@@ -15,8 +16,10 @@ from .base_manager import BaseFeatureManager
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class FeatureLockManager(BaseFeatureManager):
-    """ The implementation of the Lock Feature Manager for Versatile Thermostat """
+    """The implementation of the Lock Feature Manager for Versatile Thermostat"""
+
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Initialize the FeatureLockManager."""
         super().__init__(vtherm, hass)
@@ -60,10 +63,7 @@ class FeatureLockManager(BaseFeatureManager):
         source_is_user = context and context.user_id is not None
         source_is_automation = not source_is_user
 
-        if self._is_locked and (
-            (self._lock_users and source_is_user)
-            or (self._lock_automations and source_is_automation)
-        ):
+        if self._is_locked and ((self._lock_users and source_is_user) or (self._lock_automations and source_is_automation)):
             _LOGGER.info(
                 "%s - Blocked external call to %s while locked (source=%s)",
                 self,
@@ -104,11 +104,5 @@ class FeatureLockManager(BaseFeatureManager):
         )
         if self._is_configured:
             extra_state_attributes.update(
-                {
-                    "lock_manager": {
-                        "is_locked": self._is_locked,
-                        "lock_users": self._lock_users,
-                        "lock_automations": self._lock_automations,
-                        "lock_code": bool(self._lock_code)
-                    }
-                })
+                {"lock_manager": {"is_locked": self._is_locked, "lock_users": self._lock_users, "lock_automations": self._lock_automations, "lock_code": bool(self._lock_code)}}
+            )

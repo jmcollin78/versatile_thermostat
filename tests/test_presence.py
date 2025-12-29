@@ -28,9 +28,7 @@ logging.getLogger().setLevel(logging.DEBUG)
         (17, False, "wrong state", 0, STATE_UNKNOWN, False),
     ],
 )
-async def test_presence_feature_manager(
-    hass: HomeAssistant, temp, absence, state, nb_call, presence_state, changed
-):
+async def test_presence_feature_manager(hass: HomeAssistant, temp, absence, state, nb_call, presence_state, changed):
     """Test the FeaturePresenceManager class direclty"""
 
     fake_vtherm = MagicMock(spec=BaseThermostat)

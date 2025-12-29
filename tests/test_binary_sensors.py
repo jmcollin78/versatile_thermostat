@@ -66,9 +66,7 @@ async def test_safety_binary_sensors(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat (
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     safety_binary_sensor: SafetyBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_safety_state", "binary_sensor")
@@ -146,14 +144,10 @@ async def test_overpowering_binary_sensors(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname", temps
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
     assert entity
 
-    overpowering_binary_sensor: OverpoweringBinarySensor = search_entity(
-        hass, "binary_sensor.theoverswitchmockname_overpowering_state", "binary_sensor"
-    )
+    overpowering_binary_sensor: OverpoweringBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_overpowering_state", "binary_sensor")
     assert overpowering_binary_sensor
 
     now: datetime = NowClass.get_now(hass)
@@ -247,14 +241,10 @@ async def test_window_binary_sensors(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
-    window_binary_sensor: WindowBinarySensor = search_entity(
-        hass, "binary_sensor.theoverswitchmockname_window_state", "binary_sensor"
-    )
+    window_binary_sensor: WindowBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_window_state", "binary_sensor")
     assert window_binary_sensor
 
     now: datetime = datetime.now(tz=get_tz(hass))
@@ -335,14 +325,10 @@ async def test_motion_binary_sensors(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
-    motion_binary_sensor: MotionBinarySensor = search_entity(
-        hass, "binary_sensor.theoverswitchmockname_motion_state", "binary_sensor"
-    )
+    motion_binary_sensor: MotionBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_motion_state", "binary_sensor")
     assert motion_binary_sensor
 
     now: datetime = datetime.now(tz=get_tz(hass))
@@ -424,14 +410,10 @@ async def test_presence_binary_sensors(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
-    presence_binary_sensor: PresenceBinarySensor = search_entity(
-        hass, "binary_sensor.theoverswitchmockname_presence_state", "binary_sensor"
-    )
+    presence_binary_sensor: PresenceBinarySensor = search_entity(hass, "binary_sensor.theoverswitchmockname_presence_state", "binary_sensor")
     assert presence_binary_sensor
 
     now: datetime = datetime.now(tz=get_tz(hass))
@@ -505,31 +487,21 @@ async def test_binary_sensors_over_climate_minimal(
             },
         )
 
-        entity: BaseThermostat = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.is_over_climate
 
     safety_binary_sensor: SafetyBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_safety_state", "binary_sensor")
     assert safety_binary_sensor is not None
 
-    overpowering_binary_sensor: OverpoweringBinarySensor = search_entity(
-        hass, "binary_sensor.theoverclimatemockname_overpowering_state", "binary_sensor"
-    )
+    overpowering_binary_sensor: OverpoweringBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_overpowering_state", "binary_sensor")
     assert overpowering_binary_sensor is None
 
-    window_binary_sensor: WindowBinarySensor = search_entity(
-        hass, "binary_sensor.theoverclimatemockname_window_state", "binary_sensor"
-    )
+    window_binary_sensor: WindowBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_window_state", "binary_sensor")
     assert window_binary_sensor is None
 
-    motion_binary_sensor: MotionBinarySensor = search_entity(
-        hass, "binary_sensor.theoverclimatemockname_motion_state", "binary_sensor"
-    )
+    motion_binary_sensor: MotionBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_motion_state", "binary_sensor")
     assert motion_binary_sensor is None
 
-    presence_binary_sensor: PresenceBinarySensor = search_entity(
-        hass, "binary_sensor.theoverclimatemockname_presence_state", "binary_sensor"
-    )
+    presence_binary_sensor: PresenceBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_presence_state", "binary_sensor")
     assert presence_binary_sensor is None

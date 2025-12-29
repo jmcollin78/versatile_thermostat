@@ -113,9 +113,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(
-    hass: HomeAssistant, config: ConfigType
-):  # pylint: disable=unused-argument
+async def async_setup(hass: HomeAssistant, config: ConfigType):  # pylint: disable=unused-argument
     """Initialisation de l'intégration"""
     _LOGGER.info(
         "Initializing %s integration with config: %s",
@@ -140,9 +138,7 @@ async def async_setup(
     # Listen HA starts to initialize all links between
     @callback
     async def _async_startup_internal(*_):
-        _LOGGER.info(
-            "VersatileThermostat - HA is started, initialize all links between VTherm entities"
-        )
+        _LOGGER.info("VersatileThermostat - HA is started, initialize all links between VTherm entities")
         await api.init_vtherm_links()
         await api.notify_central_mode_change()
 
@@ -167,9 +163,7 @@ async def reload_all_vtherm(hass):
 
     current_entries = hass.config_entries.async_entries(DOMAIN)
 
-    reload_tasks = [
-        hass.config_entries.async_reload(entry.entry_id) for entry in current_entries
-    ]
+    reload_tasks = [hass.config_entries.async_reload(entry.entry_id) for entry in current_entries]
 
     await asyncio.gather(*reload_tasks)
     api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -236,17 +230,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 # Example migration function
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate old entry."""
-    _LOGGER.debug(
-        "Migrating from version %s/%s", config_entry.version, config_entry.minor_version
-    )
+    _LOGGER.debug("Migrating from version %s/%s", config_entry.version, config_entry.minor_version)
 
-    if (
-        config_entry.version != CONFIG_VERSION
-        or config_entry.minor_version != CONFIG_MINOR_VERSION
-    ):
-        _LOGGER.debug(
-            "Migration to %s/%s is needed", CONFIG_VERSION, CONFIG_MINOR_VERSION
-        )
+    if config_entry.version != CONFIG_VERSION or config_entry.minor_version != CONFIG_MINOR_VERSION:
+        _LOGGER.debug("Migration to %s/%s is needed", CONFIG_VERSION, CONFIG_MINOR_VERSION)
         new = {**config_entry.data}
 
         thermostat_type = config_entry.data.get(CONF_THERMOSTAT_TYPE)
@@ -255,13 +242,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             new[CONF_USE_WINDOW_FEATURE] = True
             new[CONF_USE_MOTION_FEATURE] = True
             new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
-            new[CONF_USE_PRESENCE_FEATURE] = (
-                new.get(CONF_PRESENCE_SENSOR, None) is not None
-            )
+            new[CONF_USE_PRESENCE_FEATURE] = new.get(CONF_PRESENCE_SENSOR, None) is not None
 
-            new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
-                "add_central_boiler_control", False
-            ) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
+            new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get("add_central_boiler_control", False) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
 
         if config_entry.data.get(CONF_UNDERLYING_LIST, None) is None:
             underlying_list = []
@@ -287,9 +270,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     config_entry.data.get(CONF_VALVE_4, None),
                 ]
 
-            new[CONF_UNDERLYING_LIST] = [
-                entity for entity in underlying_list if entity is not None
-            ]
+            new[CONF_UNDERLYING_LIST] = [entity for entity in underlying_list if entity is not None]
 
             for key in [
                 CONF_HEATER,
@@ -322,12 +303,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 new.pop(key, None)
 
         # Update the config entry with migrated data
-        hass.config_entries.async_update_entry(
-            config_entry,
-            data=new,
-            version=CONFIG_VERSION,
-            minor_version=CONFIG_MINOR_VERSION
-        )
+        hass.config_entries.async_update_entry(config_entry, data=new, version=CONFIG_VERSION, minor_version=CONFIG_MINOR_VERSION)
 
         _LOGGER.info("Migration to version %s.%s successful", CONFIG_VERSION, CONFIG_MINOR_VERSION)
 

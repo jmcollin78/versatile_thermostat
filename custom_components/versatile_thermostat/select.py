@@ -38,9 +38,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat selects with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
+    _LOGGER.debug("Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data)
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
@@ -59,9 +57,7 @@ async def async_setup_entry(
 class CentralModeSelect(SelectEntity, RestoreEntity):
     """Representation of the central mode choice"""
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
-    ):
+    def __init__(self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData):
         """Initialize the energy sensor"""
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
@@ -90,9 +86,7 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
         await super().async_added_to_hass()
 
         old_state = await self.async_get_last_state()
-        _LOGGER.debug(
-            "%s - Calling async_added_to_hass old_state is %s", self, old_state
-        )
+        _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         if old_state is not None:
             self._attr_current_option = old_state.state
 

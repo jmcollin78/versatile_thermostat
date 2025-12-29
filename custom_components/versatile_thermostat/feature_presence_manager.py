@@ -54,10 +54,7 @@ class FeaturePresenceManager(BaseFeatureManager):
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
         self._presence_sensor_entity_id = entry_infos.get(CONF_PRESENCE_SENSOR)
-        if (
-            entry_infos.get(CONF_USE_PRESENCE_FEATURE, False)
-            and self._presence_sensor_entity_id is not None
-        ):
+        if entry_infos.get(CONF_USE_PRESENCE_FEATURE, False) and self._presence_sensor_entity_id is not None:
             self._is_configured = True
             self._presence_state = STATE_UNKNOWN
 

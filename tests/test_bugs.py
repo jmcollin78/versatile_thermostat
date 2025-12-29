@@ -70,9 +70,7 @@ async def test_bug_63(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     assert entity.safety_manager.safety_min_on_percent == 0
@@ -121,9 +119,7 @@ async def test_bug_64(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
 
@@ -149,14 +145,10 @@ async def test_bug_272(
     # Min_temp is 15 and max_temp is 19
     fake_underlying_climate = MagicMockClimate()
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
-    ), patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call:
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
 
@@ -206,9 +198,7 @@ async def test_bug_272(
     event_timestamp: datetime = datetime.now(tz=tz)
     entity._set_now(now)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         # Set room temperature to something very cold
         await send_temperature_change_event(entity, 13, now)
         await send_ext_temperature_change_event(entity, 9, now)
@@ -235,9 +225,7 @@ async def test_bug_272(
             ]
         )
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         # Set room temperature to something very cold
         event_timestamp = event_timestamp + timedelta(minutes=1)
         entity._set_now(event_timestamp)
@@ -266,9 +254,7 @@ async def test_bug_272(
         )
 
 
-async def test_bug_407(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_bug_407(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Test the followin case in power management:
     1. a heater is active (heating). So the power consumption takes the heater power into account. We suppose the power consumption is near the threshold,
     2. the user switch preset let's say from Comfort to Boost,
@@ -312,9 +298,7 @@ async def test_bug_407(
         },
     )
 
-    entity: ThermostatOverSwitch = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname", temps
-    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
     assert entity
 
     tpi_algo = entity._prop_algorithm
@@ -335,9 +319,7 @@ async def test_bug_407(
         State("unknown.entity_id", "unknown"),
     )
 
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=True,
@@ -369,9 +351,7 @@ async def test_bug_407(
         assert entity.is_device_active is True
 
     # 2. An already active heater that switch preset will not switch to overpowering
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=True,
@@ -402,9 +382,7 @@ async def test_bug_407(
     # 3. Evenif heater is stopped (is_device_active==False) and power is over max, then overpowering should be started
     # due to check before start heating
     side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 150))
-    with patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
         new_callable=PropertyMock,
         return_value=False,
@@ -557,9 +535,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
         assert vtherm is not None
 
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
@@ -605,9 +581,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     #
     # 7. open the window
     with patch("homeassistant.helpers.condition.state", return_value=True):
-        try_window_condition = await send_window_change_event(
-            vtherm, True, False, now, False
-        )
+        try_window_condition = await send_window_change_event(vtherm, True, False, now, False)
         await try_window_condition(None)
         await hass.async_block_till_done()
 
@@ -624,9 +598,7 @@ async def test_bug_465(hass: HomeAssistant, skip_hass_states_is_state):
     # 9. Close the window (we should come back to Cool this time)
     now = now + timedelta(minutes=2)
     with patch("homeassistant.helpers.condition.state", return_value=True):
-        try_window_condition = await send_window_change_event(
-            vtherm, False, True, now, False
-        )
+        try_window_condition = await send_window_change_event(vtherm, False, True, now, False)
         await try_window_condition(None)
         await hass.async_block_till_done()
 

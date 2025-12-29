@@ -74,9 +74,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat selects with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
+    _LOGGER.debug("Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data)
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
@@ -95,11 +93,7 @@ async def async_setup_entry(
                         name,
                         preset,
                     )
-                    entities.append(
-                        TemperatureNumber(
-                            hass, unique_id, name, preset, True, False, entry.data
-                        )
-                    )
+                    entities.append(TemperatureNumber(hass, unique_id, name, preset, True, False, entry.data))
             else:
                 for preset in CONF_PRESETS_VALUES:
                     _LOGGER.debug(
@@ -107,11 +101,7 @@ async def async_setup_entry(
                         name,
                         preset,
                     )
-                    entities.append(
-                        TemperatureNumber(
-                            hass, unique_id, name, preset, False, False, entry.data
-                        )
-                    )
+                    entities.append(TemperatureNumber(hass, unique_id, name, preset, False, False, entry.data))
 
             if entry.data.get(CONF_USE_PRESENCE_FEATURE, False) is True:
                 if entry.data.get(CONF_AC_MODE, False):
@@ -143,29 +133,17 @@ async def async_setup_entry(
                 name,
                 preset,
             )
-            entities.append(
-                CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, True, False, entry.data
-                )
-            )
+            entities.append(CentralConfigTemperatureNumber(hass, unique_id, name, preset, True, False, entry.data))
 
         for preset in CONF_PRESETS_AWAY_WITH_AC_VALUES:
-            _LOGGER.debug(
-                "%s - configuring Number central, AC, AWAY for preset %s", name, preset
-            )
-            entities.append(
-                CentralConfigTemperatureNumber(
-                    hass, unique_id, name, preset, True, True, entry.data
-                )
-            )
+            _LOGGER.debug("%s - configuring Number central, AC, AWAY for preset %s", name, preset)
+            entities.append(CentralConfigTemperatureNumber(hass, unique_id, name, preset, True, True, entry.data))
 
     if len(entities) > 0:
         async_add_entities(entities, True)
 
 
-class ActivateBoilerThresholdNumber(
-    NumberEntity, RestoreEntity
-):  # pylint: disable=abstract-method
+class ActivateBoilerThresholdNumber(NumberEntity, RestoreEntity):  # pylint: disable=abstract-method
     """Representation of the threshold of the number of VTherm
     which should be active to activate the boiler"""
 
@@ -209,9 +187,7 @@ class ActivateBoilerThresholdNumber(
         api.central_boiler_manager.register_central_boiler_activation_number_threshold(self)
 
         old_state: CoreState = await self.async_get_last_state()
-        _LOGGER.debug(
-            "%s - Calling async_added_to_hass old_state is %s", self, old_state
-        )
+        _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         if old_state is not None:
             self._attr_value = self._attr_native_value = int(float(old_state.state))
 
@@ -291,9 +267,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         return f"VersatileThermostat-{self.name}"
 
 
-class CentralConfigTemperatureNumber(
-    NumberEntity, RestoreEntity
-):  # pylint: disable=abstract-method
+class CentralConfigTemperatureNumber(NumberEntity, RestoreEntity):  # pylint: disable=abstract-method
     """Representation of one temperature number"""
 
     _attr_has_entity_name = True
@@ -368,9 +342,7 @@ class CentralConfigTemperatureNumber(
 
         # Restore value from previous one if exists
         old_state: CoreState = await self.async_get_last_state()
-        _LOGGER.debug(
-            "%s - Calling async_added_to_hass old_state is %s", self, old_state
-        )
+        _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         try:
             if old_state is not None and ((value := float(old_state.state)) > 0):
                 self._attr_value = self._attr_native_value = value
@@ -381,9 +353,7 @@ class CentralConfigTemperatureNumber(
     async def async_set_native_value(self, value: float) -> None:
         """The value have change from the Number Entity in UI"""
         float_value = float(value)
-        old_value = (
-            None if self._attr_native_value is None else float(self._attr_native_value)
-        )
+        old_value = None if self._attr_native_value is None else float(self._attr_native_value)
 
         if float_value == old_value:
             return
@@ -409,9 +379,7 @@ class CentralConfigTemperatureNumber(
         return self.hass.config.units.temperature_unit
 
 
-class TemperatureNumber(  # pylint: disable=abstract-method
-    VersatileThermostatBaseEntity, NumberEntity, RestoreEntity
-):
+class TemperatureNumber(VersatileThermostatBaseEntity, NumberEntity, RestoreEntity):  # pylint: disable=abstract-method
     """Representation of one temperature number"""
 
     _attr_has_entity_name = True
@@ -438,9 +406,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_native_unit_of_measurement = hass.config.units.temperature_unit
 
-        self._has_central_main_attributes = entry_infos.get(
-            CONF_USE_MAIN_CENTRAL_CONFIG, False
-        )
+        self._has_central_main_attributes = entry_infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False)
 
         self.init_min_max_step(entry_infos)
 
@@ -457,9 +423,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
 
         self._attr_mode = NumberMode.BOX
         self._preset_name = preset_name
-        self._canonical_preset_name = preset_name.replace(
-            PRESET_TEMP_SUFFIX, ""
-        ).replace(PRESET_AWAY_SUFFIX, "")
+        self._canonical_preset_name = preset_name.replace(PRESET_TEMP_SUFFIX, "").replace(PRESET_AWAY_SUFFIX, "")
         self._is_away = is_away
         self._is_ac = is_ac
 
@@ -476,9 +440,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         api.register_temperature_number(self._config_id, self._preset_name, self)
 
         old_state: CoreState = await self.async_get_last_state()
-        _LOGGER.debug(
-            "%s - Calling async_added_to_hass old_state is %s", self, old_state
-        )
+        _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         try:
             if old_state is not None and ((value := float(old_state.state)) > 0):
                 self._attr_value = self._attr_native_value = value
@@ -498,15 +460,11 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         """Change the value"""
 
         if self.my_climate is None:
-            _LOGGER.warning(
-                "%s - cannot change temperature because VTherm is not initialized", self
-            )
+            _LOGGER.warning("%s - cannot change temperature because VTherm is not initialized", self)
             return
 
         float_value = float(value)
-        old_value = (
-            None if self._attr_native_value is None else float(self._attr_native_value)
-        )
+        old_value = None if self._attr_native_value is None else float(self._attr_native_value)
 
         if float_value == old_value:
             return
@@ -550,12 +508,6 @@ class TemperatureNumber(  # pylint: disable=abstract-method
                 return
 
         if entry_infos:
-            self._attr_native_step = entry_infos.get(
-                CONF_STEP_TEMPERATURE, DEFAULT_STEP
-            )
-            self._attr_native_min_value = entry_infos.get(
-                CONF_TEMP_MIN, DEFAULT_MIN_VALUE
-            )
-            self._attr_native_max_value = entry_infos.get(
-                CONF_TEMP_MAX, DEFAULT_MAX_VALUE
-            )
+            self._attr_native_step = entry_infos.get(CONF_STEP_TEMPERATURE, DEFAULT_STEP)
+            self._attr_native_min_value = entry_infos.get(CONF_TEMP_MIN, DEFAULT_MIN_VALUE)
+            self._attr_native_max_value = entry_infos.get(CONF_TEMP_MAX, DEFAULT_MAX_VALUE)

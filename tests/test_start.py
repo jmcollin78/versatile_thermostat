@@ -30,9 +30,7 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
         data=FULL_SWITCH_CONFIG,
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
 
         assert entity
@@ -88,9 +86,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
 
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_HEAT_COOL])
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
@@ -148,9 +144,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         data=FULL_4SWITCH_CONFIG,
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theover4switchmockname")
 
         assert entity
@@ -199,9 +193,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
         )
 
 
-async def test_over_switch_deactivate_preset(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_over_switch_deactivate_preset(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -238,9 +230,7 @@ async def test_over_switch_deactivate_preset(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     assert isinstance(entity, ThermostatOverSwitch)
 

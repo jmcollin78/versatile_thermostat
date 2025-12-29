@@ -76,11 +76,7 @@ class FeatureMotionManager(BaseFeatureManager):
 
         self._motion_preset = entry_infos.get(CONF_MOTION_PRESET)
         self._no_motion_preset = entry_infos.get(CONF_NO_MOTION_PRESET)
-        if (
-            self._motion_sensor_entity_id is not None
-            and self._motion_preset is not None
-            and self._no_motion_preset is not None
-        ):
+        if self._motion_sensor_entity_id is not None and self._motion_preset is not None and self._no_motion_preset is not None:
             self._is_configured = True
             self._motion_state = STATE_UNKNOWN
 
@@ -151,11 +147,7 @@ class FeatureMotionManager(BaseFeatureManager):
             self.dearm_motion_timer()
 
             try:
-                delay = (
-                    self._motion_delay_sec
-                    if new_state.state == STATE_ON
-                    else self._motion_off_delay_sec
-                )
+                delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
                 long_enough = condition.state(
                     self.hass,
                     self._motion_sensor_entity_id,
@@ -166,9 +158,7 @@ class FeatureMotionManager(BaseFeatureManager):
                 long_enough = False
 
             if not long_enough:
-                _LOGGER.debug(
-                    "Motion delay condition is not satisfied (the sensor have change its state during the delay). Check motion sensor state"
-                )
+                _LOGGER.debug("Motion delay condition is not satisfied (the sensor have change its state during the delay). Check motion sensor state")
                 # Get sensor current state
                 motion_state = self.hass.states.get(self._motion_sensor_entity_id)
                 _LOGGER.debug(
@@ -177,13 +167,8 @@ class FeatureMotionManager(BaseFeatureManager):
                     motion_state.state,
                     new_state.state,
                 )
-                if (
-                    motion_state.state == new_state.state
-                    and new_state.state == STATE_ON
-                ):
-                    _LOGGER.debug(
-                        "%s - the motion sensor is finally 'on' after the delay", self
-                    )
+                if motion_state.state == new_state.state and new_state.state == STATE_ON:
+                    _LOGGER.debug("%s - the motion sensor is finally 'on' after the delay", self)
                     long_enough = True
                 else:
                     long_enough = False
@@ -192,9 +177,7 @@ class FeatureMotionManager(BaseFeatureManager):
                 _LOGGER.debug("%s - Motion delay condition is satisfied", self)
                 await self.update_motion_state(new_state.state)
             else:
-                await self.update_motion_state(
-                    STATE_ON if new_state.state == STATE_OFF else STATE_OFF
-                )
+                await self.update_motion_state(STATE_ON if new_state.state == STATE_OFF else STATE_OFF)
 
         im_on = self._motion_state == STATE_ON
         delay_running = self._motion_call_cancel is not None
@@ -202,14 +185,8 @@ class FeatureMotionManager(BaseFeatureManager):
 
         def arm():
             """Arm the timer"""
-            delay = (
-                self._motion_delay_sec
-                if new_state.state == STATE_ON
-                else self._motion_off_delay_sec
-            )
-            self._motion_call_cancel = async_call_later(
-                self.hass, timedelta(seconds=delay), try_motion_condition
-            )
+            delay = self._motion_delay_sec if new_state.state == STATE_ON else self._motion_off_delay_sec
+            self._motion_call_cancel = async_call_later(self.hass, timedelta(seconds=delay), try_motion_condition)
 
         # if I'm off
         if not im_on:
@@ -258,11 +235,7 @@ class FeatureMotionManager(BaseFeatureManager):
 
     def get_current_motion_preset(self) -> str:
         """Calculate and return the current motion preset"""
-        return (
-            self._motion_preset
-            if self._motion_state == STATE_ON
-            else self._no_motion_preset
-        )
+        return self._motion_preset if self._motion_state == STATE_ON else self._no_motion_preset
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""

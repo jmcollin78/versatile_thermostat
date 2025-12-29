@@ -66,12 +66,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._is_configured = False
         self._current_power = None
         self._current_max_power = None
-        if (
-            entry_infos.get(CONF_USE_POWER_FEATURE, False)
-            and self._max_power_sensor_entity_id
-            and self._power_sensor_entity_id
-            and self._power_temp
-        ):
+        if entry_infos.get(CONF_USE_POWER_FEATURE, False) and self._max_power_sensor_entity_id and self._power_sensor_entity_id and self._power_temp:
             self._is_configured = True
             self._started_vtherm_total_power = 0
         else:
@@ -245,17 +240,12 @@ class FeatureCentralPowerManager(BaseFeatureManager):
     def get_climate_components_entities(self) -> list:
         """Get all VTherms entitites"""
         vtherms = []
-        component: EntityComponent[ClimateEntity] = self._hass.data.get(
-            CLIMATE_DOMAIN, None
-        )
+        component: EntityComponent[ClimateEntity] = self._hass.data.get(CLIMATE_DOMAIN, None)
         if component:
             for entity in component.entities:
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
-                if (
-                    entity.device_info
-                    and entity.device_info.get("model", None) == DOMAIN
-                ):
+                if entity.device_info and entity.device_info.get("model", None) == DOMAIN:
                     vtherms.append(entity)
         return vtherms
 
@@ -264,11 +254,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
     ) -> list:
         """Returns all the VTherms with power management activated"""
         entities = self.get_climate_components_entities()
-        vtherms = [
-            vtherm
-            for vtherm in entities
-            if vtherm.power_manager.is_configured and vtherm.is_on
-        ]
+        vtherms = [vtherm for vtherm in entities if vtherm.power_manager.is_configured and vtherm.is_on]
 
         # sort the result with the min temp difference first. A and B should be BaseThermostat class
         def cmp_temps(a, b) -> int:

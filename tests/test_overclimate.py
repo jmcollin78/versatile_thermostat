@@ -64,9 +64,7 @@ async def test_bug_56(
             },
         )
 
-        entity: BaseThermostat = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         # cause the underlying climate was not found
         assert entity.is_over_climate is True
@@ -118,13 +116,9 @@ async def test_bug_82(
         data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockUnavailableClimate(
-        hass, "mockUniqueId", "MockClimateName", {}
-    )
+    fake_underlying_climate = MockUnavailableClimate(hass, "mockUniqueId", "MockClimateName", {})
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ) as mock_find_climate:
@@ -167,21 +161,15 @@ async def test_bug_82(
         # Force safety mode
         assert entity._last_ext_temperature_measure is not None
         assert entity._last_temperature_measure is not None
-        assert (
-            entity._last_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
-        assert (
-            entity._last_ext_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
+        assert (entity._last_temperature_measure.astimezone(tz) - now).total_seconds() < 1
+        assert (entity._last_ext_temperature_measure.astimezone(tz) - now).total_seconds() < 1
 
         # Tries to turns on the Thermostat
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
         # 2. activate security feature when date is expired
-        with patch(
-            "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-        ) as mock_send_event, patch(
+        with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
             "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
         ):
             event_timestamp = now - timedelta(minutes=6)
@@ -366,14 +354,10 @@ async def test_underlying_change_not_follow(
     # Underlying is in HEAT mode but should be shutdown at startup
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
-    ) as mock_find_climate, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
-    ) as mock_underlying_set_hvac_mode:
+    ) as mock_find_climate, patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_underlying_set_hvac_mode:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
 
         assert entity
@@ -451,9 +435,7 @@ async def test_bug_615(
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
     # 1. create the thermostat
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
@@ -474,9 +456,7 @@ async def test_bug_615(
         assert vtherm.target_temperature == vtherm.min_temp
         assert vtherm.preset_mode == VThermPreset.BOOST
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
-    ) as mock_underlying_set_hvac_mode:
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_underlying_set_hvac_mode:
         # 2. Change the target temp of underlying thermostat at now + 1 min
         now = now + timedelta(minutes=1)
         await send_climate_change_event_with_temperature(
@@ -519,14 +499,10 @@ async def test_bug_508(
     # Min_temp is 10 and max_temp is 31 and features contains TARGET_TEMPERATURE_RANGE
     fake_underlying_climate = MagicMockClimateWithTemperatureRange()
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
-    ), patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call:
+    ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
         assert entity
@@ -653,9 +629,7 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
     assert vtherm is not None
 
@@ -706,6 +680,7 @@ async def test_bug_524(hass: HomeAssistant, skip_hass_states_is_state):
     await hass.async_block_till_done()
     assert vtherm.target_temperature == 25
 
+
 async def test_ignore_temp_outside_minmax_range(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -734,14 +709,10 @@ async def test_ignore_temp_outside_minmax_range(
     # Underlying is in HEAT mode but should be shutdown at startup
     fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
-    ) as mock_find_climate, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
-    ) as mock_underlying_set_hvac_mode:
+    ) as mock_find_climate, patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_underlying_set_hvac_mode:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
 
         assert entity
@@ -853,9 +824,8 @@ async def test_ignore_temp_outside_minmax_range(
         assert entity.target_temperature == 17
         assert entity.hvac_action == HVACAction.IDLE
 
-async def test_manual_hvac_off_should_take_the_lead_over_window(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+
+async def test_manual_hvac_off_should_take_the_lead_over_window(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than a manual hvac_off is taken into account over a window hvac_off"""
 
     # The temperatures to set
@@ -918,9 +888,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -930,13 +898,8 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
         # Check correct initialization of auto_start_stop attributes
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert (
-            vtherm.auto_start_stop_manager.auto_start_stop_level
-            == AUTO_START_STOP_LEVEL_FAST
-        )
-        enable_entity = search_entity(
-            hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-        )
+        assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
         assert enable_entity is not None
         assert enable_entity.state == STATE_ON
 
@@ -959,15 +922,11 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
 
     # 2. Open the window and wait for the delay
     now = now + timedelta(minutes=2)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         vtherm._set_now(now)
-        try_function = await send_window_change_event(
-            vtherm, True, False, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, True, False, now, sleep=False)
 
         await try_function(None)
 
@@ -983,9 +942,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     # 3. Turn off manually the VTherm. This should be taken into account
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
         await wait_for_local_condition(lambda: vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL)
 
@@ -1005,14 +962,10 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
     # 4. close the window -> we should stay off reason manual
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
-        try_function = await send_window_change_event(
-            vtherm, False, True, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, False, True, now, sleep=False)
 
         await try_function(None)
 
@@ -1026,9 +979,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
 
 
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than a manual hvac_off is taken into account over a auto-start/stop hvac_off"""
 
     # The temperatures to set
@@ -1091,9 +1042,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -1103,13 +1052,8 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
         # Check correct initialization of auto_start_stop attributes
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert (
-            vtherm.auto_start_stop_manager.auto_start_stop_level
-            == AUTO_START_STOP_LEVEL_FAST
-        )
-        enable_entity = search_entity(
-            hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-        )
+        assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+        enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
         assert enable_entity is not None
         assert enable_entity.state == STATE_ON
 
@@ -1133,9 +1077,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     vtherm._set_now(now)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         await send_temperature_change_event(vtherm, 21, now, False)
 
         await wait_for_local_condition(lambda: vtherm.vtherm_hvac_mode == VThermHvacMode_OFF)
@@ -1170,9 +1112,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
 
     # 3. Turn off manually the VTherm. This should be taken into account
     now = now + timedelta(minutes=1)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
         await wait_for_local_condition(lambda: vtherm.hvac_off_reason == HVAC_OFF_REASON_MANUAL)
 
@@ -1192,9 +1132,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_auto_start_stop(
     # 4. removes the auto-start/stop detection
     now = now + timedelta(minutes=5)
     vtherm._set_now(now)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         await send_temperature_change_event(vtherm, 15, now, True)

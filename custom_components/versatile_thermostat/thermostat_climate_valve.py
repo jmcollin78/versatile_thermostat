@@ -37,9 +37,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         )
     )
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
-    ):
+    def __init__(self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData):
         """Initialize the ThermostatOverClimateValve class"""
         _LOGGER.debug("%s - creating a ThermostatOverClimateValve VTherm", name)
         self._underlyings_valve_regulation: list[UnderlyingValveRegulation] = []
@@ -61,16 +59,8 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
 
         super().post_init(config_entry)
 
-        self._auto_regulation_dpercent = (
-            config_entry.get(CONF_AUTO_REGULATION_DTEMP)
-            if config_entry.get(CONF_AUTO_REGULATION_DTEMP) is not None
-            else 0.0
-        )
-        self._auto_regulation_period_min = (
-            config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN)
-            if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None
-            else 0
-        )
+        self._auto_regulation_dpercent = config_entry.get(CONF_AUTO_REGULATION_DTEMP) if config_entry.get(CONF_AUTO_REGULATION_DTEMP) is not None else 0.0
+        self._auto_regulation_period_min = config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) if config_entry.get(CONF_AUTO_REGULATION_PERIOD_MIN) is not None else 0
 
         offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
@@ -82,9 +72,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         self._min_opening_degrees = config_entry.get(CONF_MIN_OPENING_DEGREES, None)
         min_opening_degrees_list = []
         if self._min_opening_degrees:
-            min_opening_degrees_list = [
-                int(x.strip()) for x in self._min_opening_degrees.split(",")
-            ]
+            min_opening_degrees_list = [int(x.strip()) for x in self._min_opening_degrees.split(",")]
 
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
             offset = offset_list[idx] if idx < len(offset_list) else None
@@ -216,10 +204,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
 
                 return
 
-        if (
-            self._last_calculation_timestamp is not None
-            and self._valve_open_percent == new_valve_percent
-        ):
+        if self._last_calculation_timestamp is not None and self._valve_open_percent == new_valve_percent:
             _LOGGER.debug("%s - no change in valve_open_percent.", self)
             return
 

@@ -1,4 +1,5 @@
 """ This module manages the central boiler feature of the Versatile Thermostat integration. """
+
 import logging
 from typing import Any
 from datetime import timedelta
@@ -46,12 +47,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
     @overrides
     def post_init(self, entry_infos: dict):
         """Reinit of the manager"""
-        self._service_activate = check_and_extract_service_configuration(
-            entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)
-        )
-        self._service_deactivate = check_and_extract_service_configuration(
-            entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
-        )
+        self._service_activate = check_and_extract_service_configuration(entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV))
+        self._service_deactivate = check_and_extract_service_configuration(entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV))
         self._activation_delay_sec = entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, 0)
         self._is_configured = bool(self._service_activate or self._service_deactivate)
 

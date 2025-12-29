@@ -17,10 +17,12 @@ VALID_HVAC_MODES = {OFF, HEAT, COOL, AUTO, DRY, FAN_ONLY, HEAT_COOL, SLEEP, STAT
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class VThermHvacMode:
     """
     Container and validator for supported HVAC operating modes.
     """
+
     def __init__(self, hvac_mode: str):
         """
         Initialize a VThermHvacMode instance.

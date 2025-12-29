@@ -246,9 +246,7 @@ async def test_central_power_manager_init(
         ),
     ],
 )
-async def test_central_power_manageer_find_vtherms(
-    hass: HomeAssistant, vtherm_configs, results
-):
+async def test_central_power_manageer_find_vtherms(hass: HomeAssistant, vtherm_configs, results):
     """Test the find_all_vtherm_with_power_management_sorted_by_dtemp"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
     central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
@@ -269,9 +267,7 @@ async def test_central_power_manageer_find_vtherms(
         "custom_components.versatile_thermostat.feature_central_power_manager.FeatureCentralPowerManager.get_climate_components_entities",
         return_value=vtherms,
     ):
-        vtherm_sorted = (
-            central_power_manager.find_all_vtherm_with_power_management_sorted_by_dtemp()
-        )
+        vtherm_sorted = central_power_manager.find_all_vtherm_with_power_management_sorted_by_dtemp()
 
         # extract results
         vtherm_results = [vtherm.name for vtherm in vtherm_sorted]
@@ -485,15 +481,11 @@ async def test_central_power_manageer_calculate_shedding(
         vtherm.power_manager = MagicMock(spec=FeaturePowerManager)
         vtherm.power_manager._vtherm = vtherm
 
-        vtherm.power_manager.is_overpowering_detected = vtherm_config.get(
-            "is_overpowering_detected"
-        )
+        vtherm.power_manager.is_overpowering_detected = vtherm_config.get("is_overpowering_detected")
         vtherm.power_manager.device_power = vtherm_config.get("device_power")
         vtherm.power_manager.overpowering_state = vtherm_config.get("overpowering_state")
 
-        async def mock_set_overpowering(
-            overpowering, power_consumption_max=0, v=vtherm
-        ):
+        async def mock_set_overpowering(overpowering, power_consumption_max=0, v=vtherm):
             register_call(v, overpowering)
 
         vtherm.power_manager.set_overpowering = mock_set_overpowering
@@ -524,9 +516,7 @@ async def test_central_power_manageer_calculate_shedding(
         (19, 1000, 1),
     ],
 )
-async def test_central_power_manager_power_event(
-    hass: HomeAssistant, dsecs, power, nb_call
-):
+async def test_central_power_manager_power_event(hass: HomeAssistant, dsecs, power, nb_call):
     """Tests the Power sensor event"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
     central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
@@ -622,9 +612,7 @@ async def test_central_power_manager_power_event(
         (19, 1000, 1),
     ],
 )
-async def test_central_power_manager_max_power_event(
-    hass: HomeAssistant, dsecs, max_power, nb_call
-):
+async def test_central_power_manager_max_power_event(hass: HomeAssistant, dsecs, max_power, nb_call):
     """Tests the Power sensor event"""
     vtherm_api: VersatileThermostatAPI = MagicMock(spec=VersatileThermostatAPI)
     central_power_manager = FeatureCentralPowerManager(hass, vtherm_api)
@@ -660,9 +648,7 @@ async def test_central_power_manager_max_power_event(
     side_effects = SideEffects(
         {
             "sensor.power_entity_id": State("sensor.power_entity_id", max_power),
-            "sensor.max_power_entity_id": State(
-                "sensor.max_power_entity_id", max_power
-            ),
+            "sensor.max_power_entity_id": State("sensor.max_power_entity_id", max_power),
         },
         State("unknown.entity_id", "unknown"),
     )

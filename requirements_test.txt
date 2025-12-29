@@ -9,3 +9,5 @@ coverage
 pytest-asyncio
 pytest-homeassistant-custom-component
 pytest-socket
+# pycares >=4.4.0 required for aiodns typing support on Python 3.13 (missing ares_query_a_result otherwise)
+pycares>=4.4.0
