@@ -58,6 +58,7 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN, NUMBER_DOMAIN]),
         ),
         vol.Required(CONF_CYCLE_MIN, default=5): selector.NumberSelector(selector.NumberSelectorConfig(min=1, max=1000, step=1, mode=selector.NumberSelectorMode.BOX)),
+
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
         vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
@@ -110,6 +111,7 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+
         vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
     }
 )
@@ -121,6 +123,7 @@ STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
+
         vol.Required(CONF_STEP_TEMPERATURE, default=0.1): vol.Coerce(float),
     }
 )
@@ -466,10 +469,9 @@ STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
         vol.Required(CONF_AUTO_TPI_ENABLE_NOTIFICATION, default=True): cv.boolean,
         vol.Optional(CONF_AUTO_TPI_KEEP_EXT_LEARNING, default=True): cv.boolean,
         vol.Optional(CONF_AUTO_TPI_CONTINUOUS_LEARNING, default=False): cv.boolean,
-        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=0): cv.positive_int,
-        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=0): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
         vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=1.0): cv.positive_float,
-        vol.Required(CONF_AUTO_TPI_COOLING_POWER, default=1.0): cv.positive_float,
         vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.0, max=3.0, step=0.01, mode=selector.NumberSelectorMode.BOX

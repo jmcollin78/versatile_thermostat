@@ -6,6 +6,8 @@ import os
 import math
 from datetime import datetime, timedelta
 from typing import Optional
+from homeassistant.util.unit_conversion import TemperatureConverter
+from homeassistant.const import UnitOfTemperature
 from dataclasses import dataclass, asdict, field
 
 import asyncio
@@ -27,7 +29,6 @@ from .const import (
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
 )
-
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 8
@@ -124,8 +125,8 @@ class AutoTpiManager:
         minimal_deactivation_delay: int = 0,
         coef_int: float = 0.6,
         coef_ext: float = 0.04,
-        heater_heating_time: int = 0,
-        heater_cooling_time: int = 0,
+        heater_heating_time: int = 5,
+        heater_cooling_time: int = 5,
         calculation_method: str = "ema",
         max_coef_int: float = 1.0,
         heating_rate: float = 1.0,
@@ -137,6 +138,7 @@ class AutoTpiManager:
         keep_ext_learning: bool = False,
         enable_update_config: bool = False,
         enable_notification: bool = False,
+
     ):
         self._hass = hass
         self._config_entry = config_entry
@@ -151,12 +153,16 @@ class AutoTpiManager:
         self._heater_heating_time = heater_heating_time
         self._heater_cooling_time = heater_cooling_time
 
+        self._temp_unit = self._hass.config.units.temperature_unit
+        self._unit_factor = 1.8 if self._temp_unit == UnitOfTemperature.FAHRENHEIT else 1.0
+
         self._calculation_method = calculation_method
         self._ema_alpha = ema_alpha
         self._avg_initial_weight = avg_initial_weight
         self._max_coef_int = max_coef_int
-        self._heating_rate = heating_rate
-        self._cooling_rate = cooling_rate
+        # Convert rates to Celsius/h if needed
+        self._heating_rate = heating_rate / self._unit_factor
+        self._cooling_rate = cooling_rate / self._unit_factor
         self._ema_decay_rate = ema_decay_rate
         self._continuous_learning = continuous_learning
         self._keep_ext_learning = keep_ext_learning
@@ -167,8 +173,10 @@ class AutoTpiManager:
 
         storage_key = f"{STORAGE_KEY_PREFIX}.{unique_id.replace('.', '_')}"
         self._store = Store(hass, STORAGE_VERSION, storage_key)
-        self._default_coef_int = coef_int if coef_int is not None else 0.6
-        self._default_coef_ext = coef_ext if coef_ext is not None else 0.04
+        # Convert config coefficients (User Unit) to Internal (Celsius)
+        # K_C = K_F * 1.8
+        self._default_coef_int = (coef_int if coef_int is not None else 0.6) * self._unit_factor
+        self._default_coef_ext = (coef_ext if coef_ext is not None else 0.04) * self._unit_factor
 
         self.state = AutoTpiState(
             coeff_indoor_heat=self._default_coef_int, coeff_outdoor_heat=self._default_coef_ext, coeff_indoor_cool=self._default_coef_int, coeff_outdoor_cool=self._default_coef_ext
@@ -196,6 +204,14 @@ class AutoTpiManager:
         # Interruption management
         self._current_cycle_interrupted: bool = False
 
+    def _to_celsius(self, temp: float) -> float:
+        """Convert temperature to Celsius if needed."""
+        if temp is None:
+            return 0.0
+        if self._temp_unit == UnitOfTemperature.FAHRENHEIT:
+            return TemperatureConverter.convert(temp, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.CELSIUS)
+        return temp
+
     async def async_update_coefficients_config(self, coef_int: float, coef_ext: float):
         """Update CONF_TPI_COEF_INT and CONF_TPI_COEF_EXT in the HA config entry."""
 
@@ -205,8 +221,8 @@ class AutoTpiManager:
 
         new_data = {
             **self._config_entry.data,
-            CONF_TPI_COEF_INT: round(coef_int, 3),
-            CONF_TPI_COEF_EXT: round(coef_ext, 3),
+            CONF_TPI_COEF_INT: round(coef_int / self._unit_factor, 3),
+            CONF_TPI_COEF_EXT: round(coef_ext / self._unit_factor, 3),
         }
 
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
@@ -223,7 +239,7 @@ class AutoTpiManager:
 
         new_data = {
             **self._config_entry.data,
-            rate_key: round(capacity, 3),
+            rate_key: round(capacity * self._unit_factor, 3),
         }
 
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
@@ -329,7 +345,13 @@ class AutoTpiManager:
                 except Exception as e:
                     _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
 
-        return {CONF_TPI_COEF_INT: k_int, CONF_TPI_COEF_EXT: k_ext}
+        # Return learned coefficients converted back to User Unit
+        # Internal: C. Output: F/C. If F, output = internal / 1.8 (internal * 0.55 ?)
+        # K_F = K_C / 1.8.
+        return {
+            CONF_TPI_COEF_INT: k_int / self._unit_factor,
+            CONF_TPI_COEF_EXT: k_ext / self._unit_factor
+        }
 
     async def async_save_data(self):
         """Save data."""
@@ -434,9 +456,10 @@ class AutoTpiManager:
                 self._current_cycle_interrupted = True
 
         # Store current values for later use in cycle callbacks
-        self._current_temp_in = room_temp if room_temp is not None else 0.0
-        self._current_temp_out = ext_temp if ext_temp is not None else 0.0
-        self._current_target_temp = target_temp if target_temp is not None else 0.0
+        # Convert inputs to Celsius for internal logic
+        self._current_temp_in = self._to_celsius(room_temp) if room_temp is not None else 0.0
+        self._current_temp_out = self._to_celsius(ext_temp) if ext_temp is not None else 0.0
+        self._current_target_temp = self._to_celsius(target_temp) if target_temp is not None else 0.0
         self._current_hvac_mode = hvac_mode
 
         # Calculate and return power
@@ -447,7 +470,7 @@ class AutoTpiManager:
         elif hvac_mode == "heat":
             calc_state_str = "heat"
 
-        return self.calculate_power(target_temp, room_temp, ext_temp, calc_state_str)
+        return self.calculate_power(self._current_target_temp, self._current_temp_in, self._current_temp_out, calc_state_str)
 
     async def calculate(self) -> Optional[dict]:
         """Return the current calculated TPI parameters."""
@@ -461,11 +484,11 @@ class AutoTpiManager:
         is_cool_mode = self._current_hvac_mode == "cool"
 
         if is_cool_mode:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
         else:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
 
         self._calculated_params = params
         return params
@@ -550,8 +573,9 @@ class AutoTpiManager:
         # 2. Mild Weather Exclusion (Safe Ratio)
         # Avoid division by small numbers or learning when delta is too small to be significant
         delta_out = self.state.last_order - self._current_temp_out
-        if abs(delta_out) < 1.0:
-            _LOGGER.debug("%s - Auto TPI: Not learning - Delta out too small (< 1.0)", self._name)
+        delta_out_threshold = 1.0  # Celsius
+        if abs(delta_out) < delta_out_threshold:
+            _LOGGER.debug("%s - Auto TPI: Not learning - Delta out too small (< %.1f)", self._name, delta_out_threshold)
             return False
 
         # Natural drift exclusion - check temperature at CYCLE START
@@ -629,7 +653,9 @@ class AutoTpiManager:
         # - Power not saturated (0 < power < 0.99)
 
         if 0 < self.state.last_power < 0.99:
-            if temp_progress > 0.05 and target_diff > 0.01:
+            temp_progress_threshold = 0.05
+            target_diff_threshold = 0.01
+            if temp_progress > temp_progress_threshold and target_diff > target_diff_threshold:
                 # Indoor learning attempt
                 error = self._learn_indoor(target_diff, temp_progress, self._last_cycle_power_efficiency, is_cool)
                 if error is not None:
@@ -669,8 +695,9 @@ class AutoTpiManager:
         # - Significant remaining gap
 
         gap_in = target_temp - current_temp_in
+        gap_threshold = 0.05
 
-        if outdoor_condition and abs(gap_in) > 0.05:
+        if outdoor_condition and abs(gap_in) > gap_threshold:
             if self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
                 self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
                 _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
@@ -691,8 +718,10 @@ class AutoTpiManager:
         real_rise = delta_real
         # We use full cycle delta (passed as delta_real), not ON-time delta.
 
-        if real_rise <= 0.01:  # Minimal rise required (0.01 to account for float precision/small sensors)
-            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= 0.01. Will try outdoor learning.", self._name, real_rise)
+        rise_threshold = 0.01
+
+        if real_rise <= rise_threshold:  # Minimal rise required (0.01 to account for float precision/small sensors)
+            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= %.3f. Will try outdoor learning.", self._name, real_rise, rise_threshold)
             self.state.last_learning_status = "real_rise_too_small"
             return None  # Return None on failure
 
@@ -779,23 +808,28 @@ class AutoTpiManager:
         count = self.state.coeff_indoor_cool_autolearn if is_cool else self.state.coeff_indoor_autolearn
 
         # 5. Calculation Method
+        # 5. Calculation Method
+        # Cap the effective count to keep the system responsive
+        # Even if we have 1000 cycles history, we weigh the new sample as if we had at most 50 cycles.
+        effective_count = min(count, 50)
+
         if self._calculation_method == "average":
             # Weighted average
             # avg_coeff = ((old_coeff * count + coeff_new) / (count + 1))
             # We must use the current count (not incremented) as weight for old_coeff
 
             # If count is 0 (should not happen for valid state), treat as 1
-            weight_old = max(count, 1)
+            weight_old = max(effective_count, 1)
 
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Weighted Average: old=%.3f (weight=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, coeff_new, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
 
         else:  # EMA
             # EMA Smoothing (20% weight by default)
             # new_avg = (old_avg * (1 - alpha)) + (new_sample * alpha)
-            alpha = self._get_adaptive_alpha(count)
+            alpha = self._get_adaptive_alpha(effective_count)
             avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.2f (count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, count, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
 
         # Update counters
         new_count = count + 1
@@ -918,14 +952,16 @@ class AutoTpiManager:
         old_coeff = current_outdoor
 
         # Apply EMA or average
+        effective_count = min(count, 50)
+
         if self._calculation_method == "average":
-            weight_old = max(count, 1)  # Same as _learn_indoor
+            weight_old = max(effective_count, 1)  # Same as _learn_indoor
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d), new=%.3f, result=%.3f", self._name, old_coeff, count, coeff_new, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
         else:  # EMA
-            alpha = self._get_adaptive_alpha(count)
+            alpha = self._get_adaptive_alpha(effective_count)
             avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: Outdoor EMA: old=%.3f, new=%.3f, alpha=%.2f (count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, count, avg_coeff)
+            _LOGGER.debug("%s - Auto TPI: Outdoor EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
 
         new_count = count + 1
 
@@ -1050,7 +1086,7 @@ class AutoTpiManager:
                     self._name,
                     self.state.consecutive_failures,
                 )
-                
+
                 # Send persistent notification
                 # Retrieve the message from translations
                 # We use the "exceptions" category in strings.json
@@ -1063,16 +1099,16 @@ class AutoTpiManager:
                         "exceptions", 
                         {DOMAIN}
                     )
-                    
+
                     # Key format for exceptions: component.{domain}.exceptions.{key}.message
                     key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
                     message_template = translations.get(key)
-                    
+
                     if message_template:
                         message = message_template.format(name=self._name, reason=reason)
                     else:
                         # Fallback if translation not found
-                         message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+                        message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
 
                     await self._hass.services.async_call(
                         "persistent_notification",
@@ -1154,7 +1190,7 @@ class AutoTpiManager:
 
         best_idx = -1
         closest_diff = float("inf")
-        
+
         # We start searching from start_idx to keep O(N+M) complexity
         for i in range(start_idx, len(power_history)):
             state = power_history[i]
@@ -1167,17 +1203,17 @@ class AutoTpiManager:
                     if abs_diff < closest_diff:
                         closest_diff = abs_diff
                         best_idx = i
-                
-                # If we passed the target_dt by more than tolerance, 
+
+                # If we passed the target_dt by more than tolerance,
                 # and we already found something or the diff is increasing, we can stop.
                 if diff > tolerance_seconds:
                     break
-                    
+
             except (AttributeError, TypeError):
                 continue
 
         if best_idx == -1:
-            # If we didn't find anything but we are moving forward in time, 
+            # If we didn't find anything but we are moving forward in time,
             # we should still return the current start_idx for the next call
             # unless we find that slope_dt is already way ahead of power_history.
             return None, start_idx
@@ -1194,7 +1230,6 @@ class AutoTpiManager:
         self,
         slope_history: list,
         power_history: list,
-        hvac_mode: str,
         min_power_threshold: float = 0.95,
         kext_coeff: float = 0.0,
         current_indoor_temp: Optional[float] = None,
@@ -1213,7 +1248,6 @@ class AutoTpiManager:
         Args:
             slope_history: History of temperature_slope sensor
             power_history: History of power_percent sensor
-            hvac_mode: 'heat' or 'cool'
             min_power_threshold: Minimum power (0.0-1.0) to consider. Default 0.95 (95%)
             kext_coeff: Current Kext coefficient for adiabatic correction
             current_indoor_temp: Current indoor temperature for delta_T estimation
@@ -1222,7 +1256,8 @@ class AutoTpiManager:
         Returns:
             Dictionary with adiabatic capacity result and metrics
         """
-        is_heat_mode = hvac_mode == "heat"
+        # Always True now
+        is_heat_mode = True
         power_threshold_percent = min_power_threshold * 100.0
 
         _LOGGER.debug(
@@ -1273,17 +1308,10 @@ class AutoTpiManager:
                     rejected_low_power += 1
                     continue
 
-                # Check slope direction
-                if is_heat_mode and slope_value <= 0:
+                # Check slope direction (always heating check now)
+                if slope_value <= 0:
                     rejected_wrong_direction += 1
                     continue
-                elif not is_heat_mode and slope_value >= 0:
-                    rejected_wrong_direction += 1
-                    continue
-
-                # For cooling, use absolute value (capacity is always positive)
-                if not is_heat_mode:
-                    slope_value = abs(slope_value)
 
                 raw_slopes.append(slope_value)
 
@@ -1369,7 +1397,7 @@ class AutoTpiManager:
 
         # Reliability: higher with more samples and lower variance
         sample_factor = min(1.0, len(filtered_slopes) / 20.0)  # Max at 20 samples
-        variance_factor = max(0.0, 1.0 - cv)  # Lower if high variance
+        variance_factor = max(0.0, 1.0 - (cv / 2.0))  # Lower if high variance
         reliability = 100.0 * sample_factor * variance_factor
 
         # Period calculation (in days)
@@ -1412,11 +1440,11 @@ class AutoTpiManager:
         self,
         thermostat_entity_id: str,
         ext_temp_entity_id: str,
-        hvac_mode: str,
         save_to_config: bool,
         min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
+        capacity_safety_margin: float | None = None,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope
@@ -1431,12 +1459,13 @@ class AutoTpiManager:
         Args:
             thermostat_entity_id: The climate entity ID (e.g., "climate.thermostat_salon")
             ext_temp_entity_id: External temperature sensor (unused in new algorithm but kept for API compatibility)
-            hvac_mode: 'heat' or 'cool'
             save_to_config: Whether to save the result to config
             start_date: Start of history period (default: 30 days ago)
             end_date: End of history period (default: now)
             min_power_threshold: Minimum power percentage (0.0-1.0) to consider a sample.
                                  Default is 1.0 (100%). Lower values (e.g., 0.90) include more samples.
+            capacity_safety_margin: Margin percentage (0.0-1.0) to subtract from the calculated capacity.
+                                    Default is None (0%).
         """
         # 1. Derive sensor entity IDs from thermostat entity ID
         # climate.thermostat_salon -> sensor.thermostat_salon_temperature_slope
@@ -1477,15 +1506,15 @@ class AutoTpiManager:
         entity_ids = [slope_sensor_id, power_sensor_id]
         slope_history = []
         power_history = []
-        
+
         # We use 2-day chunks for robustness
         chunk_delta = timedelta(days=2)
         current_start = start_time
-        
+
         while current_start < end_time:
             current_end = min(current_start + chunk_delta, end_time)
             _LOGGER.debug("%s - Fetching history chunk from %s to %s", self._name, current_start, current_end)
-            
+
             try:
                 chunk_states = await get_instance(self._hass).async_add_executor_job(
                     partial(
@@ -1497,14 +1526,14 @@ class AutoTpiManager:
                         significant_changes_only=False,
                     )
                 )
-                
+
                 if chunk_states:
                     slope_history.extend(chunk_states.get(slope_sensor_id, []))
                     power_history.extend(chunk_states.get(power_sensor_id, []))
-                    
+
             except Exception as e:
                 _LOGGER.warning("%s - Error fetching history chunk %s to %s: %s", self._name, current_start, current_end, e)
-            
+
             current_start = current_end
 
         _LOGGER.debug("%s - Fetched %d slope sensor states and %d power sensor states for capacity calibration.", self._name, len(slope_history), len(power_history))
@@ -1551,7 +1580,6 @@ class AutoTpiManager:
         result = await self.calculate_capacity_from_slope_sensor(
             slope_history,
             power_history,
-            hvac_mode,
             min_power_threshold=min_power_threshold,
             kext_coeff=kext_coeff,
             current_indoor_temp=current_indoor_temp,
@@ -1561,16 +1589,47 @@ class AutoTpiManager:
         _LOGGER.info("%s - Capacity calibration result: %s", self._name, result)
 
         # 6. Save to config if requested
-        if save_to_config and result and isinstance(result, dict) and result.get("success"):
+        if result and isinstance(result, dict) and result.get("success"):
 
-            capacity = result.get("capacity")
-            is_heat_mode = hvac_mode == "heat"
+            max_capacity = result.get("capacity")
+            # Calculate recommended capacity with margin
+            if max_capacity is not None:
+                # Ensure margin is valid (0-0.30)
+                # capacity_safety_margin is required (defaults to 20 in services.yaml)
+                # If None, we default to 0.20 (20%)
 
-            if capacity is not None:
-                await self.async_update_capacity_config(capacity=capacity, is_heat_mode=is_heat_mode)
+                if capacity_safety_margin is None:
+                    margin = 0.20
+                else:
+                    # Handle percentage input (e.g. 20 -> 0.20)
+                    # We assume if value > 1.0 it is a percentage (0-30)
+                    val = capacity_safety_margin / 100.0 if capacity_safety_margin > 1.0 else capacity_safety_margin
+                    margin = max(0.0, min(0.30, val))
 
-                mode_str = "Heating" if is_heat_mode else "Cooling"
-                _LOGGER.info("%s - %s capacity calibrated to %.3f °C/h and saved to config.", self._name, mode_str, capacity)
+                recommended_capacity = max_capacity * (1.0 - margin)
+
+                # Rename capacity to max_capacity
+                if "capacity" in result:
+                    del result["capacity"]
+
+                result["max_capacity"] = max_capacity
+                result["recommended_capacity"] = recommended_capacity
+                result["margin_percent"] = margin * 100
+
+                # Update the displayed capacity in the result to be the recommended one or make it clear
+                # The prompt asks: "The servcice output shoud display the max capacity , and the recommended capacity"
+                # We add them to the dict.
+
+                if save_to_config:
+                    # Always heat mode
+                    is_heat_mode = True
+
+                    await self.async_update_capacity_config(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
+
+                    _LOGGER.info(
+                        "%s - Heating capacity calibrated. Max: %.3f °C/h, Margin: %.0f%%, Saved: %.3f °C/h", 
+                        self._name, max_capacity, margin * 100, recommended_capacity
+                    )
 
         return result
 

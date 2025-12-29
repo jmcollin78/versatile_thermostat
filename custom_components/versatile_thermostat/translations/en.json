@@ -31,6 +31,10 @@
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
           "lock": "Lock",
+          "auto_tpi_1": "Auto TPI - General",
+          "auto_tpi_2": "Auto TPI - Method",
+          "auto_tpi_3_avg": "Auto TPI - Average",
+          "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -269,6 +273,62 @@
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
+        }
+      },
+      "auto_tpi_1": {
+        "title": "Auto TPI - General",
+        "description": "General parameters for Auto TPI learning.",
+        "data": {
+          "auto_tpi_enable_update_config": "Update configuration",
+          "auto_tpi_enable_notification": "Notifications",
+          "auto_tpi_keep_ext_learning": "Keep external coefficient learning",
+          "auto_tpi_continuous_learning": "Continuous learning",
+          "heater_heating_time": "Heater warm-up time (min)",
+          "heater_cooling_time": "Heater cool-down time (min)",
+          "auto_tpi_max_coef_int": "Max Internal Coefficient",
+          "auto_tpi_heating_rate": "Heating rate ({unit}/h)"
+        },
+        "data_description": {
+          "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",
+          "auto_tpi_enable_notification": "Send a notification when learning is complete",
+          "auto_tpi_keep_ext_learning": "If set, the external coefficient will continue learning even after reaching 50 cycles, as long as the internal coefficient has not reached stability.",
+          "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
+          "heater_heating_time": "Time to reach full power (minutes)",
+          "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
+          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
+        }
+      },
+      "auto_tpi_2": {
+        "title": "Auto TPI - Method",
+        "description": "Choose the calculation method for learning.",
+        "data": {
+          "auto_tpi_calculation_method": "Calculation Method"
+        },
+        "data_description": {
+          "auto_tpi_calculation_method": "Average: simple averaging. EMA: Exponential Moving Average (favors recent values)"
+        }
+      },
+      "auto_tpi_3_avg": {
+        "title": "Auto TPI - Average",
+        "description": "Parameters for the Average method.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Initial Weight"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Weight of the initial/previous value in the average calculation"
+        }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA",
+        "description": "Parameters for the EMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial learning | 0.15 | 0.08 |\n| Fine learning | 0.08 | 0.12 |\n| Continuous learning | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Decay Rate"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
+          "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)"
         }
       }
     },
@@ -571,8 +631,7 @@
           "heater_heating_time": "Heater warm-up time (min)",
           "heater_cooling_time": "Heater cool-down time (min)",
           "auto_tpi_max_coef_int": "Max Internal Coefficient",
-          "auto_tpi_heating_rate": "Heating rate (°C/h)",
-          "auto_tpi_cooling_rate": "Cooling rate (°C/h)"
+          "auto_tpi_heating_rate": "Heating rate ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",
@@ -580,8 +639,9 @@
           "auto_tpi_keep_ext_learning": "If set, the external coefficient will continue learning even after reaching 50 cycles, as long as the internal coefficient has not reached stability.",
           "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
           "heater_heating_time": "Time to reach full power (minutes)",
-          "heater_cooling_time": "Time to cool down after stop (minutes)",
-          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
+          "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
+          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
         }
       },
       "auto_tpi_2": {
@@ -797,6 +857,10 @@
         "min_power_threshold": {
           "name": "Minimum Power Threshold",
           "description": "Minimum power percentage to consider a cycle as saturated (default 95%). Lower values will include more cycles but may be less accurate."
+        },
+        "capacity_safety_margin": {
+          "name": "Safety Margin for Capacity",
+          "description": "Margin percentage to subtract from max capacity before saving. Valid range 0-30%. Default is 20%."
         }
       }
     },

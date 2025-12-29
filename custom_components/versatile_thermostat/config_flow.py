@@ -16,6 +16,7 @@ from homeassistant.config_entries import (
     ConfigFlow as HAConfigFlow,
     OptionsFlow,
 )
+from homeassistant.const import UnitOfTemperature
 
 from homeassistant.data_entry_flow import FlowHandler, FlowResult
 
@@ -567,6 +568,19 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 else:
                     next_step = self.async_step_spec_main
 
+        # Add default values for temperature if not set
+        if self._infos.get(CONF_TEMP_MIN) is None:
+            # We use the system default unit
+            unit = self.hass.config.units.temperature_unit
+            if unit == UnitOfTemperature.FAHRENHEIT:
+                self._infos[CONF_TEMP_MIN] = 45
+                self._infos[CONF_TEMP_MAX] = 95
+                self._infos[CONF_STEP_TEMPERATURE] = 1.0
+            else:
+                self._infos[CONF_TEMP_MIN] = 7
+                self._infos[CONF_TEMP_MAX] = 35
+                self._infos[CONF_STEP_TEMPERATURE] = 0.1
+
         return await self.generic_step("main", schema, user_input, next_step)
 
     async def async_step_spec_main(self, user_input: dict | None = None) -> FlowResult:
@@ -727,6 +741,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # Since step 2 has been removed, move directly to the new step 2 (old step 3)
         next_step = self.async_step_auto_tpi_2
 
+        # Update placeholders with unit
+        self._placeholders["temperature_unit"] = self.hass.config.units.temperature_unit
+        self._placeholders["unit"] = self.hass.config.units.temperature_unit
+
         return await self.generic_step("auto_tpi_1", schema, user_input, next_step)
 
     async def async_step_auto_tpi_2(self, user_input: dict | None = None) -> FlowResult:
@@ -755,6 +773,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
         schema = STEP_AUTO_TPI_3_AVG_SCHEMA
         next_step = self.async_step_menu
+
+        # Update placeholders with unit
+        self._placeholders["temperature_unit"] = self.hass.config.units.temperature_unit
+        self._placeholders["unit"] = self.hass.config.units.temperature_unit
+
         return await self.generic_step("auto_tpi_3_avg", schema, user_input, next_step)
 
     async def async_step_auto_tpi_3_ema(

@@ -31,6 +31,10 @@
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
           "lock": "Gestion du verrouilage",
+          "auto_tpi_1": "Auto TPI - Général",
+          "auto_tpi_2": "Auto TPI - Méthode",
+          "auto_tpi_3_avg": "Auto TPI - Moyenne",
+          "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "Finaliser la création",
           "configuration_not_complete": "Configuration incomplète"
         }
@@ -270,6 +274,62 @@
           "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
           "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
           "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
+        }
+      },
+      "auto_tpi_1": {
+        "title": "Auto TPI - Général",
+        "description": "Paramètres généraux de l'apprentissage Auto TPI.",
+        "data": {
+          "auto_tpi_enable_update_config": "Mise à jour de la configuration",
+          "auto_tpi_enable_notification": "Notifications",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coeff externe",
+          "auto_tpi_continuous_learning": "Apprentissage continu",
+          "heater_heating_time": "Temps de chauffe (min)",
+          "heater_cooling_time": "Temps de refroidissement (min)",
+          "auto_tpi_max_coef_int": "Coefficient Interne Max",
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
+        },
+        "data_description": {
+          "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
+          "auto_tpi_enable_notification": "Envoyer une notification lorsque l'apprentissage est terminé",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coefficient externe tant que les 2 n'ont pas atteint les 50 cycles ",
+          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
+          "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
+          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
+        }
+      },
+      "auto_tpi_2": {
+        "title": "Auto TPI - Méthode",
+        "description": "Choisissez la méthode de calcul pour l'apprentissage.",
+        "data": {
+          "auto_tpi_calculation_method": "Méthode de calcul"
+        },
+        "data_description": {
+          "auto_tpi_calculation_method": "Moyenne : moyenne simple. EMA : Moyenne Mobile Exponentielle (favorise les valeurs récentes)"
+        }
+      },
+      "auto_tpi_3_avg": {
+        "title": "Auto TPI - Moyenne",
+        "description": "Paramètres pour la méthode Moyenne.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Poids Initial"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Poids de la valeur initiale/précédente dans le calcul de la moyenne"
+        }
+      },
+      "auto_tpi_3_ema": {
+        "title": "Auto TPI - EMA",
+        "description": "Paramétres pour la méthode EMA.\n\nRecommandations :\n| Situation | Alpha (ema_alpha) | Taux de Décroissance (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Apprentissage initial | 0.15 | 0.08 |\n| Apprentissage fin | 0.08 | 0.12 |\n| Apprentissage continu | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Taux de décroissance"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
+          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
         }
       }
     },
@@ -568,22 +628,22 @@
         "data": {
           "auto_tpi_enable_update_config": "Mise à jour de la configuration",
           "auto_tpi_enable_notification": "Notifications",
-          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
-          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coeff externe",
+          "auto_tpi_continuous_learning": "Appentissage continu",
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe (°C/h)",
-          "auto_tpi_cooling_rate": "Taux de refroidissement (°C/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
           "auto_tpi_enable_notification": "Envoyer une notification lorsque l'apprentissage est terminé",
-          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coefficient externe tant que les 2 n'ont pas atteint les 50 cycles ",
           "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
-          "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
-          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)"
+          "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
+          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
         }
       },
       "auto_tpi_2": {
@@ -799,24 +859,10 @@
         "min_power_threshold": {
           "name": "Seuil de puissance minimum",
           "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
-        }
-      },
-      "response": {
-        "reliability": {
-          "name": "Fiabilité",
-          "description": "Fiabilité de la calibration (en %)."
         },
-        "k_ext": {
-          "name": "K_ext",
-          "description": "Coefficient de perte de chaleur externe estimé (pente)."
-        },
-        "min_power_threshold": {
-          "name": "Seuil de puissance min",
-          "description": "Seuil de puissance utilisé pour filtrer les cycles."
-        },
-        "period": {
-          "name": "Période",
-          "description": "Période de l'historique analysée (en jours)."
+        "capacity_safety_margin": {
+          "name": "Marge de sécurité",
+          "description": "Marge de sécurité en pourcentage à soustraire de la capacité maximale avant sauvegarde. Plage valide 0-30%. Défaut 20%."
         }
       }
     },
