@@ -282,8 +282,8 @@
         "data": {
           "auto_tpi_enable_update_config": "Mise à jour de la configuration",
           "auto_tpi_enable_notification": "Notifications",
-          "auto_tpi_keep_ext_learning": "S'il est activé, le coefficient externe continuera d'apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n'aura pas atteint sa stabilité.",
-          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coeff externe",
+          "auto_tpi_continuous_learning": "Apprentissage continu",
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
@@ -292,7 +292,7 @@
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
           "auto_tpi_enable_notification": "Envoyer une notification lorsque l'apprentissage est terminé",
-          "auto_tpi_keep_ext_learning": "S'il est activé, le coefficient externe continuera d'apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n'aura pas atteint sa stabilité.",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coefficient externe tant que les 2 n'ont pas atteint les 50 cycles ",
           "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
@@ -628,8 +628,8 @@
         "data": {
           "auto_tpi_enable_update_config": "Mise à jour de la configuration",
           "auto_tpi_enable_notification": "Notifications",
-          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
-          "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coeff externe",
+          "auto_tpi_continuous_learning": "Appentissage continu",
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
@@ -638,7 +638,7 @@
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
           "auto_tpi_enable_notification": "Envoyer une notification lorsque l'apprentissage est terminé",
-          "auto_tpi_keep_ext_learning": "S’il est activé, le coefficient externe continuera d’apprendre même après avoir atteint 50 cycles, tant que le coefficient interne (Kint) n’aura pas atteint sa stabilité.",
+          "auto_tpi_keep_ext_learning": "Continuer l'apprentissage du coefficient externe tant que les 2 n'ont pas atteint les 50 cycles ",
           "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
