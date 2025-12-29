@@ -1059,23 +1059,25 @@ class AutoTpiManager:
 
         if (
             self.state.last_state == "heat"
+            and self.state.last_power >= self.saturation_threshold
             and current_temp_in < self.state.last_order - OFFSET_FAILURE
             and current_temp_in < self.state.last_temp_in
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
         ):
             failure_detected = True
-            reason = "Temperature dropped while heating"
-            _LOGGER.warning("%s - Auto TPI: Failure detected in HEAT mode", self._name)
+            reason = "Temperature dropped while heating at full power"
+            _LOGGER.warning("%s - Auto TPI: Failure detected in HEAT mode at saturation (power=%.1f%%)", self._name, self.state.last_power * 100)
 
         elif (
             self.state.last_state == "cool"
+            and self.state.last_power >= self.saturation_threshold
             and current_temp_in > self.state.last_order + OFFSET_FAILURE
             and current_temp_in > self.state.last_temp_in
             and self.state.coeff_indoor_autolearn > MIN_LEARN_FOR_DETECTION
         ):
             failure_detected = True
-            reason = "Temperature rose while cooling"
-            _LOGGER.warning("%s - Auto TPI: Failure detected in COOL mode", self._name)
+            reason = "Temperature rose while cooling at full power"
+            _LOGGER.warning("%s - Auto TPI: Failure detected in COOL mode at saturation (power=%.1f%%)", self._name, self.state.last_power * 100)
 
         if failure_detected:
             self.state.consecutive_failures += 1
