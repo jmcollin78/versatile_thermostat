@@ -38,7 +38,7 @@ from .vtherm_state import VThermState  # pylint: disable=unused-import
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 1
+CONFIG_MINOR_VERSION = 2
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
