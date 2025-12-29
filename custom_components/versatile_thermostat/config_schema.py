@@ -469,8 +469,8 @@ STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
         vol.Required(CONF_AUTO_TPI_ENABLE_NOTIFICATION, default=True): cv.boolean,
         vol.Optional(CONF_AUTO_TPI_KEEP_EXT_LEARNING, default=True): cv.boolean,
         vol.Optional(CONF_AUTO_TPI_CONTINUOUS_LEARNING, default=False): cv.boolean,
-        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=0): cv.positive_int,
-        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=0): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
         vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=1.0): cv.positive_float,
         vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(

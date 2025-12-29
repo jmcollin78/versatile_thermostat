@@ -108,8 +108,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         )
 
         # Initialize Auto TPI Manager from merged config
-        heater_heating_time = self._entry_infos.get(CONF_AUTO_TPI_HEATER_HEATING_TIME, 0)
-        heater_cooling_time = self._entry_infos.get(CONF_AUTO_TPI_HEATER_COOLING_TIME, 0)
+        heater_heating_time = self._entry_infos.get(CONF_AUTO_TPI_HEATER_HEATING_TIME, 5)
+        heater_cooling_time = self._entry_infos.get(CONF_AUTO_TPI_HEATER_COOLING_TIME, 5)
         calculation_method = self._entry_infos.get(CONF_AUTO_TPI_CALCULATION_METHOD, AUTO_TPI_METHOD_EMA)
         ema_alpha = self._entry_infos.get(CONF_AUTO_TPI_EMA_ALPHA, 0.2)
         avg_initial_weight = self._entry_infos.get(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, 1)
