@@ -293,7 +293,7 @@
           "auto_tpi_keep_ext_learning": "If set, the external coefficient will continue learning even after reaching 50 cycles, as long as the internal coefficient has not reached stability.",
           "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
           "heater_heating_time": "Time to reach full power (minutes)",
-          "heater_cooling_time": "Time to cool down after stop (minutes)",
+          "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
         }
       },
@@ -637,7 +637,7 @@
           "auto_tpi_keep_ext_learning": "If set, the external coefficient will continue learning even after reaching 50 cycles, as long as the internal coefficient has not reached stability.",
           "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
           "heater_heating_time": "Time to reach full power (minutes)",
-          "heater_cooling_time": "Time to cool down after stop (minutes)",
+          "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
         }
       },
