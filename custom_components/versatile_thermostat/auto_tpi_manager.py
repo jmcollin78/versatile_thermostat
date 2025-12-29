@@ -1082,48 +1082,61 @@ class AutoTpiManager:
         if failure_detected:
             self.state.consecutive_failures += 1
             if self.state.consecutive_failures >= 3:
-                self.state.autolearn_enabled = False
-                _LOGGER.error(
-                    "%s - Auto TPI: Learning disabled due to %d consecutive failures.",
-                    self._name,
-                    self.state.consecutive_failures,
-                )
-
-                # Send persistent notification
-                # Retrieve the message from translations
-                # We use the "exceptions" category in strings.json
-                # The key is "component.versatile_thermostat.exceptions.auto_tpi_learning_stopped.message"
-                title = "Versatile Thermostat: Auto TPI Learning Stopped"
-                try:
-                    translations = await translation.async_get_translations(
-                        self._hass, 
-                        self._hass.config.language, 
-                        "exceptions", 
-                        {DOMAIN}
+                if self._continuous_learning:
+                    # In continuous learning mode, don't stop learning - just skip faulty cycles
+                    _LOGGER.warning(
+                        "%s - Auto TPI: %d consecutive failures detected in continuous mode. "
+                        "Skipping faulty cycles and continuing learning. Reason: %s",
+                        self._name,
+                        self.state.consecutive_failures,
+                        reason,
+                    )
+                    # Reset the counter to allow future failure detection
+                    self.state.consecutive_failures = 0
+                else:
+                    # Standard mode: disable learning after 3 consecutive failures
+                    self.state.autolearn_enabled = False
+                    _LOGGER.error(
+                        "%s - Auto TPI: Learning disabled due to %d consecutive failures.",
+                        self._name,
+                        self.state.consecutive_failures,
                     )
 
-                    # Key format for exceptions: component.{domain}.exceptions.{key}.message
-                    key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
-                    message_template = translations.get(key)
+                    # Send persistent notification
+                    # Retrieve the message from translations
+                    # We use the "exceptions" category in strings.json
+                    # The key is "component.versatile_thermostat.exceptions.auto_tpi_learning_stopped.message"
+                    title = "Versatile Thermostat: Auto TPI Learning Stopped"
+                    try:
+                        translations = await translation.async_get_translations(
+                            self._hass, 
+                            self._hass.config.language, 
+                            "exceptions", 
+                            {DOMAIN}
+                        )
 
-                    if message_template:
-                        message = message_template.format(name=self._name, reason=reason)
-                    else:
-                        # Fallback if translation not found
-                        message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+                        # Key format for exceptions: component.{domain}.exceptions.{key}.message
+                        key = f"component.{DOMAIN}.exceptions.auto_tpi_learning_stopped.message"
+                        message_template = translations.get(key)
 
-                    await self._hass.services.async_call(
-                        "persistent_notification",
-                        "create",
-                        {
-                            "title": title,
-                            "message": message,
-                            "notification_id": f"autotpi_learning_stopped_{self._unique_id}",
-                        },
-                        blocking=False,
-                    )
-                except Exception as e:
-                    _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
+                        if message_template:
+                            message = message_template.format(name=self._name, reason=reason)
+                        else:
+                            # Fallback if translation not found
+                            message = f"Auto TPI learning for {self._name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
+
+                        await self._hass.services.async_call(
+                            "persistent_notification",
+                            "create",
+                            {
+                                "title": title,
+                                "message": message,
+                                "notification_id": f"autotpi_learning_stopped_{self._unique_id}",
+                            },
+                            blocking=False,
+                        )
+                    except Exception as e:
+                        _LOGGER.error("%s - Auto TPI: Error sending persistent notification: %s", self._name, e)
 
         else:
             self.state.consecutive_failures = 0

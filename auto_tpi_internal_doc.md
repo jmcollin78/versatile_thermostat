@@ -199,7 +199,8 @@ Si aucune des priorités n'est déclenchée, le statut `no_valid_conditions` est
 
 ### D. Sécurités et Détection d'Échecs
 *   **Détection d'Échec** : Si la température évolue dans le mauvais sens (ex: baisse alors qu'on chauffe) de manière significative (> 1°C d'écart) **ET que le système est à saturation de puissance** (power >= saturation_threshold). Une variation de température à puissance partielle est considérée comme une situation d'apprentissage normale, non un échec.
-*   **Protection** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
+*   **Protection (Mode Standard)** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
+*   **Protection (Mode Continu)** : En mode apprentissage continu (`continuous_learning`), les 3 échecs consécutifs **n'arrêtent pas** l'apprentissage. Le système se contente de loguer un avertissement, de réinitialiser le compteur d'échecs, et de continuer l'apprentissage en ignorant les cycles fautifs.
 
 ### E. Sécurité d'Activation (Safety Logic)
 Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
