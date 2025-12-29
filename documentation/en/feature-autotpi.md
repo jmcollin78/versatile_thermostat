@@ -49,7 +49,7 @@ Once checked, a dedicated configuration wizard appears in several steps:
     *Note: You don’t necessarily want to use the maximum heating rate. You can perfectly well use a lower value depending on the heating system sizing, **and it is highly recommended**.
     The closer you are to the maximum capacity, the higher the Kint coefficient determined during the learning process will be.*
 
-    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a lower heating rate.
+    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a reasonable heating rate.
    **The most important thing is not to be above what your radiator can provide in this room.**
     ex: Your measured adiabatic capacity is 1.5°/h, 1°/h is a standard and reasonable constant to use.*
 

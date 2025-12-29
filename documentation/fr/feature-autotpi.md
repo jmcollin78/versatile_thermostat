@@ -49,7 +49,7 @@ Une fois coché, un assistant de configuration dédié s'affiche en plusieurs é
     *Note: On ne veut pas forcément utiliser le taux de chauffe maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage, **et c'est très conseillé**.
     Plus vous serez proche de la capacité maximale, plus le coefficient Kint trouvé lors de l'apprentissage sera elevé.*
 
-    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe inférieur.
+    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe raisonnable.
    **Le plus important étant de ne pas être au dessus de ce que votre radiateur peut fournir dans cette pièce.**
     ex: Votre capacité adiabatique mesurée est de 1.5°/h, 1°/h est une constante standard et raisonable à utiliser.*
 
@@ -140,7 +140,7 @@ L'Auto TPI fonctionne de manière cyclique :
 2.  **Validation** : Il vérifie si le cycle est valide pour l'apprentissage :
     *   L'apprentissage est basé sur le mode `HEAT` du thermostat, indépendamment de l'état actuel de l'émetteur de chaleur (`heating`/`idle`).
     *   La puissance n'était pas saturée (entre 0% et 100% exclu).
-    *   Le m de température est significatif.
+    *   L'écart de température est significatif.
     *   Le système est stable (pas d'échecs consécutifs).
     *   Le cycle n'a pas été interrompu par un délestage de puissance (Power Shedding), ou une ouverture de fenêtre.
 3.  **Calcul (Apprentissage)** :

@@ -23,15 +23,11 @@ from homeassistant.components.climate import (
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HUMIDITY,
     SERVICE_SET_SWING_MODE,
+    SERVICE_SET_SWING_HORIZONTAL_MODE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     SERVICE_SET_TEMPERATURE,
 )
-
-try:
-    from homeassistant.components.climate import SERVICE_SET_SWING_HORIZONTAL_MODE
-except ImportError:
-    SERVICE_SET_SWING_HORIZONTAL_MODE = "set_swing_horizontal_mode"
 
 from homeassistant.components.number import SERVICE_SET_VALUE
 
