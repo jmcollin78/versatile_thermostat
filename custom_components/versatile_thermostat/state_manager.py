@@ -79,8 +79,9 @@ class StateManager:
         change_hvac_mode = await self.calculate_current_hvac_mode(vtherm)
         change_preset = await self.calculate_current_preset(vtherm)
         change_target_temp = await self.calculate_current_target_temperature(vtherm)
+        change_fan_mode = self.update_current_fan_mode_from_requested()
 
-        return change_hvac_mode or change_preset or change_target_temp
+        return change_hvac_mode or change_preset or change_target_temp or change_fan_mode
 
     async def calculate_current_hvac_mode(self, vtherm: "BaseThermostat") -> bool:
         """Calculate and update the current HVAC mode from the given base_thermostat.
@@ -256,6 +257,11 @@ class StateManager:
         #     self._requested_state.set_target_temperature(vtherm.find_preset_temp(self._requested_state.preset))
 
         return self._current_state.is_target_temperature_changed
+
+    def update_current_fan_mode_from_requested(self) -> bool:
+        """Update the current fan mode from the given base_thermostat."""
+        self._current_state.set_fan_mode(self._requested_state.fan_mode)
+        return self._current_state.is_fan_mode_changed
 
     def update_current_temp_from_requested(self, vtherm: "BaseThermostat"):
         """Update the current temperature from the requested state preset if any."""

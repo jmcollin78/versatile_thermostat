@@ -129,7 +129,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # self._saved_preset_mode = None
         # self._saved_hvac_mode = None
 
-        self._fan_mode = None
+        # self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
         self._swing_horizontal_mode = None
@@ -175,8 +175,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._minimal_deactivation_delay = None
         self._tpi_threshold_low = None
         self._tpi_threshold_high = None
-
-        self._attr_fan_mode = None
 
         self._is_central_mode = None
         self._last_central_mode = None
@@ -339,7 +337,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._presets_away: dict[str, Any] = {}  # presets_away
 
         self._humidity = None
-        self._fan_mode = None
         self._swing_mode = None
         self._swing_horizontal_mode = None
         self._cur_temp = None

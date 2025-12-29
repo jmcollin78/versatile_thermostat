@@ -25,7 +25,7 @@ class VThermState:
     attributes individually via properties. to_dict / from_dict help (de)serialization.
     """
 
-    def __init__(self, hvac_mode: Any, target_temperature: Optional[float] = None, preset: Optional[VThermPreset] = None) -> None:
+    def __init__(self, hvac_mode: Any, target_temperature: Optional[float] = None, preset: Optional[VThermPreset] = None, fan_mode: Optional[str] = None) -> None:
         if preset is not None and not isinstance(preset, str):
             raise ValueError(f"Invalid preset: {preset}. Should be an instance of VThermPreset.")
 
@@ -35,12 +35,15 @@ class VThermState:
         self._is_hvac_mode_changed: bool = True
         self._is_target_temperature_changed: bool = True
         self._is_preset_changed: bool = True
+        self._fan_mode: Optional[str] = fan_mode
+        self._is_fan_mode_changed: bool = True
 
     def set_state(
         self,
         hvac_mode: Optional[VThermHvacMode] = None,
         target_temperature: Optional[float] = None,
         preset: Optional[VThermPreset] = None,
+        fan_mode: Optional[str] = None,
     ) -> None:
         """Update only the attributes provided (not None).
 
@@ -48,6 +51,7 @@ class VThermState:
             hvac_mode: New HVAC mode to set (if not None).
             target_temperature: New target temperature (if not None).
             preset: New preset (if not None).
+            fan_mode: New fan mode to set (if not None).
         """
         if hvac_mode is not None:
             self.set_hvac_mode(hvac_mode)
@@ -55,6 +59,8 @@ class VThermState:
             self.set_target_temperature(target_temperature)
         if preset is not None:
             self.set_preset(preset)
+        if fan_mode is not None:
+            self.set_fan_mode(fan_mode)
 
     def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> None:
         """Set the HVAC mode only.
@@ -89,11 +95,21 @@ class VThermState:
         self._is_preset_changed = self._is_preset_changed or self._preset != preset
         self._preset = preset
 
+    def set_fan_mode(self, fan_mode: str) -> None:
+        """Set the fan mode only.
+
+        Args:
+            fan_mode: New fan mode to set, or None.
+        """
+        self._is_fan_mode_changed = self._is_fan_mode_changed or self._fan_mode != fan_mode
+        self._fan_mode = fan_mode
+
     def force_changed(self) -> None:
         """Forcefully mark the state as changed."""
         self._is_hvac_mode_changed = True
         self._is_target_temperature_changed = True
         self._is_preset_changed = True
+        self._is_fan_mode_changed = True
 
     @property
     def hvac_mode(self) -> VThermHvacMode:
@@ -111,9 +127,14 @@ class VThermState:
         return self._preset
 
     @property
+    def fan_mode(self) -> Optional[str]:
+        """Get or set the current fan mode."""
+        return self._fan_mode
+
+    @property
     def is_changed(self) -> bool:
         """Check if the state has changed."""
-        return self._is_hvac_mode_changed or self._is_target_temperature_changed or self._is_preset_changed
+        return self._is_hvac_mode_changed or self._is_target_temperature_changed or self._is_preset_changed or self._is_fan_mode_changed
 
     @property
     def is_hvac_mode_changed(self) -> bool:
@@ -130,11 +151,17 @@ class VThermState:
         """Check if the preset has changed."""
         return self._is_preset_changed
 
+    @property
+    def is_fan_mode_changed(self) -> bool:
+        """Check if the fan mode has changed."""
+        return self._is_fan_mode_changed
+
     def reset_changed(self) -> None:
         """Reset the changed state."""
         self._is_hvac_mode_changed = False
         self._is_target_temperature_changed = False
         self._is_preset_changed = False
+        self._is_fan_mode_changed = False
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the state to a dictionary."""
@@ -142,6 +169,7 @@ class VThermState:
             "hvac_mode": str(self._hvac_mode),
             "target_temperature": self._target_temperature,
             "preset": str(self._preset),
+            "fan_mode": str(self._fan_mode),
         }
 
     @classmethod
@@ -150,12 +178,20 @@ class VThermState:
         hvac_mode = VThermHvacMode(data["hvac_mode"])
         target_temperature = data["target_temperature"]
         preset = VThermPreset(data["preset"]) if data["preset"] else None
-        state = cls(hvac_mode, target_temperature, preset)
+        fan_mode = data["fan_mode"]
+        state = cls(hvac_mode, target_temperature, preset, fan_mode)
         return state
 
     def __str__(self) -> str:
         """Return a human readable representation of the state."""
-        return f"VThermState(" f"hvac_mode={self._hvac_mode}, " f"target_temperature={self._target_temperature}, " f"preset={self._preset}, " f"is_changed={self.is_changed})"
+        return (
+            f"VThermState("
+            f"hvac_mode={self._hvac_mode}, "
+            f"target_temperature={self._target_temperature}, "
+            f"preset={self._preset}, "
+            f"fan_mode={self._fan_mode}, "
+            f"is_changed={self.is_changed})"
+        )
 
     __repr__ = __str__
 
@@ -171,7 +207,7 @@ class VThermState:
         if not isinstance(other, VThermState):
             return False
 
-        return self._hvac_mode == other._hvac_mode and self._target_temperature == other._target_temperature and self._preset == other._preset
+        return self._hvac_mode == other._hvac_mode and self._target_temperature == other._target_temperature and self._preset == other._preset and self._fan_mode == other._fan_mode
 
     def __ne__(self, other: object) -> bool:
         """Compare two VThermState instances for inequality."""
