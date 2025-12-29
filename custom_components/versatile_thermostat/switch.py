@@ -26,9 +26,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat switches with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
+    _LOGGER.debug("Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data)
 
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
@@ -50,17 +48,12 @@ async def async_setup_entry(
 class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity):
     """The that enables the ManagedDevice optimisation with"""
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigEntry
-    ):
+    def __init__(self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigEntry):
         super().__init__(hass, unique_id, name)
         self._attr_name = "Enable auto start/stop"
         self._attr_unique_id = f"{self._device_name}_enable_auto_start_stop"
         self._attr_entity_category = EntityCategory.CONFIG
-        self._default_value = (
-            entry_infos.data.get(CONF_AUTO_START_STOP_LEVEL)
-            != AUTO_START_STOP_LEVEL_NONE
-        )
+        self._default_value = entry_infos.data.get(CONF_AUTO_START_STOP_LEVEL) != AUTO_START_STOP_LEVEL_NONE
         self._attr_is_on = self._default_value
 
     @property
@@ -86,10 +79,7 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
     async def update_my_state_and_vtherm(self):
         """Update the auto_start_stop_enable flag in my VTherm"""
         self.async_write_ha_state()
-        if (
-            self.my_climate is not None
-            and self.my_climate.auto_start_stop_manager is not None
-        ):
+        if self.my_climate is not None and self.my_climate.auto_start_stop_manager is not None:
             await self.my_climate.auto_start_stop_manager.set_auto_start_stop_enable(self._attr_is_on)
 
     @callback
@@ -113,14 +103,10 @@ class AutoStartStopEnable(VersatileThermostatBaseEntity, SwitchEntity, RestoreEn
         self.hass.create_task(self.async_turn_on(**kwargs))
 
 
-class FollowUnderlyingTemperatureChange(
-    VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity
-):
+class FollowUnderlyingTemperatureChange(VersatileThermostatBaseEntity, SwitchEntity, RestoreEntity):
     """The that enables the ManagedDevice optimisation with"""
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigEntry
-    ):
+    def __init__(self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigEntry):
         super().__init__(hass, unique_id, name)
         self._attr_name = "Follow underlying temp change"
         self._attr_unique_id = f"{self._device_name}_follow_underlying_temp_change"

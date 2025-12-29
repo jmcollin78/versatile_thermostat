@@ -10,6 +10,7 @@ Attributes:
     target_temperature: The active target temperature (can be None when mode does not use a temperature, e.g. 'off').
     preset: The current preset name (e.g. 'eco', 'comfort', 'boost', 'away') or None if not in a preset.
 """
+
 from __future__ import annotations
 
 from typing import Optional, Any

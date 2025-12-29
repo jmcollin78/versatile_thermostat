@@ -21,9 +21,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
-    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
-        AUTO_START_STOP_LEVEL_SLOW, "testu"
-    )
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(AUTO_START_STOP_LEVEL_SLOW, "testu")
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -130,9 +128,7 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
-    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
-        AUTO_START_STOP_LEVEL_SLOW, "testu"
-    )
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(AUTO_START_STOP_LEVEL_SLOW, "testu")
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -225,9 +221,7 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
-    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
-        AUTO_START_STOP_LEVEL_MEDIUM, "testu"
-    )
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(AUTO_START_STOP_LEVEL_MEDIUM, "testu")
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -287,12 +281,8 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     assert ret is True
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_none_vtherm(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_none_vtherm(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop is disabled with a real over_climate VTherm in NONE level"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -355,9 +345,7 @@ async def test_auto_start_stop_none_vtherm(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -368,24 +356,14 @@ async def test_auto_start_stop_none_vtherm(
         assert vtherm._attr_extra_state_attributes.get("auto_start_stop_dtmin") is None
 
     # 1. Vtherm auto-start/stop should be in NONE mode
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_NONE
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_NONE
 
     # 2. We should not find any switch Enable entity
-    assert (
-        search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
-        is None
-    )
+    assert search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN) is None
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="This test sometimes fails in CI only")
-async def test_auto_start_stop_medium_heat_vtherm(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_medium_heat_vtherm(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop works with a real over_climate VTherm in MEDIUM level"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -448,9 +426,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -463,13 +439,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 15
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_MEDIUM
-    )
-    enable_entity = search_entity(
-        hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_MEDIUM
+    enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
@@ -491,9 +462,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19, now, False)
         await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0)
@@ -501,15 +470,11 @@ async def test_auto_start_stop_medium_heat_vtherm(
         # VTherm should still be heating
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
         assert mock_send_event.call_count == 0
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0
-        )  # target = current = 19
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0  # target = current = 19
 
     # 4. Set current temperature to 20 5 min later
     now = now + timedelta(minutes=5)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 20, now, False)
         await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5)
@@ -518,16 +483,11 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
         assert mock_send_event.call_count == 0
         # accumulated_error = target - current = -1 x 5 min / 2
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error
-            == -2.5
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5
 
     # 5. Set current temperature to 21 5 min later -> should turn off
     now = now + timedelta(minutes=5)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, False)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
@@ -537,9 +497,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
         # accumulated_error = -2.5 + target - current = -2 x 5 min / 2 capped to 5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -576,17 +534,13 @@ async def test_auto_start_stop_medium_heat_vtherm(
 
     # 6. Set temperature to small over the target, so that it will stay to OFF
     now = now + timedelta(minutes=10)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19.5, now, False)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
 
         # accumulated_error = .... capped to -5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
 
         # VTherm should stay stopped cause slope is too low to allow the turn to On
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -594,17 +548,13 @@ async def test_auto_start_stop_medium_heat_vtherm(
 
     # 7. Set temperature to over the target, so that it will turn to heat
     now = now + timedelta(minutes=20)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 18, now, True)
         await hass.async_block_till_done()
 
         # accumulated_error = -5/2 + target - current = 1 x 20 min / 2 capped to 5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 5
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 5
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
@@ -644,12 +594,8 @@ async def test_auto_start_stop_medium_heat_vtherm(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_fast_ac_vtherm(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_fast_ac_vtherm(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop works with a real over_climate VTherm in FAST level and AC mode"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -712,9 +658,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -727,10 +671,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -750,9 +691,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
     now = now + timedelta(minutes=5)
     # reset accumulated error for test
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 25, now, True)
         await hass.async_block_till_done()
@@ -760,16 +699,11 @@ async def test_auto_start_stop_fast_ac_vtherm(
         # VTherm should still be cooling
         assert vtherm.hvac_mode == VThermHvacMode_COOL
         assert mock_send_event.call_count == 0
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error
-            == 0  # target = current = 25
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0  # target = current = 25
 
     # 4. Set current temperature to 23 5 min later -> should turn off
     now = now + timedelta(minutes=5)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 23, now, True)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
@@ -778,9 +712,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
         assert vtherm.hvac_mode == VThermHvacMode_OFF
 
         # accumulated_error = target - current = 2 x 5 min / 2 capped to 2
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -817,17 +749,13 @@ async def test_auto_start_stop_fast_ac_vtherm(
 
     # 5. Set temperature to over the target, but slope is too low -> no change
     now = now + timedelta(minutes=30)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 25.5, now, True)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
 
         # accumulated_error = 2/2 + target - current = -1 x 20 min / 2 capped to 2
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
 
         # VTherm should stay stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -836,17 +764,13 @@ async def test_auto_start_stop_fast_ac_vtherm(
 
     # 6. Set temperature to over the target, so that it will turn to COOL
     now = now + timedelta(minutes=5)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 26.5, now, True)
         await hass.async_block_till_done()
 
         # accumulated_error = 2/2 + target - current = -1 x 20 min / 2 capped to 2
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_COOL
@@ -884,12 +808,8 @@ async def test_auto_start_stop_fast_ac_vtherm(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="This test sometimes fails in CI only")
-async def test_auto_start_stop_medium_heat_vtherm_preset_change(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_medium_heat_vtherm_preset_change(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop restart a VTherm stopped upon preset_change (in fast mode)"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -952,9 +872,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -967,10 +885,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
@@ -989,9 +904,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     # 3. Set current temperature to 21 5 min later to auto-stop
     now = now + timedelta(minutes=5)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19, now, False)
 
@@ -1048,9 +961,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
 
     # 4. Change preset to auto restart the Vtherm
     now = now + timedelta(minutes=10)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await vtherm.async_set_preset_mode(VThermPreset.BOOST)
         await wait_for_local_condition(lambda: vtherm.target_temperature == 21)
@@ -1093,12 +1004,8 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         )
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop restart a VTherm stopped upon preset_change (in fast mode)"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -1161,9 +1068,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -1178,13 +1083,8 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True)
 
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
-    enable_entity = search_entity(
-        hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
@@ -1213,9 +1113,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     # 3. Set current temperature to 21 5 min later to auto-stop
     now = now + timedelta(minutes=5)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19, now, True)
         await hass.async_block_till_done()
@@ -1224,20 +1122,14 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
 
         # Not calculated cause enable = false
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0
-        )
+        assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0
 
         # a message should have been sent
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_fast_heat_window(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_fast_heat_window(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop works with a real over_climate VTherm in FAST level and check
     interaction with window openess detection"""
 
@@ -1301,9 +1193,7 @@ async def test_auto_start_stop_fast_heat_window(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -1316,13 +1206,8 @@ async def test_auto_start_stop_fast_heat_window(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
-    enable_entity = search_entity(
-        hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
@@ -1347,9 +1232,7 @@ async def test_auto_start_stop_fast_heat_window(
     now = now + timedelta(minutes=5)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, False)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
@@ -1362,15 +1245,11 @@ async def test_auto_start_stop_fast_heat_window(
 
     # 4. Open the window and wait for the delay
     now = now + timedelta(minutes=2)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         vtherm._set_now(now)
-        try_function = await send_window_change_event(
-            vtherm, True, False, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, True, False, now, sleep=False)
 
         await try_function(None)
 
@@ -1387,15 +1266,11 @@ async def test_auto_start_stop_fast_heat_window(
 
     # 5. close the window
     now = now + timedelta(minutes=2)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         vtherm._set_now(now)
-        try_function = await send_window_change_event(
-            vtherm, False, True, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, False, True, now, sleep=False)
 
         await try_function(None)
 
@@ -1411,12 +1286,8 @@ async def test_auto_start_stop_fast_heat_window(
         assert vtherm.window_state == STATE_OFF
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_fast_heat_window_mixed(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_fast_heat_window_mixed(hass: HomeAssistant, skip_hass_states_is_state):
     """Test than auto-start/stop works with a real over_climate VTherm in FAST level and check
     interaction with window openess detection
     The case is when first window on, then auto-stop, then window off and then auto-start
@@ -1482,9 +1353,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -1497,13 +1366,8 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
-    assert (
-        vtherm.auto_start_stop_manager.auto_start_stop_level
-        == AUTO_START_STOP_LEVEL_FAST
-    )
-    enable_entity = search_entity(
-        hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN
-    )
+    assert vtherm.auto_start_stop_manager.auto_start_stop_level == AUTO_START_STOP_LEVEL_FAST
+    enable_entity = search_entity(hass, "switch.overclimate_enable_auto_start_stop", SWITCH_DOMAIN)
     assert enable_entity is not None
     assert enable_entity.state == STATE_ON
 
@@ -1526,15 +1390,11 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
     # 3. Open the window and wait for the delay
     now = now + timedelta(minutes=2)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         vtherm._set_now(now)
-        try_function = await send_window_change_event(
-            vtherm, True, False, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, True, False, now, sleep=False)
 
         await try_function(None)
 
@@ -1553,9 +1413,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     now = now + timedelta(minutes=7)
     # reset accumulated error (only for testing)
     vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, True)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
@@ -1588,15 +1446,11 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
     # 5. close the window
     now = now + timedelta(minutes=2)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         vtherm._set_now(now)
-        try_function = await send_window_change_event(
-            vtherm, False, True, now, sleep=False
-        )
+        try_function = await send_window_change_event(vtherm, False, True, now, sleep=False)
 
         await try_function(None)
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
@@ -1610,12 +1464,8 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
-async def test_auto_start_stop_disable_vtherm_off(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_auto_start_stop_disable_vtherm_off(hass: HomeAssistant, skip_hass_states_is_state):
     """Test that if auto-start-stop is disabled while VTherm is off, the VTherms turns on
     This is in the issue #662"""
 
@@ -1669,9 +1519,7 @@ async def test_auto_start_stop_disable_vtherm_off(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+        vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
 
         assert vtherm is not None
 
@@ -1679,9 +1527,7 @@ async def test_auto_start_stop_disable_vtherm_off(
         await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
         # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
-        )
+        assert vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
         assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
@@ -1704,9 +1550,7 @@ async def test_auto_start_stop_disable_vtherm_off(
     await vtherm.async_set_preset_mode(VThermPreset.ECO)
     await hass.async_block_till_done()
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         now = now + timedelta(minutes=10)
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 26, now, False)

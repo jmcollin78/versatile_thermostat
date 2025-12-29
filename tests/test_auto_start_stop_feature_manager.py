@@ -64,9 +64,7 @@ async def test_auto_start_stop_feature_manager_create(
         # fmt: on
     ],
 )
-async def test_auto_start_stop_feature_manager_post_init(
-    hass: HomeAssistant, use_auto_start_stop_feature, level, is_configured
-):
+async def test_auto_start_stop_feature_manager_post_init(hass: HomeAssistant, use_auto_start_stop_feature, level, is_configured):
     """Test the FeatureMotionManager class direclty"""
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
@@ -86,11 +84,7 @@ async def test_auto_start_stop_feature_manager_post_init(
     )
 
     assert auto_start_stop_manager.is_configured is is_configured
-    assert (
-        auto_start_stop_manager.auto_start_stop_level == level
-        if level and is_configured
-        else AUTO_START_STOP_LEVEL_NONE
-    )
+    assert auto_start_stop_manager.auto_start_stop_level == level if level and is_configured else AUTO_START_STOP_LEVEL_NONE
     assert auto_start_stop_manager.auto_start_stop_enable is False
     assert auto_start_stop_manager._auto_start_stop_algo is not None
 

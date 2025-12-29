@@ -12,8 +12,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_one_switch_cycle(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -54,16 +52,12 @@ async def test_one_switch_cycle(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4switchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4switchmockname")
     assert entity
     assert entity.is_over_climate is False
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.BOOST)
 
@@ -76,9 +70,7 @@ async def test_one_switch_cycle(
         await send_temperature_change_event(entity, 15, event_timestamp)
 
     # Checks that all heaters are off
-    with patch(
-        "homeassistant.core.StateMachine.is_state", return_value=False
-    ) as mock_is_state:
+    with patch("homeassistant.core.StateMachine.is_state", return_value=False) as mock_is_state:
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
         # Should be call for the Switch
@@ -156,13 +148,9 @@ async def test_one_switch_cycle(
         # assert entity.underlying_entity(0)._should_relaunch_control_heating is True
 
         # Simulate the relaunch
-        await entity.underlying_entity(
-            0
-        )._turn_on_later(  # pylint: disable=protected-access
-            None
-        )
+        await entity.underlying_entity(0)._turn_on_later(None)  # pylint: disable=protected-access
         # wait restart
-        await asyncio.sleep(0.1)
+        await wait_for_local_condition(lambda: mock_heater_on.call_count == 1)
 
         assert mock_heater_on.call_count == 1
         # normal ? assert entity.underlying_entity(0)._should_relaunch_control_heating is False
@@ -176,11 +164,7 @@ async def test_one_switch_cycle(
         new_callable=PropertyMock,
         return_value=True,
     ) as mock_device_active:
-        await entity.underlying_entity(
-            0
-        )._turn_off_later(  # pylint: disable=protected-access
-            None
-        )
+        await entity.underlying_entity(0)._turn_off_later(None)  # pylint: disable=protected-access
 
         # No special event
         assert mock_send_event.call_count == 0
@@ -198,11 +182,7 @@ async def test_one_switch_cycle(
         new_callable=PropertyMock,
         return_value=True,
     ) as mock_device_active:
-        await entity.underlying_entity(
-            0
-        )._turn_on_later(  # pylint: disable=protected-access
-            None
-        )
+        await entity.underlying_entity(0)._turn_on_later(None)  # pylint: disable=protected-access
 
         # No special event
         assert mock_send_event.call_count == 0
@@ -212,8 +192,6 @@ async def test_one_switch_cycle(
         # assert entity.underlying_entity(0)._should_relaunch_control_heating is False
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switchs(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -258,17 +236,13 @@ async def test_multiple_switchs(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4switchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4switchmockname")
     assert entity
     assert entity.is_over_climate is False
     assert entity.nb_underlying_entities == 4
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -348,8 +322,6 @@ async def test_multiple_switchs(
         assert mock_heater_on.call_count == 1
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -391,17 +363,13 @@ async def test_multiple_climates(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4climatemockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4climatemockname")
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -425,9 +393,7 @@ async def test_multiple_climates(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Stop heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(VThermHvacMode_OFF)
@@ -450,8 +416,6 @@ async def test_multiple_climates(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -493,17 +457,13 @@ async def test_multiple_climates_underlying_changes(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4climatemockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4climatemockname")
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -592,8 +552,6 @@ async def test_multiple_climates_underlying_changes(
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes_not_aligned(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -635,17 +593,13 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4climatemockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4climatemockname")
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"
     ) as mock_underlying_set_hvac_mode:
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -698,11 +652,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_multiple_switch_power_management(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_multiple_switch_power_management(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Test the Power management with 4 underlyings switch"""
     temps = {
         "eco": 17,
@@ -744,9 +694,7 @@ async def test_multiple_switch_power_management(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theover4switchmockname", temps
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theover4switchmockname", temps)
     assert entity
     assert entity.is_over_climate is False
     assert entity.nb_underlying_entities == 4

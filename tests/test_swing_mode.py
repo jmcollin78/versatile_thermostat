@@ -22,8 +22,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_swing_horizontal_mode(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -92,8 +90,6 @@ async def test_over_climate_swing_horizontal_mode(
         assert entity._swing_horizontal_mode == "auto"
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_swing_mode(
     hass: HomeAssistant,
     skip_hass_states_is_state,

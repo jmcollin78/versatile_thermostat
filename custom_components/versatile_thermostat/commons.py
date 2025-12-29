@@ -8,6 +8,7 @@ from .const import ServiceConfigurationError
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def round_to_nearest(n: float, x: float) -> float:
     """Round a number to the nearest x (which should be decimal but not null)
     Example:
@@ -99,11 +100,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
         if len(data) > 0:
             data_infos = None
             data_infos = data.split(":")
-            if (
-                len(data_infos) != 2
-                or len(data_infos[0]) <= 0
-                or len(data_infos[1]) <= 0
-            ):
+            if len(data_infos) != 2 or len(data_infos[0]) <= 0 or len(data_infos[1]) <= 0:
                 raise ServiceConfigurationError(
                     f"Incorrect service configuration. The data {data} should be formatted like: 'attribute:value' (ex: 'value:25'). See README for more information."
                 )
@@ -122,9 +119,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
     else:
         ret.update({"data": {}})
 
-    _LOGGER.debug(
-        "check_and_extract_service_configuration(%s) gives '%s'", service_config, ret
-    )
+    _LOGGER.debug("check_and_extract_service_configuration(%s) gives '%s'", service_config, ret)
     return ret
 
 

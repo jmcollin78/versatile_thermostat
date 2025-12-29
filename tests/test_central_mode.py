@@ -22,10 +22,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_config_with_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_config_with_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state):
     """A config with central_mode True"""
 
     # Add a Switch VTherm
@@ -63,9 +60,7 @@ async def test_config_with_central_mode_true(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_switch
@@ -73,10 +68,7 @@ async def test_config_with_central_mode_true(
         assert entity.last_central_mode is None  # cause no central config exists
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_config_with_central_mode_false(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_config_with_central_mode_false(hass: HomeAssistant, skip_hass_states_is_state):
     """A config with central_mode False"""
 
     # Add a Climate VTherm
@@ -111,9 +103,7 @@ async def test_config_with_central_mode_false(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
@@ -121,10 +111,7 @@ async def test_config_with_central_mode_false(
         assert entity.last_central_mode is None  # cause no central config exists
 
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_config_with_central_mode_none(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_config_with_central_mode_none(hass: HomeAssistant, skip_hass_states_is_state):
     """A config with central_mode is None"""
 
     # Add a Switch VTherm
@@ -162,9 +149,7 @@ async def test_config_with_central_mode_none(
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theovervalvemockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theovervalvemockname")
         assert entity
         assert entity.name == "TheOverValveMockName"
         assert entity.is_over_valve
@@ -172,11 +157,7 @@ async def test_config_with_central_mode_none(
         assert entity.last_central_mode is None  # cause no central config exists
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -216,9 +197,7 @@ async def test_switch_change_central_mode_true(
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.is_controlled_by_central_mode
         assert entity.last_central_mode is None
@@ -315,11 +294,7 @@ async def test_switch_change_central_mode_true(
         assert entity.preset_mode == VThermPreset.COMFORT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_ac_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_ac_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -360,9 +335,7 @@ async def test_switch_ac_change_central_mode_true(
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.is_controlled_by_central_mode
         assert entity.ac_mode is True
@@ -452,11 +425,7 @@ async def test_switch_ac_change_central_mode_true(
         assert entity.preset_mode == VThermPreset.COMFORT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_climate_ac_change_central_mode_false(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_climate_ac_change_central_mode_false(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_climate config with central_mode False are
     not taken into account"""
 
@@ -497,9 +466,7 @@ async def test_climate_ac_change_central_mode_false(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
@@ -588,11 +555,7 @@ async def test_climate_ac_change_central_mode_false(
         assert entity.preset_mode == VThermPreset.COMFORT
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_climate_ac_only_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_climate_ac_only_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_climate with AC only config with central_mode True are
     taken into account
     Test also switching from central_mode without coming to AUTO each time"""
@@ -641,9 +604,7 @@ async def test_climate_ac_only_change_central_mode_true(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entity
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate
@@ -750,11 +711,7 @@ async def test_climate_ac_only_change_central_mode_true(
         assert entity.preset_mode == VThermPreset.ECO
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true_with_window(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true_with_window(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -804,9 +761,7 @@ async def test_switch_change_central_mode_true_with_window(
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.is_controlled_by_central_mode
         assert entity.last_central_mode is None
@@ -827,15 +782,11 @@ async def test_switch_change_central_mode_true_with_window(
         assert entity.window_state is STATE_UNKNOWN
 
     # 2 Open the window
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = event_timestamp + timedelta(minutes=1)
-        try_function = await send_window_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_function = await send_window_change_event(entity, True, False, event_timestamp)
 
         await try_function(None)
 
@@ -865,15 +816,11 @@ async def test_switch_change_central_mode_true_with_window(
         # assert entity._saved_preset_mode_central_mode == VThermPreset.ACTIVITY
 
     # 4 Close the window
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = event_timestamp + timedelta(minutes=1)
-        try_function = await send_window_change_event(
-            entity, False, True, event_timestamp
-        )
+        try_function = await send_window_change_event(entity, False, True, event_timestamp)
 
         await try_function(None)
 
@@ -888,9 +835,7 @@ async def test_switch_change_central_mode_true_with_window(
         assert entity.window_state is STATE_OFF
 
     # 5 Back to Auto
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         event_timestamp = event_timestamp + timedelta(minutes=1)
 
         await select_entity.async_select_option(CENTRAL_MODE_AUTO)
@@ -906,11 +851,7 @@ async def test_switch_change_central_mode_true_with_window(
         assert entity.window_state is STATE_OFF
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true_with_cool_only_and_window(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true_with_cool_only_and_window(hass: HomeAssistant, skip_hass_states_is_state, init_central_config):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -960,9 +901,7 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
 
     # 1 initialize entity and find select entity
     with patch("homeassistant.core.ServiceRegistry.async_call"):
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverswitchmockname"
-        )
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
         assert entity
         assert entity.is_controlled_by_central_mode
         assert entity.last_central_mode is None
@@ -997,15 +936,11 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         # assert entity._saved_preset_mode_central_mode == VThermPreset.ACTIVITY
 
     # 3 Open the window -> still off but reason change
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = event_timestamp + timedelta(minutes=1)
-        try_function = await send_window_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_function = await send_window_change_event(entity, True, False, event_timestamp)
 
         await try_function(None)
 
@@ -1042,15 +977,11 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(
         # assert entity._saved_preset_mode_central_mode == VThermPreset.ACTIVITY
 
     # 5 Close the window
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = event_timestamp + timedelta(minutes=1)
-        try_function = await send_window_change_event(
-            entity, False, True, event_timestamp
-        )
+        try_function = await send_window_change_event(entity, False, True, event_timestamp)
 
         await try_function(None)
 

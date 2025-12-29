@@ -1,4 +1,5 @@
 """Test the switch keep-alive feature."""
+
 import logging
 from collections.abc import AsyncGenerator, Callable, Awaitable
 from dataclasses import dataclass
@@ -102,47 +103,34 @@ class TestKeepAlive:
         self._prev_atti_call_count = 0  # atti: async_time_track_interval
         self._prev_atti_callback: Callable[[datetime], Awaitable[None]] | None = None
 
-    def _assert_service_call(
-        self, cm: CommonMocks, expected_additional_calls: list[_Call]
-    ):
+    def _assert_service_call(self, cm: CommonMocks, expected_additional_calls: list[_Call]):
         """Assert that hass.services.async_call() was called with the expected arguments,
         cumulatively over the course of long test cases."""
         self._prev_service_calls.extend(expected_additional_calls)
         cm.mock_service_call.assert_has_calls(self._prev_service_calls)
 
-    def _assert_async_mock_track_time_interval(
-        self, cm: CommonMocks, expected_additional_calls: int
-    ):
+    def _assert_async_mock_track_time_interval(self, cm: CommonMocks, expected_additional_calls: int):
         """Assert that async_track_time_interval() was called the expected number of times
         with the expected arguments, cumulatively over the course of long test cases."""
         self._prev_atti_call_count += expected_additional_calls
-        assert (
-            cm.mock_async_track_time_interval.call_count == self._prev_atti_call_count
-        )
+        assert cm.mock_async_track_time_interval.call_count == self._prev_atti_call_count
         interval = timedelta(seconds=cm.config_entry.data[CONF_HEATER_KEEP_ALIVE])
         cm.mock_async_track_time_interval.assert_called_with(cm.hass, ANY, interval)
         keep_alive_callback = cm.mock_async_track_time_interval.call_args.args[1]
         assert callable(keep_alive_callback)
         self._prev_atti_callback = keep_alive_callback
 
-    async def _assert_multipe_keep_alive_callback_calls(
-        self, cm: CommonMocks, n_calls: int
-    ):
+    async def _assert_multipe_keep_alive_callback_calls(self, cm: CommonMocks, n_calls: int):
         """Call the keep-alive callback a few times as if `async_track_time_interval()` had
         done it, and assert that this triggers further calls to `async_track_time_interval()`.
         """
         old_callback = self._prev_atti_callback
-        assert (
-            old_callback
-        ), "The keep-alive callback should have been called before, but it wasn't."
+        assert old_callback, "The keep-alive callback should have been called before, but it wasn't."
         interval = timedelta(seconds=cm.config_entry.data[CONF_HEATER_KEEP_ALIVE])
         for _ in range(n_calls):
             await old_callback(datetime.fromtimestamp(0))
             self._prev_atti_call_count += 1
-            assert (
-                cm.mock_async_track_time_interval.call_count
-                == self._prev_atti_call_count
-            )
+            assert cm.mock_async_track_time_interval.call_count == self._prev_atti_call_count
             cm.mock_async_track_time_interval.assert_called_with(cm.hass, ANY, interval)
             new_callback = cm.mock_async_track_time_interval.call_args.args[1]
             assert new_callback is not old_callback
@@ -269,9 +257,7 @@ class TestBackoffTimer:
 
     def test_exponential_period_increase(self):
         """Test that consecutive calls to is_ready() produce increasing wait periods."""
-        with patch(
-            "custom_components.versatile_thermostat.keep_alive.monotonic"
-        ) as mock_monotonic:
+        with patch("custom_components.versatile_thermostat.keep_alive.monotonic") as mock_monotonic:
             timer = BackoffTimer(
                 multiplier=2,
                 lower_limit_sec=30,
@@ -295,9 +281,7 @@ class TestBackoffTimer:
 
     def test_the_upper_limit_option(self):
         """Test the timer.in_progress property and the effect of timer.reset()."""
-        with patch(
-            "custom_components.versatile_thermostat.keep_alive.monotonic"
-        ) as mock_monotonic:
+        with patch("custom_components.versatile_thermostat.keep_alive.monotonic") as mock_monotonic:
             timer = BackoffTimer(
                 multiplier=2,
                 lower_limit_sec=30,
@@ -323,9 +307,7 @@ class TestBackoffTimer:
 
     def test_the_lower_limit_option(self):
         """Test the timer.in_progress property and the effect of timer.reset()."""
-        with patch(
-            "custom_components.versatile_thermostat.keep_alive.monotonic"
-        ) as mock_monotonic:
+        with patch("custom_components.versatile_thermostat.keep_alive.monotonic") as mock_monotonic:
             timer = BackoffTimer(
                 multiplier=0.5,
                 lower_limit_sec=30,
@@ -347,9 +329,7 @@ class TestBackoffTimer:
 
     def test_initial_is_ready_result(self):
         """Test that the first call to is_ready() produces the initially_ready option value."""
-        with patch(
-            "custom_components.versatile_thermostat.keep_alive.monotonic"
-        ) as mock_monotonic:
+        with patch("custom_components.versatile_thermostat.keep_alive.monotonic") as mock_monotonic:
             for initial in [True, False]:
                 timer = BackoffTimer(
                     multiplier=2,
@@ -363,9 +343,7 @@ class TestBackoffTimer:
 
     def test_in_progress_and_reset(self):
         """Test the timer.in_progress property and the effect of timer.reset()."""
-        with patch(
-            "custom_components.versatile_thermostat.keep_alive.monotonic"
-        ) as mock_monotonic:
+        with patch("custom_components.versatile_thermostat.keep_alive.monotonic") as mock_monotonic:
             timer = BackoffTimer(
                 multiplier=2,
                 lower_limit_sec=30,

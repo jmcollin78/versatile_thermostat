@@ -29,6 +29,7 @@ from .underlyings import UnderlyingSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ThermostatOverSwitch(ThermostatTPI[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
@@ -97,11 +98,7 @@ class ThermostatOverSwitch(ThermostatTPI[UnderlyingSwitch]):
 
         # Add listener to all underlying entities
         for switch in self._underlyings:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass, [switch.entity_id], self._async_switch_changed
-                )
-            )
+            self.async_on_remove(async_track_state_change_event(self.hass, [switch.entity_id], self._async_switch_changed))
             switch.startup()
 
         # self.hass.create_task(self.async_control_heating())
@@ -150,8 +147,6 @@ class ThermostatOverSwitch(ThermostatTPI[UnderlyingSwitch]):
         )
 
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
-
-
 
     @overrides
     def incremente_energy(self):

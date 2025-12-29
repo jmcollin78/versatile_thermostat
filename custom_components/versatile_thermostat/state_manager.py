@@ -39,6 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from .base_thermostat import BaseThermostat
 
+
 class StateManager:
     """Manages the current and requested state for a VTherm.
 
@@ -48,8 +49,7 @@ class StateManager:
     """
 
     def __init__(self):
-        """Initialize the StateManager with empty initial states.
-        """
+        """Initialize the StateManager with empty initial states."""
         self._current_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
         self._requested_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
 

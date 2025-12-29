@@ -66,9 +66,9 @@ async def test_state_manager_create(
 
     json = state_manager.current_state.to_dict()
     assert json == {
-       "hvac_mode": str(VThermHvacMode_HEAT),
-       "preset": str(VThermPreset.ECO),
-       "target_temperature": 22,
+        "hvac_mode": str(VThermHvacMode_HEAT),
+        "preset": str(VThermPreset.ECO),
+        "target_temperature": 22,
     }
 
     json["hvac_mode"] = str(VThermHvacMode_COOL)
@@ -79,6 +79,7 @@ async def test_state_manager_create(
     assert restored_state.hvac_mode == VThermHvacMode_COOL
     assert restored_state.preset == VThermPreset.BOOST
     assert restored_state.target_temperature == 24
+
 
 async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     """Test saving and restoring the VTherm states with new format"""
@@ -106,10 +107,9 @@ async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     mock_state = MagicMock()
     mock_state.state = HVACMode.OFF
     mock_state.attributes = state_dict
-    with patch.object(vtherm_restored, 'async_get_last_state', return_value=mock_state):
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
         # Create a new thermostat instance to simulate restoration
         await vtherm_restored.get_my_previous_state()
-
 
     # Check that the current state has been restored
     assert vtherm_restored.current_state.hvac_mode == VThermHvacMode_HEAT
@@ -120,6 +120,7 @@ async def test_vtherm_state_save_and_restor_newfmt(hass: HomeAssistant) -> None:
     assert vtherm_restored.requested_state.hvac_mode == VThermHvacMode_COOL
     assert vtherm_restored.requested_state.preset == VThermPreset.COMFORT
     assert vtherm_restored.requested_state.target_temperature == 23
+
 
 async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     """Test saving and restoring the VTherm states with old format (ie retrocompatibility)"""
@@ -134,7 +135,7 @@ async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     mock_state = MagicMock()
     mock_state.attributes = state_dict
     mock_state.state = HVACMode.HEAT
-    with patch.object(vtherm_restored, 'async_get_last_state', return_value=mock_state):
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
         # Create a new thermostat instance to simulate restoration
         await vtherm_restored.get_my_previous_state()
 

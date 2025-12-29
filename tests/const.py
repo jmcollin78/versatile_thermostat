@@ -1,6 +1,5 @@
 """ The commons const for all tests """
 
-
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 MOCK_TH_OVER_SWITCH_USER_CONFIG = {

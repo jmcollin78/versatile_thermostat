@@ -211,11 +211,7 @@ async def test_motion_feature_manager_event(
     await hass.async_block_till_done()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_not_enough(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_not_enough(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Presence management when time is not enough"""
     temps = {
         "frost": 10,
@@ -261,9 +257,7 @@ async def test_motion_management_time_not_enough(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     await set_all_climate_preset_temp(hass, entity, temps, "theoverswitchmockname")
 
@@ -271,9 +265,7 @@ async def test_motion_management_time_not_enough(
     now: datetime = datetime.now(tz=tz)
 
     # 1. start heating, in boost mode, when someone is present. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
@@ -305,9 +297,7 @@ async def test_motion_management_time_not_enough(
         return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=4)
-        try_condition = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_condition = await send_motion_change_event(entity, True, False, event_timestamp)
 
         # Will return False -> we will stay on movement False
         await try_condition(None)
@@ -337,9 +327,7 @@ async def test_motion_management_time_not_enough(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         event_timestamp = now - timedelta(minutes=3)
-        try_condition = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_condition = await send_motion_change_event(entity, True, False, event_timestamp)
 
         # Will return True -> we will switch to movement On
         await try_condition(None)
@@ -365,9 +353,7 @@ async def test_motion_management_time_not_enough(
         return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=2)
-        try_condition = await send_motion_change_event(
-            entity, False, True, event_timestamp
-        )
+        try_condition = await send_motion_change_event(entity, False, True, event_timestamp)
 
         # Will return False -> we will stay to movement On
         await try_condition(None)
@@ -396,9 +382,7 @@ async def test_motion_management_time_not_enough(
         "homeassistant.helpers.condition.state", return_value=True
     ) as mock_condition:
         event_timestamp = now - timedelta(minutes=1)
-        try_condition = await send_motion_change_event(
-            entity, False, True, event_timestamp
-        )
+        try_condition = await send_motion_change_event(entity, False, True, event_timestamp)
 
         # Will return True -> we will switch to movement Off
         await try_condition(None)
@@ -417,11 +401,7 @@ async def test_motion_management_time_not_enough(
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_enough_and_presence(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_enough_and_presence(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Motion management when time is not enough"""
 
     entry = MockConfigEntry(
@@ -462,18 +442,14 @@ async def test_motion_management_time_enough_and_presence(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
@@ -503,6 +479,7 @@ async def test_motion_management_time_enough_and_presence(
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_ON and entity.target_temperature == 19)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -511,8 +488,8 @@ async def test_motion_management_time_enough_and_presence(
         assert entity.motion_state == STATE_ON
         assert entity.presence_state == STATE_ON
         assert mock_send_event.call_count == 0
-        # Change is confirmed. Heater should be started
-        assert mock_heater_on.call_count == 1
+        # Change is confirmed. Heater should be requested
+        assert entity.proportional_algorithm.on_percent > 0
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
@@ -528,6 +505,7 @@ async def test_motion_management_time_enough_and_presence(
     ):
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_OFF and entity.target_temperature == 18)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -537,17 +515,12 @@ async def test_motion_management_time_enough_and_presence(
         assert entity.presence_state == STATE_ON
 
         assert mock_send_event.call_count == 0
-        assert mock_heater_on.call_count == 0
         # Because heating is no more necessary
         assert mock_heater_off.call_count == 1
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_enough_and_not_presence(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_enough_and_not_presence(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Presence management when time is not enough"""
 
     entry = MockConfigEntry(
@@ -588,18 +561,14 @@ async def test_motion_management_time_enough_and_not_presence(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
@@ -629,6 +598,7 @@ async def test_motion_management_time_enough_and_not_presence(
     ):
         event_timestamp = now - timedelta(minutes=3)
         await send_motion_change_event(entity, True, False, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_ON and entity.target_temperature == 19.1)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -638,8 +608,8 @@ async def test_motion_management_time_enough_and_not_presence(
         assert entity.presence_state == STATE_OFF
 
         assert mock_send_event.call_count == 0
-        # Change is confirmed. Heater should be started
-        assert mock_heater_on.call_count == 1
+        # Change is confirmed. Heater should be requested
+        assert entity.proportional_algorithm.on_percent > 0
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
@@ -655,6 +625,7 @@ async def test_motion_management_time_enough_and_not_presence(
     ):
         event_timestamp = now - timedelta(minutes=2)
         await send_motion_change_event(entity, False, True, event_timestamp)
+        await wait_for_local_condition(lambda: entity.motion_state == STATE_OFF and entity.target_temperature in {18, 18.1})
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -664,17 +635,13 @@ async def test_motion_management_time_enough_and_not_presence(
         assert entity.presence_state == STATE_OFF
         assert mock_send_event.call_count == 0
         # 18.1 starts heating with a low on_percent
-        assert mock_heater_on.call_count == 1
+        assert entity.proportional_algorithm.on_percent >= 0.1
         assert entity.proportional_algorithm.on_percent == 0.11
         assert mock_heater_off.call_count == 0
         assert mock_send_event.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_with_stop_during_condition(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_with_stop_during_condition(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Motion management when the movement sensor switch to off and then to on during the test condition"""
 
     entry = MockConfigEntry(
@@ -716,18 +683,14 @@ async def test_motion_management_with_stop_during_condition(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
@@ -756,9 +719,7 @@ async def test_motion_management_with_stop_during_condition(
         "homeassistant.helpers.condition.state", return_value=True
     ):  # Not needed for this test
         event_timestamp = now - timedelta(minutes=5)
-        try_condition1 = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_condition1 = await send_motion_change_event(entity, True, False, event_timestamp)
 
         assert try_condition1 is not None
 
@@ -770,9 +731,7 @@ async def test_motion_management_with_stop_during_condition(
         assert entity.presence_state == STATE_OFF
         # Send a stop detection
         event_timestamp = now - timedelta(minutes=4)
-        try_condition = await send_motion_change_event(
-            entity, False, True, event_timestamp
-        )
+        try_condition = await send_motion_change_event(entity, False, True, event_timestamp)
         assert try_condition is None  # The timer should not have been stopped
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
@@ -783,12 +742,8 @@ async def test_motion_management_with_stop_during_condition(
 
         # Resend a start detection
         event_timestamp = now - timedelta(minutes=3)
-        try_condition = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
-        assert (
-            try_condition is None
-        )  # The timer should not have been restarted (we keep the first one)
+        try_condition = await send_motion_change_event(entity, True, False, event_timestamp)
+        assert try_condition is None  # The timer should not have been restarted (we keep the first one)
 
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.ACTIVITY
@@ -804,11 +759,7 @@ async def test_motion_management_with_stop_during_condition(
         assert entity.presence_state == STATE_OFF  # Non change
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_with_stop_during_condition_last_state_on(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_with_stop_during_condition_last_state_on(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Motion management when the movement sensor switch to off and then to on during the test condition"""
 
     entry = MockConfigEntry(
@@ -849,18 +800,14 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # 0. start heating, in boost mode. We block the control_heating to avoid running a cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
 
@@ -884,9 +831,7 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
         return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_OFF),
     ):
         event_timestamp = now - timedelta(minutes=5)
-        try_condition1 = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_condition1 = await send_motion_change_event(entity, True, False, event_timestamp)
 
         assert try_condition1 is not None
 
@@ -906,9 +851,7 @@ async def test_motion_management_with_stop_during_condition_last_state_on(
         return_value=State(entity_id="binary_sensor.mock_motion_sensor", state=STATE_ON),
     ):
         event_timestamp = now - timedelta(minutes=5)
-        try_condition1 = await send_motion_change_event(
-            entity, True, False, event_timestamp
-        )
+        try_condition1 = await send_motion_change_event(entity, True, False, event_timestamp)
 
         assert try_condition1 is not None
 

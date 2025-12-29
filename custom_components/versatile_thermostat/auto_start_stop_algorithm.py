@@ -52,6 +52,7 @@ AUTO_START_STOP_ACTIONS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_ACTION_NOTHING,
 ]
 
+
 class AutoStartStopDetectionAlgorithm:
     """The class that implements the algorithm listed above"""
 
@@ -149,9 +150,7 @@ class AutoStartStopDetectionAlgorithm:
         # Calculate the number of minute from last_switch
         nb_minutes_since_last_switch = 999
         if self._last_switch_date is not None:
-            nb_minutes_since_last_switch = (
-                now - self._last_switch_date
-            ).total_seconds() / 60
+            nb_minutes_since_last_switch = (now - self._last_switch_date).total_seconds() / 60
 
         # Check to turn-off
         # When we hit the threshold, that mean we can turn off

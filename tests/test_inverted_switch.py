@@ -13,8 +13,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the Window auto management"""
 
@@ -95,16 +93,12 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
-                    "switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"}
-                ),
+                call.async_call("switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"}),
             ]
         )
 
     # 2. Make the temperature up to deactivate the switch
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.is_state",
@@ -124,9 +118,7 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
-                    "switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"}
-                ),
+                call.async_call("switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"}),
             ]
         )
 

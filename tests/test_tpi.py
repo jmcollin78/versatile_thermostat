@@ -9,11 +9,7 @@ from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm,
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_tpi_calculation(
-    hass: HomeAssistant, skip_hass_states_is_state: None
-):  # pylint: disable=unused-argument
+async def test_tpi_calculation(hass: HomeAssistant, skip_hass_states_is_state: None):  # pylint: disable=unused-argument
     """Test the TPI calculation"""
 
     entry = MockConfigEntry(
@@ -44,9 +40,7 @@ async def test_tpi_calculation(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     assert entity._prop_algorithm  # pylint: disable=protected-access
 
@@ -152,24 +146,20 @@ async def test_tpi_calculation(
 
     # clamping to 80%  (calculated_on_percent = 1)
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_HEAT)
-    assert tpi_algo.on_percent == 0.8 # should be clamped to 80%
-    assert tpi_algo.calculated_on_percent == 1 # calculated percentage should not be affected by clamping
-    assert tpi_algo.on_time_sec == 240 # capped at 80%
+    assert tpi_algo.on_percent == 0.8  # should be clamped to 80%
+    assert tpi_algo.calculated_on_percent == 1  # calculated percentage should not be affected by clamping
+    assert tpi_algo.on_time_sec == 240  # capped at 80%
     assert tpi_algo.off_time_sec == 60
 
     # clamping to 80%  (calculated_on_percent = 0.81)
     tpi_algo.calculate(15, 12.5, 9, 0, VThermHvacMode_HEAT)
-    assert tpi_algo.on_percent == 0.80 # should be clamped to 80%
-    assert tpi_algo.calculated_on_percent == 0.81 # calculated percentage should not be affected by clamping
-    assert tpi_algo.on_time_sec == 240 # capped at 80%
+    assert tpi_algo.on_percent == 0.80  # should be clamped to 80%
+    assert tpi_algo.calculated_on_percent == 0.81  # calculated percentage should not be affected by clamping
+    assert tpi_algo.on_time_sec == 240  # capped at 80%
     assert tpi_algo.off_time_sec == 60
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_minimal_deactivation_delay(
-    hass: HomeAssistant, skip_hass_states_is_state: None
-):  # pylint: disable=unused-argument
+async def test_minimal_deactivation_delay(hass: HomeAssistant, skip_hass_states_is_state: None):  # pylint: disable=unused-argument
     """Test the minimal deactivation delay"""
 
     entry = MockConfigEntry(
@@ -199,9 +189,7 @@ async def test_minimal_deactivation_delay(
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     assert entity._prop_algorithm  # pylint: disable=protected-access
 
@@ -253,11 +241,7 @@ async def test_minimal_deactivation_delay(
     assert tpi_algo.off_time_sec == 60
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_wrong_tpi_parameters(
-    hass: HomeAssistant, skip_hass_states_is_state: None
-):  # pylint: disable=unused-argument
+async def test_wrong_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state: None):  # pylint: disable=unused-argument
     """Test the wrong TPI parameters"""
 
     # Nominal case
@@ -465,8 +449,6 @@ async def test_prop_algorithm_thresholds(
     assert tpi_algo.on_percent == expected_on_percent
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
     """Test the set_tpi_parameters service to change TPI coefficients and verify on_percent changes"""
     # Initialize a VTherm over_switch with default TPI parameters
@@ -599,8 +581,6 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
     """Test that the set_tpi_parameters service cannot be called on a VTherm over_climate.
     This service is only available for VTherms using TPI algorithm (over_switch, over_valve)."""

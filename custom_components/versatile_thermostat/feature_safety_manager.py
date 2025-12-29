@@ -54,22 +54,12 @@ class FeatureSafetyManager(BaseFeatureManager):
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
         self._safety_delay_min = entry_infos.get(CONF_SAFETY_DELAY_MIN)
-        self._safety_min_on_percent = (
-            entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT)
-            if entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT) is not None
-            else DEFAULT_SAFETY_MIN_ON_PERCENT
-        )
+        self._safety_min_on_percent = entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT) if entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT) is not None else DEFAULT_SAFETY_MIN_ON_PERCENT
         self._safety_default_on_percent = (
-            entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT)
-            if entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT) is not None
-            else DEFAULT_SAFETY_DEFAULT_ON_PERCENT
+            entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT) if entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT) is not None else DEFAULT_SAFETY_DEFAULT_ON_PERCENT
         )
 
-        if (
-            self._safety_delay_min is not None
-            and self._safety_default_on_percent is not None
-            and self._safety_default_on_percent is not None
-        ):
+        if self._safety_delay_min is not None and self._safety_default_on_percent is not None and self._safety_default_on_percent is not None:
             self._safety_state = STATE_UNKNOWN
             self._is_configured = True
 
@@ -100,38 +90,24 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         is_safety_detected = self.is_safety_detected
 
-        delta_temp = (
-            now - self._vtherm.last_temperature_measure.replace(tzinfo=current_tz)
-        ).total_seconds() / 60.0
-        delta_ext_temp = (
-            now - self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz)
-        ).total_seconds() / 60.0
+        delta_temp = (now - self._vtherm.last_temperature_measure.replace(tzinfo=current_tz)).total_seconds() / 60.0
+        delta_ext_temp = (now - self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz)).total_seconds() / 60.0
 
         mode_cond = self._vtherm.hvac_mode != VThermHvacMode_OFF
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-        is_outdoor_checked = (
-            not api.safety_mode
-            or api.safety_mode.get("check_outdoor_sensor") is not False
-        )
+        is_outdoor_checked = not api.safety_mode or api.safety_mode.get("check_outdoor_sensor") is not False
 
-        temp_cond: bool = delta_temp > self._safety_delay_min or (
-            is_outdoor_checked and delta_ext_temp > self._safety_delay_min
-        )
-        climate_cond: bool = (
-            self._vtherm.is_over_climate
-            and self._vtherm.hvac_action
-            not in [
-                HVACAction.COOLING,
-                HVACAction.IDLE,
-            ]
-        )
+        temp_cond: bool = delta_temp > self._safety_delay_min or (is_outdoor_checked and delta_ext_temp > self._safety_delay_min)
+        climate_cond: bool = self._vtherm.is_over_climate and self._vtherm.hvac_action not in [
+            HVACAction.COOLING,
+            HVACAction.IDLE,
+        ]
         switch_cond: bool = (
             not self._vtherm.is_over_climate
             and self._vtherm.has_tpi
             and self._vtherm.proportional_algorithm is not None
-            and self._vtherm.proportional_algorithm.calculated_on_percent
-            >= self._safety_min_on_percent
+            and self._vtherm.proportional_algorithm.calculated_on_percent >= self._safety_min_on_percent
         )
 
         _LOGGER.debug(
@@ -179,12 +155,8 @@ class FeatureSafetyManager(BaseFeatureManager):
             self._vtherm.send_event(
                 EventType.TEMPERATURE_EVENT,
                 {
-                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
-                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(
-                        tzinfo=current_tz
-                    ).isoformat(),
+                    "last_temperature_measure": self._vtherm.last_temperature_measure.replace(tzinfo=current_tz).isoformat(),
+                    "last_ext_temperature_measure": self._vtherm.last_ext_temperature_measure.replace(tzinfo=current_tz).isoformat(),
                     "current_temp": self._vtherm.current_temperature,
                     "current_ext_temp": self._vtherm.current_outdoor_temperature,
                     "target_temp": self._vtherm.target_temperature,
