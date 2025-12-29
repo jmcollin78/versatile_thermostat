@@ -312,11 +312,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._auto_fan_mode,
                 dtemp,
             )
+            self._auto_deactivated_fan_mode = self._state_manager.current_state.fan_mode
             await self.async_set_fan_mode(self._auto_activated_fan_mode)
-        if (
-            not should_activate_auto_fan
-            and self.fan_mode not in AUTO_FAN_DEACTIVATED_MODES
-        ):
+        if not should_activate_auto_fan:
             _LOGGER.info(
                 "%s - DeActivate the auto fan mode with %s because delta temp is %.2f",
                 self,
@@ -413,13 +411,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self._auto_activated_fan_mode = self._auto_deactivated_fan_mode = None
             return
 
-        def find_fan_mode(fan_modes: list[str], fan_mode: str) -> str | None:
-            """Return the fan_mode if it exist of None if not"""
-            try:
-                return fan_mode if fan_modes.index(fan_mode) >= 0 else None
-            except ValueError:
-                return None
-
         def fix_order_speed_modes(speed_modes: list) -> list:
             """Determine if speed_modes list is ordered from high to low speed and reverse it"""
             index = -1
@@ -487,11 +478,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self._auto_activated_fan_mode = speed_modes[target_index]
         else:
             self._auto_activated_fan_mode = None
-
-        for val in AUTO_FAN_DEACTIVATED_MODES:
-            if find_fan_mode(fan_modes, val):
-                self._auto_deactivated_fan_mode = val
-                break
 
         _LOGGER.info(
             "%s - choose_auto_fan_mode founds current_auto_fan_mode=%s auto_activated_fan_mode=%s and auto_deactivated_fan_mode=%s",
@@ -706,7 +692,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             under_temp_diff = 0
 
         # Forget event when the event holds no real changes
-        if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self._attr_fan_mode):
+        if new_hvac_mode == self.hvac_mode and new_hvac_action == old_hvac_action and under_temp_diff == 0 and (new_fan_mode is None or new_fan_mode == self.fan_mode):
             _LOGGER.debug(
                 "%s - a underlying state change event is received but no real change have been found. Forget the event",
                 self,
@@ -742,7 +728,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             new_target_temp,
             self.target_temperature,
             new_fan_mode,
-            self._attr_fan_mode,
+            self.fan_mode,
         )
 
         _LOGGER.debug(
@@ -838,9 +824,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             changes = True
             self.requested_state.set_hvac_mode(new_hvac_mode)
 
-        # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
-        if new_fan_mode != self._attr_fan_mode:
-            self._attr_fan_mode = new_fan_mode
+        if new_fan_mode != self.fan_mode:
+            self.async_set_fan_mode(fan_mode=new_fan_mode)
             changes = True
 
         # try to manage new target temperature set if state if no other changes have been found
@@ -952,11 +937,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         Requires ClimateEntityFeature.FAN_MODE.
         """
-        if self.underlying_entity(0):
-            self._attr_fan_mode = self.underlying_entity(0).fan_mode
-            return self._attr_fan_mode
-
-        return None
+        return self._state_manager.current_state.fan_mode
 
     @property
     def fan_modes(self) -> list[str] | None:
@@ -1138,7 +1119,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         for under in self._underlyings:
             await under.set_fan_mode(fan_mode)
-        self._fan_mode = fan_mode
+
+        # Change the requested state
+        self._state_manager.requested_state.set_fan_mode(fan_mode)
+        await self.update_states(force=False)
         self.async_write_ha_state()
 
     @overrides
