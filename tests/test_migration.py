@@ -169,12 +169,9 @@ async def test_migration_offset_calibration_configured(
     assert new_config_entry.data.get(CONF_SYNC_WITH_CALIBRATION) is True
     assert new_config_entry.data.get(CONF_SYNC_ENTITY_LIST) == ["number.calib1", "number.calib2"]
 
-    assert entity.activable_underlying_entities[0].has_sync_entity is True
-    assert entity.activable_underlying_entities[0].is_sync_with_calibration is True
-    assert entity.activable_underlying_entities[0].sync_entity_id == "number.calib1"
-    assert entity.activable_underlying_entities[1].has_sync_entity is True
-    assert entity.activable_underlying_entities[1].is_sync_with_calibration is True
-    assert entity.activable_underlying_entities[1].sync_entity_id == "number.calib2"
+    assert entity.has_sync_entities is True
+    assert entity.is_sync_with_calibration is True
+    assert entity.sync_entity_ids == ["number.calib1", "number.calib2"]
 
     entity.remove_thermostat()
 
@@ -223,11 +220,8 @@ async def test_migration_offset_calibration_not_configured(
     assert new_config_entry.data.get(CONF_SYNC_WITH_CALIBRATION) is False
     assert new_config_entry.data.get(CONF_SYNC_ENTITY_LIST) is None
 
-    assert entity.activable_underlying_entities[0].has_sync_entity is False
-    assert entity.activable_underlying_entities[0].is_sync_with_calibration is False
-    assert entity.activable_underlying_entities[0].sync_entity_id is None
-    assert entity.activable_underlying_entities[1].has_sync_entity is False
-    assert entity.activable_underlying_entities[1].is_sync_with_calibration is False
-    assert entity.activable_underlying_entities[1].sync_entity_id is None
+    assert entity.has_sync_entities is False
+    assert entity.is_sync_with_calibration is False
+    assert entity.sync_entity_ids == []
 
     entity.remove_thermostat()

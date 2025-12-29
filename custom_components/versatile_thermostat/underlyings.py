@@ -1168,8 +1168,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self,
         hass: HomeAssistant,
         thermostat: Any,
-        sync_entity_id: str,
-        sync_with_calibration: bool,
         opening_degree_entity_id: str,
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
@@ -1184,8 +1182,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_degree_entity_id,
             entity_type=UnderlyingEntityType.VALVE_REGULATION,
         )
-        self._sync_entity_id: str = sync_entity_id
-        self._sync_with_calibration: bool = sync_with_calibration
         self._opening_degree_entity_id: str = opening_degree_entity_id
         self._closing_degree_entity_id: str = closing_degree_entity_id
         self._climate_underlying = climate_underlying
@@ -1208,14 +1204,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._opening_degree_entity_id
             ).attributes.get("max")
 
-            if self.has_sync_entity:
-                self._min_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("min")
-                self._max_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("max")
-                self._step_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("step") or 0.1  # default step is 0.1
-
-            self._is_min_max_initialized = self._max_opening_degree is not None and (
-                not self.has_sync_entity or (self._min_sync_entity is not None and self._max_sync_entity is not None)
-            )
+            self._is_min_max_initialized = self._max_opening_degree is not None
 
             if self._min_opening_degree >= self._max_opening_degree:
                 self._min_opening_degree = self._opening_threshold
@@ -1281,29 +1270,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
             closing_degree,
         )
 
-    async def synchronize_device_temperature(self):
-        """Synchronize the device temperature by sending the offset calibration"""
-        if not self.initialize_min_max():
-            return
-
-        # send offset_calibration to the difference between target temp and local temp
-        offset = None
-        if self.has_sync_entity:
-            if (
-                (local_temp := self._climate_underlying.underlying_current_temperature) is not None
-                and (room_temp := self._thermostat.current_temperature) is not None
-                and (current_offset := get_safe_float(self._hass, self._sync_entity_id)) is not None
-            ):
-                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entity)
-                offset = min(self._max_sync_entity, max(self._min_sync_entity, val))
-
-                await self._send_value_to_number(self._sync_entity_id, offset)
-
-    @property
-    def sync_entity_id(self) -> str:
-        """The sync_entity_id"""
-        return self._sync_entity_id
-
     @property
     def opening_degree_entity_id(self) -> str:
         """The offset_calibration_entity_id"""
@@ -1323,16 +1289,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def has_closing_degree_entity(self) -> bool:
         """Return True if the underlying have a closing_degree entity"""
         return self._closing_degree_entity_id is not None
-
-    @property
-    def has_sync_entity(self) -> bool:
-        """Return True if the underlying have a sync entity"""
-        return self._sync_entity_id is not None
-
-    @property
-    def is_sync_with_calibration(self) -> bool:
-        """Return True if the underlying is synchronized with calibration (or with temperature copying)"""
-        return self._sync_with_calibration
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:
@@ -1382,7 +1338,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         for entity in [
             self.opening_degree_entity_id,
             self.closing_degree_entity_id,
-            self.sync_entity_id,
         ]:
             if entity:
                 ret.append(entity)

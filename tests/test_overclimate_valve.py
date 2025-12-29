@@ -30,6 +30,8 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        version=2,
+        minor_version=2,
         data={
             CONF_NAME: "TheOverClimateMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
@@ -54,7 +56,9 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             CONF_TPI_COEF_EXT: 0.1,
             CONF_OPENING_DEGREE_LIST: ["number.mock_opening_degree"],
             CONF_CLOSING_DEGREE_LIST: ["number.mock_closing_degree"],
-            CONF_OFFSET_CALIBRATION_LIST: ["number.mock_offset_calibration"],
+            CONF_SYNC_ENTITY_LIST: ["number.mock_offset_calibration"],
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
         }
         | MOCK_DEFAULT_FEATURE_CONFIG
         | MOCK_DEFAULT_CENTRAL_CONFIG
@@ -154,7 +158,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             ]
         )
 
-        assert mock_get_state.call_count > 5  # each temp sensor + each valve
+        assert mock_get_state.call_count == 4  # each temp sensor (2) + each valve (2)
         assert vtherm.nb_device_actives == 0
 
 
