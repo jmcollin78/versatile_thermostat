@@ -296,7 +296,8 @@
           "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
-          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)"
+          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
         }
       },
       "auto_tpi_2": {
@@ -641,7 +642,8 @@
           "auto_tpi_continuous_learning": "Si cochée, le système continuera à calculer et appliquer de nouveaux coefficients silencieusement après que l'apprentissage soit terminé (méthode EMA recommandée).",
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)",
-          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)"
+          "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
         }
       },
       "auto_tpi_2": {

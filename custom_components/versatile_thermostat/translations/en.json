@@ -295,7 +295,8 @@
           "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
           "heater_heating_time": "Time to reach full power (minutes)",
           "heater_cooling_time": "Time to cool down after stop (minutes)",
-          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
+          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
         }
       },
       "auto_tpi_2": {
@@ -639,7 +640,8 @@
           "auto_tpi_continuous_learning": "If set, the system will continue calculating and applying new coefficients silently after learning is finished (EMA method recommended).",
           "heater_heating_time": "Time to reach full power (minutes)",
           "heater_cooling_time": "Time to cool down after stop (minutes)",
-          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
+          "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
         }
       },
       "auto_tpi_2": {
