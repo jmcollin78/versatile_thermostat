@@ -68,6 +68,10 @@
           "used_by_controls_central_boiler": "Utilizzato dalla caldaia centralizzata. Selezionare se questo VTherm deve avere il controllo sulla caldaia centralizzata."
         },
         "data_description": {
+          "cycle_min": "Durata minima di un ciclo di riscaldamento/raffreddamento in minuti per evitare commutazioni troppo frequenti",
+          "temp_min": "Temperatura minima consentita per il termostato",
+          "temp_max": "Temperatura massima consentita per il termostato",
+          "step_temperature": "Passo di temperatura per l'impostazione della temperatura target",
           "temperature_sensor_entity_id": "Entity id del sensore di temperatura ambiente",
           "last_seen_temperature_sensor_entity_id": "Ultima visualizzazione entity id del sensore di temperatura ambiente. Dovrebbe essere il sensore data e ora",
           "external_temperature_sensor_entity_id": "Entity id del sensore di temperatura esterna. Non utilizzato se è selezionata la configurazione centralizzata"
@@ -345,6 +349,10 @@
           "used_by_controls_central_boiler": "Utilizzato dalla caldaia centralizzata. Selezionare se questo VTherm deve avere il controllo sulla caldaia centralizzata"
         },
         "data_description": {
+          "cycle_min": "Durata minima di un ciclo di riscaldamento/raffreddamento in minuti per evitare commutazioni troppo frequenti",
+          "temp_min": "Temperatura minima consentita per il termostato",
+          "temp_max": "Temperatura massima consentita per il termostato",
+          "step_temperature": "Passo di temperatura per l'impostazione della temperatura target",
           "temperature_sensor_entity_id": "Entity id del sensore di temperatura ambiente",
           "last_seen_temperature_sensor_entity_id": "Ultima visualizzazione entity id del sensore di temperatura ambiente. Dovrebbe essere il sensore data e ora",
           "external_temperature_sensor_entity_id": "Entity id del sensore di temperatura esterna. Non utilizzato se è selezionata la configurazione centralizzata"

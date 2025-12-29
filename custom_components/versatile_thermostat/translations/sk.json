@@ -65,6 +65,10 @@
           "used_by_controls_central_boiler": "Používa sa centrálnym kotlom. Skontrolujte, či má mať tento VTherm ovládanie na centrálnom kotli"
         },
         "data_description": {
+          "cycle_min": "Minimálna dĺžka jedného cyklu vykurovania/chladenia v minútach, aby sa zabránilo príliš častému prepínaniu",
+          "temp_min": "Minimálna povolená teplota pre termostat",
+          "temp_max": "Maximálna povolená teplota pre termostat",
+          "step_temperature": "Krok teploty na nastavenie cieľovej teploty",
           "temperature_sensor_entity_id": "ID entity snímača izbovej teploty",
           "last_seen_temperature_sensor_entity_id": "Naposledy videný snímač izbovej teploty ID entity. Mal by to byť snímač dátumu a času",
           "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia"
@@ -315,6 +319,10 @@
           "used_by_controls_central_boiler": "Používa sa centrálnym kotlom. Skontrolujte, či má mať tento VTherm ovládanie na centrálnom kotli"
         },
         "data_description": {
+          "cycle_min": "Minimálna dĺžka jedného cyklu vykurovania/chladenia v minútach, aby sa zabránilo príliš častému prepínaniu",
+          "temp_min": "Minimálna povolená teplota pre termostat",
+          "temp_max": "Maximálna povolená teplota pre termostat",
+          "step_temperature": "Krok teploty na nastavenie cieľovej teploty",
           "temperature_sensor_entity_id": "ID entity snímača izbovej teploty",
           "last_seen_temperature_sensor_entity_id": "Naposledy videný snímač izbovej teploty ID entity. Mal by to byť snímač dátumu a času",
           "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia"

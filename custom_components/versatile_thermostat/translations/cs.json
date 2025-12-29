@@ -68,6 +68,10 @@
           "used_by_controls_central_boiler": "Používán centrálním kotlem. Zaškrtněte, pokud má tento VTherm řídit centrální kotel"
         },
         "data_description": {
+          "cycle_min": "Minimální délka jednoho cyklu vytápění/chlazení v minutách, aby se zabránilo příliš častému přepínání",
+          "temp_min": "Minimální povolená teplota pro termostat",
+          "temp_max": "Maximální povolená teplota pro termostat",
+          "step_temperature": "Krok teploty pro nastavení cílové teploty",
           "temperature_sensor_entity_id": "ID entity senzoru teploty místnosti",
           "last_seen_temperature_sensor_entity_id": "ID entity posledního času měření teploty místnosti. Měl by být datetime senzor",
           "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace"
@@ -340,6 +344,10 @@
           "used_by_controls_central_boiler": "Používán centrálním kotlem. Zaškrtněte, pokud má tento VTherm řídit centrální kotel"
         },
         "data_description": {
+          "cycle_min": "Minimální délka jednoho cyklu vytápění/chlazení v minutách, aby se zabránilo příliš častému přepínání",
+          "temp_min": "Minimální povolená teplota pro termostat",
+          "temp_max": "Maximální povolená teplota pro termostat",
+          "step_temperature": "Krok teploty pro nastavení cílové teploty",
           "temperature_sensor_entity_id": "ID entity senzoru teploty místnosti",
           "last_seen_temperature_sensor_entity_id": "ID entity posledního času měření teploty místnosti. Měl by být datetime senzor",
           "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace"

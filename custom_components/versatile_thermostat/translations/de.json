@@ -66,6 +66,10 @@
           "used_by_controls_central_boiler": "Zentralheizung verwenden. Wenn angewählt, steuert dieses VTherm den zentralen Heizkessel."
         },
         "data_description": {
+          "cycle_min": "Minimale Dauer eines Heiz-/Kühlzyklus in Minuten, um zu häufiges Schalten zu vermeiden",
+          "temp_min": "Zulässige Mindesttemperatur für das Thermostat",
+          "temp_max": "Zulässige Höchsttemperatur für das Thermostat",
+          "step_temperature": "Temperaturschritt für die Einstellung der Zieltemperatur",
           "temperature_sensor_entity_id": "Entity-ID des Raumtemperatursensor",
           "last_seen_temperature_sensor_entity_id": "Entity-ID des Sensors, der das Datum und die Uhrzeit der letzten Datenübermittlung vom Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
           "external_temperature_sensor_entity_id": "Außentemperatursensor Entity-ID. Wird nicht verwendet, wenn zentrale Konfiguration gewählt wurde."
@@ -343,6 +347,10 @@
           "used_by_controls_central_boiler": "Benutze Zentralheizung. Anwählen, wenn VTerm die Kontrolle über die Zentralheizung haben soll."
         },
         "data_description": {
+          "cycle_min": "Minimale Dauer eines Heiz-/Kühlzyklus in Minuten, um zu häufiges Schalten zu vermeiden",
+          "temp_min": "Zulässige Mindesttemperatur für das Thermostat",
+          "temp_max": "Zulässige Höchsttemperatur für das Thermostat",
+          "step_temperature": "Temperaturschritt für die Einstellung der Zieltemperatur",
           "temperature_sensor_entity_id": "Raumtemperatursensor Entity-ID",
           "last_seen_temperature_sensor_entity_id": "Entitäts-ID des Sensors, die das Datum und die Uhrzeit der letzten Meldung des Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
           "external_temperature_sensor_entity_id": "Entity-ID des Außentemperatursensors. Wird nicht verwendet, wenn eine zentrale Konfiguration definiert ist."

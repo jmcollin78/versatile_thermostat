@@ -19,6 +19,15 @@
           "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
           "use_power_feature": "Χρήση διαχείρισης ισχύος",
           "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+        },
+        "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "lock": {
@@ -206,6 +215,15 @@
           "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
           "use_power_feature": "Χρήση διαχείρισης ενέργειας",
           "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+        },
+        "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "type": {

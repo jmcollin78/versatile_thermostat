@@ -72,6 +72,10 @@
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
+          "cycle_min": "Durée minimale d'un cycle de chauffage/refroidissement en minutes pour éviter des commutations trop fréquentes",
+          "temp_min": "Température minimale autorisée pour le thermostat",
+          "temp_max": "Température maximale autorisée pour le thermostat",
+          "step_temperature": "Pas de température pour le réglage de la température cible",
           "temperature_sensor_entity_id": "Id d'entité du capteur de température",
           "last_seen_temperature_sensor_entity_id": "Id d'entité du capteur donnant la date et heure de dernière vue capteur de température. L'état doit être au format date heure (ex: 2024-03-31T17:07:03+00:00)",
           "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie"
@@ -415,6 +419,10 @@
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
         },
         "data_description": {
+          "cycle_min": "Durée minimale d'un cycle de chauffage/refroidissement en minutes pour éviter des commutations trop fréquentes",
+          "temp_min": "Température minimale autorisée pour le thermostat",
+          "temp_max": "Température maximale autorisée pour le thermostat",
+          "step_temperature": "Pas de température pour le réglage de la température cible",
           "temperature_sensor_entity_id": "Id d'entité du capteur de température",
           "last_seen_temperature_sensor_entity_id": "Id d'entité du capteur donnant la date et heure de dernière vue capteur de température. L'état doit être au format date heure (ex: 2024-03-31T17:07:03+00:00)",
           "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie"

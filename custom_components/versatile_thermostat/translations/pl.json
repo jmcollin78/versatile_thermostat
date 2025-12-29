@@ -67,6 +67,10 @@
           "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli termostat ma sterować kotłem centralnym."
         },
         "data_description": {
+          "cycle_min": "Minimalna długość jednego cyklu ogrzewania/chłodzenia w minutach, aby uniknąć zbyt częstego przełączania",
+          "temp_min": "Minimalna temperatura dopuszczalna dla termostatu",
+          "temp_max": "Maksymalna temperatura dopuszczalna dla termostatu",
+          "step_temperature": "Krok temperatury do ustawiania temperatury docelowej",
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
           "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centralną"
@@ -345,6 +349,10 @@
           "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli ten termostat powinien sterować kotłem centralnym"
         },
         "data_description": {
+          "cycle_min": "Minimalna długość jednego cyklu ogrzewania/chłodzenia w minutach, aby uniknąć zbyt częstego przełączania",
+          "temp_min": "Minimalna temperatura dopuszczalna dla termostatu",
+          "temp_max": "Maksymalna temperatura dopuszczalna dla termostatu",
+          "step_temperature": "Krok temperatury do ustawiania temperatury docelowej",
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
           "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centalną"
