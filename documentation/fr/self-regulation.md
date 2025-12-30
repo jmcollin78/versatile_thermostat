@@ -24,7 +24,6 @@ Il y a globalement 2 cas :
 Ce type d'auto-régulation nommé `Controle direct de la vanne` nécessite :
 1. une entité de type `climate` qui est mis dans les sous-jacents du _VTherm_,
 2. une entité de type `number` qui permet de contrôle du taux d'ouverture de la vanne du _TRV_,
-3. une entité facultative de type `number` permettant de calibrer la température interne du sous-jacent,
 3. une entité facultative de type `number` permettant le contrôle de la fermeture de la vanne
 
 Lorsque l'auto-régulation choisie est `Contrôle direct de la vanne` sur un _VTherm_ `over_climate` alors une nouvelle page de configuration nommée `Configuration de la régulation par vanne` apparait :

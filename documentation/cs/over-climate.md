@@ -5,6 +5,7 @@
   - [Konfigurace](#konfigurace)
     - [Podkladové entity](#podkladové-entity)
     - [AC režim](#ac-režim)
+    - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
     - [Samo-regulace](#samo-regulace)
     - [Auto-ventilátor (Auto ventilace)](#auto-ventilátor-auto-ventilace)
     - [Kompenzace vnitřní teploty podkladového vybavení](#kompenzace-vnitřní-teploty-podkladového-vybavení)
@@ -36,6 +37,9 @@ V seznamu "Zařízení k ovládání" byste měli přidat entity `climate`, kter
 ### AC režim
 
 Můžete vybrat termostat `over_climate` pro ovládání klimatizace (reverzibilní nebo ne) zaškrtnutím políčka "AC režim". Pokud to zařízení umožňuje, budou dostupné režimy 'Vytápění' i 'Chlazení'.
+
+### Synchronization of the internal temperature of underlying entities
+This function allows for much better regulation as it synchronizes the internal thermometer of the underlying `climate` entities with the room temperature measured by _VTherm_. It is described [here](feature-sync_device_temp.md).
 
 ### Samo-regulace
 

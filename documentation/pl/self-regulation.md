@@ -21,8 +21,7 @@ Istnieją dwa typowe przypadki zastosowań tej funkcji:
 Ten typ samoregulacji, nazwany 'Bezpośrednim sterowaniem zaworami', wymaga:
 1. Encji typu `climate` pochodzącej z urządzenia bazowego _VTherm_.
 2. Encji typu `number` do sterowania szybkością otwierania zaworu _TRV_.
-3. Opcjonalnej encji typu `number` do kalibracji temperatury wewnętrznej urządzenia bazowego.
-4. Opcjonalnej encji typu `number` do sterowania zamykaniem zaworu.
+3. Opcjonalnej encji typu `number` do sterowania zamykaniem zaworu.
 
 Gdy wybraną samoregulacją jest 'bezpośrednie sterowanie zaworem' `termostatu na klimacie`, pojawia się nowe okno konfiguracji o nazwie 'Konfiguracja regulacji zaworów':
 
