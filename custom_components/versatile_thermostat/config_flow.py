@@ -144,6 +144,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """True of the valve regulation mode is selected"""
         return infos.get(CONF_AUTO_REGULATION_MODE, None) == CONF_AUTO_REGULATION_VALVE
 
+    def is_sync_device_internal_temp_selected(self, infos) -> bool:
+        """True if the synchronize device internal temperature mode is selected"""
+        return infos.get(CONF_SYNC_DEVICE_INTERNAL_TEMP, False) is True
+
     def check_valve_regulation_nb_entities(self, data: dict, step_id=None) -> bool:
         """Check the number of entities for Valve regulation"""
         if step_id not in ["type", "valve_regulation", "check_complete"]:
@@ -161,20 +165,30 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             and step_id != "type"
         ):
             nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
-            nb_offset = len(
-                regulation_infos_to_check.get(CONF_OFFSET_CALIBRATION_LIST, [])
-            )
             nb_opening = len(
                 regulation_infos_to_check.get(CONF_OPENING_DEGREE_LIST, [])
             )
             nb_closing = len(
                 regulation_infos_to_check.get(CONF_CLOSING_DEGREE_LIST, [])
             )
-            if (
-                nb_unders != nb_opening
-                or (nb_unders != nb_offset and nb_offset > 0)
-                or (nb_unders != nb_closing and nb_closing > 0)
-            ):
+            if nb_unders != nb_opening or (nb_unders != nb_closing and nb_closing > 0):
+                ret = False
+        return ret
+
+    def check_sync_device_internal_temp_nb_entities(self, data: dict, step_id=None) -> bool:
+        """Check the number of entities for synchronize device internal temperature"""
+        if step_id not in ["type", "sync_device_internal_temp", "check_complete"]:
+            return True
+
+        underlyings_to_check = data if step_id == "type" else self._infos
+        # underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
+        regulation_infos_to_check = data if step_id == "sync_device_internal_temp" else self._infos
+
+        ret = True
+        if self.is_sync_device_internal_temp_selected(underlyings_to_check) and step_id != "type":
+            nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
+            nb_sync = len(regulation_infos_to_check.get(CONF_SYNC_ENTITY_LIST, []))
+            if nb_unders != nb_sync:
                 ret = False
         return ret
 
@@ -258,6 +272,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # to the number of underlying entities
         if not self.check_valve_regulation_nb_entities(data, step_id):
             raise ValveRegulationNbEntitiesIncorrect()
+
+        if not self.check_sync_device_internal_temp_nb_entities(data, step_id):
+            raise SyncDeviceInternalTempNbEntitiesIncorrect()
 
         # Check that the min_opening_degrees is correctly set
         raw_list = data.get(CONF_MIN_OPENING_DEGREES, None)
@@ -396,6 +413,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             if not self.check_valve_regulation_nb_entities(infos, "check_complete"):
                 return False
 
+            if not self.check_sync_device_internal_temp_nb_entities(infos, "check_complete"):
+                return False
+
         return True
 
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
@@ -438,6 +458,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors["base"] = "configuration_not_complete"
             except ValveRegulationNbEntitiesIncorrect as err:
                 errors["base"] = "valve_regulation_nb_entities_incorrect"
+            except SyncDeviceInternalTempNbEntitiesIncorrect as err:
+                errors["base"] = "sync_device_internal_temp_nb_entities_incorrect"
             except ValveRegulationMinOpeningDegreesIncorrect as err:
                 errors[str(err)] = "min_opening_degrees_format"
             except VirtualSwitchConfigurationIncorrect as err:
@@ -531,6 +553,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self.is_valve_regulation_selected(self._infos):
             menu_options.append("valve_regulation")
+
+        if self._infos.get(CONF_SYNC_DEVICE_INTERNAL_TEMP, False) is True:
+            menu_options.append("sync_device_internal_temp")
 
         menu_options.append("advanced")
         menu_options.append("lock")
@@ -692,6 +717,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         return await self.generic_step(
             "valve_regulation", schema, user_input, next_step
         )
+
+    async def async_step_sync_device_internal_temp(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the synchronize device internal temperature configuration step"""
+        _LOGGER.debug("Into ConfigFlow.async_step_sync_device_internal_temp user_input=%s", user_input)
+
+        schema = STEP_SYNC_DEVICE_INTERNAL_TEMP
+        self._infos[COMES_FROM] = None
+        next_step = self.async_step_menu
+
+        return await self.generic_step("sync_device_internal_temp", schema, user_input, next_step)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""

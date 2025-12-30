@@ -19,6 +19,15 @@
           "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
           "use_power_feature": "Χρήση διαχείρισης ισχύος",
           "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+        },
+        "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "lock": {
@@ -49,6 +58,7 @@
           "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
           "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
           "ac_mode": "Λειτουργία AC",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
           "valve_entity_id": "1ος αριθμός βαλβίδας",
           "valve_entity2_id": "2ος αριθμός βαλβίδας",
           "valve_entity3_id": "3ος αριθμός βαλβίδας",
@@ -70,6 +80,7 @@
           "climate_entity3_id": "3η ταυτότητα υποκείμενης κλιματικής οντότητας",
           "climate_entity4_id": "4η ταυτότητα υποκείμενης κλιματικής οντότητας",
           "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
           "valve_entity_id": "1η ταυτότητα αριθμού βαλβίδας",
           "valve_entity2_id": "2η ταυτότητα αριθμού βαλβίδας",
           "valve_entity3_id": "3η ταυτότητα αριθμού βαλβίδας",
@@ -176,12 +187,30 @@
           "safety_min_on_percent": "Ελάχιστη τιμή ποσοστού θέρμανσης για την ενεργοποίηση του προεπιλεγμένου ασφάλειας. Κάτω από αυτό το ποσοστό ισχύος το θερμοστάτη δεν θα πάει στο προεπιλεγμένο ασφάλειας.",
           "safety_default_on_percent": "Η προεπιλεγμένη τιμή ποσοστού ισχύος θέρμανσης στο προεπιλεγμένο ασφάλειας. Ορίστε σε 0 για να απενεργοποιήσετε τη θερμάστρα στο παρόν ασφάλειας."
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
-      "unknown": "Απρόσμενο σφάλμα",
+      "unknown": "Απροσδόκητο λάθος",
       "unknown_entity": "Άγνωστο αναγνωριστικό οντότητας",
-      "window_open_detection_method": "Πρέπει να χρησιμοποιείται μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω του κατωφλίου θερμοκρασίας, αλλά όχι και τα δύο"
+      "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
+      "service_configuration_format": "The format of the service configuration is wrong",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"
@@ -206,6 +235,15 @@
           "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
           "use_power_feature": "Χρήση διαχείρισης ενέργειας",
           "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+        },
+        "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
+          "temperature_sensor_entity_id": "Room temperature sensor entity id",
+          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
         }
       },
       "type": {
@@ -222,6 +260,7 @@
           "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
           "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
           "ac_mode": "Λειτουργία AC",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
           "valve_entity_id": "1ος αριθμός βαλβίδας",
           "valve_entity2_id": "2ος αριθμός βαλβίδας",
           "valve_entity3_id": "3ος αριθμός βαλβίδας",
@@ -243,6 +282,7 @@
           "climate_entity3_id": "Ταυτότητα οντότητας 3ου υποκείμενου κλίματος",
           "climate_entity4_id": "Ταυτότητα οντότητας 4ου υποκείμενου κλίματος",
           "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
           "valve_entity_id": "Ταυτότητα οντότητας 1ης βαλβίδας",
           "valve_entity2_id": "Ταυτότητα οντότητας 2ης βαλβίδας",
           "valve_entity3_id": "Ταυτότητα οντότητας 3ης βαλβίδας",
@@ -363,12 +403,30 @@
           "use_lock_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης κλειδώματος. Αποεπιλέξτε για χρήση συγκεκριμένης διαμόρφωσης κλειδώματος για αυτόν τον VTherm",
           "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Απροσδόκητο λάθος",
       "unknown_entity": "Άγνωστο αναγνωριστικό οντότητας",
-      "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο"
+      "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
+      "service_configuration_format": "The format of the service configuration is wrong",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"

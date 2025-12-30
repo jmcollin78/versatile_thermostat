@@ -72,7 +72,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             else 0
         )
 
-        offset_list = config_entry.get(CONF_OFFSET_CALIBRATION_LIST, [])
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
         self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
@@ -87,7 +86,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             ]
 
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
-            offset = offset_list[idx] if idx < len(offset_list) else None
             # number of opening should equal number of underlying
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
@@ -96,7 +94,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             under = UnderlyingValveRegulation(
                 hass=self._hass,
                 thermostat=self,
-                offset_calibration_entity_id=offset,
                 opening_degree_entity_id=opening,
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
@@ -127,11 +124,11 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "hvac_action": under.hvac_action,
                         "percent_open": under.percent_open,
                         "last_sent_opening_value": under.last_sent_opening_value,
-                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
-                        "min_offset_calibration": under._min_offset_calibration,  # pylint: disable=protected-access
-                        "max_offset_calibration": under._max_offset_calibration,  # pylint: disable=protected-access
-                        "step_calibration": under._step_calibration,  # pylint: disable=protected-access
                         "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
+                        "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
+                        "min_sync_entity": under._min_sync_entity,  # pylint: disable=protected-access
+                        "max_sync_entity": under._max_sync_entity,  # pylint: disable=protected-access
+                        "step_calibration": under._step_sync_entity,  # pylint: disable=protected-access
                     }
                 }
             )

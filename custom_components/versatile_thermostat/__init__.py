@@ -18,67 +18,7 @@ from homeassistant.const import UnitOfTemperature
 
 from .base_thermostat import BaseThermostat
 
-from .const import (
-    DOMAIN,
-    PLATFORMS,
-    CONFIG_VERSION,
-    CONFIG_MINOR_VERSION,
-    CONF_AUTO_REGULATION_LIGHT,
-    CONF_AUTO_REGULATION_MEDIUM,
-    CONF_AUTO_REGULATION_STRONG,
-    CONF_AUTO_REGULATION_SLOW,
-    CONF_AUTO_REGULATION_EXPERT,
-    CONF_SHORT_EMA_PARAMS,
-    CONF_SAFETY_MODE,
-    CONF_SAFETY_DELAY_MIN,
-    CONF_SAFETY_MIN_ON_PERCENT,
-    CONF_SAFETY_DEFAULT_ON_PERCENT,
-    CONF_THERMOSTAT_CENTRAL_CONFIG,
-    CONF_THERMOSTAT_TYPE,
-    CONF_USE_WINDOW_FEATURE,
-    CONF_USE_MOTION_FEATURE,
-    CONF_USE_PRESENCE_FEATURE,
-    CONF_USE_POWER_FEATURE,
-    CONF_USE_CENTRAL_BOILER_FEATURE,
-    CONF_POWER_SENSOR,
-    CONF_PRESENCE_SENSOR,
-    CONF_UNDERLYING_LIST,
-    CONF_HEATER,
-    CONF_HEATER_2,
-    CONF_HEATER_3,
-    CONF_HEATER_4,
-    CONF_CLIMATE,
-    CONF_CLIMATE_2,
-    CONF_CLIMATE_3,
-    CONF_CLIMATE_4,
-    CONF_VALVE,
-    CONF_VALVE_2,
-    CONF_VALVE_3,
-    CONF_VALVE_4,
-    CONF_THERMOSTAT_SWITCH,
-    CONF_THERMOSTAT_CLIMATE,
-    CONF_THERMOSTAT_VALVE,
-    CONF_MAX_ON_PERCENT,
-    CONF_AUTO_TPI_MODE,
-    CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG,
-    CONF_AUTO_TPI_ENABLE_NOTIFICATION,
-    CONF_AUTO_TPI_CALCULATION_METHOD,
-    CONF_AUTO_TPI_EMA_ALPHA,
-    CONF_AUTO_TPI_AVG_INITIAL_WEIGHT,
-    CONF_AUTO_TPI_MAX_COEF_INT,
-    CONF_AUTO_TPI_EMA_DECAY_RATE,
-    CONF_AUTO_TPI_KEEP_EXT_LEARNING,
-    CONF_AUTO_TPI_CONTINUOUS_LEARNING,
-    CONF_AUTO_TPI_HEATER_HEATING_TIME,
-    CONF_AUTO_TPI_HEATER_COOLING_TIME,
-    CONF_AUTO_TPI_HEATING_POWER,
-    CONF_AUTO_TPI_COOLING_POWER,
-    AUTO_TPI_METHOD_AVG,
-    CONF_TEMP_MIN,
-    CONF_TEMP_MAX,
-    CONF_STEP_TEMPERATURE,
-
-)
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
 
@@ -245,10 +185,13 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         "Migrating from version %s/%s", config_entry.version, config_entry.minor_version
     )
 
-    if (
-        config_entry.version != CONFIG_VERSION
-        or config_entry.minor_version != CONFIG_MINOR_VERSION
-    ):
+    def calculate_version(major, minor):
+        return major * 100 + minor
+
+    current_version = calculate_version(CONFIG_VERSION, CONFIG_MINOR_VERSION)
+    version = calculate_version(config_entry.version, config_entry.minor_version)
+
+    if version != current_version:
         _LOGGER.debug(
             "Migration to %s/%s is needed", CONFIG_VERSION, CONFIG_MINOR_VERSION
         )
@@ -256,65 +199,61 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         thermostat_type = config_entry.data.get(CONF_THERMOSTAT_TYPE)
 
-        if thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
-            new[CONF_USE_WINDOW_FEATURE] = True
-            new[CONF_USE_MOTION_FEATURE] = True
-            new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
-            new[CONF_USE_PRESENCE_FEATURE] = (
-                new.get(CONF_PRESENCE_SENSOR, None) is not None
-            )
+        # Unit test with no version comes with 101 (version=1 and minor_version=1)
+        if version <= 200:
 
-            new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get(
-                "add_central_boiler_control", False
-            ) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
+            # Migration of central config thermostat to add new features flags
+            if thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+                new[CONF_USE_WINDOW_FEATURE] = True
+                new[CONF_USE_MOTION_FEATURE] = True
+                new[CONF_USE_POWER_FEATURE] = new.get(CONF_POWER_SENSOR, None) is not None
+                new[CONF_USE_PRESENCE_FEATURE] = new.get(CONF_PRESENCE_SENSOR, None) is not None
 
-        if config_entry.data.get(CONF_UNDERLYING_LIST, None) is None:
-            underlying_list = []
-            if thermostat_type == CONF_THERMOSTAT_SWITCH:
-                underlying_list = [
-                    config_entry.data.get(CONF_HEATER, None),
-                    config_entry.data.get(CONF_HEATER_2, None),
-                    config_entry.data.get(CONF_HEATER_3, None),
-                    config_entry.data.get(CONF_HEATER_4, None),
-                ]
-            elif thermostat_type == CONF_THERMOSTAT_CLIMATE:
-                underlying_list = [
-                    config_entry.data.get(CONF_CLIMATE, None),
-                    config_entry.data.get(CONF_CLIMATE_2, None),
-                    config_entry.data.get(CONF_CLIMATE_3, None),
-                    config_entry.data.get(CONF_CLIMATE_4, None),
-                ]
-            elif thermostat_type == CONF_THERMOSTAT_VALVE:
-                underlying_list = [
-                    config_entry.data.get(CONF_VALVE, None),
-                    config_entry.data.get(CONF_VALVE_2, None),
-                    config_entry.data.get(CONF_VALVE_3, None),
-                    config_entry.data.get(CONF_VALVE_4, None),
-                ]
+                new[CONF_USE_CENTRAL_BOILER_FEATURE] = new.get("add_central_boiler_control", False) or new.get(CONF_USE_CENTRAL_BOILER_FEATURE, False)
 
-            new[CONF_UNDERLYING_LIST] = [
-                entity for entity in underlying_list if entity is not None
-            ]
+            if config_entry.data.get(CONF_UNDERLYING_LIST, None) is None:
+                underlying_list = []
+                if thermostat_type == CONF_THERMOSTAT_SWITCH:
+                    underlying_list = [
+                        config_entry.data.get(CONF_HEATER, None),
+                        config_entry.data.get(CONF_HEATER_2, None),
+                        config_entry.data.get(CONF_HEATER_3, None),
+                        config_entry.data.get(CONF_HEATER_4, None),
+                    ]
+                elif thermostat_type == CONF_THERMOSTAT_CLIMATE:
+                    underlying_list = [
+                        config_entry.data.get(CONF_CLIMATE, None),
+                        config_entry.data.get(CONF_CLIMATE_2, None),
+                        config_entry.data.get(CONF_CLIMATE_3, None),
+                        config_entry.data.get(CONF_CLIMATE_4, None),
+                    ]
+                elif thermostat_type == CONF_THERMOSTAT_VALVE:
+                    underlying_list = [
+                        config_entry.data.get(CONF_VALVE, None),
+                        config_entry.data.get(CONF_VALVE_2, None),
+                        config_entry.data.get(CONF_VALVE_3, None),
+                        config_entry.data.get(CONF_VALVE_4, None),
+                    ]
 
-            for key in [
-                CONF_HEATER,
-                CONF_HEATER_2,
-                CONF_HEATER_3,
-                CONF_HEATER_4,
-                CONF_CLIMATE,
-                CONF_CLIMATE_2,
-                CONF_CLIMATE_3,
-                CONF_CLIMATE_4,
-                CONF_VALVE,
-                CONF_VALVE_2,
-                CONF_VALVE_3,
-                CONF_VALVE_4,
-            ]:
-                new.pop(key, None)
+                new[CONF_UNDERLYING_LIST] = [entity for entity in underlying_list if entity is not None]
+
+                for key in [
+                    CONF_HEATER,
+                    CONF_HEATER_2,
+                    CONF_HEATER_3,
+                    CONF_HEATER_4,
+                    CONF_CLIMATE,
+                    CONF_CLIMATE_2,
+                    CONF_CLIMATE_3,
+                    CONF_CLIMATE_4,
+                    CONF_VALVE,
+                    CONF_VALVE_2,
+                    CONF_VALVE_3,
+                    CONF_VALVE_4,
+                ]:
+                    new.pop(key, None)
 
             # Migration 2.0 to 2.1 -> rename security parameters into safety
-
-        if config_entry.version == CONFIG_VERSION and config_entry.minor_version == 0:
             for key in [
                 "security_delay_min",
                 "security_min_on_percent",
@@ -326,6 +265,38 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     new[new_key] = old_value
                 new.pop(key, None)
 
+        # Version 201 (add auto TPI parameters). Cumul with previous migration if needed
+        if version <= 201:
+            # Migration 2.1 to 2.2 -> add auto TPI parameters with default values
+            new[CONF_AUTO_TPI_MODE] = False
+            new[CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG] = False
+            new[CONF_AUTO_TPI_ENABLE_NOTIFICATION] = False
+            new[CONF_AUTO_TPI_CALCULATION_METHOD] = AUTO_TPI_METHOD_AVG
+            new[CONF_AUTO_TPI_EMA_ALPHA] = 0.5
+            new[CONF_AUTO_TPI_AVG_INITIAL_WEIGHT] = 0.7
+            new[CONF_AUTO_TPI_MAX_COEF_INT] = 10.0
+            new[CONF_AUTO_TPI_EMA_DECAY_RATE] = 0.1
+            new[CONF_AUTO_TPI_KEEP_EXT_LEARNING] = False
+            new[CONF_AUTO_TPI_CONTINUOUS_LEARNING] = False
+            new[CONF_AUTO_TPI_HEATER_HEATING_TIME] = 300
+            new[CONF_AUTO_TPI_HEATER_COOLING_TIME] = 600
+            new[CONF_AUTO_TPI_HEATING_POWER] = 1000.0
+            new[CONF_AUTO_TPI_COOLING_POWER] = 500.0
+
+            # migrate CONF_OFFSET_CALIBRATION_LIST if present into CONF_SYNC_DEVICE_INTERNAL_TEMP_LIST
+            offset_calib_list = config_entry.data.get(CONF_OFFSET_CALIBRATION_LIST, None)
+            if offset_calib_list is not None and len(offset_calib_list) > 0:
+                sync_device_internal_temp_list = []
+                for offset in offset_calib_list:
+                    if offset is not None:
+                        sync_device_internal_temp_list.append(offset)
+                new[CONF_SYNC_ENTITY_LIST] = sync_device_internal_temp_list
+                new.pop(CONF_OFFSET_CALIBRATION_LIST, None)
+                new[CONF_SYNC_WITH_CALIBRATION] = True
+                new[CONF_SYNC_DEVICE_INTERNAL_TEMP] = True
+            else:
+                new[CONF_SYNC_WITH_CALIBRATION] = False
+                new[CONF_SYNC_DEVICE_INTERNAL_TEMP] = False
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(
@@ -336,5 +307,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
 
         _LOGGER.info("Migration to version %s.%s successful", CONFIG_VERSION, CONFIG_MINOR_VERSION)
+    else:
+        _LOGGER.info("No migration needed")
 
     return True

@@ -30,6 +30,8 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        version=2,
+        minor_version=2,
         data={
             CONF_NAME: "TheOverClimateMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
@@ -54,7 +56,9 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             CONF_TPI_COEF_EXT: 0.1,
             CONF_OPENING_DEGREE_LIST: ["number.mock_opening_degree"],
             CONF_CLOSING_DEGREE_LIST: ["number.mock_closing_degree"],
-            CONF_OFFSET_CALIBRATION_LIST: ["number.mock_offset_calibration"],
+            CONF_SYNC_ENTITY_LIST: ["number.mock_offset_calibration"],
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
         }
         | MOCK_DEFAULT_FEATURE_CONFIG
         | MOCK_DEFAULT_CENTRAL_CONFIG
@@ -154,7 +158,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             ]
         )
 
-        assert mock_get_state.call_count > 5  # each temp sensor + each valve
+        assert mock_get_state.call_count == 4  # each temp sensor (2) + each valve (2)
         assert vtherm.nb_device_actives == 0
 
 
@@ -187,14 +191,14 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
 
 
-        assert mock_service_call.call_count == 4
+        assert mock_service_call.call_count == 3
         mock_service_call.assert_has_calls(
             [
                 call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate', 'temperature': 19.0}),
                 call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree'}),
                 call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree'}),
                 # 3 = 18 (room) - 15 (current of underlying) + 0 (current offset)
-                call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration'})
+                # call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration'})
             ]
         )
 
@@ -235,7 +239,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.valve_open_percent == 13 # 0.3*0.1 + 0.1*1
 
 
-        assert mock_service_call.call_count == 3
+        assert mock_service_call.call_count == 3 # opening, closing, offset cause temp changed
         mock_service_call.assert_has_calls(
             [
                 call(domain='number', service='set_value', service_data={'value': 13}, target={'entity_id': 'number.mock_opening_degree'}),
@@ -281,7 +285,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.valve_open_percent == 0 # 0.3* (-2) + 0.1*1
 
 
-        assert mock_service_call.call_count == 3
+        assert mock_service_call.call_count == 3 # opening, closing, offset cause temp changed
         mock_service_call.assert_has_calls(
             [
                 call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
@@ -316,6 +320,8 @@ async def test_over_climate_valve_multi_presence(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        version=2,
+        minor_version=1,
         data={
             CONF_NAME: "TheOverClimateMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
@@ -432,16 +438,16 @@ async def test_over_climate_valve_multi_presence(
         assert vtherm.valve_open_percent == 40
 
         # the underlying set temperature call and the call to the valve
-        assert mock_service_call.call_count == 8
+        assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate1', 'temperature': 19.0}),
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate2', 'temperature': 19.0}),
             call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            # call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
             call(domain='number', service='set_value', service_data={'value': 40}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 60}, target={'entity_id': 'number.mock_closing_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
+            # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 
@@ -463,16 +469,16 @@ async def test_over_climate_valve_multi_presence(
         assert vtherm.valve_open_percent == 0
 
         # the underlying set temperature call and the call to the valve
-        # assert mock_service_call.call_count == 8
+        assert mock_service_call.call_count == 6
         mock_service_call.assert_has_calls([
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate1', 'temperature': 17.2}),
             call('climate', 'set_temperature', {'entity_id': 'climate.mock_climate2', 'temperature': 17.2}),
             call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            # call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
             call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 100}, target={'entity_id': 'number.mock_closing_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
+            # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
             ]
         )
 
@@ -490,6 +496,8 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        version=2,
+        minor_version=2,
         data={
             CONF_NAME: "TheOverClimateMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
@@ -520,10 +528,12 @@ async def test_over_climate_valve_multi_min_opening_degrees(
                 "number.mock_closing_degree1",
                 "number.mock_closing_degree2",
             ],
-            CONF_OFFSET_CALIBRATION_LIST: [
+            CONF_SYNC_ENTITY_LIST: [
                 "number.mock_offset_calibration1",
                 "number.mock_offset_calibration2",
             ],
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
@@ -629,7 +639,8 @@ async def test_over_climate_valve_multi_min_opening_degrees(
             call(domain='number', service='set_value', service_data={'value': 76}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 24}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
-            ]
+            ],
+            any_order=True
         )
 
         assert vtherm.nb_device_actives >= 2 # should be 2 but when run in // with the first test it give 3
@@ -658,7 +669,8 @@ async def test_over_climate_valve_multi_min_opening_degrees(
             call(domain='number', service='set_value', service_data={'value': 10}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 90}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
-            ]
+            ],
+            any_order=True
         )
 
         assert vtherm.nb_device_actives == 0
@@ -685,7 +697,8 @@ async def test_over_climate_valve_multi_min_opening_degrees(
             call(domain='number', service='set_value', service_data={'value': 76}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 24}, target={'entity_id': 'number.mock_closing_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
-            ]
+            ],
+            any_order=True
         )
 
         assert vtherm.nb_device_actives >= 2
@@ -706,15 +719,16 @@ async def test_over_climate_valve_multi_min_opening_degrees(
         assert vtherm.valve_open_percent == 0
 
         # the underlying set temperature call and the call to the valve
-        assert mock_service_call.call_count == 6
+        assert mock_service_call.call_count == 4
         mock_service_call.assert_has_calls([
             call(domain='number', service='set_value', service_data={'value': 10}, target={'entity_id': 'number.mock_opening_degree1'}),
             call(domain='number', service='set_value', service_data={'value': 90}, target={'entity_id': 'number.mock_closing_degree1'}),
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
+            # call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}),
             call(domain='number', service='set_value', service_data={'value': 10}, target={'entity_id': 'number.mock_opening_degree2'}),
             call(domain='number', service='set_value', service_data={'value': 90}, target={'entity_id': 'number.mock_closing_degree2'}),
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
-            ]
+            # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})
+            ],
+            any_order=True
         )
 
         assert vtherm.nb_device_actives == 0
@@ -904,6 +918,8 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         domain=DOMAIN,
         title="TheOverClimateMockName",
         unique_id="uniqueId",
+        version=2,
+        minor_version=1,
         data={
             CONF_NAME: "TheOverClimateMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
@@ -941,9 +957,9 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
 
     mock_get_state_side_effect = SideEffects(
         {
-            "number.mock_opening_degree": State("number.mock_opening_degree", "40", {"min": 0, "max": 100}),
-            "number.mock_closing_degree": State("number.mock_closing_degree", "60", {"min": 0, "max": 100}),
-            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12}),
+            "number.mock_opening_degree": State("number.mock_opening_degree", "40", {"min": 0, "max": 100, "step": 1}),
+            "number.mock_closing_degree": State("number.mock_closing_degree", "60", {"min": 0, "max": 100, "step": 1}),
+            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12, "step": 0.1}),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -970,9 +986,9 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         assert vtherm.have_valve_regulation is True
 
     # 2. Starts heating slowly (18 vs 19)
-    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
-    await send_temperature_change_event(vtherm, 18, now, True)
-    await send_ext_temperature_change_event(vtherm, 18, now, True)
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await send_temperature_change_event(vtherm, 18, now, True)
+        await send_ext_temperature_change_event(vtherm, 18, now, True)
 
     now = now + timedelta(minutes=3) # > period min -> regulation will be done
     vtherm._set_now(now)
@@ -1000,7 +1016,7 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         assert vtherm.valve_open_percent == 40 # no changes
 
 
-        assert mock_service_call.call_count == 0 # no calls
+        assert mock_service_call.call_count == 1 # only the call to set the offset calibration
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
@@ -1032,7 +1048,7 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, skip_hass_stat
         assert vtherm.valve_open_percent == 100 # changes !
 
 
-        assert mock_service_call.call_count == 3 # the three calls (opening, closing and offset calibration)
+        assert mock_service_call.call_count == 3 # the two calls (opening and closing) and the one to set the offset calibration
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1

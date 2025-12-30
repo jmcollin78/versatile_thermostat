@@ -57,6 +57,22 @@ input_number:
         icon: mdi:thermometer
         unit_of_measurement: °C
         mode: box
+    fake_internal_temp_sensor1:
+        name: Internal Temp 1
+        min: 0
+        max: 35
+        step: .1
+        icon: mdi:thermometer-lines
+        unit_of_measurement: °C
+        mode: box
+    fake_internal_temp_sensor2:
+        name: Internal Temp 2
+        min: 0
+        max: 35
+        step: .1
+        icon: mdi:thermometer-lines
+        unit_of_measurement: °C
+        mode: box
     fake_external_temperature_sensor1:
         name: Ext Temperature
         min: -10
@@ -100,6 +116,14 @@ input_number:
         icon: mdi:tune
         unit_of_measurement: °C
         mode: box
+    fake_external_temp1:
+        name: Sonoff external temp 1
+        min: 5
+        max: 35
+        step: .1
+        icon: mdi:thermometer-lines
+        unit_of_measurement: °C
+        mode: box
     fake_opening_degree1:
         name: Sonoff Opening degree 1
         min: 0
@@ -122,6 +146,14 @@ input_number:
         max: 12
         step: .1
         icon: mdi:tune
+        unit_of_measurement: °C
+        mode: box
+    fake_external_temp2:
+        name: Sonoff external temp 2
+        min: 5
+        max: 35
+        step: .1
+        icon: mdi:thermometer-lines
         unit_of_measurement: °C
         mode: box
     fake_opening_degree2:
@@ -249,14 +281,14 @@ climate:
     - platform: generic_thermostat
       name: Underlying Sonoff TRVZB1
       heater: input_boolean.fake_valve_sonoff_trvzb1
-      target_sensor: input_number.fake_temperature_sensor1
+      target_sensor: input_number.fake_internal_temp_sensor1
       ac_mode: false
       target_temp_step: 0.1
       precision: 0.1
     - platform: generic_thermostat
       name: Underlying Sonoff TRVZB2
       heater: input_boolean.fake_valve_sonoff_trvzb2
-      target_sensor: input_number.fake_temperature_sensor1
+      target_sensor: input_number.fake_internal_temp_sensor2
       ac_mode: false
       target_temp_step: 0.1
       precision: 0.1

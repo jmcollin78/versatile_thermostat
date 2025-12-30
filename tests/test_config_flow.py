@@ -70,8 +70,8 @@ async def test_user_config_flow_over_switch(
         user_input={
             CONF_NAME: "TheOverSwitchMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-            CONF_CYCLE_MIN: 5,
-            CONF_DEVICE_POWER: 1,
+            CONF_CYCLE_MIN: 5.0,
+            CONF_DEVICE_POWER: 1.0,
             CONF_USE_MAIN_CENTRAL_CONFIG: True,
         },
     )
@@ -368,8 +368,8 @@ async def test_user_config_flow_over_climate(
         result["flow_id"],
         user_input={
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-            CONF_TEMP_MIN: 15,
-            CONF_TEMP_MAX: 30,
+            CONF_TEMP_MIN: 15.0,
+            CONF_TEMP_MAX: 30.0,
             CONF_STEP_TEMPERATURE: 0.1,
             # Keep default values which are False
         },
@@ -525,6 +525,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
+        CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -775,6 +776,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USE_AUTO_START_STOP_FEATURE: True,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
+        CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1036,7 +1038,6 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
         }
-       
     )
     assert result["result"]
     assert result["result"].domain == DOMAIN
@@ -1134,6 +1135,7 @@ async def test_user_config_flow_over_climate_valve(
         user_input={
             CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
             CONF_AC_MODE: False,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
             CONF_AUTO_REGULATION_DTEMP: 0.5,
             CONF_AUTO_REGULATION_PERIOD_MIN: 2,
@@ -1150,6 +1152,7 @@ async def test_user_config_flow_over_climate_valve(
         "tpi",
         "presets",
         "valve_regulation",
+        "sync_device_internal_temp",
         "advanced",
         "lock",
         "configuration_not_complete",
@@ -1238,13 +1241,14 @@ async def test_user_config_flow_over_climate_valve(
         "tpi",
         "presets",
         "valve_regulation",
+        "sync_device_internal_temp",
         "advanced",
         "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
 
-    # 11. Valve_regulation
+    # 10. Valve_regulation
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "valve_regulation"}
     )
@@ -1252,11 +1256,11 @@ async def test_user_config_flow_over_climate_valve(
     assert result["step_id"] == "valve_regulation"
     assert result.get("errors") == {}
 
-    # 11.1 Only one but 2 expected
+    # 10.1 Only one but 2 expected
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_OFFSET_CALIBRATION_LIST: ["number.offset_calibration1"],
+            # CONF_OFFSET_CALIBRATION_LIST: ["number.offset_calibration1"],
             CONF_OPENING_DEGREE_LIST: ["number.opening_degree1"],
             CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
@@ -1268,14 +1272,14 @@ async def test_user_config_flow_over_climate_valve(
     assert result["step_id"] == "valve_regulation"
     assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
 
-    # 11.2 Give two openings but only one offset_calibration
+    # 10.2 Give two openings but only one offset_calibration
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_OFFSET_CALIBRATION_LIST: [
-                "number.offset_calibration1",
-                "number.offset_calibration2",
-            ],
+            # CONF_OFFSET_CALIBRATION_LIST: [
+            #     "number.offset_calibration1",
+            #     "number.offset_calibration2",
+            # ],
             CONF_OPENING_DEGREE_LIST: [
                 "number.opening_degree1",
                 "number.opening_degree2",
@@ -1287,14 +1291,14 @@ async def test_user_config_flow_over_climate_valve(
     assert result["step_id"] == "valve_regulation"
     assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
 
-    # 11.3 Give two openings and 2 calibration and 0 closing
+    # 10.3 Give two openings and 2 calibration and 0 closing
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_OFFSET_CALIBRATION_LIST: [
-                "number.offset_calibration1",
-                "number.offset_calibration2",
-            ],
+            # CONF_OFFSET_CALIBRATION_LIST: [
+            #     "number.offset_calibration1",
+            #     "number.offset_calibration2",
+            # ],
             CONF_OPENING_DEGREE_LIST: [
                 "number.opening_degree1",
                 "number.opening_degree2",
@@ -1315,13 +1319,14 @@ async def test_user_config_flow_over_climate_valve(
         "tpi",
         "presets",
         "valve_regulation",
+        "sync_device_internal_temp",
         "advanced",
         "lock",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
 
-    # 10. Advanced
+    # 11. Advanced
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "advanced"}
     )
@@ -1355,9 +1360,70 @@ async def test_user_config_flow_over_climate_valve(
         "tpi",
         "presets",
         "valve_regulation",
+        "sync_device_internal_temp",
         "advanced",
         "lock",
-        "finalize",  # Now it is complete
+        "configuration_not_complete",
+        # "finalize",  finalize is not present awaiting for sync_device_internal_temp configuration
+    ]
+
+    # 12. Synchronize device internal temp
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "sync_device_internal_temp"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "sync_device_internal_temp"
+    assert result.get("errors") == {}
+
+    # 12.1 Only one but 2 expected
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_ENTITY_LIST: ["number.offset_calibration1"],
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "sync_device_internal_temp"
+    assert result.get("errors") == {"base": "sync_device_internal_temp_nb_entities_incorrect"}
+
+    # 12.2 Give one sync entity and change the SYNC_WITH_CALIBRATION to False
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_SYNC_WITH_CALIBRATION: False,
+            CONF_SYNC_ENTITY_LIST: [
+                "number.offset_calibration1",
+            ],
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "sync_device_internal_temp"
+    assert result.get("errors") == {"base": "sync_device_internal_temp_nb_entities_incorrect"}
+
+    # 12.3 Give two openings and 2 calibration and 0 closing
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_ENTITY_LIST: [
+                "number.offset_calibration1",
+                "number.offset_calibration2",
+            ],
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None
+    assert result["menu_options"] == [
+        "main",
+        "features",
+        "type",
+        "tpi",
+        "presets",
+        "valve_regulation",
+        "sync_device_internal_temp",
+        "advanced",
+        "lock",
+        "finalize",  # This time finalize is present
     ]
 
     result = await hass.config_entries.flow.async_configure(
@@ -1396,10 +1462,12 @@ async def test_user_config_flow_over_climate_valve(
         CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
         CONF_OPENING_DEGREE_LIST: ["number.opening_degree1", "number.opening_degree2"],
         CONF_CLOSING_DEGREE_LIST: [],
-        CONF_OFFSET_CALIBRATION_LIST: [
+        CONF_SYNC_ENTITY_LIST: [
             "number.offset_calibration1",
             "number.offset_calibration2",
         ],
+        CONF_SYNC_WITH_CALIBRATION: True,
+        CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
         CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
         CONF_TPI_COEF_INT: 0.3,
         CONF_TPI_COEF_EXT: 0.1,

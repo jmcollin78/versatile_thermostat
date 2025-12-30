@@ -30,6 +30,7 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
+          "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "auto_tpi_1": "Auto TPI - General",
           "auto_tpi_2": "Auto TPI - Method",
@@ -71,6 +72,10 @@
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
@@ -96,6 +101,7 @@
           "heater_keep_alive": "Switch keep-alive interval in seconds",
           "proportional_function": "Algorithm",
           "ac_mode": "AC mode",
+          "sync_device_internal_temp": "Synchronize device internal temperature",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimum period",
@@ -112,10 +118,11 @@
           "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "ac_mode": "Use the Air Conditioning (AC) mode",
+          "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying device (fill the new menu item 'Synchronize device temperature' to configure it)",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
           "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation",
+          "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
           "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
@@ -255,7 +262,7 @@
       },
       "valve_regulation": {
         "title": "Self-regulation with valve",
-        "description": "Configuration for self-regulation with direct control of the valve&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Configuration for self-regulation with direct control of the valve&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
         "data": {
           "offset_calibration_entity_ids": "Offset calibration entities",
           "opening_degree_entity_ids": "Opening degree entities",
@@ -330,13 +337,30 @@
           "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
           "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Unexpected error",
       "unknown_entity": "Unknown entity id",
       "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
-      "no_central_config": "You cannot select 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it."
+      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
+      "service_configuration_format": "The format of the service configuration is wrong",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Device is already configured"
@@ -372,6 +396,7 @@
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
+          "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "auto_tpi_1": "Auto TPI - General",
           "auto_tpi_2": "Auto TPI - Method",
@@ -413,6 +438,10 @@
           "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
         },
         "data_description": {
+          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
+          "temp_min": "Minimum temperature allowed for the thermostat",
+          "temp_max": "Maximum temperature allowed for the thermostat",
+          "step_temperature": "Temperature step for setting the target temperature",
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
           "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
@@ -438,6 +467,7 @@
           "heater_keep_alive": "Switch keep-alive interval in seconds",
           "proportional_function": "Algorithm",
           "ac_mode": "AC mode",
+          "sync_device_internal_temp": "Synchronize device temperature",
           "auto_regulation_mode": "Self-regulation",
           "auto_regulation_dtemp": "Regulation threshold",
           "auto_regulation_periode_min": "Regulation minimum period",
@@ -454,10 +484,11 @@
           "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "ac_mode": "Use the Air Conditioning (AC) mode",
+          "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying device (fill the new menu item 'Synchronize device temperature' to configure it)",
           "auto_regulation_mode": "Auto adjustment of the target temperature",
           "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
           "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-          "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation",
+          "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
           "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
@@ -620,6 +651,18 @@
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
       "auto_tpi_1": {
         "title": "Auto TPI - General - {name}",
         "description": "General parameters for Auto TPI learning.",
@@ -684,6 +727,7 @@
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
       "service_configuration_format": "The format of the service configuration is wrong",
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },

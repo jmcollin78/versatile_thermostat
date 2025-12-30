@@ -212,6 +212,24 @@ class UnderlyingEntity:
 
         return True
 
+    async def send_value_to_number(self, number_entity_id: str, value: int):
+        """Send a value to a number entity"""
+        try:
+            data = {"value": value}
+            target = {ATTR_ENTITY_ID: number_entity_id}
+            domain = number_entity_id.split(".")[0]
+            await self._hass.services.async_call(
+                domain=domain,
+                service=SERVICE_SET_VALUE,
+                service_data=data,
+                target=target,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+            # This could happens in unit test if input_number domain is not yet loaded
+            # raise err
+
+
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
 
@@ -1009,28 +1027,11 @@ class UnderlyingValve(UnderlyingEntity):
         self._last_sent_temperature = None
         self._last_sent_opening_value: int | None = None
 
-    async def _send_value_to_number(self, number_entity_id: str, value: int):
-        """Send a value to a number entity"""
-        try:
-            data = {"value": value}
-            target = {ATTR_ENTITY_ID: number_entity_id}
-            domain = number_entity_id.split(".")[0]
-            await self._hass.services.async_call(
-                domain=domain,
-                service=SERVICE_SET_VALUE,
-                service_data=data,
-                target=target,
-            )
-        except ServiceNotFound as err:
-            _LOGGER.error(err)
-            # This could happens in unit test if input_number domain is not yet loaded
-            # raise err
-
     async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
         # This may fails if called after shutdown
         value = self._percent_open if fixed_value is None else fixed_value
-        await self._send_value_to_number(self._entity_id, value)
+        await self.send_value_to_number(self._entity_id, value)
         self._last_sent_opening_value = value
 
     async def turn_off(self):
@@ -1168,7 +1169,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self,
         hass: HomeAssistant,
         thermostat: Any,
-        offset_calibration_entity_id: str,
         opening_degree_entity_id: str,
         closing_degree_entity_id: str,
         climate_underlying: UnderlyingClimate,
@@ -1183,15 +1183,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_degree_entity_id,
             entity_type=UnderlyingEntityType.VALVE_REGULATION,
         )
-        self._offset_calibration_entity_id: str = offset_calibration_entity_id
         self._opening_degree_entity_id: str = opening_degree_entity_id
         self._closing_degree_entity_id: str = closing_degree_entity_id
         self._climate_underlying = climate_underlying
         self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = None
-        self._min_offset_calibration: float = None
-        self._max_offset_calibration: float = None
-        self._step_calibration: float = 0.1
+        self._min_sync_entity: float = None
+        self._max_sync_entity: float = None
+        self._step_sync_entity: float = 0.1
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
@@ -1206,18 +1205,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._opening_degree_entity_id
             ).attributes.get("max")
 
-            if self.has_offset_calibration_entity:
-                self._min_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("min")
-                self._max_offset_calibration = self._hass.states.get(
-                    self._offset_calibration_entity_id
-                ).attributes.get("max")
-                self._step_calibration = self._hass.states.get(self._offset_calibration_entity_id).attributes.get("step") or 0.1  # default step is 0.1
-
-            self._is_min_max_initialized = self._max_opening_degree is not None and (
-                not self.has_offset_calibration_entity or (self._min_offset_calibration is not None and self._max_offset_calibration is not None)
-            )
+            self._is_min_max_initialized = self._max_opening_degree is not None
 
             if self._min_opening_degree >= self._max_opening_degree:
                 self._min_opening_degree = self._opening_threshold
@@ -1252,41 +1240,36 @@ class UnderlyingValveRegulation(UnderlyingValve):
         await super().send_percent_open(opening_degree)
 
         if self.has_closing_degree_entity:
-            await self._send_value_to_number(self._closing_degree_entity_id, closing_degree)
+            await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
+        # Since 8.5.0 the syncrhonization is done upon reception of a new temperature from sensor
         # send offset_calibration to the difference between target temp and local temp
-        offset = None
-        if self.has_offset_calibration_entity:
-            if (
-                (local_temp := self._climate_underlying.underlying_current_temperature)
-                is not None
-                and (room_temp := self._thermostat.current_temperature) is not None
-                and (
-                    current_offset := get_safe_float(
-                        self._hass, self._offset_calibration_entity_id
-                    )
-                )
-                is not None
-            ):
-                val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_calibration)
-                offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
-
-                await self._send_value_to_number(
-                    self._offset_calibration_entity_id, offset
-                )
+        # offset = None
+        # if self.has_offset_calibration_entity:
+        #     if (
+        #         (local_temp := self._climate_underlying.underlying_current_temperature)
+        #         is not None
+        #         and (room_temp := self._thermostat.current_temperature) is not None
+        #         and (
+        #             current_offset := get_safe_float(
+        #                 self._hass, self._offset_calibration_entity_id
+        #             )
+        #         )
+        #         is not None
+        #     ):
+        #         val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entoty)
+        #         offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
+        #
+        #         await self.send_value_to_number(
+        #             self._offset_calibration_entity_id, offset
+        #         )
 
         _LOGGER.debug(
-            "%s - valve regulation - I have sent offset_calibration=%s opening_degree=%s closing_degree=%s",
+            "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
             self,
-            offset,
             opening_degree,
             closing_degree,
         )
-
-    @property
-    def offset_calibration_entity_id(self) -> str:
-        """The offset_calibration_entity_id"""
-        return self._offset_calibration_entity_id
 
     @property
     def opening_degree_entity_id(self) -> str:
@@ -1307,11 +1290,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
     def has_closing_degree_entity(self) -> bool:
         """Return True if the underlying have a closing_degree entity"""
         return self._closing_degree_entity_id is not None
-
-    @property
-    def has_offset_calibration_entity(self) -> bool:
-        """Return True if the underlying have a offset_calibration entity"""
-        return self._offset_calibration_entity_id is not None
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:
@@ -1361,7 +1339,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         for entity in [
             self.opening_degree_entity_id,
             self.closing_degree_entity_id,
-            self.offset_calibration_entity_id,
         ]:
             if entity:
                 ret.append(entity)

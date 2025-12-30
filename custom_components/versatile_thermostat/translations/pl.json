@@ -29,6 +29,7 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
@@ -67,6 +68,10 @@
           "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli termostat ma sterować kotłem centralnym."
         },
         "data_description": {
+          "cycle_min": "Minimalna długość jednego cyklu ogrzewania/chłodzenia w minutach, aby uniknąć zbyt częstego przełączania",
+          "temp_min": "Minimalna temperatura dopuszczalna dla termostatu",
+          "temp_max": "Maksymalna temperatura dopuszczalna dla termostatu",
+          "step_temperature": "Krok temperatury do ustawiania temperatury docelowej",
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
           "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centralną"
@@ -92,6 +97,7 @@
           "heater_keep_alive": "Czas podtrzymania (w sek.)",
           "proportional_function": "Algorytm",
           "ac_mode": "Tryb AC",
+          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
           "auto_regulation_mode": "Autoregulacja",
           "auto_regulation_dtemp": "Próg regulacji",
           "auto_regulation_periode_min": "Minimalny okres regulacji",
@@ -108,10 +114,11 @@
           "heater_keep_alive": "Opcjonalna zwłoka odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagana, pozostaw puste.",
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "ac_mode": "Użyj trybu AC",
+          "sync_device_internal_temp": "Konfiguracja do synchronizacji wewnętrznej temperatury urządzeń bazowych z wybranymi encjami",
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczne odwrócenie kolejności poleceń",
           "auto_fan_mode": "Automatycznie uruchom wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia sterujące."
@@ -141,7 +148,7 @@
       },
       "presets": {
         "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych. Wyłącz, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych. Wyłącz, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
         "data": {
           "use_presets_central_config": "Użyj konfiguracji presetów podstawowych"
         }
@@ -268,13 +275,29 @@
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Nieoczekiwany błąd",
       "unknown_entity": "Nieznany identyfikator encji",
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
-      "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu `Kkonfiguracja Centralna`."
+      "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu `Konfiguracja Centralna`.",
+      "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
+      "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -309,6 +332,7 @@
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
+          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Blokada",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
@@ -345,6 +369,10 @@
           "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli ten termostat powinien sterować kotłem centralnym"
         },
         "data_description": {
+          "cycle_min": "Minimalna długość jednego cyklu ogrzewania/chłodzenia w minutach, aby uniknąć zbyt częstego przełączania",
+          "temp_min": "Minimalna temperatura dopuszczalna dla termostatu",
+          "temp_max": "Maksymalna temperatura dopuszczalna dla termostatu",
+          "step_temperature": "Krok temperatury do ustawiania temperatury docelowej",
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
           "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centalną"
@@ -370,6 +398,7 @@
           "heater_keep_alive": "Czas podtrzymania (w sek.)",
           "proportional_function": "Algorytm",
           "ac_mode": "Tryb AC",
+          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
           "auto_regulation_mode": "Autoregulacja",
           "auto_regulation_dtemp": "Próg regulacji",
           "auto_regulation_periode_min": "Minimalny okres regulacji",
@@ -386,10 +415,11 @@
           "heater_keep_alive": "Opcjonalny interwał odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagany, pozostał pusty.",
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "ac_mode": "Użyj trybu AC",
+          "sync_device_internal_temp": "Konfiguracja do synchronizacji wewnętrznej temperatury urządzeń bazowych z wybranymi encjami",
           "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
           "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczna odwrotna kolejność polecenia",
           "auto_fan_mode": "Automatycznie aktywuj wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia."
@@ -550,6 +580,18 @@
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
@@ -559,6 +601,7 @@
       "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu `Konfiguracja Centralna`.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
     },
     "abort": {
