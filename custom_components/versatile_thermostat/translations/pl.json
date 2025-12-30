@@ -127,8 +127,8 @@
           "tpi_threshold_high": "Wysoki próg TPI",
           "use_tpi_central_config": "Użyj centralnej konfiguracji TPI",
           "minimal_activation_delay": "Minimalna zwłoka czasowa aktywacji",
-          "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji"
-          "auto_tpi_mode": "Aktywuj uczenie się Auto TPI"		  
+          "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji",
+          "auto_tpi_mode": "Aktywuj naukę Auto TPI"
         },
         "data_description": {
           "tpi_coef_int": "Współczynnik do zastosowania w przypadku delty temperatury wewnętrznej",
@@ -137,8 +137,8 @@
           "tpi_threshold_high": "Próg w °, powyżej którego algorytm TPI będzie nieaktywny. 0 oznacza brak progu.",
           "use_tpi_central_config": "Zaznacz, aby używać centralnej konfiguracji TPI. Odznacz, aby używać konfiguracji TPI dedykowanej wyłącznie dla tego termostatu",
           "minimal_activation_delay": "Zwłoka (w sek.), w czasie której urządzenie nie zostanie aktywowane",
-          "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości"
-          "auto_tpi_mode": "Zaznacz, aby aktywować uczenie wpółczynników TPI"		  
+          "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości",
+          "auto_tpi_mode": "Zaznacz, aby aktywować naukę wpółczynników TPI"
         }
       },
       "presets": {
@@ -414,7 +414,7 @@
           "use_tpi_central_config": "Użyj centralnej konfiguracji TPI",
           "minimal_activation_delay": "Minimalna zwłoka czasowa aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji"
-          "auto_tpi_mode": "Aktywuj uczenie się Auto TPI"		  
+          "auto_tpi_mode": "Aktywuj naukę Auto TPI"		  
         },
         "data_description": {
           "tpi_coef_int": "Współczynnik do zastosowania w przypadku delty temperatury wewnętrznej",
@@ -562,12 +562,12 @@
       },
       "auto_tpi_1": {
         "title": "Auto TPI - Ogólne - {name}",
-        "description": "Ogólne parametry uczenia się Auto TPI.",
+        "description": "Ogólne parametry nauki Auto TPI.",
         "data": {
           "auto_tpi_enable_update_config": "Aktualizuj konfigurację",
           "auto_tpi_enable_notification": "Powiadomienia",
-          "auto_tpi_keep_ext_learning": "Kontynuuj uczenie się współczynnika zewnętrznego",
-          "auto_tpi_continuous_learning": "Permanentne uczenie się",
+          "auto_tpi_keep_ext_learning": "Kontynuuj naukę współczynnika zewnętrznego",
+          "auto_tpi_continuous_learning": "Permanentna nauka",
           "heater_heating_time": "Czas nagrzewania się grzejnika (w min.)",
           "heater_cooling_time": "Czas wychładzania się grzejnika (w min.)",
           "auto_tpi_max_coef_int": "Maksymalna wartość współczynnika wewnętrznego",
@@ -576,9 +576,9 @@
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatycznie aktualizuj konfigurację o wyuczone współczynniki",
-          "auto_tpi_enable_notification": "Wyślij powiadomienie gdy uczenie się zostanie zakończone",
-          "auto_tpi_keep_ext_learning": "Uczenie się wpółczynnika zewnętrznego będzie kontynuowane nawet po osiągnieciu 50 cykli, dopóki współczynnik wewnętrzny nie ustabilizuje się.",
-          "auto_tpi_continuous_learning": "Po zakończeniu procesu uczenia się system będzie obliczał i aplikował w tle nowe wartości współczynników (zalecana metoda EMA).",
+          "auto_tpi_enable_notification": "Wyślij powiadomienie, gdy nauka zostanie zakończona",
+          "auto_tpi_keep_ext_learning": "Nauka wpółczynnika zewnętrznego będzie kontynuowana nawet po osiągnieciu 50 cykli, dopóki współczynnik wewnętrzny nie ustabilizuje się.",
+          "auto_tpi_continuous_learning": "Po zakończeniu procesu nauki system będzie obliczał i aplikował w tle nowe wartości współczynników (zalecana metoda EMA).",
           "heater_heating_time": "Czas osiągnięcia pełnej mocy (w min.)",
           "heater_cooling_time": "Czas wychłodzenia po zatrzymaniu (w min.)",
           "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego"
@@ -586,7 +586,7 @@
       },
       "auto_tpi_2": {
         "title": "Auto TPI - Metoda - {name}",
-        "description": "Wybierz metodę obliczeniową dla procesu uczenia się.",
+        "description": "Wybierz metodę obliczeniową dla procesu nauki.",
         "data": {
           "auto_tpi_calculation_method": "Metoda obliczeniowa"
         },
@@ -606,7 +606,7 @@
       },
       "auto_tpi_3_ema": {
         "title": "Auto TPI - EMA - {name}",
-        "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowe uczenie się | 0.15 | 0.08 |\n| Dokładne uczenie się | 0.08 | 0.12 |\n| Permanentne uczenie się | 0.05 | 0.02 |",
+        "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowa nauka | 0.15 | 0.08 |\n| Dokładna nauka | 0.08 | 0.12 |\n| Permanentna nauka | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alfa",
           "auto_tpi_ema_decay_rate": "Wpółczynnik rozkładu"
@@ -758,11 +758,11 @@
   "services": {
     "set_auto_tpi_mode": {
       "name": "Tryb Auto TPI",
-      "description": "Załącz lub wyłącz tryb uczenia się Auto TPI",
+      "description": "Załącz lub wyłącz tryb nauki Auto TPI",
       "fields": {
         "auto_tpi_mode": {
           "name": "Tryb Auto TPI",
-          "description": "Załącza (`true`) lub wyłącza (`false`) proces uczenia się Auto TPI"
+          "description": "Załącza (`true`) lub wyłącza (`false`) proces nauki Auto TPI"
         },
         "reinitialise": {
           "name": "Zresetuj dane wyuczone",
