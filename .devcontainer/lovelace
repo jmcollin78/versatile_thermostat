@@ -2658,6 +2658,15 @@
                   "heading_style": "title"
                 },
                 {
+                  "type": "tile",
+                  "entity": "input_number.fake_internal_temp_sensor1",
+                  "vertical": false,
+                  "features_position": "bottom",
+                  "grid_options": {
+                    "columns": "full"
+                  }
+                },
+                {
                   "type": "entities",
                   "entities": [
                     {
@@ -2689,6 +2698,9 @@
                     },
                     {
                       "entity": "input_number.fake_closing_degree1"
+                    },
+                    {
+                      "entity": "input_number.fake_external_temp1"
                     }
                   ],
                   "title": "Etat Sonoff TRVZB 1"
@@ -2718,6 +2730,15 @@
                   "heading": "Etat Sonoff TRVZB 2",
                   "heading_style": "title",
                   "icon": "mdi:valve"
+                },
+                {
+                  "type": "tile",
+                  "grid_options": {
+                    "columns": "full"
+                  },
+                  "entity": "input_number.fake_internal_temp_sensor2",
+                  "vertical": false,
+                  "features_position": "bottom"
                 },
                 {
                   "type": "entities",
@@ -2751,6 +2772,9 @@
                     },
                     {
                       "entity": "input_number.fake_closing_degree2"
+                    },
+                    {
+                      "entity": "input_number.fake_external_temp2"
                     }
                   ],
                   "title": "Etat Sonoff TRVZB 2"
