@@ -38,6 +38,7 @@ Once checked, a dedicated configuration wizard appears in several steps:
 *   **Notification**: If enabled, a notification will be sent **only** when learning is considered complete ( 50 cycles per coefficient ).
 *   **Update Configuration**: If this option is checked, the learned TPI coefficients will be **automatically** saved to the thermostat's configuration **only when learning is considered complete**. If this option is unchecked, the learned coefficients are used for the ongoing TPI regulation but are not saved to the configuration.
 *   **Continuous Learning** (`auto_tpi_continuous_learning`): If enabled, learning will continue indefinitely, even after the initial 50 cycles are completed. This allows the thermostat to continuously adapt to gradual changes in the thermal environment (e.g., seasonal changes, house aging). If this option is checked, learned parameters will be saved to config (if **Update Configuration** is also checked) at the end of every cycle once the model is considered "stable" (e.g., after the first 50 cycles).
+    *   **Failure Resilience**: In continuous mode, consecutive failures do not stop learning. The system skips faulty cycles and continues adapting.
     *   **Regime Change Detection**: When continuous learning is enabled, the system monitors recent learning errors. If a **systematic bias** is detected (e.g., due to a change in season, insulation, or heating system), the learning rate (alpha) is **temporarily boosted** (up to 3x, capped at 15%) to accelerate adaptation. This feature helps the thermostat quickly adjust to new thermal conditions without manual intervention.
 *   **Keep external coefficient learning** (`auto_tpi_keep_ext_learning`): If enabled, the external coefficient (`Kext`) will continue learning even after reaching 50 cycles, as long as the internal coefficient (`Kint`) has not reached stability.  
 **Note:** Persistence to the configuration only occurs when both coefficients are stable.
@@ -146,6 +147,7 @@ Auto TPI operates cyclically:
     *   The temperature difference is significant.
     *   The system is stable (no consecutive failures).
     *   The cycle was not interrupted by power shedding or by a window being opened.
+    *   **Central Boiler**: If the thermostat depends on a central boiler, learning is suspended if the boiler is not activated (even if the thermostat is calling for heat).
 3.  **Calculation (Learning)**:
     *   **Case 1: Indoor Coefficient**. If the temperature moved in the right direction significantly (> 0.05°C), it calculates the ratio between the real evolution **(over the full cycle, including inertia)** and the expected theoretical evolution (corrected by the calibrated capacity). It adjusts `CoeffInt` to reduce the gap.
     *   **Case 2: Outdoor Coefficient**. If indoor learning was not possible (conditions not met or failure) and outdoor learning is relevant (significant temperature gap > 0.1°C), it adjusts `CoeffExt` **progressively** to compensate for thermal losses. The formula allows this coefficient to increase or decrease as needed to reach equilibrium.

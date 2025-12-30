@@ -83,6 +83,7 @@ Pour qu'un cycle soit valide :
 4.  **Durée Significative** : Le temps d'activation (`on_time`) doit être supérieur au temps de montée en température effectif (`effective_heating_time`).
 5.  **Exclusion du Premier Cycle** : Le cycle suivant un démarrage (état précédent 'stop') est ignoré car le système n'est pas stabilisé (démarrage à froid).
 6.  **Différentiel Extérieur Significatif** : `|Consigne - Temp_Ext| >= 1.0`. Évite d'apprendre sur de trop faibles écarts de température.
+7.  **Chaudière Centrale Active** : Si le VTherm est utilisé avec une chaudière centrale (`is_used_by_central_boiler`), le cycle est ignoré si la chaudière est éteinte (`central_boiler_manager.is_on` est False). Cela évite d'interpréter l'absence de chauffe comme une fuite thermique massive.
 
 ### B. Capacité Maximale et Inertie
 **(SUPPRIMÉ)** Le mécanisme d'apprentissage de la capacité en temps réel (`_detect_max_capacity`) a été remplacé par un service de calibration basé sur la régression linéaire d'historique. Voir Section **"Nouveau Service de Calibration"** ci-dessous.
@@ -109,6 +110,39 @@ To ensure learning data is valid, cycles are invalidated (learning skipped) in s
     -   When the Power Manager detects an overpowering condition, it forces the underlying heaters OFF, but the Thermostat may remain in `HEAT` mode (depending on configuration).
     -   This breaks the correlation between "Heat Mode ON" and "Temperature Rise".
     -   **Result**: The `BaseThermostat` explicitly flags this state to `AutoTpiManager`. Any cycle containing a Power Shedding event is marked as `interrupted` and **learning is skipped**.
+
+#### 2.5. Constantes Configurables
+
+Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py` et contrôlent le comportement de l'algorithme :
+
+| Constante | Valeur par défaut | Description |
+|-----------|-------------------|-------------|
+| `MIN_KINT` | 0.05 | Seuil minimal pour Kint pour maintenir la réactivité à la température |
+| `OVERSHOOT_THRESHOLD` | 0.2°C | Seuil de dépassement de température pour déclencher la correction agressive de Kext |
+| `OVERSHOOT_POWER_THRESHOLD` | 0.05 (5%) | Puissance minimale pour considérer le dépassement comme une erreur de Kext |
+| `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |
+
+#### 2.6. Cas 0 : Correction de Dépassement (`_correct_kext_overshoot`)
+
+**Priorité maximale** : Cette correction est exécutée AVANT l'apprentissage Indoor et Outdoor.
+
+**Problème résolu** : Dans les systèmes à forte inertie thermique (radiateurs à eau, chauffage central), Kext peut augmenter de façon agressive pendant la montée en température, mais ne redescend pas assez vite lors des dépassements. Cela provoque une surchauffe persistante.
+
+**Conditions de déclenchement :**
+1.  **Dépassement significatif** : `Temp_Actuelle > Consigne + OVERSHOOT_THRESHOLD` (0.2°C par défaut)
+2.  **Puissance significative** : `power > OVERSHOOT_POWER_THRESHOLD` (5% par défaut)
+
+**Algorithme :**
+1.  **Calcul de la réduction nécessaire** : 
+    -   `needed_reduction = (overshoot × Kint) / delta_ext`
+    -   Cette formule calcule combien Kext doit être réduit pour permettre à la température de redescendre.
+2.  **Kext cible** : `target_kext = max(0.001, current_kext - needed_reduction)`
+3.  **Application avec boost** :
+    -   **Mode EMA** : `alpha_boosted = min(alpha × OVERSHOOT_CORRECTION_BOOST, 0.3)`
+    -   **Mode Average** : `weight_boosted = max(1, weight / OVERSHOOT_CORRECTION_BOOST)`
+4.  **Lissage** : Le nouveau Kext est calculé en mélangeant l'ancien avec le cible, en utilisant l'alpha/poids boosté.
+
+**Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête (pas d'apprentissage Indoor/Outdoor pour ce cycle).
 
 #### 3. Cas 1 : Apprentissage du Coefficient Intérieur (`_learn_indoor`)
 C'est la méthode privilégiée, mais elle est désormais soumise à des conditions strictes pour éviter les faux positifs et laisser sa chance à l'apprentissage extérieur.
@@ -164,6 +198,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
  8.  **Validation et Plafond** :
      *   Doit être fini et > 0.
      *   **Plafond (Cap)** : Si `Coeff_New > auto_tpi_max_coef_int` (défaut 0.9), il est ramené à ce plafond. Cela évite des coefficients trop agressifs qui créent des oscillations. Ce paramètre est configurable (max 3.0).
+     *   **Plancher (Floor)** : Si `Coeff_Final < MIN_KINT` (défaut 0.05), il est remonté à ce plancher. Cela garantit que le thermostat reste réactif à la température intérieure et évite qu'il ne devienne entièrement dépendant de Kext.
  9.  **Calcul Final (Selon la méthode configurée)** :
     L'utilisateur peut choisir entre deux méthodes de calcul via la configuration :
 
@@ -198,8 +233,9 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
 Si aucune des priorités n'est déclenchée, le statut `no_valid_conditions` est enregistré.
 
 ### D. Sécurités et Détection d'Échecs
-*   **Détection d'Échec** : Si la température évolue dans le mauvais sens (ex: baisse alors qu'on chauffe) de manière significative (> 1°C d'écart).
-*   **Protection** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
+*   **Détection d'Échec** : Si la température évolue dans le mauvais sens (ex: baisse alors qu'on chauffe) de manière significative (> 1°C d'écart) **ET que le système est à saturation de puissance** (power >= saturation_threshold). Une variation de température à puissance partielle est considérée comme une situation d'apprentissage normale, non un échec.
+*   **Protection (Mode Standard)** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
+*   **Protection (Mode Continu)** : En mode apprentissage continu (`continuous_learning`), les 3 échecs consécutifs **n'arrêtent pas** l'apprentissage. Le système se contente de loguer un avertissement, de réinitialiser le compteur d'échecs, et de continuer l'apprentissage en ignorant les cycles fautifs.
 
 ### E. Sécurité d'Activation (Safety Logic)
 Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :

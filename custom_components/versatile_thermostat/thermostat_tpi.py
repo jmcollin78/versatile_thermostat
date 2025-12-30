@@ -13,6 +13,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.exceptions import ServiceValidationError
 
 from .base_thermostat import BaseThermostat, ConfigData
+from .vtherm_api import VersatileThermostatAPI
 from .prop_algorithm import PropAlgorithm
 from .auto_tpi_manager import AutoTpiManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -206,6 +207,19 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             self.hass.async_create_task(self._auto_tpi_manager.async_save_data())
         super().remove_thermostat()
 
+    def _is_central_boiler_off(self) -> bool:
+        """Check if the central boiler is configured but currently off.
+        
+        Returns True if this thermostat is used by a central boiler
+        and that boiler is currently not active.
+        """
+        if not self.is_used_by_central_boiler:
+            return False
+        api = VersatileThermostatAPI.get_vtherm_api()
+        if api and api.central_boiler_manager:
+            return not api.central_boiler_manager.is_on
+        return False
+
     async def _get_tpi_data(self) -> dict[str, Any]:
         """Calculate and return TPI cycle parameters.
         Called by AutoTpiManager at the start of each cycle.
@@ -219,6 +233,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 target_temp=self.target_temperature,
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
+                is_central_boiler_off=self._is_central_boiler_off(),
             )
 
         # Sync coefficients from AutoTpiManager before calculating
@@ -263,6 +278,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 target_temp=self.target_temperature,
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
+                is_central_boiler_off=self._is_central_boiler_off(),
             )
 
             # Check if we have new learned parameters
