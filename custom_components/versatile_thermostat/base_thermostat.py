@@ -474,7 +474,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("%s - Error calling cycle start callback: %s", self, ex)
 
-
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""
         if self._cancel_recalculate_later:
@@ -812,13 +811,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def is_over_valve(self) -> bool:
         """True if the Thermostat is over_valve"""
         return False
-
-    @property
-    def safe_on_percent(self) -> float:
-        """Return the on_percent safe value (default 0)
-        Should be overridden by subclass
-        """
-        return 0
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1829,7 +1821,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if default_on_percent:
             self._safety_manager.set_safety_default_on_percent(default_on_percent)
 
-
         await self.async_control_heating()
         self.update_custom_attributes()
         self.async_write_ha_state()
@@ -1887,10 +1878,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         tpi_threshold_high: float | None = None,
     ):
         """Stub method for TPI parameter service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
@@ -1901,10 +1892,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool):
         """Stub method for Auto TPI mode service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
@@ -1921,10 +1912,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         end_date: datetime | None = None,
     ):
         """Stub method for Auto TPI capacity calibration service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """

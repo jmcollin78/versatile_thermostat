@@ -928,26 +928,79 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self.update_custom_attributes()
         self.async_write_ha_state()
 
+    @overrides
+    async def _async_temperature_changed(self, event: Event) -> callable:
+        """Handle temperature of the temperature sensor changes.
+        Return the function to dearm (clear) the window auto check"""
+        ret = await super()._async_temperature_changed(event)
+
+        # Synchronize the device temperature if needed
+        if self.has_sync_entities:
+            await self.synchronize_device_temperature()
+
+        return ret
+
     async def synchronize_device_temperature(self):
         """Synchronize the device temperature by sending the offset calibration"""
-        # if self.has_sync_entity:
-        #    self._min_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("min")
-        #    self._max_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("max")
-        #    self._step_sync_entity = self._hass.states.get(self._sync_entity_id).attributes.get("step") or 0.1  # default step is 0.1
 
-    #
-    ## send offset_calibration to the difference between target temp and local temp
-    # offset = None
-    # if self.has_sync_entity:
-    #    if (
-    #        (local_temp := self._climate_underlying.underlying_current_temperature) is not None
-    #        and (room_temp := self._thermostat.current_temperature) is not None
-    #        and (current_offset := get_safe_float(self._hass, self._sync_entity_id)) is not None
-    #    ):
-    #        val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entity)
-    #        offset = min(self._max_sync_entity, max(self._min_sync_entity, val))
-    #
-    #        await self._send_value_to_number(self._sync_entity_id, offset)
+        if not self.has_sync_entities:
+            return
+
+        for idx, sync_entity_id in enumerate(self._sync_entity_list):
+            sync_entity_state = self._hass.states.get(sync_entity_id)
+            if not sync_entity_state:
+                _LOGGER.warning(
+                    "%s - Cannot synchronize device temperature because sync entity %s not found",
+                    self,
+                    sync_entity_id,
+                )
+                continue
+
+            min_sync_entity = sync_entity_state.attributes.get("min")
+            max_sync_entity = sync_entity_state.attributes.get("max")
+            step_sync_entity = sync_entity_state.attributes.get("step") or 0.1  # default step is 0.1
+
+            under = self.underlying_entity(idx)
+            if not under:
+                _LOGGER.warning(
+                    "%s - Cannot synchronize device temperature because underlying index %d not found",
+                    self,
+                    idx,
+                )
+                continue
+
+            room_temp = self.current_temperature
+            if self._sync_with_calibration:
+                # send offset_calibration to the difference between target temp and local temp
+                offset = None
+                local_temp = under.underlying_current_temperature
+                current_offset = get_safe_float(self._hass, sync_entity_id)
+                if local_temp is not None and room_temp is not None and current_offset is not None:
+                    val = round_to_nearest(room_temp - (local_temp - current_offset), step_sync_entity)
+                    offset = min(max_sync_entity, max(min_sync_entity, val))
+
+                    _LOGGER.debug(
+                        "%s - Synchronize device temperature for entity %s: local_temp=%.2f, room_temp=%.2f, current_offset=%.2f -> new offset=%.2f",
+                        self,
+                        sync_entity_id,
+                        local_temp,
+                        room_temp,
+                        current_offset,
+                        offset,
+                    )
+                    await under.send_value_to_number(sync_entity_id, offset)
+            else:
+                # Send the new temperature directly
+                val = round_to_nearest(room_temp, step_sync_entity)
+                val = min(max_sync_entity, max(min_sync_entity, val))
+                _LOGGER.debug(
+                    "%s - Synchronize device temperature for entity %s: room_temp=%.2f -> new temp=%.2f",
+                    self,
+                    sync_entity_id,
+                    room_temp,
+                    val,
+                )
+                await under.send_value_to_number(sync_entity_id, val)
 
     @property
     def has_sync_entities(self) -> bool:

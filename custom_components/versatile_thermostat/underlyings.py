@@ -212,6 +212,24 @@ class UnderlyingEntity:
 
         return True
 
+    async def send_value_to_number(self, number_entity_id: str, value: int):
+        """Send a value to a number entity"""
+        try:
+            data = {"value": value}
+            target = {ATTR_ENTITY_ID: number_entity_id}
+            domain = number_entity_id.split(".")[0]
+            await self._hass.services.async_call(
+                domain=domain,
+                service=SERVICE_SET_VALUE,
+                service_data=data,
+                target=target,
+            )
+        except ServiceNotFound as err:
+            _LOGGER.error(err)
+            # This could happens in unit test if input_number domain is not yet loaded
+            # raise err
+
+
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
 
@@ -1009,28 +1027,11 @@ class UnderlyingValve(UnderlyingEntity):
         self._last_sent_temperature = None
         self._last_sent_opening_value: int | None = None
 
-    async def _send_value_to_number(self, number_entity_id: str, value: int):
-        """Send a value to a number entity"""
-        try:
-            data = {"value": value}
-            target = {ATTR_ENTITY_ID: number_entity_id}
-            domain = number_entity_id.split(".")[0]
-            await self._hass.services.async_call(
-                domain=domain,
-                service=SERVICE_SET_VALUE,
-                service_data=data,
-                target=target,
-            )
-        except ServiceNotFound as err:
-            _LOGGER.error(err)
-            # This could happens in unit test if input_number domain is not yet loaded
-            # raise err
-
     async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
         # This may fails if called after shutdown
         value = self._percent_open if fixed_value is None else fixed_value
-        await self._send_value_to_number(self._entity_id, value)
+        await self.send_value_to_number(self._entity_id, value)
         self._last_sent_opening_value = value
 
     async def turn_off(self):
@@ -1239,7 +1240,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         await super().send_percent_open(opening_degree)
 
         if self.has_closing_degree_entity:
-            await self._send_value_to_number(self._closing_degree_entity_id, closing_degree)
+            await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
         # Since 8.5.0 the syncrhonization is done upon reception of a new temperature from sensor
         # send offset_calibration to the difference between target temp and local temp
@@ -1259,7 +1260,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         #         val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entoty)
         #         offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
         #
-        #         await self._send_value_to_number(
+        #         await self.send_value_to_number(
         #             self._offset_calibration_entity_id, offset
         #         )
 
