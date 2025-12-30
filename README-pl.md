@@ -4,7 +4,8 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-# Versatile Thermostat (Termostat _*VTherm*_)
+# VTherm 
+### (dawniej: _*Versatile Thermostat*_)
 
 Ten plik README jest dostępny
 w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](README-de.md) | [Czeski](README-cs.md) | [Polski](README-pl.md)
@@ -17,9 +18,8 @@ w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](R
 
 Ten niestandardowy komponent Home Assistanta jest ulepszoną i napisaną całkowicie od nowa wersją komponentu „Awesome Thermostat” (patrz: [Github](https://github.com/dadge/awesome_thermostat)) z dodatkowymi funkcjami.
 
-# Zrzuty ekranowe
 
-Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
+Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
 
 ![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
