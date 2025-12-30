@@ -30,6 +30,7 @@
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
+          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Gestion du verrouilage",
           "auto_tpi_1": "Auto TPI - Général",
           "auto_tpi_2": "Auto TPI - Méthode",
@@ -101,6 +102,7 @@
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
           "ac_mode": "AC mode ?",
+          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
@@ -117,6 +119,7 @@
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "sync_device_internal_temp": "Synchroniser la température interne de l'appareil sous-jacent avec la température mesurée par le VTherm",
           "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
@@ -335,13 +338,30 @@
           "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
           "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronisation de la température interne des sous-jacents",
+        "description": "Configuration de la synchronisation des températures internes des sous-jacents&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Application d'un calibrage",
+          "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
+        },
+        "data_description": {
+          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
+          "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
+        }
       }
     },
     "error": {
       "unknown": "Erreur inattendue",
       "unknown_entity": "entity id inconnu",
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
-      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser."
+      "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
+      "service_configuration_format": "Mauvais format de la configuration du service",
+      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
+      "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
+      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"
@@ -377,6 +397,7 @@
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
+          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Verrouillage",
           "auto_tpi_1": "Auto TPI - Général",
           "auto_tpi_2": "Auto TPI - Méthode",
@@ -448,6 +469,7 @@
           "heater_keep_alive": "keep-alive (sec)",
           "proportional_function": "Algorithme",
           "ac_mode": "AC mode ?",
+          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
           "auto_regulation_mode": "Auto-régulation",
           "auto_regulation_dtemp": "Seuil de régulation",
           "auto_regulation_periode_min": "Période minimale de régulation",
@@ -464,6 +486,7 @@
           "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
           "proportional_function": "Algorithme à utiliser (Seul TPI est disponible pour l'instant)",
           "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "sync_device_internal_temp": "Synchroniser la température interne de l'appareil sous-jacent avec la température mesurée par le VTherm",
           "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
           "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
@@ -529,7 +552,7 @@
       },
       "motion": {
         "title": "Mouvement - {name}",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-motion.md)",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-motion.md)",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
@@ -685,6 +708,18 @@
           "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
           "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronisation de la température interne des sous-jacents",
+        "description": "Configuration de la synchronisation des températures internes des sous-jacents&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Application d'un calibrage",
+          "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
+        },
+        "data_description": {
+          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
+          "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
+        }
       }
     },
     "error": {
@@ -694,6 +729,7 @@
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
+      "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
       "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },

@@ -27,8 +27,11 @@
           "power": "Správa napájania",
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
-          "finalize": "Všetko hotové",
+          "auto_start_stop": "Automatické spustenie a zastavenie",
+          "valve_regulation": "Konfigurácia regulácie ventilu",
+          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
+          "finalize": "Všetko hotové",
           "configuration_not_complete": "Konfigurácia nie je dokončená"
         }
       },
@@ -100,6 +103,7 @@
           "climate_entity3_id": "3. základná klíma",
           "climate_entity4_id": "4. základná klíma",
           "ac_mode": "AC režim",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
           "valve_entity_id": "1. ventil číslo",
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
@@ -123,6 +127,7 @@
           "climate_entity3_id": "3. základné identifikačné číslo klimatickej entity",
           "climate_entity4_id": "4. základné identifikačné číslo klimatickej entity",
           "ac_mode": "Použite režim klimatizácie (AC)",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
           "valve_entity_id": "1. ventil číslo entity id",
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
@@ -242,13 +247,30 @@
           "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Neočakávaná chyba",
       "unknown_entity": "Neznáme ID entity",
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
-      "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“."
+      "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“.",
+      "service_configuration_format": "Formát konfigurácie služby je nesprávny",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -281,8 +303,11 @@
           "power": "Správa napájania",
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
-          "finalize": "Všetko hotové",
+          "auto_start_stop": "Automatické spustenie a zastavenie",
+          "valve_regulation": "Konfigurácia regulácie ventilu",
+          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
+          "finalize": "Všetko hotové",
           "configuration_not_complete": "Konfigurácia nie je dokončená"
         }
       },
@@ -354,6 +379,7 @@
           "climate_entity3_id": "3. základná klíma",
           "climate_entity4_id": "4. základná klíma",
           "ac_mode": "AC režim",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
           "valve_entity_id": "1. ventil číslo",
           "valve_entity2_id": "2. ventil číslo",
           "valve_entity3_id": "3. ventil číslo",
@@ -377,6 +403,7 @@
           "climate_entity3_id": "3. základný identifikátor klimatickej entity",
           "climate_entity4_id": "4. základný identifikátor klimatickej entity",
           "ac_mode": "Použite režim klimatizácie (AC)",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
           "valve_entity_id": "1. ventil číslo entity id",
           "valve_entity2_id": "2. ventil číslo entity id",
           "valve_entity3_id": "3. ventil číslo entity id",
@@ -496,6 +523,18 @@
           "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
@@ -503,7 +542,11 @@
       "unknown_entity": "Neznáme ID entity",
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
       "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“.",
-      "service_configuration_format": "Formát konfigurácie služby je nesprávny"
+      "service_configuration_format": "Formát konfigurácie služby je nesprávny",
+      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
+      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
+      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
