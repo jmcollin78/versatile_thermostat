@@ -41,6 +41,7 @@ OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as 
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
 INSUFFICIENT_RISE_GAP_THRESHOLD = 0.3  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
+MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
 
 
 @dataclass
@@ -729,10 +730,15 @@ class AutoTpiManager:
                 # Indoor learning attempt
                 error = self._learn_indoor(target_diff, temp_progress, self._last_cycle_power_efficiency, is_cool)
                 if error is not None:
-                    # Learning was successful
+                    # Learning was successful - temperature is rising
                     self.state.last_learning_status = f"learned_indoor_{'cool' if is_cool else 'heat'}"
                     _LOGGER.info("%s - Auto TPI: Indoor coefficient learned successfully (Error: %.3f)", self._name, error)
                     self._learning_just_completed = True
+
+                    # Reset consecutive Kint boosts counter since temperature is now rising
+                    if self.state.consecutive_boosts > 0:
+                        _LOGGER.debug("%s - Auto TPI: Resetting consecutive_boosts counter (was %d)", self._name, self.state.consecutive_boosts)
+                        self.state.consecutive_boosts = 0
 
                     # Continuous Learning: Track error and detect regime change
                     if self._continuous_learning:
@@ -1197,6 +1203,18 @@ class AutoTpiManager:
         Returns:
             True if correction was applied, False otherwise
         """
+        # Check if we've hit the max consecutive boosts limit
+        if self.state.consecutive_boosts >= MAX_CONSECUTIVE_KINT_BOOSTS:
+            _LOGGER.warning(
+                "%s - Auto TPI: Kint boost skipped - max consecutive boosts (%d) reached. Possible undersized heating.",
+                self._name, MAX_CONSECUTIVE_KINT_BOOSTS
+            )
+            self.state.last_learning_status = "max_kint_boosts_reached"
+            # Send notification if enabled (only once per limit hit)
+            if self._enable_notification and self.state.consecutive_boosts == MAX_CONSECUTIVE_KINT_BOOSTS:
+                self._hass.async_create_task(self._notify_undersized_heating())
+            return False
+
         current_kint = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
 
         # Calculate proportional boost based on gap size
@@ -1232,11 +1250,39 @@ class AutoTpiManager:
         self._learning_just_completed = True
 
         _LOGGER.info(
-            "%s - Auto TPI: Kint correction applied! Kint: %.4f -> %.4f (gap=%.2f°C, progress=%.2f°C, power=%.1f%%)",
-            self._name, old_kint, new_kint, target_diff, temp_progress, self.state.last_power * 100
+            "%s - Auto TPI: Kint correction applied! Kint: %.4f -> %.4f (gap=%.2f°C, progress=%.2f°C, power=%.1f%%, boost #%d)",
+            self._name, old_kint, new_kint, target_diff, temp_progress, self.state.last_power * 100, self.state.consecutive_boosts + 1
         )
 
+        # Increment consecutive boosts counter
+        self.state.consecutive_boosts += 1
+
         return True
+
+    async def _notify_undersized_heating(self):
+        """Send notification when max consecutive Kint boosts is reached."""
+        title = f"Versatile Thermostat: Auto TPI Warning for {self._name}"
+        message = (
+            f"Auto TPI has reached the maximum consecutive Kint boost limit ({MAX_CONSECUTIVE_KINT_BOOSTS}). "
+            f"The temperature is not rising despite increased power demand. "
+            f"This may indicate undersized heating or abnormal heat loss. "
+            f"Learning will continue normally, but Kint boosting is paused until external temperature rises."
+        )
+
+        try:
+            await self._hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": title,
+                    "message": message,
+                    "notification_id": f"autotpi_undersized_heating_{self._unique_id}",
+                },
+                blocking=False,
+            )
+            _LOGGER.warning("%s - Auto TPI: Undersized heating notification sent.", self._name)
+        except Exception as e:
+            _LOGGER.error("%s - Auto TPI: Error sending undersized heating notification: %s", self._name, e)
 
     async def _detect_failures(self, current_temp_in: float):
         """Detect system failures."""

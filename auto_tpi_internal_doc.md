@@ -123,6 +123,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |
 | `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.3°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
 | `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
+| `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Nombre maximum de boosts Kint consécutifs avant avertissement (chauffage sous-dimensionné) |
 
 #### 2.6. Cas 0 : Correction de Dépassement (`_correct_kext_overshoot`)
 
@@ -157,6 +158,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 1.  **Écart significatif** : `target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD` (0.3°C par défaut)
 2.  **Température stagnante** : `temp_progress < 0.02°C` (la température n'a pas augmenté pendant le cycle)
 3.  **Puissance non saturée** : `power < 0.99` (le système peut encore augmenter la puissance)
+4.  **Limite non atteinte** : `consecutive_boosts < MAX_CONSECUTIVE_KINT_BOOSTS` (5 par défaut)
 
 **Algorithme :**
 1.  **Calcul du facteur de boost proportionnel** :
@@ -165,10 +167,19 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
     -   Pour un gap de 0.3°C → boost de 8%, pour 0.6°C → boost de ~16%
 2.  **Application** : `new_kint = current_kint × boost_factor`
 3.  **Plafonnement** : Kint est plafonné à `_max_coef_int` et floored à `MIN_KINT`.
+4.  **Incrémentation** : `consecutive_boosts += 1`
 
-**Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête (pas d'apprentissage Indoor/Outdoor pour ce cycle). Le status est `corrected_kint_insufficient_rise`.
+**Protection contre le sous-dimensionnement :**
+-   Si `consecutive_boosts >= MAX_CONSECUTIVE_KINT_BOOSTS` :
+    -   Le boost est ignoré (le système ne booste plus Kint)
+    -   Une notification persistent est envoyée (si activé) pour alerter l'utilisateur
+    -   L'apprentissage normal (CASE 1 et 2) continue
+-   Le compteur `consecutive_boosts` est réinitialisé à 0 dès que l'apprentissage indoor réussit (la température monte)
+
+**Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête. Le status est `corrected_kint_insufficient_rise` ou `max_kint_boosts_reached`.
 
 #### 3. Cas 1 : Apprentissage du Coefficient Intérieur (`_learn_indoor`)
+
 
 C'est la méthode privilégiée, mais elle est désormais soumise à des conditions strictes pour éviter les faux positifs et laisser sa chance à l'apprentissage extérieur.
 
