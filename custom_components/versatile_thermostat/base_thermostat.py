@@ -1902,8 +1902,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def service_auto_tpi_calibrate_capacity(
         self,
-        hvac_mode: str,
         save_to_config: bool,
+        min_power_threshold: int,
+        capacity_safety_margin: int = 20,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ):
