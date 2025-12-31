@@ -39,6 +39,8 @@ MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
+INSUFFICIENT_RISE_GAP_THRESHOLD = 0.3  # Min gap (°C) to trigger Kint correction when temp stagnates
+INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 
 
 @dataclass
@@ -693,6 +695,26 @@ class AutoTpiManager:
                 if self._correct_kext_overshoot(overshoot, is_cool=True):
                     return  # Skip other learning for this cycle
 
+        # CASE 0.5: Insufficient Rise Correction
+        # ----------------------------------------
+        # When temperature stagnates despite a significant gap (> 0.3°C)
+        # and power is not saturated, Kint is likely too low.
+        # Instead of incorrectly adjusting Kext, we boost Kint.
+        #
+        # This handles the scenario where:
+        # - target_diff > 0.3°C (significant gap to setpoint)
+        # - temp_progress < 0.02 (temperature is stagnating or dropping)
+        # - power < 0.99 (not saturated, so we CAN increase power)
+        #
+        # In this case, standard indoor learning fails (requires temp_progress > 0.05)
+        # and the system incorrectly falls through to outdoor learning, increasing Kext.
+
+        temp_stagnating = temp_progress < 0.02
+
+        if target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD and temp_stagnating and self.state.last_power < 0.99:
+            if self._correct_kint_insufficient_rise(target_diff, temp_progress, is_cool):
+                return  # Kint corrected, skip other learning for this cycle
+
         # CASE 1: Indoor Learning
         # ---------------------------
         # Strict conditions to avoid false positives:
@@ -1060,30 +1082,6 @@ class AutoTpiManager:
         )
         return True
 
-    def _boost_indoor_coeff(self, is_heat: bool):
-        """Boost indoor coefficient when system is underpowered."""
-        BOOST_FACTOR = 1.15  # increaase by 15%
-        MAX_CONSECUTIVE_BOOSTS = 5  # limit consecutive boosts
-
-        # Check if we've already boosted too many times
-        if not hasattr(self.state, "consecutive_boosts"):
-            self.state.consecutive_boosts = 0
-
-        if self.state.consecutive_boosts >= MAX_CONSECUTIVE_BOOSTS:
-            _LOGGER.info("%s - Auto TPI: Boost skipped - max consecutive boosts (%d) reached", self._name, MAX_CONSECUTIVE_BOOSTS)
-            return
-
-        if is_heat:
-            old = self.state.coeff_indoor_heat
-            self.state.coeff_indoor_heat = min(old * BOOST_FACTOR, self._max_coef_int)
-            _LOGGER.info("%s - Boosting Kint heat: %.3f → %.3f (boost #%d)", self._name, old, self.state.coeff_indoor_heat, self.state.consecutive_boosts + 1)
-        else:
-            old = self.state.coeff_indoor_cool
-            self.state.coeff_indoor_cool = min(old * BOOST_FACTOR, self._max_coef_int)
-            _LOGGER.info("%s - Boosting Kint cool: %.3f → %.3f (boost #%d)", self._name, old, self.state.coeff_indoor_cool, self.state.consecutive_boosts + 1)
-
-        self.state.consecutive_boosts += 1
-
     def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float):
         """Check if we should reduce indoor coefficient after good performance."""
         # If we achieved more than expected, consider reducing coefficient
@@ -1176,6 +1174,66 @@ class AutoTpiManager:
         _LOGGER.info(
             "%s - Auto TPI: Overshoot correction applied! Kext: %.4f -> %.4f (overshoot=%.2f°C, power=%.1f%%)",
             self._name, old_kext, new_kext, overshoot, self.state.last_power * 100
+        )
+
+        return True
+
+    def _correct_kint_insufficient_rise(self, target_diff: float, temp_progress: float, is_cool: bool) -> bool:
+        """Boost Kint when temperature stagnates despite significant gap to setpoint.
+
+        This method is called when:
+        - target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD (0.3°C)
+        - temp_progress < 0.02 (temperature stagnating)
+        - power < 0.99 (not saturated)
+
+        Instead of incorrectly adjusting Kext (which would happen in outdoor learning),
+        we boost Kint to increase power output.
+
+        Args:
+            target_diff: The gap between setpoint and room temperature (positive value)
+            temp_progress: Temperature change during the cycle (can be negative)
+            is_cool: True if in cooling mode
+
+        Returns:
+            True if correction was applied, False otherwise
+        """
+        current_kint = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
+
+        # Calculate proportional boost based on gap size
+        # Base boost is 8%, but increases slightly with larger gaps
+        # For gap = 0.3°C: boost = 8%, for gap = 0.6°C: boost ≈ 10%
+        gap_factor = min(target_diff / INSUFFICIENT_RISE_GAP_THRESHOLD, 2.0)  # Cap at 2x
+        boost_factor = 1.0 + ((INSUFFICIENT_RISE_BOOST_FACTOR - 1.0) * gap_factor)
+
+        new_kint = current_kint * boost_factor
+
+        # Cap to max coefficient
+        new_kint = min(new_kint, self._max_coef_int)
+
+        # Ensure minimum Kint
+        new_kint = max(new_kint, MIN_KINT)
+
+        # Check if we actually changed anything (might hit cap)
+        if abs(new_kint - current_kint) < 0.001:
+            _LOGGER.debug(
+                "%s - Auto TPI: Kint correction skipped - already at limit (current=%.3f, max=%.3f)",
+                self._name, current_kint, self._max_coef_int
+            )
+            return False
+
+        old_kint = current_kint
+
+        if is_cool:
+            self.state.coeff_indoor_cool = new_kint
+        else:
+            self.state.coeff_indoor_heat = new_kint
+
+        self.state.last_learning_status = "corrected_kint_insufficient_rise"
+        self._learning_just_completed = True
+
+        _LOGGER.info(
+            "%s - Auto TPI: Kint correction applied! Kint: %.4f -> %.4f (gap=%.2f°C, progress=%.2f°C, power=%.1f%%)",
+            self._name, old_kint, new_kint, target_diff, temp_progress, self.state.last_power * 100
         )
 
         return True

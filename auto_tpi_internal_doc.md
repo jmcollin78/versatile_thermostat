@@ -121,6 +121,8 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `OVERSHOOT_THRESHOLD` | 0.2°C | Seuil de dépassement de température pour déclencher la correction agressive de Kext |
 | `OVERSHOOT_POWER_THRESHOLD` | 0.05 (5%) | Puissance minimale pour considérer le dépassement comme une erreur de Kext |
 | `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |
+| `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.3°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
+| `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
 
 #### 2.6. Cas 0 : Correction de Dépassement (`_correct_kext_overshoot`)
 
@@ -147,7 +149,27 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 
 **Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête (pas d'apprentissage Indoor/Outdoor pour ce cycle).
 
+#### 2.7. Cas 0.5 : Correction de Stagnation (`_correct_kint_insufficient_rise`)
+
+**Problème résolu** : Lorsque la température stagne ou baisse malgré un écart significatif avec la consigne (> 0.3°C) et que la puissance n'est pas à saturation, Kint est probablement trop bas. Sans cette correction, le système tombe dans l'apprentissage Outdoor et augmente Kext à tort.
+
+**Conditions de déclenchement :**
+1.  **Écart significatif** : `target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD` (0.3°C par défaut)
+2.  **Température stagnante** : `temp_progress < 0.02°C` (la température n'a pas augmenté pendant le cycle)
+3.  **Puissance non saturée** : `power < 0.99` (le système peut encore augmenter la puissance)
+
+**Algorithme :**
+1.  **Calcul du facteur de boost proportionnel** :
+    -   `gap_factor = min(target_diff / 0.3, 2.0)` (plafonné à 2x)
+    -   `boost_factor = 1.0 + (0.08 × gap_factor)`
+    -   Pour un gap de 0.3°C → boost de 8%, pour 0.6°C → boost de ~16%
+2.  **Application** : `new_kint = current_kint × boost_factor`
+3.  **Plafonnement** : Kint est plafonné à `_max_coef_int` et floored à `MIN_KINT`.
+
+**Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête (pas d'apprentissage Indoor/Outdoor pour ce cycle). Le status est `corrected_kint_insufficient_rise`.
+
 #### 3. Cas 1 : Apprentissage du Coefficient Intérieur (`_learn_indoor`)
+
 C'est la méthode privilégiée, mais elle est désormais soumise à des conditions strictes pour éviter les faux positifs et laisser sa chance à l'apprentissage extérieur.
 
 **Conditions d'activation :**
