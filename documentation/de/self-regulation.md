@@ -1,14 +1,14 @@
 # Selbstregulierung
 
 - [Selbstregulierung](#selbstregulierung)
-    - [Konfiguration](#konfiguration)
-      - [Selbstregulierung bei direkter Ventilkontrolle](#selbstregulierung-bei-direkter-ventilkontrolle)
-        - [Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?](#Wie-werden-die-Parameter-die-die-Öffnungweite-steuern-richtig-eingestellt)
-        - [Fall 1: Es gibt eine 15-prozentige Totzone an dem Ventil (die ersten 15% lassen kein heißes Wasser durch)](#Fall-1-Es-gibt-eine-15-prozentige-Totzone-an-dem-Ventil-die-ersten-15-lassen-kein-heißes-Wasser-durch)
-        - [Fall 2: Das Ventil soll niemals vollständig schließen](#Fall-2-Das-Ventil-soll-niemals-vollständig-schließen)
-      - [Andere Selbsregulierung](#andere-selbsregulierung)
+  - [Konfiguration](#konfiguration)
+    - [Selbstregulierung bei direkter Ventilkontrolle](#selbstregulierung-bei-direkter-ventilkontrolle)
+      - [Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?](#wie-werden-die-parameter-die-die-öffnungweite-steuern-richtig-eingestellt)
+        - [Fall 1: Es gibt eine 15-prozentige Totzone an dem Ventil (die ersten 15% lassen kein heißes Wasser durch)](#fall-1-es-gibt-eine-15-prozentige-totzone-an-dem-ventil-die-ersten-15-lassen-kein-heißes-wasser-durch)
+        - [Fall 2: Das Ventil soll niemals vollständig schließen](#fall-2-das-ventil-soll-niemals-vollständig-schließen)
+    - [Andere Selbsregulierung](#andere-selbsregulierung)
       - [Selbstregulierung im Expertenmodus](#selbstregulierung-im-expertenmodus)
-      - [Zusammenfassung des Selbstregulierungsalgorithmus](#zusammenfassung-des-selbstregulierungsalgorithmus)
+  - [Zusammenfassung des Selbstregulierungsalgorithmus](#zusammenfassung-des-selbstregulierungsalgorithmus)
 
 Sie haben die Möglichkeit, die Selbstregulierungsfunktion nur für _VTherms_ des Typs `over_climate` zu aktivieren.
 
@@ -23,8 +23,7 @@ In der Regel gibt es zwei Fälle: Erstens
 Diese Art der Selbstregulierung, `Direct Valve Control` genannt, benötigt:
 1. Eine Einheit des Typs `climate`, die in den zugehörigen Geräten des _VTherm_ enthalten ist.
 2. Eine Entität des Typs `number` zur Steuerung der Ventilöffnungsrate des _TRV_.
-3. Eine optionale Entität des Typs `number` zur Kalibrierung der internen Temperatur des zugehörigen Geräts.
-4. Eine optionale Einheit des Typs `number` zur Steuerung des Ventilschließens.
+3. Eine optionale Einheit des Typs `number` zur Steuerung des Ventilschließens.
 
 Wenn die gewählte Selbstregulierung `Direct Valve Control` auf einem _VTherm_ `over_climate` ist, erscheint eine neue Konfigurationsseite mit dem Namen `Valve Regulation Configuration`:
 

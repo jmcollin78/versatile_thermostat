@@ -23,8 +23,7 @@ There are generally two cases:
 This type of self-regulation called `Direct valve control` requires:
 1. a `climate` entity that is set in the underlying entities of the _VTherm_,
 2. a `number` entity that allows controlling the valve opening rate of the _TRV_,
-3. an optional `number` entity allowing to calibrate the internal temperature of the underlying entity,
-4. an optional `number` entity allowing to control the valve closing
+3. an optional `number` entity allowing to control the valve closing
 
 When the chosen self-regulation is `Direct valve control` on an `over_climate` _VTherm_, a new configuration page called `Valve regulation configuration` appears:
 

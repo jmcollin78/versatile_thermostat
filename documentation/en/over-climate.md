@@ -5,6 +5,7 @@
   - [Configuration](#configuration)
     - [The Underlying Entities](#the-underlying-entities)
     - [AC Mode](#ac-mode)
+    - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
     - [Self-Regulation](#self-regulation)
     - [Auto-Fan (Auto Ventilation)](#auto-fan-auto-ventilation)
     - [Compensating for the Internal Temperature of the Underlying Equipment](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
@@ -36,6 +37,9 @@ In the "Equipment to Control" list, you should add the `climate` entities that w
 ### AC Mode
 
 You can choose an `over_climate` thermostat to control an air conditioner (reversible or not) by checking the "AC Mode" box. If the equipment allows it, both 'Heating' and 'Cooling' modes will be available.
+
+### Synchronization of the internal temperature of underlying entities
+This function allows for much better regulation as it synchronizes the internal thermometer of the underlying `climate` entities with the room temperature measured by _VTherm_. It is described [here](feature-sync_device_temp.md).
 
 ### Self-Regulation
 

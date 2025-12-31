@@ -22,8 +22,7 @@ Obecně existují dva případy:
 Tento typ samo-regulace, nazývaný `Přímé ovládání ventilu`, vyžaduje:
 1. Entitu typu `climate`, která je zahrnuta v podkladových zařízeních _VTherm_.
 2. Entitu typu `number` pro ovládání míry otevření ventilu _TRV_.
-3. Volitelnou entitu typu `number` pro kalibraci vnitřní teploty podkladového zařízení.
-4. Volitelnou entitu typu `number` pro ovládání uzavření ventilu.
+3. Volitelnou entitu typu `number` pro ovládání uzavření ventilu.
 
 Když je zvolena samo-regulace `Přímé ovládání ventilu` na _VTherm_ `over_climate`, objeví se nová konfigurační stránka s názvem `Konfigurace regulace ventilu`:
 

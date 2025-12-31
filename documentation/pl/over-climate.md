@@ -1,15 +1,16 @@
 # Typ termostatu: `Termostat na Klimacie`
 
-- [Typ termostatu `Termostat na Klimacie`](#over_climate-type-thermostat)
-  - [Wymagania wstępne](#prerequisites)
-  - [Konfiguracja](#configuration)
-    - [Encje podstawowe](#the-underlying-entities)
-    - [Tryb AC](#ac-mode)
-    - [Samoregulacja](#self-regulation)
-    - [Autowentylacja](#auto-fan-auto-ventilation)
-    - [Kompensacja temperatury wewnętrznej urządzeń bazowych](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
-  - [Funkcje specyficzne](#specific-functions)
-  - [Śledzenie podstawowych zmian temperatury](#follow-underlying-temperature-changes)
+- [Typ termostatu: `Termostat na Klimacie`](#typ-termostatu-termostat-na-klimacie)
+  - [Wymagania wstępne](#wymagania-wstępne)
+  - [Konfiguracja](#konfiguracja)
+    - [Encje podstawowe](#encje-podstawowe)
+    - [Tryb AC](#tryb-ac)
+    - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
+    - [Samoregulacja](#samoregulacja)
+    - [Autowentylacja](#autowentylacja)
+    - [Kompensacja temperatury wewnętrznej urządzeń bazowych](#kompensacja-temperatury-wewnętrznej-urządzeń-bazowych)
+  - [Funkcje specyficzne](#funkcje-specyficzne)
+  - [Śledzenie zmian temperatury bazowej](#śledzenie-zmian-temperatury-bazowej)
 
 ## Wymagania wstępne
 
@@ -42,6 +43,9 @@ Do listy "Sterowane urządzenia" dodaj encje `climate`, które mają być sterow
 
 Możesz wybrać `termostat na klimacie` do sterowania klimatyzacją (odwracalną lub nie), zaznaczając opcję "Tryb AC". Jeśli urządzenie na to pozwala, oba tryby: 'Grzanie" i Chłodzenie' będą dostępne.
 
+### Synchronization of the internal temperature of underlying entities
+This function allows for much better regulation as it synchronizes the internal thermometer of the underlying `climate` entities with the room temperature measured by _VTherm_. It is described [here](feature-sync_device_temp.md).
+
 ### Samoregulacja
 
 W trybie `termostat na klimacie` urządzenie korzysta z własnego algorytmu regulacji: załącza się/wyłącza i zatrzymuje automatycznie na podstawie wartości zadanej odebranej przez termostat VTherm za pośrednictwem encji `climate`. Wykorzystuje swój wewnętrzny termometr oraz odczytaną wartość zadaną.
@@ -65,7 +69,7 @@ Oczywiście Twoje urządzenie musi posiadać funkcję wentylacji i musi być ste
 
 ### Kompensacja temperatury wewnętrznej urządzeń bazowych
 
-_Ostrzeżenie_: 
+_Ostrzeżenie_:
 Tej opcji nie należy używać z regulacją bezpośredniego sterowania zaworem, jeśli została podana encja kalibracyjna.
 
 Czasami wewnętrzny termometr sterowanego urządzenia (TRV, klimatyzator itp.) jest na tyle niedokładny, że samoregulacja okazuje się niewystarczająca. Dzieje się tak, gdy termometr wewnętrzny znajduje się zbyt blisko źródła ciepła. Temperatura wewnętrzna rośnie znacznie szybciej niż temperatura w środku pomieszczeniu, co prowadzi do błędów regulacji.
@@ -112,7 +116,7 @@ W takim przypadku do urządzenia _VTherm_ dodano sensor "Śledzenie zmiany tempe
 
 Gdy ta opcja jest aktywna, wszystkie zmiany temperatury lub stanu dokonane bezpośrednio na sterowanym urządzeniu są odzwierciedlane w termostacie VTherm.
 
-**Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejednoznaczności aktualnego stanu urządzenia. 
+**Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejednoznaczności aktualnego stanu urządzenia.
 Termostat _VTherm_ posiada mechanizm opóźnienia, który zapobiega zapętleniom: użytkownik ustawia żądaną wartość, termostat _VTherm_ ją przechwytuje i odpowiednio zmienia wartość. To opóźnienie może powodować zignorowanie zmiany dokonanej bezpośrednio na urządzeniu, jeśli nastąpi w zbyt krótkim czasie.
 
 Niektóre urządzenia (np. Daikin) zmieniają stan samodzielnie. Jeśli zaznaczono tę opcję, może to spowodować wyłączenie termostatu _VTherm_, mimo że nie było to zamierzone. Dlatego lepiej jej nie używać — generuje to wiele niejasności i niepotrzebnych zapytań o wsparcie techniczne.

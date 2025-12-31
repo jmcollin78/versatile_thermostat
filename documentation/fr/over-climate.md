@@ -5,6 +5,7 @@
   - [Configuration](#configuration)
     - [Les sous-jacents](#les-sous-jacents)
     - [Le mode AC](#le-mode-ac)
+    - [La synchronisation de la température interne des sous-jacents](#la-synchronisation-de-la-température-interne-des-sous-jacents)
     - [L'auto-régulation](#lauto-régulation)
     - [L'auto-ventilation (auto-fan)](#lauto-ventilation-auto-fan)
     - [Compenser la température interne du sous-jacent](#compenser-la-température-interne-du-sous-jacent)
@@ -38,6 +39,9 @@ Dans la "liste des équipements à contrôler" vous mettez les entités `climate
 
 Il est possible de choisir un thermostat `over_climate` qui commande une climatisation (réversible ou non) en cochant la case "AC Mode". Si l'équipement le permet, les 2 modes 'Chauffage' et 'Refroidissement' seront alors disponibles.
 
+### La synchronisation de la température interne des sous-jacents
+Cette fonction permet une bien meilleure régulation puisqu'elle synchronise le thermomètre interne des `climate` sous-jacents avec la température de la pièce mesurée par _VTherm_. Elle est décrite [ici](feature-sync_device_temp.md).
+
 ### L'auto-régulation
 
 En mode `over_climate`, le device utilise son propre algorithme de régulation : il s'allume / s'éteint et se met en pause tout seul en fonction de la consigne transmise par le VTherm à travers son entité `climate`. Il utilise pour ça son thermomètre interne et la consigne reçue.
@@ -63,7 +67,7 @@ Une fois l'écart de température redevenu faible, la ventilation se mettra dans
 
 ### Compenser la température interne du sous-jacent
 
-Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne si une entité de calibrage a été fournie.
+Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne.
 
 Quelque fois, il arrive que le thermomètre interne du sous-jacent (TRV, climatisation, ...) soit tellement faux que l'auto-régulation ne suffise pas à réguler.
 Cela arrive lorsque le thermomètre interne est trop près de la source de chaleur. La température interne monte alors beaucoup plus vite que la température de la pièce, ce qui génère des défauts dans la régulation.

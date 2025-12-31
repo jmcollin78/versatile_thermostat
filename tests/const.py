@@ -20,11 +20,11 @@ MOCK_TH_OVER_4SWITCH_USER_CONFIG = {
     CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
     CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-    CONF_CYCLE_MIN: 8,
-    CONF_TEMP_MIN: 15,
-    CONF_TEMP_MAX: 30,
+    CONF_CYCLE_MIN: 8.0,
+    CONF_TEMP_MIN: 15.0,
+    CONF_TEMP_MAX: 30.0,
     CONF_STEP_TEMPERATURE: 0.1,
-    CONF_DEVICE_POWER: 1,
+    CONF_DEVICE_POWER: 1.0,
     CONF_USE_WINDOW_FEATURE: True,
     CONF_USE_MOTION_FEATURE: True,
     CONF_USE_POWER_FEATURE: True,
@@ -39,8 +39,8 @@ MOCK_TH_OVER_CLIMATE_USER_CONFIG = {
 MOCK_TH_OVER_CLIMATE_MAIN_CONFIG = {
     CONF_NAME: "TheOverClimateMockName",
     CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-    CONF_CYCLE_MIN: 5,
-    CONF_DEVICE_POWER: 1,
+    CONF_CYCLE_MIN: 5.0,
+    CONF_DEVICE_POWER: 1.0,
     CONF_USE_MAIN_CENTRAL_CONFIG: False,
     CONF_USE_CENTRAL_MODE: True,
     # Keep default values which are False
@@ -48,16 +48,16 @@ MOCK_TH_OVER_CLIMATE_MAIN_CONFIG = {
 
 MOCK_TH_OVER_CLIMATE_CENTRAL_MAIN_CONFIG = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-    CONF_TEMP_MIN: 15,
-    CONF_TEMP_MAX: 30,
+    CONF_TEMP_MIN: 15.0,
+    CONF_TEMP_MAX: 30.0,
     CONF_STEP_TEMPERATURE: 0.1,
     # Keep default values which are False
 }
 
 MOCK_TH_OVER_SWITCH_CENTRAL_MAIN_CONFIG = {
     CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-    CONF_TEMP_MIN: 15,
-    CONF_TEMP_MAX: 30,
+    CONF_TEMP_MIN: 15.0,
+    CONF_TEMP_MAX: 30.0,
     CONF_STEP_TEMPERATURE: 0.1,
     # Keep default values which are False
 }

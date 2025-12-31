@@ -474,7 +474,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("%s - Error calling cycle start callback: %s", self, ex)
 
-
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""
         if self._cancel_recalculate_later:
@@ -689,7 +688,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Init all presets of the VTherm"""
         # If preset central config is used and central config is set,
         # take the presets from central config
-        _LOGGER.warning("%s - #1419 - Initializing presets", self)
         vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
 
         presets: dict[str, Any] = {}
@@ -699,11 +697,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             presets: dict[str, Any] = {}
             config_id = self._unique_id
             if central_config and self._entry_infos.get(use_central_conf_key, False) is True:
-                _LOGGER.warning("%s - #1419 - Using central config for presets", self)
                 config_id = central_config.entry_id
 
             for key, preset_name in items:
-                _LOGGER.warning("%s - #1419 - looking for key=%s, preset_name=%s", self, key, preset_name)
+                _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
                 # removes preset_name frost if heat is not in hvac_modes
                 if key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
                     _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
@@ -712,7 +709,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if value is not None:
                     presets[key] = value
                 else:
-                    _LOGGER.warning("%s - #1419 - preset_name %s not found in VTherm API", self, preset_name)
+                    _LOGGER.debug("preset_name %s not found in VTherm API", preset_name)
                     presets[key] = self._attr_max_temp if self._ac_mode else self._attr_min_temp
             return presets
 
@@ -722,12 +719,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             CONF_USE_PRESETS_CENTRAL_CONFIG,
         )
 
+        # refacto
+        # if self._entry_infos.get(CONF_USE_PRESENCE_FEATURE) is True:
         if self._presence_manager.is_configured:
             presets_away = calculate_presets(
                 (CONF_PRESETS_AWAY_WITH_AC.items() if self._ac_mode else CONF_PRESETS_AWAY.items()),
                 CONF_USE_PRESETS_CENTRAL_CONFIG,
             )
-            _LOGGER.warning("%s - #1419 - presence is configured, presets_away=%s", self, presets_away)
 
         # aggregate all available presets now
         self._presets: dict[str, Any] = presets
@@ -743,21 +741,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if preset_value is not None and preset_value > 0:
                     self._attr_preset_modes.append(key)
 
-            _LOGGER.warning("%s - #1419 - After adding presets, preset_modes to %s", self, self._attr_preset_modes)
+            _LOGGER.debug("After adding presets, preset_modes to %s", self._attr_preset_modes)
         else:
-            _LOGGER.warning("%s - #1419 - No preset_modes", self)
+            _LOGGER.debug("No preset_modes")
 
         if self._motion_manager.is_configured:
-            _LOGGER.warning("%s - #1419 - Adding ACTIVITY preset mode", self)
             self._attr_preset_modes.append(VThermPreset.ACTIVITY)
 
         # transform _attr_preset_modes into _vtherm_preset_modes
         self._vtherm_preset_modes = [VThermPreset(mode) for mode in self._attr_preset_modes]
-        _LOGGER.warning("%s - #1419 - final preset modes %s", self, self._vtherm_preset_modes)
 
         # Re-applicate the last preset if any to take change into account
         if self._state_manager.current_state.preset and self._state_manager.current_state.preset != VThermPreset.NONE:
-            _LOGGER.warning("%s - #1419 - Reapplying current preset %s", self, self._state_manager.current_state.preset)
             await self.async_set_preset_mode_internal(self._state_manager.current_state.preset)
 
     ##
@@ -812,13 +807,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def is_over_valve(self) -> bool:
         """True if the Thermostat is over_valve"""
         return False
-
-    @property
-    def safe_on_percent(self) -> float:
-        """Return the on_percent safe value (default 0)
-        Should be overridden by subclass
-        """
-        return 0
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -1829,7 +1817,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if default_on_percent:
             self._safety_manager.set_safety_default_on_percent(default_on_percent)
 
-
         await self.async_control_heating()
         self.update_custom_attributes()
         self.async_write_ha_state()
@@ -1887,10 +1874,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         tpi_threshold_high: float | None = None,
     ):
         """Stub method for TPI parameter service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
@@ -1901,10 +1888,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool):
         """Stub method for Auto TPI mode service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """
@@ -1921,10 +1908,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         end_date: datetime | None = None,
     ):
         """Stub method for Auto TPI capacity calibration service on non-TPI thermostats.
-        
+
         This service is only available for switch/valve type thermostats that use TPI algorithm.
         For over_climate thermostats, this service is not supported.
-        
+
         Raises:
             ServiceValidationError: Always raised to indicate the service is not available
         """

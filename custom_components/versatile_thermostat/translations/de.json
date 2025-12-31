@@ -30,6 +30,7 @@
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
+          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -66,6 +67,10 @@
           "used_by_controls_central_boiler": "Zentralheizung verwenden. Wenn angewählt, steuert dieses VTherm den zentralen Heizkessel."
         },
         "data_description": {
+          "cycle_min": "Minimale Dauer eines Heiz-/Kühlzyklus in Minuten, um zu häufiges Schalten zu vermeiden",
+          "temp_min": "Zulässige Mindesttemperatur für das Thermostat",
+          "temp_max": "Zulässige Höchsttemperatur für das Thermostat",
+          "step_temperature": "Temperaturschritt für die Einstellung der Zieltemperatur",
           "temperature_sensor_entity_id": "Entity-ID des Raumtemperatursensor",
           "last_seen_temperature_sensor_entity_id": "Entity-ID des Sensors, der das Datum und die Uhrzeit der letzten Datenübermittlung vom Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
           "external_temperature_sensor_entity_id": "Außentemperatursensor Entity-ID. Wird nicht verwendet, wenn zentrale Konfiguration gewählt wurde."
@@ -91,6 +96,7 @@
           "heater_keep_alive": "Schaltintervall in Sekunden",
           "proportional_function": "Algorithmus",
           "ac_mode": "AC-Modus",
+          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
           "auto_regulation_mode": "Selbstregelung",
           "auto_regulation_dtemp": "Regelungsschwelle",
           "auto_regulation_periode_min": "Mindestzeitraum Regelung",
@@ -107,10 +113,11 @@
           "heater_keep_alive": "Aktualisierungsintervall des Schalters in Sekunden. Zum Deaktivieren leer lassen. Nur für Schalter verwenden, die dies erfordern",
           "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
           "ac_mode": "Modus „Klimaanlage“ (AC) benutzen",
+          "sync_device_internal_temp": "Die interne Temperatur der zugrunde liegenden Geräte mit den ausgewählten Entitäten synchronisieren",
           "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
           "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der internen Temperatur, zur Beschleunigung der Selbstregulierung",
+          "auto_regulation_use_device_temp": "Ausgleich der internen Temperatur, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Kehrt die Schaltersteuerung für Installationen mit Pilotdraht und Diode um.",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichungen",
           "on_command_text": "Für Basiswerte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
@@ -263,13 +270,30 @@
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Unerwarteter Fehler",
       "unknown_entity": "Unbekannte Entity-ID",
-      "window_open_detection_method": "Es darf nur eine Methode zur Erkennung offener Fenster verwendet werden. Verwenden Sie entweder den Fenstersensor oder die automatische Erkennung über die Temperaturschwelle, aber nicht beides.",
-      "no_central_config": "'Zentrale Konfiguration verwenden' nicht auswählbar, da keine zentrale Konfiguration gefunden wurde. Bitte erst einen 'Versitale Thermostat' vom Typ 'Zentrale Konfiguration' erstellen."
+      "window_open_detection_method": "Es darf nur eine Methode zur Erkennung von offenen Fenstern verwendet werden. Verwenden Sie entweder den Fenstersensor oder die Temperaturschwelle, aber nicht beides.",
+      "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
+      "service_configuration_format": "Falsches Format der Servicekonfiguration",
+      "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
+      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
+      "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -305,6 +329,7 @@
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stopp",
           "valve_regulation": "Konfiguration der Ventilsteuerung",
+          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -343,6 +368,10 @@
           "used_by_controls_central_boiler": "Benutze Zentralheizung. Anwählen, wenn VTerm die Kontrolle über die Zentralheizung haben soll."
         },
         "data_description": {
+          "cycle_min": "Minimale Dauer eines Heiz-/Kühlzyklus in Minuten, um zu häufiges Schalten zu vermeiden",
+          "temp_min": "Zulässige Mindesttemperatur für das Thermostat",
+          "temp_max": "Zulässige Höchsttemperatur für das Thermostat",
+          "step_temperature": "Temperaturschritt für die Einstellung der Zieltemperatur",
           "temperature_sensor_entity_id": "Raumtemperatursensor Entity-ID",
           "last_seen_temperature_sensor_entity_id": "Entitäts-ID des Sensors, die das Datum und die Uhrzeit der letzten Meldung des Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
           "external_temperature_sensor_entity_id": "Entity-ID des Außentemperatursensors. Wird nicht verwendet, wenn eine zentrale Konfiguration definiert ist."
@@ -368,6 +397,7 @@
           "heater_keep_alive": "Keep-alive Schaltinterval in Sekunden",
           "proportional_function": "Algorithmus",
           "ac_mode": "AC-Modus (Klimaanlage)",
+          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
           "auto_regulation_mode": "Selbstregelnd",
           "auto_regulation_dtemp": "Regelschwelle",
           "auto_regulation_periode_min": "Minimale Regelzeit",
@@ -384,10 +414,11 @@
           "heater_keep_alive": "Aktualisierungsintervall des Heizungsschalters in Sekunden. Nur für Schalter verwenden, die dies erfordern",
           "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
           "ac_mode": "Benutze Klimaanlagenmodus (AC)",
+          "sync_device_internal_temp": "Die interne Temperatur der zugrunde liegenden Geräte mit den ausgewählten Entitäten synchronisieren",
           "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
           "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom Basiswert benutzen, zur Beschleunigung der Selbstregulierung",
+          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom Basiswert benutzen, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Kehr die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
           "on_command_text": "Für Basiswerte des Typs `select` oder `climate`."
@@ -495,7 +526,7 @@
       },
       "advanced": {
         "title": "Erweitert - {name}",
-        "description": "Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-advanced.md)",
         "data": {
           "minimal_activation_delay": "Minimale Aktivierungsverzögerung",
           "minimal_deactivation_delay": "Minimale Deaktivierungsverzögerung",
@@ -544,6 +575,18 @@
           "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
@@ -553,6 +596,7 @@
       "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
+      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
       "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
     },

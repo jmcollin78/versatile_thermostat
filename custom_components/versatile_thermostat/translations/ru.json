@@ -29,6 +29,7 @@
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
           "valve_regulation": "Конфигурация регулировки клапана",
+          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена"
@@ -66,6 +67,10 @@
           "used_by_controls_central_boiler": "Используется центральным котлом. Отметьте, если этот VTherm должен управлять центральным котлом"
         },
         "data_description": {
+          "cycle_min": "Минимальная длительность одного цикла обогрева/охлаждения в минутах, чтобы избежать слишком частого переключения",
+          "temp_min": "Минимальная допустимая температура для термостата",
+          "temp_max": "Максимальная допустимая температура для термостата",
+          "step_temperature": "Шаг температуры для установки целевой температуры",
           "temperature_sensor_entity_id": "ID датчика температуры в помещении",
           "last_seen_temperature_sensor_entity_id": "ID датчика времени последнего измерения температуры. Должен быть датчиком datetime",
           "external_temperature_sensor_entity_id": "ID датчика уличной температуры. Не используется, если выбрана центральная конфигурация"
@@ -91,6 +96,7 @@
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
           "proportional_function": "Алгоритм",
           "ac_mode": "Режим кондиционера",
+          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
           "auto_regulation_mode": "Саморегулирование",
           "auto_regulation_dtemp": "Порог регулирования",
           "auto_regulation_periode_min": "Минимальный период регулирования",
@@ -107,10 +113,11 @@
           "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
           "proportional_function": "Алгоритм для использования (TPI пока единственный)",
           "ac_mode": "Использовать режим кондиционера (AC)",
+          "sync_device_internal_temp": "Конфигурация для синхронизации внутренней температуры подчиненных устройств с выбранными сущностями",
           "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
           "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
           "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
-          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования",
+          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)",
           "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
           "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
           "on_command_text": "Для устройств типа `select` или `climate` необходимо настроить команды."
@@ -263,13 +270,29 @@
           "proportional_function": "Алгоритм для использования (TPI пока единственный)",
           "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/ru/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
       "unknown": "Неожиданная ошибка",
       "unknown_entity": "Неизвестный ID сущности",
       "window_open_detection_method": "Должен использоваться только один метод обнаружения открытых окон. Используйте либо датчик окна, либо автоматическое обнаружение через температурный порог, но не оба одновременно",
-      "no_central_config": "Вы не можете выбрать 'использовать центральную конфигурацию', потому что центральная конфигурация не найдена. Вам нужно создать универсальный термостат типа 'Центральная конфигурация' для его использования."
+      "no_central_config": "Вы не можете выбрать 'использовать центральную конфигурацию', потому что центральная конфигурация не найдена. Вам нужно создать универсальный термостат типа 'Центральная конфигурация' для его использования.",
+      "service_configuration_format": "Неверный формат конфигурации сервиса",
+      "valve_regulation_nb_entities_incorrect": "Количество сущностей клапана для регулирования клапана должно быть равно количеству управляющих устройств",
+      "sync_device_internal_temp_nb_entities_incorrect": "Количество сущностей для синхронизации внутренней температуры устройства должно быть равно количеству управляющих устройств",
+      "min_opening_degrees_format": "Ожидается список положительных целых чисел, разделенных запятыми. Пример: 20, 25, 30"
     },
     "abort": {
       "already_configured": "Устройство уже настроено"
@@ -304,6 +327,7 @@
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
           "valve_regulation": "Конфигурация регулировки клапана",
+          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена"
@@ -341,6 +365,10 @@
           "used_by_controls_central_boiler": "Используется центральным котлом. Отметьте, если этот VTherm должен управлять центральным котлом"
         },
         "data_description": {
+          "cycle_min": "Минимальная длительность одного цикла обогрева/охлаждения в минутах, чтобы избежать слишком частого переключения",
+          "temp_min": "Минимальная допустимая температура для термостата",
+          "temp_max": "Максимальная допустимая температура для термостата",
+          "step_temperature": "Шаг температуры для установки целевой температуры",
           "temperature_sensor_entity_id": "ID датчика температуры в помещении",
           "last_seen_temperature_sensor_entity_id": "ID датчика времени последнего измерения температуры. Должен быть датчиком datetime",
           "external_temperature_sensor_entity_id": "ID датчика уличной температуры. Не используется, если выбрана центральная конфигурация"
@@ -366,6 +394,7 @@
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
           "proportional_function": "Алгоритм",
           "ac_mode": "Режим кондиционера",
+          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
           "auto_regulation_mode": "Саморегулирование",
           "auto_regulation_dtemp": "Порог регулирования",
           "auto_regulation_periode_min": "Минимальный период регулирования",
@@ -382,10 +411,11 @@
           "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
           "proportional_function": "Алгоритм для использования (TPI пока единственный)",
           "ac_mode": "Использовать режим кондиционера (AC)",
+          "sync_device_internal_temp": "Конфигурация для синхронизации внутренней температуры подчиненных устройств с выбранными сущностями",
           "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
           "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
           "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
-          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования",
+          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)",
           "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
           "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
           "on_command_text": "Для устройств типа `select` или `climate` необходимо настроить команды."
@@ -541,6 +571,18 @@
           "proportional_function": "Алгоритм для использования (TPI пока единственный)",
           "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30"
         }
+      },
+      "sync_device_internal_temp": {
+        "title": "Synchronize device internal temperature",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/ru/feature-sync_device_temp.md)",
+        "data": {
+          "sync_with_calibration": "Apply offset calibration",
+          "sync_entity_ids": "Entities id used for synchronization"
+        },
+        "data_description": {
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
       }
     },
     "error": {
@@ -550,6 +592,7 @@
       "no_central_config": "Вы не можете выбрать 'использовать центральную конфигурацию', потому что центральная конфигурация не найдена. Вам нужно создать универсальный термостат типа 'Центральная конфигурация' для его использования.",
       "service_configuration_format": "Неверный формат конфигурации сервиса",
       "valve_regulation_nb_entities_incorrect": "Количество сущностей клапана для регулирования клапана должно быть равно количеству управляющих устройств",
+      "sync_device_internal_temp_nb_entities_incorrect": "Количество сущностей для синхронизации внутренней температуры устройства должно быть равно количеству управляющих устройств",
       "min_opening_degrees_format": "Ожидается список положительных целых чисел, разделенных запятыми. Пример: 20, 25, 30"
     },
     "abort": {
