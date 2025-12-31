@@ -651,6 +651,17 @@ class AutoTpiManager:
             _LOGGER.debug("%s - Auto TPI: Not learning - system was in %s mode", self._name, self.state.last_state)
             return
 
+        # Check if setpoint changed during the cycle - if so, skip ALL learning
+        # This prevents incorrect coefficient updates when user adjusts temperature mid-cycle
+        setpoint_changed = abs(self._current_target_temp - self.state.last_order) > 0.1
+        if setpoint_changed:
+            self.state.last_learning_status = "setpoint_changed_during_cycle"
+            _LOGGER.debug(
+                "%s - Auto TPI: Skipping learning - setpoint changed during cycle (%.1f → %.1f)",
+                self._name, self.state.last_order, self._current_target_temp
+            )
+            return
+
         target_temp = self.state.last_order
 
         # Calculate deltas based on direction
