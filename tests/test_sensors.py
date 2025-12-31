@@ -13,7 +13,6 @@ from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAG
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.sensor import (
     EnergySensor,
@@ -197,7 +196,7 @@ async def test_sensors_over_climate(
 ):
     """Test the sensors with thermostat over climate type"""
 
-    the_mock_underlying = MagicMockClimate()
+    the_mock_underlying = MockClimate(hass=hass, unique_id="mock_climate", name="TheMockClimate")
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=the_mock_underlying,
@@ -278,6 +277,8 @@ async def test_sensors_over_climate(
     # to add energy we must have HVACAction underlying climate event
     # Send a climate_change event with HVACAction=HEATING
     event_timestamp = now - timedelta(minutes=60)
+    the_mock_underlying.set_hvac_mode(VThermHvacMode_HEAT)
+    the_mock_underlying.set_hvac_action(HVACAction.HEATING)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,
@@ -289,6 +290,7 @@ async def test_sensors_over_climate(
     )
 
     # Send a climate_change event with HVACAction=IDLE (end of heating)
+    the_mock_underlying.set_hvac_action(HVACAction.IDLE)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,
@@ -310,22 +312,6 @@ async def test_sensors_over_climate(
     entity.incremente_energy()
     await energy_sensor.async_my_climate_changed()
     assert energy_sensor.state == 3.0
-
-    # disabled by default now
-    # await last_temperature_sensor.async_my_climate_changed()
-    # assert (
-    #     last_temperature_sensor.state is not None
-    #     and last_temperature_sensor.state != last_temp_date
-    # )
-    # assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
-    #
-    # await last_ext_temperature_sensor.async_my_climate_changed()
-    # assert (
-    #     last_ext_temperature_sensor.state is not None
-    #     and last_ext_temperature_sensor.state != last_temp_date
-    # )
-    # assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
-
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])

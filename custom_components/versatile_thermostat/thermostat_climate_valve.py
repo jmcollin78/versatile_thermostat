@@ -284,6 +284,21 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         else:
             return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
+    @overrides
+    def incremente_energy(self):
+        """increment the energy counter if device is active"""
+        if self._underlying_climate_start_hvac_action_date:
+            stop_power_date = self.now
+            delta = stop_power_date - self._underlying_climate_start_hvac_action_date
+            self._underlying_climate_delta_t = delta.total_seconds() / 3600.0
+            _LOGGER.debug("%s - underlying_climate_delta_t: %.4f hours", self, self._underlying_climate_delta_t)
+            # increment energy at the end of the cycle
+            super().incremente_energy()
+            self._underlying_climate_start_hvac_action_date = self.now
+            self._underlying_climate_mean_power_cycle = self.power_manager.mean_cycle_power
+        else:
+            _LOGGER.debug("%s - no underlying_climate_start_hvac_action_date to calculate energy", self)
+
     @property
     def have_valve_regulation(self) -> bool:
         """True if the Thermostat is regulated by valve"""

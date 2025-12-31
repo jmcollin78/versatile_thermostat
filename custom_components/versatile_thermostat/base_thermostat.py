@@ -155,6 +155,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # that here and not in underlying entity
         self._underlying_climate_start_hvac_action_date = None
         self._underlying_climate_delta_t = 0
+        self._underlying_climate_mean_power_cycle = 0.0
 
         self._current_tz = dt_util.get_time_zone(self._hass.config.time_zone)
 
