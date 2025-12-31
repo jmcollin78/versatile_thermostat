@@ -665,20 +665,29 @@ class AutoTpiManager:
         # When room is overheating despite heat still being applied,
         # Kext is clearly too high. Correct it aggressively before
         # attempting normal learning.
+        #
+        # IMPORTANT: Only correct if temperature is NOT FALLING despite overshoot.
+        # If temp is falling naturally (e.g., after setpoint was lowered), the
+        # system is working correctly - no need to reduce Kext.
+        # If temp stagnates or rises, Kext is too high (preventing natural cooling).
+        # A small threshold (0.02°C) filters out sensor noise.
+        temp_not_falling = current_temp_in >= self.state.last_temp_in - 0.02
+
         if is_heat:
             overshoot = current_temp_in - target_temp
-            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD:
+            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD and temp_not_falling:
                 _LOGGER.info(
-                    "%s - Auto TPI: Overshoot detected (%.2f°C > %.2f°C threshold, power=%.1f%%)",
+                    "%s - Auto TPI: Overshoot detected (%.2f°C > %.2f°C threshold, power=%.1f%%, temp not falling)",
                     self._name, overshoot, OVERSHOOT_THRESHOLD, self.state.last_power * 100
                 )
                 if self._correct_kext_overshoot(overshoot, is_cool=False):
                     return  # Skip other learning for this cycle
         elif is_cool:
+            temp_not_rising = current_temp_in <= self.state.last_temp_in + 0.02
             overshoot = target_temp - current_temp_in
-            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD:
+            if overshoot > OVERSHOOT_THRESHOLD and self.state.last_power > OVERSHOOT_POWER_THRESHOLD and temp_not_rising:
                 _LOGGER.info(
-                    "%s - Auto TPI: Overcooling detected (%.2f°C > %.2f°C threshold, power=%.1f%%)",
+                    "%s - Auto TPI: Overcooling detected (%.2f°C > %.2f°C threshold, power=%.1f%%, temp not rising)",
                     self._name, overshoot, OVERSHOOT_THRESHOLD, self.state.last_power * 100
                 )
                 if self._correct_kext_overshoot(overshoot, is_cool=True):

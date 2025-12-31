@@ -129,8 +129,11 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 **Problème résolu** : Dans les systèmes à forte inertie thermique (radiateurs à eau, chauffage central), Kext peut augmenter de façon agressive pendant la montée en température, mais ne redescend pas assez vite lors des dépassements. Cela provoque une surchauffe persistante.
 
 **Conditions de déclenchement :**
-1.  **Dépassement significatif** : `Temp_Actuelle > Consigne + OVERSHOOT_THRESHOLD` (0.2°C par défaut)
-2.  **Puissance significative** : `power > OVERSHOOT_POWER_THRESHOLD` (5% par défaut)
+1.  **Température qui ne descend pas malgré le dépassement** (mode Heat) : La température doit stagner ou monter (`Temp_Actuelle >= Temp_Début_Cycle - 0.02°C`) pour déclencher la correction. Si la température descend naturellement (ex: après baisse de consigne), le système fonctionne correctement.
+2.  **Dépassement significatif** : `Temp_Actuelle > Consigne + OVERSHOOT_THRESHOLD` (0.2°C par défaut)
+3.  **Puissance significative** : `power > OVERSHOOT_POWER_THRESHOLD` (5% par défaut)
+
+*Note : Pour le mode Cool, la condition est inversée (température en baisse malgré le sous-dépassement).*
 
 **Algorithme :**
 1.  **Calcul de la réduction nécessaire** : 
