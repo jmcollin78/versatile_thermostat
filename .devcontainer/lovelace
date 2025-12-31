@@ -2600,10 +2600,16 @@
                           "entity": "input_number.fake_boiler_temperature"
                         },
                         {
-                          "entity": "number.boiler_power_activation_threshold"
+                          "entity": "number.power_activation_threshold"
                         },
                         {
                           "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.sonoff_trvzb_mean_power_cycle"
+                        },
+                        {
+                          "entity": "sensor.sonoff_trvzb_energy"
                         }
                       ],
                       "state_color": true

@@ -920,6 +920,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         ret = await super().async_control_heating(timestamp=timestamp, force=force)
 
+        self.incremente_energy()
+
         return ret
 
     def set_follow_underlying_temp_change(self, follow: bool):
