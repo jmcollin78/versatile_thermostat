@@ -572,6 +572,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._attr_extra_state_attributes["regulated_target_temperature"] = self.regulated_target_temp
         vtherm_over_climate_data = {
             "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
+            "last_mean_power_cycle": self._underlying_climate_mean_power_cycle,
             "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
             "is_regulated": self.is_regulated,
             "auto_fan_mode": self.auto_fan_mode,
@@ -607,10 +608,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     def incremente_energy(self):
         """increment the energy counter if device is active"""
 
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
-            return
+        # if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+        #     return
 
-        device_power = self.power_manager.device_power
+        device_power = self._underlying_climate_mean_power_cycle
         added_energy = 0
         if (
             self.is_over_climate
@@ -787,6 +788,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self._underlying_climate_start_hvac_action_date = (
                 self.get_last_updated_date_or_now(new_state)
             )
+            self._underlying_climate_mean_power_cycle = self.power_manager.mean_cycle_power
             _LOGGER.info(
                 "%s - underlying just switch ON. Set power and energy start date %s",
                 self,
@@ -919,6 +921,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             await self._send_auto_fan_mode()
 
         ret = await super().async_control_heating(timestamp=timestamp, force=force)
+
+        self.incremente_energy()
 
         return ret
 
