@@ -148,6 +148,10 @@ L'Auto TPI fonctionne de manière cyclique :
 3.  **Calcul (Apprentissage)** :
     *   **Cas 1 : Coefficient Intérieur**. Si la température a évolué dans le bon sens de manière significative (> 0.05°C), il calcule le ratio entre l'évolution réelle **(sur l'ensemble du cycle, inertie incluse)** et l'évolution théorique attendue (corrigée par la capacité calibrée). Il ajuste `CoeffInt` pour réduire l'écart.
     *   **Cas 2 : Coefficient Extérieur**. Si l'apprentissage intérieur n'a pas été possible (conditions non remplies ou échec) et que l'apprentissage extérieur est pertinent (écart de température significatif > 0.1°C), il ajuste `CoeffExt` **progressivement** pour compenser les pertes thermiques. La formule permet à ce coefficient d'augmenter ou de diminuer selon les besoins pour atteindre l'équilibre.
+    *   **Cas 3 : Corrections Rapides (Boost/Deboost)**. En parallèle, le système surveille les anomalies critiques :
+        *   **Boost Kint** : Si la température stagne malgré une demande de chauffe, le coefficient intérieur est boosté.
+        *   **Deboost Kext** : Si la température dépasse la consigne et ne redescend pas, le coefficient extérieur est réduit.
+        *   *Ces corrections sont pondérées par la confiance du modèle : plus le système a d'historique (cycles d'apprentissage), plus les corrections sont modérées pour éviter de déstabiliser un modèle fiable.*
 4.  **Mise à jour** : Les nouveaux coefficients sont lissés et sauvegardés pour le cycle suivant.
 
 ### Sécurité d'Activation

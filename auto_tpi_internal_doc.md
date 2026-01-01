@@ -161,11 +161,14 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 4.  **Limite non atteinte** : `consecutive_boosts < MAX_CONSECUTIVE_KINT_BOOSTS` (5 par défaut)
 
 **Algorithme :**
-1.  **Calcul du facteur de boost proportionnel** :
-    -   `gap_factor = min(target_diff / 0.3, 2.0)` (plafonné à 2x)
-    -   `boost_factor = 1.0 + (0.08 × gap_factor)`
-    -   Pour un gap de 0.3°C → boost de 8%, pour 0.6°C → boost de ~16%
-2.  **Application** : `new_kint = current_kint × boost_factor`
+1.  **Calcul de la cible (Target Kint)** :
+    -   `gap_factor = min(target_diff / 0.3, 2.0)`
+    -   `boost_percent = (0.08 × gap_factor)`
+    -   `target_kint = current_kint * (1.0 + boost_percent)`
+2.  **Application pondérée (Cohérence avec apprentissage)** :
+    -   Pour éviter des sauts brutaux si le modèle est déjà fiable (nombre de cycles élevé), on applique la correction comme une "observation pondérée", exactement comme pour l'apprentissage standard mais avec un **poids boosté** (car c'est une correction urgente).
+    -   **Méthode Moyenne** : `weight = effective_count / OVERSHOOT_CORRECTION_BOOST`. On fait la moyenne entre `current` et `target`.
+    -   **Méthode EMA** : `alpha = adaptive_alpha * OVERSHOOT_CORRECTION_BOOST`. On applique l'EMA vers `target`.
 3.  **Plafonnement** : Kint est plafonné à `_max_coef_int` et floored à `MIN_KINT`.
 4.  **Incrémentation** : `consecutive_boosts += 1`
 

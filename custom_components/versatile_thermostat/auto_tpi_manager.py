@@ -1103,19 +1103,46 @@ class AutoTpiManager:
         """Check if we should reduce indoor coefficient after good performance."""
         # If we achieved more than expected, consider reducing coefficient
         if real_rise > adjusted_theoretical * 1.2:  # 20% overshoot
-            DEBOOST_FACTOR = 0.95  # Reduce by 5%
+            
+            DEBOOST_FACTOR = 0.95
+            
+            if is_heat:
+                count = self.state.coeff_indoor_autolearn
+                current_kint = self.state.coeff_indoor_heat
+            else:
+                count = self.state.coeff_indoor_cool_autolearn
+                current_kint = self.state.coeff_indoor_cool
+            
+            # Calculate target Kint
+            target_kint = current_kint * DEBOOST_FACTOR
+            effective_count = min(count, 50)
+            old = current_kint
+
+            # Apply same weighting logic as Kext overshoot correction
+            if self._calculation_method == "average":
+                boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
+                new_kint = ((old * boosted_weight) + target_kint) / (boosted_weight + 1)
+                _LOGGER.debug(
+                    "%s - Deboost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
+                    self._name, old, target_kint, boosted_weight, effective_count, new_kint
+                )
+            else:  # EMA
+                base_alpha = self._get_adaptive_alpha(effective_count)
+                boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
+                new_kint = (old * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
+                _LOGGER.debug(
+                    "%s - Deboost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
+                    self._name, old, target_kint, boosted_alpha, base_alpha, new_kint
+                )
 
             if is_heat:
-                old = self.state.coeff_indoor_heat
-                # Only deboost if we're above the default
                 if old > self._default_coef_int:
-                    self.state.coeff_indoor_heat = max(old * DEBOOST_FACTOR, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f", self._name, old, self.state.coeff_indoor_heat)
+                    self.state.coeff_indoor_heat = max(new_kint, self._default_coef_int)
+                    _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_heat)
             else:
-                old = self.state.coeff_indoor_cool
                 if old > self._default_coef_int:
-                    self.state.coeff_indoor_cool = max(old * DEBOOST_FACTOR, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f", self._name, old, self.state.coeff_indoor_cool)
+                    self.state.coeff_indoor_cool = max(new_kint, self._default_coef_int)
+                    _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_cool)
             # Reset boost counter
             if hasattr(self.state, "consecutive_boosts"):
                 self.state.consecutive_boosts = 0
@@ -1232,9 +1259,30 @@ class AutoTpiManager:
         # Base boost is 8%, but increases slightly with larger gaps
         # For gap = 0.3°C: boost = 8%, for gap = 0.6°C: boost ≈ 10%
         gap_factor = min(target_diff / INSUFFICIENT_RISE_GAP_THRESHOLD, 2.0)  # Cap at 2x
-        boost_factor = 1.0 + ((INSUFFICIENT_RISE_BOOST_FACTOR - 1.0) * gap_factor)
+        base_boost_percent = (INSUFFICIENT_RISE_BOOST_FACTOR - 1.0) * gap_factor
+        
+        target_kint = current_kint * (1.0 + base_boost_percent)
+        
+        count = self.state.coeff_indoor_cool_autolearn if is_cool else self.state.coeff_indoor_autolearn
+        effective_count = min(count, 50)
+        old_kint = current_kint
 
-        new_kint = current_kint * boost_factor
+        # Apply same weighting logic as Kext overshoot correction
+        if self._calculation_method == "average":
+            boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
+            new_kint = ((old_kint * boosted_weight) + target_kint) / (boosted_weight + 1)
+            _LOGGER.debug(
+                "%s - Boost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
+                self._name, old_kint, target_kint, boosted_weight, effective_count, new_kint
+            )
+        else:  # EMA
+            base_alpha = self._get_adaptive_alpha(effective_count)
+            boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
+            new_kint = (old_kint * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
+            _LOGGER.debug(
+                "%s - Boost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
+                self._name, old_kint, target_kint, boosted_alpha, base_alpha, new_kint
+            )
 
         # Cap to max coefficient
         new_kint = min(new_kint, self._max_coef_int)
