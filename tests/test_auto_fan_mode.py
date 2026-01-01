@@ -1,7 +1,6 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the auto fan mode of a over_climate thermostat """
-import os
 import pytest
 from unittest.mock import patch, call
 
@@ -22,9 +21,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
-
-if os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0":
-    pytest.skip("Skipping auto fan mode tests in fast test mode", allow_module_level=True)
 
 
 async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):

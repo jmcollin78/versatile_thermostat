@@ -6,6 +6,7 @@ VENV_BIN="${ROOT_DIR}/.venv/bin"
 
 # Disable auto-loading of every installed pytest plugin; load only what we need.
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+export FAST_VTHERM_TEST_SETUP=${FAST_VTHERM_TEST_SETUP:-1}
 
 PLUGINS=(
   -p xdist.plugin
@@ -19,4 +20,14 @@ if [[ " $* " != *" -n "* ]]; then
   PYTEST_ARGS+=(-n auto --dist loadfile)
 fi
 
-"${VENV_BIN}/python" -m pytest "${PYTEST_ARGS[@]}" "${PLUGINS[@]}" "$@"
+EXTRA_ARGS=()
+TARGETS=()
+for arg in "$@"; do
+  if [[ "${arg}" == -* ]]; then
+    EXTRA_ARGS+=("${arg}")
+  else
+    TARGETS+=("${arg}")
+  fi
+done
+
+"${VENV_BIN}/python" -m pytest "${PYTEST_ARGS[@]}" "${PLUGINS[@]}" "${EXTRA_ARGS[@]}" "${TARGETS[@]}"

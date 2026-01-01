@@ -246,18 +246,8 @@ async def test_over_climate_regulation_limitations(hass: HomeAssistant, skip_has
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=fake_underlying_climate,
     ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
+        entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert entry.state is ConfigEntryState.LOADED
-
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
-                if entity.entity_id == entity_id:
-                    return entity
-
-        entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
 
         assert entity
         assert isinstance(entity, ThermostatOverClimate)

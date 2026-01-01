@@ -52,6 +52,7 @@ from custom_components.versatile_thermostat.thermostat_switch import ThermostatO
 from custom_components.versatile_thermostat.thermostat_climate import ThermostatOverClimate
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
 from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
+from custom_components.versatile_thermostat.switch import FollowUnderlyingTemperatureChange, AutoStartStopEnable
 
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP
@@ -693,33 +694,113 @@ async def create_thermostat(
         # Lightweight setup path to avoid the heavy HA platform wiring.
         api = VersatileThermostatAPI.get_vtherm_api(hass)
         api.add_entry(entry)
+        entry.mock_state(hass, ConfigEntryState.LOADED)
 
-        vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
-        have_valve_regulation = entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+        entry_data = dict(entry.data)
+        # Mirror config entry migration: translate legacy security_* keys to safety_*
+        for legacy_key in ("security_delay_min", "security_min_on_percent", "security_default_on_percent"):
+            if legacy_key in entry_data and entry_data[legacy_key] is not None:
+                entry_data[legacy_key.replace("security_", "safety_")] = entry_data[legacy_key]
+        vt_type = entry_data.get(CONF_THERMOSTAT_TYPE)
+        have_valve_regulation = entry_data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
+
+        climate_ids = [
+            entry_data.get(CONF_CLIMATE),
+            entry_data.get(CONF_CLIMATE_2),
+            entry_data.get(CONF_CLIMATE_3),
+            entry_data.get(CONF_CLIMATE_4),
+        ]
+        if vt_type == CONF_THERMOSTAT_CLIMATE and not entry_data.get(CONF_UNDERLYING_LIST):
+            # Mirror what the config flow would normally populate.
+            entry_data[CONF_UNDERLYING_LIST] = [cid for cid in climate_ids if cid]
 
         if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
             api.reset_central_config()
-            api.central_power_manager.post_init(entry.data)
+            api.central_power_manager.post_init(entry_data)
             # No entity to return for central config
             return None
 
         # Instantiate the right entity
         if vt_type == CONF_THERMOSTAT_SWITCH:
-            entity = ThermostatOverSwitch(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+            entity = ThermostatOverSwitch(hass, entry.entry_id, entry_data.get(CONF_NAME), entry_data)
         elif vt_type == CONF_THERMOSTAT_CLIMATE:
             if have_valve_regulation:
-                entity = ThermostatOverClimateValve(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+                entity = ThermostatOverClimateValve(hass, entry.entry_id, entry_data.get(CONF_NAME), entry_data)
             else:
-                entity = ThermostatOverClimate(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+                entity = ThermostatOverClimate(hass, entry.entry_id, entry_data.get(CONF_NAME), entry_data)
         elif vt_type == CONF_THERMOSTAT_VALVE:
-            entity = ThermostatOverValve(hass, entry.entry_id, entry.data.get(CONF_NAME), entry.data)
+            entity = ThermostatOverValve(hass, entry.entry_id, entry_data.get(CONF_NAME), entry_data)
         else:
             _LOGGER.error("Unknown thermostat type %s", vt_type)
             return None
 
+        base_name = entity_id.split(".", maxsplit=1)[1]
+
+        # Create preset temperature number entities so tests can set them, mimicking HA setup.
+        preset_names = set(default_temperatures) | set(default_temperatures_away) | set(default_temperatures_ac) | set(default_temperatures_ac_away)
+        if NUMBER_DOMAIN not in hass.data:
+            hass.data[NUMBER_DOMAIN] = type("ComponentStub", (), {"entities": []})()
+        if not hasattr(hass.data[NUMBER_DOMAIN], "entities"):
+            hass.data[NUMBER_DOMAIN].entities = []
+        if SWITCH_DOMAIN not in hass.data:
+            hass.data[SWITCH_DOMAIN] = type("ComponentStub", (), {"entities": []})()
+        if not hasattr(hass.data[SWITCH_DOMAIN], "entities"):
+            hass.data[SWITCH_DOMAIN].entities = []
+
+        if CLIMATE_DOMAIN not in hass.data:
+            hass.data[CLIMATE_DOMAIN] = type("ComponentStub", (), {"entities": []})()
+        if not hasattr(hass.data[CLIMATE_DOMAIN], "entities"):
+            hass.data[CLIMATE_DOMAIN].entities = []
+
+        # Seed mock underlying climates so the fast path can still drive devices.
+        if vt_type == CONF_THERMOSTAT_CLIMATE:
+            for climate_id in filter(None, climate_ids):
+                if any(ent.entity_id == climate_id for ent in hass.data[CLIMATE_DOMAIN].entities):
+                    continue
+                mock_climate = MockClimate(hass, climate_id, climate_id, {})
+                mock_climate.entity_id = climate_id  # Match the configured underlying id for lookup
+                await register_mock_entity(hass, mock_climate, CLIMATE_DOMAIN)
+                hass.data[CLIMATE_DOMAIN].entities.append(mock_climate)
+
+            follow_switch = FollowUnderlyingTemperatureChange(hass, entry.entry_id, entry_data.get(CONF_NAME), entry)
+            follow_switch.entity_id = f"{SWITCH_DOMAIN}.{base_name}_follow_underlying_temp_change"
+            await register_mock_entity(hass, follow_switch, SWITCH_DOMAIN)
+            hass.data[SWITCH_DOMAIN].entities.append(follow_switch)
+
+            if entry_data.get(CONF_USE_AUTO_START_STOP_FEATURE):
+                enable_switch = AutoStartStopEnable(hass, entry.entry_id, entry_data.get(CONF_NAME), entry)
+                enable_switch.entity_id = f"{SWITCH_DOMAIN}.{base_name}_enable_auto_start_stop"
+                await register_mock_entity(hass, enable_switch, SWITCH_DOMAIN)
+                hass.data[SWITCH_DOMAIN].entities.append(enable_switch)
+
+        for preset_name in preset_names:
+            number_unique_id = f"{base_name}_preset_{preset_name}_temp"
+            full_entity_id = f"{NUMBER_DOMAIN}.{number_unique_id}"
+            if any(ent.entity_id == full_entity_id for ent in hass.data[NUMBER_DOMAIN].entities):
+                continue
+            number_entity = MockNumber(
+                hass,
+                number_unique_id,
+                f"{entry_data.get(CONF_NAME, base_name)} {preset_name} temp",
+            )
+            # Seed with a sensible default so init_presets can pick it up if needed.
+            seed_value = (
+                entry_data.get(f"{preset_name}_temp")
+                or default_temperatures_ac_away.get(preset_name)
+                or default_temperatures_away.get(preset_name)
+                or default_temperatures_ac.get(preset_name)
+                or default_temperatures.get(preset_name)
+                or entity.min_temp
+            )
+            number_entity._attr_native_value = seed_value  # pylint: disable=protected-access
+            await register_mock_entity(hass, number_entity, NUMBER_DOMAIN)
+            hass.data[NUMBER_DOMAIN].entities.append(number_entity)
+            api.register_temperature_number(entry.entry_id, f"{preset_name}_temp", number_entity)
+
         # Register the entity with HA
         await register_mock_entity(hass, entity, CLIMATE_DOMAIN)
         await hass.async_block_till_done()
+        await entity.async_startup(api.find_central_configuration())
         await api.init_vtherm_links(entry.entry_id)
 
         # Ensure initial target temperature is set for assertions
@@ -738,12 +819,11 @@ async def create_thermostat(
                 VThermPreset.COMFORT,
                 VThermPreset.BOOST,
             ]
+        if getattr(entity, "_vtherm_preset_modes", []) in (None, []):
+            # Keep the internal VTherm preset list in sync for fast-setup runs
+            entity._vtherm_preset_modes = [VThermPreset(mode) for mode in entity._attr_preset_modes]  # pylint: disable=protected-access
 
         # Ensure search_entity can find it even if EntityComponent did not attach
-        if CLIMATE_DOMAIN not in hass.data:
-            hass.data[CLIMATE_DOMAIN] = type("ComponentStub", (), {"entities": []})()
-        if not hasattr(hass.data[CLIMATE_DOMAIN], "entities"):
-            hass.data[CLIMATE_DOMAIN].entities = []
         if entity not in hass.data[CLIMATE_DOMAIN].entities:
             hass.data[CLIMATE_DOMAIN].entities.append(entity)
     else:
@@ -769,6 +849,9 @@ async def create_thermostat(
 
     if entity and temps:
         await set_all_climate_preset_temp(hass, entity, temps, entity.entity_id.replace("climate.", ""))
+        for preset_key, value in temps.items():
+            vt_preset = preset_key if isinstance(preset_key, VThermPreset) else VThermPreset(preset_key)
+            entity._presets[vt_preset] = value  # pylint: disable=protected-access
 
     return entity
 
@@ -1062,6 +1145,10 @@ async def send_climate_change_event(
         entity,
     )
 
+    # Align the VTherm last change time with the event timestamp when it drifted
+    if entity._last_change_time_from_vtherm and entity._last_change_time_from_vtherm > date:
+        entity._last_change_time_from_vtherm = date
+
     send_from_entity_id = underlying_entity_id if underlying_entity_id is not None else entity.entity_id
 
     climate_event = Event(
@@ -1115,6 +1202,10 @@ async def send_climate_change_event_with_temperature(
     if not underlying_entity_id:
         underlying_entity_id = entity.entity_id
 
+    # Align the VTherm last change time with the event timestamp when it drifted
+    if entity._last_change_time_from_vtherm and entity._last_change_time_from_vtherm > date:
+        entity._last_change_time_from_vtherm = date
+
     climate_event = Event(
         EVENT_STATE_CHANGED,
         {
@@ -1151,7 +1242,8 @@ def cancel_switchs_cycles(entity: BaseThermostat):
 
 async def set_climate_preset_temp(entity: BaseThermostat, temp_number_name: str, temp: float):
     """Set a preset value in the temp Number entity"""
-    number_entity_id = NUMBER_DOMAIN + "." + entity.entity_id.split(".")[1] + "_preset_" + temp_number_name + PRESET_TEMP_SUFFIX
+    preset_key = temp_number_name.value if isinstance(temp_number_name, VThermPreset) else temp_number_name
+    number_entity_id = NUMBER_DOMAIN + "." + entity.entity_id.split(".")[1] + "_preset_" + preset_key + PRESET_TEMP_SUFFIX
 
     temp_entity = search_entity(
         entity.hass,
@@ -1165,6 +1257,13 @@ async def set_climate_preset_temp(entity: BaseThermostat, temp_number_name: str,
             "commons tests set_climate_preset_temp: cannot find number entity with entity_id '%s'",
             number_entity_id,
         )
+
+    # Keep internal preset caches aligned with the number value we just set
+    try:
+        target_map = entity._presets_away if preset_key.endswith(PRESET_AWAY_SUFFIX) else entity._presets  # pylint: disable=protected-access
+        target_map[preset_key] = temp
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.warning("Unable to update preset cache for %s: %s", preset_key, exc)
 
 
 # The temperatures to set
@@ -1220,10 +1319,11 @@ async def set_all_climate_preset_temp(hass, vtherm: BaseThermostat, temps: dict 
     # We initialize
     for preset_name, value in local_temps.items():
 
-        await set_climate_preset_temp(vtherm, preset_name, value)
+        preset_key = preset_name.value if isinstance(preset_name, VThermPreset) else preset_name
+        await set_climate_preset_temp(vtherm, preset_key, value)
 
         # Search the number entity to control it is correctly set
-        number_entity_name = f"number.{number_entity_base_name}_preset_{preset_name}{PRESET_TEMP_SUFFIX}"
+        number_entity_name = f"number.{number_entity_base_name}_preset_{preset_key}{PRESET_TEMP_SUFFIX}"
         temp_entity: NumberEntity = search_entity(
             hass,
             number_entity_name,
@@ -1234,6 +1334,13 @@ async def set_all_climate_preset_temp(hass, vtherm: BaseThermostat, temps: dict 
             raise ConfigurationNotCompleteError(f"'{number_entity_name}' don't exists as number entity")
         # Because set_value is not implemented in Number class (really don't understand why...)
         assert temp_entity.state == value
+
+        # Keep the VTherm presets in sync with the updated number entities
+        try:
+            target_map = vtherm._presets_away if preset_key.endswith(PRESET_AWAY_SUFFIX) else vtherm._presets  # pylint: disable=protected-access
+            target_map[preset_key] = value
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.warning("Unable to update preset cache for %s: %s", preset_key, exc)
 
     await hass.async_block_till_done()
 

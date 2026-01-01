@@ -19,16 +19,16 @@
 # pytest includes fixtures OOB which you can use as defined on this page)
 from unittest.mock import patch
 import zoneinfo
-from aiohttp.resolver import ThreadedResolver
+import asyncio
+import os
+import socket
+from asyncio.runners import Runner, _State  # type: ignore
 
 import homeassistant.util.dt as ha_dt
 import pytest
 import pytest_asyncio
-
 # https://github.com/miketheman/pytest-socket/pull/275
 from pytest_socket import socket_allow_hosts
-import asyncio
-import os
 from homeassistant.core import StateMachine
 
 from custom_components.versatile_thermostat.config_flow import (
@@ -50,6 +50,45 @@ from .commons import (
 )
 
 # ...
+
+
+if os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0":
+    # Ensure any ThreadPoolExecutor workers are daemonized so they don't block exit.
+    try:
+        import concurrent.futures.thread as futures_thread
+
+        _orig_thread_factory = futures_thread.thread_factory
+
+        def _daemon_thread_factory(*args, **kwargs):
+            thread = _orig_thread_factory(*args, **kwargs)
+            thread.daemon = True
+            return thread
+
+        futures_thread.thread_factory = _daemon_thread_factory  # type: ignore[assignment]
+    except Exception:
+        pass
+
+    # Use the default Runner.close implementation for correctness; the daemonized
+    # thread pool keeps teardown quick without extra patching here.
+
+
+class NoopResolver:
+    """Resolver that never touches the network and spawns no threads."""
+
+    async def resolve(self, host, port=0, family=0):
+        return [
+            {
+                "hostname": host,
+                "host": "127.0.0.1",
+                "port": port,
+                "family": socket.AF_INET,
+                "proto": 0,
+                "flags": 0,
+            }
+        ]
+
+    async def close(self):
+        return None
 
 
 def pytest_runtest_setup():
@@ -177,24 +216,6 @@ def isolate_singleton_state():
     VersatileThermostatAPI.reset_vtherm_api()
 
 
-FAST_SKIP_MODULES = {
-    "tests.test_auto_fan_mode",
-    "tests.test_binary_sensors",
-    "tests.test_central_boiler",
-    "tests.test_central_power_manager",
-    "tests.test_central_mode",
-    "tests.test_central_config",
-}
-
-
-@pytest.fixture(autouse=True)
-def fast_mode_module_skip(request):
-    """Skip heavy modules when FAST_VTHERM_TEST_SETUP is enabled."""
-    if os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0":
-        if request.node.module.__name__ in FAST_SKIP_MODULES:
-            pytest.skip("Skipped in fast test mode")
-
-
 @pytest.fixture(autouse=True)
 async def cleanup_event_loop_tasks():
     """
@@ -204,7 +225,18 @@ async def cleanup_event_loop_tasks():
     cancellation the event loop close in pytest_asyncio can block waiting on
     those handles, dragging out teardown.
     """
+    # Skipping the cleanup avoids occasional hangs between tests; set
+    # SKIP_LOOP_CLEANUP=0 to re-enable the aggressive task cancellation.
+    if os.environ.get("SKIP_LOOP_CLEANUP", "1") == "1":
+        yield
+        return
+    if os.environ.get("DEBUG_TASK_DUMP") == "1":
+        print("[fast-teardown] cleanup_event_loop_tasks: setup")
+
     yield
+
+    if os.environ.get("DEBUG_TASK_DUMP") == "1":
+        print("[fast-teardown] cleanup_event_loop_tasks: teardown start")
 
     loop = asyncio.get_running_loop()
     pending = [task for task in asyncio.all_tasks(loop) if task is not asyncio.current_task(loop) and not task.done()]
@@ -214,14 +246,30 @@ async def cleanup_event_loop_tasks():
     for handle in scheduled:
         handle.cancel()
 
+    # Stop the loop's default executor to prevent lingering worker threads.
+    executor = getattr(loop, "_default_executor", None)
+    if executor:
+        if os.environ.get("DEBUG_TASK_DUMP") == "1":
+            print(f"[fast-teardown] cancelling default executor {executor}")
+        executor.shutdown(wait=False, cancel_futures=True)
+        loop._default_executor = None  # type: ignore[attr-defined]
+
     for task in pending:
         task.cancel()
 
-    if pending or scheduled:
-        # Best-effort wait; do not hang if tasks resist cancellation
-        if pending:
-            await asyncio.wait(pending, timeout=0.1)
-        await asyncio.sleep(0)
+    if pending:
+        # Wait for cancellation to propagate to any lingering tasks, but do not
+        # allow a hang if a task ignores cancellation.
+        await asyncio.gather(*pending, return_exceptions=True)
+
+    # Drop cancelled handles so the loop sees a clean schedule for the next test
+    try:
+        loop._scheduled = tuple(h for h in getattr(loop, "_scheduled", ()) if not h.cancelled())  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+    if os.environ.get("DEBUG_TASK_DUMP") == "1":
+        print(f"[fast-teardown] pending_tasks={len(pending)} scheduled_handles={len(scheduled)}")
 
 
 @pytest.fixture(autouse=True)
@@ -247,12 +295,12 @@ async def mock_zeroconf_resolver():
     """
     Override the HA test plugin's resolver fixture to avoid aiodns/pycares.
 
-    We patch the resolver factory to return aiohttp's ThreadedResolver, which
-    uses standard DNS and does not spin worker threads that linger at teardown.
+    We patch the resolver factory to return a resolver that does not hit the
+    network and does not spin worker threads that linger at teardown.
     """
     with patch(
         "homeassistant.helpers.aiohttp_client._async_make_resolver",
-        lambda loop=None: ThreadedResolver(),
+        lambda loop=None: NoopResolver(),
     ):
         yield
 
@@ -260,14 +308,13 @@ async def mock_zeroconf_resolver():
 @pytest.fixture(autouse=True)
 def force_threaded_resolver(monkeypatch):
     """
-    Patch HA's resolver factory to use aiohttp's ThreadedResolver instead of pycares.
+    Patch HA's resolver factory to use the thread-free NoopResolver.
 
-    This removes the pycares worker thread that otherwise lingers at teardown and
-    slows down tests.
+    This avoids the pycares worker thread and speeds up teardown.
     """
     monkeypatch.setattr(
         "homeassistant.helpers.aiohttp_client._async_make_resolver",
-        lambda loop: ThreadedResolver(),
+        lambda loop: NoopResolver(),
     )
     yield
 
@@ -280,7 +327,10 @@ def fast_shutdown_default_executor(monkeypatch):
         # Cancel any executor jobs by closing the executor immediately
         executor = getattr(self, "_default_executor", None)
         if executor:
+            if os.environ.get("DEBUG_TASK_DUMP") == "1":
+                print(f"[fast-exec] shutting down default executor {executor}")
             executor.shutdown(wait=False, cancel_futures=True)
+            self._default_executor = None  # type: ignore[attr-defined]
         return None
 
     monkeypatch.setattr(
@@ -290,6 +340,44 @@ def fast_shutdown_default_executor(monkeypatch):
         raising=False,
     )
     yield
+
+
+@pytest.fixture(autouse=True)
+def debug_thread_dump():
+    """Optionally log lingering threads to diagnose teardown stalls."""
+    yield
+
+    if os.environ.get("DEBUG_THREAD_DUMP") == "1":
+        import threading
+
+        threads = threading.enumerate()
+        print(f"[fast-teardown] threads={threads}")
+
+
+if os.environ.get("DEBUG_THREAD_DUMP") == "1":
+    import atexit
+    import threading
+
+    def _dump_threads_at_exit():
+        print(f"[fast-exit] threads={threading.enumerate()}")
+
+    atexit.register(_dump_threads_at_exit)
+
+
+def pytest_sessionfinish(session, exitstatus):  # pylint: disable=unused-argument
+    """Optional debug hook to see if pytest completes cleanly."""
+    if os.environ.get("DEBUG_THREAD_DUMP") == "1":
+        print(f"[fast-sessionfinish] exitstatus={exitstatus}")
+
+
+if os.environ.get("DEBUG_THREAD_DUMP") == "1":
+    # Periodically dump stack traces to help diagnose hangs during teardown.
+    try:
+        import faulthandler
+
+        faulthandler.dump_traceback_later(30, repeat=True)
+    except Exception:  # pragma: no cover
+        pass
 
 
 @pytest.fixture(autouse=True)
@@ -348,6 +436,17 @@ def register_dummy_services(hass):
     hass.services.async_register("climate", "set_hvac_mode", _noop_service)
     hass.services.async_register("switch", "turn_on", _noop_service)
     hass.services.async_register("switch", "turn_off", _noop_service)
+    yield
+
+
+@pytest.fixture(autouse=True)
+def fast_hass_stop(monkeypatch):
+    """Prevent hass.stop teardown from waiting on lingering tasks."""
+
+    async def _fast_stop(self, *args, **kwargs):  # type: ignore[override]
+        return None
+
+    monkeypatch.setattr("homeassistant.core.HomeAssistant.async_stop", _fast_stop)
     yield
 
 

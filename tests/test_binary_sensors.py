@@ -1,7 +1,6 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, unused-argument, line-too-long, protected-access
 
 """ Test the normal start of a Thermostat """
-import os
 import pytest
 from unittest.mock import patch, PropertyMock
 from datetime import timedelta, datetime
@@ -23,9 +22,6 @@ from custom_components.versatile_thermostat.binary_sensor import (
 )
 
 from .commons import *
-
-if os.environ.get("FAST_VTHERM_TEST_SETUP", "1") != "0":
-    pytest.skip("Skipping binary sensor tests in fast test mode", allow_module_level=True)
 
 
 async def test_safety_binary_sensors(

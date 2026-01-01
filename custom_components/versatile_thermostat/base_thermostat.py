@@ -680,6 +680,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
                     continue
                 value = vtherm_api.get_temperature_number_value(config_id=config_id, preset_name=preset_name)
+                if value is None:
+                    value = self._entry_infos.get(preset_name)
                 if value is not None:
                     presets[key] = value
                 else:
