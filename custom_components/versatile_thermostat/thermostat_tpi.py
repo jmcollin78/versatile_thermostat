@@ -454,17 +454,37 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self.recalculate()
         await self.async_control_heating(force=True)
 
-    async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool, reinitialise: bool = True):
+    async def service_set_auto_tpi_mode(
+        self,
+        auto_tpi_mode: bool,
+        reinitialise: bool = True,
+        allow_kint_boost_on_stagnation: bool = False,
+        allow_kext_compensation_on_overshoot: bool = False,
+    ):
         """Called by a service call:
         service: versatile_thermostat.set_auto_tpi_mode
         data:
             auto_tpi_mode: True
             reinitialise: True
+            allow_kint_boost_on_stagnation: False
+            allow_kext_compensation_on_overshoot: False
         target:
             entity_id: climate.thermostat_1
         """
-        write_event_log(_LOGGER, self, f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}, reinitialise: {reinitialise}")
-        await self.async_set_auto_tpi_mode(auto_tpi_mode, reinitialise)
+        write_event_log(
+            _LOGGER,
+            self,
+            f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}, "
+            f"reinitialise: {reinitialise}, "
+            f"allow_kint_boost: {allow_kint_boost_on_stagnation}, "
+            f"allow_kext_overshoot: {allow_kext_compensation_on_overshoot}",
+        )
+        await self.async_set_auto_tpi_mode(
+            auto_tpi_mode,
+            reinitialise,
+            allow_kint_boost_on_stagnation,
+            allow_kext_compensation_on_overshoot,
+        )
 
     async def service_auto_tpi_calibrate_capacity(
         self,
@@ -510,9 +530,22 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
         return result
 
-    async def async_set_auto_tpi_mode(self, auto_tpi_mode: bool, reinitialise: bool = True):
+    async def async_set_auto_tpi_mode(
+        self,
+        auto_tpi_mode: bool,
+        reinitialise: bool = True,
+        allow_kint_boost: bool = False,
+        allow_kext_overshoot: bool = False,
+    ):
         """Set the auto TPI mode"""
-        _LOGGER.debug("%s - async_set_auto_tpi_mode called with auto_tpi_mode=%s, reinitialise=%s", self, auto_tpi_mode, reinitialise)
+        _LOGGER.debug(
+            "%s - async_set_auto_tpi_mode called with auto_tpi_mode=%s, reinitialise=%s, kint_boost=%s, kext_overshoot=%s",
+            self,
+            auto_tpi_mode,
+            reinitialise,
+            allow_kint_boost,
+            allow_kext_overshoot,
+        )
         if not self._auto_tpi_manager:
             _LOGGER.warning("%s - Auto TPI Manager not initialized", self)
             return
@@ -530,7 +563,9 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             await self._auto_tpi_manager.start_learning(
                 coef_int=self._auto_tpi_manager._default_coef_int,
                 coef_ext=self._auto_tpi_manager._default_coef_ext,
-                reset_data=reinitialise
+                reset_data=reinitialise,
+                allow_kint_boost=allow_kint_boost,
+                allow_kext_overshoot=allow_kext_overshoot,
             )
 
             # Sync PropAlgorithm with the configured coefficients
