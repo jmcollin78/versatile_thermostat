@@ -111,6 +111,16 @@ To ensure learning data is valid, cycles are invalidated (learning skipped) in s
     -   This breaks the correlation between "Heat Mode ON" and "Temperature Rise".
     -   **Result**: The `BaseThermostat` explicitly flags this state to `AutoTpiManager`. Any cycle containing a Power Shedding event is marked as `interrupted` and **learning is skipped**.
 
+#### 2.3. Near-Field vs Far-Field Learning Separation
+
+The learning process is designed to separate the responsibilities of `Kint` (near-field, dynamic response) and `Kext` (far-field, equilibrium losses) to ensure robustness and prevent misattribution of errors.
+
+*   **Case 1: Indoor Coefficient**. This is the primary learning mechanism. It adjusts `CoeffInt` based on the actual temperature rise versus the expected rise.
+    *   **Important**: Indoor coefficient learning is **blocked** if the temperature gap is too small (< 0.05°C). This prevents `Kint` from overreacting to minor fluctuations when the system is near the setpoint.
+*   **Case 2: Outdoor Coefficient**. If indoor learning was not possible and the temperature gap is significant (> 0.1°C), it adjusts `CoeffExt` to compensate for losses.
+    *   **Important**: Outdoor coefficient learning is **blocked** if the temperature gap is too large (> 0.5°C). This ensures that `Kext` (which represents equilibrium losses) is not skewed by ramp-up dynamic issues (which are the responsibility of `Kint`).
+*   **Case 3: Rapid Corrections (Boost/Deboost)**. In parallel, the system monitors critical anomalies:
+
 #### 2.5. Constantes Configurables
 
 Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py` et contrôlent le comportement de l'algorithme :
@@ -344,9 +354,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 ---
 
-## 6. Persistance et Restauration
 
-## 5. Persistance et Restauration
 
 *   **Fichier** : `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 *   **Version** : 8
