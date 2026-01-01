@@ -185,7 +185,7 @@ async def test_bug_272(
 
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
+                call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,
                     {
@@ -194,16 +194,24 @@ async def test_bug_272(
                         # "target_temp_high": 30,
                         # "target_temp_low": 15,
                     },
+                    False,
+                    None,
+                    None,
+                    False,
                 ),
             ]
         )
 
         assert not any(
             c
-            == call.async_call(
+            == call(
                 "climate",
                 SERVICE_SET_HVAC_MODE,
                 {"entity_id": "climate.mock_climate", "hvac_mode": VThermHvacMode_HEAT},
+                False,
+                None,
+                None,
+                False
             )
             for c in mock_service_call.call_args_list
         )
@@ -228,7 +236,7 @@ async def test_bug_272(
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
+                call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,
                     {
@@ -237,6 +245,10 @@ async def test_bug_272(
                         # "target_temp_high": 30,
                         # "target_temp_low": 15,
                     },
+                    False,
+                    None,
+                    None,
+                    False
                 ),
             ]
         )
@@ -258,7 +270,7 @@ async def test_bug_272(
         assert mock_service_call.call_count >= 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
+                call(
                     "climate",
                     SERVICE_SET_TEMPERATURE,
                     {
@@ -267,6 +279,10 @@ async def test_bug_272(
                         # "target_temp_high": 30,
                         # "target_temp_low": 15,
                     },
+                    False,
+                    None,
+                    None,
+                    False
                 ),
             ]
         )

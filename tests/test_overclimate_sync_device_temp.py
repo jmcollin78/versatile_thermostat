@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import logging
 
 from homeassistant.core import HomeAssistant, State
+from homeassistant.components.number import SERVICE_SET_VALUE
 
 from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
@@ -139,8 +140,8 @@ async def test_over_climate_valve_multi_sync_calibration(
         # Calibration should have changed
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration1'}), # 18 - 15 + 0
-            call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration2'})   # 18 - 15 + 10 < 12 max
+            call('number', SERVICE_SET_VALUE, {'value': 3.0}, False, None, {'entity_id': 'number.mock_offset_calibration1'}, False), # 18 - 15 + 0
+            call('number', SERVICE_SET_VALUE, {'value': 12}, False, None, {'entity_id': 'number.mock_offset_calibration2'}, False)   # 18 - 15 + 10 < 12 max
             ]
         )
 
@@ -166,8 +167,8 @@ async def test_over_climate_valve_multi_sync_calibration(
         # Calibration should have changed
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 5.0}, target={'entity_id': 'number.mock_offset_calibration1'}), # 15 - 13 + 3
-            call(domain='number', service='set_value', service_data={'value': 6}, target={'entity_id': 'number.mock_offset_calibration2'})   # 15 - 21 + 12
+            call('number', SERVICE_SET_VALUE, {'value': 5.0}, False, None, {'entity_id': 'number.mock_offset_calibration1'}, False), # 15 - 13 + 3
+            call('number', SERVICE_SET_VALUE, {'value': 6}, False, None, {'entity_id': 'number.mock_offset_calibration2'}, False)   # 15 - 21 + 12
             ]
         )
 
@@ -296,8 +297,8 @@ async def test_over_climate_valve_multi_sync_temperature(
         # Calibration should have changed
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 18.0}, target={'entity_id': 'number.mock_ext_temp1'}),
-            call(domain='number', service='set_value', service_data={'value': 18.0}, target={'entity_id': 'number.mock_ext_temp2'})
+            call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp1'}, False),
+            call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp2'}, False)
             ]
         )
 
@@ -323,8 +324,8 @@ async def test_over_climate_valve_multi_sync_temperature(
         # Calibration should have changed
         assert mock_service_call.call_count == 2
         mock_service_call.assert_has_calls([
-            call(domain='number', service='set_value', service_data={'value': 15}, target={'entity_id': 'number.mock_ext_temp1'}),
-            call(domain='number', service='set_value', service_data={'value': 15}, target={'entity_id': 'number.mock_ext_temp2'})
+            call('number', SERVICE_SET_VALUE, {'value': 15}, False, None, {'entity_id': 'number.mock_ext_temp1'}, False),
+            call('number', SERVICE_SET_VALUE, {'value': 15}, False, None, {'entity_id': 'number.mock_ext_temp2'}, False)
             ]
         )
 

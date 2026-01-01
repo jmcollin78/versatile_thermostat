@@ -574,6 +574,10 @@ async def test_bug_508(
                         "target_temp_high": 10,
                         "target_temp_low": 10,
                     },
+                    False,
+                    None,
+                    None,
+                    False,
                 ),
             ]
         )
@@ -597,6 +601,10 @@ async def test_bug_508(
                         "target_temp_high": 31,
                         "target_temp_low": 31,
                     },
+                    False,
+                    None,
+                    None,
+                    False,
                 ),
             ]
         )

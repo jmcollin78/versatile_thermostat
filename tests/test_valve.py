@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACAction
+from homeassistant.components.number import SERVICE_SET_VALUE
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -175,11 +176,14 @@ async def test_over_valve_full_start(
                 #     # {"entity_id": "number.mock_valve", "value": 90},
                 # ),
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 98},
-                    target={"entity_id": "number.mock_valve"},
-                    # {"entity_id": "number.mock_valve", "value": 98},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 98},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False,
+                    # {"entity_id": "number.mock_valve", "value": 90},
                 ),
             ]
         )
@@ -232,10 +236,13 @@ async def test_over_valve_full_start(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 10},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 10},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False,
                 )
             ]
         )
@@ -246,18 +253,22 @@ async def test_over_valve_full_start(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 10},
-                    target={"entity_id": "number.mock_valve"},  # the min allowed value
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 10},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},  # the min allowed value
+                    False,
                 ),
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={
-                        "value": 34
-                    },  # 34 is 50 x open_percent (69%) and is the max allowed value
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 34},  # 34 is 50 x open_percent (69%) and is the max allowed value
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False,
                 ),
             ]
         )
@@ -460,10 +471,13 @@ async def test_over_valve_regulation(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 90},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 90},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False,
                 ),
             ]
         )
@@ -519,10 +533,13 @@ async def test_over_valve_regulation(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 96},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 96},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False,
                 ),
             ]
         )
@@ -636,10 +653,13 @@ async def test_bug_533(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 100},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 100},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False
                 ),
             ]
         )
@@ -661,10 +681,13 @@ async def test_bug_533(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 50},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 50},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False
                 ),
             ]
         )
@@ -686,10 +709,13 @@ async def test_bug_533(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 10},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 10},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False
                 ),
             ]
         )
@@ -711,10 +737,13 @@ async def test_bug_533(
         mock_service_call.assert_has_calls(
             [
                 call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 0},
-                    target={"entity_id": "number.mock_valve"},
+                    "number",
+                    SERVICE_SET_VALUE,
+                    {"value": 0},
+                    False,
+                    None,
+                    {"entity_id": "number.mock_valve"},
+                    False
                 ),
             ]
         )
