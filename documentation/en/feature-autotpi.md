@@ -227,7 +227,7 @@ This service allows controlling Auto TPI learning without going through the ther
 |-----------|------|---------|-------------|
 | `auto_tpi_mode` | boolean | - | Enables (`true`) or disables (`false`) learning |
 | `reinitialise` | boolean | `true` | Controls data reset when enabling learning |
-| `allow_kint_boost_on_stagnation` | boolean | `false` | Allows Kint boost when temperature stagnates |
+| `allow_kint_boost_on_stagnation` | boolean | `true` | Allows Kint boost when temperature stagnates |
 | `allow_kext_compensation_on_overshoot` | boolean | `false` | Allows Kext compensation on overshoot |
 
 #### Behavior of the `reinitialise` parameter

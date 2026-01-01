@@ -39,10 +39,10 @@ MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
-INSUFFICIENT_RISE_GAP_THRESHOLD = 0.3  # Min gap (°C) to trigger Kint correction when temp stagnates
+KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
+INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
-KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
 
 
 @dataclass
@@ -2164,7 +2164,7 @@ class AutoTpiManager:
         coef_int: float = None,
         coef_ext: float = None,
         reset_data: bool = True,
-        allow_kint_boost: bool = False,
+        allow_kint_boost: bool = True,
         allow_kext_overshoot: bool = False,
     ):
         """Start learning, optionally resetting coefficients and learning data.
