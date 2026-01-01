@@ -29,7 +29,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         self._vtherm_api = vtherm_api
         self._is_configured: bool = False
         self._is_ready: bool = False
-        self._is_on: bool = False
+        self._is_on: bool | None = None
         self._service_activate: dict | None = None
         self._service_deactivate: dict | None = None
 
@@ -89,8 +89,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         return self._is_ready
 
     @property
-    def is_on(self) -> bool:
-        """Return True if the central boiler is on."""
+    def is_on(self) -> bool | None:
+        """Return True if the central boiler is on. Return None if the state is unknown (at startup for example)"""
         return self._is_on
 
     async def calculate_central_boiler_state(self, _):

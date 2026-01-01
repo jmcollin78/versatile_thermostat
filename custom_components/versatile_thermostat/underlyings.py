@@ -1071,6 +1071,18 @@ class UnderlyingValve(UnderlyingEntity):
         if valve_state is None:
             return False
 
+        # Initialize percent_open to current state
+        try:
+            self._percent_open = self._last_sent_opening_value = float(valve_state.state)
+        except (ValueError, TypeError):
+            _LOGGER.warning(
+                "%s - Cannot initialize percent_open from underlying entity %s state=%s. Maybe normal at startup",
+                self,
+                self._valve_entity_id,
+                valve_state.state,
+            )
+            return False
+
         if "min" in valve_state.attributes and "max" in valve_state.attributes:
             self._min_open = valve_state.attributes["min"]
             self._max_open = valve_state.attributes["max"]
@@ -1201,6 +1213,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
             _LOGGER.debug(
                 "%s - initialize min offset_calibration and max open_degree", self
             )
+            if not super().init_min_max_open(force=False):
+                return False
+
             self._max_opening_degree = self._hass.states.get(
                 self._opening_degree_entity_id
             ).attributes.get("max")
@@ -1314,6 +1329,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @property
     def is_device_active(self):
         """If the opening valve is open."""
+        if not self.initialize_min_max():
+            return False
+
         if (value := self.last_sent_opening_value) is None:
             return False
 
