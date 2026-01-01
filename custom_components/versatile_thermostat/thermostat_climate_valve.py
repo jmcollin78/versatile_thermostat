@@ -334,10 +334,10 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
     @property
     def device_actives(self) -> int:
         """Calculate the number of active devices"""
-        if self.is_device_active:
-            return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
-        else:
+        if self.is_sleeping:
             return []
+
+        return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
 
     @property
     def activable_underlying_entities(self) -> list | None:

@@ -147,9 +147,7 @@ async def test_over_valve_full_start(
         assert mock_send_event.call_count == 1
 
     # 3. Set temperature and external temperature
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
@@ -165,16 +163,17 @@ async def test_over_valve_full_start(
         assert entity.is_device_active is True
         assert entity.hvac_action == HVACAction.HEATING
 
-        assert mock_service_call.call_count == 2
+        # 90 is already set so only 98 is sent
+        assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call.async_call(
-                    domain="number",
-                    service="set_value",
-                    service_data={"value": 90},
-                    target={"entity_id": "number.mock_valve"},
-                    # {"entity_id": "number.mock_valve", "value": 90},
-                ),
+                # call.async_call(
+                #     domain="number",
+                #     service="set_value",
+                #     service_data={"value": 90},
+                #     target={"entity_id": "number.mock_valve"},
+                #     # {"entity_id": "number.mock_valve", "value": 90},
+                # ),
                 call.async_call(
                     domain="number",
                     service="set_value",
@@ -439,13 +438,11 @@ async def test_over_valve_regulation(
 
     # 4. Set temperature and external temperature
     # at now + 1 (but the _last_calculation_timestamp is still not send)
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(
         "homeassistant.core.StateMachine.get",
-        return_value=State(entity_id="number.mock_valve", state="90"),
+        return_value=State(entity_id="number.mock_valve", state="50"),
     ):
         # Change temperature
         now = now + timedelta(minutes=1)
@@ -627,7 +624,7 @@ async def test_bug_533(
         "homeassistant.core.StateMachine.get",
         return_value=State(
             entity_id="number.mock_valve",
-            state="100",
+            state="99",
             attributes={"min": 0, "max": 100},
         ),
     ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:

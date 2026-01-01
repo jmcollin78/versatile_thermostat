@@ -948,7 +948,7 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
 
     mock_get_state_side_effect = SideEffects(
         {
-            "number.mock_opening_degree": State("number.mock_opening_degree", "0", {"min": 0, "max": 100}),
+            "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
         },
         State("unknown.entity_id", "unknown"),
     )

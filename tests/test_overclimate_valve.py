@@ -71,15 +71,9 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
     mock_get_state_side_effect = SideEffects(
         {
-            "number.mock_opening_degree": State(
-                "number.mock_opening_degree", "0", {"min": 0, "max": 100}
-            ),
-            "number.mock_closing_degree": State(
-                "number.mock_closing_degree", "0", {"min": 0, "max": 100}
-            ),
-            "number.mock_offset_calibration": State(
-                "number.mock_offset_calibration", "0", {"min": -12, "max": 12}
-            ),
+            "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
+            "number.mock_closing_degree": State("number.mock_closing_degree", "90", {"min": 0, "max": 100}),
+            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12}),
         },
         State("unknown.entity_id", "unknown"),
     )

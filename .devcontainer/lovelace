@@ -2600,7 +2600,7 @@
                           "entity": "input_number.fake_boiler_temperature"
                         },
                         {
-                          "entity": "number.power_activation_threshold"
+                          "entity": "number.boiler_power_activation_threshold"
                         },
                         {
                           "entity": "sensor.total_power_active_for_boiler"
