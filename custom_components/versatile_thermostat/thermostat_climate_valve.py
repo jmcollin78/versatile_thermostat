@@ -261,9 +261,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             for under in self._underlyings:
                 if self.target_temperature != under.last_sent_temperature:
                     await under.set_temperature(
-                        self.target_temperature,
-                        self._attr_max_temp,
-                        self._attr_min_temp,
+                        self.target_temperature
                     )
 
             self._last_regulation_change = self.now

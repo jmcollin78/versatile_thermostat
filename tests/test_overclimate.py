@@ -1332,7 +1332,7 @@ async def test_underlying_from_comes_back_to_life(
         assert mock_underlying_set_temperature.call_count == 1
         mock_underlying_set_temperature.assert_has_calls(
             [
-                call.set_temperature(23, 30, 15),
+                call.set_temperature(23),
             ]
         )
 

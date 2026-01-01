@@ -246,9 +246,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
 
             await under.set_temperature(
-                target_temp,
-                self._attr_max_temp,
-                self._attr_min_temp,
+                target_temp
             )
 
     def do_send_regulated_temp_later(self):

@@ -130,7 +130,7 @@ class UnderlyingEntity:
         """Calculate a hvac_action"""
         return HVACAction.HEATING if self.is_device_active is True else HVACAction.OFF
 
-    async def set_temperature(self, temperature, max_temp, min_temp):
+    async def set_temperature(self, temperature):
         """Set the target temperature"""
         return
 
@@ -780,7 +780,7 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
-    async def set_temperature(self, temperature, max_temp, min_temp):
+    async def set_temperature(self, temperature):
         """Set the target temperature"""
         if not self.is_initialized:
             return
