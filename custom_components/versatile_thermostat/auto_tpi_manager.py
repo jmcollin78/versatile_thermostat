@@ -92,6 +92,10 @@ class AutoTpiState:
     recent_errors: list = field(default_factory=list)  # Store last N errors for regime change detection
     regime_change_detected: bool = False  # Flag for temporary alpha boost
     learning_start_date: Optional[datetime] = None  # Date when learning started
+    
+    # Optional features configuration
+    allow_kint_boost: bool = False
+    allow_kext_overshoot: bool = False
 
     def to_dict(self):
         return asdict(self)
@@ -1160,6 +1164,10 @@ class AutoTpiManager:
         Returns:
             True if correction was applied, False otherwise
         """
+        # Feature flag check
+        if not self.state.allow_kext_overshoot:
+            return False
+
         current_kext = self.state.coeff_outdoor_cool if is_cool else self.state.coeff_outdoor_heat
         current_kint = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
 
@@ -1241,6 +1249,10 @@ class AutoTpiManager:
         Returns:
             True if correction was applied, False otherwise
         """
+        # Feature flag check
+        if not self.state.allow_kint_boost:
+            return False
+
         # Check if we've hit the max consecutive boosts limit
         if self.state.consecutive_boosts >= MAX_CONSECUTIVE_KINT_BOOSTS:
             _LOGGER.warning(
@@ -2136,14 +2148,31 @@ class AutoTpiManager:
 
         return round(cycle_confidence, 2)
 
-    async def start_learning(self, coef_int: float = None, coef_ext: float = None, reset_data: bool = True):
+    async def start_learning(
+        self,
+        coef_int: float = None,
+        coef_ext: float = None,
+        reset_data: bool = True,
+        allow_kint_boost: bool = False,
+        allow_kext_overshoot: bool = False,
+    ):
         """Start learning, optionally resetting coefficients and learning data.
 
         Args:
             coef_int: Target internal coefficient (defaults to configured value)
             coef_ext: Target external coefficient (defaults to configured value)
             reset_data: If True, reset all learning data; if False, resume with existing data
+            allow_kint_boost: Enable Kint boost on stagnation
+            allow_kext_overshoot: Enable Kext compensation on overshoot
         """
+        # Update optional flags immediately (even if not resetting data)
+        self.state.allow_kint_boost = allow_kint_boost
+        self.state.allow_kext_overshoot = allow_kext_overshoot
+        _LOGGER.info(
+            "%s - Auto TPI: Optional parameters set: allow_kint_boost=%s, allow_kext_overshoot=%s",
+            self._name, allow_kint_boost, allow_kext_overshoot
+        )
+
         # Use provided values, or fallback to default (configured) values
         target_int = coef_int if coef_int is not None else self._default_coef_int
         target_ext = coef_ext if coef_ext is not None else self._default_coef_ext

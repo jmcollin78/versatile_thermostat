@@ -1,6 +1,7 @@
 """ Implements a central Power Feature Manager for Versatile Thermostat """
 
 import logging
+
 from typing import Any
 from functools import cmp_to_key
 

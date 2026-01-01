@@ -170,6 +170,12 @@ async def async_setup_entry(
         {
             vol.Required("auto_tpi_mode"): vol.In([True, False]),
             vol.Optional("reinitialise", default=True): vol.In([True, False]),
+            vol.Optional("allow_kint_boost_on_stagnation", default=False): vol.In(
+                [True, False]
+            ),
+            vol.Optional(
+                "allow_kext_compensation_on_overshoot", default=False
+            ): vol.In([True, False]),
         },
         "service_set_auto_tpi_mode",
     )

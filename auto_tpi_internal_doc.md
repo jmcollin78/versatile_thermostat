@@ -130,6 +130,8 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 **Priorité maximale** : Cette correction est exécutée AVANT l'apprentissage Indoor et Outdoor.
 
 **Problème résolu** : Dans les systèmes à forte inertie thermique (radiateurs à eau, chauffage central), Kext peut augmenter de façon agressive pendant la montée en température, mais ne redescend pas assez vite lors des dépassements. Cela provoque une surchauffe persistante.
+    
+**Activation :** Cette correction est optionnelle et doit être activée via le service `set_auto_tpi_mode` (paramètre `allow_kext_compensation_on_overshoot`).
 
 **Conditions de déclenchement :**
 1.  **Température qui ne descend pas malgré le dépassement** (mode Heat) : La température doit stagner ou monter (`Temp_Actuelle >= Temp_Début_Cycle - 0.02°C`) pour déclencher la correction. Si la température descend naturellement (ex: après baisse de consigne), le système fonctionne correctement.
@@ -153,6 +155,8 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 #### 2.7. Cas 0.5 : Correction de Stagnation (`_correct_kint_insufficient_rise`)
 
 **Problème résolu** : Lorsque la température stagne ou baisse malgré un écart significatif avec la consigne (> 0.3°C) et que la puissance n'est pas à saturation, Kint est probablement trop bas. Sans cette correction, le système tombe dans l'apprentissage Outdoor et augmente Kext à tort.
+    
+**Activation :** Cette correction est optionnelle et doit être activée via le service `set_auto_tpi_mode` (paramètre `allow_kint_boost_on_stagnation`).
 
 **Conditions de déclenchement :**
 1.  **Écart significatif** : `target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD` (0.3°C par défaut)
@@ -296,6 +300,8 @@ Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
 *   **`coeff_int_cycles` / `coeff_ext_cycles`** : Nombre de cycles d'apprentissage validés pour chaque coefficient.
 *   **`max_capacity_heat`** : Capacité maximale détectée (en °C/h).
 *   **`learning_start_dt`** : Date et heure du début de l'apprentissage (utile pour les graphiques).
+*   **`allow_kint_boost_on_stagnation`** : Indique si le boost de Kint en cas de stagnation est activé.
+*   **`allow_kext_compensation_on_overshoot`** : Indique si la correction de Kext en cas d'overshoot est activée.
 
 ---
 
@@ -384,7 +390,8 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 *   **Réinitialisation Complète (`reset_learning_data`)**:
     *   Cette méthode n'est plus exposée comme un service externe. Elle est utilisée en interne si un reset complet était nécessaire.
     *   **Action** : Réinitialisation complète de l'état d'apprentissage (`AutoTpiState`), incluant coefficients, compteurs, et capacités.
-*   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data)` (ex: via le service `set_auto_tpi_mode(true)` ou initialisation) :
+*   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
+    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
         *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**.
         *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé.

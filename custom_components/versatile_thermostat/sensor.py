@@ -345,6 +345,8 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "max_capacity_heat": manager.state.max_capacity_heat,
             "max_capacity_cool": manager.state.max_capacity_cool,
             "learning_start_dt": manager.state.learning_start_date,
+            "allow_kint_boost_on_stagnation": manager.state.allow_kint_boost,
+            "allow_kext_compensation_on_overshoot": manager.state.allow_kext_overshoot,
         }
 
         # Add calculated TPI coefficients
