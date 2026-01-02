@@ -269,5 +269,12 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         """Returns the is vtherm is stopped and reason is AUTO_START_STOP"""
         return self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
+    def reset_switch_delay(self):
+        """Reset the switch delay in the algorithm to allow immediate restart.
+        Should be called when target temperature changes significantly.
+        """
+        if self._auto_start_stop_algo:
+            self._auto_start_stop_algo.reset_switch_delay()
+
     def __str__(self):
         return f"AutoStartStopManager-{self.name}"
