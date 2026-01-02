@@ -28,7 +28,8 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 
 ## Release 8.4
 > 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
-> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md)
+> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
+> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/cs/feature-timed-preset.md).
 
 ## Release 8.3
 1. Addition of a configurable delay before activating the central boiler.
@@ -87,12 +88,15 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 16. [Řízení ústředního vytápění](documentation/cs/feature-central-boiler.md)
 17. [Pokročilé aspekty, bezpečnostní režim](documentation/cs/feature-advanced.md)
 18. [Samoregulace](documentation/cs/self-regulation.md)
-19. [Příklady ladění](documentation/cs/tuning-examples.md)
-20. [Algoritmy](documentation/cs/algorithms.md)
-21. [Zámek / Odemknutí](documentation/cs/feature-lock.md)
-22. [Referenční dokumentace](documentation/cs/reference.md)
-23. [Řešení problémů](documentation/cs/troubleshooting.md)
-24. [Poznámky k verzím](documentation/cs/releases.md)
+19. [Lock / Unlock](documentation/en/feature-lock.md)
+20. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
+21. [Timed preset](documentation/en/feature-timed-preset.md)
+22. [Příklady ladění](documentation/cs/tuning-examples.md)
+23. [Algoritmy](documentation/cs/algorithms.md)
+24. [Zámek / Odemknutí](documentation/cs/feature-lock.md)
+25. [Referenční dokumentace](documentation/cs/reference.md)
+26. [Řešení problémů](documentation/cs/troubleshooting.md)
+27. [Poznámky k verzím](documentation/cs/releases.md)
 
 # Některé výsledky
 
