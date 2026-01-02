@@ -162,7 +162,7 @@ class VersatileThermostatAPI(dict):
             CLIMATE_DOMAIN, None
         )
         if component:
-            for entity in component.entities:
+            for entity in list(component.entities):
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
                 try:
@@ -184,7 +184,7 @@ class VersatileThermostatAPI(dict):
             CLIMATE_DOMAIN, None
         )
         if component:
-            for entity in component.entities:
+            for entity in list(component.entities):
                 if entity.device_info and entity.device_info.get("model", None) == DOMAIN and entity.use_central_config_temperature:  # pyright: ignore[reportAttributeAccessIssue]
                     await entity.init_presets(self.find_central_configuration())  # pyright: ignore[reportAttributeAccessIssue]
                     entity.requested_state.force_changed()  # pyright: ignore[reportAttributeAccessIssue]
@@ -201,7 +201,7 @@ class VersatileThermostatAPI(dict):
 
         # Update all VTherm states
         component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
+        for entity in list(component.entities):
             if entity.device_info and entity.device_info.get("model", None) == DOMAIN:
                 _LOGGER.debug(
                     "Changing the central_mode. We have find %s to update",
