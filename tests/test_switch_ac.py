@@ -66,7 +66,7 @@ async def test_over_switch_ac_full_start(
         def find_my_entity(entity_id) -> ClimateEntity:
             """Find my new entity"""
             component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
+            for entity in list(component.entities):
                 if entity.entity_id == entity_id:
                     return entity
 

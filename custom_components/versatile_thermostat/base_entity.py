@@ -67,7 +67,7 @@ class VersatileThermostatBaseEntity(Entity):
         """Find the underlying climate entity"""
         try:
             component: EntityComponent[ClimateEntity] = self.hass.data[CLIMATE_DOMAIN]
-            for entity in component.entities:
+            for entity in list(component.entities):
                 # _LOGGER.debug("Device_info is %s", entity.device_info)
                 if entity.device_info == self.device_info:
                     _LOGGER.debug("Found %s!", entity)

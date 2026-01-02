@@ -606,7 +606,7 @@ class UnderlyingClimate(UnderlyingEntity):
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
         component: EntityComponent[ClimateEntity] = self._hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
+        for entity in list(component.entities):
             if self.entity_id == entity.entity_id:
                 return entity
         return None

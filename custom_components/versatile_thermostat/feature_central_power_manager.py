@@ -250,7 +250,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             CLIMATE_DOMAIN, None
         )
         if component:
-            for entity in component.entities:
+            for entity in list(component.entities):
                 # A little hack to test if the climate is a VTherm. Cannot use isinstance
                 # due to circular dependency of BaseThermostat
                 if (

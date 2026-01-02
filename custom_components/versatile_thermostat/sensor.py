@@ -793,7 +793,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
         self.cancel_listening_nb_active()
 
-        for entity in component.entities:
+        for entity in list(component.entities):
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
                 for under in entity.activable_underlying_entities:
@@ -949,7 +949,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
         self.cancel_listening_power()
 
-        for entity in component.entities:
+        for entity in list(component.entities):
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
                 entities_id.append(entity.entity_id)
