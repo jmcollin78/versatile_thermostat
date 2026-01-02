@@ -41,7 +41,6 @@ from custom_components.versatile_thermostat.opening_degree_algorithm import Open
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
-from .commons import round_to_nearest
 
 _LOGGER = logging.getLogger(__name__)
 

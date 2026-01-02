@@ -5,10 +5,9 @@
 import math
 import logging
 import asyncio
-from datetime import datetime, timedelta
-from functools import partial
+from datetime import datetime
 
-from homeassistant.components.recorder import history, get_instance
+from homeassistant.components.recorder import history
 from homeassistant.util import dt as dt_util
 from typing import Any, Generic
 from collections.abc import Callable
