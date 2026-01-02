@@ -3,8 +3,9 @@
 """ Underlying entities classes """
 import logging
 import re
-from typing import Any, Dict, List, Tuple, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
+from datetime import datetime, timedelta
 
 from enum import StrEnum
 
@@ -13,7 +14,7 @@ from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
 
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
+from homeassistant.core import HomeAssistant, CALLBACK_TYPE, Context, ServiceResponse
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -81,6 +82,7 @@ class UnderlyingEntity:
         self._entity_id: str = entity_id
         self._hvac_mode: VThermHvacMode | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
+        self._last_command_sent_datetime: datetime = datetime.fromtimestamp(0)
 
     def register_cycle_callback(self, on_start: Callable):
         """Register a callback for cycle start"""
@@ -178,6 +180,22 @@ class UnderlyingEntity:
         """Call the method after a delay"""
         return async_call_later(hass, delay_sec, called_method)
 
+    async def hass_services_async_call(
+        self,
+        domain: str,
+        service: str,
+        service_data: dict[str, Any] | None = None,
+        blocking: bool = False,
+        context: Context | None = None,
+        target: dict[str, Any] | None = None,
+        return_response: bool = False,
+    ) -> ServiceResponse:
+        """Wrapper for HASS service calls"""
+        reponse: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
+
+        self._last_command_sent_datetime = self._thermostat.now
+        return reponse
+
     async def start_cycle(
         self,
         hvac_mode: VThermHvacMode,
@@ -218,7 +236,7 @@ class UnderlyingEntity:
             data = {"value": value}
             target = {ATTR_ENTITY_ID: number_entity_id}
             domain = number_entity_id.split(".")[0]
-            await self._hass.services.async_call(
+            await self.hass_services_async_call(
                 domain=domain,
                 service=SERVICE_SET_VALUE,
                 service_data=data,
@@ -600,8 +618,9 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_type=UnderlyingEntityType.CLIMATE,
             entity_id=climate_entity_id,
         )
-        self._underlying_climate = None
-        self._last_sent_temperature = None
+        self._underlying_climate: Optional[ClimateEntity] = None
+        self._last_sent_temperature: Optional[float] = None
+        self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
@@ -655,7 +674,7 @@ class UnderlyingClimate(UnderlyingEntity):
             return False
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
             data,
@@ -679,16 +698,39 @@ class UnderlyingClimate(UnderlyingEntity):
         """Set new target fan mode."""
         if not self.is_initialized:
             return
+
         data = {
             ATTR_ENTITY_ID: self._entity_id,
             "fan_mode": fan_mode,
         }
 
-        await self._hass.services.async_call(
-            CLIMATE_DOMAIN,
-            SERVICE_SET_FAN_MODE,
-            data,
+        if self._cancel_set_fan_mode_later:
+            self._cancel_set_fan_mode_later()
+            self._cancel_set_fan_mode_later = None
+
+        delay: float = 2.0
+        if self._thermostat.now > self._last_command_sent_datetime + timedelta(seconds=delay):
+            await self.hass_services_async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_FAN_MODE,
+                data,
+            )
+
+            return
+
+        # Add a delay if last command was sent less than delay seconds ago
+        # Some AC units (e.g. Daikin) do not handle multiple consecutive commands well
+        _LOGGER.debug(
+            "%s - #1458 - Delaying command set_fan_mode for underlying %s by %.2fs",
+            self,
+            self._entity_id,
+            delay,
         )
+
+        async def callback_set_fan_mode(_):
+            await self.set_fan_mode(fan_mode)
+
+        self._cancel_set_fan_mode_later = async_call_later(self._hass, delay, callback_set_fan_mode)
 
     async def set_humidity(self, humidity: int):
         """Set new target humidity."""
@@ -700,7 +742,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "humidity": humidity,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HUMIDITY,
             data,
@@ -716,7 +758,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "swing_mode": swing_mode,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_MODE,
             data,
@@ -732,7 +774,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "swing_horizontal_mode": swing_horizontal_mode,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_HORIZONTAL_MODE,
             data,
@@ -763,7 +805,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if ClimateEntityFeature.TARGET_TEMPERATURE in self._underlying_climate.supported_features:
             data["temperature"] = target_temp
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_TEMPERATURE,
             data,

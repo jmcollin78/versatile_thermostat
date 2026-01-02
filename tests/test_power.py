@@ -4,6 +4,8 @@ from unittest.mock import patch, call, AsyncMock, MagicMock, PropertyMock
 from datetime import datetime, timedelta
 import logging
 
+from homeassistant.components.number import SERVICE_SET_VALUE
+
 from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
 from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
 from custom_components.versatile_thermostat.feature_power_manager import FeaturePowerManager
@@ -983,7 +985,7 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
         assert mock_service_call.call_count == 1
         mock_service_call.assert_has_calls(
             [
-                call(domain='number', service='set_value', service_data={'value': 0}, target={'entity_id': 'number.mock_opening_degree'}),
+                call('number', SERVICE_SET_VALUE, {'value': 0}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
             ]
         )
 

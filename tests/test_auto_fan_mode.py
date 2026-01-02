@@ -3,7 +3,7 @@
 """ Test the auto fan mode of a over_climate thermostat """
 from unittest.mock import patch, call
 
-from datetime import datetime  # , timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 
@@ -657,3 +657,132 @@ async def test_over_climate_auto_fan_mode_with_none_fan_speed_values(
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode is None
         assert entity._auto_deactivated_fan_mode is None
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+    """Test the delay of the fan_mode command when the setpoint temperature triggers auto_fan_mode"""
+
+    fan_modes = ["low", "medium", "high", "boost", "mute", "auto", "turbo"]
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            "eco_ac_temp": 25,
+            "comfort_ac_temp": 23,
+            "boost_ac_temp": 21,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+        },
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    fake_underlying_climate = MockClimate(
+        hass=hass,
+        unique_id="mockUniqueId",
+        name="MockClimateName",
+        fan_modes=fan_modes,
+    )
+
+    # Init fan mode and turn on the thermostat
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        return_value=fake_underlying_climate,
+    ):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert entity
+        assert isinstance(entity, ThermostatOverClimate)
+
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.fan_modes == fan_modes
+        assert entity.fan_mode is None
+
+        assert entity._auto_fan_mode == "auto_fan_turbo"
+        assert entity._auto_activated_fan_mode == "turbo"
+        assert entity._auto_deactivated_fan_mode == "mute"
+
+        # Force heating mode and preset
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+
+        assert entity.hvac_mode == VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.COMFORT
+        assert entity.target_temperature == 18
+
+    planned_commands = []
+
+    def fake_async_call_later(hass, delay, callback):
+        value = None
+        if hasattr(callback, "__closure__") and callback.__closure__:
+            free_vars = callback.__code__.co_freevars
+            if "fan_mode" in free_vars:
+                index = free_vars.index("fan_mode")
+                value = callback.__closure__[index].cell_contents
+
+        planned_commands.append({"delay": delay, "fan_mode": value})
+        return lambda: None
+
+    # room temp is 18°C
+    await send_temperature_change_event(entity, 18, now)
+
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.async_call_later", 
+        side_effect=fake_async_call_later
+    ) as mock_send:
+        # --------------------------------------------------
+        # 1. Temperature target at 20°C (+2 °C) → auto fan_mode (DELAYED)
+        # --------------------------------------------------
+        underlying = entity._underlyings[0]
+        underlying._last_command_sent_datetime = now + timedelta(seconds=-10)
+
+        await entity.async_set_temperature(temperature=20)
+
+        assert len(planned_commands) == 1
+        assert planned_commands[0]["delay"] == 2.0
+        assert planned_commands[0]["fan_mode"] == "turbo"
+
+        # --------------------------------------------------
+        # 2. Manual fan_mode change withou previous command → NO DELAY
+        # --------------------------------------------------
+        underlying._last_command_sent_datetime = now + timedelta(seconds=-10)
+
+        await entity.async_set_fan_mode("high")
+        assert len(planned_commands) == 1
+        assert entity._fan_mode == "high"
+
+        # --------------------------------------------------
+        # 3. Temperature target at 18°C (like room temp) → auto deactivation (DELAYED)
+        # --------------------------------------------------
+        underlying._last_command_sent_datetime = now + timedelta(seconds=-10)
+
+        await entity.async_set_temperature(temperature=18)
+
+        assert len(planned_commands) == 2
+        assert planned_commands[1]["delay"] == 2.0
+        assert planned_commands[1]["fan_mode"] == "mute"
