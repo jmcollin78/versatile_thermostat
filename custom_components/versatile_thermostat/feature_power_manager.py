@@ -308,5 +308,5 @@ class FeaturePowerManager(BaseFeatureManager):
 
         return None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"PowerManager-{self.name}"

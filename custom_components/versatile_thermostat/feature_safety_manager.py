@@ -45,31 +45,19 @@ class FeatureSafetyManager(BaseFeatureManager):
         super().__init__(vtherm, hass)
 
         self._is_configured: bool = False
-        self._safety_delay_min = None
-        self._safety_min_on_percent = None
-        self._safety_default_on_percent = None
+        self._safety_delay_min: int = 0
+        self._safety_min_on_percent: float = DEFAULT_SAFETY_MIN_ON_PERCENT
+        self._safety_default_on_percent: float = DEFAULT_SAFETY_DEFAULT_ON_PERCENT
         self._safety_state = STATE_UNAVAILABLE
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
         self._safety_delay_min = entry_infos.get(CONF_SAFETY_DELAY_MIN)
-        self._safety_min_on_percent = (
-            entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT)
-            if entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT) is not None
-            else DEFAULT_SAFETY_MIN_ON_PERCENT
-        )
-        self._safety_default_on_percent = (
-            entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT)
-            if entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT) is not None
-            else DEFAULT_SAFETY_DEFAULT_ON_PERCENT
-        )
+        self._safety_min_on_percent = entry_infos.get(CONF_SAFETY_MIN_ON_PERCENT, DEFAULT_SAFETY_MIN_ON_PERCENT)
+        self._safety_default_on_percent = entry_infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT, DEFAULT_SAFETY_DEFAULT_ON_PERCENT)
 
-        if (
-            self._safety_delay_min is not None
-            and self._safety_default_on_percent is not None
-            and self._safety_default_on_percent is not None
-        ):
+        if self._safety_delay_min is not None:
             self._safety_state = STATE_UNKNOWN
             self._is_configured = True
 
@@ -303,19 +291,19 @@ class FeatureSafetyManager(BaseFeatureManager):
         return self._safety_state
 
     @property
-    def safety_delay_min(self) -> bool:
+    def safety_delay_min(self) -> int:
         """Returns the safety delay min"""
         return self._safety_delay_min
 
     @property
-    def safety_min_on_percent(self) -> bool:
+    def safety_min_on_percent(self) -> float:
         """Returns the safety min on percent"""
         return self._safety_min_on_percent
 
     @property
-    def safety_default_on_percent(self) -> bool:
+    def safety_default_on_percent(self) -> float:
         """Returns the safety safety_default_on_percent"""
         return self._safety_default_on_percent
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"SafetyManager-{self.name}"

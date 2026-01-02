@@ -133,7 +133,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._humidity = None
         self._swing_mode = None
         self._swing_horizontal_mode = None
-        self._ac_mode = None
+        self._ac_mode = False
 
         self._cur_temp = None
 
@@ -144,7 +144,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._last_temperature_measure = None
         self._cur_ext_temp = None
 
-        self._should_relaunch_control_heating = None
+        self._should_relaunch_control_heating = False
 
         self._attr_translation_key = "versatile_thermostat"
 
@@ -833,7 +833,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._name
 
     @property
-    def ac_mode(self) -> bool | None:
+    def ac_mode(self) -> bool:
         """Get the ac_mode of the Themostat"""
         return self._ac_mode
 
@@ -863,7 +863,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._cancel_recalculate_later is not None
 
     @property
-    def is_used_by_central_boiler(self) -> HVACAction | None:
+    def is_used_by_central_boiler(self) -> bool:
         """Return true is the VTherm is configured to be used by
         central boiler"""
         return self._is_used_by_central_boiler
@@ -887,7 +887,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return False
 
     @property
-    def device_actives(self) -> int:
+    def device_actives(self) -> list:
         """Calculate the active devices"""
         ret = []
         for under in self._underlyings:
@@ -919,7 +919,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return None
 
     @property
-    def overpowering_state(self) -> bool | None:
+    def overpowering_state(self) -> str | None:
         """Get the overpowering_state"""
         return self._power_manager.overpowering_state
 
@@ -1014,7 +1014,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._last_ext_temperature_measure
 
     @property
-    def preset_mode(self) -> str | None:
+    def preset_mode(self) -> str:
         """Return the current preset mode comfort, eco, boost,...,"""
         return str(self._state_manager.current_state.preset)
 
@@ -1031,7 +1031,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._state_manager.current_state.preset
 
     @property
-    def vtherm_preset_modes(self) -> list[str] | None:
+    def vtherm_preset_modes(self) -> list[VThermPreset]:
         """Return a list of available preset modes.
         Requires ClimateEntityFeature.PRESET_MODE.
         """
@@ -1068,10 +1068,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def is_on(self) -> bool:
         """True if the VTherm is on (! HVAC_OFF)"""
-        return self.vtherm_hvac_mode and self.vtherm_hvac_mode != VThermHvacMode_OFF
+        return self.vtherm_hvac_mode is not None and self.vtherm_hvac_mode != VThermHvacMode_OFF
 
     @property
-    def is_controlled_by_central_mode(self) -> bool:
+    def is_controlled_by_central_mode(self) -> bool | None:
         """Returns True if this VTherm can be controlled by the central_mode"""
         return self._is_central_mode
 
@@ -1398,7 +1398,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def _control_heating_specific(self, force=False):
         """To be overridden by subclasses"""
-        pass
 
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
         """Reset to now the last change time"""
@@ -1641,7 +1640,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def _async_temperature_changed(self, event: Event) -> callable:
         """Handle temperature of the temperature sensor changes.
         Return the function to dearm (clear) the window auto check"""
-        new_state: State = event.data.get("new_state")
+        new_state: State | None = event.data.get("new_state")
         write_event_log(_LOGGER, self, f"Temperature changed to state {new_state.state if new_state else None}")
 
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
@@ -1662,7 +1661,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @callback
     async def _async_last_seen_temperature_changed(self, event: Event):
         """Handle last seen temperature sensor changes."""
-        new_state: State = event.data.get("new_state")
+        new_state: State | None = event.data.get("new_state")
         write_event_log(_LOGGER, self, f"Last seen temperature changed to state {new_state.state if new_state else None}")
 
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
@@ -1703,7 +1702,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def _async_ext_temperature_changed(self, event: Event):
         """Handle external temperature of the sensor changes."""
-        new_state: State = event.data.get("new_state")
+        new_state: State | None = event.data.get("new_state")
         write_event_log(_LOGGER, self, f"Outdoor temperature changed to state {new_state.state if new_state else None}")
 
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):

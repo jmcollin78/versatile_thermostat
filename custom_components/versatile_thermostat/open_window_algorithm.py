@@ -31,7 +31,7 @@ class WindowOpenDetectionAlgorithm:
         self._alert_threshold: float = alert_threshold
         self._end_alert_threshold: float = end_alert_threshold
         self._last_slope: float | None = None
-        self._last_datetime: datetime = None
+        self._last_datetime: datetime | None = None
         self._last_temperature: float | None = None
         self._nb_point: int = 0
 
@@ -51,7 +51,7 @@ class WindowOpenDetectionAlgorithm:
 
     def add_temp_measurement(
         self, temperature: float, datetime_measure: datetime, store_date: bool = True
-    ) -> float:
+    ) -> float | None:
         """Add a new temperature measurement
         returns the last slope
         """
@@ -137,6 +137,6 @@ class WindowOpenDetectionAlgorithm:
         return self._last_slope >= self._end_alert_threshold
 
     @property
-    def last_slope(self) -> float:
+    def last_slope(self) -> float | None:
         """Return the last calculated slope"""
         return self._last_slope

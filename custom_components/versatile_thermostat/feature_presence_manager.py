@@ -167,9 +167,9 @@ class FeaturePresenceManager(BaseFeatureManager):
         ]
 
     @property
-    def presence_sensor_entity_id(self) -> bool:
+    def presence_sensor_entity_id(self) -> str | None:
         """Return true if the presence is configured and presence sensor is OFF"""
         return self._presence_sensor_entity_id
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"PresenceManager-{self.name}"

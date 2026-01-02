@@ -135,7 +135,7 @@ class VersatileThermostatAPI(dict):
         """Register the NumberEntity for a particular device / preset."""
         # Search for device_name into the _number_temperatures dict
         if not self._number_temperatures.get(config_id):
-            self._number_temperatures[config_id] = dict()
+            self._number_temperatures[config_id] = {}
 
         self._number_temperatures[config_id][preset_name] = number_entity
 
@@ -222,22 +222,22 @@ class VersatileThermostatAPI(dict):
         VersatileThermostatAPI._hass = None
 
     @property
-    def self_regulation_expert(self):
+    def self_regulation_expert(self) -> dict | None:
         """Get the self regulation params"""
         return self._expert_params
 
     @property
-    def short_ema_params(self):
+    def short_ema_params(self) -> dict | None:
         """Get the short EMA params in expert mode"""
         return self._short_ema_params
 
     @property
-    def safety_mode(self):
+    def safety_mode(self) -> dict | None:
         """Get the safety_mode params"""
         return self._safety_mode
 
     @property
-    def max_on_percent(self):
+    def max_on_percent(self) -> dict | None:
         """Get the max_open_percent params"""
         return self._max_on_percent
 
@@ -250,17 +250,17 @@ class VersatileThermostatAPI(dict):
             return None
 
     @property
-    def hass(self):
+    def hass(self) -> HomeAssistant:
         """Get the HomeAssistant object"""
         return VersatileThermostatAPI._hass
 
     @property
-    def central_power_manager(self) -> any:
+    def central_power_manager(self) -> FeatureCentralPowerManager:
         """Returns the central power manager"""
         return self._central_power_manager
 
     @property
-    def central_boiler_manager(self) -> any:
+    def central_boiler_manager(self) -> FeatureCentralBoilerManager:
         """Returns the central boiler manager"""
         return self._central_boiler_manager
 

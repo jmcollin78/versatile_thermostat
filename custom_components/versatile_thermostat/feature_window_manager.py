@@ -58,15 +58,18 @@ class FeatureWindowManager(BaseFeatureManager):
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
-        self._window_sensor_entity_id: str = None
+        self._window_sensor_entity_id: str | None = None
         self._window_state: str = STATE_UNAVAILABLE
-        self._window_auto_open_threshold: float = 0
-        self._window_auto_close_threshold: float = 0
-        self._window_auto_max_duration: int = 0
-        self._window_auto_state: bool = False
-        self._window_auto_algo: WindowOpenDetectionAlgorithm = None
+        self._window_auto_open_threshold: float | None = 0.0
+        self._window_auto_close_threshold: float | None = 0.0
+        self._window_auto_max_duration: int | None = 0
+        self._window_auto_state: str = STATE_UNAVAILABLE
+        self._window_auto_algo: WindowOpenDetectionAlgorithm = WindowOpenDetectionAlgorithm(
+            alert_threshold=self._window_auto_open_threshold,
+            end_alert_threshold=self._window_auto_close_threshold,
+        )
         self._is_window_bypass: bool = False
-        self._window_action: str = None
+        self._window_action: str = CONF_WINDOW_TURN_OFF
         self._window_delay_sec: int | None = 0
         self._window_off_delay_sec: int | None = 0
         self._is_configured: bool = False
@@ -86,16 +89,10 @@ class FeatureWindowManager(BaseFeatureManager):
         # default is the WINDOW_ON delay if not configured
         self._window_off_delay_sec = entry_infos.get(CONF_WINDOW_OFF_DELAY, self._window_delay_sec)
 
-        self._window_action = (
-            entry_infos.get(CONF_WINDOW_ACTION) or CONF_WINDOW_TURN_OFF
-        )
+        self._window_action = entry_infos.get(CONF_WINDOW_ACTION, CONF_WINDOW_TURN_OFF)
 
-        self._window_auto_open_threshold = entry_infos.get(
-            CONF_WINDOW_AUTO_OPEN_THRESHOLD
-        )
-        self._window_auto_close_threshold = entry_infos.get(
-            CONF_WINDOW_AUTO_CLOSE_THRESHOLD
-        )
+        self._window_auto_open_threshold = entry_infos.get(CONF_WINDOW_AUTO_OPEN_THRESHOLD)
+        self._window_auto_close_threshold = entry_infos.get(CONF_WINDOW_AUTO_CLOSE_THRESHOLD)
         self._window_auto_max_duration = entry_infos.get(CONF_WINDOW_AUTO_MAX_DURATION)
 
         use_window_feature = entry_infos.get(CONF_USE_WINDOW_FEATURE, False)
@@ -108,7 +105,6 @@ class FeatureWindowManager(BaseFeatureManager):
             and self._window_auto_close_threshold is not None
             and self._window_auto_max_duration is not None
             and self._window_auto_max_duration > 0
-            and self._window_action is not None
         ):
             self._is_window_auto_configured = True
             self._window_auto_state = STATE_UNKNOWN
@@ -122,7 +118,6 @@ class FeatureWindowManager(BaseFeatureManager):
             use_window_feature
             and self._window_sensor_entity_id is not None
             and self._window_delay_sec is not None
-            and self._window_action is not None
         ):
             self._is_configured = True
             self._window_state = STATE_UNKNOWN
@@ -385,7 +380,7 @@ class FeatureWindowManager(BaseFeatureManager):
                 }
             )
 
-    async def set_window_bypass(self, window_bypass: bool) -> bool:
+    async def set_window_bypass(self, window_bypass: bool):
         """Set the window bypass flag
         Return True if state have been changed"""
         self._is_window_bypass = window_bypass
@@ -422,7 +417,7 @@ class FeatureWindowManager(BaseFeatureManager):
         return self._window_auto_state
 
     @property
-    def is_window_bypass(self) -> str | None:
+    def is_window_bypass(self) -> bool:
         """Return True if the window bypass is activated"""
         if not self._is_configured:
             return False
@@ -436,46 +431,46 @@ class FeatureWindowManager(BaseFeatureManager):
         ) and not self._is_window_bypass
 
     @property
-    def window_sensor_entity_id(self) -> bool:
+    def window_sensor_entity_id(self) -> str | None:
         """Return true if the presence is configured and presence sensor is OFF"""
         return self._window_sensor_entity_id
 
     @property
-    def window_delay_sec(self) -> bool:
+    def window_delay_sec(self) -> int | None:
         """Return the window on delay"""
         return self._window_delay_sec
 
     @property
-    def window_off_delay_sec(self) -> bool:
+    def window_off_delay_sec(self) -> int | None:
         """Return the window off delay"""
         return self._window_off_delay_sec
 
     @property
-    def window_action(self) -> bool:
+    def window_action(self) -> str:
         """Return the window action"""
         return self._window_action
 
     @property
-    def window_auto_open_threshold(self) -> bool:
+    def window_auto_open_threshold(self) -> float | None:
         """Return the window_auto_open_threshold"""
         return self._window_auto_open_threshold
 
     @property
-    def window_auto_close_threshold(self) -> bool:
+    def window_auto_close_threshold(self) -> float | None:
         """Return the window_auto_close_threshold"""
         return self._window_auto_close_threshold
 
     @property
-    def window_auto_max_duration(self) -> bool:
+    def window_auto_max_duration(self) -> int | None:
         """Return the window_auto_max_duration"""
         return self._window_auto_max_duration
 
     @property
-    def last_slope(self) -> float:
+    def last_slope(self) -> float | None:
         """Return the last slope (in °C/hour)"""
         if not self._window_auto_algo:
             return None
         return self._window_auto_algo.last_slope
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"WindowManager-{self.name}"

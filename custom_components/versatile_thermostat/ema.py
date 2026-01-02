@@ -26,13 +26,13 @@ class ExponentialMovingAverage:
         vterm_name: str,
         halflife: float,
         timezone: tzinfo,
-        precision: int = 3,
-        max_alpha: float = 0.5,
+        precision: int,
+        max_alpha: float,
     ):
         """The halflife is the duration in secondes of a normal cycle"""
         self._halflife: float = halflife
         self._timezone = timezone
-        self._current_ema: float = None
+        self._current_ema: float | None = None
         self._last_timestamp: datetime = datetime.now(self._timezone)
         self._name = vterm_name
         self._precision = precision

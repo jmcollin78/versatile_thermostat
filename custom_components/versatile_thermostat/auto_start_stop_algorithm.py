@@ -55,10 +55,10 @@ AUTO_START_STOP_ACTIONS = Literal[  # pylint: disable=invalid-name
 class AutoStartStopDetectionAlgorithm:
     """The class that implements the algorithm listed above"""
 
-    _dt: float | None = None
-    _level: str = AUTO_START_STOP_LEVEL_NONE
-    _accumulated_error: float = 0
-    _error_threshold: float | None = None
+    _dt: float = 0.0
+    _level: TYPE_AUTO_START_STOP_LEVELS = AUTO_START_STOP_LEVEL_NONE
+    _accumulated_error: float = 0.0
+    _error_threshold: float = 0.0
     _last_calculation_date: datetime | None = None
     _last_switch_date: datetime | None = None
 
@@ -82,7 +82,7 @@ class AutoStartStopDetectionAlgorithm:
             # reset accumulated error if we change the level
             self._accumulated_error = 0
 
-    def should_be_turned_off(self, requested_hvac_mode: VThermHvacMode, target_temp: float, current_temp: float, slope_min: float | None, now: datetime) -> bool | None:
+    def should_be_turned_off(self, requested_hvac_mode: VThermHvacMode, target_temp: float, current_temp: float, slope_min: float, now: datetime) -> bool:
         """Check auto-start/stop state should be triggered
         Return True if the device should be turned off, False if the device should not be turned off
         """

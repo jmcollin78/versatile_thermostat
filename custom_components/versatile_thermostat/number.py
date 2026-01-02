@@ -227,7 +227,7 @@ class ActivateBoilerThresholdNumber(
         self._attr_value = self._attr_native_value = int_value
         self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
 
@@ -287,7 +287,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         self._attr_value = self._attr_native_value = int_value
         self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
 
@@ -400,7 +400,7 @@ class CentralConfigTemperatureNumber(
         # Update the VTherms which have temperature in central config
         self.hass.create_task(api.init_vtherm_preset_with_central())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
     @property
@@ -527,7 +527,7 @@ class TemperatureNumber(  # pylint: disable=abstract-method
         # that central config was not loaded at startup
         self.init_min_max_step()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
     @property

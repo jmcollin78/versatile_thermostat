@@ -417,5 +417,5 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         cb_manager = api.central_boiler_manager
         cb_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"

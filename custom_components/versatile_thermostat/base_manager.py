@@ -31,7 +31,7 @@ class BaseFeatureManager:
         """Start listening the underlying entity"""
         raise NotImplementedError()
 
-    def stop_listening(self) -> bool:
+    def stop_listening(self):
         """stop listening to the sensor"""
         while self._active_listener:
             self._active_listener.pop()()

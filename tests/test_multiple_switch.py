@@ -772,8 +772,8 @@ async def test_multiple_switch_power_management(
     # 1. Send power mesurement
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 50),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 300),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(50)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(300)),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -793,7 +793,7 @@ async def test_multiple_switch_power_management(
         assert entity.power_manager.overpowering_state is STATE_OFF
 
     # 2. Send power max mesurement too low and VThermHvacMode is on
-        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 49))
+        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(49)))
 
         #fmt: off
         with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -848,7 +848,7 @@ async def test_multiple_switch_power_management(
             assert entity.target_temperature == 12
 
     # 4. Send hugh power max mesurement to release overpowering
-        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 150))
+        side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(150)))
 
         with patch(
             "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"

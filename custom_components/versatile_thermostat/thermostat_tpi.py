@@ -58,8 +58,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self._proportional_function = self._entry_infos.get(CONF_PROP_FUNCTION)
 
         # Initialize TPI parameters from merged config
-        self._tpi_coef_int = self._entry_infos.get(CONF_TPI_COEF_INT)
-        self._tpi_coef_ext = self._entry_infos.get(CONF_TPI_COEF_EXT)
+        self._tpi_coef_int = self._entry_infos.get(CONF_TPI_COEF_INT, 0.0)
+        self._tpi_coef_ext = self._entry_infos.get(CONF_TPI_COEF_EXT, 0.0)
         self._tpi_threshold_low = self._entry_infos.get(CONF_TPI_THRESHOLD_LOW, 0.0)
         self._tpi_threshold_high = self._entry_infos.get(CONF_TPI_THRESHOLD_HIGH, 0.0)
         # If one is 0 then both are 0
@@ -119,7 +119,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         cooling_rate = self._entry_infos.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
         self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
         self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
-        self._auto_tpi_continuous_learning = (self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING, False),)
+        self._auto_tpi_continuous_learning = self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING, False)
         self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING, True)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",

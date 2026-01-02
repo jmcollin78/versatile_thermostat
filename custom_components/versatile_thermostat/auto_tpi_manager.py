@@ -2161,8 +2161,8 @@ class AutoTpiManager:
 
     async def start_learning(
         self,
-        coef_int: float = None,
-        coef_ext: float = None,
+        coef_int: float | None = None,
+        coef_ext: float | None = None,
         reset_data: bool = True,
         allow_kint_boost: bool = True,
         allow_kext_overshoot: bool = False,

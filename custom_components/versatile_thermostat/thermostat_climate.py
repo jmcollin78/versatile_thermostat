@@ -62,7 +62,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._auto_activated_fan_mode: str | None = None
         self._auto_deactivated_fan_mode: str | None = None
         self._follow_underlying_temp_change: bool = False
-        self._last_regulation_change = None  # NowClass.get_now(hass)
         self._sync_entity_list: list[str] = []
         self._sync_with_calibration: bool = False
 
@@ -128,7 +127,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return True
 
     @overrides
-    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
+    def calculate_hvac_action(self, under_list: list | None = None) -> HVACAction | None:
         """Calculate an hvac action based on the hvac_action of the list in argument"""
         # if one not IDLE or OFF -> return it
         # else if one IDLE -> IDLE

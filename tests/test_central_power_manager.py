@@ -760,8 +760,8 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
 
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 1000),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 2100),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(1000)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(2100)),
         },
         State("unknown.entity_id", "unknown"),
     )

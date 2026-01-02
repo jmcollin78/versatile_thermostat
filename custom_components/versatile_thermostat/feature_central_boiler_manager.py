@@ -373,5 +373,5 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         if self._total_power_active_threshold_number_entity:
             self._total_power_active_threshold_number_entity.set_native_value(value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"FeatureCentralBoilerManager-{self._name}"

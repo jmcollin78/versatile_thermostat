@@ -196,4 +196,3 @@ async def async_setup_entry(
         "service_auto_tpi_calibrate_capacity",
         supports_response=SupportsResponse.OPTIONAL,
     )
-

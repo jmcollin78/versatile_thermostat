@@ -323,8 +323,8 @@ async def test_power_management_hvac_off(
     # fmt:off
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 50),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 300),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(50)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(300)),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -348,7 +348,7 @@ async def test_power_management_hvac_off(
         assert entity.power_manager.overpowering_state is STATE_UNKNOWN # # due to hvac_off
 
     # Send power max mesurement too low but VThermHvacMode is off
-    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 149))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(149)))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -439,8 +439,8 @@ async def test_power_management_hvac_on(
     # Send power mesurement
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 50),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 300),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(50)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(300)),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -459,7 +459,7 @@ async def test_power_management_hvac_on(
         assert entity.power_manager.overpowering_state is STATE_OFF
 
     # Send power max mesurement too low and VThermHvacMode is on
-    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 49))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(49)))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -500,8 +500,8 @@ async def test_power_management_hvac_on(
         assert mock_heater_off.call_count == 1
 
     # Send power mesurement low to unset power preset
-    side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 48))
-    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 149))
+    side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", str(48)))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(149)))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
         patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
@@ -846,8 +846,8 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
 
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 50),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 49),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(50)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(49)),
         },
         State("unknown.entity_id", "unknown"),
     )

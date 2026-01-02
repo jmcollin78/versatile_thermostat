@@ -316,12 +316,12 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         return self._power_temp
 
     @property
-    def power_sensor_entity_id(self) -> float | None:
+    def power_sensor_entity_id(self) -> str | None:
         """Return the power sensor entity id"""
         return self._power_sensor_entity_id
 
     @property
-    def max_power_sensor_entity_id(self) -> float | None:
+    def max_power_sensor_entity_id(self) -> str | None:
         """Return the max power sensor entity id"""
         return self._max_power_sensor_entity_id
 
@@ -330,5 +330,5 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         """Return the started_vtherm_total_power"""
         return self._started_vtherm_total_power
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "CentralPowerManager"

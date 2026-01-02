@@ -88,11 +88,11 @@ class UnderlyingEntity:
         """Register a callback for cycle start"""
         self._on_cycle_start_callbacks.append(on_start)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._thermostat) + "-" + self._entity_id
 
     @property
-    def entity_id(self):
+    def entity_id(self) -> str:
         """The entity id represented by this class"""
         return self._entity_id
 
@@ -147,7 +147,7 @@ class UnderlyingEntity:
         return NotImplementedError
 
     @property
-    def is_inversed(self):
+    def is_inversed(self) -> bool:
         """Tells if the switch command should be inversed"""
         return False
 
@@ -351,7 +351,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 )
             await (self.turn_on() if self.is_device_active else self.turn_off())
 
-    def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
+    def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str], str]:
         """Build a command and returns a command and a dict as data"""
 
         value = None
@@ -909,21 +909,21 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the fan_modes"""
         if not self.is_initialized:
             return []
-        return self._underlying_climate.fan_modes
+        return self._underlying_climate.fan_modes or []
 
     @property
     def swing_modes(self) -> list[str]:
         """Get the swing_modes"""
         if not self.is_initialized:
             return []
-        return self._underlying_climate.swing_modes
+        return self._underlying_climate.swing_modes or []
 
     @property
     def swing_horizontal_modes(self) -> list[str]:
         """Get the swing_horizontal_modes"""
         if not self.is_initialized:
             return []
-        return self._underlying_climate.swing_horizontal_modes
+        return self._underlying_climate.swing_horizontal_modes or []
 
     @property
     def temperature_unit(self) -> str:
@@ -936,22 +936,22 @@ class UnderlyingClimate(UnderlyingEntity):
     def target_temperature_step(self) -> float:
         """Get the target_temperature_step"""
         if not self.is_initialized:
-            return 1
-        return self._underlying_climate.target_temperature_step
+            return 1.0
+        return self._underlying_climate.target_temperature_step or 1.0
 
     @property
     def target_temperature_high(self) -> float:
         """Get the target_temperature_high"""
         if not self.is_initialized:
-            return 30
-        return self._underlying_climate.target_temperature_high
+            return 30.0
+        return self._underlying_climate.target_temperature_high or 30.0
 
     @property
     def target_temperature_low(self) -> float:
         """Get the target_temperature_low"""
         if not self.is_initialized:
-            return 15
-        return self._underlying_climate.target_temperature_low
+            return 15.0
+        return self._underlying_climate.target_temperature_low or 15.0
 
     @property
     def underlying_target_temperature(self) -> float:
@@ -987,7 +987,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the is_aux_heat"""
         if not self.is_initialized:
             return False
-        return self._underlying_climate.is_aux_heat
+        return self._underlying_climate.is_aux_heat or False
 
     def turn_aux_heat_on(self) -> None:
         """Turn auxiliary heater on."""
@@ -1109,7 +1109,7 @@ class UnderlyingValve(UnderlyingEntity):
         if not force and self._min_open is not None and self._max_open is not None:
             return True
 
-        valve_state: State = self._hass.states.get(self._valve_entity_id)
+        valve_state: State | None = self._hass.states.get(self._valve_entity_id)
         if valve_state is None:
             return False
 

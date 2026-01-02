@@ -31,7 +31,7 @@ class PropAlgorithm:
         cycle_min: int,
         minimal_activation_delay: int,
         minimal_deactivation_delay: int,
-        vtherm_entity_id: str = None,
+        vtherm_entity_id: str | None = None,
         max_on_percent: float = None,
         tpi_threshold_low: float = 0.0,
         tpi_threshold_high: float = 0.0,

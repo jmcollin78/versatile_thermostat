@@ -81,7 +81,7 @@ class FeatureLockManager(BaseFeatureManager):
                 raise HomeAssistantError(f"Lock code validation failed: {code}")
         return True
 
-    def change_lock_state(self, locked: bool, code: str | None = None) -> None:
+    def change_lock_state(self, locked: bool, code: str | None = None) -> bool:
         """Set the internal lock state."""
         if self._validate_lock_code(code):
             self._is_locked = locked

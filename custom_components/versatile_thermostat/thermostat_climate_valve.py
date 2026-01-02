@@ -72,7 +72,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             else 0
         )
 
-        opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
+        opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST, [])
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
         self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
         self._opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
@@ -85,7 +85,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                 int(x.strip()) for x in self._min_opening_degrees.split(",")
             ]
 
-        for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
+        for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST, [])):
             # number of opening should equal number of underlying
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
@@ -310,7 +310,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         else:
             return self._valve_open_percent
 
-    def calculate_hvac_action(self, under_list: list = None) -> HVACAction | None:
+    def calculate_hvac_action(self, under_list: list | None = None) -> HVACAction | None:
         """Returns the current hvac_action by checking all hvac_action of the _underlyings_valve_regulation"""
 
         if self.is_sleeping:

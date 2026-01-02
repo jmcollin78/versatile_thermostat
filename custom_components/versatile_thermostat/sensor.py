@@ -140,7 +140,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_energy"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -195,7 +195,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_mean_power_cycle"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -255,7 +255,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_power_percent"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -311,7 +311,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_icon = "mdi:brain"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
 
         # Verify has_tpi and proportional_algorithm
@@ -369,7 +369,7 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_valve_open_percent"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -415,7 +415,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_on_time"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -464,7 +464,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_off_time"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -513,7 +513,7 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -543,7 +543,7 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -572,7 +572,7 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_temperature_slope"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -629,7 +629,7 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_regulated_temperature"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -680,7 +680,7 @@ class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
         self._attr_unique_id = f"{self._device_name}_ema_temperature"
 
     @callback
-    async def async_my_climate_changed(self, event: Event = None):
+    async def async_my_climate_changed(self, event: Event | None = None):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
@@ -824,14 +824,14 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         # _LOGGER.debug("%s- calculate_nb_active_devices_or_power - the event is %s ", self, event)
 
         if event is not None:
-            new_state: State = event.data.get("new_state")
+            new_state: State | None = event.data.get("new_state")
             # _LOGGER.debug(
             #     "%s - calculate_nb_active_devices_or_power new_state is %s", self, new_state
             # )
             if not new_state:
                 return
 
-            old_state: State = event.data.get("old_state")
+            old_state: State | None = event.data.get("old_state")
 
             # For underlying climate, we need to observe also the hvac_action if available
             new_hvac_action = new_state.attributes.get("hvac_action")
@@ -885,7 +885,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         """Get the list of active device id"""
         return self._attr_active_device_ids
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
     def cancel_listening_nb_active(self):
@@ -980,14 +980,14 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         # _LOGGER.debug("%s- calculate_nb_active_devices_or_power - the event is %s ", self, event)
 
         if event is not None:
-            new_state: State = event.data.get("new_state")
+            new_state: State | None = event.data.get("new_state")
             # _LOGGER.debug(
             #     "%s - calculate_nb_active_devices_or_power new_state is %s", self, new_state
             # )
             if not new_state:
                 return
 
-            old_state: State = event.data.get("old_state")
+            old_state: State | None = event.data.get("old_state")
 
             # For underlying climate, we need to observe also the hvac_action if available
             new_mean_cycle_power = new_state.attributes.get("power_manager", {}).get("mean_cycle_power")
@@ -1039,7 +1039,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         """Get the list of active device id"""
         return self._attr_active_device_ids
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
 
     @overrides

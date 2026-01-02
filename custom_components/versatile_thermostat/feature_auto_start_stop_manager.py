@@ -269,5 +269,5 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         """Returns the is vtherm is stopped and reason is AUTO_START_STOP"""
         return self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"AutoStartStopManager-{self.name}"

@@ -16,7 +16,7 @@ class OpeningClosingDegreeCalculation:
         max_closing_degree: float,
         max_opening_degree: float,
         opening_threshold: float
-    ) -> float:
+    ) -> tuple[int, int]:
         """
         Calculate the opening/closing degree based on parameters. See explanation on README
 

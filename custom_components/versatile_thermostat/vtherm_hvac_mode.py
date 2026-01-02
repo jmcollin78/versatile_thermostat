@@ -36,7 +36,7 @@ class VThermHvacMode:
             hvac_mode = STATE_UNKNOWN
         self._hvac_mode: str = hvac_mode
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._hvac_mode
 
     def __eq__(self, other: object) -> bool:
@@ -45,7 +45,7 @@ class VThermHvacMode:
         else:
             return self._hvac_mode == str(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"[VThermHvacMode: {self._hvac_mode}]"
 
     def to_json(self) -> str:

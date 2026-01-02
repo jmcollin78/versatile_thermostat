@@ -353,8 +353,8 @@ async def test_bug_407(
     # 1. An already active heater will not switch to overpowering
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 100),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 110),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(100)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(110)),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -425,7 +425,7 @@ async def test_bug_407(
 
     # 3. Evenif heater is stopped (is_device_active==False) and power is over max, then overpowering should be started
     # due to check before start heating
-    side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 150))
+    side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", str(150)))
     with patch(
         "homeassistant.core.ServiceRegistry.async_call"
     ) as mock_service_call, patch(

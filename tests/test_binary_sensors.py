@@ -172,8 +172,8 @@ async def test_overpowering_binary_sensors(
     # Send power mesurement
     side_effects = SideEffects(
         {
-            "sensor.the_power_sensor": State("sensor.the_power_sensor", 150),
-            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", 100),
+            "sensor.the_power_sensor": State("sensor.the_power_sensor", str(150)),
+            "sensor.the_max_power_sensor": State("sensor.the_max_power_sensor", str(100)),
         },
         State("unknown.entity_id", "unknown"),
     )
@@ -192,7 +192,7 @@ async def test_overpowering_binary_sensors(
         assert overpowering_binary_sensor.state == STATE_ON
 
     # set max power to a low value
-    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 251))
+    side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", str(251)))
     # fmt:off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
     # fmt: on

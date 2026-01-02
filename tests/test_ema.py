@@ -22,6 +22,7 @@ def test_ema_basics(hass: HomeAssistant):
         # Needed for time calculation
         get_tz(hass),
         1,
+        0.5
     )
 
     assert the_ema

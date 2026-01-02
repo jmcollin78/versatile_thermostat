@@ -55,9 +55,9 @@ class FeatureMotionManager(BaseFeatureManager):
         """Init of a featureManager"""
         super().__init__(vtherm, hass)
         self._motion_state: str = STATE_UNAVAILABLE
-        self._motion_sensor_entity_id: str = None
-        self._motion_delay_sec: int | None = 0
-        self._motion_off_delay_sec: int | None = 0
+        self._motion_sensor_entity_id: str | None = None
+        self._motion_delay_sec: int = 0
+        self._motion_off_delay_sec: int = 0
         self._motion_preset: str | None = None
         self._no_motion_preset: str | None = None
         self._is_configured: bool = False
@@ -239,7 +239,7 @@ class FeatureMotionManager(BaseFeatureManager):
             _LOGGER.debug("%s - Event ignored cause i'm already on", self)
             return None
 
-    async def update_motion_state(self, new_state: str = None) -> bool:  # , recalculate: bool = True) -> bool:
+    async def update_motion_state(self, new_state: str | None = None) -> bool:  # , recalculate: bool = True) -> bool:
         """Update the value of the motion sensor and update the VTherm state accordingly
         Return true if a change has been made"""
 
@@ -307,29 +307,29 @@ class FeatureMotionManager(BaseFeatureManager):
         ]
 
     @property
-    def motion_sensor_entity_id(self) -> bool:
+    def motion_sensor_entity_id(self) -> str:
         """Return true if the motion is configured and motion sensor is OFF"""
         return self._motion_sensor_entity_id
 
     @property
-    def motion_delay_sec(self) -> bool:
+    def motion_delay_sec(self) -> int | None:
         """Return the motion delay"""
         return self._motion_delay_sec
 
     @property
-    def motion_off_delay_sec(self) -> bool:
+    def motion_off_delay_sec(self) -> int | None:
         """Return motion delay off"""
         return self._motion_off_delay_sec
 
     @property
-    def motion_preset(self) -> bool:
+    def motion_preset(self) -> str | None:
         """Return motion preset"""
         return self._motion_preset
 
     @property
-    def no_motion_preset(self) -> bool:
+    def no_motion_preset(self) -> str | None:
         """Return no motion preset"""
         return self._no_motion_preset
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"MotionManager-{self.name}"
