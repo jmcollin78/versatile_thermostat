@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class BaseFeatureManager:
     """A base class for all feature"""
 
-    def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
+    def __init__(self, vtherm: Any, hass: HomeAssistant, name: str | None = None):
         """Init of a featureManager"""
         self._vtherm = vtherm
         self._name = vtherm.name if vtherm else name

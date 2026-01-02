@@ -4,7 +4,7 @@ This class manages both the current and the requested state of a VTherm.
 """
 
 import logging
-from typing import Optional, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any
 from .const import (
     HVAC_OFF_REASON_SAFETY,
     HVAC_OFF_REASON_MANUAL,
@@ -54,12 +54,12 @@ class StateManager:
         self._requested_state = VThermState(hvac_mode=VThermHvacMode_OFF, preset=VThermPreset.NONE)
 
     @property
-    def current_state(self) -> Optional[VThermState]:
+    def current_state(self) -> VThermState | None:
         """Get or set the current state."""
         return self._current_state
 
     @property
-    def requested_state(self) -> Optional[VThermState]:
+    def requested_state(self) -> VThermState | None:
         """Get or set the requested state."""
         return self._requested_state
 

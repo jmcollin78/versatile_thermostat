@@ -874,7 +874,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._state_manager.current_state.target_temperature
 
     @property
-    def supported_features(self) -> ClimateEntityFeature:
+    def supported_features(self) -> ClimateEntityFeature | None:
         """Return the list of supported features."""
         return self._support_flags
 
@@ -1534,7 +1534,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         raise NotImplementedError()
 
-    def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
+    def calculate_hvac_action(self, _: list | None = None) -> HVACAction | None:
         """Calculate the HVAC action based on the current state and underlying devices"""
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             action = HVACAction.OFF

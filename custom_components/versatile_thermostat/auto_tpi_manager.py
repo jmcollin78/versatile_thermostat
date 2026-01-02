@@ -5,7 +5,6 @@ import json
 import os
 import math
 from datetime import datetime, timedelta
-from typing import Optional
 from homeassistant.util.unit_conversion import TemperatureConverter
 from homeassistant.const import UnitOfTemperature
 from dataclasses import dataclass, asdict, field
@@ -76,11 +75,11 @@ class AutoTpiState:
     last_state: str = "stop"  # 'heat', 'cool', 'stop'
     previous_state: str = "stop"  # State of the previous cycle
     last_on_temp_in: float = 0.0  # Temp at the end of ON time
-    last_update_date: Optional[datetime] = None
-    last_heater_stop_time: Optional[datetime] = None  # When heater stopped
+    last_update_date: datetime | None = None
+    last_heater_stop_time: datetime | None = None  # When heater stopped
 
     # Cycle management
-    cycle_start_date: Optional[datetime] = None  # Start of current cycle
+    cycle_start_date: datetime | None = None  # Start of current cycle
     cycle_active: bool = False
     current_cycle_cold_factor: float = 0.0  # 1.0 = cold, 0.0 = hot
 
@@ -92,7 +91,7 @@ class AutoTpiState:
     consecutive_boosts: int = 0  # Track consecutive boost attempts
     recent_errors: list = field(default_factory=list)  # Store last N errors for regime change detection
     regime_change_detected: bool = False  # Flag for temporary alpha boost
-    learning_start_date: Optional[datetime] = None  # Date when learning started
+    learning_start_date: datetime | None = None  # Date when learning started
     
     # Optional features configuration
     allow_kint_boost: bool = False
@@ -182,8 +181,8 @@ class AutoTpiManager:
         self._keep_ext_learning = keep_ext_learning
 
         # Notification management
-        self._last_notified_coef_int: Optional[float] = None
-        self._last_notified_coef_ext: Optional[float] = None
+        self._last_notified_coef_int: float | None = None
+        self._last_notified_coef_ext: float | None = None
 
         storage_key = f"{STORAGE_KEY_PREFIX}.{unique_id.replace('.', '_')}"
         self._store = Store(hass, STORAGE_VERSION, storage_key)
@@ -271,7 +270,7 @@ class AutoTpiManager:
 
         _LOGGER.info("%s - Auto TPI: Updated config capacity for %s mode: Capacity=%.3f", self._name, "heat" if is_heat_mode else "cool", capacity)
 
-    async def process_learning_completion(self, current_params: dict) -> Optional[dict]:
+    async def process_learning_completion(self, current_params: dict) -> dict | None:
         """
         Processes the learned coefficients after a cycle to:
         1. Check if learning is finished/stabilized.
@@ -488,7 +487,7 @@ class AutoTpiManager:
 
         return self.calculate_power(self._current_target_temp, self._current_temp_in, self._current_temp_out, calc_state_str)
 
-    async def calculate(self) -> Optional[dict]:
+    async def calculate(self) -> dict | None:
         """Return the current calculated TPI parameters."""
         # Return current coefficients for the thermostat to use
         params = {}
@@ -814,7 +813,7 @@ class AutoTpiManager:
         self.state.last_learning_status = f"no_learning_possible(progress={temp_progress:.2f},target_diff={target_diff:.2f},gap_in={gap_in:.2f})"
         _LOGGER.debug("%s - Auto TPI: No learning possible - %s", self._name, self.state.last_learning_status)
 
-    def _learn_indoor(self, delta_theoretical: float, delta_real: float, efficiency: float = 1.0, is_cool: bool = False) -> Optional[float]:
+    def _learn_indoor(self, delta_theoretical: float, delta_real: float, efficiency: float = 1.0, is_cool: bool = False) -> float | None:
         """Learn indoor coefficient and return the learning error (expected_rise - actual_rise) if successful."""
 
         real_rise = delta_real
@@ -1511,7 +1510,7 @@ class AutoTpiManager:
 
         return [v for v in values if lower_bound <= v <= upper_bound]
 
-    def _interpolate_power_at(self, target_dt: datetime, power_history: list, start_idx: int = 0, tolerance_seconds: float = 120.0) -> tuple[Optional[float], int]:
+    def _interpolate_power_at(self, target_dt: datetime, power_history: list, start_idx: int = 0, tolerance_seconds: float = 120.0) -> tuple[float | None, int]:
         """
         Find the power value closest to target_dt within tolerance.
         Returns a tuple (power percentage, next index to search from).
@@ -1564,8 +1563,8 @@ class AutoTpiManager:
         power_history: list,
         min_power_threshold: float = 0.95,
         kext_coeff: float = 0.0,
-        current_indoor_temp: Optional[float] = None,
-        current_outdoor_temp: Optional[float] = None,
+        current_indoor_temp: float | None = None,
+        current_outdoor_temp: float | None = None,
     ) -> dict:
         """
         Calculate ADIABATIC capacity using temperature_slope and power_percent sensor histories.

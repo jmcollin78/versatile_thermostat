@@ -12,7 +12,7 @@ Attributes:
 """
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Any
 
 from .vtherm_hvac_mode import VThermHvacMode
 from .vtherm_preset import VThermPreset
@@ -25,22 +25,22 @@ class VThermState:
     attributes individually via properties. to_dict / from_dict help (de)serialization.
     """
 
-    def __init__(self, hvac_mode: Any, target_temperature: Optional[float] = None, preset: Optional[VThermPreset] = None) -> None:
+    def __init__(self, hvac_mode: Any, target_temperature: float | None = None, preset: VThermPreset | None = None) -> None:
         if preset is not None and not isinstance(preset, str):
             raise ValueError(f"Invalid preset: {preset}. Should be an instance of VThermPreset.")
 
         self._hvac_mode: VThermHvacMode = hvac_mode if isinstance(hvac_mode, VThermHvacMode) else VThermHvacMode(str(hvac_mode))
-        self._target_temperature: Optional[float] = target_temperature
-        self._preset: Optional[VThermPreset] = preset
+        self._target_temperature: float | None = target_temperature
+        self._preset: VThermPreset | None = preset
         self._is_hvac_mode_changed: bool = True
         self._is_target_temperature_changed: bool = True
         self._is_preset_changed: bool = True
 
     def set_state(
         self,
-        hvac_mode: Optional[VThermHvacMode] = None,
-        target_temperature: Optional[float] = None,
-        preset: Optional[VThermPreset] = None,
+        hvac_mode: VThermHvacMode | None = None,
+        target_temperature: float | None = None,
+        preset: VThermPreset | None = None,
     ) -> None:
         """Update only the attributes provided (not None).
 
@@ -68,7 +68,7 @@ class VThermState:
         self._is_hvac_mode_changed = self._is_hvac_mode_changed or self._hvac_mode != hvac_mode
         self._hvac_mode = hvac_mode
 
-    def set_target_temperature(self, target_temperature: Optional[float]) -> None:
+    def set_target_temperature(self, target_temperature: float | None) -> None:
         """Set the target temperature only.
 
         Args:
@@ -77,7 +77,7 @@ class VThermState:
         self._is_target_temperature_changed = self._is_target_temperature_changed or self._target_temperature != target_temperature
         self._target_temperature = target_temperature
 
-    def set_preset(self, preset: Optional[VThermPreset]) -> None:
+    def set_preset(self, preset: VThermPreset | None) -> None:
         """Set the preset only.
 
         Args:
@@ -101,12 +101,12 @@ class VThermState:
         return self._hvac_mode
 
     @property
-    def target_temperature(self) -> Optional[float]:
+    def target_temperature(self) -> float | None:
         """Get or set the current target temperature."""
         return self._target_temperature
 
     @property
-    def preset(self) -> Optional[VThermPreset]:
+    def preset(self) -> VThermPreset | None:
         """Get or set the current preset."""
         return self._preset
 
