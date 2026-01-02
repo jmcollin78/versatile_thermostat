@@ -279,15 +279,15 @@
         }
       },
       "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-sync_device_temp.md)",
+        "title": "Synchronizuj wewnętrzną temperaturę urządzenia",
+        "description": "Konfiguracja umożliwiająca synchronizację temperatury wewnętrznej urządzeń bazowych z wybranymi encjami&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-sync_device_temp.md)",
         "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
+          "sync_with_calibration": "Zastosuj kalibrację offsetu",
+          "sync_entity_ids": "Identyfikatory encji używanych w synchronizacji"
         },
         "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+          "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji.",
+          "sync_entity_ids": "Lista encji używanych do synchronizacji temperatury wewnętrznej urządzeń bazowych. Każde urządzenie bazowe musi mieć jedną taką encję. Jeśli pole wyboru jest zaznaczone, powinna to być encja kalibracji. W przeciwnym razie powinna to być encja temperatury. Obie encje mają typ numeryczny `number`."
         }
       }
     },
