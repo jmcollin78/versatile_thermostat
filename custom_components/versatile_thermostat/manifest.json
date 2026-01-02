@@ -9,7 +9,6 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  
   "documentation": "https://github.com/jmcollin78/versatile_thermostat",
   "homekit": {},
   "integration_type": "device",
@@ -21,6 +20,6 @@
     "scipy"
   ],
   "ssdp": [],
-  "version": "8.4.0",
+  "version": "8.4.2",
   "zeroconf": []
 }
