@@ -111,6 +111,16 @@ To ensure learning data is valid, cycles are invalidated (learning skipped) in s
     -   This breaks the correlation between "Heat Mode ON" and "Temperature Rise".
     -   **Result**: The `BaseThermostat` explicitly flags this state to `AutoTpiManager`. Any cycle containing a Power Shedding event is marked as `interrupted` and **learning is skipped**.
 
+#### 2.3. Near-Field vs Far-Field Learning Separation
+
+The learning process is designed to separate the responsibilities of `Kint` (near-field, dynamic response) and `Kext` (far-field, equilibrium losses) to ensure robustness and prevent misattribution of errors.
+
+*   **Case 1: Indoor Coefficient**. This is the primary learning mechanism. It adjusts `CoeffInt` based on the actual temperature rise versus the expected rise.
+    *   **Important**: Indoor coefficient learning is **blocked** if the temperature gap is too small (< 0.05°C). This prevents `Kint` from overreacting to minor fluctuations when the system is near the setpoint.
+*   **Case 2: Outdoor Coefficient**. If indoor learning was not possible and the temperature gap is significant (> 0.1°C), it adjusts `CoeffExt` to compensate for losses.
+    *   **Important**: Outdoor coefficient learning is **blocked** if the temperature gap is too large (> 0.5°C). This ensures that `Kext` (which represents equilibrium losses) is not skewed by ramp-up dynamic issues (which are the responsibility of `Kint`).
+*   **Case 3: Rapid Corrections (Boost/Deboost)**. In parallel, the system monitors critical anomalies:
+
 #### 2.5. Constantes Configurables
 
 Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py` et contrôlent le comportement de l'algorithme :
@@ -121,7 +131,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `OVERSHOOT_THRESHOLD` | 0.2°C | Seuil de dépassement de température pour déclencher la correction agressive de Kext |
 | `OVERSHOOT_POWER_THRESHOLD` | 0.05 (5%) | Puissance minimale pour considérer le dépassement comme une erreur de Kext |
 | `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |
-| `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.3°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
+| `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.5°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
 | `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
 | `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Nombre maximum de boosts Kint consécutifs avant avertissement (chauffage sous-dimensionné) |
 
@@ -159,7 +169,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 **Activation :** Cette correction est optionnelle et doit être activée via le service `set_auto_tpi_mode` (paramètre `allow_kint_boost_on_stagnation`).
 
 **Conditions de déclenchement :**
-1.  **Écart significatif** : `target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD` (0.3°C par défaut)
+1.  **Écart significatif** : `target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD` (0.5°C par défaut)
 2.  **Température stagnante** : `temp_progress < 0.02°C` (la température n'a pas augmenté pendant le cycle)
 3.  **Puissance non saturée** : `power < 0.99` (le système peut encore augmenter la puissance)
 4.  **Limite non atteinte** : `consecutive_boosts < MAX_CONSECUTIVE_KINT_BOOSTS` (5 par défaut)
@@ -344,9 +354,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 ---
 
-## 6. Persistance et Restauration
 
-## 5. Persistance et Restauration
 
 *   **Fichier** : `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 *   **Version** : 8
@@ -391,7 +399,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   Cette méthode n'est plus exposée comme un service externe. Elle est utilisée en interne si un reset complet était nécessaire.
     *   **Action** : Réinitialisation complète de l'état d'apprentissage (`AutoTpiState`), incluant coefficients, compteurs, et capacités.
 *   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
-    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
+    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `True`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
         *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**.
         *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé.

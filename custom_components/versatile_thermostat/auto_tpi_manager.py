@@ -39,7 +39,8 @@ MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
-INSUFFICIENT_RISE_GAP_THRESHOLD = 0.3  # Min gap (°C) to trigger Kint correction when temp stagnates
+KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
+INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
 
@@ -789,7 +790,17 @@ class AutoTpiManager:
         gap_threshold = 0.05
 
         if outdoor_condition and abs(gap_in) > gap_threshold:
-            if self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
+            # Domain Separation: Far-Field vs Near-Field
+            # If the gap is large (> KEXT_LEARNING_MAX_GAP), it's a transient state (Kint domain).
+            # Kext (Steady State) should only be learned in Near-Field.
+            if abs(gap_in) > KEXT_LEARNING_MAX_GAP:
+                self.state.last_learning_status = f"gap_too_large_for_outdoor(gap={gap_in:.2f} > {KEXT_LEARNING_MAX_GAP})"
+                _LOGGER.debug(
+                    "%s - Auto TPI: Skipping outdoor learning: Gap %.2f > %.2f - Far field stagnation is a Kint/Capacity issue, not Kext.",
+                    self._name, abs(gap_in), KEXT_LEARNING_MAX_GAP
+                )
+                return
+            elif self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
                 self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
                 _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
                 self._learning_just_completed = True
@@ -2153,7 +2164,7 @@ class AutoTpiManager:
         coef_int: float = None,
         coef_ext: float = None,
         reset_data: bool = True,
-        allow_kint_boost: bool = False,
+        allow_kint_boost: bool = True,
         allow_kext_overshoot: bool = False,
     ):
         """Start learning, optionally resetting coefficients and learning data.
