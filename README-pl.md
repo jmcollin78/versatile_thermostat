@@ -26,9 +26,11 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
-## Wydanie 8.4 (eksperymentalne)
-> 1. Dodanie funkcji automatyzacji algorytmu TPI. Ta nowa funkcja ma na celu automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj _(chwilowo tylko w jęz. francuskim)_](./auto_tpi_internal_doc.md).
+## Wydanie 8.4
+> 1. Dodanie eksperymentalnej funkcji automatyzacji algorytmu TPI. Ta nowa funkcja pozwala na automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj _(chwilowo tylko w jęz. francuskim)_](./auto_tpi_internal_doc.md).
 > 2. Dodanie funkcji synchronizacji temperatury dla urządzenia sterowanego w trybie `na_klimacie`. W zależności od możliwości urządzenia, _VTherm_ może sterować jednostką kalibracji offsetu lub bezpośrednio zewnętrzną encją temperatury. Więcej informacji [tutaj](documentation/pl/feature-sync_device_temp.md).
+> 3. Dodanie funkcji o nazwie „timed preset”, która umożliwia wybranie presetu na z góry określony czas i powrót do poprzedniego po upływie wkazanego opóźnienia. Nowa funkcja jest opisana [tutaj](documentation/pl/feature-timed-preset.md).
+>
 
 ## Wydanie 8.3
 > 1. Dodanie konfigurowalnego opóźnienia przed załączeniem kotła centralnego.
