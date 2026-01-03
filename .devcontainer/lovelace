@@ -776,10 +776,6 @@
                       "hours_to_show": 1
                     }
                   ]
-                },
-                {
-                  "type": "markdown",
-                  "content": "Auto-tpi attributes:\n\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.state }}\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.attributes | tojson(indent=4)}}"
                 }
               ]
             },
