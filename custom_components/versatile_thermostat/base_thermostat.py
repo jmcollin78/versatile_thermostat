@@ -1327,11 +1327,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     self.send_event(EventType.PRESET_EVENT, {"preset": self.preset_mode})
                     if self.preset_mode not in HIDDEN_PRESETS:
                         self._attr_preset_mode = self.preset_mode
+                    # Reset auto_start_stop switch delay to allow immediate restart when preset changes
+                    if self.auto_start_stop_manager:
+                        self.auto_start_stop_manager.reset_switch_delay()
 
                 # Apply temperature
                 if self._state_manager.current_state.is_target_temperature_changed:
                     _LOGGER.info("%s - Applying new target temperature: %s", self, self.target_temperature)
                     self._attr_target_temperature = self.target_temperature
+                    # Reset auto_start_stop switch delay to allow immediate restart when target temp changes
+                    if self.auto_start_stop_manager:
+                        self.auto_start_stop_manager.reset_switch_delay()
 
                 # Apply hvac_mode
                 if self._state_manager.current_state.is_hvac_mode_changed:

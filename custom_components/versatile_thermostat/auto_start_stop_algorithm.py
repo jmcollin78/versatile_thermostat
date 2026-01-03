@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Literal
 
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_HEAT, VThermHvacMode_COOL
 
 from .const import (
     AUTO_START_STOP_LEVEL_NONE,
@@ -286,6 +286,18 @@ class AutoStartStopDetectionAlgorithm:
     def set_level(self, level: TYPE_AUTO_START_STOP_LEVELS):
         """Set a new level"""
         self._init_level(level)
+
+    def reset_switch_delay(self):
+        """Reset the switch delay to allow immediate restart.
+        Should be called when target temperature changes significantly (preset change, manual temp change).
+        This prevents the VTherm from staying off when the user explicitly requests a higher temperature.
+        """
+        _LOGGER.debug("%s - Resetting switch delay to allow immediate start/stop", self)
+        self._last_switch_date = None
+        # Also reset _last_calculation_date to allow immediate recalculation
+        # This is needed because the check for too-rapid calculations would otherwise
+        # ignore the next call if it happens within 24 seconds
+        self._last_calculation_date = None
 
     @property
     def dt_min(self) -> float:
