@@ -246,13 +246,16 @@
                 {
                   "type": "custom:versatile-thermostat-ui-card",
                   "entity": "climate.multi_climate",
-                  "autoStartStopEnableEntity": "switch.multi_climate_enable_auto_start_stop"
+                  "autoStartStopEnableEntity": "switch.multi_climate_enable_auto_start_stop",
+                  "disable_timed_preset": false,
+                  "use_timed_preset_select": true
                 },
                 {
                   "type": "custom:versatile-thermostat-ui-card",
                   "entity": "climate.sonoff_trvzb",
                   "set_current_as_main": true,
-                  "disable_circle": true
+                  "disable_circle": true,
+                  "use_manual_duration_input": true
                 },
                 {
                   "type": "vertical-stack",
@@ -2604,6 +2607,12 @@
                         },
                         {
                           "entity": "sensor.total_power_active_for_boiler"
+                        },
+                        {
+                          "entity": "sensor.sonoff_trvzb_mean_power_cycle"
+                        },
+                        {
+                          "entity": "sensor.sonoff_trvzb_energy"
                         }
                       ],
                       "state_color": true

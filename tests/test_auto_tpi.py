@@ -198,6 +198,9 @@ async def test_perform_learning_indoor(manager):
     # Mock capability to ensure we use max_capacity
     manager._use_capacity_as_rate = True
     
+    # Initialize current target temp to match last_order so it doesn't detect a setpoint change
+    manager._current_target_temp = manager.state.last_order
+
     await manager._perform_learning(current_temp_in, current_temp_out)
     
     assert manager.state.last_learning_status.startswith("learned_indoor")

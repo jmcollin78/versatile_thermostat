@@ -147,7 +147,12 @@ L'Auto TPI fonctionne de manière cyclique :
     *   **Chaudière Centrale** : Si le thermostat dépend d'une chaudière centrale, l'apprentissage est suspendu si la chaudière n'est pas activée (même si le thermostat est en demande).
 3.  **Calcul (Apprentissage)** :
     *   **Cas 1 : Coefficient Intérieur**. Si la température a évolué dans le bon sens de manière significative (> 0.05°C), il calcule le ratio entre l'évolution réelle **(sur l'ensemble du cycle, inertie incluse)** et l'évolution théorique attendue (corrigée par la capacité calibrée). Il ajuste `CoeffInt` pour réduire l'écart.
-    *   **Cas 2 : Coefficient Extérieur**. Si l'apprentissage intérieur n'a pas été possible (conditions non remplies ou échec) et que l'apprentissage extérieur est pertinent (écart de température significatif > 0.1°C), il ajuste `CoeffExt` **progressivement** pour compenser les pertes thermiques. La formule permet à ce coefficient d'augmenter ou de diminuer selon les besoins pour atteindre l'équilibre.
+    *   **Cas 2 : Coefficient Extérieur**. Si l'apprentissage intérieur n'a pas été possible et que l'écart de température est significatif (> 0.1°C), il ajuste `CoeffExt` pour compenser les pertes.
+        *   **Important** : L'apprentissage du coefficient extérieur est **bloqué** si l'écart de température est trop important (> 0.5°C). Cela garantit que `Kext` (qui représente les pertes à l'équilibre) n'est pas faussé par des problèmes de dynamique de montée en température (qui relèvent de `Kint`).
+    *   **Cas 3 : Corrections Rapides (Boost/Deboost)**. En parallèle, le système surveille les anomalies critiques :
+        *   **Boost Kint** : Si la température stagne malgré une demande de chauffe, le coefficient intérieur est boosté. (Optionnel via `allow_kint_boost_on_stagnation`)
+        *   **Deboost Kext** : Si la température dépasse la consigne et ne redescend pas, le coefficient extérieur est réduit. (Optionnel via `allow_kext_compensation_on_overshoot`)
+        *   *Ces corrections sont pondérées par la confiance du modèle : plus le système a d'historique (cycles d'apprentissage), plus les corrections sont modérées pour éviter de déstabiliser un modèle fiable.*
 4.  **Mise à jour** : Les nouveaux coefficients sont lissés et sauvegardés pour le cycle suivant.
 
 ### Sécurité d'Activation
@@ -169,6 +174,8 @@ Un capteur dédié `sensor.<nom_thermostat>_auto_tpi_learning_state` permet de s
 *   `last_learning_status` : Raison du dernier succès ou échec (ex: `learned_indoor_heat`, `power_out_of_range`).
 *   `calculated_coef_int` / `calculated_coef_ext` : Valeurs actuelles des coefficients.
 *   `learning_start_dt`: Date et heure du début de l'apprentissage (utile pour les graphiques).
+*   `allow_kint_boost_on_stagnation` : Indique si le boost de Kint en cas de stagnation est activé.
+*   `allow_kext_compensation_on_overshoot` : Indique si la correction de Kext en cas d'overshoot est activée.
 
 ## Services
 
@@ -218,6 +225,8 @@ Ce service permet de contrôler l'apprentissage Auto TPI sans passer par la conf
 |-----------|------|--------|-------------|
 | `auto_tpi_mode` | boolean | - | Active (`true`) ou désactive (`false`) l'apprentissage |
 | `reinitialise` | boolean | `true` | Contrôle la réinitialisation des données lors de l'activation |
+| `allow_kint_boost_on_stagnation` | boolean | `true` | Autorise le boost de Kint en cas de stagnation de température |
+| `allow_kext_compensation_on_overshoot` | boolean | `false` | Autorise la compensation de Kext en cas de dépassement (overshoot) |
 
 #### Comportement du paramètre `reinitialise`
 

@@ -287,6 +287,67 @@ async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     assert ret is True
 
 
+async def test_auto_start_stop_reset_switch_delay(hass: HomeAssistant):
+    """Test that reset_switch_delay allows immediate restart.
+    This test simulates the bug where VTherm stays OFF when preset changes
+    because nb_minutes_since_last_switch < dt_min.
+    """
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
+        AUTO_START_STOP_LEVEL_FAST, "testu"
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    assert algo._dt == 7  # FAST level has dt_min = 7 minutes
+
+    # 1. First stop the VTherm (simulate auto-stop)
+    algo._accumulated_error = -100
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        target_temp=17,  # ECO preset
+        current_temp=20,  # Current temp is above target
+        slope_min=0.1,
+        now=now,
+    )
+    assert ret is True
+    assert algo.last_switch_date == now
+    last_switch = now
+
+    # 2. Now simulate a preset change from ECO (17°) to BOOST (21°) just 2 minutes later
+    # Without reset_switch_delay, this would NOT restart because 2 < 7 (dt_min)
+    now = now + timedelta(minutes=2)
+    algo._accumulated_error = 100  # Reset to positive to simulate need for heating
+
+    # Without reset, should_be_turned_off should still return True (stay OFF)
+    # because nb_minutes_since_last_switch (2) < dt_min (7)
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        target_temp=21,  # BOOST preset
+        current_temp=19,  # Current temp is now below target
+        slope_min=-0.1,
+        now=now,
+    )
+    # BUG: Without the fix, ret would still be True (stays OFF) because dt_min delay not reached
+    assert ret is True
+    assert algo.last_switch_date == last_switch  # No change in switch date
+
+    # 3. Now call reset_switch_delay (simulating what happens when preset changes)
+    algo.reset_switch_delay()
+    assert algo.last_switch_date is None
+
+    # 4. Now should_be_turned_off should return False (restart) immediately
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        target_temp=21,  # BOOST preset
+        current_temp=19,  # Current temp is below target
+        slope_min=-0.1,
+        now=now,
+    )
+    assert ret is False  # Should restart because dt_min delay is bypassed
+    assert algo.last_switch_date == now  # Switch date updated
+
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.skip(reason="Disabled because it fails sometimes in CI")

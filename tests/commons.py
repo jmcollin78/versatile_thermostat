@@ -736,7 +736,7 @@ async def create_central_config(  # pylint: disable=dangerous-default-value
 def search_entity(hass: HomeAssistant, entity_id, domain) -> Any | None:
     """Search and return the entity in the domain"""
     component = hass.data[domain]
-    for entity in component.entities:
+    for entity in list(component.entities):
         _LOGGER.debug("Found %s entity: %s", domain, entity.entity_id)
         if entity.entity_id == entity_id:
             return entity

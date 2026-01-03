@@ -3,8 +3,9 @@
 """ Underlying entities classes """
 import logging
 import re
-from typing import Any, Dict, List, Tuple, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
+from datetime import datetime, timedelta
 
 from enum import StrEnum
 
@@ -13,7 +14,7 @@ from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
 
-from homeassistant.core import HomeAssistant, CALLBACK_TYPE
+from homeassistant.core import HomeAssistant, CALLBACK_TYPE, Context, ServiceResponse
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -40,7 +41,6 @@ from custom_components.versatile_thermostat.opening_degree_algorithm import Open
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
-from .commons import round_to_nearest
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +81,7 @@ class UnderlyingEntity:
         self._entity_id: str = entity_id
         self._hvac_mode: VThermHvacMode | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
+        self._last_command_sent_datetime: datetime = datetime.fromtimestamp(0)
 
     def register_cycle_callback(self, on_start: Callable):
         """Register a callback for cycle start"""
@@ -178,6 +179,22 @@ class UnderlyingEntity:
         """Call the method after a delay"""
         return async_call_later(hass, delay_sec, called_method)
 
+    async def hass_services_async_call(
+        self,
+        domain: str,
+        service: str,
+        service_data: dict[str, Any] | None = None,
+        blocking: bool = False,
+        context: Context | None = None,
+        target: dict[str, Any] | None = None,
+        return_response: bool = False,
+    ) -> ServiceResponse:
+        """Wrapper for HASS service calls"""
+        reponse: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
+
+        self._last_command_sent_datetime = self._thermostat.now
+        return reponse
+
     async def start_cycle(
         self,
         hvac_mode: VThermHvacMode,
@@ -218,7 +235,7 @@ class UnderlyingEntity:
             data = {"value": value}
             target = {ATTR_ENTITY_ID: number_entity_id}
             domain = number_entity_id.split(".")[0]
-            await self._hass.services.async_call(
+            await self.hass_services_async_call(
                 domain=domain,
                 service=SERVICE_SET_VALUE,
                 service_data=data,
@@ -600,13 +617,17 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_type=UnderlyingEntityType.CLIMATE,
             entity_id=climate_entity_id,
         )
-        self._underlying_climate = None
-        self._last_sent_temperature = None
+        self._underlying_climate: Optional[ClimateEntity] = None
+        self._last_sent_temperature: Optional[float] = None
+        self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
+        self._min_sync_entity: float = None
+        self._max_sync_entity: float = None
+        self._step_sync_entity: float = None
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
         component: EntityComponent[ClimateEntity] = self._hass.data[CLIMATE_DOMAIN]
-        for entity in component.entities:
+        for entity in list(component.entities):
             if self.entity_id == entity.entity_id:
                 return entity
         return None
@@ -655,7 +676,7 @@ class UnderlyingClimate(UnderlyingEntity):
             return False
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
             data,
@@ -679,16 +700,39 @@ class UnderlyingClimate(UnderlyingEntity):
         """Set new target fan mode."""
         if not self.is_initialized:
             return
+
         data = {
             ATTR_ENTITY_ID: self._entity_id,
             "fan_mode": fan_mode,
         }
 
-        await self._hass.services.async_call(
-            CLIMATE_DOMAIN,
-            SERVICE_SET_FAN_MODE,
-            data,
+        if self._cancel_set_fan_mode_later:
+            self._cancel_set_fan_mode_later()
+            self._cancel_set_fan_mode_later = None
+
+        delay: float = 2.0
+        if self._thermostat.now > self._last_command_sent_datetime + timedelta(seconds=delay):
+            await self.hass_services_async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_FAN_MODE,
+                data,
+            )
+
+            return
+
+        # Add a delay if last command was sent less than delay seconds ago
+        # Some AC units (e.g. Daikin) do not handle multiple consecutive commands well
+        _LOGGER.debug(
+            "%s - #1458 - Delaying command set_fan_mode for underlying %s by %.2fs",
+            self,
+            self._entity_id,
+            delay,
         )
+
+        async def callback_set_fan_mode(_):
+            await self.set_fan_mode(fan_mode)
+
+        self._cancel_set_fan_mode_later = async_call_later(self._hass, delay, callback_set_fan_mode)
 
     async def set_humidity(self, humidity: int):
         """Set new target humidity."""
@@ -700,7 +744,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "humidity": humidity,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HUMIDITY,
             data,
@@ -716,7 +760,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "swing_mode": swing_mode,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_MODE,
             data,
@@ -732,7 +776,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "swing_horizontal_mode": swing_horizontal_mode,
         }
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_SWING_HORIZONTAL_MODE,
             data,
@@ -763,7 +807,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if ClimateEntityFeature.TARGET_TEMPERATURE in self._underlying_climate.supported_features:
             data["temperature"] = target_temp
 
-        await self._hass.services.async_call(
+        await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_TEMPERATURE,
             data,
@@ -998,6 +1042,32 @@ class UnderlyingClimate(UnderlyingEntity):
 
         return new_value
 
+    def set_min_max_step_sync_entity(
+        self,
+        min_sync_entity: float,
+        max_sync_entity: float,
+        step_sync_entity: float,
+    ):
+        """Set the min, max and step for the offset calibration synchronization"""
+        self._min_sync_entity = min_sync_entity
+        self._max_sync_entity = max_sync_entity
+        self._step_sync_entity = step_sync_entity
+
+    @property
+    def min_sync_entity(self) -> float:
+        """Get the min sync entity"""
+        return self._min_sync_entity
+
+    @property
+    def max_sync_entity(self) -> float:
+        """Get the max sync entity"""
+        return self._max_sync_entity
+
+    @property
+    def step_sync_entity(self) -> float:
+        """Get the step sync entity"""
+        return self._step_sync_entity
+
 
 class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -1069,6 +1139,18 @@ class UnderlyingValve(UnderlyingEntity):
 
         valve_state: State = self._hass.states.get(self._valve_entity_id)
         if valve_state is None:
+            return False
+
+        # Initialize percent_open to current state
+        try:
+            self._percent_open = self._last_sent_opening_value = float(valve_state.state)
+        except (ValueError, TypeError):
+            _LOGGER.warning(
+                "%s - Cannot initialize percent_open from underlying entity %s state=%s. Maybe normal at startup",
+                self,
+                self._valve_entity_id,
+                valve_state.state,
+            )
             return False
 
         if "min" in valve_state.attributes and "max" in valve_state.attributes:
@@ -1188,9 +1270,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._climate_underlying = climate_underlying
         self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = None
-        self._min_sync_entity: float = None
-        self._max_sync_entity: float = None
-        self._step_sync_entity: float = 0.1
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
@@ -1201,6 +1280,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
             _LOGGER.debug(
                 "%s - initialize min offset_calibration and max open_degree", self
             )
+            if not super().init_min_max_open(force=False):
+                return False
+
             self._max_opening_degree = self._hass.states.get(
                 self._opening_degree_entity_id
             ).attributes.get("max")
@@ -1314,6 +1396,9 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @property
     def is_device_active(self):
         """If the opening valve is open."""
+        if not self.initialize_min_max():
+            return False
+
         if (value := self.last_sent_opening_value) is None:
             return False
 
@@ -1373,6 +1458,5 @@ class UnderlyingValveRegulation(UnderlyingValve):
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
         self._percent_open = 0
         await self.send_percent_open()
-
 
 T = TypeVar("T", bound=UnderlyingEntity)

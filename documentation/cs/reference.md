@@ -10,6 +10,7 @@
   - [Obejití kontroly okna](#obejití-kontroly-okna)
   - [Služby zamknutí / odemknutí](#služby-zamknutí--odemknutí)
   - [Change TPI Parameters](#change-tpi-parameters)
+  - [Časově omezený preset](#časově-omezený-preset)
 - [Události](#události)
 - [Vlastní atributy](#vlastní-atributy)
   - [For _VTherm_](#for-vtherm)
@@ -233,6 +234,26 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
+## Časově omezený preset
+Tyto služby umožňují dočasně vynutit preset na termostatu po určitou dobu. Podrobnosti viz [Časově omezený preset](feature-timed-preset.md).
+
+Pro aktivaci časově omezeného presetu:
+```yaml
+service: versatile_thermostat.set_timed_preset
+data:
+  preset: "boost"
+  duration_minutes: 30
+target:
+  entity_id: climate.muj_termostat
+```
+
+Pro zrušení časově omezeného presetu před uplynutím doby:
+```yaml
+service: versatile_thermostat.cancel_timed_preset
+target:
+  entity_id: climate.muj_termostat
+```
+
 # Události
 Klíčové události termostatu jsou oznámeny prostřednictvím sběrnice zpráv.
 Jsou oznámeny následující události:
@@ -244,6 +265,7 @@ Jsou oznámeny následující události:
 - ``versatile_thermostat_preset_event``: na termostatu je vybrán nový preset. Tato událost je také vysílána při spuštění termostatu
 - ``versatile_thermostat_central_boiler_event``: událost indikující změnu stavu kotle
 - ``versatile_thermostat_auto_start_stop_event``: událost indikující zastavení nebo restart provedené funkcí auto-start/stop
+- ``versatile_thermostat_timed_preset_event``: událost indikující aktivaci nebo deaktivaci časově omezeného presetu
 
 Pokud jste sledovali, když termostat přepne do bezpečnostního režimu, spustí se 3 události:
 1. ``versatile_thermostat_temperature_event`` pro indikaci, že teploměr již neodpovídá,

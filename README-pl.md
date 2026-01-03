@@ -88,11 +88,13 @@ Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas
 17. [Zaawansowane ustawienia, tryb bezpieczny](documentation/pl/feature-advanced.md)
 18. [Samoregulacja](documentation/pl/self-regulation.md)
 19. [Funkcja blokady dostępu kodem PIN](documentation/pl/feature-lock.md)
-20. [Algorytmy](documentation/pl/algorithms.md)
-21. [Dokumentacja referencyjna](documentation/pl/reference.md)
-22. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
-23. [Usuwanie problemów](documentation/pl/troubleshooting.md)
-24. [Informacje o wersjach](documentation/pl/releases.md)
+20. [Temperature synchronisation](documentation/pl/feature-sync_device_temp.md)
+21. [Timed preset](documentation/pl/feature-timed-preset.md)
+22. [Algorytmy](documentation/pl/algorithms.md)
+23. [Dokumentacja referencyjna](documentation/pl/reference.md)
+24. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
+25. [Usuwanie problemów](documentation/pl/troubleshooting.md)
+2§. [Informacje o wersjach](documentation/pl/releases.md)
 
 ---
 # Kilka przykładów...

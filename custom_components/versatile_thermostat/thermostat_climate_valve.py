@@ -126,9 +126,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "last_sent_opening_value": under.last_sent_opening_value,
                         "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
                         "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
-                        "min_sync_entity": under._min_sync_entity,  # pylint: disable=protected-access
-                        "max_sync_entity": under._max_sync_entity,  # pylint: disable=protected-access
-                        "step_calibration": under._step_sync_entity,  # pylint: disable=protected-access
                     }
                 }
             )
@@ -284,6 +281,21 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         else:
             return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
+    @overrides
+    def incremente_energy(self):
+        """increment the energy counter if device is active"""
+        if self._underlying_climate_start_hvac_action_date:
+            stop_power_date = self.now
+            delta = stop_power_date - self._underlying_climate_start_hvac_action_date
+            self._underlying_climate_delta_t = delta.total_seconds() / 3600.0
+            _LOGGER.debug("%s - underlying_climate_delta_t: %.4f hours", self, self._underlying_climate_delta_t)
+            # increment energy at the end of the cycle
+            super().incremente_energy()
+            self._underlying_climate_start_hvac_action_date = self.now
+            self._underlying_climate_mean_power_cycle = self.power_manager.mean_cycle_power
+        else:
+            _LOGGER.debug("%s - no underlying_climate_start_hvac_action_date to calculate energy", self)
+
     @property
     def have_valve_regulation(self) -> bool:
         """True if the Thermostat is regulated by valve"""
@@ -319,10 +331,10 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
     @property
     def device_actives(self) -> int:
         """Calculate the number of active devices"""
-        if self.is_device_active:
-            return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
-        else:
+        if self.is_sleeping:
             return []
+
+        return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
 
     @property
     def activable_underlying_entities(self) -> list | None:

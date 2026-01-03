@@ -284,6 +284,22 @@ set_auto_tpi_mode:
             default: true
             selector:
                 boolean:
+        allow_kint_boost_on_stagnation:
+            name: Allow Kint boost
+            description: Allow boosting Kint when temperature stagnates despite demand (default true)
+            required: true
+            advanced: false
+            default: true
+            selector:
+                boolean:
+        allow_kext_compensation_on_overshoot:
+            name: Allow Kext compensation
+            description: Allow adjusting Kext when temperature overshoots (default false)
+            required: true
+            advanced: false
+            default: false
+            selector:
+                boolean:
 
 
 auto_tpi_calibrate_capacity:
@@ -347,3 +363,44 @@ auto_tpi_calibrate_capacity:
             example: true
             selector:
                 boolean:
+
+set_timed_preset:
+    name: Set Timed Preset
+    description: Force a preset for a given duration. After the duration expires, the original preset will be restored.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        preset:
+            name: Preset
+            description: The preset to apply temporarily
+            required: true
+            advanced: false
+            example: "boost"
+            selector:
+                text:
+        duration_minutes:
+            name: Duration (minutes)
+            description: Duration in minutes for which the preset will be active
+            required: true
+            advanced: false
+            example: 30
+            default: 30
+            selector:
+                number:
+                    min: 1
+                    max: 1440
+                    step: 1
+                    unit_of_measurement: "min"
+                    mode: box
+
+cancel_timed_preset:
+    name: Cancel Timed Preset
+    description: Cancel any active timed preset and restore the original preset.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate

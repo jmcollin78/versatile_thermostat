@@ -29,6 +29,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ## Release 8.4
 1. Hinzufügen der automatischen TPI-Funktion (experimental). Diese neue Funktion dient dazu, automatisch die besten Koeffizienten für den TPI-Algorithmus zu berechnen. Weitere Informationen gibt es [hier](./auto_tpi_internal_doc.md).
 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/de/feature-sync_device_temp.md)
+3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/de/feature-timed-preset.md).
 
 ## Release 8.3
 1. Hinzufügen einer konfigurierbaren Verzögerung vor der Heizkesselaktivierung,
@@ -87,11 +88,14 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 16. [Steuerung der Zentralheizung](documentation/de/feature-central-boiler.md)
 17. [Weiterführende Aspekte, Sicherheitsmodus](documentation/de/feature-advanced.md)
 18. [Selbstregulierung](documentation/de/self-regulation.md)
-19. [Algorithmen](documentation/de/algorithms.md)
-20. [Referenzdokumentation](documentation/de/reference.md)
-21. [Tuning-Beispiele](documentation/de/tuning-examples.md)
-22. [Störungsbeseitigung](documentation/de/troubleshooting.md)
-23. [Veröffentlichungshinweise](documentation/de/releases.md)
+19. [Lock / Unlock](documentation/en/feature-lock.md)
+20. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
+21. [Timed preset](documentation/en/feature-timed-preset.md)
+22. [Algorithmen](documentation/de/algorithms.md)
+23. [Referenzdokumentation](documentation/de/reference.md)
+24. [Tuning-Beispiele](documentation/de/tuning-examples.md)
+25. [Störungsbeseitigung](documentation/de/troubleshooting.md)
+26. [Veröffentlichungshinweise](documentation/de/releases.md)
 
 # Einige Ergebnisse
 

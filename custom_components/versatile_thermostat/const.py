@@ -438,6 +438,8 @@ SERVICE_UNLOCK = "unlock"
 SERVICE_SET_TPI_PARAMETERS = "set_tpi_parameters"
 SERVICE_SET_AUTO_TPI_MODE = "set_auto_tpi_mode"
 SERVICE_AUTO_TPI_CALIBRATE_CAPACITY = "auto_tpi_calibrate_capacity"
+SERVICE_SET_TIMED_PRESET = "set_timed_preset"
+SERVICE_CANCEL_TIMED_PRESET = "cancel_timed_preset"
 
 DEFAULT_SAFETY_MIN_ON_PERCENT = 0.5
 DEFAULT_SAFETY_DEFAULT_ON_PERCENT = 0.1
@@ -475,6 +477,7 @@ MSG_TARGET_TEMP_CENTRAL_MODE = "target_temp_central_mode"
 MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
 MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
 MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
+MSG_TARGET_TEMP_TIMED_PRESET = "target_temp_timed_preset"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
@@ -559,6 +562,7 @@ class EventType(Enum):
     WINDOW_AUTO_EVENT = "versatile_thermostat_window_auto_event"
     AUTO_START_STOP_EVENT = "versatile_thermostat_auto_start_stop_event"
     AUTO_TPI_EVENT = "versatile_thermostat_auto_tpi_event"
+    TIMED_PRESET_EVENT = "versatile_thermostat_timed_preset_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
