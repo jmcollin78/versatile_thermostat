@@ -12,7 +12,6 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
 )
-from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
 
 from .commons import *
 from .const import *

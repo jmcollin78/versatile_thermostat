@@ -156,8 +156,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         """Run when entity about to be added."""
         # Load data from Auto TPI Manager
         if self._auto_tpi_manager:
-            _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", 
-                         self, self._tpi_coef_int, self._tpi_coef_ext)
+            _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", self, self._tpi_coef_int, self._tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
             # If we have learned parameters, apply them
             learned_params = self._auto_tpi_manager.get_calculated_params()
@@ -209,7 +208,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
 
     def _is_central_boiler_off(self) -> bool:
         """Check if the central boiler is configured but currently off.
-        
+
         Returns True if this thermostat is used by a central boiler
         and that boiler is currently not active.
         """
@@ -622,18 +621,12 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         """Update custom attributes"""
         super().update_custom_attributes()
 
-        self._attr_extra_state_attributes["specific_states"].update({
-            "auto_tpi_state": (
-                "on"
-                if self._auto_tpi_manager and self._auto_tpi_manager.learning_active
-                else "off"
-            ),
-            "auto_tpi_learning": (
-                self._auto_tpi_manager.state.to_dict()
-                if self._auto_tpi_manager
-                else None
-            ),
-        })
+        self._attr_extra_state_attributes["specific_states"].update(
+            {
+                "auto_tpi_state": ("on" if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else "off"),
+                "auto_tpi_learning": (self._auto_tpi_manager.state.to_dict() if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else {}),
+            }
+        )
 
         self._attr_extra_state_attributes["configuration"].update({
             "minimal_activation_delay_sec": self._minimal_activation_delay,

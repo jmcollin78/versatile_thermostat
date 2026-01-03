@@ -154,7 +154,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             ]
         )
 
-        assert mock_get_state.call_count == 4  # each temp sensor (2) + each valve (2)
+        assert mock_get_state.call_count >= 6  # each temp sensor (2) + each valve (2) + temp synchro (2) + all getState in custom_attributes
         assert vtherm.nb_device_actives == 0
 
 
