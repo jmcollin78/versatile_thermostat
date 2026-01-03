@@ -69,6 +69,7 @@ from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .feature_lock_manager import FeatureLockManager
+from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -211,6 +212,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Auto start/stop is only for over_climate
         self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
         self._lock_manager: FeatureLockManager = FeatureLockManager(self, hass)
+        self._timed_preset_manager: FeatureTimedPresetManager = FeatureTimedPresetManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
@@ -219,6 +221,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._safety_manager)
         self.register_manager(self._safety_manager)
         self.register_manager(self._lock_manager)
+        self.register_manager(self._timed_preset_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
@@ -957,6 +960,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def lock_manager(self) -> FeatureLockManager | None:
         """Get the lock manager"""
         return self._lock_manager
+
+    @property
+    def timed_preset_manager(self) -> FeatureTimedPresetManager:
+        """Get the timed preset manager"""
+        return self._timed_preset_manager
 
     @property
     def current_state(self) -> VThermState | None:
@@ -1921,6 +1929,58 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             f"{self} - The auto_tpi_calibrate_capacity service is only available for switch/valve type thermostats. "
             "This thermostat does not use TPI algorithm."
         )
+
+    async def service_set_timed_preset(self, preset: str, duration_minutes: float):
+        """Called by a service call:
+        service: versatile_thermostat.set_timed_preset
+        data:
+            preset: "boost"
+            duration_minutes: 30
+        target:
+            entity_id: climate.thermostat_1
+
+        Force a preset for a given duration. After the duration expires,
+        the original preset (from requested_state) will be restored.
+        """
+        if self.lock_manager.check_is_locked("service_set_timed_preset"):
+            return
+
+        write_event_log(
+            _LOGGER,
+            self,
+            f"Calling SERVICE_SET_TIMED_PRESET, preset: {preset}, duration: {duration_minutes} min",
+        )
+
+        # Validate that the preset is in the list of accepted presets
+        preset_enum = VThermPreset(preset) if preset else None
+        if preset_enum not in self._vtherm_preset_modes:
+            raise ServiceValidationError(
+                f"{self} - The preset '{preset}' is not available for this thermostat. " f"Available presets are: {[str(p) for p in self._vtherm_preset_modes]}"
+            )
+
+        # Validate duration
+        if duration_minutes <= 0:
+            raise ServiceValidationError(f"{self} - The duration must be a positive number, got {duration_minutes}")
+
+        # Set the timed preset
+        success = await self._timed_preset_manager.set_timed_preset(preset_enum, duration_minutes)
+        if not success:
+            raise ServiceValidationError(f"{self} - Failed to set timed preset '{preset}' for {duration_minutes} minutes")
+
+    async def service_cancel_timed_preset(self):
+        """Called by a service call:
+        service: versatile_thermostat.cancel_timed_preset
+        target:
+            entity_id: climate.thermostat_1
+
+        Cancel any active timed preset and restore the original preset.
+        """
+        if self.lock_manager.check_is_locked("service_cancel_timed_preset"):
+            return
+
+        write_event_log(_LOGGER, self, "Calling SERVICE_CANCEL_TIMED_PRESET")
+
+        await self._timed_preset_manager.cancel_timed_preset()
 
     ##
     ## For testing purpose

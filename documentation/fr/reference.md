@@ -9,6 +9,7 @@
   - [ByPass Window Check](#bypass-window-check)
   - [Services de verrouillage / déverrouillage](#services-de-verrouillage--déverrouillage)
   - [Changer les paramètres du TPI](#changer-les-paramètres-du-tpi)
+  - [Preset temporisé (Timed Preset)](#preset-temporisé-timed-preset)
 - [Evènements](#evènements)
 - [Attributs personnalisés](#attributs-personnalisés)
   - [Pour un _VTherm_](#pour-un-vtherm)
@@ -196,6 +197,26 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
+## Preset temporisé (Timed Preset)
+Ces services permettent de forcer temporairement un preset sur un thermostat pour une durée déterminée. Voir [Preset Temporisé](feature-timed-preset.md) pour plus de détails.
+
+Pour activer un preset temporisé :
+```yaml
+service: versatile_thermostat.set_timed_preset
+data:
+  preset: "boost"
+  duration_minutes: 30
+target:
+  entity_id: climate.mon_thermostat
+```
+
+Pour annuler un preset temporisé avant la fin de sa durée :
+```yaml
+service: versatile_thermostat.cancel_timed_preset
+target:
+  entity_id: climate.mon_thermostat
+```
+
 # Evènements
 Les évènements marquant du thermostat sont notifiés par l'intermédiaire du bus de message.
 Les évènements notifiés sont les suivants:
@@ -207,6 +228,7 @@ Les évènements notifiés sont les suivants:
 - ``versatile_thermostat_preset_event`` : un nouveau preset est sélectionné sur le thermostat. Cet évènement est aussi diffusé au démarrage du thermostat
 - ``versatile_thermostat_central_boiler_event`` : un évènement indiquant un changement dans l'état de la chaudière.
 - ``versatile_thermostat_auto_start_stop_event`` : un évènement indiquant un arrêt ou une relance fait par la fonction d'auto-start/stop
+- ``versatile_thermostat_timed_preset_event`` : un évènement indiquant l'activation ou la désactivation d'un preset temporisé
 
 Si vous avez bien suivi, lorsqu'un thermostat passe en mode sécurité, 3 évènements sont déclenchés :
 1. ``versatile_thermostat_temperature_event`` pour indiquer qu'un thermomètre ne répond plus,
@@ -336,6 +358,11 @@ Les attributs personnalisés sont les suivants :
 | ``auto_start_stop_accumulated_error``           | La valeur de `accumulated_error` de l'algorithme de auto-start/stop                                                                                                                                                 |
 | ``auto_start_stop_accumulated_error_threshold`` | Le seuils de `accumulated_error` de l'algorithme de auto-start/stop                                                                                                                                                 |
 | ``auto_start_stop_last_switch_date``            | La date/heure du dernier switch fait par l'algorithme de auto-start/stop                                                                                                                                            |
+| **SECTION `timed_preset_manager`**              | ------                                                                                                                                                                                                              |
+| ``is_active``                                   | `true` si un preset temporisé est actif                                                                                                                                                                             |
+| ``preset``                                      | Le nom du preset temporisé actif (ou `null` si aucun)                                                                                                                                                               |
+| ``end_time``                                    | La date/heure de fin du preset temporisé                                                                                                                                                                            |
+| ``remaining_time_min``                          | Le temps restant en minutes avant la fin du preset temporisé (entier)                                                                                                                                               |
 | **SECTION `vtherm_over_switch`**                | ------ uniquement si `is_over_switch`                                                                                                                                                                               |
 | ``is_inversed``                                 | `true` si la commande est inversée (fil pilote avec diode)                                                                                                                                                          |
 | ``keep_alive_sec``                              | Le délai de keep-alive ou 0 si non configuré                                                                                                                                                                        |

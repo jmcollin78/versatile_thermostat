@@ -29,6 +29,7 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ## Release 8.4
 > 1. ajout de l'auto TPI (expérimental). Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](./auto_tpi_internal_doc.md)
 > 2. ajout d'une fonction de synchronisation des températures d'un équipement piloté en mode `over_climate`. Suivant, les fonctionnalités de votre équipement, _VTherm_ peut contrôler une entité de calibrage de l'offset ou directement une entité de température externe. Plus d'informations [ici](documentation/fr/feature-sync_device_temp.md)
+> 3. ajout d'une fonction nommée preset temporisé permettant de sélectionner un preset pendant un temps donné et revenir au précédent une fois le délai expiré. La fonction est décrite [ici](documentation/fr/feature-timed-preset.md).
 
 ## Release 8.3
 > 1. ajout d'un délai configurable avant l'activation de la chaudière centrale,
@@ -92,12 +93,14 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 18. [L'auto-régulation](documentation/fr/self-regulation.md)
 19. [L'apprentissage Auto TPI](documentation/fr/feature-autotpi.md)
 20. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
-21. [Exemple de réglages](documentation/fr/tuning-examples.md)
-22. [Les algorithmes](documentation/fr/algorithms.md)
-23. [Documentation de référence](documentation/fr/reference.md)
-24. [Exemples de réglages](documentation/fr/tuning-examples.md)
-25. [Dépannage](documentation/fr/troubleshooting.md)
-26. [Notes de version](documentation/fr/releases.md)
+21. [Synchronisation des température](documentation/fr/feature-sync_device_temp.md)
+21. [Preset temporisé](documentation/fr/feature-timed-preset.md)
+22. [Exemple de réglages](documentation/fr/tuning-examples.md)
+23. [Les algorithmes](documentation/fr/algorithms.md)
+24. [Documentation de référence](documentation/fr/reference.md)
+25. [Exemples de réglages](documentation/fr/tuning-examples.md)
+26. [Dépannage](documentation/fr/troubleshooting.md)
+27. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 

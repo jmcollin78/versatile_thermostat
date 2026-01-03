@@ -7,12 +7,13 @@
   - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
   - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
   - [ByPass Fensterprüfung](#bypass-fensterprüfung)
-  - [Sperr-/Entsperrdienste](#Sperr-Entsperrdienste)
-  - [TPI-Einstellungen ändern](#TPI-Einstellungen-ändern)
+  - [Sperr-/Entsperrdienste](#sperr-entsperrdienste)
+  - [TPI-Einstellungen ändern](#tpi-einstellungen-ändern)
+  - [Zeitgesteuertes Preset](#zeitgesteuertes-preset)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
   - [Für _VTherm_](#für-vtherm)
-  - [Für die zentrale Konfiguration](#Für-die-zentrale-Konfiguration)
+  - [Für die zentrale Konfiguration](#für-die-zentrale-konfiguration)
 - [Statusmeldungen](#statusmeldungen)
 
 ## Parameterübersicht
@@ -195,6 +196,26 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
+## Zeitgesteuertes Preset
+Mit diesen Diensten können Sie ein Preset auf einem Thermostat vorübergehend für eine bestimmte Dauer erzwingen. Siehe [Zeitgesteuertes Preset](feature-timed-preset.md) für Details.
+
+Um ein zeitgesteuertes Preset zu aktivieren:
+```yaml
+service: versatile_thermostat.set_timed_preset
+data:
+  preset: "boost"
+  duration_minutes: 30
+target:
+  entity_id: climate.mein_thermostat
+```
+
+Um ein zeitgesteuertes Preset vor Ablauf abzubrechen:
+```yaml
+service: versatile_thermostat.cancel_timed_preset
+target:
+  entity_id: climate.mein_thermostat
+```
+
 # Ereignisse
 Wichtige Ereignisse des Thermostats werden über den Nachrichtenbus gemeldet.
 Es werden folgende Ereignisse gemeldet:
@@ -206,6 +227,7 @@ Es werden folgende Ereignisse gemeldet:
 - ``versatile_thermostat_preset_event``: Eine neue Voreinstellung wird am Thermostat ausgewählt. Dieses Ereignis wird auch beim Start des Thermostats übertragen.
 - ``versatile_thermostat_central_boiler_event``: Ein Ereignis, das eine Änderung des Heizkesselzustands anzeigt.
 - ``versatile_thermostat_auto_start_stop_event``: Ein Ereignis, das einen Stopp oder einen Neustart durch die Auto-Start/Stopp-Funktion anzeigt
+- ``versatile_thermostat_timed_preset_event``: Ein Ereignis, das die Aktivierung oder Deaktivierung eines zeitgesteuerten Presets anzeigt
 
 Wenn Sie bis hierher mitgekommen sind, wissen Sie, dass beim Umschalten eines Thermostats in den Sicherheitsmodus drei Ereignisse ausgelöst werden:
 1. ``versatile_thermostat_temperature_event`` um anzuzeigen, dass ein Thermometer nicht mehr reagiert,

@@ -342,6 +342,11 @@ async def test_state_manager_calculate_current_preset(
     fake_vtherm.safety_manager = MagicMock()
     type(fake_vtherm.safety_manager).is_safety_detected = PropertyMock(return_value=is_safety_detected)
 
+    # Mock timed preset manager (not active by default)
+    fake_vtherm.timed_preset_manager = MagicMock()
+    type(fake_vtherm.timed_preset_manager).is_timed_preset_active = PropertyMock(return_value=False)
+    type(fake_vtherm.timed_preset_manager).timed_preset = PropertyMock(return_value=None)
+
     ret = await state_manager.calculate_current_preset(fake_vtherm)
     assert ret is expected_result
     assert state_manager.current_state.preset == expected_preset

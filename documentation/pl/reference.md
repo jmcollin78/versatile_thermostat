@@ -8,6 +8,7 @@
   - [Modyfikacja ustawień bezpieczeństwa](#modyfikacja-ustawień-bezpieczeństwa)
   - [Pomijanie sprawdzania stanu okna](#pomijanie-sprawdzania-stanu-okna)
   - [Zmiana parametrów TPI](#zmiana-parametrów-tpi)
+  - [Preset czasowy](#preset-czasowy)
 - [Zdarzenia](#zdarzenia)
 - [Atrybuty własne](#atrybuty-własne)
   - [For _VTherm_](#for-vtherm)
@@ -190,6 +191,26 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
+## Preset czasowy
+Te usługi umożliwiają tymczasowe wymuszenie presetu na termostacie przez określony czas. Szczegóły w [Preset czasowy](feature-timed-preset.md).
+
+Aby aktywować preset czasowy:
+```yaml
+service: versatile_thermostat.set_timed_preset
+data:
+  preset: "boost"
+  duration_minutes: 30
+target:
+  entity_id: climate.moj_termostat
+```
+
+Aby anulować preset czasowy przed upływem jego czasu:
+```yaml
+service: versatile_thermostat.cancel_timed_preset
+target:
+  entity_id: climate.moj_termostat
+```
+
 # Zdarzenia
 Kluczowe zdarzenia z udziałem termostatów wywołują pojawienie się powiadomień za pośrednictwem magistrali komunikacyjnej.
 Powiadomienia dotyczą następujących zdarzeń:
@@ -201,6 +222,7 @@ Powiadomienia dotyczą następujących zdarzeń:
 - ``versatile_thermostat_preset_event``: w termostacie wybrano nowy preset. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
 - ``versatile_thermostat_central_boiler_event``: zdarzenie zmiany stanu kotła
 - ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia wykonane przez funkcję autoSTART/autoSTOP
+- ``versatile_thermostat_timed_preset_event``: zdarzenie wskazujące aktywację lub dezaktywację presetu czasowego
 
 Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczny, wyzwalane są 3 zdarzenia:
 1. ``versatile_thermostat_temperature_event`` – wskazuje, że termometr przestał odpowiadać,

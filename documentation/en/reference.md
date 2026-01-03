@@ -9,8 +9,11 @@
   - [ByPass Window Check](#bypass-window-check)
   - [Lock / Unlock Services](#lock--unlock-services)
   - [Change TPI Parameters](#change-tpi-parameters)
+  - [Timed Preset](#timed-preset)
 - [Events](#events)
 - [Custom attributes](#custom-attributes)
+  - [For a _VTherm_](#for-a-vtherm)
+  - [For central configuration](#for-central-configuration)
 - [State messages](#state-messages)
 
 ## Parameter Summary
@@ -196,6 +199,26 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
+## Timed Preset
+These services allow you to temporarily force a preset on a thermostat for a specified duration. See [Timed Preset](feature-timed-preset.md) for details.
+
+To activate a timed preset:
+```yaml
+service: versatile_thermostat.set_timed_preset
+data:
+  preset: "boost"
+  duration_minutes: 30
+target:
+  entity_id: climate.my_thermostat
+```
+
+To cancel a timed preset before its duration ends:
+```yaml
+service: versatile_thermostat.cancel_timed_preset
+target:
+  entity_id: climate.my_thermostat
+```
+
 # Events
 The key events of the thermostat are notified via the message bus.
 The following events are notified:
@@ -207,6 +230,7 @@ The following events are notified:
 - ``versatile_thermostat_preset_event``: a new preset is selected on the thermostat. This event is also broadcast at the thermostat's startup
 - ``versatile_thermostat_central_boiler_event``: an event indicating a change in the boiler's state
 - ``versatile_thermostat_auto_start_stop_event``: an event indicating a stop or restart made by the auto-start/stop function
+- ``versatile_thermostat_timed_preset_event``: an event indicating the activation or deactivation of a timed preset
 
 If you've followed along, when a thermostat switches to security mode, 3 events are triggered:
 1. ``versatile_thermostat_temperature_event`` to indicate that a thermometer is no longer responding,
@@ -336,6 +360,11 @@ The custom attributes are as follows:
 | ``auto_start_stop_accumulated_error``           | The `accumulated_error` value of the auto-start/stop algorithm                                                                                                                                                  |
 | ``auto_start_stop_accumulated_error_threshold`` | The `accumulated_error` threshold of the auto-start/stop algorithm                                                                                                                                              |
 | ``auto_start_stop_last_switch_date``            | The date/time of the last switch made by the auto-start/stop algorithm                                                                                                                                          |
+| **SECTION `timed_preset_manager`**              | ------                                                                                                                                                                                                          |
+| ``timed_preset_active``                         | `true` if a timed preset is active                                                                                                                                                                              |
+| ``timed_preset_preset``                         | The name of the active timed preset (or `null` if none)                                                                                                                                                         |
+| ``timed_preset_end_time``                       | The end date/time of the timed preset                                                                                                                                                                           |
+| ``remaining_time_min``                          | The remaining time in minutes before the timed preset ends (integer)                                                                                                                                            |
 | **SECTION `vtherm_over_switch`**                | ------ only if `is_over_switch`                                                                                                                                                                                 |
 | ``is_inversed``                                 | `true` if the command is inverted (pilot wire with diode)                                                                                                                                                       |
 | ``keep_alive_sec``                              | The keep-alive delay or 0 if not configured                                                                                                                                                                     |
