@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Literal
 
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_HEAT, VThermHvacMode_COOL
 
 from .const import (
     AUTO_START_STOP_LEVEL_NONE,
