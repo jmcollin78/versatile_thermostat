@@ -126,9 +126,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "last_sent_opening_value": under.last_sent_opening_value,
                         "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
                         "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
-                        "min_sync_entity": under._min_sync_entity,  # pylint: disable=protected-access
-                        "max_sync_entity": under._max_sync_entity,  # pylint: disable=protected-access
-                        "step_calibration": under._step_sync_entity,  # pylint: disable=protected-access
                     }
                 }
             )

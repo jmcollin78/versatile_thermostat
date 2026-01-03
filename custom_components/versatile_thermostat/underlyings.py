@@ -41,7 +41,6 @@ from custom_components.versatile_thermostat.opening_degree_algorithm import Open
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
-from .commons import round_to_nearest
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -621,6 +620,9 @@ class UnderlyingClimate(UnderlyingEntity):
         self._underlying_climate: Optional[ClimateEntity] = None
         self._last_sent_temperature: Optional[float] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
+        self._min_sync_entity: float = None
+        self._max_sync_entity: float = None
+        self._step_sync_entity: float = None
 
     def find_underlying_climate(self) -> ClimateEntity:
         """Find the underlying climate entity"""
@@ -1040,6 +1042,32 @@ class UnderlyingClimate(UnderlyingEntity):
 
         return new_value
 
+    def set_min_max_step_sync_entity(
+        self,
+        min_sync_entity: float,
+        max_sync_entity: float,
+        step_sync_entity: float,
+    ):
+        """Set the min, max and step for the offset calibration synchronization"""
+        self._min_sync_entity = min_sync_entity
+        self._max_sync_entity = max_sync_entity
+        self._step_sync_entity = step_sync_entity
+
+    @property
+    def min_sync_entity(self) -> float:
+        """Get the min sync entity"""
+        return self._min_sync_entity
+
+    @property
+    def max_sync_entity(self) -> float:
+        """Get the max sync entity"""
+        return self._max_sync_entity
+
+    @property
+    def step_sync_entity(self) -> float:
+        """Get the step sync entity"""
+        return self._step_sync_entity
+
 
 class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
@@ -1242,9 +1270,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._climate_underlying = climate_underlying
         self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = None
-        self._min_sync_entity: float = None
-        self._max_sync_entity: float = None
-        self._step_sync_entity: float = 0.1
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
@@ -1433,6 +1458,5 @@ class UnderlyingValveRegulation(UnderlyingValve):
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
         self._percent_open = 0
         await self.send_percent_open()
-
 
 T = TypeVar("T", bound=UnderlyingEntity)

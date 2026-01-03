@@ -550,6 +550,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
         )
 
+        # Synchronize temperature if activated
+        await self.synchronize_device_temperature()
+
     @overrides
     def restore_specific_previous_state(self, old_state: State):
         """Restore my specific attributes from previous state"""
@@ -592,8 +595,24 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             }
 
         if self.has_sync_entities:
-            vtherm_over_climate_data["sync_entity_ids"] = self._sync_entity_list
-            vtherm_over_climate_data["sync_with_calibration"] = self._sync_with_calibration
+            under_attributes = {}
+            for idx, under in enumerate(self._underlyings):
+                value = self.hass.states.get(self._sync_entity_list[idx]).state
+                under_attributes.update(
+                    {
+                        self._sync_entity_list[idx]: {
+                            "value": float(value) if value.isnumeric() else None,
+                            "min_sync_entity": under.min_sync_entity,
+                            "max_sync_entity": under.max_sync_entity,
+                            "step_sync_entity": under.step_sync_entity,
+                        }
+                    }
+                )
+            vtherm_over_climate_data["temp_synchronisation"] = {
+                "sync_entity_ids": self._sync_entity_list,
+                "sync_with_calibration": self._sync_with_calibration,
+                "sync_attributes": under_attributes,
+            }
 
         self._attr_extra_state_attributes.update({"vtherm_over_climate": vtherm_over_climate_data})
 
@@ -937,11 +956,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def _async_temperature_changed(self, event: Event) -> callable:
         """Handle temperature of the temperature sensor changes.
         Return the function to dearm (clear) the window auto check"""
+
         ret = await super()._async_temperature_changed(event)
 
         # Synchronize the device temperature if needed
-        if self.has_sync_entities:
-            await self.synchronize_device_temperature()
+        await self.synchronize_device_temperature()
 
         return ret
 
@@ -961,10 +980,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
                 continue
 
-            min_sync_entity = sync_entity_state.attributes.get("min")
-            max_sync_entity = sync_entity_state.attributes.get("max")
-            step_sync_entity = sync_entity_state.attributes.get("step") or 0.1  # default step is 0.1
-
             under = self.underlying_entity(idx)
             if not under:
                 _LOGGER.warning(
@@ -973,6 +988,25 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     idx,
                 )
                 continue
+
+            if (
+                (min_sync_entity := under.min_sync_entity) is not None
+                and (max_sync_entity := under.max_sync_entity) is not None
+                and (step_sync_entity := under.step_sync_entity) is not None
+            ):
+                pass
+            else:
+                # get min, max, step from sync entity attributes
+                min_sync_entity = sync_entity_state.attributes.get("min")
+                max_sync_entity = sync_entity_state.attributes.get("max")
+                step_sync_entity = sync_entity_state.attributes.get("step") or 0.1  # default step is 0.1
+
+                # save the min, max and step
+                under.set_min_max_step_sync_entity(
+                    min_sync_entity,
+                    max_sync_entity,
+                    step_sync_entity,
+                )
 
             room_temp = self.current_temperature
             if self._sync_with_calibration:
