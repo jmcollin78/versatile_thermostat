@@ -626,7 +626,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             self._hvac_off_reason = old_state.attributes.get(HVAC_OFF_REASON_NAME, None)
 
-            old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
+            # Try to get total_energy from specific_states (new format) or root level (old format)
+            specific_states = old_state.attributes.get("specific_states", {})
+            old_total_energy = specific_states.get(ATTR_TOTAL_ENERGY)
+            if old_total_energy is None:
+                # Fallback to root level for backward compatibility
+                old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
             self._total_energy = old_total_energy if old_total_energy is not None else 0
             _LOGGER.debug(
                 "%s - get_my_previous_state restored energy is %s",

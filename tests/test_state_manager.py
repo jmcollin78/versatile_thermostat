@@ -149,6 +149,67 @@ async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     assert vtherm_restored.requested_state.target_temperature == 22
 
 
+async def test_vtherm_energy_restore_from_specific_states(hass: HomeAssistant) -> None:
+    """Test that energy is properly restored from specific_states (new format)"""
+    # Save the state using new format with energy in specific_states
+    state_dict = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "specific_states": {
+            "total_energy": 123.456,
+        },
+    }
+
+    vtherm_restored = BaseThermostat(hass, "unique_id", "name", {})
+    mock_state = MagicMock()
+    mock_state.attributes = state_dict
+    mock_state.state = HVACMode.HEAT
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    # Check that energy has been restored from specific_states (rounded to 2 decimals by total_energy property)
+    assert vtherm_restored.total_energy == 123.46
+
+
+async def test_vtherm_energy_restore_from_root_level(hass: HomeAssistant) -> None:
+    """Test that energy is properly restored from root level (old format for backward compatibility)"""
+    # Save the state using old format with energy at root level
+    state_dict = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "total_energy": 789.012,
+    }
+
+    vtherm_restored = BaseThermostat(hass, "unique_id", "name", {})
+    mock_state = MagicMock()
+    mock_state.attributes = state_dict
+    mock_state.state = HVACMode.HEAT
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    # Check that energy has been restored from root level (rounded to 2 decimals by total_energy property)
+    assert vtherm_restored.total_energy == 789.01
+
+
+async def test_vtherm_energy_restore_default_zero(hass: HomeAssistant) -> None:
+    """Test that energy defaults to 0 when not present in saved state"""
+    # Save the state without energy
+    state_dict = {
+        "preset_mode": "eco",
+        "temperature": 22,
+    }
+
+    vtherm_restored = BaseThermostat(hass, "unique_id", "name", {})
+    mock_state = MagicMock()
+    mock_state.attributes = state_dict
+    mock_state.state = HVACMode.HEAT
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    # Check that energy defaults to 0
+    assert vtherm_restored.total_energy == 0
+
+
 @pytest.mark.parametrize(
     "is_over_climate,requested_hvac_mode,current_hvac_mode,last_central_mode,window_action,is_safety_detected,safety_default_percent,is_window_detected,is_auto_stop_detected,expected_result, expected_hvac_mode,expected_hvac_off_reason",
     # fmt: off
