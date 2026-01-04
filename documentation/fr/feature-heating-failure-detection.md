@@ -216,7 +216,7 @@ action:
         {% else %}
             ❄️ Défaut de refroidissement détecté
         {% endif %}
-        message: >
+      message: >
         Le thermostat **{{ trigger.event.data.name }}** a détecté une anomalie.
 
         📊 **Détails :**
@@ -233,7 +233,7 @@ action:
         ⚠️ Le chauffage est éteint mais la température continue d'augmenter.
         Vérifiez que le radiateur s'éteint correctement.
         {% endif %}
-        notification_id: "heating_failure_{{ trigger.event.data.entity_id }}"
+      notification_id: "heating_failure_{{ trigger.event.data.entity_id }}"
 ```
 
 ### Suppression automatique de la notification quand le défaut est résolu
