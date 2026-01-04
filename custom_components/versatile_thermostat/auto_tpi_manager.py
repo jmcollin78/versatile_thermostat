@@ -97,6 +97,7 @@ class AutoTpiState:
     
     # Capacity learning (Heat only)
     capacity_heat_learn_count: int = 0
+    bootstrap_failure_count: int = 0 # Number of consecutive failures to learn capacity during bootstrap
     # Bootstrap is implied when capacity_heat_learn_count < 3
     
     # Optional features configuration
