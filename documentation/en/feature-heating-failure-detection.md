@@ -106,6 +106,18 @@ heating_failure_detection_manager:
   cooling_failure_threshold: 0.0
   detection_delay_min: 15
   temperature_change_tolerance: 0.5
+  heating_tracking:                 # Heating failure detection tracking
+    is_tracking: true               # Detection in progress?
+    initial_temperature: 19.5       # Temperature at the start of tracking
+    current_temperature: 19.7       # Current temperature
+    remaining_time_min: 8.5         # Minutes remaining before alert
+    elapsed_time_min: 6.5           # Minutes elapsed since start
+  cooling_tracking:                 # Cooling failure detection tracking
+    is_tracking: false
+    initial_temperature: null
+    current_temperature: null
+    remaining_time_min: null
+    elapsed_time_min: null
 ```
 
 ## Binary sensor

@@ -106,6 +106,18 @@ heating_failure_detection_manager:
   cooling_failure_threshold: 0.0
   detection_delay_min: 15
   temperature_change_tolerance: 0.5
+  heating_tracking:                 # Suivi de la détection de défaut de chauffage
+    is_tracking: true               # Détection en cours ?
+    initial_temperature: 19.5       # Température au début du tracking
+    current_temperature: 19.7       # Température actuelle
+    remaining_time_min: 8.5         # Minutes restantes avant alerte
+    elapsed_time_min: 6.5           # Minutes écoulées depuis le début
+  cooling_tracking:                 # Suivi de la détection de défaut de refroidissement
+    is_tracking: false
+    initial_temperature: null
+    current_temperature: null
+    remaining_time_min: null
+    elapsed_time_min: null
 ```
 
 ## Capteur binaire
