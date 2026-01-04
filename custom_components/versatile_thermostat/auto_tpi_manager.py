@@ -851,9 +851,10 @@ class AutoTpiManager:
                 )
                 return
             elif self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
-                self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
-                _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
-                self._learning_just_completed = True
+                if "naturally" not in self.state.last_learning_status:
+                    self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
+                    _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
+                    self._learning_just_completed = True
                 return  # Outdoor success
             else:
                 _LOGGER.debug("%s - Auto TPI: Outdoor learning failed", self._name)
@@ -1075,6 +1076,18 @@ class AutoTpiManager:
                 _LOGGER.debug("%s - Auto TPI: Cannot learn outdoor - Anomalous overcooling (gap_in=%.2f, power=%.1f%%)", self._name, gap_in, self.state.last_power * 100)
                 self.state.last_learning_status = "anomalous_overcooling"
                 return False
+
+            # NEW: Directional Protection
+            # If we are overcooling (below target) BUT the temperature is Rising (going back to target),
+            # then natural recovery is happening. Do not lower Kext.
+            if gap_in > 0 and current_temp_in > self.state.last_temp_in:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f)",
+                    self._name, self.state.last_temp_in, current_temp_in
+                )
+                self.state.last_learning_status = "warming_up_naturally"
+                return True  # Considered handled (skipped)
+
         else:
             # In heat mode: overheated if gap_in < 0 (temp > target)
             # Acceptable only if we really heated (power > 1% instead of 20%)
@@ -1083,6 +1096,17 @@ class AutoTpiManager:
                 _LOGGER.debug("%s - Auto TPI: Cannot learn outdoor - Anomalous overheating (gap_in=%.2f, power=%.1f%%)", self._name, gap_in, self.state.last_power * 100)
                 self.state.last_learning_status = "anomalous_overheating"
                 return False
+
+            # NEW: Directional Protection
+            # If we are overheating (above target) BUT the temperature is Falling (going back to target),
+            # then natural recovery is happening. Do not lower Kext.
+            if gap_in < 0 and current_temp_in < self.state.last_temp_in:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f)",
+                    self._name, self.state.last_temp_in, current_temp_in
+                )
+                self.state.last_learning_status = "cooling_down_naturally"
+                return True  # Considered handled (skipped)
 
         # If we get here with an overshoot AND significant power:
         # → It is a real model error, we MUST learn from it
