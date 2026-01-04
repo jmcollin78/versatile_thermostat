@@ -769,6 +769,19 @@ class AutoTpiManager:
             if self._correct_kint_insufficient_rise(target_diff, temp_progress, is_cool):
                 return  # Kint corrected, skip other learning for this cycle
 
+        # CASE 0.8: Capacity Learning (Independent of Kint saturation)
+        # ------------------------------------------------------------
+        # We want to learn capacity even (and especially) when power is saturated (100%)
+        if self._should_learn_capacity():
+             k_ext = self.state.coeff_outdoor_heat if not is_cool else self.state.coeff_outdoor_cool
+             # Delta T for capacity: Tin - Tout (Heat) or Tout - Tin (Cool)
+             delta_t_cap = self._current_temp_in - self._current_temp_out if not is_cool else self._current_temp_out - self._current_temp_in
+             
+             if self._learn_capacity(self.state.last_power, delta_t_cap, temp_progress, self._last_cycle_power_efficiency, k_ext):
+                 # Capacity learned. We do NOT return here, because we might still want to try indoor learning
+                 # (if not saturated) or outdoor learning.
+                 pass
+
         # CASE 1: Indoor Learning
         # ---------------------------
         # Strict conditions to avoid false positives:
@@ -862,13 +875,6 @@ class AutoTpiManager:
             self.state.last_learning_status = "real_rise_too_small"
             return None
 
-        # === CAPACITY LEARNING (if conditions met) ===
-        # Learn capacity during high-power cycles
-        if self.state.last_power >= 0.80 and self._should_learn_capacity():
-            k_ext = self.state.coeff_outdoor_heat if not is_cool else self.state.coeff_outdoor_cool
-            delta_t = self._current_temp_in - self._current_temp_out if not is_cool else self._current_temp_out - self._current_temp_in
-            
-            self._learn_capacity(real_rise, efficiency, k_ext, delta_t)
 
         # === KINT LEARNING ===
         # 1. Get adiabatic capacity
