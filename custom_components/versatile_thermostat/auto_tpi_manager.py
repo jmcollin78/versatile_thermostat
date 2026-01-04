@@ -456,6 +456,12 @@ class AutoTpiManager:
                 coeff_outdoor_cool=self._default_coef_ext,
             )
 
+        # MIGRATION FIX: If capacity is already known (legacy or manual), mark as learned
+        # This prevents re-triggering bootstrap (count=0) for existing users
+        if self.state.max_capacity_heat > 0 and self.state.capacity_heat_learn_count == 0:
+            _LOGGER.info("%s - Auto TPI: Existing capacity found (%.3f), marking as learned (count=3)", self._name, self.state.max_capacity_heat)
+            self.state.capacity_heat_learn_count = 3
+        
         await self.calculate()
 
     async def update(self, room_temp: float, ext_temp: float, hvac_mode: str, target_temp: float, is_overpowering_detected: bool = False, is_central_boiler_off: bool = False) -> float:
@@ -508,10 +514,9 @@ class AutoTpiManager:
 
         if in_bootstrap:
             # Use aggressive coefficients for bootstrap
-            # These ensure high power during capacity measurement
-            # Interpreted as 0-1 scale gain (200% / 5%) -> Converted to 0-100% scale -> 200.0 / 5.0
-            KINT_BOOTSTRAP = 200.0
-            KEXT_BOOTSTRAP = 5.0
+            # User requested 1.0 / 0.1 as "normal" values (sufficiently aggressive vs 0.6 default)
+            KINT_BOOTSTRAP = 1.0
+            KEXT_BOOTSTRAP = 0.1
             
             self.state.coeff_indoor_heat = KINT_BOOTSTRAP
             self.state.coeff_outdoor_heat = KEXT_BOOTSTRAP
@@ -1666,11 +1671,8 @@ class AutoTpiManager:
         saved_kext = self.state.coeff_outdoor_heat
         
         if in_bootstrap:
-            # User specified 2.0/0.05, interpreted as 0-1 scale gain (200% / 5%).
-            # Converted to 0-100% scale -> 200.0 / 5.0
-            # This ensures high power outputs during bootstrap (Aggressive TPI)
-            self.state.coeff_indoor_heat = 200.0
-            self.state.coeff_outdoor_heat = 5.0
+            self.state.coeff_indoor_heat = 1.0
+            self.state.coeff_outdoor_heat = 0.1
             
         try:
             return self._calculate_power_tpi(setpoint, temp_in, temp_out, state_str)
@@ -1697,7 +1699,7 @@ class AutoTpiManager:
 
         offset = self.state.offset
         power = (direction * delta_in * coeff_int) + (direction * delta_out * coeff_ext) + offset
-        return max(0.0, min(100.0, power))
+        return max(0.0, min(1.0, power))
 
     @staticmethod
     def _remove_outliers_iqr(values: list[float]) -> list[float]:

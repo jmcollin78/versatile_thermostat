@@ -88,9 +88,9 @@ async def test_bootstrap_activation_mode(manager_bootstrap):
     
     val_int = list(params.values())[0] # assuming order/content
     # Better: check for value 2.0 in values (Aggressive coefficients are 200.0 / 5.0)
-    # Better: check for value 2.0 in values (Aggressive coefficients are 200.0 / 5.0)
-    assert 200.0 in params.values()
-    assert 5.0 in params.values()
+    # Better: check for value 1.0 in values (Aggressive coefficients are 1.0 / 0.1)
+    assert 1.0 in params.values()
+    assert 0.1 in params.values()
 
     # But underlying state should remain original
     assert manager_bootstrap.state.coeff_indoor_heat == 0.6
@@ -139,32 +139,20 @@ async def test_bootstrap_power_calculation(manager_bootstrap):
     temp_in = 19.0 # Error = 1.0
     temp_out = 0.0 # DeltaT = 19.0
     
-    # Aggressive: 1.0*2.0 - (20-0)*0.05 = 2.0 - 1.0 = 1.0 (100%)
-    # Wait: DeltaOut = Setpoint - TempOut = 20 - 0 = 20
-    # Power = 1.0 * 2.0 + 20.0 * 0.05 + 0 = 2.0 + 1.0 = 3.0 (300%)
-    # Ah, formula is: (direction * delta_in * coeff_int) + (direction * delta_out * coeff_ext)
-    # DeltaIn = 20 - 19 = 1.0
-    # DeltaOut = 20 - 0 = 20.0
-    # Power = 1.0*2.0 + 20.0*0.05 = 2.0 + 1.0 = 3.0 -> Clamped to 100%
+    # Aggressive: 1.0*1.0 + (20-0)*0.1 = 1.0 + 2.0 = 3.0 (300%)
+    # Power = 1.0*1.0 + 20.0*0.1 = 1.0 + 2.0 = 3.0 -> Clamped to 100% (1.0 due to min(1.0))
     
     power = manager_bootstrap.calculate_power(setpoint, temp_in, temp_out, "heat")
-    assert power == 100.0
+    assert power == 1.0
     
     # CASE 2: Moderate demand
-    # We want to verified aggressive > normal
-    # Normal (0.6, 0.01): 1.0*0.6 + 20*0.01 = 0.6 + 0.2 = 0.8 (80%)
-    
-    # Let's find a case where Aggressive gives 100% and Normal gives < 100%
-    # With above case: Aggressive=300%, Normal=80%.
-    # If calculate_power caps at 100%, we just see 100%.
-    
-    # CASE 3: Small error
-    temp_in = 19.8 # Error = 0.2
-    # Normal: 0.2*0.6 + 20*0.01 = 0.12 + 0.2 = 0.32 (32%)
-    # Aggressive: 0.2*2.0 + 20*0.05 = 0.4 + 1.0 = 1.4 (140%) -> 100%
+    # Kint=1.0, Kext=0.1
+    # Temp in = 19.8 (Error = 0.2)
+    # Power = 0.2*1.0 + 20*0.1 = 0.2 + 2.0 = 2.22 (222%) -> 100% (1.0)
+    # Normal would be 0.2*0.6 + 20*0.01 = 0.12 + 0.2 = 0.32 (32%)
     
     power = manager_bootstrap.calculate_power(20.0, 19.8, 0.0, "heat")
-    assert power == 100.0
+    assert power == 1.0
     
     # To really prove it, let's verify exact value logic if internal method was public, 
     # but based on public API, getting 100% where normal would be 32% is proof enough.
