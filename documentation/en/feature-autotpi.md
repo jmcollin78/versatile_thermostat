@@ -177,6 +177,9 @@ A dedicated sensor `sensor.<thermostat_name>_auto_tpi_learning_state` allows tra
 *   `learning_start_dt`: Date and time when learning started (useful for graphs).
 *   `allow_kint_boost_on_stagnation`: Indicates if Kint boost on stagnation is enabled.
 *   `allow_kext_compensation_on_overshoot`: Indicates if Kext compensation on overshoot is enabled.
+*   `capacity_heat_status`: Status of thermal capacity learning (`learning` or `learned`).
+*   `capacity_heat_value`: The learned thermal capacity value (in °C/h).
+*   `capacity_heat_count`: The number of bootstrap cycles performed for capacity learning.
 
 ## Services
 

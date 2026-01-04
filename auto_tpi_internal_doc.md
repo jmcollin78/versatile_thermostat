@@ -312,6 +312,9 @@ Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
 *   **`learning_start_dt`** : Date et heure du début de l'apprentissage (utile pour les graphiques).
 *   **`allow_kint_boost_on_stagnation`** : Indique si le boost de Kint en cas de stagnation est activé.
 *   **`allow_kext_compensation_on_overshoot`** : Indique si la correction de Kext en cas d'overshoot est activée.
+*   **`capacity_heat_status`** : Statut de l'apprentissage de la capacité thermique (`learning` ou `learned`).
+*   **`capacity_heat_value`** : La valeur de la capacité thermique apprise (en °C/h).
+*   **`capacity_heat_count`** : Le nombre de cycles de bootstrap effectués pour l'apprentissage de la capacité.
 
 ---
 
