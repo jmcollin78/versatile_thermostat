@@ -14,11 +14,11 @@ Możesz sterować kotłem głównym. Jak długo możliwe jest jego załączanie 
 <please update translation from English version>
 
 Podstawowa zasada działania jest następująca:
-1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_boiler`.
+1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_configuration_central_boiler`.
 2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem.
-3. `binary_sensor.central_boiler` nasłuchuje zmian stanu w urządzeniach typu _VTherm_ oznaczonych jako sterujące kotłem.
-4. Gdy liczba urządzeń sterowanych termostatem _VTherm_, które żądają ogrzewania (tj. gdy ich `hvac_action` zmienia się na `Heating`), przekroczy konfigurowalny próg, `binary_sensor.central_boiler` włącza się, a jeśli skonfigurowano usługę aktywacji, zostanie ona wywołana.
-5. Jeśli liczba urządzeń żądających ogrzewania spadnie poniżej progu, `binary_sensor.central_boiler` wyłącza się, a jeśli skonfigurowano usługę dezaktywacji, zostanie ona wywołana.
+3. `binary_sensor.central_configuration_central_boiler` nasłuchuje zmian stanu w urządzeniach typu _VTherm_ oznaczonych jako sterujące kotłem.
+4. Gdy liczba urządzeń sterowanych termostatem _VTherm_, które żądają ogrzewania (tj. gdy ich `hvac_action` zmienia się na `Heating`), przekroczy konfigurowalny próg, `binary_sensor.central_configuration_central_boiler` włącza się, a jeśli skonfigurowano usługę aktywacji, zostanie ona wywołana.
+5. Jeśli liczba urządzeń żądających ogrzewania spadnie poniżej progu, `binary_sensor.central_configuration_central_boiler` wyłącza się, a jeśli skonfigurowano usługę dezaktywacji, zostanie ona wywołana.
 6. Masz dostęp do dwóch encji:
    - Encja typu `number`, domyślnie nazwana `number.boiler_activation_threshold`, która określa próg aktywacji. Próg ten to liczba urządzeń (grzejników) żądających ogrzewania.
    - Encja typu `sensor`, domyślnie nazwana `sensor.nb_device_active_for_boiler`, która pokazuje liczbę urządzeń żądających ogrzewania. Na przykład termostat z 4 zaworami, z których 3 żądają ogrzewania, spowoduje, że sensor ten pokaże wartość 3. Zalicza się tu tylko te urządzenia spośród tych termostatów _VTherm_, które oznaczone są jako sterujące kotłem głownym.
@@ -78,7 +78,7 @@ Zdarzenie aktywacji:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Kocioł główny
   state_attributes: null
 origin: LOCAL
@@ -94,7 +94,7 @@ Zdarzenie deaktywacji:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Kocioł główny
   state_attributes: null
 origin: LOCAL

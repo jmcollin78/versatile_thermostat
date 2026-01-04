@@ -1,0 +1,52 @@
+- id: '1767453993916'
+  alias: Alerte anomalie de chauffe
+  description: Notification pour tous les types de défauts de chauffage
+  triggers:
+  - event_type: versatile_thermostat_heating_failure_event
+    trigger: event
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.event.data.type in [''heating_failure_start'', ''cooling_failure_start'']
+      }}'
+  actions:
+  - data:
+      title: "{% if trigger.event.data.failure_type == 'heating' %}\n  \U0001F525
+        Défaut de chauffage détecté\n{% else %}\n  ❄️ Défaut de refroidissement détecté\n{%
+        endif %}\n"
+      message: "Le thermostat **{{ trigger.event.data.name }}** a détecté une anomalie.\n\U0001F4CA
+        **Détails :** - Type de défaut : {{ trigger.event.data.failure_type }} - Puissance
+        demandée : {{ (trigger.event.data.on_percent * 100) | round(0) }}% - Température
+        actuelle : {{ trigger.event.data.current_temp }}°C - Température cible : {{
+        trigger.event.data.target_temp }}°C - Variation de température : {{ trigger.event.data.temperature_difference
+        | round(2) }}°C\n{% if trigger.event.data.failure_type == 'heating' %} ⚠️
+        Le chauffage fonctionne à {{ (trigger.event.data.on_percent * 100) | round(0)
+        }}% mais la température n'augmente pas. Vérifiez que le radiateur fonctionne
+        correctement. {% else %} ⚠️ Le chauffage est éteint mais la température continue
+        d'augmenter. Vérifiez que le radiateur s'éteint correctement. {% endif %}\n"
+      notification_id: heating_failure_{{ trigger.event.data.entity_id }}
+    action: persistent_notification.create
+- id: '1767453993917'
+  alias: "Fin d'alerte anomalie de chauffe"
+  description: "Supprime la notification quand le défaut est résolu"
+  trigger:
+    - platform: event
+      event_type: versatile_thermostat_heating_failure_event
+  condition:
+    - condition: template
+      value_template: "{{ trigger.event.data.type in ['heating_failure_end', 'cooling_failure_end'] }}"
+  action:
+    - service: persistent_notification.dismiss
+      data:
+        notification_id: "heating_failure_{{ trigger.event.data.entity_id }}"
+    - service: persistent_notification.create
+      data:
+        title: "✅ Anomalie résolue"
+        message: >
+          Le thermostat **{{ trigger.event.data.name }}** fonctionne à nouveau normalement.
+        notification_id: "heating_failure_resolved_{{ trigger.event.data.entity_id }}"
+    # Supprime automatiquement la notification de résolution après 1 heure
+    - delay:
+        hours: 1
+    - service: persistent_notification.dismiss
+      data:
+        notification_id: "heating_failure_resolved_{{ trigger.event.data.entity_id }}"

@@ -19,6 +19,12 @@ if [ -f ${PWD}/.devcontainer/configuration.yaml ]; then
     ln -s ${PWD}/.devcontainer/configuration.yaml ${PWD}/config/configuration.yaml
 fi
 
+# Overwrite automations.yaml if provided (to not work, don't know why)
+if [ -f ${PWD}/.devcontainer/automations.yaml ]; then
+    rm -f ${PWD}/config/automations.yaml
+    ln -s ${PWD}/.devcontainer/automations.yaml ${PWD}/config/automations.yaml
+fi
+
 # Overwrite lovelace if provided
 if [ -f ${PWD}/.devcontainer/lovelace ]; then
     rm -f ${PWD}/config/.storage/lovelace

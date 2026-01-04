@@ -420,7 +420,7 @@ Les attributs personnalisés sont les suivants :
 
 ## Pour la configuration centrale
 
-Les attributs personnalisés de la configuration centrale sont accessibles dans Outils de developpement / Etats sur l'entité `binary_sensor.central_boiler` :
+Les attributs personnalisés de la configuration centrale sont accessibles dans Outils de developpement / Etats sur l'entité `binary_sensor.central_configuration_central_boiler` :
 
 | Attribut                                    | Signification                                                                                    |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |

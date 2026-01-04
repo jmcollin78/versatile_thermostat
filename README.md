@@ -26,6 +26,13 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.5
+> 1. added heating failure detection for VTherms using the TPI algorithm. This feature detects two types of anomalies:
+>    - **heating failure**: the radiator is heating strongly (high on_percent) but the temperature is not increasing,
+>    - **cooling failure**: the radiator is not heating (on_percent at 0) but the temperature keeps rising.
+>
+> These anomalies may indicate an open window, a faulty radiator, or an external heat source. The feature sends events that can be used to trigger automations (notifications, alerts, etc.). More information [here](documentation/en/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
 > 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),

@@ -301,7 +301,7 @@ Die benutzerdefinierten Attribute sind folgende:
 
 ## Für die zentrale Konfiguration
 
-Folgende benutzerdefinierten Attribute der zentralen Konfiguration sind unter "Entwicklungstools / Status" für die Entität `binary_sensor.central_boiler` verfügbar:
+Folgende benutzerdefinierten Attribute der zentralen Konfiguration sind unter "Entwicklungstools / Status" für die Entität `binary_sensor.central_configuration_central_boiler` verfügbar:
 
 | Attribute                                   | Bedeutung                                                                                             |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |

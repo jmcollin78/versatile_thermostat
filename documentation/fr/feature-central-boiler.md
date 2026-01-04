@@ -12,11 +12,11 @@ Vous avez la possibilité de contrôler une chaudière centrale. A partir du mom
 
 ## Principe
 Le principe mis en place est globalement le suivant :
-1. une nouvelle entité de type `binary_sensor` et nommée par défaut `binary_sensor.central_boiler` est ajoutée,
+1. une nouvelle entité de type `binary_sensor` et nommée par défaut `binary_sensor.central_configuration_central_boiler` est ajoutée,
 2. dans la configuration des _VTherm_ vous indiquez si le VTherm doit contrôler la chaudière. En effet, dans une installation hétérogène, certains VTherm doivent commander la chaudière et d'autres non. Vous devez donc indiquer dans chaque configuration de VTherm si il contrôle la chaudière ou pas. A chauque _VTherm_ controlant la chaudière vous pouvez associer une puissance,
-3. le `binary_sensor.central_boiler` écoute les changements d'états des équipements des VTherm marqués comme contrôlant la chaudière,
-4. dès que le nombre d'équipements pilotés par le VTherm demandant du chauffage (ie son `hvac_action` passe à `Heating`)  ou que le total des puissance dépasse un seuil paramétrable, alors le `binary_sensor.central_boiler` passe à `on` et **si un service d'activation a été configuré, alors ce service est appelé**,
-5. si le nombre d'équipements nécessitant du chauffage repasse en dessous du seuil, alors le `binary_sensor.central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
+3. le `binary_sensor.central_configuration_central_boiler` écoute les changements d'états des équipements des VTherm marqués comme contrôlant la chaudière,
+4. dès que le nombre d'équipements pilotés par le VTherm demandant du chauffage (ie son `hvac_action` passe à `Heating`)  ou que le total des puissance dépasse un seuil paramétrable, alors le `binary_sensor.central_configuration_central_boiler` passe à `on` et **si un service d'activation a été configuré, alors ce service est appelé**,
+5. si le nombre d'équipements nécessitant du chauffage repasse en dessous du seuil, alors le `binary_sensor.central_configuration_central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
 6. vous avez accès à 4 entités :
    - une de type `number` nommée par défaut `number.boiler_activation_threshold`, donne le seuil de déclenchement. Ce seuil est en nombre d'équipements (radiateurs) qui demandent du chauffage et non pas le nombre de _VTherm_ demandant du chauffage.
    - une de type `sensor` nommée par défaut `sensor.nb_device_active_for_boiler`, donne le nombre d'équipements qui demandent du chauffage. Par exemple, un VTherm ayant 4 vannes dont 3 demandent du chauffage fera passer ce capteur à 3. Seuls les équipements des _VTherm_ qui sont marqués pour contrôler la chaudière centrale sont comptabilisés.
@@ -95,7 +95,7 @@ Un évènement d'allumage :
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL
@@ -111,7 +111,7 @@ Un évènement d'extinction :
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL
