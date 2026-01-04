@@ -35,9 +35,8 @@ Dies ermöglicht Ihnen die Konfiguration der Ventilsteuerungseinheiten:
 
 Sie müssen folgendes angeben:
 1. So viele Einheiten zur Steuerung der Ventilöffnung, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind obligatorisch.
-2. So viele Temperatur-Offset-Kalibrierungseinheiten, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind optional; entweder müssen alle angegeben werden oder keiner. Ihre Verwendung, sofern vorhanden, wird dringend empfohlen.
-3. So viele Einheiten zur Steuerung der Schließgeschwindigkeit des Ventils, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind optional; entweder müssen alle angegeben werden oder keiner.
-4. Eine Liste der minimalen Ventilöffnungswerte, wenn das Ventil geöffnet sein muss. Dieses Feld ist eine Liste von Ganzzahlen. Wenn das Ventil geöffnet sein muss, wird es mindestens bis zu diesem Wert geöffnet; andernfalls wird es vollständig geschlossen (0). Auf diese Weise wird sichergestellt, dass genügend Wasser fließt, wenn geheizt werden muss, während es vollständig geschlossen bleibt, wenn keine Heizung benötigt wird.
+2. So viele Einheiten zur Steuerung der Schließgeschwindigkeit des Ventils, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind optional; entweder müssen alle angegeben werden oder keiner.
+3. Eine Liste der minimalen Ventilöffnungswerte, wenn das Ventil geöffnet sein muss. Dieses Feld ist eine Liste von Ganzzahlen. Wenn das Ventil geöffnet sein muss, wird es mindestens bis zu diesem Wert geöffnet; andernfalls wird es vollständig geschlossen (0). Auf diese Weise wird sichergestellt, dass genügend Wasser fließt, wenn geheizt werden muss, während es vollständig geschlossen bleibt, wenn keine Heizung benötigt wird.
 
 Der Algorithmus zur Berechnung der Öffnungsrate basiert auf _TPI_, der beschrieben ist [hier](algorithms.md). Es ist derselbe Algorithmus, der für _VTherm_ `over_switch` und `over_valve` verwendet wird.
 

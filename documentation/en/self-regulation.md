@@ -35,11 +35,10 @@ It allows configuring the valve control entities:
 
 You must provide:
 1. as many valve opening control entities as there are underlying entities and in the same order. These parameters are mandatory,
-2. as many temperature offset calibration entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none. Their use, if available, is strongly recommended,
-3. as many closing rate control entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none,
-4. `opening_threshold`: the minimum valve opening below which the valve should be considered closed, and consequently, the 'max_closing_degree' parameter applies,
-5. `max_closing_degree`: the absolute maximum closing percentage. The valve will never close more than what is indicated in this value. If you want to allow complete valve closing, then leave this parameter at 100,
-6. `minimum_opening_degrees`: the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of minimum openings separated by ','. The default value is 0. Example: '20, 25, 30'. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary.
+2. as many closing rate control entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none,
+3. `opening_threshold`: the minimum valve opening below which the valve should be considered closed, and consequently, the 'max_closing_degree' parameter applies,
+4. `max_closing_degree`: the absolute maximum closing percentage. The valve will never close more than what is indicated in this value. If you want to allow complete valve closing, then leave this parameter at 100,
+5. `minimum_opening_degrees`: the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of minimum openings separated by ','. The default value is 0. Example: '20, 25, 30'. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary.
 
 The opening rate calculation algorithm is based on _TPI_ which is described [here](algorithms.md). It is the same algorithm used for `over_switch` and `over_valve` _VTherm_.
 

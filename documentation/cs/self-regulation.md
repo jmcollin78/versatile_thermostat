@@ -34,9 +34,8 @@ To vám umožní konfigurovat entity ovládání ventilu:
 
 Musíte poskytnout:
 1. Tolik entit ovládání otevření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou povinné.
-2. Tolik entit kalibrace teplotního offsetu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné. Jejich použití, pokud je dostupné, je silně doporučeno.
-3. Tolik entit ovládání míry uzavření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné.
-4. Seznam minimálních hodnot otevření ventilu, když ventil potřebuje být otevřen. Toto pole je seznam celých čísel. Pokud ventil potřebuje být otevřen, otevře se alespoň na tuto hodnotu; jinak bude úplně uzavřen (0). To zajišťuje, že při potřebě vytápění protéká dostatek vody, zatímco udržuje úplné uzavření, když vytápění není potřeba.
+2. Tolik entit ovládání míry uzavření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné.
+3. Seznam minimálních hodnot otevření ventilu, když ventil potřebuje být otevřen. Toto pole je seznam celých čísel. Pokud ventil potřebuje být otevřen, otevře se alespoň na tuto hodnotu; jinak bude úplně uzavřen (0). To zajišťuje, že při potřebě vytápění protéká dostatek vody, zatímco udržuje úplné uzavření, když vytápění není potřeba.
 
 Algoritmus pro výpočet míry otevření je založen na _TPI_, který je popsán [zde](algorithms.md). Je to stejný algoritmus používaný pro _VTherm_ `over_switch` a `over_valve`.
 

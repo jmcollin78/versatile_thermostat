@@ -33,9 +33,8 @@ Pozwala ono skonfigurować ustawienia sterowania zaworem:
 
 Należy podać:
 1. Tyle jednostek sterujących otwieraniem zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **obowiązkowe**.
-2. Tyle jednostek kalibracji temperatury, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **opcjonalne**. Należy podać je **wszystkie** lub nie podawać **żadnych**. Zdecydowanie zaleca się ich użycie, jeśli są dostępne.
-3. Tyle jednostek sterujących szybkością zamykania zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **opcjonalne**. Należy podać je **wszystkie** lub nie podawać **żadnych**. Zdecydowanie zaleca się ich użycie, jeśli są dostępne.
-4. Listę minimalnych wartości otwarcia zaworu, gdy zawór ma być otwarty. To pole jest listą liczb całkowitych. Jeśli zawór musi być otwarty, otworzy się co najmniej do tej wartości; w przeciwnym razie będzie całkowicie zamknięty (0). Zapewnia to wystarczający przepływ wody, gdy wymagane jest ogrzewanie, a jednocześnie pełne zamknięcie, gdy ogrzewanie nie jest potrzebne.
+2. Tyle jednostek sterujących szybkością zamykania zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **opcjonalne**. Należy podać je **wszystkie** lub nie podawać **żadnych**. Zdecydowanie zaleca się ich użycie, jeśli są dostępne.
+3. Listę minimalnych wartości otwarcia zaworu, gdy zawór ma być otwarty. To pole jest listą liczb całkowitych. Jeśli zawór musi być otwarty, otworzy się co najmniej do tej wartości; w przeciwnym razie będzie całkowicie zamknięty (0). Zapewnia to wystarczający przepływ wody, gdy wymagane jest ogrzewanie, a jednocześnie pełne zamknięcie, gdy ogrzewanie nie jest potrzebne.
 
 Algorytm obliczania współczynnika otwierania oparty jest na _TPI_, który opisano [tutaj](algorithms.md). Jest to ten sam algorytm, który jest używany dla `termostatu na przełączniku` i `termostatu na zaworze`.
 
