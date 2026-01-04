@@ -168,17 +168,17 @@ Données de l'évènement :
 Cette automatisation crée une notification persistante lorsqu'un défaut de chauffage est détecté :
 
 ```yaml
-- alias: "Alerte défaut de chauffage"
+alias: "Alerte défaut de chauffage"
 description: "Crée une notification persistante en cas de défaut de chauffage"
 trigger:
     - platform: event
-    event_type: versatile_thermostat_heating_failure_event
+      event_type: versatile_thermostat_heating_failure_event
 condition:
     - condition: template
-    value_template: "{{ trigger.event.data.type == 'heating_failure_start' }}"
+      value_template: "{{ trigger.event.data.type == 'heating_failure_start' }}"
 action:
     - service: persistent_notification.create
-    data:
+      data:
         title: "🔥 Défaut de chauffage détecté"
         message: >
         Le thermostat **{{ trigger.event.data.name }}** a détecté un défaut de chauffage.
@@ -199,17 +199,17 @@ action:
 Cette automatisation gère les deux types de défauts (chauffage et refroidissement) :
 
 ```yaml
-- alias: "Alerte anomalie de chauffe"
+alias: "Alerte anomalie de chauffe"
 description: "Notification pour tous les types de défauts de chauffage"
 trigger:
     - platform: event
-    event_type: versatile_thermostat_heating_failure_event
+      event_type: versatile_thermostat_heating_failure_event
 condition:
     - condition: template
-    value_template: "{{ trigger.event.data.type in ['heating_failure_start', 'cooling_failure_start'] }}"
+      value_template: "{{ trigger.event.data.type in ['heating_failure_start', 'cooling_failure_start'] }}"
 action:
     - service: persistent_notification.create
-    data:
+      data:
         title: >
         {% if trigger.event.data.failure_type == 'heating' %}
             🔥 Défaut de chauffage détecté
@@ -241,20 +241,20 @@ action:
 Cette automatisation supprime la notification persistante lorsque le défaut est résolu :
 
 ```yaml
-- alias: "Fin d'alerte anomalie de chauffe"
+alias: "Fin d'alerte anomalie de chauffe"
 description: "Supprime la notification quand le défaut est résolu"
 trigger:
     - platform: event
-    event_type: versatile_thermostat_heating_failure_event
+      event_type: versatile_thermostat_heating_failure_event
 condition:
     - condition: template
-    value_template: "{{ trigger.event.data.type in ['heating_failure_end', 'cooling_failure_end'] }}"
+      value_template: "{{ trigger.event.data.type in ['heating_failure_end', 'cooling_failure_end'] }}"
 action:
     - service: persistent_notification.dismiss
-    data:
+      data:
         notification_id: "heating_failure_{{ trigger.event.data.entity_id }}"
     - service: persistent_notification.create
-    data:
+      data:
         title: "✅ Anomalie résolue"
         message: >
         Le thermostat **{{ trigger.event.data.name }}** fonctionne à nouveau normalement.
@@ -263,7 +263,7 @@ action:
     - delay:
         hours: 1
     - service: persistent_notification.dismiss
-    data:
+      data:
         notification_id: "heating_failure_resolved_{{ trigger.event.data.entity_id }}"
 ```
 

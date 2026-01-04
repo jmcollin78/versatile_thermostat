@@ -168,7 +168,7 @@ Event data:
 This automation creates a persistent notification when a heating failure is detected:
 
 ```yaml
-- alias: "Heating failure alert"
+  alias: "Heating failure alert"
   description: "Creates a persistent notification when heating failure is detected"
   trigger:
     - platform: event
@@ -199,7 +199,7 @@ This automation creates a persistent notification when a heating failure is dete
 This automation handles both failure types (heating and cooling):
 
 ```yaml
-- alias: "Heating anomaly alert"
+  alias: "Heating anomaly alert"
   description: "Notification for all types of heating failures"
   trigger:
     - platform: event
@@ -241,7 +241,7 @@ This automation handles both failure types (heating and cooling):
 This automation dismisses the persistent notification when the failure is resolved:
 
 ```yaml
-- alias: "Heating anomaly resolved"
+  alias: "Heating anomaly resolved"
   description: "Dismisses the notification when the failure is resolved"
   trigger:
     - platform: event
