@@ -1199,33 +1199,66 @@ class AutoTpiManager:
     def _should_learn_capacity(self) -> bool:
         """Check if capacity learning should occur this cycle."""
         
-        # Condition 1: High power (80%+)
-        if self.state.last_power < 0.80:
+        # Determine if we are in bootstrap
+        in_bootstrap = (
+            self.state.max_capacity_heat == 0 or 
+            self.state.capacity_heat_learn_count < 3
+        )
+
+        # Baseline thresholds
+        power_threshold = 0.80
+        rise_threshold = 0.05
+        min_gap = 1.0 if self.state.capacity_heat_learn_count < 3 else 0.3
+
+        # Timeout Strategy: Force default capacity if bootstrap fails too many times
+        if in_bootstrap:
+            failures = self.state.bootstrap_failure_count
+            
+            if failures > 5:
+                # Force exit bootstrap with conservative capacity
+                _LOGGER.warning(
+                    "%s - Bootstrap timeout after %d failures. Forcing default capacity 0.3°C/h and exiting bootstrap.", 
+                    self._name, failures
+                )
+                self.state.max_capacity_heat = 0.3
+                # We interpret this forced exit as having "learned" enough to stabilize
+                # Setting count to 3 ensures we use alpha=0.15 (stabilized) for future updates
+                self.state.capacity_heat_learn_count = 3
+                self.state.bootstrap_failure_count = 0 # Reset counter
+                return False # Cycle handled (we set default), skip calculation logic for this cycle
+        
+        # Check Condition 1: Power
+        if self.state.last_power < power_threshold:
             _LOGGER.debug(
-                "%s - Not learning capacity: power too low (%.1f%% < 80%%)",
-                self._name, self.state.last_power * 100
+                "%s - Not learning capacity: power too low (%.1f%% < %.0f%%)",
+                self._name, self.state.last_power * 100, power_threshold * 100
             )
+            if in_bootstrap:
+                self.state.bootstrap_failure_count += 1
             return False
         
         # Condition 2: Significant rise
         real_rise = self._current_temp_in - self.state.last_temp_in
-        if real_rise < 0.05:
+        if real_rise < rise_threshold:
             _LOGGER.debug(
-                "%s - Not learning capacity: rise too small (%.3f < 0.05°C)",
-                self._name, real_rise
+                "%s - Not learning capacity: rise too small (%.3f < %.2f°C)",
+                self._name, real_rise, rise_threshold
             )
+            if in_bootstrap:
+                self.state.bootstrap_failure_count += 1
             return False
         
         # Condition 3: Adequate gap (stricter during bootstrap)
-        count = self.state.capacity_heat_learn_count
-        min_gap = 1.0 if count < 3 else 0.3
-        
         target_diff = self._current_target_temp - self.state.last_temp_in
         if target_diff < min_gap:
             _LOGGER.debug(
                 "%s - Not learning capacity: gap too small (%.2f < %.1f°C)",
                 self._name, target_diff, min_gap
             )
+            # Note: We don't necessarily increment failure count for "small gap" 
+            # as this is not a "failed attempt" to heat, but rather "no need to heat much".
+            # But if we are in bootstrap, we WANT larger gaps. 
+            # Let's be conservative and NOT increment here to avoid relaxing just because setpoint is close.
             return False
         
         return True
@@ -1298,6 +1331,9 @@ class AutoTpiManager:
             self._name, self.state.max_capacity_heat,
             self.state.capacity_heat_learn_count, alpha
         )
+
+        # Reset failure count on success
+        self.state.bootstrap_failure_count = 0
         
         return True
 
@@ -2377,6 +2413,14 @@ class AutoTpiManager:
 
     def get_calculated_params(self) -> dict:
         return self._calculated_params
+
+    @property
+    def is_in_bootstrap(self) -> bool:
+        """Return True if the algorithm is in bootstrap mode (learning capacity)."""
+        return (
+            self.state.max_capacity_heat == 0 or 
+            self.state.capacity_heat_learn_count < 3
+        )
 
     @property
     def learning_active(self) -> bool:

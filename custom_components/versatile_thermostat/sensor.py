@@ -330,7 +330,10 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         # Determine state
         if manager.learning_active:
-            self._attr_native_value = "Active"
+            if manager.is_in_bootstrap:
+                self._attr_native_value = "Bootstrap"
+            else:
+                self._attr_native_value = "Active"
         else:
             self._attr_native_value = "Off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
 
@@ -347,9 +350,10 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "learning_start_dt": manager.state.learning_start_date,
             "allow_kint_boost_on_stagnation": manager.state.allow_kint_boost,
             "allow_kext_compensation_on_overshoot": manager.state.allow_kext_overshoot,
-            "capacity_heat_status": "learning" if (manager.state.max_capacity_heat == 0 or manager.state.capacity_heat_learn_count < 3) else "learned",
+            "capacity_heat_status": "learning" if manager.is_in_bootstrap else "learned",
             "capacity_heat_value": manager.state.max_capacity_heat,
             "capacity_heat_count": manager.state.capacity_heat_learn_count,
+            "bootstrap_failure_count": manager.state.bootstrap_failure_count,
         }
 
         # Add calculated TPI coefficients

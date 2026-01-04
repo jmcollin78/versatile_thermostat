@@ -71,19 +71,30 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 
 ---
 
-## 3. Mécanisme d'Apprentissage
+#### 6. Apprentissage de la Capacité (Max Check)
+L'algorithme tente d'estimer la puissance physique de l'installation (`max_capacity_heat` en °C/h).
+Cette valeur sert de référence pour calculer l'efficacité relative des cycles suivants.
 
-L'apprentissage est **cyclique**. Il se déclenche à la fin de chaque cycle validé.
+**Conditions d'apprentissage :**
+*   Mode bootstrap (count < 3) ou apprentissage continu.
+*   **Puissance élevée** : Le cycle doit avoir injecté beaucoup d'énergie (Power > 80%) pour être représentatif.
+*   **Montée significative** : La température doit avoir monté d'au moins 0.05°C.
+*   **Gap suffisant** : L'écart à la consigne doit être suffisant (> 1°C en bootstrap, > 0.3°C sinon).
 
-### A. Conditions d'Apprentissage (`_should_learn`)
-Pour qu'un cycle soit valide :
-1.  **Activation** : `autolearn_enabled` doit être True.
-2.  **Puissance Significative** : La puissance doit être entre 0% et 100% (exclus). Les cycles à saturation ne permettent pas d'apprendre la dynamique fine (sauf en cas de détection de sous-dimensionnement).
-3.  **Stabilité** : Moins de 3 échecs consécutifs.
-4.  **Durée Significative** : Le temps d'activation (`on_time`) doit être supérieur au temps de montée en température effectif (`effective_heating_time`).
-5.  **Exclusion du Premier Cycle** : Le cycle suivant un démarrage (état précédent 'stop') est ignoré car le système n'est pas stabilisé (démarrage à froid).
-6.  **Différentiel Extérieur Significatif** : `|Consigne - Temp_Ext| >= 1.0`. Évite d'apprendre sur de trop faibles écarts de température.
-7.  **Chaudière Centrale Active** : Si le VTherm est utilisé avec une chaudière centrale (`is_used_by_central_boiler`), le cycle est ignoré si la chaudière est éteinte (`central_boiler_manager.is_on` est False). Cela évite d'interpréter l'absence de chauffe comme une fuite thermique massive.
+**Timeout de Bootstrap (Sécurité) :**
+Pour éviter que les systèmes à forte inertie (ex: plancher chauffant) ne restent bloqués indéfiniment en mode bootstrap (coefficients agressifs 1.0/0.1), une sécurité a été ajoutée :
+*   Si le système échoue à apprendre la capacité pendant **plus de 5 cycles consécutifs** en bootstrap...
+*   ... l'algorithme force la sortie du mode bootstrap.
+*   Il assigne une capacité par défaut de **0.3 °C/h** (valeur sécuritaire pour système lent).
+*   L'apprentissage reprend ensuite normalement avec des coefficients non forcés.
+
+**Formule (inspirée de regul2.py) :**
+1.  **Capacité Observée** : `Rise / (Duration * Efficiency)`
+2.  **Correction Adiabatique** : On ajoute les pertes estimées pour obtenir la capacité "brute" (isolation parfaite).
+    `Adiabatic_Capacity = Observed + (Kext * Delta_T)`
+3.  **Lissage (EWMA)** :
+    *   Alpha = 0.4 (Rapide) pendant le bootstrap.
+    *   Alpha = 0.15 (Lent) ensuite.
 
 ### B. Capacité Maximale et Inertie
 **(SUPPRIMÉ)** Le mécanisme d'apprentissage de la capacité en temps réel (`_detect_max_capacity`) a été remplacé par un service de calibration basé sur la régression linéaire d'historique. Voir Section **"Nouveau Service de Calibration"** ci-dessous.
