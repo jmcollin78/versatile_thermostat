@@ -361,14 +361,16 @@
           "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
           "heating_failure_threshold": "Seuil de panne de chauffage",
           "cooling_failure_threshold": "Seuil de panne de refroidissement",
-          "heating_failure_detection_delay": "Délai de détection (minutes)"
+          "heating_failure_detection_delay": "Délai de détection (minutes)",
+          "temperature_change_tolerance": "Tolérance (°C)"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
           "use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
           "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
-          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu"
+          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
         }
       }
     },
@@ -751,14 +753,16 @@
           "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
           "heating_failure_threshold": "Seuil de panne de chauffage",
           "cooling_failure_threshold": "Seuil de panne de refroidissement",
-          "heating_failure_detection_delay": "Délai de détection (minutes)"
+          "heating_failure_detection_delay": "Délai de détection (minutes)",
+          "temperature_change_tolerance": "Tolérance (°C)"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
           "use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
           "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
-          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu"
+          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
         }
       }
     },
@@ -851,6 +855,32 @@
             }
           }
         }
+      }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "État de sécurité"
+      },
+      "heating_failure_state": {
+        "name": "État d'anomalie de chauffe"
+      },
+      "overpowering_state": {
+        "name": "État de délestage"
+      },
+      "window_state": {
+        "name": "État de la fenêtre"
+      },
+      "motion_state": {
+        "name": "État de mouvement"
+      },
+      "presence_state": {
+        "name": "État de présence"
+      },
+      "window_bypass_state": {
+        "name": "Bypass fenêtre"
+      },
+      "central_boiler_state": {
+        "name": "Chaudière centrale"
       }
     },
     "number": {

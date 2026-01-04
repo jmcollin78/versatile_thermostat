@@ -709,6 +709,9 @@
                     },
                     {
                       "entity": "sensor.thermostat_switch_1_ema_temperature"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_etat_d_anomalie_de_chauffe"
                     }
                   ],
                   "title": "Thermostat Switch 1",
@@ -1429,6 +1432,9 @@
                     },
                     {
                       "entity": "sensor.thermostat_valve_ema_temperature"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_etat_d_anomalie_de_chauffe"
                     }
                   ],
                   "title": "Thermostat Valve",
@@ -2609,6 +2615,9 @@
                         },
                         {
                           "entity": "sensor.sonoff_trvzb_energy"
+                        },
+                        {
+                          "entity": "binary_sensor.sonoff_trvzb_etat_d_anomalie_de_chauffe"
                         }
                       ],
                       "state_color": true

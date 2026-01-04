@@ -19,9 +19,11 @@ from .const import (
     CONF_HEATING_FAILURE_THRESHOLD,
     CONF_COOLING_FAILURE_THRESHOLD,
     CONF_HEATING_FAILURE_DETECTION_DELAY,
+    CONF_TEMPERATURE_CHANGE_TOLERANCE,
     DEFAULT_HEATING_FAILURE_THRESHOLD,
     DEFAULT_COOLING_FAILURE_THRESHOLD,
     DEFAULT_HEATING_FAILURE_DETECTION_DELAY,
+    DEFAULT_TEMPERATURE_CHANGE_TOLERANCE,
     EventType,
     overrides,
 )
@@ -47,6 +49,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             "heating_failure_threshold",
             "cooling_failure_threshold",
             "heating_failure_detection_delay",
+            "temperature_change_tolerance",
             "is_heating_failure_detection_configured",
         }
     )
@@ -59,6 +62,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         self._heating_failure_threshold: float = DEFAULT_HEATING_FAILURE_THRESHOLD
         self._cooling_failure_threshold: float = DEFAULT_COOLING_FAILURE_THRESHOLD
         self._heating_failure_detection_delay: int = DEFAULT_HEATING_FAILURE_DETECTION_DELAY
+        self._temperature_change_tolerance: float = DEFAULT_TEMPERATURE_CHANGE_TOLERANCE
 
         # State tracking
         self._heating_failure_state: str = STATE_UNAVAILABLE
@@ -94,6 +98,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             CONF_HEATING_FAILURE_DETECTION_DELAY,
             DEFAULT_HEATING_FAILURE_DETECTION_DELAY
         )
+        self._temperature_change_tolerance = entry_infos.get(CONF_TEMPERATURE_CHANGE_TOLERANCE, DEFAULT_TEMPERATURE_CHANGE_TOLERANCE)
 
         self._is_configured = True
         self._heating_failure_state = STATE_UNKNOWN
@@ -148,14 +153,28 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             self._last_check_temperature = current_temp
             return False
 
-        old_heating_failure = self._heating_failure_state == STATE_ON
-        old_cooling_failure = self._cooling_failure_state == STATE_ON
-
         detection_delay_td = timedelta(minutes=self._heating_failure_detection_delay)
 
-        # Check for HEATING failure:
-        # High on_percent (>= threshold) but temperature not increasing
-        if is_heating_mode and on_percent >= self._heating_failure_threshold:
+        # Check for heating and cooling failures
+        if is_heating_mode:
+            self._check_heating_failure(now, current_temp, on_percent, detection_delay_td)
+            self._check_cooling_failure(now, current_temp, on_percent, detection_delay_td)
+
+        # Initialize states if still unknown
+        if self._heating_failure_state == STATE_UNKNOWN:
+            self._heating_failure_state = STATE_OFF
+        if self._cooling_failure_state == STATE_UNKNOWN:
+            self._cooling_failure_state = STATE_OFF
+
+        return self.is_failure_detected
+
+    def _check_heating_failure(self, now: datetime, current_temp: float, on_percent: float, detection_delay_td: timedelta):
+        """Check for HEATING failure:
+        High on_percent (>= threshold) but temperature not increasing"""
+
+        old_heating_failure = self._heating_failure_state == STATE_ON
+
+        if on_percent >= self._heating_failure_threshold:
             if self._high_power_start_time is None:
                 self._high_power_start_time = now
                 self._last_check_temperature = current_temp
@@ -166,23 +185,24 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             else:
                 elapsed = now - self._high_power_start_time
                 if elapsed >= detection_delay_td:
-                    # Check if temperature has increased
+                    # Check if temperature has increased enough (above tolerance)
                     if self._last_check_temperature is not None:
                         temp_diff = current_temp - self._last_check_temperature
-                        if temp_diff <= 0:
-                            # Temperature not increasing - heating failure detected
+                        if temp_diff < self._temperature_change_tolerance:
+                            # Temperature not increasing enough - heating failure detected
                             if not old_heating_failure:
                                 _LOGGER.warning(
-                                    "%s - Heating failure detected: on_percent=%.2f%%, temp_diff=%.2f° over %d minutes",
+                                    "%s - Heating failure detected: on_percent=%.2f%%, temp_diff=%.2f° (tolerance=%.2f°) over %d minutes",
                                     self,
                                     on_percent * 100,
                                     temp_diff,
-                                    self._heating_failure_detection_delay
+                                    self._temperature_change_tolerance,
+                                    self._heating_failure_detection_delay,
                                 )
                                 self._heating_failure_state = STATE_ON
                                 self._send_heating_failure_event("heating_failure_start", on_percent, temp_diff, current_temp)
                         else:
-                            # Temperature is increasing, reset if we were in failure
+                            # Temperature is increasing enough, reset if we were in failure
                             if old_heating_failure:
                                 _LOGGER.info("%s - Heating failure ended: temperature is now increasing", self)
                                 self._heating_failure_state = STATE_OFF
@@ -197,9 +217,13 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                     self._heating_failure_state = STATE_OFF
                     self._send_heating_failure_event("heating_failure_end", on_percent, 0, current_temp)
 
-        # Check for COOLING failure (also applies to heating mode):
-        # on_percent at 0 (or <= cooling threshold) but temperature still increasing
-        if is_heating_mode and on_percent <= self._cooling_failure_threshold:
+    def _check_cooling_failure(self, now: datetime, current_temp: float, on_percent: float, detection_delay_td: timedelta):
+        """Check for COOLING failure:
+        on_percent at 0 (or <= cooling threshold) but temperature still increasing"""
+
+        old_cooling_failure = self._cooling_failure_state == STATE_ON
+
+        if on_percent <= self._cooling_failure_threshold:
             if self._zero_power_start_time is None:
                 self._zero_power_start_time = now
                 self._last_check_temperature = current_temp
@@ -210,25 +234,26 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             else:
                 elapsed = now - self._zero_power_start_time
                 if elapsed >= detection_delay_td:
-                    # Check if temperature is still increasing
+                    # Check if temperature is increasing above tolerance
                     if self._last_check_temperature is not None:
                         temp_diff = current_temp - self._last_check_temperature
-                        if temp_diff > 0:
+                        if temp_diff > self._temperature_change_tolerance:
                             # Temperature still increasing despite no heating - cooling failure
                             if not old_cooling_failure:
                                 _LOGGER.warning(
-                                    "%s - Cooling failure detected: on_percent=%.2f%%, temp_diff=+%.2f° over %d minutes",
+                                    "%s - Cooling failure detected: on_percent=%.2f%%, temp_diff=+%.2f° (tolerance=%.2f°) over %d minutes",
                                     self,
                                     on_percent * 100,
                                     temp_diff,
-                                    self._heating_failure_detection_delay
+                                    self._temperature_change_tolerance,
+                                    self._heating_failure_detection_delay,
                                 )
                                 self._cooling_failure_state = STATE_ON
                                 self._send_cooling_failure_event("cooling_failure_start", on_percent, temp_diff, current_temp)
                         else:
-                            # Temperature is decreasing or stable, reset if we were in failure
+                            # Temperature is stable or decreasing, reset if we were in failure
                             if old_cooling_failure:
-                                _LOGGER.info("%s - Cooling failure ended: temperature is now decreasing", self)
+                                _LOGGER.info("%s - Cooling failure ended: temperature is now stable or decreasing", self)
                                 self._cooling_failure_state = STATE_OFF
                                 self._send_cooling_failure_event("cooling_failure_end", on_percent, temp_diff, current_temp)
                             self._zero_power_start_time = now
@@ -240,14 +265,6 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 if old_cooling_failure:
                     self._cooling_failure_state = STATE_OFF
                     self._send_cooling_failure_event("cooling_failure_end", on_percent, 0, current_temp)
-
-        # Initialize states if still unknown
-        if self._heating_failure_state == STATE_UNKNOWN:
-            self._heating_failure_state = STATE_OFF
-        if self._cooling_failure_state == STATE_UNKNOWN:
-            self._cooling_failure_state = STATE_OFF
-
-        return self.is_failure_detected
 
     def _reset_tracking(self):
         """Reset all tracking variables"""
@@ -310,6 +327,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         )
 
         if self._is_configured:
+            # Calculate remaining time for heating failure detection
+            heating_tracking_info = self._get_tracking_info(self._high_power_start_time, "heating")
+            # Calculate remaining time for cooling failure detection
+            cooling_tracking_info = self._get_tracking_info(self._zero_power_start_time, "cooling")
+
             extra_state_attributes.update(
                 {
                     "heating_failure_detection_manager": {
@@ -318,9 +340,44 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                         "heating_failure_threshold": self._heating_failure_threshold,
                         "cooling_failure_threshold": self._cooling_failure_threshold,
                         "detection_delay_min": self._heating_failure_detection_delay,
+                        "temperature_change_tolerance": self._temperature_change_tolerance,
+                        "heating_tracking": heating_tracking_info,
+                        "cooling_tracking": cooling_tracking_info,
                     }
                 }
             )
+
+    def _get_tracking_info(self, start_time: datetime | None, tracking_type: str) -> dict[str, Any]:
+        """Get tracking information for heating or cooling failure detection
+
+        Args:
+            start_time: The start time of the tracking (high_power or zero_power)
+            tracking_type: "heating" or "cooling" for logging purposes
+
+        Returns:
+            A dictionary with tracking status information
+        """
+        if start_time is None:
+            return {
+                "is_tracking": False,
+                "initial_temperature": None,
+                "current_temperature": None,
+                "remaining_time_min": None,
+                "elapsed_time_min": None,
+            }
+
+        now = self._vtherm.now
+        elapsed = now - start_time
+        elapsed_minutes = elapsed.total_seconds() / 60
+        remaining_minutes = max(0, self._heating_failure_detection_delay - elapsed_minutes)
+
+        return {
+            "is_tracking": True,
+            "initial_temperature": self._last_check_temperature,
+            "current_temperature": self._vtherm.current_temperature,
+            "remaining_time_min": round(remaining_minutes, 1),
+            "elapsed_time_min": round(elapsed_minutes, 1),
+        }
 
     @overrides
     @property
@@ -367,6 +424,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
     def detection_delay_min(self) -> int:
         """Returns the detection delay in minutes"""
         return self._heating_failure_detection_delay
+
+    @property
+    def temperature_change_tolerance(self) -> float:
+        """Returns the temperature change tolerance in degrees"""
+        return self._temperature_change_tolerance
 
     def __str__(self):
         return f"HeatingFailureDetectionManager-{self.name}"

@@ -8,6 +8,7 @@
   - [Configuration](#configuration)
   - [Paramètres](#paramètres)
   - [Attributs exposés](#attributs-exposés)
+  - [Capteur binaire](#capteur-binaire)
   - [Évènements](#évènements)
   - [Exemples d'automatisation](#exemples-dautomatisation)
     - [Notification persistante en cas de défaut de chauffage](#notification-persistante-en-cas-de-défaut-de-chauffage)
@@ -83,12 +84,14 @@ Pour y accéder :
 | **Seuil de défaut de chauffage**               | Pourcentage de `on_percent` au-dessus duquel le chauffage devrait faire augmenter la température. Valeur entre 0 et 1 (0.9 = 90%) | 0.9 (90%)         |
 | **Seuil de défaut de refroidissement**         | Pourcentage de `on_percent` en-dessous duquel la température ne devrait pas augmenter. Valeur entre 0 et 1 (0 = 0%)               | 0.0 (0%)          |
 | **Délai de détection (minutes)**               | Temps d'attente avant de déclarer un défaut. Permet d'éviter les faux positifs dus aux fluctuations normales                      | 15 minutes        |
+| **Tolérance de variation de température (°C)** | Variation minimale de température en degrés pour être considérée comme significative. Permet de filtrer le bruit des capteurs     | 0.5°C             |
 
 > ![Astuce](images/tips.png) _*Conseils de réglage*_
 >
 > - **Seuil de chauffage** : Si vous avez des faux positifs (détection de défaut alors que tout fonctionne), augmentez ce seuil vers 0.95 ou 1.0.
 > - **Seuil de refroidissement** : Si vous voulez détecter un radiateur qui reste allumé même avec un faible `on_percent`, augmentez ce seuil vers 0.05 ou 0.1.
 > - **Délai de détection** : Augmentez ce délai si vous avez des pièces avec une forte inertie thermique (grandes pièces, chauffage au sol, etc.). Vous pouvez regarder les courbes de chauffe (cf. [additions](additions.md#courbes-de-régulattion-avec-plotly)) et regarder en combien de temps votre thermomètre augmente après une déclenchement de chauffage. Cette durée doit être le minimum pour ce paramètre.
+> - **Tolérance** : Si vous avez des capteurs imprécis ou bruyants, augmentez cette valeur (ex: 0.8°C). Beaucoup de capteurs ont une précision de ±0.5°C.
 
 ## Attributs exposés
 
@@ -102,7 +105,30 @@ heating_failure_detection_manager:
   heating_failure_threshold: 0.9
   cooling_failure_threshold: 0.0
   detection_delay_min: 15
+  temperature_change_tolerance: 0.5
 ```
+
+## Capteur binaire
+
+Lorsque la détection d'anomalie de chauffe est activée, un capteur binaire est créé automatiquement pour chaque _VTherm_ concerné :
+
+| Entité                                      | Description                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `binary_sensor.<nom>_heating_failure_state` | Indique si une anomalie de chauffage ou de refroidissement est détectée |
+
+Le nom affiché du capteur est traduit selon la langue de votre Home Assistant "État d'anomalie de chauffe".
+
+Ce capteur est :
+- **ON** lorsqu'une anomalie (chauffage ou refroidissement) est détectée
+- **OFF** lorsque le système fonctionne normalement
+
+Caractéristiques :
+- **Device class** : `problem` (permet les alertes natives de Home Assistant)
+- **Icônes** :
+  - `mdi:radiator-off` quand une anomalie est détectée
+  - `mdi:radiator` quand tout fonctionne
+
+Ce capteur binaire peut être utilisé directement dans vos automatisations comme déclencheur, ou pour créer des alertes via les notifications natives de Home Assistant.
 
 ## Évènements
 

@@ -359,14 +359,16 @@
           "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
           "heating_failure_threshold": "Heating failure threshold",
           "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)"
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
           "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
           "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected"
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
         }
       }
     },
@@ -749,14 +751,16 @@
           "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
           "heating_failure_threshold": "Heating failure threshold",
           "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)"
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
           "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
           "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected"
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
         }
       }
     },
@@ -849,6 +853,32 @@
             }
           }
         }
+      }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "Safety state"
+      },
+      "heating_failure_state": {
+        "name": "Heating failure state"
+      },
+      "overpowering_state": {
+        "name": "Overpowering state"
+      },
+      "window_state": {
+        "name": "Window state"
+      },
+      "motion_state": {
+        "name": "Motion state"
+      },
+      "presence_state": {
+        "name": "Presence state"
+      },
+      "window_bypass_state": {
+        "name": "Window bypass"
+      },
+      "central_boiler_state": {
+        "name": "Central boiler"
       }
     },
     "number": {

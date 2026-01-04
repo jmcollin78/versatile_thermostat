@@ -8,6 +8,7 @@
   - [Configuration](#configuration)
   - [Parameters](#parameters)
   - [Exposed attributes](#exposed-attributes)
+  - [Binary sensor](#binary-sensor)
   - [Events](#events)
   - [Automation examples](#automation-examples)
     - [Persistent notification for heating failure](#persistent-notification-for-heating-failure)
@@ -77,18 +78,20 @@ To access it:
 
 ## Parameters
 
-| Parameter                            | Description                                                                                                         | Default value |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------- |
-| **Enable heating failure detection** | Enables or disables the feature                                                                                     | Disabled      |
-| **Heating failure threshold**        | `on_percent` percentage above which heating should cause temperature to increase. Value between 0 and 1 (0.9 = 90%) | 0.9 (90%)     |
-| **Cooling failure threshold**        | `on_percent` percentage below which temperature should not increase. Value between 0 and 1 (0 = 0%)                 | 0.0 (0%)      |
-| **Detection delay (minutes)**        | Waiting time before declaring a failure. Helps avoid false positives due to normal fluctuations                     | 15 minutes    |
+| Parameter                             | Description                                                                                                         | Default value |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------- |
+| **Enable heating failure detection**  | Enables or disables the feature                                                                                     | Disabled      |
+| **Heating failure threshold**         | `on_percent` percentage above which heating should cause temperature to increase. Value between 0 and 1 (0.9 = 90%) | 0.9 (90%)     |
+| **Cooling failure threshold**         | `on_percent` percentage below which temperature should not increase. Value between 0 and 1 (0 = 0%)                 | 0.0 (0%)      |
+| **Detection delay (minutes)**         | Waiting time before declaring a failure. Helps avoid false positives due to normal fluctuations                     | 15 minutes    |
+| **Temperature change tolerance (°C)** | Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise   | 0.5°C         |
 
 > ![Tip](images/tips.png) _*Tuning tips*_
 >
 > - **Heating threshold**: If you have false positives (failure detection when everything is working), increase this threshold to 0.95 or 1.0.
 > - **Cooling threshold**: If you want to detect a radiator that stays on even with a low `on_percent`, increase this threshold to 0.05 or 0.1.
 > - **Detection delay**: Increase this delay if you have rooms with high thermal inertia (large rooms, underfloor heating, etc.). You can look at the heating curves (see [additions](additions.md#regulation-curves-with-plotly)) and see how long it takes for your thermometer to increase after heating is triggered. This duration should be the minimum for this parameter.
+> - **Tolerance**: If you have inaccurate or noisy sensors, increase this value (e.g., 0.8°C). Many sensors have an accuracy of ±0.5°C.
 
 ## Exposed attributes
 
@@ -102,7 +105,30 @@ heating_failure_detection_manager:
   heating_failure_threshold: 0.9
   cooling_failure_threshold: 0.0
   detection_delay_min: 15
+  temperature_change_tolerance: 0.5
 ```
+
+## Binary sensor
+
+When heating failure detection is enabled, a binary sensor is automatically created for each relevant _VTherm_:
+
+| Entity                                       | Description                                           |
+| -------------------------------------------- | ----------------------------------------------------- |
+| `binary_sensor.<name>_heating_failure_state` | Indicates if a heating or cooling failure is detected |
+
+The sensor's display name is translated according to your Home Assistant language "Heating failure state".
+
+This sensor is:
+- **ON** when an anomaly (heating or cooling) is detected
+- **OFF** when the system is working normally
+
+Characteristics:
+- **Device class**: `problem` (enables native Home Assistant alerts)
+- **Icons**:
+  - `mdi:radiator-off` when an anomaly is detected
+  - `mdi:radiator` when everything is working
+
+This binary sensor can be used directly in your automations as a trigger, or to create alerts via Home Assistant's native notifications.
 
 ## Events
 
