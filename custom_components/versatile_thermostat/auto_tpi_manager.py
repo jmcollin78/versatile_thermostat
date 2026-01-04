@@ -1225,6 +1225,13 @@ class AutoTpiManager:
                 # Setting count to 3 ensures we use alpha=0.15 (stabilized) for future updates
                 self.state.capacity_heat_learn_count = 3
                 self.state.bootstrap_failure_count = 0 # Reset counter
+                
+                # Persist default capacity to config
+                if self._hass and self._hass.loop and not self._hass.loop.is_closed():
+                    self._hass.async_create_task(
+                        self.async_update_capacity_config(0.3, is_heat_mode=True)
+                    )
+                
                 return False # Cycle handled (we set default), skip calculation logic for this cycle
         
         # Check Condition 1: Power
@@ -1335,6 +1342,11 @@ class AutoTpiManager:
         # Reset failure count on success
         self.state.bootstrap_failure_count = 0
         
+        if self._hass and self._hass.loop and not self._hass.loop.is_closed():
+            self._hass.async_create_task(
+                self.async_update_capacity_config(self.state.max_capacity_heat, is_heat_mode=True)
+            )
+
         return True
 
     def _get_capacity_confidence(self) -> float:
