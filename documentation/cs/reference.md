@@ -338,7 +338,7 @@ Vlastní atributy jsou následující:
 
 ## For central configuration
 
-The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_boiler` entity:
+The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_configuration_central_boiler` entity:
 
 | Attribute                                   | Meaning                                                                              |
 | ------------------------------------------- | ------------------------------------------------------------------------------------ |
