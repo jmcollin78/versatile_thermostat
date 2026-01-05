@@ -450,6 +450,10 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         # Update the configuration attributes
         await self._async_update_tpi_config_entry()
 
+        if self._is_removed:
+             _LOGGER.debug("%s - Entity is removed, stop service_set_tpi_parameters", self)
+             return
+
         self.recalculate()
         await self.async_control_heating(force=True)
 
@@ -584,6 +588,10 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 new_data = entry.data.copy()
                 new_data[CONF_USE_TPI_CENTRAL_CONFIG] = False
                 self.hass.config_entries.async_update_entry(entry, data=new_data)
+
+            if self._is_removed:
+                 _LOGGER.debug("%s - Entity is removed, stop async_set_auto_tpi_mode", self)
+                 return
 
             # Start timer if we are in HEAT or COOL
             if self.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
