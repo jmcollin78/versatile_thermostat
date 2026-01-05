@@ -184,6 +184,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._last_central_mode = None
         self._is_used_by_central_boiler = False
 
+        # Startup sync configuration
+        self._startup_sync_enabled = None
+        self._startup_sync_max_wait_sec = None
+        self._startup_sync_safety_delay_sec = None
+        self._startup_sync_done = False
+
         self._support_flags = None
         # Preset will be initialized from Number entities
         self._presets: dict[str, Any] = {}  # presets
@@ -380,6 +386,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._max_on_percent = api.max_on_percent
 
+        # Startup sync configuration
+        self._startup_sync_enabled = entry_infos.get(
+            CONF_STARTUP_SYNC_ENABLED, DEFAULT_STARTUP_SYNC_ENABLED
+        )
+        self._startup_sync_max_wait_sec = entry_infos.get(
+            CONF_STARTUP_SYNC_MAX_WAIT_SEC, DEFAULT_STARTUP_SYNC_MAX_WAIT_SEC
+        )
+        self._startup_sync_safety_delay_sec = entry_infos.get(
+            CONF_STARTUP_SYNC_SAFETY_DELAY_SEC, DEFAULT_STARTUP_SYNC_SAFETY_DELAY_SEC
+        )
+
         _LOGGER.debug(
             "%s - Creation of a new VersatileThermostat entity: unique_id=%s",
             self,
@@ -566,6 +583,118 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
         await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
+
+        # Schedule startup sync if enabled
+        if self._startup_sync_enabled:
+            self.hass.async_create_task(self._async_startup_sync())
+
+    async def _async_startup_sync(self):
+        """Synchronize state after HA startup by waiting for temperature sensor
+        to be available and then re-evaluating all conditions.
+
+        This ensures that after a HA restart, the thermostat correctly evaluates
+        the current state of all sensors (presence, window, etc.) rather than
+        just restoring the previous state which may no longer be valid.
+        """
+        if self._startup_sync_done:
+            _LOGGER.debug("%s - Startup sync already done, skipping", self)
+            return
+
+        _LOGGER.info(
+            "%s - Starting startup sync (max wait: %ds, safety delay: %ds)",
+            self,
+            self._startup_sync_max_wait_sec,
+            self._startup_sync_safety_delay_sec,
+        )
+
+        # Wait for temperature sensor to be available
+        check_interval = 10  # Check every 10 seconds
+        waited = 0
+
+        while waited < self._startup_sync_max_wait_sec:
+            temp_state = self.hass.states.get(self._temp_sensor_entity_id)
+
+            if temp_state and temp_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                _LOGGER.info(
+                    "%s - Temperature sensor available after %ds (value: %s)",
+                    self,
+                    waited,
+                    temp_state.state,
+                )
+                break
+
+            _LOGGER.debug(
+                "%s - Waiting for temperature sensor... (%ds/%ds)",
+                self,
+                waited,
+                self._startup_sync_max_wait_sec,
+            )
+            await asyncio.sleep(check_interval)
+            waited += check_interval
+
+        if waited >= self._startup_sync_max_wait_sec:
+            _LOGGER.warning(
+                "%s - Timeout waiting for temperature sensor after %ds. "
+                "Startup sync aborted.",
+                self,
+                self._startup_sync_max_wait_sec,
+            )
+            self._startup_sync_done = True
+            return
+
+        # Add safety delay to ensure all other sensors are also available
+        if self._startup_sync_safety_delay_sec > 0:
+            _LOGGER.debug(
+                "%s - Adding safety delay of %ds",
+                self,
+                self._startup_sync_safety_delay_sec,
+            )
+            await asyncio.sleep(self._startup_sync_safety_delay_sec)
+
+        # Capture current state before re-evaluation
+        old_preset = self.preset_mode
+        old_hvac_mode = self.hvac_mode
+
+        # Refresh all manager states
+        _LOGGER.debug("%s - Re-evaluating all conditions after startup sync", self)
+        for manager in self._managers:
+            await manager.refresh_state()
+
+        # Update states
+        await self.update_states(force=True)
+
+        # Check if state changed
+        new_preset = self.preset_mode
+        new_hvac_mode = self.hvac_mode
+
+        if old_preset != new_preset or old_hvac_mode != new_hvac_mode:
+            _LOGGER.info(
+                "%s - Startup sync changed state: preset %s → %s, hvac_mode %s → %s",
+                self,
+                old_preset,
+                new_preset,
+                old_hvac_mode,
+                new_hvac_mode,
+            )
+
+            # Fire startup sync event
+            self.send_event(
+                EventType.STARTUP_SYNC_EVENT,
+                {
+                    "old_preset": old_preset,
+                    "new_preset": new_preset,
+                    "old_hvac_mode": str(old_hvac_mode),
+                    "new_hvac_mode": str(new_hvac_mode),
+                    "waited_seconds": waited,
+                },
+            )
+        else:
+            _LOGGER.info(
+                "%s - Startup sync completed, no state change needed",
+                self,
+            )
+
+        self._startup_sync_done = True
 
     def init_underlyings(self):
         """Initialize all underlyings. Should be overridden if necessary"""

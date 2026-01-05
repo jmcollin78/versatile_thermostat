@@ -238,12 +238,18 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "startup_sync_enabled": "Synchroniser l'état au démarrage",
+          "startup_sync_max_wait_sec": "Délai max d'attente des capteurs (secondes)",
+          "startup_sync_safety_delay_sec": "Délai de sécurité après disponibilité du capteur (secondes)",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "startup_sync_enabled": "Si activé, VTherm attendra que les capteurs soient disponibles après un redémarrage de HA et réévaluera toutes les conditions (présence, fenêtre, etc.)",
+          "startup_sync_max_wait_sec": "Temps maximum d'attente pour que le capteur de température soit disponible (pour les appareils Zigbee/WiFi qui mettent du temps à s'initialiser)",
+          "startup_sync_safety_delay_sec": "Délai supplémentaire après la disponibilité du capteur de température avant de réévaluer les conditions",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -606,6 +612,9 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "startup_sync_enabled": "Synchroniser l'état au démarrage",
+          "startup_sync_max_wait_sec": "Délai max d'attente des capteurs (secondes)",
+          "startup_sync_safety_delay_sec": "Délai de sécurité après disponibilité du capteur (secondes)",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
@@ -614,6 +623,9 @@
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "startup_sync_enabled": "Si activé, VTherm attendra que les capteurs soient disponibles après un redémarrage de HA et réévaluera toutes les conditions (présence, fenêtre, etc.)",
+          "startup_sync_max_wait_sec": "Temps maximum d'attente pour que le capteur de température soit disponible (pour les appareils Zigbee/WiFi qui mettent du temps à s'initialiser)",
+          "startup_sync_safety_delay_sec": "Délai supplémentaire après la disponibilité du capteur de température avant de réévaluer les conditions",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },

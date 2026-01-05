@@ -443,6 +443,26 @@ STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             CONF_SAFETY_DEFAULT_ON_PERCENT,
             default=DEFAULT_SAFETY_DEFAULT_ON_PERCENT,
         ): vol.Coerce(float),
+        vol.Required(
+            CONF_STARTUP_SYNC_ENABLED,
+            default=DEFAULT_STARTUP_SYNC_ENABLED,
+        ): cv.boolean,
+        vol.Required(
+            CONF_STARTUP_SYNC_MAX_WAIT_SEC,
+            default=DEFAULT_STARTUP_SYNC_MAX_WAIT_SEC,
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=30, max=600, step=10, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(
+            CONF_STARTUP_SYNC_SAFETY_DELAY_SEC,
+            default=DEFAULT_STARTUP_SYNC_SAFETY_DELAY_SEC,
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0, max=60, step=5, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
     }
 )
 

@@ -135,6 +135,15 @@ CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
 CONF_LOCK_AUTOMATIONS = "lock_automations"
 
+# Startup sync configuration
+CONF_STARTUP_SYNC_ENABLED = "startup_sync_enabled"
+CONF_STARTUP_SYNC_MAX_WAIT_SEC = "startup_sync_max_wait_sec"
+CONF_STARTUP_SYNC_SAFETY_DELAY_SEC = "startup_sync_safety_delay_sec"
+
+DEFAULT_STARTUP_SYNC_ENABLED = True
+DEFAULT_STARTUP_SYNC_MAX_WAIT_SEC = 300  # 5 minutes max
+DEFAULT_STARTUP_SYNC_SAFETY_DELAY_SEC = 10  # 10 seconds safety margin
+
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
@@ -563,6 +572,7 @@ class EventType(Enum):
     AUTO_START_STOP_EVENT = "versatile_thermostat_auto_start_stop_event"
     AUTO_TPI_EVENT = "versatile_thermostat_auto_tpi_event"
     TIMED_PRESET_EVENT = "versatile_thermostat_timed_preset_event"
+    STARTUP_SYNC_EVENT = "versatile_thermostat_startup_sync_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
