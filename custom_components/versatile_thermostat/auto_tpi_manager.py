@@ -1271,7 +1271,7 @@ class AutoTpiManager:
         
         return True
 
-    def _learn_capacity(self, power: float, delta_t: float, rise: float, 
+    async def _learn_capacity(self, power: float, delta_t: float, rise: float, 
                       efficiency: float, k_ext: float) -> bool:
         """Learn heating capacity using simple EWMA with adiabatic correction.
         
@@ -1285,7 +1285,7 @@ class AutoTpiManager:
             k_ext: Current external coefficient
         
         Returns:
-            True if capacity was updated, False if validation failed
+            True if capacity was updated and RELOAD triggered, False otherwise (or no reload needed)
         """
         # Calculate observed capacity (with thermal losses included)
         cycle_duration_h = self._cycle_min / 60.0
@@ -1343,12 +1343,7 @@ class AutoTpiManager:
         # Reset failure count on success
         self.state.bootstrap_failure_count = 0
         
-        if self._hass and self._hass.loop and not self._hass.loop.is_closed():
-            self._hass.async_create_task(
-                self.async_update_capacity_config(self.state.max_capacity_heat, is_heat_mode=True)
-            )
-
-        return True
+        return False
 
     def _get_capacity_confidence(self) -> float:
         """Calculate capacity learning confidence based on CV (coefficient of variation).
@@ -2387,7 +2382,8 @@ class AutoTpiManager:
             efficiency = self._last_cycle_power_efficiency
             
             if self._should_learn_capacity():
-                learned = self._learn_capacity(
+                # Await learning as it might trigger a reload
+                learned = await self._learn_capacity(
                     power=self.state.last_power,
                     delta_t=self._current_temp_in - self._current_temp_out,
                     rise=real_rise,
@@ -2399,10 +2395,11 @@ class AutoTpiManager:
                         "%s - Bootstrap cycle %d/%d completed, capacity: %.2f°C/h",
                         self._name,
                         self.state.capacity_heat_learn_count,
-                        3,
+                        3, # Total bootstrap cycles
                         self.state.max_capacity_heat
                     )
-        
+                    # Reload triggered, stop further processing
+                    return True
         elif self._should_learn() and is_significant_cycle:
             # NORMAL TPI MODE: Learn everything
             # After bootstrap: normal learning (capacity + Kint/Kext)
@@ -2608,6 +2605,14 @@ class AutoTpiManager:
         # self.state.learning_start_date = None
         self.state.last_learning_status = "learning_stopped"
         await self.async_save_data()
+        
+        # If we have learned enough, save capacity to config
+        if self.state.capacity_heat_learn_count >= 3:
+             # Check if value has changed before saving to avoid useless reload
+             current_capacity = self._config_entry.data.get(CONF_AUTO_TPI_HEATING_POWER)
+             if current_capacity is None or abs(current_capacity - self.state.max_capacity_heat) > 0.01:
+                 if self._hass and self._hass.loop and not self._hass.loop.is_closed():
+                    await self.async_update_capacity_config(self.state.max_capacity_heat, is_heat_mode=True)
 
     async def reset_learning_data(self):
         _LOGGER.info("%s - Auto TPI: Resetting all learning data", self._name)
