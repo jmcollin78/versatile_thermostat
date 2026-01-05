@@ -419,7 +419,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   Cette méthode n'est plus exposée comme un service externe. Elle est utilisée en interne si un reset complet était nécessaire.
     *   **Action** : Réinitialisation complète de l'état d'apprentissage (`AutoTpiState`), incluant coefficients, compteurs, et capacités.
 *   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
-    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `True`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
+    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `False`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
         *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**.
         *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé.

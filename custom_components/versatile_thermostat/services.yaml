@@ -286,10 +286,10 @@ set_auto_tpi_mode:
                 boolean:
         allow_kint_boost_on_stagnation:
             name: Allow Kint boost
-            description: Allow boosting Kint when temperature stagnates despite demand (default true)
+            description: Allow boosting Kint when temperature stagnates despite demand (default false)
             required: true
             advanced: false
-            default: true
+            default: false
             selector:
                 boolean:
         allow_kext_compensation_on_overshoot:
