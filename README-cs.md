@@ -26,6 +26,13 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Release 8.5
+> 1. přidána detekce poruchy vytápění pro VTherms používající algoritmus TPI. Tato funkce detekuje dva typy anomálií:
+>    - **porucha vytápění**: radiátor silně topí (vysoké on_percent), ale teplota nestoupá,
+>    - **porucha chlazení**: radiátor netopí (on_percent na 0), ale teplota stále stoupá.
+>
+> Tyto anomálie mohou naznačovat otevřené okno, vadný radiátor nebo externí zdroj tepla. Funkce odesílá události, které lze použít ke spuštění automatizací (oznámení, výstrahy atd.). Více informací [zde](documentation/cs/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
 > 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
@@ -97,6 +104,7 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 25. [Referenční dokumentace](documentation/cs/reference.md)
 26. [Řešení problémů](documentation/cs/troubleshooting.md)
 27. [Poznámky k verzím](documentation/cs/releases.md)
+28. [Detekce poruchy vytápění](documentation/cs/feature-heating-failure-detection.md)
 
 # Některé výsledky
 

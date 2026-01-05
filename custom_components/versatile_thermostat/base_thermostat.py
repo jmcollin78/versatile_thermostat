@@ -70,6 +70,7 @@ from .feature_safety_manager import FeatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .feature_lock_manager import FeatureLockManager
 from .feature_timed_preset_manager import FeatureTimedPresetManager
+from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -214,15 +215,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
         self._lock_manager: FeatureLockManager = FeatureLockManager(self, hass)
         self._timed_preset_manager: FeatureTimedPresetManager = FeatureTimedPresetManager(self, hass)
+        self._heating_failure_detection_manager: FeatureHeatingFailureDetectionManager = FeatureHeatingFailureDetectionManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
         self.register_manager(self._motion_manager)
         self.register_manager(self._window_manager)
         self.register_manager(self._safety_manager)
-        self.register_manager(self._safety_manager)
         self.register_manager(self._lock_manager)
         self.register_manager(self._timed_preset_manager)
+        self.register_manager(self._heating_failure_detection_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
@@ -974,6 +976,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._timed_preset_manager
 
     @property
+    def heating_failure_detection_manager(self) -> FeatureHeatingFailureDetectionManager:
+        """Get the heating failure detection manager"""
+        return self._heating_failure_detection_manager
+
+    @property
     def current_state(self) -> VThermState | None:
         """Get the current state"""
         return self._state_manager.current_state
@@ -1411,6 +1418,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Call specific control heating
         await self._control_heating_specific(force)
+
+        # Check for heating/cooling failures (only for TPI VTherms)
+        await self._heating_failure_detection_manager.refresh_state()
 
         self.calculate_hvac_action()
         self.update_custom_attributes()

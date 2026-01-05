@@ -26,6 +26,13 @@ Karta integracji Versatile Thermostat UI (dostępna na [Github](https://github.c
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 8.5
+> 1. dodano wykrywanie awarii ogrzewania dla termostatów VTherm używających algorytmu TPI. Ta funkcja wykrywa dwa typy anomalii:
+>    - **awaria ogrzewania**: grzejnik mocno grzeje (wysoki on_percent), ale temperatura nie rośnie,
+>    - **awaria chłodzenia**: grzejnik nie grzeje (on_percent równe 0), ale temperatura nadal rośnie.
+>
+> Te anomalie mogą wskazywać na otwarte okno, uszkodzony grzejnik lub zewnętrzne źródło ciepła. Funkcja wysyła zdarzenia, które mogą być używane do wyzwalania automatyzacji (powiadomienia, alerty itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
 > 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/pl/feature-sync_device_temp.md)
@@ -95,7 +102,8 @@ Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas
 23. [Dokumentacja referencyjna](documentation/pl/reference.md)
 24. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
 25. [Usuwanie problemów](documentation/pl/troubleshooting.md)
-2§. [Informacje o wersjach](documentation/pl/releases.md)
+26. [Informacje o wersjach](documentation/pl/releases.md)
+27. [Wykrywanie awarii ogrzewania](documentation/pl/feature-heating-failure-detection.md)
 
 ---
 # Kilka przykładów...

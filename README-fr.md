@@ -26,6 +26,13 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
 
+## Release 8.5
+> 1. ajout de la détection d'anomalie de chauffe pour les VTherms utilisant l'algorithme TPI. Cette fonction détecte deux types d'anomalies :
+>    - **anomalie de chauffage** : le radiateur chauffe fortement (on_percent élevé) mais la température n'augmente pas,
+>    - **anomalie de refroidissement** : le radiateur ne chauffe pas (on_percent à 0) mais la température continue d'augmenter.
+>
+> Ces anomalies peuvent indiquer une fenêtre ouverte, un radiateur défaillant ou une source de chaleur externe. La fonctionnalité envoie des événements qui peuvent être utilisés pour déclencher des automatisations (notifications, alertes, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. ajout de l'auto TPI (expérimental). Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](./auto_tpi_internal_doc.md)
 > 2. ajout d'une fonction de synchronisation des températures d'un équipement piloté en mode `over_climate`. Suivant, les fonctionnalités de votre équipement, _VTherm_ peut contrôler une entité de calibrage de l'offset ou directement une entité de température externe. Plus d'informations [ici](documentation/fr/feature-sync_device_temp.md)
@@ -90,17 +97,17 @@ La documentation est maintenant découpée en plusieurs pages pour faciliter la 
 15. [La contrôle centralisé de tous vos VTherms](documentation/fr/feature-central-mode.md)
 16. [La commande du chauffage central](documentation/fr/feature-central-boiler.md)
 17. [Aspects avancés, mode sécurité](documentation/fr/feature-advanced.md)
-18. [L'auto-régulation](documentation/fr/self-regulation.md)
-19. [L'apprentissage Auto TPI](documentation/fr/feature-autotpi.md)
-20. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
-21. [Synchronisation des température](documentation/fr/feature-sync_device_temp.md)
-21. [Preset temporisé](documentation/fr/feature-timed-preset.md)
-22. [Exemple de réglages](documentation/fr/tuning-examples.md)
-23. [Les algorithmes](documentation/fr/algorithms.md)
-24. [Documentation de référence](documentation/fr/reference.md)
-25. [Exemples de réglages](documentation/fr/tuning-examples.md)
-26. [Dépannage](documentation/fr/troubleshooting.md)
-27. [Notes de version](documentation/fr/releases.md)
+18. [Détection d'anomalie de chauffe](documentation/fr/feature-heating-failure-detection.md)
+19. [L'auto-régulation](documentation/fr/self-regulation.md)
+20. [L'apprentissage Auto TPI](documentation/fr/feature-autotpi.md)
+21. [Verrouillage / Déverrouillage](documentation/fr/feature-lock.md)
+22. [Synchronisation des température](documentation/fr/feature-sync_device_temp.md)
+23. [Preset temporisé](documentation/fr/feature-timed-preset.md)
+24. [Exemple de réglages](documentation/fr/tuning-examples.md)
+25. [Les algorithmes](documentation/fr/algorithms.md)
+26. [Documentation de référence](documentation/fr/reference.md)
+27. [Dépannage](documentation/fr/troubleshooting.md)
+28. [Notes de version](documentation/fr/releases.md)
 
 # Quelques résultats
 

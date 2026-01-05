@@ -90,7 +90,8 @@
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
-          "use_auto_start_stop_feature": "Use the auto start and stop feature"
+          "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_heating_failure_detection_feature": "Use heating failure detection"
         }
       },
       "type": {
@@ -349,6 +350,26 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
+        }
       }
     },
     "error": {
@@ -398,6 +419,7 @@
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
+          "heating_failure_detection": "Heating failure detection",
           "auto_tpi_1": "Auto TPI - General",
           "auto_tpi_2": "Auto TPI - Method",
           "auto_tpi_3_avg": "Auto TPI - Average",
@@ -456,7 +478,8 @@
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
-          "use_auto_start_stop_feature": "Use the auto start and stop feature"
+          "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_heating_failure_detection_feature": "Use heating failure detection"
         }
       },
       "type": {
@@ -718,6 +741,26 @@
           "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
           "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)"
         }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection - {name}",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
+        }
       }
     },
     "error": {
@@ -809,6 +852,32 @@
             }
           }
         }
+      }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "Safety state"
+      },
+      "heating_failure_state": {
+        "name": "Heating failure state"
+      },
+      "overpowering_state": {
+        "name": "Overpowering state"
+      },
+      "window_state": {
+        "name": "Window state"
+      },
+      "motion_state": {
+        "name": "Motion state"
+      },
+      "presence_state": {
+        "name": "Presence state"
+      },
+      "window_bypass_state": {
+        "name": "Window bypass"
+      },
+      "central_boiler_state": {
+        "name": "Central boiler"
       }
     },
     "number": {

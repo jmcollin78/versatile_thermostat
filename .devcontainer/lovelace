@@ -196,7 +196,8 @@
                   "set_current_as_main": true,
                   "disable_circle": true,
                   "disable_menu": true,
-                  "disable_target_icon": false
+                  "disable_target_icon": false,
+                  "allow_lock_toggle": true
                 },
                 {
                   "type": "history-graph",
@@ -709,6 +710,9 @@
                     },
                     {
                       "entity": "sensor.thermostat_switch_1_ema_temperature"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_switch_1_etat_d_anomalie_de_chauffe"
                     }
                   ],
                   "title": "Thermostat Switch 1",
@@ -776,10 +780,6 @@
                       "hours_to_show": 1
                     }
                   ]
-                },
-                {
-                  "type": "markdown",
-                  "content": "Auto-tpi attributes:\n\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.state }}\n{{ states.sensor.thermostat_switch_1_auto_tpi_learning_state.attributes | tojson(indent=4)}}"
                 }
               ]
             },
@@ -1433,6 +1433,9 @@
                     },
                     {
                       "entity": "sensor.thermostat_valve_ema_temperature"
+                    },
+                    {
+                      "entity": "binary_sensor.thermostat_valve_etat_d_anomalie_de_chauffe"
                     }
                   ],
                   "title": "Thermostat Valve",
@@ -2613,6 +2616,9 @@
                         },
                         {
                           "entity": "sensor.sonoff_trvzb_energy"
+                        },
+                        {
+                          "entity": "binary_sensor.sonoff_trvzb_etat_d_anomalie_de_chauffe"
                         }
                       ],
                       "state_color": true

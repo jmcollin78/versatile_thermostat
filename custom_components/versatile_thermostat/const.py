@@ -127,9 +127,17 @@ CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
 CONF_MAX_CLOSING_DEGREE = "max_closing_degree"
 CONF_OPENING_THRESHOLD_DEGREE = "opening_threshold_degree"
+
 CONF_SYNC_DEVICE_INTERNAL_TEMP = "sync_device_internal_temp"
 CONF_SYNC_WITH_CALIBRATION = "sync_with_calibration"
 CONF_SYNC_ENTITY_LIST = "sync_entity_ids"
+
+CONF_USE_HEATING_FAILURE_DETECTION_FEATURE = "use_heating_failure_detection_feature"
+CONF_USE_HEATING_FAILURE_DETECTION_CENTRAL_CONFIG = "use_heating_failure_detection_central_config"
+CONF_HEATING_FAILURE_THRESHOLD = "heating_failure_threshold"
+CONF_COOLING_FAILURE_THRESHOLD = "cooling_failure_threshold"
+CONF_HEATING_FAILURE_DETECTION_DELAY = "heating_failure_detection_delay"
+CONF_TEMPERATURE_CHANGE_TOLERANCE = "temperature_change_tolerance"
 
 CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
@@ -375,6 +383,12 @@ ALL_CONF = (
         CONF_AUTO_TPI_CONTINUOUS_LEARNING,
         CONF_SYNC_DEVICE_INTERNAL_TEMP,
         CONF_SYNC_WITH_CALIBRATION,
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE,
+        CONF_USE_HEATING_FAILURE_DETECTION_CENTRAL_CONFIG,
+        CONF_HEATING_FAILURE_THRESHOLD,
+        CONF_COOLING_FAILURE_THRESHOLD,
+        CONF_HEATING_FAILURE_DETECTION_DELAY,
+        CONF_TEMPERATURE_CHANGE_TOLERANCE,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -445,6 +459,12 @@ SERVICE_CANCEL_TIMED_PRESET = "cancel_timed_preset"
 
 DEFAULT_SAFETY_MIN_ON_PERCENT = 0.5
 DEFAULT_SAFETY_DEFAULT_ON_PERCENT = 0.1
+
+# Heating failure detection defaults
+DEFAULT_HEATING_FAILURE_THRESHOLD = 0.9  # 90%
+DEFAULT_COOLING_FAILURE_THRESHOLD = 0.0  # 0%
+DEFAULT_HEATING_FAILURE_DETECTION_DELAY = 15  # 15 minutes
+DEFAULT_TEMPERATURE_CHANGE_TOLERANCE = 0.5  # 0.5°C
 
 ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
@@ -565,6 +585,7 @@ class EventType(Enum):
     AUTO_START_STOP_EVENT = "versatile_thermostat_auto_start_stop_event"
     AUTO_TPI_EVENT = "versatile_thermostat_auto_tpi_event"
     TIMED_PRESET_EVENT = "versatile_thermostat_timed_preset_event"
+    HEATING_FAILURE_EVENT = "versatile_thermostat_heating_failure_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):

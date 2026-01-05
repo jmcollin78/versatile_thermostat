@@ -110,6 +110,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             and self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
         )
 
+        self._infos[CONF_USE_HEATING_FAILURE_DETECTION_FEATURE] = self._infos.get(
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False
+        )
+
     def _init_central_config_flags(self, infos):
         """Initialisation of central configuration flags"""
         is_empty: bool = not bool(infos)
@@ -559,6 +563,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         menu_options.append("advanced")
         menu_options.append("lock")
+
+        # Add heating failure detection menu if feature is enabled
+        if self._infos.get(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False) is True:
+            menu_options.append("heating_failure_detection")
 
         if self.check_config_complete(self._infos):
             menu_options.append("finalize")
@@ -1091,6 +1099,38 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         next_step = self.async_step_menu
 
         return await self.generic_step("lock", schema, user_input, next_step)
+
+    async def async_step_heating_failure_detection(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the heating failure detection flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_heating_failure_detection user_input=%s", user_input)
+
+        next_step = self.async_step_menu
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA
+        else:
+            schema = STEP_HEATING_FAILURE_DETECTION_SCHEMA
+
+            if user_input and user_input.get(CONF_USE_HEATING_FAILURE_DETECTION_CENTRAL_CONFIG, False) is False:
+                if user_input and self._infos.get(COMES_FROM) == "async_step_spec_heating_failure_detection":
+                    schema = STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_heating_failure_detection
+
+        return await self.generic_step("heating_failure_detection", schema, user_input, next_step)
+
+    async def async_step_spec_heating_failure_detection(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the specific heating failure detection flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_spec_heating_failure_detection user_input=%s", user_input)
+
+        # here we reuse the central schema because it is the same for non central config
+        schema = STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA
+
+        self._infos[COMES_FROM] = "async_step_spec_heating_failure_detection"
+
+        next_step = self.async_step_heating_failure_detection
+
+        return await self.generic_step("heating_failure_detection", schema, user_input, next_step)
 
     async def async_step_finalize(self, _):
         """Finalize the creation. Should be overriden by underlyings"""
