@@ -1029,7 +1029,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         offset,
                     )
                     await under.send_value_to_number(sync_entity_id, offset)
-            else:
+            elif room_temp is not None:
                 # Send the new temperature directly
                 val = round_to_nearest(room_temp, step_sync_entity)
                 val = min(max_sync_entity, max(min_sync_entity, val))
