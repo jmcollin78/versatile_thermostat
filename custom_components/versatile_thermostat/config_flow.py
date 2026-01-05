@@ -541,6 +541,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos.get(CONF_USE_PRESENCE_FEATURE, False) is True:
             menu_options.append("presence")
 
+        if self._infos.get(CONF_USE_SCHEDULER_FEATURE, False) is True:
+            menu_options.append("scheduler")
+
         if (
             self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True
             and self._infos[CONF_THERMOSTAT_TYPE]
@@ -1009,6 +1012,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # This will return to async_step_power (to keep the "power" step)
         return await self.generic_step("presence", schema, user_input, next_step)
 
+    async def async_step_scheduler(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the scheduler flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_scheduler user_input=%s", user_input)
+
+        next_step = self.async_step_menu
+        schema = STEP_SCHEDULER_DATA_SCHEMA
+
+        return await self.generic_step("scheduler", schema, user_input, next_step)
+
     async def async_step_advanced(self, user_input: dict | None = None) -> FlowResult:
         """Handle the advanced parameter flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_advanced user_input=%s", user_input)
@@ -1125,6 +1137,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
         if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
             self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+        if not self._infos.get(CONF_USE_SCHEDULER_FEATURE, False):
+            if CONF_SCHEDULER_CALENDAR in self._infos:
+                del self._infos[CONF_SCHEDULER_CALENDAR]
+            if CONF_SCHEDULER_DEFAULT_PRESET in self._infos:
+                del self._infos[CONF_SCHEDULER_DEFAULT_PRESET]
 
         # Removes temporary value
         if COMES_FROM in self._infos:

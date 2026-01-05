@@ -27,6 +27,7 @@
           "motion": "Détection de mouvement",
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
+          "scheduler": "Planificateur calendrier",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
@@ -91,7 +92,8 @@
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
-          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_scheduler_feature": "Avec planificateur calendrier. Cochez pour activer le changement automatique de presets basé sur un calendrier."
         }
       },
       "type": {
@@ -229,6 +231,18 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Id d'entité du capteur de présence"
+        }
+      },
+      "scheduler": {
+        "title": "Planificateur calendrier",
+        "description": "Utilisez un calendrier pour changer automatiquement les presets basés sur les événements du calendrier.\n\nCréez un calendrier dans Home Assistant (ex: `calendar.planning_chauffage`) et ajoutez des événements avec des titres correspondant aux presets : 'confort', 'eco', 'boost' ou 'hg' (hors-gel).\n\nQuand un événement est actif, VTherm utilisera automatiquement ce preset.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-scheduler.md)",
+        "data": {
+          "scheduler_calendar_entity_id": "Entité calendrier",
+          "scheduler_default_preset": "Preset par défaut (quand aucun événement n'est actif)"
+        },
+        "data_description": {
+          "scheduler_calendar_entity_id": "Sélectionnez l'entité calendrier qui contient vos événements de planification du chauffage",
+          "scheduler_default_preset": "Le preset à utiliser quand aucun événement du calendrier n'est actif"
         }
       },
       "advanced": {
@@ -394,6 +408,7 @@
           "motion": "Détection de mouvement",
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
+          "scheduler": "Planificateur calendrier",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
@@ -405,6 +420,18 @@
           "auto_tpi_3_ema": "Auto TPI - EMA",
           "finalize": "Finaliser les modifications",
           "configuration_not_complete": "Configuration incomplète"
+        }
+      },
+      "scheduler": {
+        "title": "Planificateur calendrier - {name}",
+        "description": "Utilisez un calendrier pour changer automatiquement les presets basés sur les événements du calendrier.\n\nCréez un calendrier dans Home Assistant (ex: `calendar.planning_chauffage`) et ajoutez des événements avec des titres correspondant aux presets : 'confort', 'eco', 'boost' ou 'hg' (hors-gel).\n\nQuand un événement est actif, VTherm utilisera automatiquement ce preset.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-scheduler.md)",
+        "data": {
+          "scheduler_calendar_entity_id": "Entité calendrier",
+          "scheduler_default_preset": "Preset par défaut (quand aucun événement n'est actif)"
+        },
+        "data_description": {
+          "scheduler_calendar_entity_id": "Sélectionnez l'entité calendrier qui contient vos événements de planification du chauffage",
+          "scheduler_default_preset": "Le preset à utiliser quand aucun événement du calendrier n'est actif"
         }
       },
       "lock": {
@@ -458,7 +485,8 @@
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
-          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_scheduler_feature": "Avec planificateur calendrier. Cochez pour activer le changement automatique de presets basé sur un calendrier."
         }
       },
       "type": {

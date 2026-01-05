@@ -30,6 +30,7 @@ from homeassistant.components.input_datetime import (
 
 from homeassistant.components.person import DOMAIN as PERSON_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.calendar import DOMAIN as CALENDAR_DOMAIN
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -72,6 +73,7 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_SCHEDULER_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -82,6 +84,7 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_SCHEDULER_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -91,6 +94,7 @@ STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_SCHEDULER_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -379,6 +383,21 @@ STEP_CENTRAL_MOTION_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             )
         ),
         vol.Optional(CONF_NO_MOTION_PRESET, default="eco"): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_PRESETS_SELECTIONABLE,
+                translation_key="presets",
+                mode="dropdown",
+            )
+        ),
+    }
+)
+
+STEP_SCHEDULER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_SCHEDULER_CALENDAR): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[CALENDAR_DOMAIN]),
+        ),
+        vol.Required(CONF_SCHEDULER_DEFAULT_PRESET, default="frost"): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=CONF_PRESETS_SELECTIONABLE,
                 translation_key="presets",

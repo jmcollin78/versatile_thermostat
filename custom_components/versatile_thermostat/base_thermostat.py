@@ -70,6 +70,7 @@ from .feature_safety_manager import FeatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .feature_lock_manager import FeatureLockManager
 from .feature_timed_preset_manager import FeatureTimedPresetManager
+from .feature_scheduler_manager import FeatureSchedulerManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -91,6 +92,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
         .union(FeatureWindowManager.unrecorded_attributes)
+        .union(FeatureSchedulerManager.unrecorded_attributes)
     )
 
     ##
@@ -213,6 +215,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
         self._lock_manager: FeatureLockManager = FeatureLockManager(self, hass)
         self._timed_preset_manager: FeatureTimedPresetManager = FeatureTimedPresetManager(self, hass)
+        self._scheduler_manager: FeatureSchedulerManager = FeatureSchedulerManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
@@ -222,6 +225,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._safety_manager)
         self.register_manager(self._lock_manager)
         self.register_manager(self._timed_preset_manager)
+        self.register_manager(self._scheduler_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
@@ -970,6 +974,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def timed_preset_manager(self) -> FeatureTimedPresetManager:
         """Get the timed preset manager"""
         return self._timed_preset_manager
+
+    @property
+    def scheduler_manager(self) -> FeatureSchedulerManager:
+        """Get the scheduler manager"""
+        return self._scheduler_manager
 
     @property
     def current_state(self) -> VThermState | None:

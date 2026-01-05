@@ -27,6 +27,7 @@
           "motion": "Motion detection",
           "power": "Power management",
           "presence": "Presence detection",
+          "scheduler": "Calendar scheduler",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
@@ -90,7 +91,8 @@
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
-          "use_auto_start_stop_feature": "Use the auto start and stop feature"
+          "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_scheduler_feature": "Use calendar scheduler"
         }
       },
       "type": {
@@ -228,6 +230,18 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Presence sensor entity id"
+        }
+      },
+      "scheduler": {
+        "title": "Calendar scheduler",
+        "description": "Use a calendar to automatically change presets based on calendar events.\n\nCreate a calendar in Home Assistant (e.g., `calendar.heating_schedule`) and add events with titles matching presets: 'comfort', 'eco', 'boost', or 'frost'.\n\nWhen an event is active, VTherm will automatically use that preset.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-scheduler.md)",
+        "data": {
+          "scheduler_calendar_entity_id": "Calendar entity",
+          "scheduler_default_preset": "Default preset (when no event is active)"
+        },
+        "data_description": {
+          "scheduler_calendar_entity_id": "Select the calendar entity that contains your heating schedule events",
+          "scheduler_default_preset": "The preset to use when no calendar event is active"
         }
       },
       "advanced": {
@@ -401,8 +415,21 @@
           "auto_tpi_2": "Auto TPI - Method",
           "auto_tpi_3_avg": "Auto TPI - Average",
           "auto_tpi_3_ema": "Auto TPI - EMA",
+          "scheduler": "Calendar scheduler",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
+        }
+      },
+      "scheduler": {
+        "title": "Calendar scheduler - {name}",
+        "description": "Use a calendar to automatically change presets based on calendar events.\n\nCreate a calendar in Home Assistant (e.g., `calendar.heating_schedule`) and add events with titles matching presets: 'comfort', 'eco', 'boost', or 'frost'.\n\nWhen an event is active, VTherm will automatically use that preset.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-scheduler.md)",
+        "data": {
+          "scheduler_calendar_entity_id": "Calendar entity",
+          "scheduler_default_preset": "Default preset (when no event is active)"
+        },
+        "data_description": {
+          "scheduler_calendar_entity_id": "Select the calendar entity that contains your heating schedule events",
+          "scheduler_default_preset": "The preset to use when no calendar event is active"
         }
       },
       "lock": {
@@ -455,7 +482,8 @@
           "use_power_feature": "Use power management",
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
-          "use_auto_start_stop_feature": "Use the auto start and stop feature"
+          "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_scheduler_feature": "Use calendar scheduler. Check to enable automatic preset changes based on a calendar schedule."
         }
       },
       "type": {

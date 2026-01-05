@@ -98,6 +98,7 @@ CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
+CONF_USE_SCHEDULER_FEATURE = "use_scheduler_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -135,6 +136,17 @@ CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
 CONF_LOCK_AUTOMATIONS = "lock_automations"
 
+# Scheduler configuration
+CONF_SCHEDULER_CALENDAR = "scheduler_calendar_entity_id"
+CONF_SCHEDULER_DEFAULT_PRESET = "scheduler_default_preset"
+
+# Preset priorities for conflict resolution (higher = more priority)
+PRESET_PRIORITY = {
+    "frost": 1,
+    "eco": 2,
+    "comfort": 3,
+    "boost": 4,
+}
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
@@ -478,6 +490,7 @@ MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
 MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
 MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
 MSG_TARGET_TEMP_TIMED_PRESET = "target_temp_timed_preset"
+MSG_TARGET_TEMP_SCHEDULER = "target_temp_scheduler"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
@@ -563,6 +576,7 @@ class EventType(Enum):
     AUTO_START_STOP_EVENT = "versatile_thermostat_auto_start_stop_event"
     AUTO_TPI_EVENT = "versatile_thermostat_auto_tpi_event"
     TIMED_PRESET_EVENT = "versatile_thermostat_timed_preset_event"
+    SCHEDULER_EVENT = "versatile_thermostat_scheduler_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):

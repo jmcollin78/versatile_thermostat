@@ -30,6 +30,7 @@ from .const import (
     MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED,
     MSG_TARGET_TEMP_ABSENCE_DETECTED,
     MSG_TARGET_TEMP_TIMED_PRESET,
+    MSG_TARGET_TEMP_SCHEDULER,
 )
 from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
@@ -204,6 +205,14 @@ class StateManager:
             if timed_preset:
                 self._current_state.set_preset(timed_preset)
                 vtherm.set_temperature_reason(MSG_TARGET_TEMP_TIMED_PRESET)
+
+        # then check if scheduler has an active event
+        elif vtherm.scheduler_manager.is_configured and vtherm.scheduler_manager.has_active_event and self._current_state.hvac_mode != VThermHvacMode_OFF:
+            scheduled_preset = vtherm.scheduler_manager.scheduled_preset
+            if scheduled_preset and scheduled_preset in vtherm.vtherm_preset_modes:
+                self._current_state.set_preset(scheduled_preset)
+                vtherm.set_temperature_reason(MSG_TARGET_TEMP_SCHEDULER)
+                _LOGGER.debug("%s - Scheduler set preset to: %s", self, scheduled_preset)
 
         # all is fine set current_state = requested_state
         else:
