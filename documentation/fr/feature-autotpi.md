@@ -91,47 +91,48 @@ Il doit inclure :
 #### `heater_cooling_time` (Temps de refroidissement du radiateur)
 Temps nécessaire pour que le radiateur devienne froid après l'arrêt. Utilisé pour estimer si le radiateur est "chaud" ou "froid" au début d'un cycle via le `cold_factor`. Le `cold_factor` permet de corriger l'inertie du radiateur, et il sert de **filtre** : si le temps de chauffe est trop court par rapport au temps de réchauffement estimé, l'apprentissage pour ce cycle sera ignoré (pour éviter le bruit).
 
-### Configuration des Taux de chauffe
+### Apprentissage Automatique de la Capacité Thermique ⚡
 
-L'algorithme utilise le **taux de chauffe** (`auto_tpi_heating_rate` en °C/h) comme référence pour le calcul du coefficient intérieur (`Kint`). Cette valeur doit représenter le taux de montée en température **souhaité** ou **atteignable** lorsque la régulation est à 100%.
+La capacité thermique (taux de montée en température en °C/h) est maintenant **apprise automatiquement** pendant l'apprentissage initial grâce au **bootstrap**.
 
-> **Calibration** : Cette valeur peut être apprise automatiqueement avec le service **Calibrer la capacité** depuis l'historique HA du thermostat.
+#### Comment ça fonctionne ?
 
-Si vous n'utilisez pas le service ci-dessus, vous devez les définir manuellement:
+Le système démarre avec des **coefficients TPI agressifs** pour les 3 premiers cycles afin de provoquer une montée en température significative et mesurer la capacité réelle de votre chauffage. Ensuite, il passe automatiquement en mode TPI normal.
 
-On veut une éstimation de la valeur dite **"adiabatique"** (sans perte de chaleur).
+#### Les 2 Stratégies de Démarrage
 
-Pour l'estimer soit même la méthode est assez simple:
+1. **Mode Automatique (Recommandé)** ✅ :
+   - Laissez `auto_tpi_heating_rate` à **0** (défaut)
+   - Le système détecte automatiquement que la capacité est inconnue
+   - Il effectue 3 cycles avec des **coefficients TPI agressifs** (200.0/5.0) pour provoquer une montée en température et mesurer la capacité
+   - **C'est le mode recommandé pour un démarrage sans configuration**
 
- ***I - Il faut d'abord le coefficient de refroidissement*** ( qui devrait d'ailleurs être assez proche de Coeff Ext de la régulation TPI ).
-   
-  1) On va faire refroidir la pièce en coupant le chauffage pendant une période de temps ( 1h par exemple ) et on mesure la variation de température qu'on va appeller **ΔTcool = Tfin - Tdébut**​ (ex: on passe de 19°C à 18°C en 1h, ΔTrefroid = -1).
-  On note aussi le temps écoulé entre les deux mesures qu'on appelle **Δtcool**​ ( en heure )
-  1) On calcule la vitesse de refroidissement:
-  **Rcool ​= ΔTcool ​/ Δtcool**​​ ( sera négatif ) 
-  1) Puis le Coefficient de refroidissement:
-  Tmoy = la moyenne entre les 2 température mesurées
-  Text = température exterierue (garder la moyenne si elle a variée pendant la mesure)
+2. **Mode Manuel** :
+   - Définissez `auto_tpi_heating_rate` avec une valeur connue (ex: 1.5°C/h)
+   - Le bootstrap est totalement sauté
+   - Le système démarre immédiatement en TPI avec cette capacité
+   - Utilisez ce mode si vous connaissez déjà votre capacité
 
-      **k ≃ -(Rcool / (Tmoy - Text))**
+#### Configuration
 
-      note: vous pourrez aussi utiliser cette valeur k comme Coefficient Exterieur de départ dans la configuration TPI
+Dans l'étape 1 de configuration Auto TPI :
+- **Taux de chauffe** (`auto_tpi_heating_rate`) : Laissez à **0** pour activer le bootstrap automatique
 
-***II - On peut maintenant calculer la capacité adiabatique***
+> 💡 **Astuce** : Pour un démarrage optimal du bootstrap, activez l'apprentissage lorsque l'écart entre la température actuelle et la consigne est d'au moins 2°C.
 
-1) On fait chauffer pendant la même durée que le refroidissement avec le thermostat à 100% de puissance.
+#### Service de calibration (optionnel)
 
-    ***Important:** le radiateur doit être déjà chaud, donc lancer un cycle avant pour le faire monter à sa température maximale.*
+Si vous souhaitez tout de même estimer la capacité à partir de l'historique sans attendre le bootstrap :
 
-    Pour s'assurer qu'on ai bien 100% de la capacité du radiateur pendant toute la mesure, on monte la consigne largement au dessus.
+```yaml
+service: versatile_thermostat.auto_tpi_calibrate_capacity
+target:
+  entity_id: climate.my_thermostat
+data:
+  save_to_config: true
+```
 
-    Noter la température de départ, la température d'arrivée, et le temps de la mesure.
-2) On calcule Rheat , qui est la variation de température constatée:
-     - **ΔTheat = Tfin - Tdébut**
-     - **Δtheat: le temps écoulé entre les 2 mesures**
-     - **Rheat = ΔTheat​/ Δtheat**
-3) On peut enfin trouver notre capacité adiabatique:
-   - **Radiab​ = Rheat ​+ k(Tmoy​−Text​)​**
+Ce service analyse l'historique et estime la capacité en identifiant les moments de chauffe à pleine puissance.
 
 ## Fonctionnement
 
@@ -176,6 +177,9 @@ Un capteur dédié `sensor.<nom_thermostat>_auto_tpi_learning_state` permet de s
 *   `learning_start_dt`: Date et heure du début de l'apprentissage (utile pour les graphiques).
 *   `allow_kint_boost_on_stagnation` : Indique si le boost de Kint en cas de stagnation est activé.
 *   `allow_kext_compensation_on_overshoot` : Indique si la correction de Kext en cas d'overshoot est activée.
+*   `capacity_heat_status` : Statut de l'apprentissage de la capacité thermique (`learning` ou `learned`).
+*   `capacity_heat_value` : La valeur de la capacité thermique apprise (en °C/h).
+*   `capacity_heat_count` : Le nombre de cycles de bootstrap effectués pour l'apprentissage de la capacité.
 
 ## Services
 
@@ -225,7 +229,7 @@ Ce service permet de contrôler l'apprentissage Auto TPI sans passer par la conf
 |-----------|------|--------|-------------|
 | `auto_tpi_mode` | boolean | - | Active (`true`) ou désactive (`false`) l'apprentissage |
 | `reinitialise` | boolean | `true` | Contrôle la réinitialisation des données lors de l'activation |
-| `allow_kint_boost_on_stagnation` | boolean | `true` | Autorise le boost de Kint en cas de stagnation de température |
+| `allow_kint_boost_on_stagnation` | boolean | `false` | Autorise le boost de Kint en cas de stagnation de température |
 | `allow_kext_compensation_on_overshoot` | boolean | `false` | Autorise la compensation de Kext en cas de dépassement (overshoot) |
 
 #### Comportement du paramètre `reinitialise`

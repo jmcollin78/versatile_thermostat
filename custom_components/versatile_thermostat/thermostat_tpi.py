@@ -474,6 +474,16 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
+        # This service is only available for TPI algorithm with Auto TPI enabled
+        if self._proportional_function != PROPORTIONAL_FUNCTION_TPI:
+            raise ServiceValidationError(
+                f"{self} - This service is only available for TPI algorithm."
+            )
+        if not self._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+            raise ServiceValidationError(
+                f"{self} - Auto TPI is not enabled in configuration."
+            )
+
         write_event_log(
             _LOGGER,
             self,
@@ -508,6 +518,16 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         target:
             entity_id: climate.thermostat_1
         """
+        # This service is only available for TPI algorithm with Auto TPI enabled
+        if self._proportional_function != PROPORTIONAL_FUNCTION_TPI:
+            raise ServiceValidationError(
+                f"{self} - This service is only available for TPI algorithm."
+            )
+        if not self._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+            raise ServiceValidationError(
+                f"{self} - Auto TPI is not enabled in configuration."
+            )
+
         write_event_log(_LOGGER, self, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}, capacity_safety_margin: {capacity_safety_margin}")
 
         if not self._auto_tpi_manager:

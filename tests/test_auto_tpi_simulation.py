@@ -32,6 +32,12 @@ def mock_hass():
     hass = MagicMock()
     hass.config.path = MagicMock(return_value="/tmp/test_path")
     hass.loop = asyncio.get_event_loop()
+    
+    # Avoid RuntimeWarning: coroutine never awaited
+    def fake_create_task(coro):
+        return hass.loop.create_task(coro)
+    hass.async_create_task = MagicMock(side_effect=fake_create_task)
+    
     return hass
 
 @pytest.fixture
@@ -122,9 +128,16 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
                 kext = new_params.get(CONF_TPI_COEF_EXT)
                 
                 # Check directly vs Manager state to ensure we are in sync
-                assert kint == manager.state.coeff_indoor_heat
-                assert kext == manager.state.coeff_outdoor_heat
-                
+                # NOTE: During bootstrap, kint/kext will be aggressive (1.0/0.1) while state remains at initial (0.3/0.01)
+                # until capacity is learned. So we check equality only if NOT in bootstrap.
+                if manager.is_in_bootstrap:
+                     # Verify we are using aggressive defaults
+                     assert kint == 1.0
+                     assert kext == 0.1
+                else: 
+                     assert kint == manager.state.coeff_indoor_heat
+                     assert kext == manager.state.coeff_outdoor_heat
+
                 if kint is not None and kext is not None:
                      prop_algo.update_parameters(tpi_coef_int=kint, tpi_coef_ext=kext)
             
