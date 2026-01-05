@@ -1148,7 +1148,8 @@ class AutoTpiManager:
         effective_count = min(count, 50)
 
         if self._calculation_method == "average":
-            weight_old = max(effective_count, 1)  # Same as _learn_indoor
+            # Kext counter starts at 0, so first cycle should have weight 0
+            weight_old = effective_count
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
             _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
         else:  # EMA
