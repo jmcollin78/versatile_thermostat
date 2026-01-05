@@ -110,6 +110,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # To remove some silly warning event if code is fixed
         self._enable_turn_on_off_backwards_compatibility = False
+        self._is_removed = False
 
         self._hass = hass
         self._entry_infos = None
@@ -425,6 +426,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_will_remove_from_hass(self):
         """Try to force backup of entity"""
+        self._is_removed = True
         _LOGGER.debug(
             "%s - force write before remove. Energy is %s", self, self.total_energy
         )
