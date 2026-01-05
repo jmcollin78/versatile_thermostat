@@ -561,6 +561,17 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     )
     await hass.async_block_till_done()
 
+    # The service update triggers a reload of the integration, so the entity object is replaced.
+    # We need to fetch the new entity instance.
+    entity = search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN)
+    assert entity
+
+    # The new entity doesn't know the current temperature because the previous events were sent to the old instance
+    # and not persisted in the HA state machine in a way that allows auto-recovery without event in this test setup.
+    await send_temperature_change_event(entity, 17, now)
+    await send_ext_temperature_change_event(entity, 17, now)
+    await hass.async_block_till_done()
+
     # Verify that TPI parameters have been updated
     assert entity.proportional_algorithm.tpi_coef_int == new_tpi_coef_int
     assert entity.proportional_algorithm.tpi_coef_ext == new_tpi_coef_ext
@@ -585,6 +596,17 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
         tpi_coef_int=0.4,
         tpi_coef_ext=None,  # Should keep previous value
     )
+    await hass.async_block_till_done()
+
+    # The service update triggers a reload of the integration, so the entity object is replaced.
+    # We need to fetch the new entity instance.
+    entity = search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN)
+    assert entity
+
+    # The new entity doesn't know the current temperature because the previous events were sent to the old instance
+    # and not persisted in the HA state machine in a way that allows auto-recovery without event in this test setup.
+    await send_temperature_change_event(entity, 17, now)
+    await send_ext_temperature_change_event(entity, 17, now)
     await hass.async_block_till_done()
 
     assert entity.proportional_algorithm.tpi_coef_int == 0.4
