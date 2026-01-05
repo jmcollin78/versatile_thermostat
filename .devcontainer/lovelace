@@ -196,7 +196,8 @@
                   "set_current_as_main": true,
                   "disable_circle": true,
                   "disable_menu": true,
-                  "disable_target_icon": false
+                  "disable_target_icon": false,
+                  "allow_lock_toggle": true
                 },
                 {
                   "type": "history-graph",
