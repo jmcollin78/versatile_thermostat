@@ -122,6 +122,9 @@ To ensure learning data is valid, cycles are invalidated (learning skipped) in s
     -   This breaks the correlation between "Heat Mode ON" and "Temperature Rise".
     -   **Result**: The `BaseThermostat` explicitly flags this state to `AutoTpiManager`. Any cycle containing a Power Shedding event is marked as `interrupted` and **learning is skipped**.
 
+3.  **Heating/Cooling Failure**:
+    -   If a failure (heating not effective or cooling not stopping) is detected by the `FeatureHeatingFailureDetectionManager`, the cycle is marked as interrupted and learning is skipped to avoid learning from a faulty system state.
+
 #### 2.3. Near-Field vs Far-Field Learning Separation
 
 The learning process is designed to separate the responsibilities of `Kint` (near-field, dynamic response) and `Kext` (far-field, equilibrium losses) to ensure robustness and prevent misattribution of errors.
