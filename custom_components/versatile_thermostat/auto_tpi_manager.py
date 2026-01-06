@@ -770,19 +770,6 @@ class AutoTpiManager:
             if self._correct_kint_insufficient_rise(target_diff, temp_progress, is_cool):
                 return  # Kint corrected, skip other learning for this cycle
 
-        # CASE 0.8: Capacity Learning (Independent of Kint saturation)
-        # ------------------------------------------------------------
-        # We want to learn capacity even (and especially) when power is saturated (100%)
-        if self._should_learn_capacity():
-             k_ext = self.state.coeff_outdoor_heat if not is_cool else self.state.coeff_outdoor_cool
-             # Delta T for capacity: Tin - Tout (Heat) or Tout - Tin (Cool)
-             delta_t_cap = self._current_temp_in - self._current_temp_out if not is_cool else self._current_temp_out - self._current_temp_in
-             
-             if self._learn_capacity(self.state.last_power, delta_t_cap, temp_progress, self._last_cycle_power_efficiency, k_ext):
-                 # Capacity learned. We do NOT return here, because we might still want to try indoor learning
-                 # (if not saturated) or outdoor learning.
-                 pass
-
         # CASE 1: Indoor Learning
         # ---------------------------
         # Strict conditions to avoid false positives:
@@ -2376,42 +2363,42 @@ class AutoTpiManager:
         # Significant if we had some effective heating time (efficiency > 0)
         is_significant_cycle = self._last_cycle_power_efficiency > 0.0
 
-        if in_bootstrap:
-            # During bootstrap: learn ONLY capacity, skip Kint/Kext
-            # Calculate real_rise and efficiency locally for use here
-            real_rise = self._current_temp_in - self.state.last_temp_in
-            efficiency = self._last_cycle_power_efficiency
-            
-            if self._should_learn_capacity():
-                # Await learning as it might trigger a reload
-                learned = await self._learn_capacity(
-                    power=self.state.last_power,
-                    delta_t=self._current_temp_in - self._current_temp_out,
-                    rise=real_rise,
-                    efficiency=efficiency,
-                    k_ext=self.state.coeff_outdoor_heat
+        # PHASE 1: Capacity Learning (independent of saturation check)
+        # Capacity learning needs high power cycles (>=80%), which may be saturated (100%)
+        # This must run independently of _should_learn() which rejects saturated power
+        real_rise = self._current_temp_in - self.state.last_temp_in
+        efficiency = self._last_cycle_power_efficiency
+        
+        if self._should_learn_capacity():
+            await self._learn_capacity(
+                power=self.state.last_power,
+                delta_t=self._current_temp_in - self._current_temp_out,
+                rise=real_rise,
+                efficiency=efficiency,
+                k_ext=self.state.coeff_outdoor_heat
+            )
+            if in_bootstrap:
+                _LOGGER.info(
+                    "%s - Bootstrap cycle %d/%d completed, capacity: %.2f°C/h",
+                    self._name,
+                    self.state.capacity_heat_learn_count,
+                    3,  # Total bootstrap cycles
+                    self.state.max_capacity_heat
                 )
-                if learned:
-                    _LOGGER.info(
-                        "%s - Bootstrap cycle %d/%d completed, capacity: %.2f°C/h",
-                        self._name,
-                        self.state.capacity_heat_learn_count,
-                        3, # Total bootstrap cycles
-                        self.state.max_capacity_heat
-                    )
-                    # Reload triggered, stop further processing
-                    return True
+        
+        # PHASE 2: Kint/Kext Learning (requires non-saturated power)
+        # Skip during bootstrap (learn only capacity first)
+        if in_bootstrap:
+            _LOGGER.debug("%s - Auto TPI: In bootstrap mode, skipping Kint/Kext learning", self._name)
         elif self._should_learn() and is_significant_cycle:
-            # NORMAL TPI MODE: Learn everything
-            # After bootstrap: normal learning (capacity + Kint/Kext)
-            _LOGGER.info("%s - Auto TPI: Attempting to learn from cycle data", self._name)
+            _LOGGER.info("%s - Auto TPI: Attempting to learn Kint/Kext from cycle data", self._name)
             await self._perform_learning(self._current_temp_in, self._current_temp_out)
         else:
             reason = self._get_no_learn_reason()
             if not is_significant_cycle and reason == "unknown":
                 reason = "on_time_too_short_vs_heating_time"
 
-            _LOGGER.debug("%s - Auto TPI: Not learning this cycle: %s", self._name, reason)
+            _LOGGER.debug("%s - Auto TPI: Not learning Kint/Kext this cycle: %s", self._name, reason)
             self.state.last_learning_status = reason
 
         # Check for failures
