@@ -105,7 +105,21 @@ class AutoTpiState:
     allow_kext_overshoot: bool = False
 
     def to_dict(self):
-        return asdict(self)
+        """Convert to a JSON-safe dict for HA state attributes and storage."""
+        def make_json_safe(value):
+            """Convert non-JSON-serializable types to JSON-safe equivalents."""
+            if value is None:
+                return None
+            if isinstance(value, datetime):
+                return value.isoformat()
+            if isinstance(value, (list, tuple)):
+                return [make_json_safe(v) for v in value]
+            if isinstance(value, dict):
+                return {k: make_json_safe(v) for k, v in value.items()}
+            return value
+
+        result = asdict(self)
+        return {k: make_json_safe(v) for k, v in result.items()}
 
     @classmethod
     def from_dict(cls, data):
