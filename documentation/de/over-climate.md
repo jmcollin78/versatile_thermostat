@@ -28,6 +28,7 @@ Die Installation sollte etwa so aussehen::
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellungen](base-attributes.md)).
 Klicken Sie dann im Menü auf die Option "Zugeordnete Entities", um diese Konfigurationsseite anzuzeigen:
+
 ![image](images/config-linked-entity2.png)
 
 ### Die zugeordneten Geräte
@@ -99,7 +100,7 @@ Die besonderen Funktionen, die für diesen Typ von VTherm konfiguriert werden m�
 ## Verfolgung grundlegender Temperaturänderungen
 
 Einige Benutzer möchten ihre Geräte weiterhin wie bisher (ohne _VTherm_) benutzen. Sie möchten zum Beispiel die Fernbedienung Ihrer _WP_ benutzen oder den Drehknopf an Ihrem _TRV_ drehen.
-In diesem Fall wurde dem Gerät _VTherm_ eine Entität mit der Bezeichnung `Folge grundlegenden Temperaturänderungen` hinzugefügt:
+In diesem Fall wurde dem Gerät _VTherm_ eine Entität mit der Bezeichnung `follow underlying temp change` (Folge Temperatureinstellung am Gerät) hinzugefügt:
 
 ![Temperaturänderungen folgen](images/entity-follow-under-temp-change.png)
 
