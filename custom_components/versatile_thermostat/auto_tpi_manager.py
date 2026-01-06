@@ -224,6 +224,7 @@ class AutoTpiManager:
         # Interruption management
         self._current_cycle_interrupted: bool = False
         self._central_boiler_off: bool = False
+        self._current_is_heating_failure: bool = False
 
     def _to_celsius(self, temp: float) -> float:
         """Convert temperature to Celsius if needed."""
@@ -465,7 +466,7 @@ class AutoTpiManager:
         
         await self.calculate()
 
-    async def update(self, room_temp: float, ext_temp: float, hvac_mode: str, target_temp: float, is_overpowering_detected: bool = False, is_central_boiler_off: bool = False) -> float:
+    async def update(self, room_temp: float, ext_temp: float, hvac_mode: str, target_temp: float, is_overpowering_detected: bool = False, is_central_boiler_off: bool = False, is_heating_failure: bool = False) -> float:
         """Update state with new data.
 
         This method is called at each control_heating cycle.
@@ -489,6 +490,7 @@ class AutoTpiManager:
         self._current_target_temp = self._to_celsius(target_temp) if target_temp is not None else 0.0
         self._current_hvac_mode = hvac_mode
         self._central_boiler_off = is_central_boiler_off
+        self._current_is_heating_failure = is_heating_failure
 
         # Calculate and return power
         # Use hvac_mode to force direction
@@ -616,6 +618,10 @@ class AutoTpiManager:
             _LOGGER.debug("%s - Auto TPI: Not learning - Central boiler is OFF although VTherm is active (boiler below activation threshold)", self._name)
             return False
 
+        if self._current_is_heating_failure:
+            _LOGGER.debug("%s - Auto TPI: Not learning - Heating/Cooling failure detected", self._name)
+            return False
+
         # Failures check
         if self.state.consecutive_failures >= 3:
             return False
@@ -667,6 +673,9 @@ class AutoTpiManager:
 
         if self._central_boiler_off:
             return "central_boiler_off"
+
+        if self._current_is_heating_failure:
+            return "heating_failure_detected"
 
         if self.state.consecutive_failures >= 3:
             return f"too_many_failures({self.state.consecutive_failures})"

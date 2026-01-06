@@ -145,6 +145,7 @@ L'Auto TPI fonctionne de manière cyclique :
     *   L'écart de température est significatif.
     *   Le système est stable (pas d'échecs consécutifs).
     *   Le cycle n'a pas été interrompu par un délestage de puissance (Power Shedding), ou une ouverture de fenêtre.
+    *   **Panne détectée** : L'apprentissage est suspendu si une anomalie de chauffage ou climatisation est détectée (ex: température ne monte pas malgré la chauffe), pour éviter d'apprendre des coefficients erronés.
     *   **Chaudière Centrale** : Si le thermostat dépend d'une chaudière centrale, l'apprentissage est suspendu si la chaudière n'est pas activée (même si le thermostat est en demande).
 3.  **Calcul (Apprentissage)** :
     *   **Cas 1 : Coefficient Intérieur**. Si la température a évolué dans le bon sens de manière significative (> 0.05°C), il calcule le ratio entre l'évolution réelle **(sur l'ensemble du cycle, inertie incluse)** et l'évolution théorique attendue (corrigée par la capacité calibrée). Il ajuste `CoeffInt` pour réduire l'écart.

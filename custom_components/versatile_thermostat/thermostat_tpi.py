@@ -233,6 +233,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
+                is_heating_failure=self._heating_failure_detection_manager.is_failure_detected,
             )
 
         # Sync coefficients from AutoTpiManager before calculating
@@ -278,6 +279,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
                 hvac_mode=str(self.vtherm_hvac_mode),
                 is_overpowering_detected=self.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
+                is_heating_failure=self._heating_failure_detection_manager.is_failure_detected,
             )
 
             # Check if we have new learned parameters
