@@ -107,10 +107,10 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
     print(f"\n{'Cycle':<5} | {'RoomT':<8} | {'ExtT':<8} | {'Power%':<8} | {'Kint':<8} | {'Kext':<8} | {'Status'}")
     print("-" * 80)
 
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.datetime") as mock_datetime, \
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt_util, \
          patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
         
-        mock_datetime.now.side_effect = lambda: sim_time
+        mock_dt_util.now.side_effect = lambda: sim_time
         
         async def data_provider():
             await manager.update(

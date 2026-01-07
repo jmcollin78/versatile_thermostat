@@ -105,7 +105,21 @@ class AutoTpiState:
     allow_kext_overshoot: bool = False
 
     def to_dict(self):
-        return asdict(self)
+        """Convert to a JSON-safe dict for HA state attributes and storage."""
+        def make_json_safe(value):
+            """Convert non-JSON-serializable types to JSON-safe equivalents."""
+            if value is None:
+                return None
+            if isinstance(value, datetime):
+                return value.isoformat()
+            if isinstance(value, (list, tuple)):
+                return [make_json_safe(v) for v in value]
+            if isinstance(value, dict):
+                return {k: make_json_safe(v) for k, v in value.items()}
+            return value
+
+        result = asdict(self)
+        return {k: make_json_safe(v) for k, v in result.items()}
 
     @classmethod
     def from_dict(cls, data):
@@ -2269,7 +2283,7 @@ class AutoTpiManager:
 
         _LOGGER.debug("%s - Auto TPI: Cycle started. On: %.0fs, Off: %.0fs (%.1f%%), Mode: %s", self._name, on_time_sec, off_time_sec, on_percent * 100, hvac_mode)
 
-        now = datetime.now()
+        now = dt_util.now()
 
         # Snapshot current state for learning at the end of the cycle
         self.state.last_temp_in = self._current_temp_in
@@ -2328,7 +2342,7 @@ class AutoTpiManager:
 
         # Update last_heater_stop_time if we were heating
         if self.state.last_state == "heat":
-            self.state.last_heater_stop_time = datetime.now()
+            self.state.last_heater_stop_time = dt_util.now()
 
         # Calculate Power Efficiency based on Heater Warm-up Time and Cold Factor
         # heater_heating_time is the time for the heater to warm up when fully cold.
@@ -2538,7 +2552,7 @@ class AutoTpiManager:
             self.state.total_cycles = 0
             self.state.consecutive_failures = 0
             self.state.last_learning_status = "learning_started"
-            self.state.cycle_start_date = datetime.now()
+            self.state.cycle_start_date = dt_util.now()
             self.state.cycle_active = False
         else:
             _LOGGER.info(
@@ -2554,7 +2568,7 @@ class AutoTpiManager:
 
         # Set start date only if it's a new session (reset) or if it wasn't set (first start)
         if reset_data or self.state.learning_start_date is None:
-            self.state.learning_start_date = datetime.now()
+            self.state.learning_start_date = dt_util.now()
 
         # ===== BOOTSTRAP PHASE LOGIC =====
         # Determine bootstrap strategy (3 modes)
@@ -2676,7 +2690,7 @@ class AutoTpiManager:
         if not self._data_provider:
             return
 
-        now = datetime.now()
+        now = dt_util.now()
 
         # 1. Get fresh data from thermostat FIRST
         # This ensures we have current temperatures for "End of Cycle" validation
