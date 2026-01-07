@@ -248,49 +248,57 @@ class AutoTpiManager:
             return TemperatureConverter.convert(temp, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.CELSIUS)
         return temp
 
-    async def async_update_coefficients_config(self, coef_int: float, coef_ext: float):
-        """Update CONF_TPI_COEF_INT and CONF_TPI_COEF_EXT in the HA config entry."""
-
+    async def async_update_learning_data(self, coef_int: float = None, coef_ext: float = None, capacity: float = None, is_heat_mode: bool = True):
+        """Update coefficients and/or capacity in one go to avoid double reload."""
+        
         if not self._enable_update_config:
-            _LOGGER.debug("%s - Auto TPI: Skipping config update for coefficients as enable_update_config is False", self._name)
+             _LOGGER.debug("%s - Auto TPI: update_learning_data - enable_update_config is False", self._name)
+             return
+
+        updates = {}
+        
+        # 1. Update coefficients if provided
+        if coef_int is not None:
+            updates[CONF_TPI_COEF_INT] = round(coef_int / self._unit_factor, 3)
+        
+        if coef_ext is not None:
+            updates[CONF_TPI_COEF_EXT] = round(coef_ext / self._unit_factor, 3)
+        
+        # 2. Update capacity if provided and valid
+        if capacity is not None and capacity > 0.0:
+            rate_key = CONF_AUTO_TPI_HEATING_POWER if is_heat_mode else CONF_AUTO_TPI_COOLING_POWER
+            updates[rate_key] = round(capacity * self._unit_factor, 3)
+            
+            # Also update local state
+            if is_heat_mode:
+                self.state.max_capacity_heat = capacity
+                self._heating_rate = capacity
+            else:
+                self.state.max_capacity_cool = capacity
+                self._cooling_rate = capacity
+        
+        if not updates:
+            _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
             return
 
-        new_data = {
-            **self._config_entry.data,
-            CONF_TPI_COEF_INT: round(coef_int / self._unit_factor, 3),
-            CONF_TPI_COEF_EXT: round(coef_ext / self._unit_factor, 3),
-        }
-
+        # 3. Apply atomic update
+        new_data = {**self._config_entry.data, **updates}
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-        _LOGGER.info("%s - Auto TPI: Updated config coefficients: Kint=%.3f, Kext=%.3f", self._name, coef_int, coef_ext)
-
-    async def async_update_capacity_config(self, capacity: float, is_heat_mode: bool):
-        """Update capacity parameters in the HA config entry."""
-
-        if capacity <= 0.0:
-            _LOGGER.warning("%s - Auto TPI: Skipping capacity config update, capacity is not positive (%.3f)", self._name, capacity)
-            return
-
-        rate_key = CONF_AUTO_TPI_HEATING_POWER if is_heat_mode else CONF_AUTO_TPI_COOLING_POWER
-
-        new_data = {
-            **self._config_entry.data,
-            rate_key: round(capacity * self._unit_factor, 3),
-        }
-
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-
-        # Also update the local state for immediate use in future cycles
-        if is_heat_mode:
-            self.state.max_capacity_heat = capacity
-            self._heating_rate = capacity
-        else:
-            self.state.max_capacity_cool = capacity
-            self._cooling_rate = capacity
-
+        
         await self.async_save_data()
+        
+        _LOGGER.info(
+            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s", 
+            self._name, 
+            f"{coef_int:.3f}" if coef_int is not None else "N/A",
+            f"{coef_ext:.3f}" if coef_ext is not None else "N/A", 
+            f"{capacity:.3f}" if capacity is not None else "N/A"
+        )
 
-        _LOGGER.info("%s - Auto TPI: Updated config capacity for %s mode: Capacity=%.3f", self._name, "heat" if is_heat_mode else "cool", capacity)
+
+
+
+
 
     async def process_learning_completion(self, current_params: dict) -> Optional[dict]:
         """
@@ -347,10 +355,23 @@ class AutoTpiManager:
                 return None
             else:
                 _LOGGER.info("%s - Auto TPI: Learning completed. Persisting final coefficients and stopping learning.", self._name)
-                await self.stop_learning()
+                # Calling stop_learning will NOT save capacity immediately (we do it in atomic update below)
+                await self.stop_learning(save_capacity=False)
+                
+                # Check if we also need to update capacity (if it was learned)
+                # This combines both updates into ONE config entry update
+                capacity_to_save = None
+                if self.state.capacity_heat_learn_count >= 3:
+                     # Check if value has changed
+                     current_conv_capacity = self._config_entry.data.get(CONF_AUTO_TPI_HEATING_POWER)
+                     current_capacity = current_conv_capacity / self._unit_factor if current_conv_capacity else 0.0
+                     
+                     if abs(current_capacity - self.state.max_capacity_heat) > 0.01:
+                         capacity_to_save = self.state.max_capacity_heat
 
-        # 3. Persist coefficients to HA config if enabled
-        await self.async_update_coefficients_config(k_int, k_ext)
+                await self.async_update_learning_data(coef_int=k_int, coef_ext=k_ext, capacity=capacity_to_save, is_heat_mode=True)
+
+
 
         # 4. Send persistent notifications if enabled
         if self._enable_notification:
@@ -1241,7 +1262,7 @@ class AutoTpiManager:
                 # Persist default capacity to config
                 if self._hass and self._hass.loop and not self._hass.loop.is_closed():
                     self._hass.async_create_task(
-                        self.async_update_capacity_config(0.3, is_heat_mode=True)
+                        self.async_update_learning_data(capacity=0.3, is_heat_mode=True)
                     )
                 
                 return False # Cycle handled (we set default), skip calculation logic for this cycle
@@ -2255,7 +2276,7 @@ class AutoTpiManager:
                     # Always heat mode
                     is_heat_mode = True
 
-                    await self.async_update_capacity_config(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
+                    await self.async_update_learning_data(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
 
                     _LOGGER.info(
                         "%s - Heating capacity calibrated. Max: %.3f °C/h, Margin: %.0f%%, Saved: %.3f °C/h", 
@@ -2609,7 +2630,7 @@ class AutoTpiManager:
 
         await self.async_save_data()
 
-    async def stop_learning(self):
+    async def stop_learning(self, save_capacity: bool = True):
         _LOGGER.info("%s - Auto TPI: Stopping learning", self._name)
         self.state.autolearn_enabled = False
         # Do not clear learning_start_date to allow resuming or display in history
@@ -2618,12 +2639,14 @@ class AutoTpiManager:
         await self.async_save_data()
         
         # If we have learned enough, save capacity to config
-        if self.state.capacity_heat_learn_count >= 3:
+        # ONLY if save_capacity is True (avoid double reload if caller handles it)
+        if save_capacity and self.state.capacity_heat_learn_count >= 3:
              # Check if value has changed before saving to avoid useless reload
              current_capacity = self._config_entry.data.get(CONF_AUTO_TPI_HEATING_POWER)
              if current_capacity is None or abs(current_capacity - self.state.max_capacity_heat) > 0.01:
                  if self._hass and self._hass.loop and not self._hass.loop.is_closed():
-                    await self.async_update_capacity_config(self.state.max_capacity_heat, is_heat_mode=True)
+                    await self.async_update_learning_data(capacity=self.state.max_capacity_heat, is_heat_mode=True)
+
 
     async def reset_learning_data(self):
         _LOGGER.info("%s - Auto TPI: Resetting all learning data", self._name)
