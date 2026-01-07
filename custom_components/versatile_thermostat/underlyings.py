@@ -468,6 +468,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 if on_time_sec == 0 and self.is_device_active:
                     _LOGGER.info("%s - Power is 0%%, turning off device immediately", self)
                     await self.turn_off()
+                    return  # Nothing more to do, device is off
             else:
                 _LOGGER.debug(
                     "%s - A previous cycle is already running and no force -> waits for its end",
