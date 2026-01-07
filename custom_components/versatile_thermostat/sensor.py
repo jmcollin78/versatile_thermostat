@@ -10,6 +10,7 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfEnergy,
     PERCENTAGE,
+    EntityCategory,
 )
 
 from homeassistant.components.sensor import (
@@ -160,13 +161,23 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def icon(self) -> str | None:
         return "mdi:lightning-bolt"
+    
+    @property
+    def entity_category(self):
+        if not self.my_climate:
+            return EntityCategory.DIAGNOSTIC
+        return None
 
     @property
     def device_class(self) -> SensorDeviceClass | None:
+        if not self.my_climate:
+            return None
         return SensorDeviceClass.ENERGY
 
     @property
     def state_class(self) -> SensorStateClass | None:
+        if not self.my_climate:
+            return None
         return SensorStateClass.TOTAL_INCREASING
 
     @property
@@ -182,6 +193,8 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
     @property
     def suggested_display_precision(self) -> int | None:
         """Return the suggested number of decimal digits for display."""
+        if not self.my_climate:
+            return 1
         return 3
 
 
