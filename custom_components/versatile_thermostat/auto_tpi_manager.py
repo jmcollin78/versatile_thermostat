@@ -36,7 +36,7 @@ STORAGE_VERSION = 8
 STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
 # Configurable constants for learning algorithm behavior
-MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
+MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
