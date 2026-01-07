@@ -242,8 +242,9 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
     
 **Protection Directionnelle (Natural Recovery) :**   
 *   **Problème** : Lors d'une baisse de consigne (ex: 21° -> 19°), la température est au-dessus de la consigne (Overshoot) et le chauffage peut être encore légèrement actif (Kext). Si l'algorithme apprend à ce moment, il va baisser Kext alors que la température est déjà en train de descendre naturellement vers la cible.
-*   **Solution** : Si on est en Overshoot (Temp > Consigne en Heat) MAIS que la température est en train de descendre (`Temp < Last_Temp`), on **saute l'apprentissage**. 
+*   **Solution** : Si on est en Overshoot (Temp > Consigne en Heat), que la température est en train de descendre (`Temp < Last_Temp`), **ET que la puissance est faible** (`power < OVERSHOOT_POWER_THRESHOLD` soit 5%), on **saute l'apprentissage**. 
 *   On considère que la dynamique est naturelle et correcte ("Natural Recovery"). L'algorithme n'intervient que si la température stagne ou monte malgré l'overshoot.
+*   **Exception** : Si la puissance est significative (≥ 5%) pendant un overshoot, même si la température descend, c'est que Kext maintient un chauffage inutile. Dans ce cas, on **apprend** pour réduire Kext.
 *   *Même logique pour le mode Cool (Undershoot mais température qui remonte).*
 
 #### 5. Algorithme Coefficient Intérieur (Détail)

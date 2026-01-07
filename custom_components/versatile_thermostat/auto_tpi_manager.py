@@ -1074,13 +1074,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overcooling"
                 return False
 
-            # NEW: Directional Protection
+            # Directional Protection (only when power is low)
             # If we are overcooling (below target) BUT the temperature is Rising (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in > 0 and current_temp_in > self.state.last_temp_in:
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # EXCEPTION: If power is still significant, Kext is too high and must be reduced.
+            if gap_in > 0 and current_temp_in > self.state.last_temp_in and self.state.last_power < OVERSHOOT_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "warming_up_naturally"
                 return True  # Considered handled (skipped)
@@ -1094,13 +1095,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overheating"
                 return False
 
-            # NEW: Directional Protection
+            # Directional Protection (only when power is low)
             # If we are overheating (above target) BUT the temperature is Falling (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in < 0 and current_temp_in < self.state.last_temp_in:
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # EXCEPTION: If power is still significant, Kext is too high and must be reduced.
+            if gap_in < 0 and current_temp_in < self.state.last_temp_in and self.state.last_power < OVERSHOOT_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "cooling_down_naturally"
                 return True  # Considered handled (skipped)
