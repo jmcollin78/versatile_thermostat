@@ -451,12 +451,26 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
-            if force:
-                _LOGGER.debug("%s - we force a new cycle", self)
+            # Force cancel if:
+            # 1. Explicit force=True
+            # 2. on_time_sec=0 (0% power means heater MUST stop immediately)
+            #    This prevents the heater from continuing to cycle with stale
+            #    parameters when the setpoint changes
+            if force or on_time_sec == 0:
+                _LOGGER.debug(
+                    "%s - Forcing cycle cancel (force=%s, on_time_sec=%d)",
+                    self,
+                    force,
+                    on_time_sec,
+                )
                 self._cancel_cycle()
+                # If power is 0% and device is still active, turn it off immediately
+                if on_time_sec == 0 and self.is_device_active:
+                    _LOGGER.info("%s - Power is 0%%, turning off device immediately", self)
+                    await self.turn_off()
             else:
                 _LOGGER.debug(
-                    "%s - A previous cycle is alredy running and no force -> waits for its end",
+                    "%s - A previous cycle is already running and no force -> waits for its end",
                     self,
                 )
                 # self._should_relaunch_control_heating = True
