@@ -2730,6 +2730,11 @@ class AutoTpiManager:
             self._schedule_next_timer()
             return
 
+        # Guard: check if we were stopped during await
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during data fetch", self._name)
+            return
+
         if not new_params:
             _LOGGER.warning("%s - Auto TPI: No data received from thermostat", self._name)
             self._schedule_next_timer()
@@ -2766,6 +2771,11 @@ class AutoTpiManager:
             # Reset previous cycle tracking
             # self.state.current_cycle_params = None # Will be overwritten below
 
+        # Guard: check again after on_cycle_completed
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle completion", self._name)
+            return
+
         # 3. Update current params for the NEXT cycle tracking
         self.state.current_cycle_params = new_params
         # Save state to persist cycle params (important for reload resilience)
@@ -2779,6 +2789,11 @@ class AutoTpiManager:
         # 4. Notify start of cycle
         await self.on_cycle_started(on_time, off_time, on_percent, hvac_mode)
 
+        # Guard: check again after on_cycle_started
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle start notification", self._name)
+            return
+
         # 5. Notify thermostat to apply changes
         if self._event_sender:
             try:
@@ -2788,6 +2803,11 @@ class AutoTpiManager:
                     self._event_sender(new_params)
             except Exception as e:
                 _LOGGER.error("%s - Auto TPI: Error sending event to thermostat: %s", self._name, e)
+
+        # Guard: final check before scheduling next timer
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during event sending", self._name)
+            return
 
         # 6. Schedule next tick
         self._schedule_next_timer()

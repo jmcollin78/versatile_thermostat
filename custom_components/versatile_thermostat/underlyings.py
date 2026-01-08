@@ -266,6 +266,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
         self._off_time_sec = 0
+        self._is_removed = False
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
         self._vswitch_on = vswitch_on.strip() if vswitch_on else None
         self._vswitch_off = vswitch_off.strip() if vswitch_off else None
@@ -493,6 +494,11 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     async def _turn_on_later(self, _):
         """Turn the heater on after a delay"""
+        # Guard against race condition during reload
+        if self._is_removed:
+            _LOGGER.debug("%s - _turn_on_later called after remove_entity, ignoring", self)
+            return
+
         _LOGGER.debug(
             "%s - calling turn_on_later hvac_mode=%s, should_relaunch_later=%s off_time_sec=%d",
             self,
@@ -554,6 +560,11 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     async def _turn_off_later(self, _):
         """Turn the heater off and call the next cycle after the delay"""
+        # Guard against race condition during reload
+        if self._is_removed:
+            _LOGGER.debug("%s - _turn_off_later called after remove_entity, ignoring", self)
+            return
+
         _LOGGER.debug(
             "%s - calling turn_off_later hvac_mode=%s, should_relaunch_later=%s off_time_sec=%d",
             self,
@@ -595,6 +606,7 @@ class UnderlyingSwitch(UnderlyingEntity):
     @overrides
     def remove_entity(self):
         """Remove the entity after stopping its cycle"""
+        self._is_removed = True
         self._cancel_cycle()
         self._keep_alive.cancel()
         super().remove_entity()
