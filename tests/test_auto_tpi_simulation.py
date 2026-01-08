@@ -111,6 +111,7 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
          patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
         
         mock_dt_util.now.side_effect = lambda: sim_time
+        mock_dt_util.as_local.side_effect = lambda x: x
         
         async def data_provider():
             await manager.update(
