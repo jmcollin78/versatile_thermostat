@@ -36,7 +36,7 @@ STORAGE_VERSION = 8
 STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
 # Configurable constants for learning algorithm behavior
-MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
+MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
@@ -84,6 +84,7 @@ class AutoTpiState:
     cycle_start_date: Optional[datetime] = None  # Start of current cycle
     cycle_active: bool = False
     current_cycle_cold_factor: float = 0.0  # 1.0 = cold, 0.0 = hot
+    current_cycle_params: dict = None  # Parameters of the current/last cycle
 
     # Management
     consecutive_failures: int = 0
@@ -223,7 +224,6 @@ class AutoTpiManager:
         self._current_target_temp: float = 0.0
         self._current_hvac_mode: str = "heat"  # 'heat' or 'cool' (or 'off' etc)
         self._last_cycle_power_efficiency: float = 1.0
-        self._current_cycle_params: dict = None
         self._save_lock = asyncio.Lock()
 
         self._timer_remove_callback: Callable[[], None] | None = None
@@ -239,6 +239,14 @@ class AutoTpiManager:
         self._current_cycle_interrupted: bool = False
         self._central_boiler_off: bool = False
         self._current_is_heating_failure: bool = False
+        
+        # Shutdown safety check
+        self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
+
+    def set_is_vtherm_stopping_callback(self, callback: Callable[[], bool]):
+        """Set a callback to check if the VTherm is stopping."""
+        self._is_vtherm_stopping_callback = callback
+
 
     def _to_celsius(self, temp: float) -> float:
         """Convert temperature to Celsius if needed."""
@@ -251,10 +259,6 @@ class AutoTpiManager:
     async def async_update_learning_data(self, coef_int: float = None, coef_ext: float = None, capacity: float = None, is_heat_mode: bool = True):
         """Update coefficients and/or capacity in one go to avoid double reload."""
         
-        if not self._enable_update_config:
-             _LOGGER.debug("%s - Auto TPI: update_learning_data - enable_update_config is False", self._name)
-             return
-
         updates = {}
         
         # 1. Update coefficients if provided
@@ -269,23 +273,34 @@ class AutoTpiManager:
             rate_key = CONF_AUTO_TPI_HEATING_POWER if is_heat_mode else CONF_AUTO_TPI_COOLING_POWER
             updates[rate_key] = round(capacity * self._unit_factor, 3)
             
-            # Also update local state
+            # Also update local state (Memory)
             if is_heat_mode:
                 self.state.max_capacity_heat = capacity
                 self._heating_rate = capacity
             else:
                 self.state.max_capacity_cool = capacity
                 self._cooling_rate = capacity
+
+        # 3. Always save to local storage (Persistence)
+        await self.async_save_data()
+
+        # 4. Check if we should skip config update (Restart/Shutdown safety)
+        if not self._enable_update_config:
+             _LOGGER.debug("%s - Auto TPI: update_learning_data - enable_update_config is False", self._name)
+             return
+
+        if self._is_vtherm_stopping_callback and self._is_vtherm_stopping_callback():
+             _LOGGER.debug("%s - Auto TPI: update_learning_data - VTherm is stopping, skipping config update", self._name)
+             return
         
         if not updates:
             _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
             return
 
-        # 3. Apply atomic update
+        # 5. Apply atomic config update (Triggers Reload)
         new_data = {**self._config_entry.data, **updates}
         self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-        
-        await self.async_save_data()
+
         
         _LOGGER.info(
             "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s", 
@@ -2735,8 +2750,9 @@ class AutoTpiManager:
             return
 
         # 2. Handle previous cycle completion
-        # We use self._current_cycle_params which contains the params at the start of the previous cycle
-        if self.state.cycle_start_date is not None and self._current_cycle_params is not None:
+        # We use self.state.current_cycle_params which contains the params at the start of the previous cycle
+        # This is persisted so we can validate across reloads
+        if self.state.cycle_start_date is not None and self.state.current_cycle_params is not None:
             elapsed_minutes = (now - self.state.cycle_start_date).total_seconds() / 60
             expected_duration = self._cycle_min
             tolerance = max(expected_duration * 0.1, 1.0)
@@ -2744,7 +2760,7 @@ class AutoTpiManager:
             if abs(elapsed_minutes - expected_duration) <= tolerance:
                 _LOGGER.debug("%s - Cycle validation success: duration=%.1fmin (expected=%.1fmin). Triggering learning.", self._name, elapsed_minutes, expected_duration)
                 # Use stored parameters from the PREVIOUS cycle
-                prev_params = self._current_cycle_params
+                prev_params = self.state.current_cycle_params
                 await self.on_cycle_completed(
                     on_time_sec=prev_params.get("on_time_sec", 0), off_time_sec=prev_params.get("off_time_sec", 0), hvac_mode=prev_params.get("hvac_mode", "stop")
                 )
@@ -2758,10 +2774,12 @@ class AutoTpiManager:
                 )
 
             # Reset previous cycle tracking
-            # self._current_cycle_params = None # Will be overwritten below
+            # self.state.current_cycle_params = None # Will be overwritten below
 
         # 3. Update current params for the NEXT cycle tracking
-        self._current_cycle_params = new_params
+        self.state.current_cycle_params = new_params
+        # Save state to persist cycle params (important for reload resilience)
+        await self.async_save_data()
 
         on_time = new_params.get("on_time_sec", 0)
         off_time = new_params.get("off_time_sec", 0)

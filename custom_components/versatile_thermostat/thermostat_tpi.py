@@ -147,8 +147,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             keep_ext_learning=self._auto_tpi_keep_ext_learning,
             enable_update_config=self._auto_tpi_enable_update_config, # Pass the config flags
             enable_notification=self._auto_tpi_enable_notification, # Pass the config flags
-
         )
+        self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: self._is_removed)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
                      self, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
 
