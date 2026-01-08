@@ -2759,7 +2759,11 @@ class AutoTpiManager:
         # We use self.state.current_cycle_params which contains the params at the start of the previous cycle
         # This is persisted so we can validate across reloads
         if self.state.cycle_start_date is not None and self.state.current_cycle_params is not None:
-            elapsed_minutes = (now - self.state.cycle_start_date).total_seconds() / 60
+            # Ensure cycle_start_date is timezone-aware (handles legacy data)
+            cycle_start = self.state.cycle_start_date
+            if cycle_start.tzinfo is None:
+                cycle_start = dt_util.as_local(cycle_start)
+            elapsed_minutes = (now - cycle_start).total_seconds() / 60
             expected_duration = self._cycle_min
             tolerance = max(expected_duration * 0.1, 1.0)
 
