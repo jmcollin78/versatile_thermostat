@@ -176,6 +176,7 @@ CONF_AUTO_TPI_AVG_INITIAL_WEIGHT = "auto_tpi_avg_initial_weight"
 CONF_AUTO_TPI_MAX_COEF_INT = "auto_tpi_max_coef_int"
 CONF_AUTO_TPI_HEATING_POWER = "auto_tpi_heating_rate"
 CONF_AUTO_TPI_COOLING_POWER = "auto_tpi_cooling_rate"
+CONF_AUTO_TPI_AGGRESSIVENESS = "auto_tpi_aggressiveness"
 
 CONF_AUTO_TPI_EMA_DECAY_RATE = "auto_tpi_ema_decay_rate"
 

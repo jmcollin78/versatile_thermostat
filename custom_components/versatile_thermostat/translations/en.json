@@ -294,7 +294,8 @@
           "heater_heating_time": "Heater warm-up time (min)",
           "heater_cooling_time": "Heater cool-down time (min)",
           "auto_tpi_max_coef_int": "Max Internal Coefficient",
-          "auto_tpi_heating_rate": "Heating rate ({unit}/h)"
+          "auto_tpi_heating_rate": "Heating rate ({unit}/h)",
+          "auto_tpi_aggressiveness": "Aggressiveness"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",
@@ -697,7 +698,8 @@
           "heater_heating_time": "Heater warm-up time (min)",
           "heater_cooling_time": "Heater cool-down time (min)",
           "auto_tpi_max_coef_int": "Max Internal Coefficient",
-          "auto_tpi_heating_rate": "Heating rate ({unit}/h)"
+          "auto_tpi_heating_rate": "Heating rate ({unit}/h)",
+          "auto_tpi_aggressiveness": "Aggressiveness"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatically update the configuration with learned coefficients",
@@ -970,10 +972,6 @@
         "min_power_threshold": {
           "name": "Minimum Power Threshold",
           "description": "Minimum power percentage to consider a cycle as saturated (default 95%). Lower values will include more cycles but may be less accurate."
-        },
-        "capacity_safety_margin": {
-          "name": "Safety Margin for Capacity",
-          "description": "Margin percentage to subtract from max capacity before saving. Valid range 0-30%. Default is 20%."
         }
       }
     },

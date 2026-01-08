@@ -1936,7 +1936,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self,
         save_to_config: bool,
         min_power_threshold: int,
-        capacity_safety_margin: int = 20,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ):

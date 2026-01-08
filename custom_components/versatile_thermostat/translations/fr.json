@@ -296,7 +296,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_aggressiveness": "Agressivité"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
@@ -306,7 +307,8 @@
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
-          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
+          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
         }
       },
       "auto_tpi_2": {
@@ -688,7 +690,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_aggressiveness": "Agressivité"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
@@ -698,7 +701,8 @@
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
-          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
+          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
         }
       },
       "auto_tpi_2": {
@@ -973,10 +977,6 @@
         "min_power_threshold": {
           "name": "Seuil de puissance minimum",
           "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
-        },
-        "capacity_safety_margin": {
-          "name": "Marge de sécurité",
-          "description": "Marge de sécurité en pourcentage à soustraire de la capacité maximale avant sauvegarde. Plage valide 0-30%. Défaut 20%."
         }
       }
     },

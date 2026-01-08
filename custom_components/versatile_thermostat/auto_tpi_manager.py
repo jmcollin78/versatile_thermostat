@@ -173,6 +173,7 @@ class AutoTpiManager:
         keep_ext_learning: bool = False,
         enable_update_config: bool = False,
         enable_notification: bool = False,
+        aggressiveness: float = 0.9,
     ):
         self._hass = hass
         self._config_entry = config_entry
@@ -200,7 +201,7 @@ class AutoTpiManager:
         self._ema_decay_rate = ema_decay_rate
         self._continuous_learning = continuous_learning
         self._keep_ext_learning = keep_ext_learning
-        self._keep_ext_learning = keep_ext_learning
+        self._aggressiveness = aggressiveness
 
         # Notification management
         self._last_notified_coef_int: Optional[float] = None
@@ -927,6 +928,7 @@ class AutoTpiManager:
         # === KINT LEARNING ===
         # 1. Get adiabatic capacity
         ref_capacity_h = self.state.max_capacity_heat if not is_cool else self.state.max_capacity_cool
+        ref_capacity_h = ref_capacity_h * self._aggressiveness
 
         # Fallback if not learned yet
         if ref_capacity_h <= 0:
@@ -2111,7 +2113,6 @@ class AutoTpiManager:
         min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
-        capacity_safety_margin: float | None = None,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope
@@ -2131,8 +2132,6 @@ class AutoTpiManager:
             end_date: End of history period (default: now)
             min_power_threshold: Minimum power percentage (0.0-1.0) to consider a sample.
                                  Default is 1.0 (100%). Lower values (e.g., 0.90) include more samples.
-            capacity_safety_margin: Margin percentage (0.0-1.0) to subtract from the calculated capacity.
-                                    Default is None (0%).
         """
         # 1. Derive sensor entity IDs from thermostat entity ID
         # climate.thermostat_salon -> sensor.thermostat_salon_temperature_slope
@@ -2259,43 +2258,22 @@ class AutoTpiManager:
         if result and isinstance(result, dict) and result.get("success"):
 
             max_capacity = result.get("capacity")
-            # Calculate recommended capacity with margin
             if max_capacity is not None:
-                # Ensure margin is valid (0-0.30)
-                # capacity_safety_margin is required (defaults to 20 in services.yaml)
-                # If None, we default to 0.20 (20%)
-
-                if capacity_safety_margin is None:
-                    margin = 0.20
-                else:
-                    # Handle percentage input (e.g. 20 -> 0.20)
-                    # We assume if value > 1.0 it is a percentage (0-30)
-                    val = capacity_safety_margin / 100.0 if capacity_safety_margin > 1.0 else capacity_safety_margin
-                    margin = max(0.0, min(0.30, val))
-
-                recommended_capacity = max_capacity * (1.0 - margin)
-
-                # Rename capacity to max_capacity
+                # Rename capacity to max_capacity in result
                 if "capacity" in result:
                     del result["capacity"]
 
                 result["max_capacity"] = max_capacity
-                result["recommended_capacity"] = recommended_capacity
-                result["margin_percent"] = margin * 100
-
-                # Update the displayed capacity in the result to be the recommended one or make it clear
-                # The prompt asks: "The servcice output shoud display the max capacity , and the recommended capacity"
-                # We add them to the dict.
 
                 if save_to_config:
                     # Always heat mode
                     is_heat_mode = True
 
-                    await self.async_update_learning_data(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
+                    await self.async_update_learning_data(capacity=max_capacity, is_heat_mode=is_heat_mode)
 
                     _LOGGER.info(
-                        "%s - Heating capacity calibrated. Max: %.3f °C/h, Margin: %.0f%%, Saved: %.3f °C/h", 
-                        self._name, max_capacity, margin * 100, recommended_capacity
+                        "%s - Heating capacity calibrated and saved: %.3f °C/h", 
+                        self._name, max_capacity
                     )
 
         return result
