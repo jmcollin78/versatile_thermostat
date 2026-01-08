@@ -2598,6 +2598,8 @@ class AutoTpiManager:
                 self.state.coeff_outdoor_heat,
                 self.state.total_cycles,
             )
+            # Update status to indicate learning has resumed
+            self.state.last_learning_status = "learning_resumed"
 
         # Always enable learning when activating
         self.state.autolearn_enabled = True

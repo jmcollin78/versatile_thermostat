@@ -173,7 +173,7 @@ Un capteur dédié `sensor.<nom_thermostat>_auto_tpi_learning_state` permet de s
 *   `coeff_int_cycles` : Nombre de fois où le coefficient intérieur a été ajusté.
 *   `coeff_ext_cycles` : Nombre de fois où le coefficient extérieur a été ajusté.
 *   `model_confidence` : Indice de confiance (0.0 à 1.0) sur la qualité des réglages. Plafonné à 100% après 50 cycles pour chaque coefficient (même si l'apprentissage continue).
-*   `last_learning_status` : Raison du dernier succès ou échec (ex: `learned_indoor_heat`, `power_out_of_range`).
+*   `last_learning_status` : Statut actuel de l'apprentissage ou raison du dernier résultat. Valeurs du cycle de vie : `learning_started` (nouvel apprentissage), `learning_resumed` (reprise après pause), `learning_stopped` (mis en pause). Exemples de résultats d'apprentissage : `learned_indoor_heat`, `power_out_of_range`.
 *   `calculated_coef_int` / `calculated_coef_ext` : Valeurs actuelles des coefficients.
 *   `learning_start_dt`: Date et heure du début de l'apprentissage (utile pour les graphiques).
 *   `allow_kint_boost_on_stagnation` : Indique si le boost de Kint en cas de stagnation est activé.
