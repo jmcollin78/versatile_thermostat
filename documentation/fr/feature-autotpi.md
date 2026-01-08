@@ -45,7 +45,7 @@ Une fois coché, un assistant de configuration dédié s'affiche en plusieurs é
 *   **Temps de chauffe/refroidissement** : Définissez l'inertie de votre radiateur ([voir Configuration Thermique](#configuration-thermique-critique)).
 *   **Plafond Coefficient Intérieur** : Limites de sécurité pour le coefficient Interieur (`max 3.0`). **Remarque** : En cas de modification de cette limite dans le flux de configuration, la nouvelle valeur est **immédiatement** appliquée aux coefficients appris si ces derniers sont supérieurs à la nouvelle limite (ce qui nécessite un rechargement de l'intégration, ce qui est le cas après avoir enregistré une modification via les options).
 
-*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe) )
+*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe) )\n*   **Agressivité** (`auto_tpi_aggressiveness`): Pourcentage de la capacité thermique apprise à utiliser (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant le risque de dépassement de consigne.
 
     *Note: On ne veut pas forcément utiliser le taux de chauffe maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage, **et c'est très conseillé**.
     Plus vous serez proche de la capacité maximale, plus le coefficient Kint trouvé lors de l'apprentissage sera elevé.*

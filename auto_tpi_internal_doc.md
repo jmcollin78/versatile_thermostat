@@ -441,7 +441,7 @@ Elle est **exclue** du flux de configuration de la configuration centrale, car c
 2.  **Auto TPI - Général** (`auto_tpi_1`) :
     *   Si l'Auto TPI est activé, cette étape permet de configurer les paramètres généraux : mise à jour de la config, notifications, temps de chauffe/refroidissement, coefficient max.
 3.  **Auto TPI - Puissance** (`auto_tpi_2`) :
-    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.
+    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.\n    *   Le paramètre **Agressivité** (`auto_tpi_aggressiveness`) permet de définir le pourcentage de la capacité thermique apprise à utiliser (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant les risques de dépassement de consigne.
 4.  **Auto TPI - Méthode** (`auto_tpi_2`) :
     *   Choix de la méthode de calcul :
     *   **Moyenne (Average)** : Utilise une moyenne pondérée qui accorde de moins en moins d'importance aux nouvelles valeurs. Idéale pour un apprentissage initial rapide et unique. Ne convient pas à l'apprentissage continu.
