@@ -129,7 +129,9 @@ class AutoTpiState:
         for date_field in ["last_update_date", "cycle_start_date", "last_heater_stop_time", "learning_start_date"]:
             if d.get(date_field):
                 try:
-                    d[date_field] = datetime.fromisoformat(d[date_field])
+                    # Use dt_util.parse_datetime to preserve timezone information
+                    parsed = dt_util.parse_datetime(d[date_field])
+                    d[date_field] = parsed if parsed else datetime.fromisoformat(d[date_field])
                 except (ValueError, TypeError):
                     d[date_field] = None
 
@@ -2351,7 +2353,11 @@ class AutoTpiManager:
         # Calculate cold factor for this cycle
         self.state.current_cycle_cold_factor = 0.0
         if self._heater_cooling_time > 0 and self.state.last_heater_stop_time:
-            elapsed_off = (now - self.state.last_heater_stop_time).total_seconds() / 60.0
+            # Ensure both datetimes are timezone-aware (handles legacy data)
+            last_stop = self.state.last_heater_stop_time
+            if last_stop.tzinfo is None:
+                last_stop = dt_util.as_local(last_stop)
+            elapsed_off = (now - last_stop).total_seconds() / 60.0
             if elapsed_off >= 0:
                 self.state.current_cycle_cold_factor = min(1.0, max(0.0, elapsed_off / self._heater_cooling_time))
                 _LOGGER.debug(
