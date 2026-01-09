@@ -424,7 +424,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 *   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
     *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `False`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
-        *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**. `last_learning_status` est mis à `learning_started`.
+        *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis), la date de démarrage `learning_start_dt` et les paramètres du cycle courant (`current_cycle_params`). La capacité calibrée est **conservée**. `last_learning_status` est mis à `learning_started`.
         *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé. `last_learning_status` est mis à `learning_resumed`.
 *   **Arrêt de l'apprentissage (`stop_learning`)** : L'appel à `stop_learning()` (ex: via le service `set_auto_tpi_mode` avec `auto_tpi_mode: false`) provoque :
     *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête. `last_learning_status` est mis à `learning_stopped`.
