@@ -266,7 +266,10 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
      *   `adjusted_theoretical = min(target_diff, max_achievable_rise)`.
      *   **On vise à combler tout l'écart** (`target_diff`), **mais plafonné par la capacité physique**.
      *   *Raison* : Il est inutile de demander au coefficient d'atteindre une montée physiquement impossible. Cela évite que le coefficient ne s'envole inutilement (saturation) face à de grands écarts.
- 6.  **Calcul du Ratio** : `Ratio = adjusted_theoretical / real_rise`.
+ 6.  **Calcul du Ratio** : 
+     *   `Ratio = (adjusted_theoretical / real_rise) * aggressiveness`.
+     *   **L'aggressiveness** (défaut 0.9) est appliqué directement au ratio pour obtenir des coefficients plus conservateurs.
+     *   *Effet* : Un `aggressiveness` de 0.9 réduit systématiquement Kint de 10%, peu importe si la capacité sature ou non.
  7.  **Nouveau Coefficient** : `Coeff_New = Ancien_Coeff * Ratio`.
  8.  **Validation et Plafond** :
      *   Doit être fini et > 0.

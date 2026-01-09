@@ -308,7 +308,7 @@
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
           "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
-          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
+          "auto_tpi_aggressiveness": "Facteur de réduction des coefficients appris (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs et réduisent le risque de dépassement de consigne."
         }
       },
       "auto_tpi_2": {
@@ -702,7 +702,7 @@
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
           "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
-          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
+          "auto_tpi_aggressiveness": "Facteur de réduction des coefficients appris (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs et réduisent le risque de dépassement de consigne."
         }
       },
       "auto_tpi_2": {

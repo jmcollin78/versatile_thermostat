@@ -930,7 +930,6 @@ class AutoTpiManager:
         # === KINT LEARNING ===
         # 1. Get adiabatic capacity
         ref_capacity_h = self.state.max_capacity_heat if not is_cool else self.state.max_capacity_cool
-        ref_capacity_h = ref_capacity_h * self._aggressiveness
 
         # Fallback if not learned yet
         if ref_capacity_h <= 0:
@@ -996,6 +995,10 @@ class AutoTpiManager:
             return False
 
         ratio = adjusted_theoretical / real_rise
+
+        # Apply aggressiveness to the ratio to get more conservative Kint
+        # This ensures aggressiveness always has an effect, regardless of capacity saturation
+        ratio = ratio * self._aggressiveness
 
         # Check for deboost before calculating new coefficient
         is_heat = not is_cool

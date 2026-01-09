@@ -305,7 +305,8 @@
           "heater_heating_time": "Time to reach full power (minutes)",
           "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
-          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service.",
+          "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values give more conservative coefficients and reduce overshoot risk."
         }
       },
       "auto_tpi_2": {
@@ -709,7 +710,8 @@
           "heater_heating_time": "Time to reach full power (minutes)",
           "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5min | 7min |\n| Water radiator | 15min | 20min |\n| Floor heating | 30min | 45min |",
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)",
-          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service."
+          "auto_tpi_heating_rate": "Heating ramp-up capacity of the radiator ({unit} per hour). Can be estimated using the “Calibrate capacity” action service.",
+          "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values give more conservative coefficients and reduce overshoot risk."
         }
       },
       "auto_tpi_2": {
