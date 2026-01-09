@@ -341,3 +341,19 @@ async def test_should_learn_central_boiler_off(manager):
     manager._central_boiler_off = True
     assert manager._should_learn() is False
     assert manager._get_no_learn_reason() == "central_boiler_off"
+
+async def test_should_learn_heating_failure(manager):
+    """Test _should_learn when heating failure is detected."""
+    manager.state.autolearn_enabled = True
+    manager.state.last_power = 0.5
+    # Ensure other conditions are met
+    manager.state.consecutive_failures = 0
+    manager.state.previous_state = "heat"
+    manager.state.last_order = 20
+    manager.state.last_state = "heat"
+    manager._current_temp_out = 0
+    manager.state.last_temp_in = 19
+    
+    manager._current_is_heating_failure = True
+    assert manager._should_learn() is False
+    assert manager._get_no_learn_reason() == "heating_failure_detected"

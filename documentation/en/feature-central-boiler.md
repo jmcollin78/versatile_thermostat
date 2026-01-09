@@ -12,11 +12,11 @@ You can control a centralized boiler. As long as it's possible to trigger or sto
 
 ## Principle
 The principle implemented is globally the following:
-1. a new entity of type `binary_sensor` named by default `binary_sensor.central_boiler` is added,
+1. a new entity of type `binary_sensor` named by default `binary_sensor.central_configuration_central_boiler` is added,
 2. in the _VTherm_ configuration you indicate whether the VTherm should control the boiler. Indeed, in a heterogeneous installation, some VTherm must control the boiler and others not. You must therefore indicate in each VTherm configuration whether it controls the boiler or not. For each _VTherm_ controlling the boiler you can associate a power,
-3. the `binary_sensor.central_boiler` listens to state changes of equipment from VTherm marked as controlling the boiler,
-4. as soon as the number of equipment controlled by the VTherm requesting heating (i.e. its `hvac_action` changes to `Heating`) or the total power exceeds a configurable threshold, then the `binary_sensor.central_boiler` switches to `on` and **if an activation service has been configured, then this service is called**,
-5. if the number of equipment requiring heating falls below the threshold, then the `binary_sensor.central_boiler` switches to `off` and if **a deactivation service has been configured, then this service is called**,
+3. the `binary_sensor.central_configuration_central_boiler` listens to state changes of equipment from VTherm marked as controlling the boiler,
+4. as soon as the number of equipment controlled by the VTherm requesting heating (i.e. its `hvac_action` changes to `Heating`) or the total power exceeds a configurable threshold, then the `binary_sensor.central_configuration_central_boiler` switches to `on` and **if an activation service has been configured, then this service is called**,
+5. if the number of equipment requiring heating falls below the threshold, then the `binary_sensor.central_configuration_central_boiler` switches to `off` and if **a deactivation service has been configured, then this service is called**,
 6. you have access to 4 entities:
    - one of type `number` named by default `number.boiler_activation_threshold`, gives the activation threshold. This threshold is in number of equipment (radiators) requesting heating and not the number of _VTherm_ requesting heating.
    - one of type `sensor` named by default `sensor.nb_device_active_for_boiler`, gives the number of equipment requesting heating. For example, a VTherm with 4 valves of which 3 are requesting heating will set this sensor to 3. Only equipment from _VTherm_ that are marked to control the central boiler are counted.
@@ -92,7 +92,7 @@ An activation event:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL
@@ -105,7 +105,7 @@ context:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL
@@ -121,7 +121,7 @@ Un évènement d'extinction :
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL

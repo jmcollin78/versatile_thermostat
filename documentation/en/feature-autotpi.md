@@ -91,50 +91,48 @@ It must include:
 #### `heater_cooling_time` (Heater Cooling Time)
 Time required for the radiator to become cold after stopping. Used to estimate if the radiator is "hot" or "cold" at the start of a cycle via the `cold_factor`. The `cold_factor` corrects the radiator's inertia and acts as a **filter**: if the heating time is too short compared to the estimated warm-up time, learning for that cycle will be ignored (to prevent noise).
 
-### Heating Rate Configuration
+### Automatic Thermal Capacity Learning ⚡
 
-The algorithm uses the **Heating Rate** (`auto_tpi_heating_rate` in °C/h) as a reference for calculating the indoor coefficient (`Kint`). This value should represent the **desired** or **achievable** rate of temperature increase when regulation is at 100% power.
+Thermal capacity (temperature rise rate in °C/h) is now **automatically learned** during initial learning thanks to **bootstrap**.
 
-> **Calibration** : This value can be automatically learned using the Calibrate capacity service from the thermostat’s HA history.
+#### How does it work?
 
-If you're not using the service above, you must manually define them:
+The system starts with **aggressive TPI coefficients** for the first 3 cycles to provoke a significant temperature rise and measure the real capacity of your heating system. Then, it automatically transitions to normal TPI mode with learned coefficients.
 
-We want an estimate of the so-called **"adiabatic"** value (without heat loss).
+#### The 2 Startup Strategies
 
-To estimate it yourself, the method is quite simple:
+1. **Automatic Mode (Recommended)** ✅:
+   - Leave `auto_tpi_heating_rate` at **0** (default)
+   - The system automatically detects that capacity is unknown
+   - It performs 3 cycles with **aggressive TPI coefficients** (200.0/5.0) to provoke a temperature rise and measure capacity
+   - **This is the recommended mode for configuration-free startup**
 
-***I - First, we need the cooling coefficient*** (which should be quite close to the Ext Coeff of the TPI regulation).
+2. **Manual Mode**:
+   - Set `auto_tpi_heating_rate` with a known value (e.g., 1.5°C/h)
+   - Bootstrap is completely skipped
+   - The system starts immediately in TPI with that capacity
+   - Use this mode if you already know your capacity
 
-1) We will cool the room by turning off the heating for a period of time (1 hour for example) and measure the temperature variation that we will call **ΔTcool = Tend - Tstart** (e.g., we go from 19°C to 18°C in 1h, ΔTcool = -1).
-We also note the time elapsed between the two measurements that we call **Δtcool** (in hours)
-1) We calculate the cooling rate:
-**Rcool = ΔTcool / Δtcool** (will be negative)
-1) Then the Cooling Coefficient:
-Tavg = the average between the 2 measured temperatures
-Text = outdoor temperature (keep the average if it varied during the measurement)
+#### Configuration
 
-**k ≃ -(Rcool / (Tavg - Text))**
+In Auto TPI configuration step 1:
+- **Heating Rate** (`auto_tpi_heating_rate`): Leave at **0** to enable automatic bootstrap
 
-note: you can also use this k value as the starting External Coefficient in the TPI configuration
+> 💡 **Tip**: For optimal bootstrap startup, enable learning when the gap between current temperature and setpoint is at least 2°C.
 
-***II - We can now calculate the adiabatic capacity***
+#### Calibration Service (optional)
 
-1) We heat for the same duration as the cooling with the thermostat at 100% power.
-    
-    ***Important:** the heater must already be hot, so run a heating cycle first to bring it up to its maximum temperature.*
+If you still wish to estimate capacity from history without waiting for bootstrap:
 
-    To ensure that we have the full capacity of the radiator throughout the measurement, we raise the setpoint well above.
+```yaml
+service: versatile_thermostat.auto_tpi_calibrate_capacity
+target:
+  entity_id: climate.my_thermostat
+data:
+  save_to_config: true
+```
 
-    Note the starting temperature, the arrival temperature, and the measurement time.
-
-2) We calculate Rheat, which is the observed temperature variation:
-
-- **ΔTheat = Tend - Tstart**
-- **Δtheat: the time elapsed between the 2 measurements**
-- **Rheat = ΔTheat / Δtheat**
-  
-3) We can finally find our adiabatic capacity:
-- **Radiab = Rheat + k(Tavg − Text)**
+This service analyzes history and estimates capacity by identifying full-power heating moments.
 
 ## How it Works
 
@@ -147,6 +145,7 @@ Auto TPI operates cyclically:
     *   The temperature difference is significant.
     *   The system is stable (no consecutive failures).
     *   The cycle was not interrupted by power shedding or by a window being opened.
+    *   **Failure detected**: Learning is suspended if a heating or cooling anomaly is detected (e.g., temperature not rising despite heating), to avoid learning incorrect coefficients.
     *   **Central Boiler**: If the thermostat depends on a central boiler, learning is suspended if the boiler is not activated (even if the thermostat is calling for heat).
 3.  **Calculation (Learning)**:
     *   **Case 1: Indoor Coefficient**. If the temperature moved in the right direction significantly (> 0.05°C), it calculates the ratio between the real evolution **(over the full cycle, including inertia)** and the expected theoretical evolution (corrected by the calibrated capacity). It adjusts `CoeffInt` to reduce the gap.
@@ -174,11 +173,14 @@ A dedicated sensor `sensor.<thermostat_name>_auto_tpi_learning_state` allows tra
 *   `coeff_int_cycles`: Number of times the indoor coefficient has been adjusted.
 *   `coeff_ext_cycles`: Number of times the outdoor coefficient has been adjusted.
 *   `model_confidence`: Confidence index (0.0 to 1.0) in the quality of the settings. Capped at 100% after 50 cycles for each coefficient (even if learning continues).
-*   `last_learning_status`: Reason for the last success or failure (e.g., `learned_indoor_heat`, `power_out_of_range`).
+*   `last_learning_status`: Current learning status or reason for the last outcome. Lifecycle values: `learning_started` (new learning), `learning_resumed` (resumed after pause), `learning_stopped` (paused). Learning outcome examples: `learned_indoor_heat`, `power_out_of_range`.
 *   `calculated_coef_int` / `calculated_coef_ext`: Current values of the coefficients.
 *   `learning_start_dt`: Date and time when learning started (useful for graphs).
 *   `allow_kint_boost_on_stagnation`: Indicates if Kint boost on stagnation is enabled.
 *   `allow_kext_compensation_on_overshoot`: Indicates if Kext compensation on overshoot is enabled.
+*   `capacity_heat_status`: Status of thermal capacity learning (`learning` or `learned`).
+*   `capacity_heat_value`: The learned thermal capacity value (in °C/h).
+*   `capacity_heat_count`: The number of bootstrap cycles performed for capacity learning.
 
 ## Services
 
@@ -227,7 +229,7 @@ This service allows controlling Auto TPI learning without going through the ther
 |-----------|------|---------|-------------|
 | `auto_tpi_mode` | boolean | - | Enables (`true`) or disables (`false`) learning |
 | `reinitialise` | boolean | `true` | Controls data reset when enabling learning |
-| `allow_kint_boost_on_stagnation` | boolean | `true` | Allows Kint boost when temperature stagnates |
+| `allow_kint_boost_on_stagnation` | boolean | `false` | Allows Kint boost when temperature stagnates |
 | `allow_kext_compensation_on_overshoot` | boolean | `false` | Allows Kext compensation on overshoot |
 
 #### Behavior of the `reinitialise` parameter

@@ -297,7 +297,7 @@ Atrybuty własne są następujace:
 
 ## Atrybuty własne konfiguracji centralnej
 
-Atrybuty własne konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_boiler`:
+Atrybuty własne konfiguracji centralnej są dostepne w panelu _Narzędzia deweloperskie -> Stany_ w sensorze `binary_sensor.central_configuration_central_boiler`:
 
 | Atrybut                                     | znaczenie                                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------------------ |

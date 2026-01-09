@@ -12,11 +12,11 @@ Es besteht die Möglichkeit, einen Zentralheizungskessel zu steuern. Sobald es m
 
 ## Prinzip
 Grundlegend funktioniert das so:
-1. Eine neue Entität des Typs `binary_sensor` mit dem Standardnamen `binary_sensor.central_boiler` wird hinzugefügt.
+1. Eine neue Entität des Typs `binary_sensor` mit dem Standardnamen `binary_sensor.central_configuration_central_boiler` wird hinzugefügt.
 2. In der Konfiguration des _VTherms_ wird festgelegt, ob das _VTherm_ den Heizkessel steuern soll. In einer heterogenen Installation müssen einige _VTherms_ den Kessel steuern, andere hingegen nicht. Daher muss in jeder _VTherm_-Konfiguration angeben werden, ob es den Heizkessel steuert oder nicht. Jedem _VTherm_, der den Heizkessel steuert, kannen eine Leistung zuordnen werden.
-3. Der `binary_sensor.central_boiler` überwacht Statusänderungen der _VTherm_-Geräte, die als Kesselsteuerung gekennzeichnet sind.
-4. Sobald die Anzahl der vom _VTherm_ gesteuerten Geräte, die eine Heizung anfordern (d. h. deren `hvac_action` auf `Heizen` wechselt), oder die Gesamtleistung einen konfigurierbaren Schwellwert überschreitet, wechselt der `binary_sensor.central_boiler` auf ein (`on`), und **wenn ein Aktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
-5. Wenn die Anzahl der zu beheizenden Geräte wieder unter den Schwellwert fällt, wechselt der `binary_sensor.central_boiler` zu aus (`off`), und **wenn ein Deaktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
+3. Der `binary_sensor.central_configuration_central_boiler` überwacht Statusänderungen der _VTherm_-Geräte, die als Kesselsteuerung gekennzeichnet sind.
+4. Sobald die Anzahl der vom _VTherm_ gesteuerten Geräte, die eine Heizung anfordern (d. h. deren `hvac_action` auf `Heizen` wechselt), oder die Gesamtleistung einen konfigurierbaren Schwellwert überschreitet, wechselt der `binary_sensor.central_configuration_central_boiler` auf ein (`on`), und **wenn ein Aktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
+5. Wenn die Anzahl der zu beheizenden Geräte wieder unter den Schwellwert fällt, wechselt der `binary_sensor.central_configuration_central_boiler` zu aus (`off`), und **wenn ein Deaktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
 6. Sie haben Zugriff auf vier Entitäten:
    - Eine vom Typ `number` mit dem Namen `number.boiler_activation_threshold` gibt den Auslöseschwellwert an. Dieser Schwellwert bezieht sich auf die Anzahl der Geräte (Heizkörper), die Heizleistung benötigen, und nicht auf die Anzahl der _VTherm_, die Heizleistung anfordern.
    - Eine vom Typ `sensor` mit dem Namen `sensor.nb_device_active_for_boiler`, die die Anzahl der Geräte angibt, die Heizleistung benötigen. Beispielsweise setzt ein _VTherm_ mit 4 Ventilen, von denen 3 Heizleistung anfordern, diesen Sensor 3. Es werden nur die Geräte von _VTherms_ gezählt, die zfür die Steuerung des Zentralheizkessels gekennzeichnet sind.
@@ -95,7 +95,7 @@ Ein Einschalt-Ereignis:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Zentralheizung
   state_attributes: null
 origin: LOCAL
@@ -111,7 +111,7 @@ Ein Ausschalt-Ereignis:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
-  entity_id: binary_sensor.central_boiler
+  entity_id: binary_sensor.central_configuration_central_boiler
   name: Zentralheizung
   state_attributes: null
 origin: LOCAL

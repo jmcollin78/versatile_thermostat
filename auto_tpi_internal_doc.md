@@ -71,19 +71,30 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 
 ---
 
-## 3. Mécanisme d'Apprentissage
+#### 6. Apprentissage de la Capacité (Max Check)
+L'algorithme tente d'estimer la puissance physique de l'installation (`max_capacity_heat` en °C/h).
+Cette valeur sert de référence pour calculer l'efficacité relative des cycles suivants.
 
-L'apprentissage est **cyclique**. Il se déclenche à la fin de chaque cycle validé.
+**Conditions d'apprentissage :**
+*   Mode bootstrap (count < 3) ou apprentissage continu.
+*   **Puissance élevée** : Le cycle doit avoir injecté beaucoup d'énergie (Power > 80%) pour être représentatif.
+*   **Montée significative** : La température doit avoir monté d'au moins 0.05°C.
+*   **Gap suffisant** : L'écart à la consigne doit être suffisant (> 1°C en bootstrap, > 0.3°C sinon).
 
-### A. Conditions d'Apprentissage (`_should_learn`)
-Pour qu'un cycle soit valide :
-1.  **Activation** : `autolearn_enabled` doit être True.
-2.  **Puissance Significative** : La puissance doit être entre 0% et 100% (exclus). Les cycles à saturation ne permettent pas d'apprendre la dynamique fine (sauf en cas de détection de sous-dimensionnement).
-3.  **Stabilité** : Moins de 3 échecs consécutifs.
-4.  **Durée Significative** : Le temps d'activation (`on_time`) doit être supérieur au temps de montée en température effectif (`effective_heating_time`).
-5.  **Exclusion du Premier Cycle** : Le cycle suivant un démarrage (état précédent 'stop') est ignoré car le système n'est pas stabilisé (démarrage à froid).
-6.  **Différentiel Extérieur Significatif** : `|Consigne - Temp_Ext| >= 1.0`. Évite d'apprendre sur de trop faibles écarts de température.
-7.  **Chaudière Centrale Active** : Si le VTherm est utilisé avec une chaudière centrale (`is_used_by_central_boiler`), le cycle est ignoré si la chaudière est éteinte (`central_boiler_manager.is_on` est False). Cela évite d'interpréter l'absence de chauffe comme une fuite thermique massive.
+**Timeout de Bootstrap (Sécurité) :**
+Pour éviter que les systèmes à forte inertie (ex: plancher chauffant) ne restent bloqués indéfiniment en mode bootstrap (coefficients agressifs 1.0/0.1), une sécurité a été ajoutée :
+*   Si le système échoue à apprendre la capacité pendant **plus de 5 cycles consécutifs** en bootstrap...
+*   ... l'algorithme force la sortie du mode bootstrap.
+*   Il assigne une capacité par défaut de **0.3 °C/h** (valeur sécuritaire pour système lent).
+*   L'apprentissage reprend ensuite normalement avec des coefficients non forcés.
+
+**Formule (inspirée de regul2.py) :**
+1.  **Capacité Observée** : `Rise / (Duration * Efficiency)`
+2.  **Correction Adiabatique** : On ajoute les pertes estimées pour obtenir la capacité "brute" (isolation parfaite).
+    `Adiabatic_Capacity = Observed + (Kext * Delta_T)`
+3.  **Lissage (EWMA)** :
+    *   Alpha = 0.4 (Rapide) pendant le bootstrap.
+    *   Alpha = 0.15 (Lent) ensuite.
 
 ### B. Capacité Maximale et Inertie
 **(SUPPRIMÉ)** Le mécanisme d'apprentissage de la capacité en temps réel (`_detect_max_capacity`) a été remplacé par un service de calibration basé sur la régression linéaire d'historique. Voir Section **"Nouveau Service de Calibration"** ci-dessous.
@@ -110,6 +121,9 @@ To ensure learning data is valid, cycles are invalidated (learning skipped) in s
     -   When the Power Manager detects an overpowering condition, it forces the underlying heaters OFF, but the Thermostat may remain in `HEAT` mode (depending on configuration).
     -   This breaks the correlation between "Heat Mode ON" and "Temperature Rise".
     -   **Result**: The `BaseThermostat` explicitly flags this state to `AutoTpiManager`. Any cycle containing a Power Shedding event is marked as `interrupted` and **learning is skipped**.
+
+3.  **Heating/Cooling Failure**:
+    -   If a failure (heating not effective or cooling not stopping) is detected by the `FeatureHeatingFailureDetectionManager`, the cycle is marked as interrupted and learning is skipped to avoid learning from a faulty system state.
 
 #### 2.3. Near-Field vs Far-Field Learning Separation
 
@@ -225,6 +239,12 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
     *   Si **Power < 1%** et Overshoot : C'est probablement le soleil (chauffage coupé), on ignore.
     *   Si **Power >= 1%** et Overshoot : Le chauffage tourne ALORS QU'ON est au dessus de la consigne. C'est que le terme Kext est trop fort (il force du chauffage inutile). **On apprend** (ce qui fera baisser Kext).
     *   *Note* : Le seuil a été abaissé de 20% à 1% pour permettre la redescente des coefficients.
+    
+**Protection Directionnelle (Natural Recovery) :**   
+*   **Problème** : Lors d'une baisse de consigne (ex: 21° -> 19°), la température est au-dessus de la consigne (Overshoot) et le chauffage peut être encore légèrement actif (Kext). Si l'algorithme apprend à ce moment, il va baisser Kext alors que la température est déjà en train de descendre naturellement vers la cible.
+*   **Solution** : Si on est en Overshoot (Temp > Consigne en Heat) MAIS que la température est en train de descendre (`Temp < Last_Temp`), on **saute l'apprentissage**. 
+*   On considère que la dynamique est naturelle et correcte ("Natural Recovery"). L'algorithme n'intervient que si la température stagne ou monte malgré l'overshoot.
+*   *Même logique pour le mode Cool (Undershoot mais température qui remonte).*
 
 #### 5. Algorithme Coefficient Intérieur (Détail)
  
@@ -312,6 +332,9 @@ Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
 *   **`learning_start_dt`** : Date et heure du début de l'apprentissage (utile pour les graphiques).
 *   **`allow_kint_boost_on_stagnation`** : Indique si le boost de Kint en cas de stagnation est activé.
 *   **`allow_kext_compensation_on_overshoot`** : Indique si la correction de Kext en cas d'overshoot est activée.
+*   **`capacity_heat_status`** : Statut de l'apprentissage de la capacité thermique (`learning` ou `learned`).
+*   **`capacity_heat_value`** : La valeur de la capacité thermique apprise (en °C/h).
+*   **`capacity_heat_count`** : Le nombre de cycles de bootstrap effectués pour l'apprentissage de la capacité.
 
 ---
 
@@ -399,12 +422,12 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   Cette méthode n'est plus exposée comme un service externe. Elle est utilisée en interne si un reset complet était nécessaire.
     *   **Action** : Réinitialisation complète de l'état d'apprentissage (`AutoTpiState`), incluant coefficients, compteurs, et capacités.
 *   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
-    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `True`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
+    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `False`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
-        *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**.
-        *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé.
+        *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis) et la date de démarrage `learning_start_dt`. La capacité calibrée est **conservée**. `last_learning_status` est mis à `learning_started`.
+        *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé. `last_learning_status` est mis à `learning_resumed`.
 *   **Arrêt de l'apprentissage (`stop_learning`)** : L'appel à `stop_learning()` (ex: via le service `set_auto_tpi_mode` avec `auto_tpi_mode: false`) provoque :
-    *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête.
+    *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête. `last_learning_status` est mis à `learning_stopped`.
     *   **Préservation de l'état** : Tous les attributs appris (coefficients, compteurs, capacités) sont **conservés** en mémoire et persistés. Cela permet de reprendre l'apprentissage ultérieurement sans perdre les données acquises.
     *   **Synchronisation PropAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`PropAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
 
@@ -418,7 +441,7 @@ Elle est **exclue** du flux de configuration de la configuration centrale, car c
 2.  **Auto TPI - Général** (`auto_tpi_1`) :
     *   Si l'Auto TPI est activé, cette étape permet de configurer les paramètres généraux : mise à jour de la config, notifications, temps de chauffe/refroidissement, coefficient max.
 3.  **Auto TPI - Puissance** (`auto_tpi_2`) :
-    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.
+    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.\n    *   Le paramètre **Agressivité** (`auto_tpi_aggressiveness`) permet de définir le pourcentage de la capacité thermique apprise à utiliser (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant les risques de dépassement de consigne.
 4.  **Auto TPI - Méthode** (`auto_tpi_2`) :
     *   Choix de la méthode de calcul :
     *   **Moyenne (Average)** : Utilise une moyenne pondérée qui accorde de moins en moins d'importance aux nouvelles valeurs. Idéale pour un apprentissage initial rapide et unique. Ne convient pas à l'apprentissage continu.

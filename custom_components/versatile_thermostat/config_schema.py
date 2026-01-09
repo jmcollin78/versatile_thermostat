@@ -72,6 +72,7 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -91,6 +92,7 @@ STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
         vol.Optional(CONF_USE_MOTION_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -101,6 +103,7 @@ STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_BOILER_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -466,6 +469,33 @@ STEP_CENTRAL_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(
+            CONF_HEATING_FAILURE_THRESHOLD,
+            default=DEFAULT_HEATING_FAILURE_THRESHOLD,
+        ): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
+        vol.Required(
+            CONF_COOLING_FAILURE_THRESHOLD,
+            default=DEFAULT_COOLING_FAILURE_THRESHOLD,
+        ): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX)),
+        vol.Required(
+            CONF_HEATING_FAILURE_DETECTION_DELAY,
+            default=DEFAULT_HEATING_FAILURE_DETECTION_DELAY,
+        ): cv.positive_int,
+        vol.Required(
+            CONF_TEMPERATURE_CHANGE_TOLERANCE,
+            default=DEFAULT_TEMPERATURE_CHANGE_TOLERANCE,
+        ): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=5.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
+    }
+)
+
+STEP_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_USE_HEATING_FAILURE_DETECTION_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
 STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, default=True): cv.boolean,
@@ -474,7 +504,13 @@ STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
         vol.Optional(CONF_AUTO_TPI_CONTINUOUS_LEARNING, default=False): cv.boolean,
         vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
         vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
-        vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=1.0): cv.positive_float,
+        vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=0.0): vol.Coerce(float),
+        vol.Required(CONF_AUTO_TPI_AGGRESSIVENESS, default=0.9): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.5, max=1.0, step=0.01, mode=selector.NumberSelectorMode.SLIDER
+            )
+        ),
+
         vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.0, max=3.0, step=0.01, mode=selector.NumberSelectorMode.BOX

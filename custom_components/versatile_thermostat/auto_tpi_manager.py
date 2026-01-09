@@ -4,6 +4,7 @@ import logging
 import json
 import os
 import math
+import statistics
 from datetime import datetime, timedelta
 from typing import Optional
 from homeassistant.util.unit_conversion import TemperatureConverter
@@ -35,7 +36,7 @@ STORAGE_VERSION = 8
 STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
 # Configurable constants for learning algorithm behavior
-MIN_KINT = 0.05  # Minimum Kint threshold to maintain temperature responsiveness
+MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
@@ -83,6 +84,7 @@ class AutoTpiState:
     cycle_start_date: Optional[datetime] = None  # Start of current cycle
     cycle_active: bool = False
     current_cycle_cold_factor: float = 0.0  # 1.0 = cold, 0.0 = hot
+    current_cycle_params: dict = None  # Parameters of the current/last cycle
 
     # Management
     consecutive_failures: int = 0
@@ -94,12 +96,31 @@ class AutoTpiState:
     regime_change_detected: bool = False  # Flag for temporary alpha boost
     learning_start_date: Optional[datetime] = None  # Date when learning started
     
+    # Capacity learning (Heat only)
+    capacity_heat_learn_count: int = 0
+    bootstrap_failure_count: int = 0 # Number of consecutive failures to learn capacity during bootstrap
+    # Bootstrap is implied when capacity_heat_learn_count < 3
+    
     # Optional features configuration
     allow_kint_boost: bool = False
     allow_kext_overshoot: bool = False
 
     def to_dict(self):
-        return asdict(self)
+        """Convert to a JSON-safe dict for HA state attributes and storage."""
+        def make_json_safe(value):
+            """Convert non-JSON-serializable types to JSON-safe equivalents."""
+            if value is None:
+                return None
+            if isinstance(value, datetime):
+                return value.isoformat()
+            if isinstance(value, (list, tuple)):
+                return [make_json_safe(v) for v in value]
+            if isinstance(value, dict):
+                return {k: make_json_safe(v) for k, v in value.items()}
+            return value
+
+        result = asdict(self)
+        return {k: make_json_safe(v) for k, v in result.items()}
 
     @classmethod
     def from_dict(cls, data):
@@ -108,7 +129,9 @@ class AutoTpiState:
         for date_field in ["last_update_date", "cycle_start_date", "last_heater_stop_time", "learning_start_date"]:
             if d.get(date_field):
                 try:
-                    d[date_field] = datetime.fromisoformat(d[date_field])
+                    # Use dt_util.parse_datetime to preserve timezone information
+                    parsed = dt_util.parse_datetime(d[date_field])
+                    d[date_field] = parsed if parsed else datetime.fromisoformat(d[date_field])
                 except (ValueError, TypeError):
                     d[date_field] = None
 
@@ -152,7 +175,7 @@ class AutoTpiManager:
         keep_ext_learning: bool = False,
         enable_update_config: bool = False,
         enable_notification: bool = False,
-
+        aggressiveness: float = 0.9,
     ):
         self._hass = hass
         self._config_entry = config_entry
@@ -180,6 +203,7 @@ class AutoTpiManager:
         self._ema_decay_rate = ema_decay_rate
         self._continuous_learning = continuous_learning
         self._keep_ext_learning = keep_ext_learning
+        self._aggressiveness = aggressiveness
 
         # Notification management
         self._last_notified_coef_int: Optional[float] = None
@@ -203,7 +227,6 @@ class AutoTpiManager:
         self._current_target_temp: float = 0.0
         self._current_hvac_mode: str = "heat"  # 'heat' or 'cool' (or 'off' etc)
         self._last_cycle_power_efficiency: float = 1.0
-        self._current_cycle_params: dict = None
         self._save_lock = asyncio.Lock()
 
         self._timer_remove_callback: Callable[[], None] | None = None
@@ -218,6 +241,15 @@ class AutoTpiManager:
         # Interruption management
         self._current_cycle_interrupted: bool = False
         self._central_boiler_off: bool = False
+        self._current_is_heating_failure: bool = False
+        
+        # Shutdown safety check
+        self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
+
+    def set_is_vtherm_stopping_callback(self, callback: Callable[[], bool]):
+        """Set a callback to check if the VTherm is stopping."""
+        self._is_vtherm_stopping_callback = callback
+
 
     def _to_celsius(self, temp: float) -> float:
         """Convert temperature to Celsius if needed."""
@@ -227,49 +259,64 @@ class AutoTpiManager:
             return TemperatureConverter.convert(temp, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.CELSIUS)
         return temp
 
-    async def async_update_coefficients_config(self, coef_int: float, coef_ext: float):
-        """Update CONF_TPI_COEF_INT and CONF_TPI_COEF_EXT in the HA config entry."""
+    async def async_update_learning_data(self, coef_int: float = None, coef_ext: float = None, capacity: float = None, is_heat_mode: bool = True):
+        """Update coefficients and/or capacity in one go to avoid double reload."""
+        
+        updates = {}
+        
+        # 1. Update coefficients if provided
+        if coef_int is not None:
+            updates[CONF_TPI_COEF_INT] = round(coef_int / self._unit_factor, 3)
+        
+        if coef_ext is not None:
+            updates[CONF_TPI_COEF_EXT] = round(coef_ext / self._unit_factor, 3)
+        
+        # 2. Update capacity if provided and valid
+        if capacity is not None and capacity > 0.0:
+            rate_key = CONF_AUTO_TPI_HEATING_POWER if is_heat_mode else CONF_AUTO_TPI_COOLING_POWER
+            updates[rate_key] = round(capacity * self._unit_factor, 3)
+            
+            # Also update local state (Memory)
+            if is_heat_mode:
+                self.state.max_capacity_heat = capacity
+                self._heating_rate = capacity
+            else:
+                self.state.max_capacity_cool = capacity
+                self._cooling_rate = capacity
 
-        if not self._enable_update_config:
-            _LOGGER.debug("%s - Auto TPI: Skipping config update for coefficients as enable_update_config is False", self._name)
-            return
-
-        new_data = {
-            **self._config_entry.data,
-            CONF_TPI_COEF_INT: round(coef_int / self._unit_factor, 3),
-            CONF_TPI_COEF_EXT: round(coef_ext / self._unit_factor, 3),
-        }
-
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-        _LOGGER.info("%s - Auto TPI: Updated config coefficients: Kint=%.3f, Kext=%.3f", self._name, coef_int, coef_ext)
-
-    async def async_update_capacity_config(self, capacity: float, is_heat_mode: bool):
-        """Update capacity parameters in the HA config entry."""
-
-        if capacity <= 0.0:
-            _LOGGER.warning("%s - Auto TPI: Skipping capacity config update, capacity is not positive (%.3f)", self._name, capacity)
-            return
-
-        rate_key = CONF_AUTO_TPI_HEATING_POWER if is_heat_mode else CONF_AUTO_TPI_COOLING_POWER
-
-        new_data = {
-            **self._config_entry.data,
-            rate_key: round(capacity * self._unit_factor, 3),
-        }
-
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-
-        # Also update the local state for immediate use in future cycles
-        if is_heat_mode:
-            self.state.max_capacity_heat = capacity
-            self._heating_rate = capacity
-        else:
-            self.state.max_capacity_cool = capacity
-            self._cooling_rate = capacity
-
+        # 3. Always save to local storage (Persistence)
         await self.async_save_data()
 
-        _LOGGER.info("%s - Auto TPI: Updated config capacity for %s mode: Capacity=%.3f", self._name, "heat" if is_heat_mode else "cool", capacity)
+        # 4. Check if we should skip config update (Restart/Shutdown safety)
+        if not self._enable_update_config:
+             _LOGGER.debug("%s - Auto TPI: update_learning_data - enable_update_config is False", self._name)
+             return
+
+        if self._is_vtherm_stopping_callback and self._is_vtherm_stopping_callback():
+             _LOGGER.debug("%s - Auto TPI: update_learning_data - VTherm is stopping, skipping config update", self._name)
+             return
+        
+        if not updates:
+            _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
+            return
+
+        # 5. Apply atomic config update (Triggers Reload)
+        new_data = {**self._config_entry.data, **updates}
+        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+
+        
+        _LOGGER.info(
+            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s", 
+            self._name, 
+            f"{coef_int:.3f}" if coef_int is not None else "N/A",
+            f"{coef_ext:.3f}" if coef_ext is not None else "N/A", 
+            f"{capacity:.3f}" if capacity is not None else "N/A"
+        )
+
+
+
+
+
 
     async def process_learning_completion(self, current_params: dict) -> Optional[dict]:
         """
@@ -326,10 +373,23 @@ class AutoTpiManager:
                 return None
             else:
                 _LOGGER.info("%s - Auto TPI: Learning completed. Persisting final coefficients and stopping learning.", self._name)
-                await self.stop_learning()
+                # Calling stop_learning will NOT save capacity immediately (we do it in atomic update below)
+                await self.stop_learning(save_capacity=False)
+                
+                # Check if we also need to update capacity (if it was learned)
+                # This combines both updates into ONE config entry update
+                capacity_to_save = None
+                if self.state.capacity_heat_learn_count >= 3:
+                     # Check if value has changed
+                     current_conv_capacity = self._config_entry.data.get(CONF_AUTO_TPI_HEATING_POWER)
+                     current_capacity = current_conv_capacity / self._unit_factor if current_conv_capacity else 0.0
+                     
+                     if abs(current_capacity - self.state.max_capacity_heat) > 0.01:
+                         capacity_to_save = self.state.max_capacity_heat
 
-        # 3. Persist coefficients to HA config if enabled
-        await self.async_update_coefficients_config(k_int, k_ext)
+                await self.async_update_learning_data(coef_int=k_int, coef_ext=k_ext, capacity=capacity_to_save, is_heat_mode=True)
+
+
 
         # 4. Send persistent notifications if enabled
         if self._enable_notification:
@@ -451,9 +511,15 @@ class AutoTpiManager:
                 coeff_outdoor_cool=self._default_coef_ext,
             )
 
+        # MIGRATION FIX: If capacity is already known (legacy or manual), mark as learned
+        # This prevents re-triggering bootstrap (count=0) for existing users
+        if self.state.max_capacity_heat > 0 and self.state.capacity_heat_learn_count == 0:
+            _LOGGER.info("%s - Auto TPI: Existing capacity found (%.3f), marking as learned (count=3)", self._name, self.state.max_capacity_heat)
+            self.state.capacity_heat_learn_count = 3
+        
         await self.calculate()
 
-    async def update(self, room_temp: float, ext_temp: float, hvac_mode: str, target_temp: float, is_overpowering_detected: bool = False, is_central_boiler_off: bool = False) -> float:
+    async def update(self, room_temp: float, ext_temp: float, hvac_mode: str, target_temp: float, is_overpowering_detected: bool = False, is_central_boiler_off: bool = False, is_heating_failure: bool = False) -> float:
         """Update state with new data.
 
         This method is called at each control_heating cycle.
@@ -477,6 +543,7 @@ class AutoTpiManager:
         self._current_target_temp = self._to_celsius(target_temp) if target_temp is not None else 0.0
         self._current_hvac_mode = hvac_mode
         self._central_boiler_off = is_central_boiler_off
+        self._current_is_heating_failure = is_heating_failure
 
         # Calculate and return power
         # Use hvac_mode to force direction
@@ -489,25 +556,51 @@ class AutoTpiManager:
         return self.calculate_power(self._current_target_temp, self._current_temp_in, self._current_temp_out, calc_state_str)
 
     async def calculate(self) -> Optional[dict]:
-        """Return the current calculated TPI parameters."""
-        # Return current coefficients for the thermostat to use
-        params = {}
+        """Calculate TPI parameters, using aggressive coefficients during bootstrap."""
+        
+        # Determine if in bootstrap (capacity not yet learned)
+        in_bootstrap = (
+            self.state.max_capacity_heat == 0 or 
+            self.state.capacity_heat_learn_count < 3
+        )
 
-        # Use hvac_mode to determine which coefficients to return
-        # This prevents flapping when switching between heating/cooling actions while in the same mode (e.g. idle)
-        # Note: hvac_mode usually comes from VThermHvacMode (heat, cool, off, auto...)
+        # Temporarily override learned coefficients if in bootstrap
+        saved_kint = self.state.coeff_indoor_heat
+        saved_kext = self.state.coeff_outdoor_heat
 
-        is_cool_mode = self._current_hvac_mode == "cool"
+        if in_bootstrap:
+            # Use aggressive coefficients for bootstrap
+            # User requested 1.0 / 0.1 as "normal" values (sufficiently aggressive vs 0.6 default)
+            KINT_BOOTSTRAP = 1.0
+            KEXT_BOOTSTRAP = 0.1
+            
+            self.state.coeff_indoor_heat = KINT_BOOTSTRAP
+            self.state.coeff_outdoor_heat = KEXT_BOOTSTRAP
+        
+        try:
+            # Return current coefficients for the thermostat to use
+            params = {}
 
-        if is_cool_mode:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
-        else:
-            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
-            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
+            # Use hvac_mode to determine which coefficients to return
+            # This prevents flapping when switching between heating/cooling actions while in the same mode (e.g. idle)
+            # Note: hvac_mode usually comes from VThermHvacMode (heat, cool, off, auto...)
 
-        self._calculated_params = params
-        return params
+            is_cool_mode = self._current_hvac_mode == "cool"
+
+            if is_cool_mode:
+                params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
+                params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
+            else:
+                params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
+                params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
+
+            self._calculated_params = params
+            return params
+        finally:
+            # Restore original values
+            if in_bootstrap:
+                self.state.coeff_indoor_heat = saved_kint
+                self.state.coeff_outdoor_heat = saved_kext
 
     def _get_adaptive_alpha(self, cycle_count: int) -> float:
         """Calculate adaptive alpha for EMA, with temporary boost on regime change."""
@@ -578,6 +671,10 @@ class AutoTpiManager:
             _LOGGER.debug("%s - Auto TPI: Not learning - Central boiler is OFF although VTherm is active (boiler below activation threshold)", self._name)
             return False
 
+        if self._current_is_heating_failure:
+            _LOGGER.debug("%s - Auto TPI: Not learning - Heating/Cooling failure detected", self._name)
+            return False
+
         # Failures check
         if self.state.consecutive_failures >= 3:
             return False
@@ -629,6 +726,9 @@ class AutoTpiManager:
 
         if self._central_boiler_off:
             return "central_boiler_off"
+
+        if self._current_is_heating_failure:
+            return "heating_failure_detected"
 
         if self.state.consecutive_failures >= 3:
             return f"too_many_failures({self.state.consecutive_failures})"
@@ -801,9 +901,10 @@ class AutoTpiManager:
                 )
                 return
             elif self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
-                self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
-                _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
-                self._learning_just_completed = True
+                if "naturally" not in self.state.last_learning_status:
+                    self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
+                    _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
+                    self._learning_just_completed = True
                 return  # Outdoor success
             else:
                 _LOGGER.debug("%s - Auto TPI: Outdoor learning failed", self._name)
@@ -815,29 +916,38 @@ class AutoTpiManager:
         _LOGGER.debug("%s - Auto TPI: No learning possible - %s", self._name, self.state.last_learning_status)
 
     def _learn_indoor(self, delta_theoretical: float, delta_real: float, efficiency: float = 1.0, is_cool: bool = False) -> Optional[float]:
-        """Learn indoor coefficient and return the learning error (expected_rise - actual_rise) if successful."""
+        """Learn indoor coefficient and optionally capacity."""
 
         real_rise = delta_real
-        # We use full cycle delta (passed as delta_real), not ON-time delta.
-
         rise_threshold = 0.01
 
-        if real_rise <= rise_threshold:  # Minimal rise required (0.01 to account for float precision/small sensors)
+        if real_rise <= rise_threshold:
             _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= %.3f. Will try outdoor learning.", self._name, real_rise, rise_threshold)
             self.state.last_learning_status = "real_rise_too_small"
-            return None  # Return None on failure
+            return None
 
-        # Capacity-Based Learning Logic
-        # We aim to close the full temperature gap (delta_theoretical),
-        # but capped by the physical capacity of the system (state.max_capacity_*)
 
-        # 1. Define Reference Capacity (in °C/h)
-        ref_capacity_h = self.state.max_capacity_cool if is_cool else self.state.max_capacity_heat
+        # === KINT LEARNING ===
+        # 1. Get adiabatic capacity
+        ref_capacity_h = self.state.max_capacity_heat if not is_cool else self.state.max_capacity_cool
+        ref_capacity_h = ref_capacity_h * self._aggressiveness
 
-        # Fallback if capacity is 0 (i.e. not calibrated yet)
+        # Fallback if not learned yet
         if ref_capacity_h <= 0:
-            ref_capacity_h = 1.0
-            _LOGGER.debug("%s - Auto TPI: Using fallback ref_capacity_h=1.0 (not calibrated yet)", self._name)
+            count = self.state.capacity_heat_learn_count
+            
+            if count == 0:
+                ref_capacity_h = 0.5  # Very conservative for first cycle
+                _LOGGER.warning(
+                    "%s - First cycle: using very conservative capacity 0.5°C/h",
+                    self._name
+                )
+            else:
+                ref_capacity_h = 1.0  # Standard fallback
+                _LOGGER.debug(
+                    "%s - Capacity not yet converged (count=%d), using fallback 1.0°C/h",
+                    self._name, count
+                )
 
         # If no capacity defined, skip learning for this cycle
         if ref_capacity_h <= 0:
@@ -1017,6 +1127,18 @@ class AutoTpiManager:
                 _LOGGER.debug("%s - Auto TPI: Cannot learn outdoor - Anomalous overcooling (gap_in=%.2f, power=%.1f%%)", self._name, gap_in, self.state.last_power * 100)
                 self.state.last_learning_status = "anomalous_overcooling"
                 return False
+
+            # NEW: Directional Protection
+            # If we are overcooling (below target) BUT the temperature is Rising (going back to target),
+            # then natural recovery is happening. Do not lower Kext.
+            if gap_in > 0 and current_temp_in > self.state.last_temp_in:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f)",
+                    self._name, self.state.last_temp_in, current_temp_in
+                )
+                self.state.last_learning_status = "warming_up_naturally"
+                return True  # Considered handled (skipped)
+
         else:
             # In heat mode: overheated if gap_in < 0 (temp > target)
             # Acceptable only if we really heated (power > 1% instead of 20%)
@@ -1025,6 +1147,17 @@ class AutoTpiManager:
                 _LOGGER.debug("%s - Auto TPI: Cannot learn outdoor - Anomalous overheating (gap_in=%.2f, power=%.1f%%)", self._name, gap_in, self.state.last_power * 100)
                 self.state.last_learning_status = "anomalous_overheating"
                 return False
+
+            # NEW: Directional Protection
+            # If we are overheating (above target) BUT the temperature is Falling (going back to target),
+            # then natural recovery is happening. Do not lower Kext.
+            if gap_in < 0 and current_temp_in < self.state.last_temp_in:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f)",
+                    self._name, self.state.last_temp_in, current_temp_in
+                )
+                self.state.last_learning_status = "cooling_down_naturally"
+                return True  # Considered handled (skipped)
 
         # If we get here with an overshoot AND significant power:
         # → It is a real model error, we MUST learn from it
@@ -1065,7 +1198,8 @@ class AutoTpiManager:
         effective_count = min(count, 50)
 
         if self._calculation_method == "average":
-            weight_old = max(effective_count, 1)  # Same as _learn_indoor
+            # Kext counter starts at 0, so first cycle should have weight 0
+            weight_old = effective_count
             avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
             _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
         else:  # EMA
@@ -1113,6 +1247,190 @@ class AutoTpiManager:
             new_count,
         )
         return True
+
+    def _should_learn_capacity(self) -> bool:
+        """Check if capacity learning should occur this cycle."""
+        
+        # Determine if we are in bootstrap
+        in_bootstrap = (
+            self.state.max_capacity_heat == 0 or 
+            self.state.capacity_heat_learn_count < 3
+        )
+
+        # Baseline thresholds
+        power_threshold = 0.80
+        rise_threshold = 0.05
+        min_gap = 1.0 if self.state.capacity_heat_learn_count < 3 else 0.3
+
+        # Timeout Strategy: Force default capacity if bootstrap fails too many times
+        if in_bootstrap:
+            failures = self.state.bootstrap_failure_count
+            
+            if failures > 5:
+                # Force exit bootstrap with conservative capacity
+                _LOGGER.warning(
+                    "%s - Bootstrap timeout after %d failures. Forcing default capacity 0.3°C/h and exiting bootstrap.", 
+                    self._name, failures
+                )
+                self.state.max_capacity_heat = 0.3
+                # We interpret this forced exit as having "learned" enough to stabilize
+                # Setting count to 3 ensures we use alpha=0.15 (stabilized) for future updates
+                self.state.capacity_heat_learn_count = 3
+                self.state.bootstrap_failure_count = 0 # Reset counter
+                
+                # Persist default capacity to config
+                if self._hass and self._hass.loop and not self._hass.loop.is_closed():
+                    self._hass.async_create_task(
+                        self.async_update_learning_data(capacity=0.3, is_heat_mode=True)
+                    )
+                
+                return False # Cycle handled (we set default), skip calculation logic for this cycle
+        
+        # Check Condition 1: Power
+        if self.state.last_power < power_threshold:
+            _LOGGER.debug(
+                "%s - Not learning capacity: power too low (%.1f%% < %.0f%%)",
+                self._name, self.state.last_power * 100, power_threshold * 100
+            )
+            if in_bootstrap:
+                self.state.bootstrap_failure_count += 1
+            return False
+        
+        # Condition 2: Significant rise
+        real_rise = self._current_temp_in - self.state.last_temp_in
+        if real_rise < rise_threshold:
+            _LOGGER.debug(
+                "%s - Not learning capacity: rise too small (%.3f < %.2f°C)",
+                self._name, real_rise, rise_threshold
+            )
+            if in_bootstrap:
+                self.state.bootstrap_failure_count += 1
+            return False
+        
+        # Condition 3: Adequate gap (stricter during bootstrap)
+        target_diff = self._current_target_temp - self.state.last_temp_in
+        if target_diff < min_gap:
+            _LOGGER.debug(
+                "%s - Not learning capacity: gap too small (%.2f < %.1f°C)",
+                self._name, target_diff, min_gap
+            )
+            # Note: We don't necessarily increment failure count for "small gap" 
+            # as this is not a "failed attempt" to heat, but rather "no need to heat much".
+            # But if we are in bootstrap, we WANT larger gaps. 
+            # Let's be conservative and NOT increment here to avoid relaxing just because setpoint is close.
+            return False
+        
+        return True
+
+    async def _learn_capacity(self, power: float, delta_t: float, rise: float, 
+                      efficiency: float, k_ext: float) -> bool:
+        """Learn heating capacity using simple EWMA with adiabatic correction.
+        
+        Inspired by regul2.py parameter estimation approach.
+        
+        Args:
+            power: Heating power ratio (0-1)
+            delta_t: Temperature gap (Tin - Tout) in °C
+            rise: Observed temperature rise in °C
+            efficiency: Cycle efficiency (0-1)
+            k_ext: Current external coefficient
+        
+        Returns:
+            True if capacity was updated and RELOAD triggered, False otherwise (or no reload needed)
+        """
+        # Calculate observed capacity (with thermal losses included)
+        cycle_duration_h = self._cycle_min / 60.0
+        # Check for division by zero
+        if cycle_duration_h * efficiency <= 0:
+            return False
+
+        observed_capacity = rise / (cycle_duration_h * efficiency)
+        
+        # Adiabatic correction: add back the estimated losses
+        # This decouples heating capacity from thermal losses
+        adiabatic_capacity = observed_capacity + k_ext * delta_t
+        
+        # Basic validation (physical bounds)
+        if adiabatic_capacity <= 0 or adiabatic_capacity > 20.0:
+            _LOGGER.debug(
+                "%s - Capacity measurement out of bounds: %.2f°C/h, skipping",
+                self._name, adiabatic_capacity
+            )
+            return False
+        
+        # EWMA with adaptive alpha
+        # Higher alpha at start for fast convergence, lower after for stability
+        if self.state.capacity_heat_learn_count < 3:
+            alpha = 0.4  # Fast convergence during bootstrap
+        else:
+            alpha = 0.15  # Stabilization after bootstrap
+        
+        # Update capacity
+        if self.state.max_capacity_heat == 0:
+            # First measurement
+            self.state.max_capacity_heat = adiabatic_capacity
+        else:
+            # EWMA update
+            self.state.max_capacity_heat = (
+                (1 - alpha) * self.state.max_capacity_heat + 
+                alpha * adiabatic_capacity
+            )
+        
+        self.state.capacity_heat_learn_count += 1
+        
+        # Store in history for confidence calculation
+        if not hasattr(self, '_capacity_history'):
+            self._capacity_history = []
+        self._capacity_history.append(self.state.max_capacity_heat)
+        if len(self._capacity_history) > 10:
+            self._capacity_history.pop(0)
+        
+        _LOGGER.info(
+            "%s - Capacity learned: %.2f°C/h (count: %d, alpha: %.2f)",
+            self._name, self.state.max_capacity_heat,
+            self.state.capacity_heat_learn_count, alpha
+        )
+
+        # Reset failure count on success
+        self.state.bootstrap_failure_count = 0
+        
+        return False
+
+    def _get_capacity_confidence(self) -> float:
+        """Calculate capacity learning confidence based on CV (coefficient of variation).
+        
+        Similar to tau_reliability() in regul2.py.
+        
+        Returns:
+            Confidence score from 0.0 (no confidence) to 1.0 (high confidence)
+        """
+        # Need minimum samples
+        if self.state.capacity_heat_learn_count < 3:
+            return 0.3
+        
+        # Need history
+        if not hasattr(self, '_capacity_history'):
+            self._capacity_history = []
+            
+        if len(self._capacity_history) < 3:
+            return 0.5
+        
+        # Calculate coefficient of variation (CV)
+        mean_cap = statistics.mean(self._capacity_history)
+        if mean_cap <= 0:
+            return 0.0
+        
+        std_cap = statistics.pstdev(self._capacity_history)
+        cv = std_cap / mean_cap
+        
+        # Confidence decreases with CV
+        # CV = 0.1 → confidence = 0.90
+        # CV = 0.3 → confidence = 0.70
+        # CV = 0.5 → confidence = 0.50
+        # CV > 1.0 → confidence = 0.0
+        confidence = max(0.0, min(1.0, 1.0 - cv))
+        
+        return confidence
 
     def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float):
         """Check if we should reduce indoor coefficient after good performance."""
@@ -1466,10 +1784,33 @@ class AutoTpiManager:
         return 1.0
 
     def calculate_power(self, setpoint: float, temp_in: float, temp_out: float, state_str: str) -> float:
-        """Calculate power using TPI formula."""
-        if setpoint is None or temp_in is None or temp_out is None:
+        """Calculate TPI power, using aggressive coefficients during bootstrap."""
+        
+        # Bootstrap logic: aggressive coefficients
+        in_bootstrap = (
+            state_str == "heat" and
+            (self.state.max_capacity_heat == 0 or self.state.capacity_heat_learn_count < 3)
+        )
+        
+        saved_kint = self.state.coeff_indoor_heat
+        saved_kext = self.state.coeff_outdoor_heat
+        
+        if in_bootstrap:
+            self.state.coeff_indoor_heat = 1.0
+            self.state.coeff_outdoor_heat = 0.1
+            
+        try:
+            return self._calculate_power_tpi(setpoint, temp_in, temp_out, state_str)
+        finally:
+            if in_bootstrap:
+                 self.state.coeff_indoor_heat = saved_kint
+                 self.state.coeff_outdoor_heat = saved_kext
+    
+    def _calculate_power_tpi(self, setpoint: float, temp_in: float, temp_out: float, state_str: str) -> float:
+        """Normal TPI proportional control."""
+        if temp_out is None:
             return 0.0
-
+        
         direction = 1 if state_str == "heat" else -1
         delta_in = setpoint - temp_in
         delta_out = setpoint - temp_out
@@ -1482,10 +1823,8 @@ class AutoTpiManager:
             coeff_ext = self.state.coeff_outdoor_heat
 
         offset = self.state.offset
-        # Jeedom has an offset you can dynamically feed to the thermostat.
-        # We keep it here for future addition if needed, it's not used yet.
         power = (direction * delta_in * coeff_int) + (direction * delta_out * coeff_ext) + offset
-        return max(0.0, min(100.0, power))
+        return max(0.0, min(1.0, power))
 
     @staticmethod
     def _remove_outliers_iqr(values: list[float]) -> list[float]:
@@ -1776,7 +2115,6 @@ class AutoTpiManager:
         min_power_threshold: float,
         start_date: datetime | str | None = None,
         end_date: datetime | str | None = None,
-        capacity_safety_margin: float | None = None,
     ) -> dict:
         """
         Orchestrates the capacity calibration service using temperature_slope
@@ -1796,8 +2134,6 @@ class AutoTpiManager:
             end_date: End of history period (default: now)
             min_power_threshold: Minimum power percentage (0.0-1.0) to consider a sample.
                                  Default is 1.0 (100%). Lower values (e.g., 0.90) include more samples.
-            capacity_safety_margin: Margin percentage (0.0-1.0) to subtract from the calculated capacity.
-                                    Default is None (0%).
         """
         # 1. Derive sensor entity IDs from thermostat entity ID
         # climate.thermostat_salon -> sensor.thermostat_salon_temperature_slope
@@ -1924,43 +2260,22 @@ class AutoTpiManager:
         if result and isinstance(result, dict) and result.get("success"):
 
             max_capacity = result.get("capacity")
-            # Calculate recommended capacity with margin
             if max_capacity is not None:
-                # Ensure margin is valid (0-0.30)
-                # capacity_safety_margin is required (defaults to 20 in services.yaml)
-                # If None, we default to 0.20 (20%)
-
-                if capacity_safety_margin is None:
-                    margin = 0.20
-                else:
-                    # Handle percentage input (e.g. 20 -> 0.20)
-                    # We assume if value > 1.0 it is a percentage (0-30)
-                    val = capacity_safety_margin / 100.0 if capacity_safety_margin > 1.0 else capacity_safety_margin
-                    margin = max(0.0, min(0.30, val))
-
-                recommended_capacity = max_capacity * (1.0 - margin)
-
-                # Rename capacity to max_capacity
+                # Rename capacity to max_capacity in result
                 if "capacity" in result:
                     del result["capacity"]
 
                 result["max_capacity"] = max_capacity
-                result["recommended_capacity"] = recommended_capacity
-                result["margin_percent"] = margin * 100
-
-                # Update the displayed capacity in the result to be the recommended one or make it clear
-                # The prompt asks: "The servcice output shoud display the max capacity , and the recommended capacity"
-                # We add them to the dict.
 
                 if save_to_config:
                     # Always heat mode
                     is_heat_mode = True
 
-                    await self.async_update_capacity_config(capacity=recommended_capacity, is_heat_mode=is_heat_mode)
+                    await self.async_update_learning_data(capacity=max_capacity, is_heat_mode=is_heat_mode)
 
                     _LOGGER.info(
-                        "%s - Heating capacity calibrated. Max: %.3f °C/h, Margin: %.0f%%, Saved: %.3f °C/h", 
-                        self._name, max_capacity, margin * 100, recommended_capacity
+                        "%s - Heating capacity calibrated and saved: %.3f °C/h", 
+                        self._name, max_capacity
                     )
 
         return result
@@ -1984,7 +2299,7 @@ class AutoTpiManager:
 
         _LOGGER.debug("%s - Auto TPI: Cycle started. On: %.0fs, Off: %.0fs (%.1f%%), Mode: %s", self._name, on_time_sec, off_time_sec, on_percent * 100, hvac_mode)
 
-        now = datetime.now()
+        now = dt_util.now()
 
         # Snapshot current state for learning at the end of the cycle
         self.state.last_temp_in = self._current_temp_in
@@ -2016,7 +2331,11 @@ class AutoTpiManager:
         # Calculate cold factor for this cycle
         self.state.current_cycle_cold_factor = 0.0
         if self._heater_cooling_time > 0 and self.state.last_heater_stop_time:
-            elapsed_off = (now - self.state.last_heater_stop_time).total_seconds() / 60.0
+            # Ensure both datetimes are timezone-aware (handles legacy data)
+            last_stop = self.state.last_heater_stop_time
+            if last_stop.tzinfo is None:
+                last_stop = dt_util.as_local(last_stop)
+            elapsed_off = (now - last_stop).total_seconds() / 60.0
             if elapsed_off >= 0:
                 self.state.current_cycle_cold_factor = min(1.0, max(0.0, elapsed_off / self._heater_cooling_time))
                 _LOGGER.debug(
@@ -2043,7 +2362,7 @@ class AutoTpiManager:
 
         # Update last_heater_stop_time if we were heating
         if self.state.last_state == "heat":
-            self.state.last_heater_stop_time = datetime.now()
+            self.state.last_heater_stop_time = dt_util.now()
 
         # Calculate Power Efficiency based on Heater Warm-up Time and Cold Factor
         # heater_heating_time is the time for the heater to warm up when fully cold.
@@ -2078,22 +2397,51 @@ class AutoTpiManager:
             )
 
         # Attempt learning
-        # We check if the cycle was significant enough for learning.
-        # The ON pulse must be longer than the estimated time used to warm up the radiator itself.
-        is_significant_cycle = True
-        if effective_warm_up_time > 0 and on_time_minutes <= effective_warm_up_time:
-            is_significant_cycle = False
-            _LOGGER.debug("%s - Auto TPI: Cycle ignored for learning - ON time (%.1f) <= Est. Warm-up Time (%.1f)", self._name, on_time_minutes, effective_warm_up_time)
+        # Determine if in bootstrap
+        in_bootstrap = (
+            self._current_hvac_mode == "heat" and
+            (self.state.max_capacity_heat == 0 or self.state.capacity_heat_learn_count < 3)
+        )
+        # Check if cycle is significant enough for learning
+        # Significant if we had some effective heating time (efficiency > 0)
+        is_significant_cycle = self._last_cycle_power_efficiency > 0.0
 
-        if self._should_learn() and is_significant_cycle:
-            _LOGGER.info("%s - Auto TPI: Attempting to learn from cycle data", self._name)
+        # PHASE 1: Capacity Learning (independent of saturation check)
+        # Capacity learning needs high power cycles (>=80%), which may be saturated (100%)
+        # This must run independently of _should_learn() which rejects saturated power
+        real_rise = self._current_temp_in - self.state.last_temp_in
+        efficiency = self._last_cycle_power_efficiency
+        
+        if self._should_learn_capacity():
+            await self._learn_capacity(
+                power=self.state.last_power,
+                delta_t=self._current_temp_in - self._current_temp_out,
+                rise=real_rise,
+                efficiency=efficiency,
+                k_ext=self.state.coeff_outdoor_heat
+            )
+            if in_bootstrap:
+                _LOGGER.info(
+                    "%s - Bootstrap cycle %d/%d completed, capacity: %.2f°C/h",
+                    self._name,
+                    self.state.capacity_heat_learn_count,
+                    3,  # Total bootstrap cycles
+                    self.state.max_capacity_heat
+                )
+        
+        # PHASE 2: Kint/Kext Learning (requires non-saturated power)
+        # Skip during bootstrap (learn only capacity first)
+        if in_bootstrap:
+            _LOGGER.debug("%s - Auto TPI: In bootstrap mode, skipping Kint/Kext learning", self._name)
+        elif self._should_learn() and is_significant_cycle:
+            _LOGGER.info("%s - Auto TPI: Attempting to learn Kint/Kext from cycle data", self._name)
             await self._perform_learning(self._current_temp_in, self._current_temp_out)
         else:
             reason = self._get_no_learn_reason()
             if not is_significant_cycle and reason == "unknown":
                 reason = "on_time_too_short_vs_heating_time"
 
-            _LOGGER.debug("%s - Auto TPI: Not learning this cycle: %s", self._name, reason)
+            _LOGGER.debug("%s - Auto TPI: Not learning Kint/Kext this cycle: %s", self._name, reason)
             self.state.last_learning_status = reason
 
         # Check for failures
@@ -2101,9 +2449,19 @@ class AutoTpiManager:
 
         # The Max Capacity detection logic has been removed as capacity is now set by service.
         await self.async_save_data()
+    
+
 
     def get_calculated_params(self) -> dict:
         return self._calculated_params
+
+    @property
+    def is_in_bootstrap(self) -> bool:
+        """Return True if the algorithm is in bootstrap mode (learning capacity)."""
+        return (
+            self.state.max_capacity_heat == 0 or 
+            self.state.capacity_heat_learn_count < 3
+        )
 
     @property
     def learning_active(self) -> bool:
@@ -2214,7 +2572,7 @@ class AutoTpiManager:
             self.state.total_cycles = 0
             self.state.consecutive_failures = 0
             self.state.last_learning_status = "learning_started"
-            self.state.cycle_start_date = datetime.now()
+            self.state.cycle_start_date = dt_util.now()
             self.state.cycle_active = False
         else:
             _LOGGER.info(
@@ -2224,15 +2582,48 @@ class AutoTpiManager:
                 self.state.coeff_outdoor_heat,
                 self.state.total_cycles,
             )
+            # Update status to indicate learning has resumed
+            self.state.last_learning_status = "learning_resumed"
 
         # Always enable learning when activating
         self.state.autolearn_enabled = True
 
         # Set start date only if it's a new session (reset) or if it wasn't set (first start)
         if reset_data or self.state.learning_start_date is None:
-            self.state.learning_start_date = datetime.now()
+            self.state.learning_start_date = dt_util.now()
 
-        # Ensure max_capacity is not 0, if it is, force default 1.0 (to allow proper indoor learning calc)
+        # ===== BOOTSTRAP PHASE LOGIC =====
+        # Determine bootstrap strategy (3 modes)
+        manual_capacity = self._heating_rate  # From config (CONF_AUTO_TPI_HEATING_POWER)
+        
+        if manual_capacity > 0:
+            # Mode 1: Manual capacity provided - skip bootstrap
+            self.state.max_capacity_heat = manual_capacity
+            self.state.capacity_heat_learn_count = 3  # Mark as learned
+            
+            _LOGGER.info(
+                "%s - Auto TPI: Using manual capacity %.2f °C/h, skipping bootstrap",
+                self._name, manual_capacity
+            )
+        
+        elif self.state.max_capacity_heat > 0 and not reset_data:
+            # Capacity already learned from previous session - skip bootstrap
+            
+            _LOGGER.info(
+                "%s - Auto TPI: Capacity already known (%.2f °C/h), resuming in TPI mode",
+                self._name, self.state.max_capacity_heat
+            )
+        
+        else:
+            # Mode 2: No manual capacity
+            # Bootstrap will automatically activate (capacity_heat_learn_count < 3)
+            # High coefficients will be used during first 3 cycles
+            _LOGGER.info(
+                "%s - Starting capacity bootstrap (TPI aggressive mode)",
+                self._name
+            )
+
+        # Ensure max_capacity fallback for TPI mode (unchanged)
         if self.state.max_capacity_heat == 0.0:
             self.state.max_capacity_heat = 1.0
         if self.state.max_capacity_cool == 0.0:
@@ -2240,13 +2631,23 @@ class AutoTpiManager:
 
         await self.async_save_data()
 
-    async def stop_learning(self):
+    async def stop_learning(self, save_capacity: bool = True):
         _LOGGER.info("%s - Auto TPI: Stopping learning", self._name)
         self.state.autolearn_enabled = False
         # Do not clear learning_start_date to allow resuming or display in history
         # self.state.learning_start_date = None
         self.state.last_learning_status = "learning_stopped"
         await self.async_save_data()
+        
+        # If we have learned enough, save capacity to config
+        # ONLY if save_capacity is True (avoid double reload if caller handles it)
+        if save_capacity and self.state.capacity_heat_learn_count >= 3:
+             # Check if value has changed before saving to avoid useless reload
+             current_capacity = self._config_entry.data.get(CONF_AUTO_TPI_HEATING_POWER)
+             if current_capacity is None or abs(current_capacity - self.state.max_capacity_heat) > 0.01:
+                 if self._hass and self._hass.loop and not self._hass.loop.is_closed():
+                    await self.async_update_learning_data(capacity=self.state.max_capacity_heat, is_heat_mode=True)
+
 
     async def reset_learning_data(self):
         _LOGGER.info("%s - Auto TPI: Resetting all learning data", self._name)
@@ -2313,7 +2714,7 @@ class AutoTpiManager:
         if not self._data_provider:
             return
 
-        now = datetime.now()
+        now = dt_util.now()
 
         # 1. Get fresh data from thermostat FIRST
         # This ensures we have current temperatures for "End of Cycle" validation
@@ -2329,22 +2730,32 @@ class AutoTpiManager:
             self._schedule_next_timer()
             return
 
+        # Guard: check if we were stopped during await
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during data fetch", self._name)
+            return
+
         if not new_params:
             _LOGGER.warning("%s - Auto TPI: No data received from thermostat", self._name)
             self._schedule_next_timer()
             return
 
         # 2. Handle previous cycle completion
-        # We use self._current_cycle_params which contains the params at the start of the previous cycle
-        if self.state.cycle_start_date is not None and self._current_cycle_params is not None:
-            elapsed_minutes = (now - self.state.cycle_start_date).total_seconds() / 60
+        # We use self.state.current_cycle_params which contains the params at the start of the previous cycle
+        # This is persisted so we can validate across reloads
+        if self.state.cycle_start_date is not None and self.state.current_cycle_params is not None:
+            # Ensure cycle_start_date is timezone-aware (handles legacy data)
+            cycle_start = self.state.cycle_start_date
+            if cycle_start.tzinfo is None:
+                cycle_start = dt_util.as_local(cycle_start)
+            elapsed_minutes = (now - cycle_start).total_seconds() / 60
             expected_duration = self._cycle_min
             tolerance = max(expected_duration * 0.1, 1.0)
 
             if abs(elapsed_minutes - expected_duration) <= tolerance:
                 _LOGGER.debug("%s - Cycle validation success: duration=%.1fmin (expected=%.1fmin). Triggering learning.", self._name, elapsed_minutes, expected_duration)
                 # Use stored parameters from the PREVIOUS cycle
-                prev_params = self._current_cycle_params
+                prev_params = self.state.current_cycle_params
                 await self.on_cycle_completed(
                     on_time_sec=prev_params.get("on_time_sec", 0), off_time_sec=prev_params.get("off_time_sec", 0), hvac_mode=prev_params.get("hvac_mode", "stop")
                 )
@@ -2358,10 +2769,17 @@ class AutoTpiManager:
                 )
 
             # Reset previous cycle tracking
-            # self._current_cycle_params = None # Will be overwritten below
+            # self.state.current_cycle_params = None # Will be overwritten below
+
+        # Guard: check again after on_cycle_completed
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle completion", self._name)
+            return
 
         # 3. Update current params for the NEXT cycle tracking
-        self._current_cycle_params = new_params
+        self.state.current_cycle_params = new_params
+        # Save state to persist cycle params (important for reload resilience)
+        await self.async_save_data()
 
         on_time = new_params.get("on_time_sec", 0)
         off_time = new_params.get("off_time_sec", 0)
@@ -2370,6 +2788,11 @@ class AutoTpiManager:
 
         # 4. Notify start of cycle
         await self.on_cycle_started(on_time, off_time, on_percent, hvac_mode)
+
+        # Guard: check again after on_cycle_started
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle start notification", self._name)
+            return
 
         # 5. Notify thermostat to apply changes
         if self._event_sender:
@@ -2380,6 +2803,11 @@ class AutoTpiManager:
                     self._event_sender(new_params)
             except Exception as e:
                 _LOGGER.error("%s - Auto TPI: Error sending event to thermostat: %s", self._name, e)
+
+        # Guard: final check before scheduling next timer
+        if not self._data_provider:
+            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during event sending", self._name)
+            return
 
         # 6. Schedule next tick
         self._schedule_next_timer()

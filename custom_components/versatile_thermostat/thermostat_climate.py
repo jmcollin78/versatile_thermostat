@@ -597,17 +597,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if self.has_sync_entities:
             under_attributes = {}
             for idx, under in enumerate(self._underlyings):
-                value = self.hass.states.get(self._sync_entity_list[idx]).state
-                under_attributes.update(
-                    {
-                        self._sync_entity_list[idx]: {
-                            "value": float(value) if value.isnumeric() else None,
-                            "min_sync_entity": under.min_sync_entity,
-                            "max_sync_entity": under.max_sync_entity,
-                            "step_sync_entity": under.step_sync_entity,
-                        }
-                    }
-                )
+                try:
+                    state = self.hass.states.get(self._sync_entity_list[idx])
+                    value = float(state.state) if state is not None else None
+                except (ValueError, AttributeError, TypeError):
+                    value = None
+
+                under_attributes[self._sync_entity_list[idx]] = {
+                    "value": value,
+                    "min_sync_entity": under.min_sync_entity,
+                    "max_sync_entity": under.max_sync_entity,
+                    "step_sync_entity": under.step_sync_entity,
+                }
             vtherm_over_climate_data["temp_synchronisation"] = {
                 "sync_entity_ids": self._sync_entity_list,
                 "sync_with_calibration": self._sync_with_calibration,
@@ -1028,7 +1029,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         offset,
                     )
                     await under.send_value_to_number(sync_entity_id, offset)
-            else:
+            elif room_temp is not None:
                 # Send the new temperature directly
                 val = round_to_nearest(room_temp, step_sync_entity)
                 val = min(max_sync_entity, max(min_sync_entity, val))

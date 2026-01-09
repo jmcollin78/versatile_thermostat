@@ -32,6 +32,7 @@
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Gestion du verrouilage",
+          "heating_failure_detection": "Détection de panne de chauffage",
           "auto_tpi_1": "Auto TPI - Général",
           "auto_tpi_2": "Auto TPI - Méthode",
           "auto_tpi_3_avg": "Auto TPI - Moyenne",
@@ -91,7 +92,8 @@
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
-          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
         }
       },
       "type": {
@@ -294,7 +296,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_aggressiveness": "Agressivité"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
@@ -304,7 +307,8 @@
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
-          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
+          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
         }
       },
       "auto_tpi_2": {
@@ -349,6 +353,26 @@
         "data_description": {
           "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
           "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Détection de panne de chauffage",
+        "description": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
+        "data": {
+          "use_heating_failure_detection_feature": "Activer la détection de panne de chauffage",
+          "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
+          "heating_failure_threshold": "Seuil de panne de chauffage",
+          "cooling_failure_threshold": "Seuil de panne de refroidissement",
+          "heating_failure_detection_delay": "Délai de détection (minutes)",
+          "temperature_change_tolerance": "Tolérance (°C)"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
+          "use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
+          "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
+          "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
+          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
         }
       }
     },
@@ -399,6 +423,7 @@
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Verrouillage",
+          "heating_failure_detection": "Détection de panne de chauffage",
           "auto_tpi_1": "Auto TPI - Général",
           "auto_tpi_2": "Auto TPI - Méthode",
           "auto_tpi_3_avg": "Auto TPI - Moyenne",
@@ -458,7 +483,8 @@
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
-          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique"
+          "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
         }
       },
       "type": {
@@ -664,7 +690,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_max_coef_int": "Coefficient Interne Max",
-          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)"
+          "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
+          "auto_tpi_aggressiveness": "Agressivité"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Mettre à jour automatiquement la configuration avec les coefficients appris",
@@ -674,7 +701,8 @@
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_max_coef_int": "Valeur maximale autorisée pour le coefficient interne (Coeff Int)",
-          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'"
+          "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Peux être estimée depuis le service action 'Calibrer la capacité'",
+          "auto_tpi_aggressiveness": "Pourcentage de la capacité thermique apprise à utiliser (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs."
         }
       },
       "auto_tpi_2": {
@@ -719,6 +747,26 @@
         "data_description": {
           "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
           "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Détection de panne de chauffage - {name}",
+        "description": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
+        "data": {
+          "use_heating_failure_detection_feature": "Activer la détection de panne de chauffage",
+          "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
+          "heating_failure_threshold": "Seuil de panne de chauffage",
+          "cooling_failure_threshold": "Seuil de panne de refroidissement",
+          "heating_failure_detection_delay": "Délai de détection (minutes)",
+          "temperature_change_tolerance": "Tolérance (°C)"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
+          "use_heating_failure_detection_central_config": "Cochez pour utiliser la configuration centrale de détection de panne. Décochez pour utiliser des paramètres spécifiques à ce VTherm",
+          "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
+          "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
+          "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
         }
       }
     },
@@ -813,6 +861,32 @@
         }
       }
     },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "État de sécurité"
+      },
+      "heating_failure_state": {
+        "name": "État d'anomalie de chauffe"
+      },
+      "overpowering_state": {
+        "name": "État de délestage"
+      },
+      "window_state": {
+        "name": "État de la fenêtre"
+      },
+      "motion_state": {
+        "name": "État de mouvement"
+      },
+      "presence_state": {
+        "name": "État de présence"
+      },
+      "window_bypass_state": {
+        "name": "Bypass fenêtre"
+      },
+      "central_boiler_state": {
+        "name": "Chaudière centrale"
+      }
+    },
     "number": {
       "frost_temp": {
         "name": "Hors gel "
@@ -903,10 +977,6 @@
         "min_power_threshold": {
           "name": "Seuil de puissance minimum",
           "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
-        },
-        "capacity_safety_margin": {
-          "name": "Marge de sécurité",
-          "description": "Marge de sécurité en pourcentage à soustraire de la capacité maximale avant sauvegarde. Plage valide 0-30%. Défaut 20%."
         }
       }
     },
