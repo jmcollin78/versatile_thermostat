@@ -40,6 +40,7 @@ MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
+NATURAL_RECOVERY_POWER_THRESHOLD = 0.10  # Max power (10%) to consider temperature change as natural recovery
 KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
 INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
@@ -893,14 +894,24 @@ class AutoTpiManager:
             # Domain Separation: Far-Field vs Near-Field
             # If the gap is large (> KEXT_LEARNING_MAX_GAP), it's a transient state (Kint domain).
             # Kext (Steady State) should only be learned in Near-Field.
-            if abs(gap_in) > KEXT_LEARNING_MAX_GAP:
+            #
+            # EXCEPTION: During overshoot with significant power, we MUST learn Kext regardless
+            # of gap size. Overshoot means temp > target (heat) or temp < target (cool),
+            # which is gap_in < 0 (heat) or gap_in > 0 (cool) - the opposite of normal Far-Field.
+            is_overshoot_heat = is_heat and gap_in < 0
+            is_overshoot_cool = is_cool and gap_in > 0
+            has_significant_power = self.state.last_power >= NATURAL_RECOVERY_POWER_THRESHOLD
+            is_active_overshoot = (is_overshoot_heat or is_overshoot_cool) and has_significant_power
+
+            if abs(gap_in) > KEXT_LEARNING_MAX_GAP and not is_active_overshoot:
                 self.state.last_learning_status = f"gap_too_large_for_outdoor(gap={gap_in:.2f} > {KEXT_LEARNING_MAX_GAP})"
                 _LOGGER.debug(
                     "%s - Auto TPI: Skipping outdoor learning: Gap %.2f > %.2f - Far field stagnation is a Kint/Capacity issue, not Kext.",
                     self._name, abs(gap_in), KEXT_LEARNING_MAX_GAP
                 )
                 return
-            elif self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
+
+            if self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
                 if "naturally" not in self.state.last_learning_status:
                     self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
                     _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
@@ -1127,13 +1138,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overcooling"
                 return False
 
-            # NEW: Directional Protection
-            # If we are overcooling (below target) BUT the temperature is Rising (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in > 0 and current_temp_in > self.state.last_temp_in:
+            # Directional Protection
+            # If we are overcooling (below target) BUT the temperature is Rising (going back to target)
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # However, if power is still significant, the system is actively cooling and Kext might be too high.
+            if gap_in > 0 and current_temp_in > self.state.last_temp_in and self.state.last_power < NATURAL_RECOVERY_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "warming_up_naturally"
                 return True  # Considered handled (skipped)
@@ -1147,13 +1159,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overheating"
                 return False
 
-            # NEW: Directional Protection
-            # If we are overheating (above target) BUT the temperature is Falling (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in < 0 and current_temp_in < self.state.last_temp_in:
+            # Directional Protection
+            # If we are overheating (above target) BUT the temperature is Falling (going back to target)
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # However, if power is still significant, the system is actively heating and Kext is likely too high.
+            if gap_in < 0 and current_temp_in < self.state.last_temp_in and self.state.last_power < NATURAL_RECOVERY_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "cooling_down_naturally"
                 return True  # Considered handled (skipped)

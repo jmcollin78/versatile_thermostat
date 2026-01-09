@@ -132,7 +132,7 @@ The learning process is designed to separate the responsibilities of `Kint` (nea
 *   **Case 1: Indoor Coefficient**. This is the primary learning mechanism. It adjusts `CoeffInt` based on the actual temperature rise versus the expected rise.
     *   **Important**: Indoor coefficient learning is **blocked** if the temperature gap is too small (< 0.05°C). This prevents `Kint` from overreacting to minor fluctuations when the system is near the setpoint.
 *   **Case 2: Outdoor Coefficient**. If indoor learning was not possible and the temperature gap is significant (> 0.1°C), it adjusts `CoeffExt` to compensate for losses.
-    *   **Important**: Outdoor coefficient learning is **blocked** if the temperature gap is too large (> 0.5°C). This ensures that `Kext` (which represents equilibrium losses) is not skewed by ramp-up dynamic issues (which are the responsibility of `Kint`).
+    *   **Important**: Outdoor coefficient learning is **blocked** if the temperature gap is too large (> 0.5°C), **except during active overshoot with significant power** (>= 10%). This ensures that `Kext` (which represents equilibrium losses) is not skewed by ramp-up dynamic issues (which are the responsibility of `Kint`), while still allowing correction when overshooting.
 *   **Case 3: Rapid Corrections (Boost/Deboost)**. In parallel, the system monitors critical anomalies:
 
 #### 2.5. Constantes Configurables
@@ -146,6 +146,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `OVERSHOOT_THRESHOLD` | 0.2°C | Seuil de dépassement de température pour déclencher la correction agressive de Kext |
 | `OVERSHOOT_POWER_THRESHOLD` | 0.05 (5%) | Puissance minimale pour considérer le dépassement comme une erreur de Kext |
 | `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |
+| `NATURAL_RECOVERY_POWER_THRESHOLD` | 0.20 (20%) | Puissance maximale en dessous de laquelle on considère qu'un retour à la consigne est naturel (pas d'apprentissage Kext) |
 | `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.5°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
 | `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
 | `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Nombre maximum de boosts Kint consécutifs avant avertissement (chauffage sous-dimensionné) |
@@ -243,8 +244,8 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
     
 **Protection Directionnelle (Natural Recovery) :**   
 *   **Problème** : Lors d'une baisse de consigne (ex: 21° -> 19°), la température est au-dessus de la consigne (Overshoot) et le chauffage peut être encore légèrement actif (Kext). Si l'algorithme apprend à ce moment, il va baisser Kext alors que la température est déjà en train de descendre naturellement vers la cible.
-*   **Solution** : Si on est en Overshoot (Temp > Consigne en Heat) MAIS que la température est en train de descendre (`Temp < Last_Temp`), on **saute l'apprentissage**. 
-*   On considère que la dynamique est naturelle et correcte ("Natural Recovery"). L'algorithme n'intervient que si la température stagne ou monte malgré l'overshoot.
+*   **Solution** : Si on est en Overshoot (Temp > Consigne en Heat) MAIS que la température est en train de descendre (`Temp < Last_Temp`) **ET que la puissance est basse** (`< NATURAL_RECOVERY_POWER_THRESHOLD`, soit 20%), on **saute l'apprentissage**.
+*   **Exception Overshoot avec puissance significative** : Si la puissance est >= 20%, on considère que le système chauffe activement malgré l'overshoot. Cela indique que Kext est trop élevé et doit être corrigé → l'apprentissage a lieu.
 *   *Même logique pour le mode Cool (Undershoot mais température qui remonte).*
 
 #### 5. Algorithme Coefficient Intérieur (Détail)
