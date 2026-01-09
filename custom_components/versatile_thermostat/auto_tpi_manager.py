@@ -2574,6 +2574,7 @@ class AutoTpiManager:
             self.state.last_learning_status = "learning_started"
             self.state.cycle_start_date = dt_util.now()
             self.state.cycle_active = False
+            self.state.current_cycle_params = None  # Ensure first tick starts fresh
         else:
             _LOGGER.info(
                 "%s - Auto TPI: Resuming learning with existing data (coef_int=%.3f, coef_ext=%.3f, cycles=%d)",
