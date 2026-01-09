@@ -142,6 +142,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | Constante | Valeur par défaut | Description |
 |-----------|-------------------|-------------|
 | `MIN_KINT` | 0.05 | Seuil minimal pour Kint pour maintenir la réactivité à la température |
+| `MIN_DEBOOST_CYCLES` | 20 | Nombre minimum de cycles d'apprentissage avant que le deboost Kint puisse s'activer |
 | `OVERSHOOT_THRESHOLD` | 0.2°C | Seuil de dépassement de température pour déclencher la correction agressive de Kext |
 | `OVERSHOOT_POWER_THRESHOLD` | 0.05 (5%) | Puissance minimale pour considérer le dépassement comme une erreur de Kext |
 | `OVERSHOOT_CORRECTION_BOOST` | 2.0 | Multiplicateur pour alpha (EMA) ou diviseur de poids (Average) lors de la correction |

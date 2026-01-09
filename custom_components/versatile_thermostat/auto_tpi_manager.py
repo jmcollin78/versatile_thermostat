@@ -1000,10 +1000,6 @@ class AutoTpiManager:
         # This ensures aggressiveness always has an effect, regardless of capacity saturation
         ratio = ratio * self._aggressiveness
 
-        # Check for deboost before calculating new coefficient
-        is_heat = not is_cool
-        self._check_deboost(is_heat, real_rise, adjusted_theoretical)
-
         current_coeff = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
         coeff_new = current_coeff * ratio
 
@@ -1435,53 +1431,67 @@ class AutoTpiManager:
         
         return confidence
 
-    def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float):
-        """Check if we should reduce indoor coefficient after good performance."""
+    def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float) -> bool:
+        """Check if we should reduce indoor coefficient after excessive performance.
+        
+        Only activates after MIN_DEBOOST_CYCLES to let normal learning stabilize first.
+        Returns True if deboost was applied.
+        """
+        MIN_DEBOOST_CYCLES = 20
+        
+        if is_heat:
+            count = self.state.coeff_indoor_autolearn
+            current_kint = self.state.coeff_indoor_heat
+        else:
+            count = self.state.coeff_indoor_cool_autolearn
+            current_kint = self.state.coeff_indoor_cool
+        
+        # Wait for learning to stabilize before applying deboost
+        if count < MIN_DEBOOST_CYCLES:
+            return False
+        
         # If we achieved more than expected, consider reducing coefficient
-        if real_rise > adjusted_theoretical * 1.2:  # 20% overshoot
+        if real_rise <= adjusted_theoretical * 1.2:  # Need 20% overshoot to trigger
+            return False
             
-            DEBOOST_FACTOR = 0.95
-            
-            if is_heat:
-                count = self.state.coeff_indoor_autolearn
-                current_kint = self.state.coeff_indoor_heat
-            else:
-                count = self.state.coeff_indoor_cool_autolearn
-                current_kint = self.state.coeff_indoor_cool
-            
-            # Calculate target Kint
-            target_kint = current_kint * DEBOOST_FACTOR
-            effective_count = min(count, 50)
-            old = current_kint
+        DEBOOST_FACTOR = 0.95
+        
+        # Calculate target Kint
+        target_kint = current_kint * DEBOOST_FACTOR
+        effective_count = min(count, 50)
+        old = current_kint
 
-            # Apply same weighting logic as Kext overshoot correction
-            if self._calculation_method == "average":
-                boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
-                new_kint = ((old * boosted_weight) + target_kint) / (boosted_weight + 1)
-                _LOGGER.debug(
-                    "%s - Deboost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
-                    self._name, old, target_kint, boosted_weight, effective_count, new_kint
-                )
-            else:  # EMA
-                base_alpha = self._get_adaptive_alpha(effective_count)
-                boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
-                new_kint = (old * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
-                _LOGGER.debug(
-                    "%s - Deboost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
-                    self._name, old, target_kint, boosted_alpha, base_alpha, new_kint
-                )
+        # Apply same weighting logic as Kext overshoot correction
+        if self._calculation_method == "average":
+            boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
+            new_kint = ((old * boosted_weight) + target_kint) / (boosted_weight + 1)
+            _LOGGER.debug(
+                "%s - Deboost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
+                self._name, old, target_kint, boosted_weight, effective_count, new_kint
+            )
+        else:  # EMA
+            base_alpha = self._get_adaptive_alpha(effective_count)
+            boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
+            new_kint = (old * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
+            _LOGGER.debug(
+                "%s - Deboost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
+                self._name, old, target_kint, boosted_alpha, base_alpha, new_kint
+            )
 
-            if is_heat:
-                if old > self._default_coef_int:
-                    self.state.coeff_indoor_heat = max(new_kint, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_heat)
-            else:
-                if old > self._default_coef_int:
-                    self.state.coeff_indoor_cool = max(new_kint, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_cool)
-            # Reset boost counter
-            if hasattr(self.state, "consecutive_boosts"):
-                self.state.consecutive_boosts = 0
+        if is_heat:
+            if old > self._default_coef_int:
+                self.state.coeff_indoor_heat = max(new_kint, self._default_coef_int)
+                _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_heat)
+        else:
+            if old > self._default_coef_int:
+                self.state.coeff_indoor_cool = max(new_kint, self._default_coef_int)
+                _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_cool)
+        
+        # Reset boost counter
+        if hasattr(self.state, "consecutive_boosts"):
+            self.state.consecutive_boosts = 0
+        
+        return True
 
     def _correct_kext_overshoot(self, overshoot: float, is_cool: bool) -> bool:
         """Aggressively reduce Kext when room is overshooting with significant power.
