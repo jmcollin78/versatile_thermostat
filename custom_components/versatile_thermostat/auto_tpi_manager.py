@@ -40,6 +40,7 @@ MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
 OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger aggressive Kext correction
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
+NATURAL_RECOVERY_POWER_THRESHOLD = 0.10  # Max power (10%) to consider temperature change as natural recovery
 KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
 INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
@@ -893,14 +894,24 @@ class AutoTpiManager:
             # Domain Separation: Far-Field vs Near-Field
             # If the gap is large (> KEXT_LEARNING_MAX_GAP), it's a transient state (Kint domain).
             # Kext (Steady State) should only be learned in Near-Field.
-            if abs(gap_in) > KEXT_LEARNING_MAX_GAP:
+            #
+            # EXCEPTION: During overshoot with significant power, we MUST learn Kext regardless
+            # of gap size. Overshoot means temp > target (heat) or temp < target (cool),
+            # which is gap_in < 0 (heat) or gap_in > 0 (cool) - the opposite of normal Far-Field.
+            is_overshoot_heat = is_heat and gap_in < 0
+            is_overshoot_cool = is_cool and gap_in > 0
+            has_significant_power = self.state.last_power >= NATURAL_RECOVERY_POWER_THRESHOLD
+            is_active_overshoot = (is_overshoot_heat or is_overshoot_cool) and has_significant_power
+
+            if abs(gap_in) > KEXT_LEARNING_MAX_GAP and not is_active_overshoot:
                 self.state.last_learning_status = f"gap_too_large_for_outdoor(gap={gap_in:.2f} > {KEXT_LEARNING_MAX_GAP})"
                 _LOGGER.debug(
                     "%s - Auto TPI: Skipping outdoor learning: Gap %.2f > %.2f - Far field stagnation is a Kint/Capacity issue, not Kext.",
                     self._name, abs(gap_in), KEXT_LEARNING_MAX_GAP
                 )
                 return
-            elif self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
+
+            if self._learn_outdoor(current_temp_in, current_temp_out, is_cool):
                 if "naturally" not in self.state.last_learning_status:
                     self.state.last_learning_status = f"learned_outdoor_{'cool' if is_cool else 'heat'}"
                     _LOGGER.info("%s - Auto TPI: Outdoor coefficient learned successfully", self._name)
@@ -930,7 +941,6 @@ class AutoTpiManager:
         # === KINT LEARNING ===
         # 1. Get adiabatic capacity
         ref_capacity_h = self.state.max_capacity_heat if not is_cool else self.state.max_capacity_cool
-        ref_capacity_h = ref_capacity_h * self._aggressiveness
 
         # Fallback if not learned yet
         if ref_capacity_h <= 0:
@@ -997,9 +1007,9 @@ class AutoTpiManager:
 
         ratio = adjusted_theoretical / real_rise
 
-        # Check for deboost before calculating new coefficient
-        is_heat = not is_cool
-        self._check_deboost(is_heat, real_rise, adjusted_theoretical)
+        # Apply aggressiveness to the ratio to get more conservative Kint
+        # This ensures aggressiveness always has an effect, regardless of capacity saturation
+        ratio = ratio * self._aggressiveness
 
         current_coeff = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
         coeff_new = current_coeff * ratio
@@ -1128,13 +1138,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overcooling"
                 return False
 
-            # NEW: Directional Protection
-            # If we are overcooling (below target) BUT the temperature is Rising (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in > 0 and current_temp_in > self.state.last_temp_in:
+            # Directional Protection
+            # If we are overcooling (below target) BUT the temperature is Rising (going back to target)
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # However, if power is still significant, the system is actively cooling and Kext might be too high.
+            if gap_in > 0 and current_temp_in > self.state.last_temp_in and self.state.last_power < NATURAL_RECOVERY_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural undershoot recovery (Temp rising %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "warming_up_naturally"
                 return True  # Considered handled (skipped)
@@ -1148,13 +1159,14 @@ class AutoTpiManager:
                 self.state.last_learning_status = "anomalous_overheating"
                 return False
 
-            # NEW: Directional Protection
-            # If we are overheating (above target) BUT the temperature is Falling (going back to target),
-            # then natural recovery is happening. Do not lower Kext.
-            if gap_in < 0 and current_temp_in < self.state.last_temp_in:
+            # Directional Protection
+            # If we are overheating (above target) BUT the temperature is Falling (going back to target)
+            # AND power is low, then natural recovery is happening. Do not lower Kext.
+            # However, if power is still significant, the system is actively heating and Kext is likely too high.
+            if gap_in < 0 and current_temp_in < self.state.last_temp_in and self.state.last_power < NATURAL_RECOVERY_POWER_THRESHOLD:
                 _LOGGER.debug(
-                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f)",
-                    self._name, self.state.last_temp_in, current_temp_in
+                    "%s - Auto TPI: Skipping outdoor learning during natural overshoot recovery (Temp falling %.2f -> %.2f, power=%.1f%%)",
+                    self._name, self.state.last_temp_in, current_temp_in, self.state.last_power * 100
                 )
                 self.state.last_learning_status = "cooling_down_naturally"
                 return True  # Considered handled (skipped)
@@ -1432,53 +1444,67 @@ class AutoTpiManager:
         
         return confidence
 
-    def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float):
-        """Check if we should reduce indoor coefficient after good performance."""
+    def _check_deboost(self, is_heat: bool, real_rise: float, adjusted_theoretical: float) -> bool:
+        """Check if we should reduce indoor coefficient after excessive performance.
+        
+        Only activates after MIN_DEBOOST_CYCLES to let normal learning stabilize first.
+        Returns True if deboost was applied.
+        """
+        MIN_DEBOOST_CYCLES = 20
+        
+        if is_heat:
+            count = self.state.coeff_indoor_autolearn
+            current_kint = self.state.coeff_indoor_heat
+        else:
+            count = self.state.coeff_indoor_cool_autolearn
+            current_kint = self.state.coeff_indoor_cool
+        
+        # Wait for learning to stabilize before applying deboost
+        if count < MIN_DEBOOST_CYCLES:
+            return False
+        
         # If we achieved more than expected, consider reducing coefficient
-        if real_rise > adjusted_theoretical * 1.2:  # 20% overshoot
+        if real_rise <= adjusted_theoretical * 1.2:  # Need 20% overshoot to trigger
+            return False
             
-            DEBOOST_FACTOR = 0.95
-            
-            if is_heat:
-                count = self.state.coeff_indoor_autolearn
-                current_kint = self.state.coeff_indoor_heat
-            else:
-                count = self.state.coeff_indoor_cool_autolearn
-                current_kint = self.state.coeff_indoor_cool
-            
-            # Calculate target Kint
-            target_kint = current_kint * DEBOOST_FACTOR
-            effective_count = min(count, 50)
-            old = current_kint
+        DEBOOST_FACTOR = 0.95
+        
+        # Calculate target Kint
+        target_kint = current_kint * DEBOOST_FACTOR
+        effective_count = min(count, 50)
+        old = current_kint
 
-            # Apply same weighting logic as Kext overshoot correction
-            if self._calculation_method == "average":
-                boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
-                new_kint = ((old * boosted_weight) + target_kint) / (boosted_weight + 1)
-                _LOGGER.debug(
-                    "%s - Deboost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
-                    self._name, old, target_kint, boosted_weight, effective_count, new_kint
-                )
-            else:  # EMA
-                base_alpha = self._get_adaptive_alpha(effective_count)
-                boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
-                new_kint = (old * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
-                _LOGGER.debug(
-                    "%s - Deboost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
-                    self._name, old, target_kint, boosted_alpha, base_alpha, new_kint
-                )
+        # Apply same weighting logic as Kext overshoot correction
+        if self._calculation_method == "average":
+            boosted_weight = max(1, int(effective_count / OVERSHOOT_CORRECTION_BOOST))
+            new_kint = ((old * boosted_weight) + target_kint) / (boosted_weight + 1)
+            _LOGGER.debug(
+                "%s - Deboost Kint (Average): old=%.4f, target=%.4f, weight=%d (boosted from %d), result=%.4f",
+                self._name, old, target_kint, boosted_weight, effective_count, new_kint
+            )
+        else:  # EMA
+            base_alpha = self._get_adaptive_alpha(effective_count)
+            boosted_alpha = min(base_alpha * OVERSHOOT_CORRECTION_BOOST, 0.3)
+            new_kint = (old * (1.0 - boosted_alpha)) + (target_kint * boosted_alpha)
+            _LOGGER.debug(
+                "%s - Deboost Kint (EMA): old=%.4f, target=%.4f, alpha=%.3f (boosted from %.3f), result=%.4f",
+                self._name, old, target_kint, boosted_alpha, base_alpha, new_kint
+            )
 
-            if is_heat:
-                if old > self._default_coef_int:
-                    self.state.coeff_indoor_heat = max(new_kint, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_heat)
-            else:
-                if old > self._default_coef_int:
-                    self.state.coeff_indoor_cool = max(new_kint, self._default_coef_int)
-                    _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_cool)
-            # Reset boost counter
-            if hasattr(self.state, "consecutive_boosts"):
-                self.state.consecutive_boosts = 0
+        if is_heat:
+            if old > self._default_coef_int:
+                self.state.coeff_indoor_heat = max(new_kint, self._default_coef_int)
+                _LOGGER.info("%s - Deboosting Kint heat: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_heat)
+        else:
+            if old > self._default_coef_int:
+                self.state.coeff_indoor_cool = max(new_kint, self._default_coef_int)
+                _LOGGER.info("%s - Deboosting Kint cool: %.3f → %.3f (weighted)", self._name, old, self.state.coeff_indoor_cool)
+        
+        # Reset boost counter
+        if hasattr(self.state, "consecutive_boosts"):
+            self.state.consecutive_boosts = 0
+        
+        return True
 
     def _correct_kext_overshoot(self, overshoot: float, is_cool: bool) -> bool:
         """Aggressively reduce Kext when room is overshooting with significant power.

@@ -117,7 +117,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         max_coef_int = self._entry_infos.get(CONF_AUTO_TPI_MAX_COEF_INT, 1.5)
         heating_rate = self._entry_infos.get(CONF_AUTO_TPI_HEATING_POWER, 1.0)
         cooling_rate = self._entry_infos.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
-        aggressiveness = self._entry_infos.get(CONF_AUTO_TPI_AGGRESSIVENESS, 0.9)
+        aggressiveness = self._entry_infos.get(CONF_AUTO_TPI_AGGRESSIVENESS, 1.0)
         self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
         self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
         self._auto_tpi_continuous_learning = (self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING, False),)
