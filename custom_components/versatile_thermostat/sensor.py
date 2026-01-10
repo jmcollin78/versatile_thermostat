@@ -338,6 +338,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             self._attr_native_value = "Off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
 
         # Update attributes
+        # Update attributes
         self._attr_extra_state_attributes = {
             "coeff_int_cycles": manager.int_cycles,
             "coeff_ext_cycles": manager.ext_cycles,
@@ -345,16 +346,24 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "thermal_time_constant_hours": manager.time_constant,  # Building's thermal time constant τ
             "model_confidence": manager.confidence,  # Model confidence (R² or percentage)
             "last_learning_status": manager.state.last_learning_status,  # Reason for last learning outcome
-            "max_capacity_heat": manager.state.max_capacity_heat,
-            "max_capacity_cool": manager.state.max_capacity_cool,
             "learning_start_dt": manager.state.learning_start_date,
             "allow_kint_boost_on_stagnation": manager.state.allow_kint_boost,
             "allow_kext_compensation_on_overshoot": manager.state.allow_kext_overshoot,
-            "capacity_heat_status": "learning" if manager.is_in_bootstrap else "learned",
-            "capacity_heat_value": manager.state.max_capacity_heat,
-            "capacity_heat_count": manager.state.capacity_heat_learn_count,
             "bootstrap_failure_count": manager.state.bootstrap_failure_count,
         }
+
+        # Add mode-specific attributes
+        if manager._current_hvac_mode == "cool":
+            self._attr_extra_state_attributes.update({
+                "max_capacity_cool": manager.state.max_capacity_cool,
+            })
+        else:
+            self._attr_extra_state_attributes.update({
+                "max_capacity_heat": manager.state.max_capacity_heat,
+                "capacity_heat_status": "learning" if manager.is_in_bootstrap else "learned",
+                "capacity_heat_value": manager.state.max_capacity_heat,
+                "capacity_heat_count": manager.state.capacity_heat_learn_count,
+            })
 
         # Add calculated TPI coefficients
         calculated = manager.get_calculated_params()
