@@ -271,7 +271,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
  6.  **Calcul du Ratio** : 
      *   `Ratio = (adjusted_theoretical / real_rise) * aggressiveness`.
      *   **L'aggressiveness** (défaut 0.9) est appliqué directement au ratio pour obtenir des coefficients plus conservateurs.
-     *   *Effet* : Un `aggressiveness` de 0.9 réduit systématiquement Kint de 10%, peu importe si la capacité sature ou non.
+     *   *Effet* : Un `aggressiveness` de 0.9 réduit systématiquement le ratio cible de 10%, ce qui donne des coefficients plus faibles.
  7.  **Nouveau Coefficient** : `Coeff_New = Ancien_Coeff * Ratio`.
  8.  **Validation et Plafond** :
      *   Doit être fini et > 0.
@@ -446,7 +446,7 @@ Elle est **exclue** du flux de configuration de la configuration centrale, car c
 2.  **Auto TPI - Général** (`auto_tpi_1`) :
     *   Si l'Auto TPI est activé, cette étape permet de configurer les paramètres généraux : mise à jour de la config, notifications, temps de chauffe/refroidissement, coefficient max.
 3.  **Auto TPI - Puissance** (`auto_tpi_2`) :
-    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.\n    *   Le paramètre **Agressivité** (`auto_tpi_aggressiveness`) permet de définir le pourcentage de la capacité thermique apprise à utiliser (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant les risques de dépassement de consigne.
+    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.\n    *   Le paramètre **Agressivité** (`auto_tpi_aggressiveness`) définit un facteur multiplicateur appliqué au ratio calculé (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant les risques de dépassement de consigne.
 4.  **Auto TPI - Méthode** (`auto_tpi_2`) :
     *   Choix de la méthode de calcul :
     *   **Moyenne (Average)** : Utilise une moyenne pondérée qui accorde de moins en moins d'importance aux nouvelles valeurs. Idéale pour un apprentissage initial rapide et unique. Ne convient pas à l'apprentissage continu.

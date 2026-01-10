@@ -46,6 +46,7 @@ Once checked, a dedicated configuration wizard appears in several steps:
 *   **Indoor Coefficient Cap**: Safety limits for indoor coefficient (`max 3.0`). **Note**: If this limit is changed in the configuration flow, the new value is **immediately** applied to the learned coefficients if they exceed the new limit (which requires an integration reload, which is the case after saving a modification via options).
 
 *   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-rate-configuration))
+*   **Aggressiveness** (`auto_tpi_aggressiveness`): Multiplicative factor applied to the calculated ratio (50-100%, default 100%). Lower values make the coefficient adjustment more conservative.
 
     *Note: You don’t necessarily want to use the maximum heating rate. You can perfectly well use a lower value depending on the heating system sizing, **and it is highly recommended**.
     The closer you are to the maximum capacity, the higher the Kint coefficient determined during the learning process will be.*

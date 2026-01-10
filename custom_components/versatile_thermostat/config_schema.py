@@ -505,7 +505,7 @@ STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
         vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
         vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
         vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=0.0): vol.Coerce(float),
-        vol.Required(CONF_AUTO_TPI_AGGRESSIVENESS, default=0.9): selector.NumberSelector(
+        vol.Required(CONF_AUTO_TPI_AGGRESSIVENESS, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.5, max=1.0, step=0.01, mode=selector.NumberSelectorMode.SLIDER
             )
