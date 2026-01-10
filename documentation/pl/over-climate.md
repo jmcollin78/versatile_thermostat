@@ -65,7 +65,7 @@ Nieprawidłowe ustawienie tych progów może uniemożliwić prawidłową samoreg
 Ten tryb, wprowadzony w wersji 4.3, wymusza użycie wentylacji, jeśli różnica temperatur jest znacząca. Aktywując wentylację, rozprowadzanie ciepła następuje szybciej, co pomaga szybciej osiągnąć temperaturę docelową.
 Możesz wybrać poziom wentylacji do aktywacji spośród następujących opcji: Niski, Średni, Wysoki, Turbo.
 
-Oczywiście Twoje urządzenie musi posiadać funkcję wentylacji i musi być sterowalne, aby ten tryb działał. Jeśli urządzenie nie obsługuje trybu Turbo, zostanie użyty tryb 'Wysoki'High. Gdy różnica temperatur ponownie stanie się niewielka, wentylacja przełączy się na tryb 'normalny, który zależy od Twojego urządzenia (w kolejności): `Mute`, `Auto`, `Low`. Zostanie wybrany pierwszy dostępny tryb dla Twojego sprzętu.
+Oczywiście Twoje urządzenie musi posiadać funkcję wentylacji i musi być sterowalne, aby ten tryb działał. Jeśli urządzenie nie obsługuje trybu Turbo, zostanie użyty tryb 'Wysoki'High. Gdy różnica temperatur ponownie stanie się niewielka, wentylacja przełączy się na tryb 'normalny, który zależy od Twojego urządzenia (w kolejności): `Mute`, `Quiet`, `Auto`, `Low`. Zostanie wybrany pierwszy dostępny tryb dla Twojego sprzętu.
 
 ### Kompensacja temperatury wewnętrznej urządzeń bazowych
 

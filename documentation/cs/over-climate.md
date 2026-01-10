@@ -60,7 +60,7 @@ Nesprávné nastavení těchto prahů může zabránit správné samo-regulaci, 
 Tento režim, zavedený ve verzi 4.3, nutí použití ventilace, pokud je rozdíl teplot významný. Aktivací ventilace dochází k rychlejší distribuci tepla, což pomáhá rychleji dosáhnout cílové teploty.
 Můžete vybrat, kterou úroveň ventilace aktivovat z následujících možností: Nízká, Střední, Vysoká, Turbo.
 
-Samozřejmě vaše podkladové zařízení musí mít ventilaci a musí být ovladatelná, aby to fungovalo. Pokud vaše zařízení neobsahuje režim Turbo, bude místo toho použit režim Vysoká. Jakmile se rozdíl teplot znovu zmenší, ventilace se přepne do "normálního" režimu, který závisí na vašem zařízení (v pořadí): `Mute`, `Auto`, `Low`. Bude vybrán první dostupný režim pro vaše zařízení.
+Samozřejmě vaše podkladové zařízení musí mít ventilaci a musí být ovladatelná, aby to fungovalo. Pokud vaše zařízení neobsahuje režim Turbo, bude místo toho použit režim Vysoká. Jakmile se rozdíl teplot znovu zmenší, ventilace se přepne do "normálního" režimu, který závisí na vašem zařízení (v pořadí): `Mute`, `Quiet`, `Auto`, `Low`. Bude vybrán první dostupný režim pro vaše zařízení.
 
 ### Kompenzace vnitřní teploty podkladového vybavení
 

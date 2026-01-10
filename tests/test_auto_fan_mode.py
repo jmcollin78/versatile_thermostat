@@ -269,7 +269,7 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
         assert entity._auto_activated_fan_mode == "4"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "quiet"
 
     # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
     with patch(
@@ -277,7 +277,7 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("High")
         assert entity._auto_activated_fan_mode == "3"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "quiet"
 
     # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
     with patch(
@@ -285,7 +285,7 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Medium")
         assert entity._auto_activated_fan_mode == "2"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "quiet"
 
     # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
     with patch(
@@ -293,7 +293,7 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode == "1"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "quiet"
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -751,10 +751,7 @@ async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistan
     # room temp is 18°C
     await send_temperature_change_event(entity, 18, now)
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.async_call_later", 
-        side_effect=fake_async_call_later
-    ) as mock_send:
+    with patch("custom_components.versatile_thermostat.underlyings.async_call_later", side_effect=fake_async_call_later) as mock_send:
         # --------------------------------------------------
         # 1. Temperature target at 20°C (+2 °C) → auto fan_mode (DELAYED)
         # --------------------------------------------------
