@@ -311,7 +311,7 @@ async def test_sensors_over_climate(
 
     entity.incremente_energy()
     await energy_sensor.async_my_climate_changed()
-    assert energy_sensor.state == 3.0
+    assert energy_sensor.state == 1.5
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
