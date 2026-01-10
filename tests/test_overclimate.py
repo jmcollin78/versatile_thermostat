@@ -1343,8 +1343,6 @@ async def test_underlying_from_comes_back_to_life(
         assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multi_climate(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -1492,3 +1490,5 @@ async def test_multi_climate(
         for call_args in set_temp_calls:
             temp_sent = call_args[0][2]["temperature"]
             assert temp_sent == new_regulated_temp, f"Temperature sent ({temp_sent}) should be the new regulated temp ({new_regulated_temp})"
+
+    entity.remove_thermostat()
