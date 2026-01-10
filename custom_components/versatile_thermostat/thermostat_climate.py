@@ -228,14 +228,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
                 _LOGGER.info(
-                    "%s - dtemp (%.1f) is < %.1f -> forget the regulation send",
+                    "%s - dtemp (%.1f) is < %.1f -> forget the regulation send for %s",
                     self,
                     dtemp,
                     self._auto_regulation_dtemp,
+                    under.entity_id,
                 )
-                return
-
-            self._regulated_target_temp = new_regulated_temp
+                continue
 
             _LOGGER.debug(
                 "%s - The device offset temp for regulation is %.2f - internal temp is %.2f. New target is %.2f",
@@ -250,6 +249,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._attr_max_temp,
                 self._attr_min_temp,
             )
+
+        # Update regulated_target_temp after the loop to avoid affecting dtemp calculation for other underlyings
+        self._regulated_target_temp = new_regulated_temp
 
     def do_send_regulated_temp_later(self):
         """A utility function to set the temperature later on an underlying"""
