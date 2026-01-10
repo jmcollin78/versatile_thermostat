@@ -23,12 +23,12 @@ Le formulaire de configuration avancée est le suivant :
 
 ### La mise en sécurité
 
-Le deuxième délai (`safety_delay_min`) est le délai maximal entre deux mesures de température avant de passer le _VTherm_ en mode sécurité.
+Le premier délai (`safety_delay_min`) est le délai maximal entre deux mesures de température avant de passer le _VTherm_ en mode sécurité.
 
-Le troisième paramètre (`safety_min_on_percent`) est la valeur minimal de `on_percent` en dessous de laquelle le préréglage sécurité ne sera pas activé. Ce paramètre permet de ne pas mettre en sécurité un thermostat, si le radiateur piloté ne chauffe pas suffisament. En effet, il n'y a pas de risque physique pour le logement dans ce cas mais juste un risque de surchauffe ou de sous-chauffe.
+Le deuxième paramètre (`safety_min_on_percent`) est la valeur minimal de `on_percent` en dessous de laquelle le préréglage sécurité ne sera pas activé. Ce paramètre permet de ne pas mettre en sécurité un thermostat, si le radiateur piloté ne chauffe pas suffisament. En effet, il n'y a pas de risque physique pour le logement dans ce cas mais juste un risque de surchauffe ou de sous-chauffe.
 Mettre ce paramètre à ``0.00`` déclenchera le préréglage sécurité quelque soit la dernière consigne de chauffage, à l'inverse ``1.00`` ne déclenchera jamais le préréglage sécurité ( ce qui revient à désactiver la fonction).
 
-Le quatrième paramètre (`safety_default_on_percent`) est la valeur de `on_percent` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez `0` alors le thermostat sera coupé lorsqu'il passe en mode `security`, mettre 0,2 par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
+Le troisième paramètre (`safety_default_on_percent`) est la valeur de `on_percent` qui sera utilisée lorsque le thermostat passe en mode ``security``. Si vous mettez `0` alors le thermostat sera coupé lorsqu'il passe en mode `security`, mettre 0,2 par exemple permet de garder un peu de chauffage (20% dans ce cas), même en mode ``security``. Ca évite de retrouver son logement totalement gelé lors d'une panne de thermomètre.
 
 Il est possible de désactiver la mise en sécurité suite à une absence de données du thermomètre extérieure. En effet, celui-ci ayant la plupart du temps un impact faible sur la régulation (dépendant de votre paramètrage), il est possible qu'il soit absent sans mettre en danger le logement. Pour cela, il faut ajouter les lignes suivantes dans votre `configuration.yaml` :
 ```yaml
