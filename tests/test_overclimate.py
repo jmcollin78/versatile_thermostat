@@ -1341,3 +1341,154 @@ async def test_underlying_from_comes_back_to_life(
         assert entity.target_temperature == 23
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_multi_climate(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Test that when temperature changes, the regulated temperature is sent to all 3 underlying climates.
+    This test is designed to reproduce a bug where only the first underlying gets the regulated temperature update.
+    """
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # Create a VTherm over_climate with 3 underlying climates
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            # 3 underlying climates
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2", "climate.mock_climate3"],
+            CONF_AC_MODE: False,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 2,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_NONE,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+        },
+    )
+
+    fake_underlying_climate1 = MockClimate(hass, "mockUniqueId1", "MockClimateName1", {})
+    fake_underlying_climate2 = MockClimate(hass, "mockUniqueId2", "MockClimateName2", {})
+    fake_underlying_climate3 = MockClimate(hass, "mockUniqueId3", "MockClimateName3", {})
+
+    # 1. Create the VTherm
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+        side_effect=[fake_underlying_climate1, fake_underlying_climate2, fake_underlying_climate3],
+    ):
+        entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+        assert entity
+        assert entity.name == "TheOverClimateMockName"
+        assert entity.is_over_climate is True
+        assert entity.is_regulated is True
+        assert len(entity._underlyings) == 3
+
+    # Initialize temperatures for presets
+    await set_all_climate_preset_temp(hass, entity, default_temperatures, "theoverclimatemockname")
+
+    # 2. Set the VTherm in heating mode with preset comfort (target temp = 19°C)
+    # Set initial temperatures: room at 17°C (need heating), external at 10°C
+    await send_temperature_change_event(entity, 17, now, True)
+    await send_ext_temperature_change_event(entity, 10, now, True)
+
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await hass.async_block_till_done()
+
+    assert entity.hvac_mode == VThermHvacMode_HEAT
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19.0
+    assert entity.current_temperature == 17.0
+
+    # 3. Verify regulated temperature is sent to all 3 underlyings
+    now = now + timedelta(minutes=3)  # Wait to avoid temporal filter
+    entity._set_now(now)
+
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        # Force regulation calculation
+        await entity._send_regulated_temperature(force=True)
+        await hass.async_block_till_done()
+
+        # Check regulated temperature was sent to all 3 underlying climates
+        regulated_temp = entity.regulated_target_temp
+        assert regulated_temp is not None
+        logging.getLogger().info("Regulated target temp after initial heating: %s", regulated_temp)
+
+        # Count calls to set_temperature for climate domain
+        set_temp_calls = [c for c in mock_service_call.call_args_list if c[0][0] == "climate" and c[0][1] == SERVICE_SET_TEMPERATURE]
+        logging.getLogger().info("set_temperature calls: %s", set_temp_calls)
+
+        assert len(set_temp_calls) == 3, f"Expected 3 set_temperature calls, got {len(set_temp_calls)}"
+
+        # Verify each underlying received the call with the correct regulated temperature
+        entity_ids_called = [c[0][2]["entity_id"] for c in set_temp_calls]
+        assert "climate.mock_climate1" in entity_ids_called
+        assert "climate.mock_climate2" in entity_ids_called
+        assert "climate.mock_climate3" in entity_ids_called
+
+        # Verify the temperature sent is the regulated temperature
+        for call_args in set_temp_calls:
+            temp_sent = call_args[0][2]["temperature"]
+            assert temp_sent == regulated_temp, f"Temperature sent ({temp_sent}) should be the regulated temp ({regulated_temp})"
+
+    # 4. Change room temperature to trigger a new regulated temperature calculation
+    now = now + timedelta(minutes=3)  # Wait to avoid temporal filter
+    entity._set_now(now)
+
+    old_regulated_temp = entity.regulated_target_temp
+
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        # Change room temperature from 17 to 18 (closer to target, should reduce regulated temp)
+        await send_temperature_change_event(entity, 18, now, True)
+        await hass.async_block_till_done()
+
+        # 5. Verify the NEW regulated temperature is sent to ALL 3 underlying climates
+        new_regulated_temp = entity.regulated_target_temp
+        logging.getLogger().info("Old regulated temp: %s, New regulated temp: %s", old_regulated_temp, new_regulated_temp)
+
+        # Regulated temp should have changed (lower since room temp increased)
+        assert new_regulated_temp != old_regulated_temp, "Regulated temp should have changed"
+
+        # Count calls to set_temperature for climate domain
+        set_temp_calls = [c for c in mock_service_call.call_args_list if c[0][0] == "climate" and c[0][1] == SERVICE_SET_TEMPERATURE]
+        logging.getLogger().info("set_temperature calls after temp change: %s", set_temp_calls)
+
+        # THIS IS THE BUG: Only 1 call is made instead of 3
+        # The bug is that the return statement inside the for loop exits after the first underlying
+        assert len(set_temp_calls) == 3, f"Expected 3 set_temperature calls for all underlyings, got {len(set_temp_calls)}. BUG: only first underlying was updated!"
+
+        # Verify each underlying received the new regulated temperature
+        entity_ids_called = [c[0][2]["entity_id"] for c in set_temp_calls]
+        assert "climate.mock_climate1" in entity_ids_called, "climate.mock_climate1 should have been called"
+        assert "climate.mock_climate2" in entity_ids_called, "climate.mock_climate2 should have been called"
+        assert "climate.mock_climate3" in entity_ids_called, "climate.mock_climate3 should have been called"
+
+        # Verify the temperature sent is the NEW regulated temperature
+        for call_args in set_temp_calls:
+            temp_sent = call_args[0][2]["temperature"]
+            assert temp_sent == new_regulated_temp, f"Temperature sent ({temp_sent}) should be the new regulated temp ({new_regulated_temp})"
