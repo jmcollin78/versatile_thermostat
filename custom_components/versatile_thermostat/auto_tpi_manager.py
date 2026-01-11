@@ -45,6 +45,7 @@ KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field 
 INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
+MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY = 20.0  # Min reliability (%) to use calibration instead of bootstrap
 
 
 @dataclass
@@ -2333,6 +2334,67 @@ class AutoTpiManager:
 
         return result
 
+    async def _try_pre_bootstrap_calibration(self) -> float | None:
+        """
+        Try to calibrate capacity from historical data before starting bootstrap.
+        
+        Calls the calibration service internally with min_power_threshold=80%.
+        If reliability >= MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY, returns max_capacity.
+        Otherwise, returns None to trigger bootstrap.
+        """
+        try:
+            # Build the thermostat entity_id from unique_id
+            thermostat_entity_id = f"climate.{self._unique_id}"
+            
+            # Get external temperature entity from thermostat state if available
+            ext_temp_entity_id = ""
+            thermostat_state = self._hass.states.get(thermostat_entity_id)
+            if thermostat_state:
+                ext_temp_entity_id = thermostat_state.attributes.get("ext_current_temperature_entity_id", "")
+            
+            _LOGGER.debug(
+                "%s - Auto TPI: Attempting pre-bootstrap calibration with min_power_threshold=80%%",
+                self._name
+            )
+            
+            result = await self.service_calibrate_capacity(
+                thermostat_entity_id=thermostat_entity_id,
+                ext_temp_entity_id=ext_temp_entity_id,
+                save_to_config=False,  # Do not save yet, just check
+                min_power_threshold=0.80,  # 80% power threshold for more samples
+            )
+            
+            if not result or not result.get("success"):
+                error = result.get("error", "unknown error") if result else "no result"
+                _LOGGER.debug(
+                    "%s - Auto TPI: Pre-bootstrap calibration failed: %s",
+                    self._name, error
+                )
+                return None
+            
+            reliability = result.get("reliability", 0.0)
+            max_capacity = result.get("max_capacity", 0.0)
+            
+            if reliability >= MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY and max_capacity > 0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Pre-bootstrap calibration returned reliability=%.1f%% (>= %.1f%%), capacity=%.2f °C/h",
+                    self._name, reliability, MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY, max_capacity
+                )
+                return max_capacity
+            else:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Pre-bootstrap calibration reliability too low (%.1f%% < %.1f%%) or capacity invalid (%.2f)",
+                    self._name, reliability, MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY, max_capacity
+                )
+                return None
+                
+        except Exception as e:
+            _LOGGER.warning(
+                "%s - Auto TPI: Pre-bootstrap calibration error: %s",
+                self._name, e
+            )
+            return None
+
     async def on_cycle_started(self, on_time_sec: float, off_time_sec: float, on_percent: float, hvac_mode: str):
         """Called when a TPI cycle starts."""
         # Detect if previous cycle was interrupted
@@ -2669,13 +2731,25 @@ class AutoTpiManager:
             )
         
         else:
-            # Mode 2: No manual capacity
-            # Bootstrap will automatically activate (capacity_heat_learn_count < 3)
-            # High coefficients will be used during first 3 cycles
-            _LOGGER.info(
-                "%s - Starting capacity bootstrap (TPI aggressive mode)",
-                self._name
-            )
+            # Mode 2: No manual capacity - Try pre-bootstrap calibration first
+            calibration_result = await self._try_pre_bootstrap_calibration()
+            
+            if calibration_result:
+                # Pre-calibration succeeded, skip bootstrap
+                self.state.max_capacity_heat = calibration_result
+                self.state.capacity_heat_learn_count = 3  # Mark as learned
+                _LOGGER.info(
+                    "%s - Auto TPI: Pre-bootstrap calibration succeeded (capacity=%.2f °C/h), skipping bootstrap",
+                    self._name, calibration_result
+                )
+            else:
+                # Pre-calibration failed or insufficient reliability, proceed with bootstrap
+                # Bootstrap will automatically activate (capacity_heat_learn_count < 3)
+                # High coefficients will be used during first 3 cycles
+                _LOGGER.info(
+                    "%s - Auto TPI: Pre-bootstrap calibration failed or insufficient reliability, starting capacity bootstrap (TPI aggressive mode)",
+                    self._name
+                )
 
         # Ensure max_capacity fallback for TPI mode (unchanged)
         if self.state.max_capacity_heat == 0.0:
