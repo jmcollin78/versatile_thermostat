@@ -653,7 +653,7 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self._attr_extra_state_attributes["specific_states"].update(
             {
                 "auto_tpi_state": ("on" if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else "off"),
-                "auto_tpi_learning": (self._auto_tpi_manager.state.to_dict() if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else {}),
+                "auto_tpi_learning": (self._auto_tpi_manager.get_filtered_state() if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else {}),
             }
         )
 

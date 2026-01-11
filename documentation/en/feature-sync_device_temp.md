@@ -79,7 +79,7 @@ VTherm:
 - Works with all devices exposing a calibration `number` entity,
 - The calibration is sent each time a new temperature is received from the room sensor independently of the _VTherm_ calculation cycle.
 
-#### Mode 2: Direct Copy of External Temperature
+### Mode 2: Direct Copy of External Temperature
 
 In this method, VTherm directly sends the room temperature to the device using the `external_temperature_input` entity or equivalent.
 

@@ -60,7 +60,7 @@ Eine falsche Einstellung dieser Schwellenwerte kann eine korrekte Selbstregulier
 Dieser in Version 4.3 eingeführte Modus erzwingt den Einsatz der Lüftung, wenn der Temperaturunterschied erheblich ist. Durch die Aktivierung der Belüftung erfolgt die Wärmeverteilung schneller, so dass die Zieltemperatur schneller erreicht werden kann.
 Sie können aus den folgenden Optionen wählen, welche Lüftungsstufe aktiviert werden soll: Niedrig, Mittel, Hoch, Turbo.
 
-Natürlich muss Ihr Gerät über eine Belüftung verfügen, und diese muss regelbar sein, damit dies funktioniert. Wenn Ihr Gerät nicht über den Turbo-Modus verfügt, wird stattdessen der Hoch-Modus verwendet. Sobald der Temperaturunterschied wieder klein wird, schaltet die Lüftung auf einen "normalen" Modus um, in Abhängigkeit von Ihrem Gerät (in dieser Reihenfolge): `Stumm`, `Auto`, `Niedrig`. Es wird der erste verfügbare Modus für Ihr Gerät gewählt.
+Natürlich muss Ihr Gerät über eine Belüftung verfügen, und diese muss regelbar sein, damit dies funktioniert. Wenn Ihr Gerät nicht über den Turbo-Modus verfügt, wird stattdessen der Hoch-Modus verwendet. Sobald der Temperaturunterschied wieder klein wird, schaltet die Lüftung auf einen "normalen" Modus um, in Abhängigkeit von Ihrem Gerät (in dieser Reihenfolge): `Stumm`, `Quiet`, `Auto`, `Niedrig`. Es wird der erste verfügbare Modus für Ihr Gerät gewählt.
 
 ### Kompensation der Innentemperatur des zugehörigen Geräts
 

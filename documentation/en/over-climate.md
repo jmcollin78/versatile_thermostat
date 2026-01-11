@@ -60,7 +60,7 @@ Improperly setting these thresholds may prevent correct self-regulation as new s
 This mode, introduced in version 4.3, forces the use of ventilation if the temperature difference is significant. By activating ventilation, heat distribution occurs more quickly, which helps achieve the target temperature faster.
 You can choose which ventilation level to activate from the following options: Low, Medium, High, Turbo.
 
-Of course, your underlying equipment must have ventilation, and it must be controllable for this to work. If your equipment doesn't include the Turbo mode, the High mode will be used instead. Once the temperature difference becomes small again, the ventilation will switch to a "normal" mode, which depends on your equipment (in order): `Mute`, `Auto`, `Low`. The first available mode for your equipment will be chosen.
+Of course, your underlying equipment must have ventilation, and it must be controllable for this to work. If your equipment doesn't include the Turbo mode, the High mode will be used instead. Once the temperature difference becomes small again, the ventilation will switch to a "normal" mode, which depends on your equipment (in order): `Mute`, `Quiet`, `Auto`, `Low`. The first available mode for your equipment will be chosen.
 
 ### Compensating for the Internal Temperature of the Underlying Equipment
 
