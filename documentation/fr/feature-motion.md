@@ -14,12 +14,13 @@ Si vous avez choisi la fonctionnalité `Avec détection de mouvement`, :
 
 ![image](images/config-motion.png)
 
-Ce dont nous avons besoin:
-- un **capteur de mouvement**. ID d'entité d'un capteur de mouvement. Les états du capteur de mouvement doivent être « on » (mouvement détecté) ou « off » (aucun mouvement détecté)
-- une durée de **délai d'activation** (en secondes) définissant combien de temps nous attendons la confirmation du mouvement avant de considérer le mouvement. Ce paramètre peut être **supérieur à la temporisation de votre détecteur de mouvement**, sinon la détection se fera à chaque mouvement signalé par le détecteur,
-- une durée de fin **délai de désactivation** (en secondes) définissant combien de temps nous attendons la confirmation d'une fin de mouvement avant de ne plus considérer le mouvement.
-- un **préréglage de "mouvement"**. Nous utiliserons la température de ce préréglage lorsqu'une activité sera détectée.
-- un **préréglage "pas de mouvement"**. Nous utiliserons la température de ce deuxième préréglage lorsqu'aucune activité n'est détectée.
+| Paramètre | Description | Nom d'attribut |
+| ---------- | ----------- | -------------- |
+| **Capteur de mouvement** | ID d'entité d'un capteur de mouvement. Les états du capteur de mouvement doivent être « on » (mouvement détecté) ou « off » (aucun mouvement détecté) | `motion_sensor_entity_id` |
+| **Délai d'activation** | Durée (en secondes) définissant combien de temps nous attendons la confirmation du mouvement avant de considérer le mouvement. Ce paramètre peut être **supérieur à la temporisation de votre détecteur de mouvement**, sinon la détection se fera à chaque mouvement signalé par le détecteur. | `motion_delay` |
+| **Délai de désactivation** | Durée (en secondes) définissant combien de temps nous attendons la confirmation d'une fin de mouvement avant de ne plus considérer le mouvement. | `motion_off_delay` |
+| **Préréglage de "mouvement"** | Nous utiliserons la température de ce préréglage lorsqu'une activité sera détectée. | `motion_preset` |
+| **Préréglage "pas de mouvement"** | Nous utiliserons la température de ce deuxième préréglage lorsqu'aucune activité n'est détectée. | `no_motion_preset` |
 
 ## Usage
 

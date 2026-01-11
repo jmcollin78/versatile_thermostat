@@ -23,8 +23,15 @@ Pokud jste vybrali termostat typu `over_switch`, `over_valve` nebo `over_climate
 ![image](images/config-tpi.png)
 
 Musíte zadat:
-1. koeficient `coef_int` pro algoritmus TPI,
-2. koeficient `coef_ext` pro algoritmus TPI.
+
+| Parametr | Popis | Název atributu |
+|----------|-------|----------------|
+| **Interní koeficient** | Koeficient `coef_int` pro algoritmus TPI. | `tpi_coef_int` |
+| **Externí koeficient** | Koeficient `coef_ext` pro algoritmus TPI. | `tpi_coef_ext` |
+| **Doba aktivace** | Minimální doba aktivace v sekundách. | `minimal_activation_delay` |
+| **Doba deaktivace** | Minimální doba deaktivace v sekundách. | `minimal_deactivation_delay` |
+| **Vysoký práh** | Odchylka teploty (°C nebo K), při jejímž překročení bude algoritmus deaktivován. | `tpi_threshold_high` |
+| **Nízký práh** | Odchylka teploty (°C nebo K), při jejímž podkročení bude algoritmus znovu aktivován. | `tpi_threshold_low` |
 
 ### Princip
 

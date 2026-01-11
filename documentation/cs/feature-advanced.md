@@ -31,12 +31,11 @@ Prodleva (`minimal_deactivation_delay_sec`) v sekundách je minimální přijate
 
 ### Bezpečnostní režim
 
-Druhá prodleva (`safety_delay_min`) je maximální čas mezi dvěma teplotními měřeními předtím, než _VTherm_ přepne do Bezpečnostního režimu.
-
-Třetí parametr (`safety_min_on_percent`) je minimální `on_percent`, pod kterým nebude Bezpečnostní režim aktivován. Toto nastavení zabraňuje aktivaci Bezpečnostního režimu, pokud ovládaný radiátor dostatečně netopí. V tomto případě není žádné fyzické riziko pro domov, pouze riziko přehřátí nebo nedotápění.
-Nastavení tohoto parametru na `0.00` spustí Bezpečnostní režim bez ohledu na poslední nastavení topení, zatímco `1.00` nikdy nespustí Bezpečnostní režim (efektivně funkci deaktivuje). To může být užitečné pro přizpůsobení bezpečnostního mechanismu vašim specifickým potřebám.
-
-Čtvrtý parametr (`safety_default_on_percent`) definuje `on_percent` používané, když termostat přepne do režimu `security`. Nastavení na `0` vypne termostat v Bezpečnostním režimu, zatímco nastavení na hodnotu jako `0.2` (20%) zajišťuje pokračování určitého vytápění, čímž se zabrání úplně zmrzlému domovu v případě selhání teploměru.
+| Parametr | Popis | Výchozí hodnota | Název atributu |
+| --------- | ----- | --------------- | -------------- |
+| **Maximální prodleva** | Maximální čas mezi dvěma teplotními měřeními předtím, než _VTherm_ přepne do Bezpečnostního režimu. | 60 minut | `safety_delay_min` |
+| **Minimální hodnota `on_percent`** | Minimální `on_percent`, pod kterým nebude Bezpečnostní režim aktivován. Zabraňuje aktivaci, pokud radiátor nedostatečně topí (riziko přehřátí/nedotápění bez fyzického nebezpečí). `0.00` vždy aktivuje, `1.00` deaktivuje. | 0.5 (50%) | `safety_min_on_percent` |
+| **Výchozí `on_percent` v Bezpečnostním režimu** | `on_percent` v Bezpečnostním režimu. `0` vypne termostat, `0.1` udržuje minimální vytápění, aby se zabránilo zmrznutí při selhání teploměru. | 0.1 (10%) | `safety_default_on_percent` |
 
 Je možné deaktivovat Bezpečnostní režim spouštěný chybějícími daty z venkovního teploměru. Protože venkovní teploměr má obvykle menší dopad na regulaci (závisí na vaší konfiguraci), nemusí být kritické, pokud není dostupný. Pro to přidejte následující řádky do vašeho `configuration.yaml`:
 

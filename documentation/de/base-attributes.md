@@ -7,36 +7,29 @@ Wählen Sie das Menü "Hauptmerkmale".
 
 ![image](images/config-main.png)
 
-Geben Sie die obligatorischen Hauptmerkmale an. Diese Merkmale sind für alle VTherms gleich:
-1. Ein Name (dies ist sowohl der Name der Integration als auch der `climate`-Entity-Name),
-2. Eine Entity-ID eines Temperatursensors aus dem Raum, in der der Heizkörper installiert ist,
-3. Diese Sensorentity ist optional, sie gibt das Datum und die Uhrzeit der letzten Meldung vom Sensor an (`last_seen`). Ist ein solcher Sensor vorhanden, bitte hier eintragen. Es hilft, Sicherheitsabschaltungen zu verhindern, wenn die Temperatur stabil ist und der Sensor für längere Zeit keine Meldungen mehr abgibt (siehe [hier](troubleshooting.md#why-does-my-versatile-thermostat-go-into-safety-mode)),
-4. Eine Zyklusdauer in Minuten. Bei jedem Zyklus:
-   1. Für `over_switch`: VTherm schaltet den Heizkörper ein/aus, dabei wird die Einschaltzeit moduliert,
-   2. Für `over_valve`: VTherm berechnet ein neues Ventilöffnungsniveau und sendet es, sobald es sich geändert hat,
-   3. Für `over_climate`: Der Zyklus führt grundlegende Kontrollen durch und berechnet die Selbstregulierungskoeffizienten neu. Der Zyklus kann zu einem neuen Sollwert führen, der an die darunter liegenden Geräte gesendet wird, oder zu einer Anpassung der Ventilöffnung im Falle eines steuerbaren Regelventils (TRV).
-5. Die Geräteleistung, aktiviert die Leistungs- und Energieverbrauchssensoren des Gerätes. Wenn mehrere Geräte mit demselben VTherm verbunden sind, geben Sie hier die maximale Gesamtleistung aller Geräte an. Die Leistungseinheit ist hier nicht wichtig. Wichtig ist, dass alle _VTherm_ und alle Leistungssensoren die gleiche Einheit haben (siehe: Lastabwurf-Funktion),
-6. Die Möglichkeit, zusätzliche Parameter aus der zentralen Konfiguration zu verwenden:
-   1. Außentemperaturfühler,
-   2. Minimale/maximale Temperatur und Temperaturschrittweite,
-7. Die Option zur zentralen Steuerung des Thermostats. Siehe [centralized control](#centralized-control),
-8. Ein Aktivierungsfeld, wenn dieses VTherm zur Auslösung eines zentralen Heizkessels verwendet wird.
-
-> ![Tip](images/tips.png) _*Hinweise*_
->  1. Bei den Typen `over_switch` und `over_valve` werden die Berechnungen bei jedem Zyklus durchgeführt. Wenn sich die Bedingungen ändern, werden diese erst im nächsten Zyklus sichtbar. Daher sollte der Zyklus nicht zu lang sein. **5 Minuten sind ein guter Wert**, der jedoch an Ihren Heizungstyp angepasst werden sollte. Je größer die Trägheit ist, desto länger sollte der Zyklus sein. Siehe [Tuning-Beispiele](tuning-examples.md).
->  2. Ist der Zyklus zu kurz, erreicht der Heizkörper möglicherweise nie die Zieltemperatur. Bei einer Speicherheizung beispielsweise wird sie unnötigerweise aktiviert.
+| Attribut | Beschreibung | Attributname |
+| --------- | ------------ | ------------ |
+| **Name** | Name der Entity (dies wird der Name der Integration und der `climate`-Entity sein). | |
+| **Temperatursensor** | Entity-ID des Sensors, der die Raumtemperatur liefert, wo das Gerät installiert ist. | |
+| **Zuletzt aktualisierter Sensor (optional)** | Verhindert Sicherheitsabschaltungen, wenn Temperatur stabil und Sensor nicht mehr meldet. (siehe [troubleshooting](troubleshooting.md#why-does-my-versatile-thermostat-go-into-safety-mode)) | |
+| **Zyklusdauer** | Dauer in Minuten zwischen jeder Berechnung. Für `over_switch`: moduliert Ein/Aus-Zeit. Für `over_valve`: berechnet Ventilöffnung. Für `over_climate`: führt Kontrollen durch und berechnet Selbstregulierungskoeffizienten neu. Bei den Typen `over_switch` und `over_valve` werden die Berechnungen bei jedem Zyklus durchgeführt. Wenn sich die Bedingungen ändern, werden diese erst im nächsten Zyklus sichtbar. Daher sollte der Zyklus nicht zu lang sein. 5 Minuten sind ein guter Wert, der jedoch an Ihren Heizungstyp angepasst werden sollte. Je größer die Trägheit ist, desto länger sollte der Zyklus sein. Siehe [Tuning-Beispiele](tuning-examples.md). Ist der Zyklus zu kurz, erreicht der Heizkörper möglicherweise nie die Zieltemperatur. Bei einer Speicherheizung beispielsweise wird sie unnötigerweise aktiviert. | `cycle_min` |
+| **Geräteleistung** | Aktiviert Leistungs-/Energiesensoren. Gesamt angeben, wenn mehrere Geräte (gleiche Einheit wie andere VTherms und Sensoren). (siehe: Lastabwurf-Funktion) | `device_power` |
+| **Zentralisierte zusätzliche Parameter** | Verwendet Außentemperatur, Min/Max/Schritt-Temperatur aus zentraler Konfiguration. | |
+| **Zentralisierte Steuerung** | Ermöglicht zentralisierte Thermostatsteuerung. Siehe [centralized control](#centralized-control) | `is_controlled_by_central_mode` |
+| **Zentraler Heizkessel-Trigger** | Aktivierungsfeld, um dieses VTherm als Trigger für zentralen Heizkessel zu verwenden. | `is_used_by_central_boiler` |
 
 # Auswahl der zu verwendenden Eigenschaften
 
 Wählen Sie das Menü "Eigenschaften".
 ![image](images/config-features.png)
 
-Wählen Sie die Eigenschaften, die Sie für dieses VTherm verwenden möchten:
-1. Erkennung von Öffnungen (Türen, Fenster), um die Heizung abzuschalten, wenn die Öffnung offen ist. (siehe [Öffnungsmanagement](feature-window.md)),
-2. Bewegungserkennung: VTherm kann eine Temperatursollwert anpassen, wenn eine Bewegung im Raum erkannt wird (siehe [Bewegungserkennung](feature-motion.md)),
-3. Energieverwaltung: VTherm kann ein Gerät abschalten, wenn der Stromverbrauch in Ihrer Wohnung einen Schwellenwert überschreitet. (siehe [Energieverwaltung](feature-power.md)),
-4. Anwesenheitserkennung: Wenn Sie einen Sensor haben, der anzeigt, ob sich jemand in der Wohnung befidnet, kann dieser verwendet werden, um die Solltemperatur zu ändern. Siehe [Anwesenheitserkennung](feature-presence.md). Beachten Sie den Unterschied zwischen dieser Funktion und der Bewegungserkennung. Die Anwesenheitserkennung ist eher für die gesamte Wohnung gedacht, während die Bewegungserkennung eher für einzelne Räume gedacht ist.
-5. Automatischer Start/Stopp: Nur für `over_climate` VTherms. Diese Funktion kann ein Gerätausgeschaltet werden, wenn VTherm feststellt, dass es für einen bestimmten Zeitraum nicht benötigt wird. Anhand der Temperaturkurve wird vorhergesagt, wann das Gerät wieder benötigt wird, und zu diesem Zeitpunkt wieder eingeschaltet. Siehe [Start/Stopp-Automatik](feature-auto-start-stop.md).
+| Eigenschaft | Beschreibung | Attributname |
+| ------------ | ------------ | ------------ |
+| **Mit Öffnungserkennung** | Stoppt Heizung bei Öffnung von Türen/Fenstern. (siehe [Öffnungsmanagement](feature-window.md)) | `is_window_configured` |
+| **Mit Bewegungserkennung** | Passt Solltemperatur bei Bewegungserkennung im Raum an. (siehe [Bewegungserkennung](feature-motion.md)) | `is_motion_configured` |
+| **Mit Energieverwaltung** | Stoppt Gerät bei Überschreitung des Stromverbrauchsschwellenwerts. (siehe [Energieverwaltung](feature-power.md)) | `is_power_configured` |
+| **Mit Anwesenheitserkennung** | Ändert Solltemperatur basierend auf Anwesenheit/Abwesenheit. Unterscheidet sich von Bewegungserkennung (Wohnung vs Raum). (siehe [Anwesenheitserkennung](feature-presence.md)) | `is_presence_configured` |
+| **Mit automatischem Start/Stopp** | Nur für `over_climate`: stoppt/startet Gerät basierend auf Temperaturkurvenvorhersage. (siehe [Start/Stopp-Automatik](feature-auto-start-stop.md)) | `is_window_auto_configured` |
 
 > ![Tip](images/tips.png) _*Hinweise*_
 > 1. Die Liste der verfügbaren Eigenschaften passt sich an Ihren VTherm-Typ an.

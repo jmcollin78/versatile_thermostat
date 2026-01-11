@@ -7,24 +7,16 @@ Choisisez le menu "Principaux attributs".
 
 ![image](images/config-main.png)
 
-Donnez les principaux attributs obligatoires. Ces attributs sont communs à tous les _VTherm_ :
-1. un nom (sera le nom de l'intégration et aussi le nom de l'entité `climate`)
-2. un identifiant d'entité de capteur de température qui donne la température de la pièce dans laquelle l'appareil est installé,
-3. une entité facultative de capteur de donnant la date et heure de dernière vue du capteur (`last_seen`). Si vous avez ce capteur donnez le ici, il permet d'éviter des mises en sécurité lorsque la température est stable et que le capteur ne remonte plus de température pendant longtemps. (cf. [ici](troubleshooting.md#pourquoi-mon-versatile-thermostat-se-met-en-securite-)),
-4. une durée de cycle en minutes. A chaque cycle :
-   1. `over_switch` : VTherm allumera/éteindra l'appareil en modulant la proportion de temps allumé,
-   2. `over_valve` : VTherm calculera une nouvelle ouverture de la vanne et lui enverra si elle a changée,
-   3. `over_climate` : le cycle permet d'effectuer les contrôles de base et recalcule les coefficients de l'auto-régulation. Le cycle peut déboucher sur une nouvelle consigne envoyée au sous-jacents ou sur une modification d'ouverture de la vanne dans le cas d'un _TRV_ dont la vanne est commandable.
-5. une puissance de l'équipement ce qui va activer les capteurs de puissance et énergie consommée par l'appareil. Si plusieurs équipements sont reliés au même VTherm, il faut indiquer ici le total des puissances max des équipements. L'unité n'est pas importante. Ce qui est important c'est toutes les puissances de tous les _VTherm_ soient dans la même unité ainsi que les éventuels capteurs de puissance (cf. la fonction de délestage),
-6.  la possibilité d'utiliser des paramètres complémentaires venant de la configuration centralisée :
-    1.  capteur de température extérieure,
-    2.  température minimale / maximale et pas de température
-7.  la possibilité de controler le thermostat de façon centralisée. Cf [controle centralisé](#le-contrôle-centralisé),
-8. une case à cocher si ce VTherm est utilisé pour déclencher une éventuelle chaudière centrale.
-
-> ![Astuce](images/tips.png) _*Notes*_
->  1. avec les types ```over_switch``` et ```over_valve```, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. **5 min est une bonne valeur** mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. [Exemples de réglages](tuning-examples.md),
->  2. si le cycle est trop court, l'appareil ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement.
+| Attribut | Description | Nom d'attribut |
+| --------- | ----------- | -------------- |
+| **Nom** | Nom de l'entité (cela sera le nom de l'intégration et de l'entité `climate`). | |
+| **Capteur de température** | Identifiant du capteur donnant la température de la pièce où l'appareil est installé. | |
+| **Capteur dernière mise à jour (optionnel)** | Évite les mises en sécurité quand la température est stable et que le capteur ne remonte plus. (cf. [troubleshooting](troubleshooting.md#pourquoi-mon-versatile-thermostat-se-met-en-securite-)) | |
+| **Durée de cycle** | Durée en minutes entre chaque calcul. Pour `over_switch` : modulation du temps allumé. Pour `over_valve` : calcul ouverture vanne. Pour `over_climate` : contrôles et recalcul coefficients auto-régulation. Avec les types `over_switch` et `over_valve`, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. 5 min est une bonne valeur mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. [Exemples de réglages](tuning-examples.md). Si le cycle est trop court, l'appareil ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement. | `cycle_min` |
+| **Puissance de l'équipement** | Active capteurs puissance/énergie. Indiquer total si plusieurs équipements (même unité que autres VTherm et capteurs). (cf. fonction de délestage) | `device_power` |
+| **Paramètres complémentaires centralisés** | Utilise température extérieure, min/max/pas de température de la configuration centrale. | |
+| **Contrôle centralisé** | Permet contrôle centralisé du thermostat. Cf [controle centralisé](#le-contrôle-centralisé) | `is_controlled_by_central_mode` |
+| **Déclencheur de chaudière centrale** | Case à cocher pour utiliser ce VTherm comme déclencheur de chaudière centrale. | `is_used_by_central_boiler` |
 
 # Choix des fonctions utilisées
 
@@ -32,12 +24,13 @@ Choisissez le menu "Fonctions".
 
 ![image](images/config-features.png)
 
-Les différentes fonctions que vous souhaitez utiliser pour ce VTherm :
-1. la détection d'ouvertures (portes, fenêtres) permettant de stopper le chauffage lorsque l'ouverture est ouverte. (cf. [gestion des ouvertures](feature-window.md))
-2. la détection de mouvement : VTherm peut adapter une consigne de température lorsqu'un mouvement est détecté dans la pièce. (cf. [détection du mouvement](feature-motion.md))
-3. la gestion de la puissance : VTherm peut stopper un équipement si la puissance consommée dans votre habitation dépasse un seuil. (cf. [gestion du délestage](feature-power.md))
-4. la détection de présence : si vous avez un capteur indiquant une présence ou non dans votre habitation, vous pouvez l'utiliser pour changer la température de consigne. Cf. [gestion de la présence](feature-presence.md). Attention de ne pas confondre cette fonction avec la détection de mouvement. La présence est plus faite pour être à l'échelle de l'habitation alors que le mouvement est plus fait pour être à l'échelle de la pièce.
-5. l'arrêt/démarrage automatique : pour les VTherm de type `over_climate` uniquement. Cette fonction permet d'arrêter un équipement lorsque VTherm détete qu'il ne sera plus néessaire pendant un certain temps. Il utilise la courbe de température pour prévoir quand l'équipement sera de nouveau utile et le rallumera à ce moment là. Cf. [gestion de l'arrêt/démarrage automatique](feature-auto-start-stop.md)
+| Fonction | Description | Nom d'attribut |
+| --------- | ----------- | -------------- |
+| **Avec détection d'ouvertures** | Stoppe le chauffage à l'ouverture de portes/fenêtres. (cf. [gestion des ouvertures](feature-window.md)) | `is_window_configured` |
+| **Avec détection de mouvement** | Adapte la consigne de température à la détection de mouvement dans la pièce. (cf. [détection du mouvement](feature-motion.md)) | `is_motion_configured` |
+| **Avec gestion de la puissance** | Stoppe l'équipement si la puissance consommée dépasse un seuil. (cf. [gestion du délestage](feature-power.md)) | `is_power_configured` |
+| **Avec détection de présence** | Change la température de consigne selon présence/absence. Diffère de la détection de mouvement (habitation vs pièce). (cf. [gestion de la présence](feature-presence.md)) | `is_presence_configured` |
+| **Avec arrêt/démarrage automatique** | Pour `over_climate` uniquement : arrête/rallume l'équipement selon prévision via courbe de température. (cf. [gestion de l'arrêt/démarrage automatique](feature-auto-start-stop.md)) | `is_window_auto_configured` |
 
 
 > ![Astuce](images/tips.png) _*Notes*_

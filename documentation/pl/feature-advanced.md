@@ -22,12 +22,11 @@ Ekran konfiguracji zaawansowanej wygląda następujaco:
 
 ### Tryb bezpieczny
 
-Drugie opóźnienie (`safety_delay_min`) to maksymalny czas pomiędzy dwoma pomiarami temperatury, po którym termostat VTherm przełącza się na Tryb Bezpieczny (Safety Mode).
-
-Trzeci parametr (`safety_min_on_percent`) to minimalna wartość `on_percent`, poniżej której Tryb Bezpieczny nie zostanie aktywowany. To ustawienie zapobiega aktywacji Trybu Bezpieczny, jeśli grzejnik nie nagrzewa się wystarczająco. W takim przypadku nie ma fizycznego zagrożenia dla domu, istnieje jedynie ryzyko przegrzania lub niedogrzania. 
-Ustawienie tego parametru na `0.00` spowoduje uruchomienie Trybu Bezpiecznego niezależnie od ostatniego ustawienia ogrzewania, natomiast wartość `1.00` nigdy nie uruchomi Trybu Bezpiecznego (w praktyce wyłączając tę funkcję). Może to być przydatne do dostosowania mechanizmu bezpieczeństwa do Twoich specyficznych potrzeb.
-
-Czwarty parametr (`safety_default_on_percent`) definiuje wartość `on_percent` używaną, gdy termostat przełącza się w Tryb Bezpieczny. Ustawienie go na `0` wyłączy termostat w Trybie Bezpiecznym, natomiast ustawienie na wartość taką jak `0.2` (20%) zapewni pewien poziom ogrzewania, zapobiegając całkowitemu wychłodzeniu pomieszczenia w przypadku awarii termometru.
+| Parametr | Opis | Wartość domyślna | Nazwa atrybutu |
+| --------- | ---- | ---------------- | -------------- |
+| **Maksymalne opóźnienie** | Maksymalny czas pomiędzy dwoma pomiarami temperatury, po którym termostat VTherm przełącza się na Tryb Bezpieczny (Safety Mode). | 60 minut | `safety_delay_min` |
+| **Minimalna wartość `on_percent`** | Minimalna wartość `on_percent`, poniżej której Tryb Bezpieczny nie zostanie aktywowany. Zapobiega aktywacji, jeśli grzejnik nie nagrzewa się wystarczająco (ryzyko przegrzania/niedogrzania bez fizycznego zagrożenia). `0.00` zawsze uruchamia, `1.00` wyłącza. | 0.5 (50%) | `safety_min_on_percent` |
+| **Domyślna wartość `on_percent` w Trybie Bezpiecznym** | Wartość `on_percent` w Trybie Bezpiecznym. `0` wyłącza termostat, `0.1` utrzymuje minimalne ogrzewanie, aby zapobiec wychłodzeniu przy awarii termometru. | 0.1 (10%) | `safety_default_on_percent` |
 
 Możliwe jest wyłączenie Trybu Bezpiecznego uruchamianego przez brak danych z termometru zewnętrznego. Ponieważ termometr zewnętrzny zazwyczaj ma niewielki wpływ na regulację (w zależności od konfiguracji), jego niedostępność może nie być krytyczna. Aby to zrobić, dodaj poniższe linie kodu do pliku  `configuration.yaml`:
 

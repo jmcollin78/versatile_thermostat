@@ -1,6 +1,3 @@
-> [!NOTE]
-> **Convention de lecture :** Dans cette documentation, les descriptions de paramètres sont suivies d'une flèche `→` indiquant le nom de l'**attribut correspondant** tel qu'il apparaît dans l'entité Home Assistant (via les *Outils de développement*).
-
 # Les différents algorithmes utilisés
 
 - [Les différents algorithmes utilisés](#les-différents-algorithmes-utilisés)
@@ -29,14 +26,14 @@ Si votre _Vtherm_ a un TPI et que vous sélectionnez l'option "TPI" vous menu, v
 
 ### Paramètres de configuration
 
-Vous devez définir les éléments suivants :
-
-* **Coefficient interne :** Le coefficient `coef_int` de l'algorithme TPI. → `tpi_coef_int`
-* **Coefficient externe :** Le coefficient `coef_ext` de l'algorithme TPI. → `tpi_coef_ext`
-* **Délai d'activation :** Durée minimale d'activation en secondes. → `minimal_activation_delay`
-* **Délai d'extinction :** Durée minimale d'extinction en secondes. → `minimal_deactivation_delay`
-* **Seuil haut :** Écart de température (°C ou K) au-dessus duquel l'algorithme sera éteint. → `tpi_threshold_high`
-* **Seuil bas :** Écart de température (°C ou K) en dessous duquel l'algorithme sera activé. → `tpi_threshold_low`
+| Paramètre | Description | Nom d'attribut |
+|-----------|-------------|---------------|
+| **Coefficient interne** | Le coefficient `coef_int` de l'algorithme TPI. | `tpi_coef_int` |
+| **Coefficient externe** | Le coefficient `coef_ext` de l'algorithme TPI. | `tpi_coef_ext` |
+| **Délai d'activation** | Durée minimale d'activation en secondes. | `minimal_activation_delay` |
+| **Délai d'extinction** | Durée minimale d'extinction en secondes. | `minimal_deactivation_delay` |
+| **Seuil haut** | Écart de température (°C ou K) au-dessus duquel l'algorithme sera éteint. | `tpi_threshold_high` |
+| **Seuil bas** | Écart de température (°C ou K) en dessous duquel l'algorithme sera activé. | `tpi_threshold_low` |
 
 
 ### Principe

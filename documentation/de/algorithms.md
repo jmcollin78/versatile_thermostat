@@ -25,12 +25,15 @@ Wenn Sie einen Thermostat vom Typ `over_switch`, `over_valve` oder `over_climate
 ![image](images/config-tpi.png)
 
 Folgendes muss angegeben werden:
-1. der `coef_int`-Faktor des TPI-Algorithmus,
-2. der `coef_ext`-Faktor des TPI-Algorithmus,
-3. eine minimale aktivierungszeit in Sekunden,
-4. eine minimale Deaktivierungszeit in Sekunden,
-5. einen oberen Schwellenwert in °C (oder °K) für die Temperaturabweichung, bei dessen überschreiten der Algorithmus deaktiviert wird,,
-6. einen unteren Schwellenwert in °C (oder °K) für die Temperaturabweichung, bei dessen Unterschreitung der Algorithmus wieder aktiviert wird.
+
+| Parameter | Beschreibung | Attributname |
+|-----------|--------------|--------------|
+| **Interner Koeffizient** | Der `coef_int`-Faktor des TPI-Algorithmus. | `tpi_coef_int` |
+| **Externer Koeffizient** | Der `coef_ext`-Faktor des TPI-Algorithmus. | `tpi_coef_ext` |
+| **Aktivierungsverzögerung** | Minimale Aktivierungszeit in Sekunden. | `minimal_activation_delay` |
+| **Deaktivierungsverzögerung** | Minimale Deaktivierungszeit in Sekunden. | `minimal_deactivation_delay` |
+| **Hoher Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Überschreitung der Algorithmus deaktiviert wird. | `tpi_threshold_high` |
+| **Niedriger Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Unterschreitung der Algorithmus wieder aktiviert wird. | `tpi_threshold_low` |
 
 ### Prinzip
 

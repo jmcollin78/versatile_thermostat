@@ -15,11 +15,14 @@ Wenn Sie die Funktion `Mit Bewegungserkennung` gewählt haben:
 ![image](images/config-motion.png)
 
 Das brauchen wir::
-- ein **Bewegungsmelder**. Entitäts-ID eines Bewegungssensors. Der Zustand des Weg- und/oder Geschwindigkeitsgebers muss "ein" (Bewegung erkannt) oder "aus" (keine Bewegung erkannt) sein,
-- eine **Erkennungsverzögerung** (in Sekunden), die festlegt, wie lange wir auf die Bestätigung der Bewegung warten, bevor wir die Bewegung berücksichtigen. Dieser Parameter kann **größer sein als die Verzögerung Ihres Bewegungssensors**, andernfalls wird die Erkennung bei jeder vom Sensor erkannten Bewegung erfolgen,
-- eine **Inaktivitätsverzögerung** (in Sekunden), die festlegt, wie lange wir auf die Bestätigung warten, dass kein Auftrag vorliegt, bevor wir den Auftrag nicht mehr berücksichtigen,
-- eine **Voreinstellung "Bewegung"**. Wir verwenden die Temperatur dieser Voreinstellung, wenn eine Aktivität erkannt wird,
-- eine **Voreinstellung "keine Bewegung"**. Wir werden die Temperatur dieser zweiten Voreinstellung verwenden, wenn keine Aktivität erkannt wird.
+
+| Parameter | Beschreibung | Attributname |
+|-----------|-------------|--------------|
+| **Bewegungsmelder** | Entitäts-ID eines Bewegungssensors. Der Zustand des Weg- und/oder Geschwindigkeitsgebers muss "ein" (Bewegung erkannt) oder "aus" (keine Bewegung erkannt) sein. | `motion_sensor_entity_id` |
+| **Erkennungsverzögerung** | Verzögerung in Sekunden, die festlegt, wie lange wir auf die Bestätigung der Bewegung warten, bevor wir die Bewegung berücksichtigen. Dieser Parameter kann **größer sein als die Verzögerung Ihres Bewegungssensors**, andernfalls wird die Erkennung bei jeder vom Sensor erkannten Bewegung erfolgen. | `motion_delay_sec` |
+| **Inaktivitätsverzögerung** | Verzögerung in Sekunden, die festlegt, wie lange wir auf die Bestätigung warten, dass kein Auftrag vorliegt, bevor wir den Auftrag nicht mehr berücksichtigen. | `motion_off_delay_sec` |
+| **Voreinstellung "Bewegung"** | Wir verwenden die Temperatur dieser Voreinstellung, wenn eine Aktivität erkannt wird. | `motion_preset` |
+| **Voreinstellung "keine Bewegung"** | Wir werden die Temperatur dieser zweiten Voreinstellung verwenden, wenn keine Aktivität erkannt wird. | `no_motion_preset` |
 
 ## Anwendung
 

@@ -14,12 +14,13 @@ If you have chosen the `With motion detection` feature:
 
 ![image](images/config-motion.png)
 
-What we need:
-- a **motion sensor**. Entity ID of a motion sensor. The states of the motion sensor must be "on" (motion detected) or "off" (no motion detected),
-- a **detection delay** (in seconds) defining how long we wait for confirmation of the motion before considering the motion. This parameter can be **greater than your motion sensor's delay**, otherwise, the detection will happen with every motion detected by the sensor,
-- an **inactivity delay** (in seconds) defining how long we wait for confirmation of no motion before no longer considering the motion,
-- a **"motion" preset**. We will use the temperature of this preset when activity is detected,
-- a **"no motion" preset**. We will use the temperature of this second preset when no activity is detected.
+| Parameter | Description | Attribute Name |
+| ---------- | ----------- | -------------- |
+| **Motion Sensor** | Entity ID of a motion sensor. The states of the motion sensor must be "on" (motion detected) or "off" (no motion detected). | `motion_sensor_entity_id` |
+| **Detection Delay** | Duration (in seconds) defining how long we wait for confirmation of the motion before considering the motion. This parameter can be **greater than your motion sensor's delay**, otherwise, the detection will happen with every motion detected by the sensor. | `motion_delay` |
+| **Inactivity Delay** | Duration (in seconds) defining how long we wait for confirmation of no motion before no longer considering the motion. | `motion_off_delay` |
+| **"Motion" Preset** | We will use the temperature of this preset when activity is detected. | `motion_preset` |
+| **"No Motion" Preset** | We will use the temperature of this second preset when no activity is detected. | `no_motion_preset` |
 
 ## Usage
 

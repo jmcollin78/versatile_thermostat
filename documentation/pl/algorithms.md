@@ -25,12 +25,15 @@ Jeśli wybrałeś typ termostatu `Na Przełączniku`, `Na Zaworze`, lub `Na Klim
 ![image](images/config-tpi.png)
 
 Musisz tutaj określić:
-1. współczynnik `współczynnik delty dla temperatury wewnętrznej` algorytmu TPI,
-2. współczynnik `współczynnik delty dla temperatury zewnętrznej` algorytmu TPI,
-3. minimalny czas aktywacji (w sek.),
-4. minimalny czas deaktywacji (w sek.),
-5. górny próg odcięcia w °C (lub °K) dla odchylenia temperatury, powyżej którego algorytm zostanie wyłączony,
-6. dolny próg ponownej aktywacji w °C (lub °K) dla odchylenia temperatury, poniżej którego algorytm zostanie ponownie włączony.
+
+| Parametr | Opis | Nazwa atrybutu |
+|----------|------|----------------|
+| **Wewnętrzny współczynnik** | Współczynnik `współczynnik delty dla temperatury wewnętrznej` algorytmu TPI. | `tpi_coef_int` |
+| **Zewnętrzny współczynnik** | Współczynnik `współczynnik delty dla temperatury zewnętrznej` algorytmu TPI. | `tpi_coef_ext` |
+| **Opóźnienie aktywacji** | Minimalny czas aktywacji w sekundach. | `minimal_activation_delay` |
+| **Opóźnienie deaktywacji** | Minimalny czas deaktywacji w sekundach. | `minimal_deactivation_delay` |
+| **Górny próg** | Odchylenie temperatury (°C lub K), powyżej którego algorytm zostanie wyłączony. | `tpi_threshold_high` |
+| **Dolny próg** | Odchylenie temperatury (°C lub K), poniżej którego algorytm zostanie ponownie włączony. | `tpi_threshold_low` |
 
 ### Zasady
 
