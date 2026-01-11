@@ -32,41 +32,26 @@ Auto TPI configuration is integrated into the TPI configuration flow for **each 
 
 Once checked, a dedicated configuration wizard appears in several steps:
 
-### Step 1: General
+### Step 1: Configuration
 
 *   **Enable Auto TPI**: Allows enabling or disabling learning.
-*   **Notification**: If enabled, a notification will be sent **only** when learning is considered complete ( 50 cycles per coefficient ).
-*   **Update Configuration**: If this option is checked, the learned TPI coefficients will be **automatically** saved to the thermostat's configuration **only when learning is considered complete**. If this option is unchecked, the learned coefficients are used for the ongoing TPI regulation but are not saved to the configuration.
-*   **Continuous Learning** (`auto_tpi_continuous_learning`): If enabled, learning will continue indefinitely, even after the initial 50 cycles are completed. This allows the thermostat to continuously adapt to gradual changes in the thermal environment (e.g., seasonal changes, house aging). If this option is checked, learned parameters will be saved to config (if **Update Configuration** is also checked) at the end of every cycle once the model is considered "stable" (e.g., after the first 50 cycles).
-    *   **Failure Resilience**: In continuous mode, consecutive failures do not stop learning. The system skips faulty cycles and continues adapting.
-    *   **Regime Change Detection**: When continuous learning is enabled, the system monitors recent learning errors. If a **systematic bias** is detected (e.g., due to a change in season, insulation, or heating system), the learning rate (alpha) is **temporarily boosted** (up to 3x, capped at 15%) to accelerate adaptation. This feature helps the thermostat quickly adjust to new thermal conditions without manual intervention.
-*   **Keep external coefficient learning** (`auto_tpi_keep_ext_learning`): If enabled, the external coefficient (`Kext`) will continue learning even after reaching 50 cycles, as long as the internal coefficient (`Kint`) has not reached stability.  
-**Note:** Persistence to the configuration only occurs when both coefficients are stable.
+*   **Learning Type** (`auto_tpi_learning_type`): Select the strategy best suited for your needs:
+    *   **Discovery**: Recommended for initial activation. Uses the "Weighted Average" method (weight 1). Ideal for quickly converging to stable coefficients.
+    *   **Fine Tuning**: For refining existing learning. Uses the EWMA method (Alpha 0.08, Decay 0.12).
+*   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-rate-configuration)). Leave at 0 to enable automatic bootstrap.
 *   **Heating/Cooling Time**: Define your radiator's inertia ([see Thermal Configuration](#thermal-configuration-critical)).
-*   **Indoor Coefficient Cap**: Safety limits for indoor coefficient (`max 3.0`). **Note**: If this limit is changed in the configuration flow, the new value is **immediately** applied to the learned coefficients if they exceed the new limit (which requires an integration reload, which is the case after saving a modification via options).
-
-*   **Heating Rate** (`auto_tpi_heating_rate`): Target rate of temperature increase in °C/h. ([see rates Configuration](#heating-rate-configuration))
 *   **Aggressiveness** (`auto_tpi_aggressiveness`): Multiplicative factor applied to the calculated ratio (50-100%, default 100%). Lower values make the coefficient adjustment more conservative.
+*   **Enable Advanced Parameters**: Check this box to access method settings (Weight, Alpha, Decay).
 
-    *Note: You don’t necessarily want to use the maximum heating rate. You can perfectly well use a lower value depending on the heating system sizing, **and it is highly recommended**.
-    The closer you are to the maximum capacity, the higher the Kint coefficient determined during the learning process will be.*
+### Step 2: Method Parameters (If Advanced)
 
-    *So once your capacity is defined by the dedicated service action, or estimated manually, you should use a reasonable heating rate.
-   **The most important thing is not to be above what your radiator can provide in this room.**
-    ex: Your measured adiabatic capacity is 1.5°/h, 1°/h is a standard and reasonable constant to use.*
+If you enabled advanced parameters, you can fine-tune the hyperparameters of the chosen algorithm (Average or EMA):
+*   **Average**: Initial weight (`auto_tpi_avg_initial_weight`).
+*   **EMA**: Initial Alpha (`auto_tpi_ema_alpha`) and Decay Rate (`auto_tpi_ema_decay_rate`).
 
-### Step 2: Method
+> **Note on Max Coefficient**: The internal coefficient is now capped at 1.0 by default to prevent instability.
 
-Choose the learning algorithm:
-*   **Average**: Simple weighted average. Ideal for fast, one-time learning (resets easily).
-*   **EMA (Exponential Moving Average)**: Exponential moving average. Highly recommended for continuous, long-term learning and fine-tuning, as it favors recent values.
-
-
-### Step 3: Method Parameters
-
-Configure the specific parameters for the chosen method:
-*   **Average**: Initial weight.
-*   **EMA**: Initial Alpha and Decay Rate.
+> **Simplification**: Notification, automatic configuration update, and external learning preservation options are now enabled by default to simplify usage. Continuous learning is disabled by default.
 
 ### Thermal Configuration (Critical)
 
@@ -343,7 +328,7 @@ Where:
 
 ## Adaptive EMA Calculation Method
 
-The EMA (Exponential Moving Average) method uses an **alpha** coefficient that determines 
+The EMA (Exponential Moving Average) method uses an **alpha** coefficient that determines
 the influence of each new cycle on the learned coefficients.
 
 ### Behavior
@@ -381,8 +366,8 @@ Where `n` is the number of learning cycles (capped at 50).
 
 | Situation | Alpha (`ema_alpha`) | Decay Rate (`ema_decay_rate`) |
 |---|---|---|
-| **Initial Learning** | `0.15` | `0.08` |
-| **Fine-tuning Learning** | `0.08` | `0.12` |
+| **Strong adjustments** | `0.15` | `0.08` |
+| **Fine tuning** | `0.08` | `0.12` |
 | **Continuous Learning** | `0.05` | `0.02` |
 
 **Explanations:**

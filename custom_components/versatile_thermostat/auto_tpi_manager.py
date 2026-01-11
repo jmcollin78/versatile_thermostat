@@ -167,22 +167,17 @@ class AutoTpiManager:
         heater_heating_time: int = 5,
         heater_cooling_time: int = 5,
         calculation_method: str = "ema",
-        max_coef_int: float = 1.0,
         heating_rate: float = 1.0,
         cooling_rate: float = 1.0,
         avg_initial_weight: int = 1,
         ema_alpha: float = 0.15,
         ema_decay_rate: float = 0.08,
-        continuous_learning: bool = False,
-        keep_ext_learning: bool = False,
-        enable_update_config: bool = False,
-        enable_notification: bool = False,
         aggressiveness: float = 0.9,
     ):
         self._hass = hass
         self._config_entry = config_entry
-        self._enable_update_config = enable_update_config
-        self._enable_notification = enable_notification
+        self._enable_update_config = True
+        self._enable_notification = True
         self._unique_id = unique_id
         self._name = name
         self._cycle_min = cycle_min
@@ -198,13 +193,13 @@ class AutoTpiManager:
         self._calculation_method = calculation_method
         self._ema_alpha = ema_alpha
         self._avg_initial_weight = avg_initial_weight
-        self._max_coef_int = max_coef_int
+        self._max_coef_int = 1.0
         # Convert rates to Celsius/h if needed
         self._heating_rate = heating_rate / self._unit_factor
         self._cooling_rate = cooling_rate / self._unit_factor
         self._ema_decay_rate = ema_decay_rate
-        self._continuous_learning = continuous_learning
-        self._keep_ext_learning = keep_ext_learning
+        self._continuous_learning = False
+        self._keep_ext_learning = True
         self._aggressiveness = aggressiveness
 
         # Notification management

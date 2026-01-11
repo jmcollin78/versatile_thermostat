@@ -32,39 +32,26 @@ La configuration de l'Auto TPI est intégrée au flux de configuration du TPI po
 
 Une fois coché, un assistant de configuration dédié s'affiche en plusieurs étapes :
 
-### Étape 1 : Général
+### Étape 1 : Configuration
 
 *   **Activer l'Auto TPI** : Permet d'activer ou désactiver l'apprentissage.
-*   **Notification** : Si activé, une notification sera envoyée **uniquement** lorsque l'apprentissage est considéré comme terminé (50 cycles par coefficient).
-*   **Mise à jour de la configuration** : Si cette option est cochée, les coefficients TPI appris seront **automatiquement** enregistrés dans la configuration du thermostat **uniquement lorsque l'apprentissage est considéré comme terminé**. Si cette option est décochée, les coefficients appris sont utilisés pour la régulation TPI en cours, mais ne sont pas enregistrés dans la configuration.
-*   **Apprentissage Continu** (`auto_tpi_continuous_learning`): Si activé, l'apprentissage se poursuivra indéfiniment, même après l'achèvement des 50 cycles initiaux. Cela permet au thermostat de s'adapter en continu aux changements progressifs de l'environnement thermique (ex: changements saisonniers, vieillissement de la maison). Si cette option est cochée, les paramètres appris seront sauvegardés dans la configuration (si **Mise à jour de la configuration** est également cochée) à la fin de chaque cycle une fois le modèle considéré comme "stable" (ex: après les 50 premiers cycles).
-    *   **Robustesse aux Échecs** : En mode continu, les échecs consécutifs n'arrêtent pas l'apprentissage. Le système ignore les cycles fautifs et continue son adaptation.
-    *   **Détection de Changement de Régime** : Lorsque l'apprentissage continu est activé, le système surveille les erreurs d'apprentissage récentes. Si un **biais systématique** est détecté (par exemple, dû à un changement de saison, d'isolation ou de système de chauffage), le taux d'apprentissage (alpha) est **temporairement boosté** (jusqu'à 3x la valeur de base, plafonné à 15%) pour accélérer l'adaptation. Cette fonctionnalité permet au thermostat de s'adapter rapidement aux nouvelles conditions thermiques sans intervention manuelle.
-*   **Conserver l'apprentissage du coefficient externe** (`auto_tpi_keep_ext_learning`): Si activé, le coefficient extérieur (`Kext`) continuera son apprentissage même après avoir atteint 50 cycles, tant que le coefficient intérieur (`Kint`) n'a pas atteint la stabilité.
-**Note :** La persistance à la configuration ne se fait que quand les deux coefficients sont stables.
+*   **Type d'Apprentissage** (`auto_tpi_learning_type`) : Choisissez la stratégie adaptée à votre besoin :
+    *   **Découverte (Discovery)** : Recommandé pour une première activation. Utilise la méthode "Moyenne Pondérée" (poids 1). Idéal pour converger rapidement vers des coefficients stables.
+    *   **Ajustement fin (Fine Tuning)** : Pour affiner l'apprentissage existant. Utilise la méthode "Moyenne Mobile Exponentielle (EMA)" (Alpha 0.08, Décroissance 0.12).
+*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe)). Laissez à 0 pour activer le bootstrap automatique.
 *   **Temps de chauffe/refroidissement** : Définissez l'inertie de votre radiateur ([voir Configuration Thermique](#configuration-thermique-critique)).
-*   **Plafond Coefficient Intérieur** : Limites de sécurité pour le coefficient Interieur (`max 3.0`). **Remarque** : En cas de modification de cette limite dans le flux de configuration, la nouvelle valeur est **immédiatement** appliquée aux coefficients appris si ces derniers sont supérieurs à la nouvelle limite (ce qui nécessite un rechargement de l'intégration, ce qui est le cas après avoir enregistré une modification via les options).
+*   **Agressivité** (`auto_tpi_aggressiveness`): Facteur multiplicatif appliqué au ratio calculé (50-100%, défaut 100%). Des valeurs plus basses donnent des coefficients plus conservateurs.
+*   **Activer les paramètres avancés** : Cochez cette case pour accéder aux réglages de la méthode (Poids, Alpha, Decay).
 
-*   **Taux de chauffe** (`auto_tpi_heating_rate`): Taux cible de montée en température en °C/h. ([voir Configuration des Taux](#configuration-des-taux-de-chauffe) )\n*   **Agressivité** (`auto_tpi_aggressiveness`): Facteur multiplicatif appliqué au ratio calculé (50-100%, défaut 100%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant le risque de dépassement de consigne.
+### Étape 2 : Paramètres de la méthode (Si Avancé)
 
-    *Note: On ne veut pas forcément utiliser le taux de chauffe maximal. Vous pouvez tout à fait utiliser une valeur inférieure selon le dimensionnement du chauffage, **et c'est très conseillé**.
-    Plus vous serez proche de la capacité maximale, plus le coefficient Kint trouvé lors de l'apprentissage sera elevé.*
+Si vous avez activé les paramètres avancés, vous pourrez configurer finement les hyperparamètres de l'algorithme choisi (Moyenne ou EMA) :
+*   **Moyenne** : Poids initial (`auto_tpi_avg_initial_weight`).
+*   **EMA** : Alpha initial (`auto_tpi_ema_alpha`) et Taux de décroissance (`auto_tpi_ema_decay_rate`).
 
-    *Donc une fois votre capacité définie par le service action dédié à ça , ou estimée manuellement, vous devriez  utiliser un taux de chauffe raisonnable.
-   **Le plus important étant de ne pas être au dessus de ce que votre radiateur peut fournir dans cette pièce.**
-    ex: Votre capacité adiabatique mesurée est de 1.5°/h, 1°/h est une constante standard et raisonable à utiliser.*
+> **Note sur le Coefficient Max** : Le coefficient interne est désormais plafonné automatiquement à 1.0 par défaut pour éviter les instabilités.
 
-### Étape 2 : Méthode
-
-Choisissez l'algorithme d'apprentissage :
-*   **Moyenne (Average)** : Moyenne pondérée simple. Idéale pour un apprentissage rapide et unique (se réinitialise facilement).
-*   **EMA (Exponential Moving Average)** : Moyenne mobile exponentielle. Fortement recommandée pour l'apprentissage continu et le réglage fin, car elle favorise les valeurs récentes.
-
-### Étape 3 : Paramètres de la méthode
-
-Configurez les paramètres spécifiques à la méthode choisie :
-*   **Moyenne** : Poids initial.
-*   **EMA** : Alpha initial et Taux de décroissance (Decay).
+> **Simplification** : Les options de notifications, de mise à jour automatique de la configuration et de conservation de l'apprentissage externe sont désormais activées par défaut pour simplifier l'utilisation. L'apprentissage continu est désactivé par défaut.
 
 
 ### Configuration Thermique (Critique)
@@ -380,8 +367,8 @@ Où `n` est le nombre de cycles d'apprentissage (plafonné à 50).
 
 | Situation | Alpha (`ema_alpha`) | Taux de Décroissance (`ema_decay_rate`) |
 |---|---|---|
-| **Apprentissage initial** | `0.15` | `0.08` |
-| **Apprentissage fin** | `0.08` | `0.12` |
+| **Ajustements fort** | `0.15` | `0.08` |
+| **Ajustement fin** | `0.08` | `0.12` |
 | **Apprentissage continu** | `0.05` | `0.02` |
 
 **Explications:**

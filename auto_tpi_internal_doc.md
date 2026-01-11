@@ -446,29 +446,38 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
 
 ## 9. Flux de Configuration (Config Flow)
     
-La configuration de l'Auto TPI est intégrée dans le flux de configuration des thermostats **individuels** du Versatile Thermostat pour une meilleure expérience utilisateur.
-Elle est **exclue** du flux de configuration de la configuration centrale, car chaque thermostat requiert ses propres paramètres d'apprentissage.
+La configuration de l'Auto TPI est intégrée dans le flux de configuration des thermostats **individuels** du Versatile Thermostat. Elle a été restructurée pour simplifier l'expérience utilisateur tout en conservant la puissance de personnalisation pour les experts.
 
 ### A. Étapes (Thermostat Individuel)
-1.  **Activation** : Une case à cocher "Activer l'apprentissage Auto TPI" (`auto_tpi_mode`) a été ajoutée à l'étape `TPI` standard.
-2.  **Auto TPI - Général** (`auto_tpi_1`) :
-    *   Si l'Auto TPI est activé, cette étape permet de configurer les paramètres généraux : mise à jour de la config, notifications, temps de chauffe/refroidissement, coefficient max.
-3.  **Auto TPI - Puissance** (`auto_tpi_2`) :
-    *   Elle permet de saisir manuellement les capacités de chauffe (`auto_tpi_heating_rate`) en °C/h.\n    *   Le paramètre **Agressivité** (`auto_tpi_aggressiveness`) définit un facteur multiplicateur appliqué au ratio calculé (50-100%, défaut 90%). Des valeurs plus basses donnent des coefficients plus conservateurs, réduisant les risques de dépassement de consigne.
-4.  **Auto TPI - Méthode** (`auto_tpi_2`) :
-    *   Choix de la méthode de calcul :
-    *   **Moyenne (Average)** : Utilise une moyenne pondérée qui accorde de moins en moins d'importance aux nouvelles valeurs. Idéale pour un apprentissage initial rapide et unique. Ne convient pas à l'apprentissage continu.
-    *   **Moyenne Mobile Exponentielle (EMA)** : Fortement recommandée pour l'apprentissage continu et le réglage fin à long terme. Elle donne un poids constant aux valeurs récentes, permettant l'adaptation aux changements.
-5.  **Auto TPI - Paramètres Méthode** (`auto_tpi_3_avg` ou `auto_tpi_3_ema`) :
-    *   Configuration fine des paramètres spécifiques à la méthode choisie.
-    *   **Pour la méthode EMA** :
-    *   **Apprentissage initial** : Alpha (0.8 - 0.9) et Decay Rate (0.0) pour une adaptation rapide et de bonnes variations.
-    *   **Apprentissage continu/Réglage fin** : Alpha (0.1 - 0.2) et Decay Rate (0.1 - 0.2) pour un comportement très fin.
 
-### B. Impact sur le Code
-*   **`config_flow.py`** : La logique de navigation entre ces étapes a été simplifiée (suppression du branchement conditionnel basé sur `use_capacity_as_rate`).
-*   **`config_schema.py`** : Les schémas de données pour chaque étape ont été définis.
-*   **`const.py`** : Les constantes ont été nettoyées.
+1.  **Activation** : Une case à cocher "Activer l'apprentissage Auto TPI" (`auto_tpi_mode`) est présente à l'étape `TPI` standard.
+
+2.  **Auto TPI - Configuration** (`auto_tpi_configuration`) :
+    *   Cette étape est la seule présentée par défaut.
+    *   **Type d'Apprentissage** (`auto_tpi_learning_type`) : Sélecteur principal déterminant la stratégie :
+        *   **Découverte (Discovery)** : Pour une première activation. Utilise la méthode **Moyenne Pondérée** (poids 1). Idéal pour converger rapidement vers des coefficients stables.
+        *   **Ajustement fin (Fine Tuning)** : Pour affiner des réglages sur la durée. Utilise la méthode **EWMA** (Alpha 0.08, Decay 0.12).
+    *   **Taux de chauffe** (`auto_tpi_heating_rate`) : Capacité de montée en température (laisser à 0 pour auto-détection).
+    *   **Paramètres de Base** : Temps de chauffe/refroidissement et **Agressivité** (curseur).
+    *   **Activer les paramètres avancés** : Case à cocher permettant d'accéder aux réglages de l'algorithme choisi.
+
+3.  **Auto TPI - Paramètres Méthode** (`auto_tpi_avg_settings` ou `auto_tpi_ema_settings`) :
+    *   *Visible uniquement si "Activer les paramètres avancés" est coché.*
+    *   L'écran affiché dépend de la méthode implicite liée au "Type d'Apprentissage" (Moyenne pour Découverte, EWMA pour Ajustement fin).
+    *   Permet d'ajuster finement les hyperparamètres (Poids initial pour Moyenne, Alpha/Decay pour EWMA).
+
+### B. Simplification et Constantes
+Pour alléger l'interface, plusieurs options techniques ont été retirées de l'interface utilisateur et fixées dans le code (Hardcoded Constants) dans `ThermostatTPI` et `AutoTpiManager` :
+*   `auto_tpi_max_coef_int` : **1.0** (Défini dans `AutoTpiManager`). Le coefficient interne ne peut dépasser 1.0.
+*   `auto_tpi_enable_update_config` : **True** (La configuration est toujours mise à jour avec les valeurs apprises).
+*   `auto_tpi_enable_notification` : **True** (Les notifications de fin d'apprentissage sont toujours envoyées).
+*   `auto_tpi_keep_ext_learning` : **True** (L'apprentissage externe continue tant que l'interne n'est pas stable).
+*   `auto_tpi_continuous_learning` : **False** (L'apprentissage s'arrête une fois stable par défaut, sauf réactivation manuelle).
+
+### C. Impact sur le Code
+*   **`config_flow.py`** : Implémente la logique de branchement direct (Général -> Méthode) et l'application des valeurs par défaut.
+*   **`config_schema.py`** : Définit les nouveaux schémas (`STEP_AUTO_TPI_1_SCHEMA`, `STEP_AUTO_TPI_3_AVG_SCHEMA`, `STEP_AUTO_TPI_3_EMA_SCHEMA`).
+*   **`const.py`** : Nettoyage des constantes obsolètes.
 
 ---
 

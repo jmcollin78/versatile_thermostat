@@ -496,50 +496,40 @@ STEP_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-n
     }
 )
 
-STEP_AUTO_TPI_1_SCHEMA = vol.Schema(
+STEP_AUTO_TPI_CONFIGURATION_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, default=True): cv.boolean,
-        vol.Required(CONF_AUTO_TPI_ENABLE_NOTIFICATION, default=True): cv.boolean,
-        vol.Optional(CONF_AUTO_TPI_KEEP_EXT_LEARNING, default=True): cv.boolean,
-        vol.Optional(CONF_AUTO_TPI_CONTINUOUS_LEARNING, default=False): cv.boolean,
-        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
-        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
-        vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=0.0): vol.Coerce(float),
+        vol.Required(
+            CONF_AUTO_TPI_LEARNING_TYPE, default=AUTO_TPI_LEARNING_TYPE_DISCOVERY
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_AUTO_TPI_LEARNING_TYPES,
+                translation_key="auto_tpi_learning_type",
+                mode="dropdown",
+            )
+        ),
         vol.Required(CONF_AUTO_TPI_AGGRESSIVENESS, default=1.0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.5, max=1.0, step=0.01, mode=selector.NumberSelectorMode.SLIDER
             )
         ),
-
-        vol.Required(CONF_AUTO_TPI_MAX_COEF_INT, default=1.0): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.0, max=3.0, step=0.01, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
+        vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
+        vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
+        vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=0.0): vol.Coerce(float),
+        vol.Optional(
+            CONF_AUTO_TPI_ENABLE_ADVANCED_SETTINGS, default=False
+        ): cv.boolean,
     }
 )
 
-STEP_AUTO_TPI_2_SCHEMA = vol.Schema(
-    {
-        vol.Required(
-            CONF_AUTO_TPI_CALCULATION_METHOD, default=AUTO_TPI_METHOD_AVG
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=CONF_AUTO_TPI_CALCULATION_METHODS,
-                translation_key="auto_tpi_calculation_method",
-                mode="dropdown",
-            )
-        ),
-    }
-)
 
-STEP_AUTO_TPI_3_AVG_SCHEMA = vol.Schema(
+
+STEP_AUTO_TPI_AVG_SETTINGS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, default=1): cv.positive_int,
     }
 )
 
-STEP_AUTO_TPI_3_EMA_SCHEMA = vol.Schema(
+STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_AUTO_TPI_EMA_ALPHA, default=0.15): selector.NumberSelector(
             selector.NumberSelectorConfig(
