@@ -247,6 +247,33 @@ class AutoTpiManager:
         # Shutdown safety check
         self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
 
+    def get_filtered_state(self) -> dict:
+        """Get the AutoTpiState as a dict, but filtered for public exposure."""
+        data = self.state.to_dict()
+
+        # 1. Remove internal debugging attributes
+        if "recent_errors" in data:
+            del data["recent_errors"]
+
+        # 2. Filter based on Mode
+        is_cool_mode = self._current_hvac_mode == "cool"
+
+        keys_to_remove = []
+        for key in data.keys():
+            if is_cool_mode:
+                # In Cool mode, remove heat-related keys
+                if "_heat" in key:
+                    keys_to_remove.append(key)
+            else:
+                # In Heat mode, remove cool-related keys
+                if "_cool" in key:
+                    keys_to_remove.append(key)
+
+        for key in keys_to_remove:
+            del data[key]
+
+        return data
+
     def set_is_vtherm_stopping_callback(self, callback: Callable[[], bool]):
         """Set a callback to check if the VTherm is stopping."""
         self._is_vtherm_stopping_callback = callback
