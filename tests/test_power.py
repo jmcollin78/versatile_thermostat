@@ -721,6 +721,8 @@ async def test_power_management_energy_over_climate(
         assert entity.is_over_climate
 
     now = datetime.now(tz=get_tz(hass))
+    entity._set_now(now)
+
     await send_temperature_change_event(entity, 15, now)
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.BOOST)
@@ -735,8 +737,9 @@ async def test_power_management_energy_over_climate(
     # Not initialised yet
     assert entity._underlying_climate_start_hvac_action_date is None
 
-    # Send a climate_change event with HVACAction=HEATING
-    event_timestamp = now - timedelta(minutes=3)
+    # 1. Start heating
+    now = now + timedelta(minutes=3)
+    entity._set_now(now)
     the_mock_underlying.set_hvac_mode(VThermHvacMode_HEAT)
     the_mock_underlying.set_hvac_action(HVACAction.HEATING)
     await send_climate_change_event(
@@ -745,7 +748,7 @@ async def test_power_management_energy_over_climate(
         old_hvac_mode=VThermHvacMode_HEAT,
         new_hvac_action=HVACAction.HEATING,
         old_hvac_action=HVACAction.OFF,
-        date=event_timestamp,
+        date=now,
         underlying_entity_id="climate.mock_climate",
     )
     assert entity.is_device_active is True
@@ -753,10 +756,16 @@ async def test_power_management_energy_over_climate(
     # We have the start event and not the end event
     assert (entity._underlying_climate_start_hvac_action_date - now).total_seconds() < 1
 
+    # 2. wait a few and increment energy
+    now = now + timedelta(minutes=3)
+    entity._set_now(now)
     entity.incremente_energy()
-    assert entity.total_energy == 0
+    assert entity.total_energy == 5  # Vtherm is heating 100 w x 3 min / 60
+    assert entity._underlying_climate_start_hvac_action_date == now
 
-    # Send a climate_change event with HVACAction=IDLE (end of heating)
+    # 3. wait a few and send a climate_change event with HVACAction=IDLE (end of heating)
+    now = now + timedelta(minutes=10)
+    entity._set_now(now)
     the_mock_underlying.set_hvac_action(HVACAction.IDLE)
     await send_climate_change_event(
         entity,
@@ -771,13 +780,14 @@ async def test_power_management_energy_over_climate(
     assert entity._underlying_climate_start_hvac_action_date is None
 
     # 3 minutes at 100 W
-    assert entity.total_energy == 100 * 3.0 / 60
+    assert entity.total_energy == round(5 + 100 * 10 / 60, 2)
 
     assert entity.is_device_active is False
+    assert entity._underlying_climate_start_hvac_action_date is None
 
     # Test the re-increment
     entity.incremente_energy()
-    assert entity.total_energy == 2 * 100 * 3.0 / 60
+    assert entity.total_energy == round(5 + 100 * 10 / 60, 2)  # No change
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
