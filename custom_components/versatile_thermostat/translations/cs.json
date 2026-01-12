@@ -259,14 +259,20 @@
           "opening_degree_entity_ids": "Entity stupně otevření",
           "closing_degree_entity_ids": "Entity stupně zavření",
           "proportional_function": "Algoritmus",
-          "min_opening_degrees": "Minimální stupně otevření"
+          "opening_threshold_degree": "Prahová hodnota otevření",
+          "min_opening_degrees": "Minimální stupně otevření",
+          "max_opening_degree": "Maximální stupeň otevření",
+          "max_closing_degree": "Maximální stupeň zavření"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
           "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
-          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+          "opening_threshold_degree": "Hodnota otevření ventilu, pod kterou by měl být ventil považován za zavřený (a pak bude aplikován 'max_closing_degree')",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30",
+          "max_opening_degree": "Maximální hodnota stupně otevření. Ventil se nikdy neotevře více než tato hodnota",
+          "max_closing_degree": "Maximální hodnota stupně zavření. Ventil nebude nikdy uzavřen více než tato hodnota. Nastavte na 100 pro úplné zavření ventilu"
         }
       },
       "sync_device_internal_temp": {
@@ -553,14 +559,20 @@
           "opening_degree_entity_ids": "Entity stupně otevření",
           "closing_degree_entity_ids": "Entity stupně zavření",
           "proportional_function": "Algoritmus",
-          "min_opening_degrees": "Minimální stupně otevření"
+          "opening_threshold_degree": "Prahová hodnota otevření",
+          "min_opening_degrees": "Minimální stupně otevření",
+          "max_opening_degree": "Maximální stupeň otevření",
+          "max_closing_degree": "Maximální stupeň zavření"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
           "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
-          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+          "opening_threshold_degree": "Hodnota otevření ventilu, pod kterou by měl být ventil považován za zavřený (a pak bude aplikován 'max_closing_degree')",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30",
+          "max_opening_degree": "Maximální hodnota stupně otevření. Ventil se nikdy neotevře více než tato hodnota",
+          "max_closing_degree": "Maximální hodnota stupně zavření. Ventil nebude nikdy uzavřen více než tato hodnota. Nastavte na 100 pro úplné zavření ventilu"
         }
       },
       "sync_device_internal_temp": {

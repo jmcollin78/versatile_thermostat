@@ -261,14 +261,20 @@
           "opening_degree_entity_ids": "Öffnungswinkel Entity-IDs",
           "closing_degree_entity_ids": "Schließwinkel Entity-IDs",
           "proportional_function": "Algorithmus",
-          "min_opening_degrees": "Minimaler Öffnungsgrad"
+          "opening_threshold_degree": "Öffnungsschwellenwert",
+          "min_opening_degrees": "Minimaler Öffnungsgrad",
+          "max_opening_degree": "Maximaler Öffnungsgrad",
+          "max_closing_degree": "Maximaler Schließungsgrad"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities (offset calibration). Für eine bessere Regelung konfigurieren, wenn das TRV diese Entity besitzt. Es sollte eine pro Klima-Entity geben",
           "opening_degree_entity_ids": "Liste der 'Ventil öffnen'-Entities. Es muss eine pro Klima-Entity geben",
           "closing_degree_entity_ids": "Liste der 'Ventil schließen'-Entities. Für eine bessere Regelung konfigurieren, wenn das TRV über dies Funktion verfügt. Es muss eine pro Klima-Entity geben",
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30"
+          "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
+          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
+          "max_opening_degree": "Maximaler Öffnungsgrad. Das Ventil wird niemals mehr als dieser Wert öffnen",
+          "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
         }
       },
       "sync_device_internal_temp": {
@@ -559,21 +565,27 @@
         }
       },
       "valve_regulation": {
-        "title": "Selbstregulierung durch Ventil - {name}",
-        "description": "Konfiguration für Selbstregulierung durch direkte Ventilsteuerung&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "title": "Selbstregulierung durch Ventil",
+        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
         "data": {
-          "offset_calibration_entity_ids": "Entities zur 'Offset-Kalibrierung'",
-          "opening_degree_entity_ids": "Entities 'Ventilöffnung'",
-          "closing_degree_entity_ids": "Entities 'Ventil schliessen'",
+          "offset_calibration_entity_ids": "Offset Kalibrierung Entity-IDs",
+          "opening_degree_entity_ids": "Öffnungswinkel Entity-IDs",
+          "closing_degree_entity_ids": "Schließwinkel Entity-IDs",
           "proportional_function": "Algorithmus",
-          "min_opening_degrees": "Mindestöffnung"
+          "opening_threshold_degree": "Öffnungsschwellenwert",
+          "min_opening_degrees": "Minimaler Öffnungsgrad",
+          "max_opening_degree": "Maximaler Öffnungsgrad",
+          "max_closing_degree": "Maximaler Schließungsgrad"
         },
         "data_description": {
-          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierung'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
-          "opening_degree_entity_ids": "Liste der 'Ventilöffnung'-Entities. Es muss eine pro zugeordneter Klima-Entity geben",
-          "closing_degree_entity_ids": "Liste der 'Ventil schliessen'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
-          "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30"
+          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities (offset calibration). Für eine bessere Regelung konfigurieren, wenn das TRV diese Entity besitzt. Es sollte eine pro Klima-Entity geben",
+          "opening_degree_entity_ids": "Liste der 'Ventil öffnen'-Entities. Es muss eine pro Klima-Entity geben",
+          "closing_degree_entity_ids": "Liste der 'Ventil schließen'-Entities. Für eine bessere Regelung konfigurieren, wenn das TRV über dies Funktion verfügt. Es muss eine pro Klima-Entity geben",
+          "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
+          "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
+          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
+          "max_opening_degree": "Maximaler Öffnungsgrad. Das Ventil wird niemals mehr als dieser Wert öffnen",
+          "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
         }
       },
       "sync_device_internal_temp": {

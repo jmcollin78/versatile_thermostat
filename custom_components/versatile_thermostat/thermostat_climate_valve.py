@@ -74,6 +74,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
 
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
+        self._max_opening_degree = config_entry.get(CONF_MAX_OPENING_DEGREE, 100)
         self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
         self._opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
         regulation_threshold = config_entry.get(CONF_AUTO_REGULATION_DTEMP, 0)
@@ -98,6 +99,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
+                max_opening_degree=self._max_opening_degree,
                 max_closing_degree=self._max_closing_degree,
                 opening_threshold=self._opening_threshold_degree,
             )

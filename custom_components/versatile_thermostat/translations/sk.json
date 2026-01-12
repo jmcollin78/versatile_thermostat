@@ -259,6 +259,30 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "valve_regulation": {
+        "title": "Samoregulácia s ventilon",
+        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/sk/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
+          "opening_degree_entity_ids": "Entity stupňa otvorenia",
+          "closing_degree_entity_ids": "Entity stupňa zatvorenia",
+          "proportional_function": "Algoritmus",
+          "opening_threshold_degree": "Prah otvorenia",
+          "min_opening_degrees": "Minimálne stupne otvorenia",
+          "max_opening_degree": "Maximálny stupeň otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Zoznam entít 'kalibrácie offsetu'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
+          "opening_degree_entity_ids": "Zoznam entít 'stupňa otvorenia'. Mala by byť jedna na každú základnú klimatickú entitu",
+          "closing_degree_entity_ids": "Zoznam entít 'stupňa zatvorenia'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (TPI je v súčasnosti jediný)",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
+          "max_opening_degree": "Maximálna hodnota stupňa otvorenia. Ventil sa nikdy neotvorí viac ako táto hodnota",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu"
+        }
       }
     },
     "error": {
@@ -534,6 +558,30 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "valve_regulation": {
+        "title": "Samoregulácia s ventilon - {name}",
+        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/sk/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
+          "opening_degree_entity_ids": "Entity stupňa otvorenia",
+          "closing_degree_entity_ids": "Entity stupňa zatvorenia",
+          "proportional_function": "Algoritmus",
+          "opening_threshold_degree": "Prah otvorenia",
+          "min_opening_degrees": "Minimálne stupne otvorenia",
+          "max_opening_degree": "Maximálny stupeň otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Zoznam entít 'kalibrácie offsetu'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
+          "opening_degree_entity_ids": "Zoznam entít 'stupňa otvorenia'. Mala by byť jedna na každú základnú klimatickú entitu",
+          "closing_degree_entity_ids": "Zoznam entít 'stupňa zatvorenia'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (TPI je v súčasnosti jediný)",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
+          "max_opening_degree": "Maximálna hodnota stupňa otvorenia. Ventil sa nikdy neotvorí viac ako táto hodnota",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu"
         }
       }
     },

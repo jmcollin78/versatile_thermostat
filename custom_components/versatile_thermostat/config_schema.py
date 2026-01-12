@@ -235,6 +235,7 @@ STEP_VALVE_REGULATION = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): cv.positive_int,
         vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
+        vol.Optional(CONF_MAX_OPENING_DEGREE, default=100): cv.positive_int,
         vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): cv.positive_int,
     }
 )

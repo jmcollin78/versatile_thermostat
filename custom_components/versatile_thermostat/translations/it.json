@@ -263,14 +263,20 @@
           "opening_degree_entity_ids": "Entità del grado di apertura",
           "closing_degree_entity_ids": "Entità del grado di chiusura",
           "proportional_function": "Algoritmo",
-          "min_opening_degrees": "Gradi di apertura minima"
+          "min_opening_degrees": "Gradi di apertura minima",
+          "opening_threshold_degree": "Soglia di apertura",
+          "max_opening_degree": "Grado di apertura massimo",
+          "max_closing_degree": "Grado di chiusura massimo"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Elenco delle entità di “calibrazione dell'offset”. Impostalo se il tuo TRV dispone dell'entità per una migliore regolazione. Dovrebbe essercene una per ogni entità climatica sottostante.",
           "opening_degree_entity_ids": "Elenco delle entità “grado di apertura”. Dovrebbe essercene una per ciascuna entità climatica sottostante.",
           "closing_degree_entity_ids": "Elenco delle entità “grado di chiusura”. Impostarlo se il TRV dispone dell'entità per una migliore regolazione. Dovrebbe essercene uno per ogni entità climatica sottostante",
           "proportional_function": "Algoritmo da utilizzare (TPI è l'unico disponibile al momento)",
-          "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30"
+          "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30",
+          "opening_threshold_degree": "Valore di apertura della valvola al di sotto del quale la valvola deve essere considerata chiusa (e quindi si applicherà 'max_closing_degree')",
+          "max_opening_degree": "Valore massimo del grado di apertura. La valvola non si aprirà mai più di questo valore",
+          "max_closing_degree": "Valore massimo del grado di chiusura. La valvola non sarà mai chiusa più di questo valore. Impostare a 100 per chiudere completamente la valvola"
         }
       },
       "sync_device_internal_temp": {
@@ -568,14 +574,20 @@
           "opening_degree_entity_ids": "Entità del grado di apertura",
           "closing_degree_entity_ids": "Entità del grado di chiusura",
           "proportional_function": "Algoritmo",
-          "min_opening_degrees": "Gradi di apertura minima"
+          "min_opening_degrees": "Gradi di apertura minima",
+          "opening_threshold_degree": "Soglia di apertura",
+          "max_opening_degree": "Grado di apertura massimo",
+          "max_closing_degree": "Grado di chiusura massimo"
         },
         "data_description": {
-          "offset_calibration_entity_ids": "Elenco delle entità di “calibrazione dell'offset”. Impostalo se il tuo TRV dispone dell'entità per una migliore regolazione. Dovrebbe essercene una per ogni entità climatica sottostante",
-          "opening_degree_entity_ids": "Elenco delle entità “grado di apertura”. Dovrebbe essercene una per ciascuna entità climatica sottostante",
+          "offset_calibration_entity_ids": "Elenco delle entità di “calibrazione dell'offset”. Impostalo se il tuo TRV dispone dell'entità per una migliore regolazione. Dovrebbe essercene una per ogni entità climatica sottostante.",
+          "opening_degree_entity_ids": "Elenco delle entità “grado di apertura”. Dovrebbe essercene una per ciascuna entità climatica sottostante.",
           "closing_degree_entity_ids": "Elenco delle entità “grado di chiusura”. Impostarlo se il TRV dispone dell'entità per una migliore regolazione. Dovrebbe essercene uno per ogni entità climatica sottostante",
           "proportional_function": "Algoritmo da utilizzare (TPI è l'unico disponibile al momento)",
-          "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30"
+          "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30",
+          "opening_threshold_degree": "Valore di apertura della valvola al di sotto del quale la valvola deve essere considerata chiusa (e quindi si applicherà 'max_closing_degree')",
+          "max_opening_degree": "Valore massimo del grado di apertura. La valvola non si aprirà mai più di questo valore",
+          "max_closing_degree": "Valore massimo del grado di chiusura. La valvola non sarà mai chiusa più di questo valore. Impostare a 100 per chiudere completamente la valvola"
         }
       },
       "sync_device_internal_temp": {

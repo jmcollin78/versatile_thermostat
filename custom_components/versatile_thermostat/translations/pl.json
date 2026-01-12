@@ -266,6 +266,7 @@
           "proportional_function": "Algorytm",
           "opening_threshold_degree": "Próg otwarcia zaworu",
           "min_opening_degrees": "Minimalny stopień otwarcia",
+          "max_opening_degree": "Maksymalny stopień otwarcia",
           "max_closing_degree": "Maksymalny stopień zamknięcia"
         },
         "data_description": {
@@ -275,6 +276,7 @@
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
+          "max_opening_degree": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },
@@ -577,6 +579,7 @@
           "proportional_function": "Algorytm",
           "opening_threshold_degree": "Próg otwarcia zaworu",
           "min_opening_degrees": "Minimalny stopień otwarcia",
+          "max_opening_degree": "Maksymalny stopień otwarcia",
           "max_closing_degree": "Maksymalny stopień zamknięcia"
         },
         "data_description": {
@@ -586,6 +589,7 @@
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
+          "max_opening_degree": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },

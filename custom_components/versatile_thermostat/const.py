@@ -125,6 +125,7 @@ CONF_OFFSET_CALIBRATION_LIST = "offset_calibration_entity_ids"
 CONF_OPENING_DEGREE_LIST = "opening_degree_entity_ids"
 CONF_CLOSING_DEGREE_LIST = "closing_degree_entity_ids"
 CONF_MIN_OPENING_DEGREES = "min_opening_degrees"
+CONF_MAX_OPENING_DEGREE = "max_opening_degree"
 CONF_MAX_CLOSING_DEGREE = "max_closing_degree"
 CONF_OPENING_THRESHOLD_DEGREE = "opening_threshold_degree"
 
@@ -374,6 +375,7 @@ ALL_CONF = (
         CONF_WINDOW_ACTION,
         CONF_STEP_TEMPERATURE,
         CONF_MIN_OPENING_DEGREES,
+        CONF_MAX_OPENING_DEGREE,
         CONF_MAX_CLOSING_DEGREE,
         CONF_OPENING_THRESHOLD_DEGREE,
         CONF_AUTO_TPI_CALCULATION_METHOD,
