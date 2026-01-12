@@ -404,7 +404,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   **Objectif** : Utiliser l'historique des capteurs `temperature_slope` et `power_percent` pour calculer la capacité adiabatique du radiateur (en °C/h).
     *   **Algorithme (V3 - Basé sur les capteurs)** :
         1.  **Récupération des Historiques** : Le service récupère l'historique des capteurs `sensor.{nom}_temperature_slope` et `sensor.{nom}_power_percent` sur la période spécifiée (par défaut 30 jours).
-        2.  **Filtrage par Puissance** : Pour chaque point de l'historique du slope, on cherche la valeur de puissance correspondante. Seuls les points où `power >= min_power_threshold` (défaut 95%) sont conservés.
+        2.  **Filtrage par Puissance** : Pour chaque point de l'historique du slope, on cherche la valeur de puissance correspondante en utilisant une logique **sample-and-hold** : on prend la dernière valeur de puissance connue avant ou au moment du timestamp du slope. Cette approche gère correctement les capteurs "event-driven" qui ne rapportent que les changements (fréquent quand la puissance reste à 100% pendant de longues périodes). Seuls les points où `power >= min_power_threshold` (défaut 95%) sont conservés.
         3.  **Filtrage par Direction** : Seuls les slopes positifs sont gardés (la température monte).
         4.  **Élimination des Outliers** : La méthode IQR (Interquartile Range) est utilisée pour éliminer les valeurs aberrantes (pics dus au soleil, cuisson, etc.).
         5.  **Calcul du 75ème Percentile** : Le 75ème percentile des slopes filtrés est utilisé (plutôt que la médiane) pour biaiser vers les valeurs les plus élevées, plus proches de l'adiabatique.

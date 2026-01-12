@@ -1904,52 +1904,51 @@ class AutoTpiManager:
 
         return [v for v in values if lower_bound <= v <= upper_bound]
 
-    def _interpolate_power_at(self, target_dt: datetime, power_history: list, start_idx: int = 0, tolerance_seconds: float = 120.0) -> tuple[Optional[float], int]:
+    def _get_power_at_time_sample_hold(self, target_dt: datetime, sorted_power: list, start_idx: int = 0) -> tuple[Optional[float], int]:
         """
-        Find the power value closest to target_dt within tolerance.
-        Returns a tuple (power percentage, next index to search from).
-        Optimization: Assumes power_history is sorted by time.
+        Get the power value at a specific time using sample-and-hold logic.
+
+        For event-driven sensors, returns the last known power value before or at target_dt.
+        This is more appropriate for capacity calibration where power may stay stable
+        for long periods without new history entries.
+
+        Args:
+            target_dt: The datetime to find power for
+            sorted_power: Power history sorted by time (ascending)
+            start_idx: Index to start searching from (optimization)
+
+        Returns:
+            Tuple of (power value in percent, next index to continue from)
         """
-        if not power_history:
+        if not sorted_power:
             return None, 0
 
-        best_idx = -1
-        closest_diff = float("inf")
+        last_valid_power = None
+        last_valid_idx = start_idx
 
-        # We start searching from start_idx to keep O(N+M) complexity
-        for i in range(start_idx, len(power_history)):
-            state = power_history[i]
+        # Find the last power entry that is <= target_dt
+        for i in range(start_idx, len(sorted_power)):
+            state = sorted_power[i]
             try:
                 state_dt = state.last_changed
-                diff = (state_dt - target_dt).total_seconds()
-                abs_diff = abs(diff)
 
-                if abs_diff <= tolerance_seconds:
-                    if abs_diff < closest_diff:
-                        closest_diff = abs_diff
-                        best_idx = i
-
-                # If we passed the target_dt by more than tolerance,
-                # and we already found something or the diff is increasing, we can stop.
-                if diff > tolerance_seconds:
+                if state_dt > target_dt:
+                    # We've passed the target time, use the last valid power
                     break
+
+                # This entry is at or before target_dt
+                state_value = getattr(state, "state", None)
+                if state_value not in ["unknown", "unavailable", None]:
+                    try:
+                        last_valid_power = float(state_value)
+                        last_valid_idx = i
+                    except (ValueError, TypeError):
+                        pass
 
             except (AttributeError, TypeError):
                 continue
 
-        if best_idx == -1:
-            # If we didn't find anything but we are moving forward in time,
-            # we should still return the current start_idx for the next call
-            # unless we find that slope_dt is already way ahead of power_history.
-            return None, start_idx
-
-        try:
-            state_value = getattr(power_history[best_idx], "state", None)
-            if state_value in ["unknown", "unavailable", None]:
-                return None, best_idx
-            return float(state_value), best_idx
-        except (ValueError, TypeError):
-            return None, best_idx
+        return last_valid_power, last_valid_idx
 
     async def calculate_capacity_from_slope_sensor(
         self,
@@ -2021,8 +2020,8 @@ class AutoTpiManager:
 
                 slope_value = float(slope_str)
 
-                # Find closest power value using optimized matching
-                power, power_idx = self._interpolate_power_at(slope_dt, sorted_power, start_idx=power_idx)
+                # Find power value using sample-and-hold logic (handles event-driven sensors)
+                power, power_idx = self._get_power_at_time_sample_hold(slope_dt, sorted_power, start_idx=power_idx)
 
                 if power is None:
                     rejected_invalid += 1
