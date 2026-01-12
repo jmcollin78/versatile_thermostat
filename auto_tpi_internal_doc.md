@@ -88,6 +88,13 @@ Pour éviter que les systèmes à forte inertie (ex: plancher chauffant) ne rest
 *   Il assigne une capacité par défaut de **0.3 °C/h** (valeur sécuritaire pour système lent).
 *   L'apprentissage reprend ensuite normalement avec des coefficients non forcés.
 
+**Pré-calibration avant Bootstrap (`_try_pre_bootstrap_calibration`) :**
+Avant de démarrer le mode bootstrap agressif, le système tente de calibrer la capacité à partir de l'historique existant :
+*   Appel interne à `service_calibrate_capacity` avec `min_power_threshold=80%` et `save_to_config=false`.
+*   Si `reliability >= MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY` (20% par défaut) et `max_capacity > 0`, la capacité calibrée est utilisée et le bootstrap est sauté.
+*   Sinon, le bootstrap normal se déclenche avec les coefficients agressifs.
+*   **Justification du seuil** : Le bootstrap n'utilise que 3 mesures. Avec la formule de fiabilité `reliability = 100 × min(samples/20, 1) × max(0, 1 - CV/2)`, 20% correspond à environ 4 échantillons avec une variance moyenne, ce qui est déjà plus robuste que 3 cycles de bootstrap.
+
 **Formule (inspirée de regul2.py) :**
 1.  **Capacité Observée** : `Rise / (Duration * Efficiency)`
 2.  **Correction Adiabatique** : On ajoute les pertes estimées pour obtenir la capacité "brute" (isolation parfaite).
@@ -150,6 +157,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0.5°C | Écart minimum entre consigne et température pour déclencher la correction Kint si stagnation |
 | `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
 | `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Nombre maximum de boosts Kint consécutifs avant avertissement (chauffage sous-dimensionné) |
+| `MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY` | 20.0 (%) | Fiabilité minimale de la calibration historique pour sauter le bootstrap |
 
 #### 2.6. Cas 0 : Correction de Dépassement (`_correct_kext_overshoot`)
 

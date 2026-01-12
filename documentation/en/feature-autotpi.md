@@ -105,7 +105,8 @@ The system starts with **aggressive TPI coefficients** for the first 3 cycles to
 1. **Automatic Mode (Recommended)** ✅:
    - Leave `auto_tpi_heating_rate` at **0** (default)
    - The system automatically detects that capacity is unknown
-   - It performs 3 cycles with **aggressive TPI coefficients** (200.0/5.0) to provoke a temperature rise and measure capacity
+   - **Pre-calibration**: It first attempts to calibrate capacity from existing history. If data reliability is sufficient (>20%), bootstrap is skipped.
+   - **Bootstrap**: If history is not reliable enough, it performs 3 cycles with **aggressive TPI coefficients** (200.0/5.0) to measure capacity
    - **This is the recommended mode for configuration-free startup**
 
 2. **Manual Mode**:
