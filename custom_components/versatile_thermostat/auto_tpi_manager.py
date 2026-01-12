@@ -1299,7 +1299,12 @@ class AutoTpiManager:
 
         # Baseline thresholds
         power_threshold = 0.80
-        rise_threshold = 0.05
+        # Dynamic rise threshold: 
+        # normally 0.05°C to avoid noise.
+        # BUT if power is near saturation (>95%), we might be limited by capacity, so we accept almost any rise (0.01°C).
+        # This allows max_capacity to decrease if the system struggles to heat (high power, low rise).
+        rise_threshold = 0.01 if self.state.last_power > 0.95 else 0.05
+        
         min_gap = 1.0 if self.state.capacity_heat_learn_count < 3 else 0.3
 
         # Timeout Strategy: Force default capacity if bootstrap fails too many times
