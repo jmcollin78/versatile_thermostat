@@ -33,10 +33,9 @@
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
-          "auto_tpi_1": "Auto TPI - General",
-          "auto_tpi_2": "Auto TPI - Method",
-          "auto_tpi_3_avg": "Auto TPI - Average",
-          "auto_tpi_3_ema": "Auto TPI - EMA",
+          "auto_tpi_configuration": "Auto TPI - Configuration",
+          "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
+          "auto_tpi_ema_settings": "Auto TPI - EWMA",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -284,8 +283,8 @@
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
-      "auto_tpi_1": {
-        "title": "Auto TPI - General",
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Configuration",
         "description": "General parameters for Auto TPI learning.",
         "data": {
           "auto_tpi_enable_update_config": "Update configuration",
@@ -307,18 +306,8 @@
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
         }
       },
-      "auto_tpi_2": {
-        "title": "Auto TPI - Method",
-        "description": "Choose the calculation method for learning.",
-        "data": {
-          "auto_tpi_calculation_method": "Calculation Method"
-        },
-        "data_description": {
-          "auto_tpi_calculation_method": "Average: simple averaging. EMA: Exponential Moving Average (favors recent values)"
-        }
-      },
-      "auto_tpi_3_avg": {
-        "title": "Auto TPI - Average",
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Weighted Average",
         "description": "Parameters for the Average method.",
         "data": {
           "auto_tpi_avg_initial_weight": "Initial Weight"
@@ -327,8 +316,8 @@
           "auto_tpi_avg_initial_weight": "Weight of the initial/previous value in the average calculation"
         }
       },
-      "auto_tpi_3_ema": {
-        "title": "Auto TPI - EMA",
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA",
         "description": "Parameters for the EMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial learning | 0.15 | 0.08 |\n| Fine learning | 0.08 | 0.12 |\n| Continuous learning | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",
@@ -420,10 +409,9 @@
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
-          "auto_tpi_1": "Auto TPI - General",
-          "auto_tpi_2": "Auto TPI - Method",
-          "auto_tpi_3_avg": "Auto TPI - Average",
-          "auto_tpi_3_ema": "Auto TPI - EMA",
+          "auto_tpi_configuration": "Auto TPI - Configuration",
+          "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
+          "auto_tpi_ema_settings": "Auto TPI - EWMA",
           "finalize": "All done",
           "configuration_not_complete": "Configuration not complete"
         }
@@ -687,8 +675,8 @@
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
       },
-      "auto_tpi_1": {
-        "title": "Auto TPI - General - {name}",
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Configuration - {name}",
         "description": "General parameters for Auto TPI learning.",
         "data": {
           "auto_tpi_enable_update_config": "Update configuration",
@@ -711,18 +699,8 @@
           "auto_tpi_max_coef_int": "Maximum allowed value for the internal coefficient (Coeff Int)"
         }
       },
-      "auto_tpi_2": {
-        "title": "Auto TPI - Method - {name}",
-        "description": "Choose the calculation method for learning.",
-        "data": {
-          "auto_tpi_calculation_method": "Calculation Method"
-        },
-        "data_description": {
-          "auto_tpi_calculation_method": "Average: simple averaging. EMA: Exponential Moving Average (favors recent values)"
-        }
-      },
-      "auto_tpi_3_avg": {
-        "title": "Auto TPI - Average - {name}",
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Weighted Average - {name}",
         "description": "Parameters for the Average method.",
         "data": {
           "auto_tpi_avg_initial_weight": "Initial Weight"
@@ -731,8 +709,8 @@
           "auto_tpi_avg_initial_weight": "Weight of the initial/previous value in the average calculation"
         }
       },
-      "auto_tpi_3_ema": {
-        "title": "Auto TPI - EMA - {name}",
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA - {name}",
         "description": "Parameters for the EMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial learning | 0.15 | 0.08 |\n| Fine learning | 0.08 | 0.12 |\n| Continuous learning | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",

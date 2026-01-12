@@ -269,15 +269,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         if version <= 201:
             # Migration 2.1 to 2.2 -> add auto TPI parameters with default values
             new[CONF_AUTO_TPI_MODE] = False
-            new[CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG] = True
-            new[CONF_AUTO_TPI_ENABLE_NOTIFICATION] = True
             new[CONF_AUTO_TPI_CALCULATION_METHOD] = AUTO_TPI_METHOD_AVG
             new[CONF_AUTO_TPI_EMA_ALPHA] = 0.15
             new[CONF_AUTO_TPI_AVG_INITIAL_WEIGHT] = 1
-            new[CONF_AUTO_TPI_MAX_COEF_INT] = 1.0
             new[CONF_AUTO_TPI_EMA_DECAY_RATE] = 0.08
-            new[CONF_AUTO_TPI_KEEP_EXT_LEARNING] = True
-            new[CONF_AUTO_TPI_CONTINUOUS_LEARNING] = False
             new[CONF_AUTO_TPI_HEATER_HEATING_TIME] = 5
             new[CONF_AUTO_TPI_HEATER_COOLING_TIME] = 5
             new[CONF_AUTO_TPI_HEATING_POWER] = 1.0
@@ -297,6 +292,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             else:
                 new[CONF_SYNC_WITH_CALIBRATION] = False
                 new[CONF_SYNC_DEVICE_INTERNAL_TEMP] = False
+
+        if version <= 202:
+            _LOGGER.info("Cleaning up obsolete Auto TPI keys")
+            new.pop("auto_tpi_max_coef_int", None)
+            new.pop("auto_tpi_enable_update_config", None)
+            new.pop("auto_tpi_enable_notification", None)
+            new.pop("auto_tpi_keep_ext_learning", None)
+            new.pop("auto_tpi_continuous_learning", None)
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(

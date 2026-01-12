@@ -36,11 +36,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         self._minimal_deactivation_delay: int = 0
         self._tpi_threshold_low: float = 0
         self._tpi_threshold_high: float = 0
-        self._auto_tpi_keep_ext_learning: bool = False
-        self._auto_tpi_continuous_learning: bool = False
-        self._auto_tpi_enable_update_config: bool = False
-        self._auto_tpi_enable_notification: bool = False
         self._prop_algorithm = None
+
         self._auto_tpi_manager: AutoTpiManager | None = None
 
         super().__init__(hass, unique_id, name, entry_infos)
@@ -114,14 +111,12 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         calculation_method = self._entry_infos.get(CONF_AUTO_TPI_CALCULATION_METHOD, AUTO_TPI_METHOD_EMA)
         ema_alpha = self._entry_infos.get(CONF_AUTO_TPI_EMA_ALPHA, 0.2)
         avg_initial_weight = self._entry_infos.get(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, 1)
-        max_coef_int = self._entry_infos.get(CONF_AUTO_TPI_MAX_COEF_INT, 1.5)
+
         heating_rate = self._entry_infos.get(CONF_AUTO_TPI_HEATING_POWER, 1.0)
         cooling_rate = self._entry_infos.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
         aggressiveness = self._entry_infos.get(CONF_AUTO_TPI_AGGRESSIVENESS, 1.0)
-        self._auto_tpi_enable_update_config = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG, False)
-        self._auto_tpi_enable_notification = self._entry_infos.get(CONF_AUTO_TPI_ENABLE_NOTIFICATION, False)
-        self._auto_tpi_continuous_learning = (self._entry_infos.get(CONF_AUTO_TPI_CONTINUOUS_LEARNING, False),)
-        self._auto_tpi_keep_ext_learning = self._entry_infos.get(CONF_AUTO_TPI_KEEP_EXT_LEARNING, True)
+
+
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      self, self._tpi_coef_int, self._tpi_coef_ext)
@@ -141,14 +136,11 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             calculation_method=calculation_method,
             ema_alpha=ema_alpha,
             avg_initial_weight=avg_initial_weight,
-            max_coef_int=max_coef_int,
+
             heating_rate=heating_rate,
             cooling_rate=cooling_rate,
-            continuous_learning=self._auto_tpi_continuous_learning,
-            keep_ext_learning=self._auto_tpi_keep_ext_learning,
-            enable_update_config=self._auto_tpi_enable_update_config,
-            enable_notification=self._auto_tpi_enable_notification,
             aggressiveness=aggressiveness,
+
         )
         self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: self._is_removed)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
@@ -163,17 +155,15 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
             # If we have learned parameters, apply them
             learned_params = self._auto_tpi_manager.get_calculated_params()
             if learned_params:
-                _LOGGER.info("%s - DEBUG: Learned params found: %s, learning_active=%s, update_config=%s",
-                             self, learned_params, self._auto_tpi_manager.learning_active, self._auto_tpi_enable_update_config)
-                if self._auto_tpi_enable_update_config:
-                    if self._auto_tpi_manager.learning_active:
-                        self._tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, self._tpi_coef_int)
-                        self._tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, self._tpi_coef_ext)
-                        _LOGGER.info("%s - Restored Auto TPI parameters: %s", self, learned_params)
-                    else:
-                        _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", self)
+                _LOGGER.info("%s - DEBUG: Learned params found: %s, learning_active=%s",
+                             self, learned_params, self._auto_tpi_manager.learning_active)
+                if self._auto_tpi_manager.learning_active:
+                    self._tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, self._tpi_coef_int)
+                    self._tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, self._tpi_coef_ext)
+                    _LOGGER.info("%s - Restored Auto TPI parameters: %s", self, learned_params)
                 else:
-                    _LOGGER.info("%s - Auto TPI parameters found but not applied because auto_tpi_enable_update_config is False", self)
+                    _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", self)
+
 
             _LOGGER.info("%s - DEBUG: After load_data - int=%.3f, ext=%.3f",
                          self, self._tpi_coef_int, self._tpi_coef_ext)

@@ -38,7 +38,7 @@ from .vtherm_state import VThermState  # pylint: disable=unused-import
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 2
+CONFIG_MINOR_VERSION = 3
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
@@ -161,10 +161,14 @@ CONF_VALVE_3 = "valve_entity3_id"
 CONF_VALVE_4 = "valve_entity4_id"
 
 CONF_AUTO_TPI_MODE = "auto_tpi_mode"
-CONF_AUTO_TPI_ENABLE_UPDATE_CONFIG = "auto_tpi_enable_update_config"
-CONF_AUTO_TPI_ENABLE_NOTIFICATION = "auto_tpi_enable_notification"
-CONF_AUTO_TPI_KEEP_EXT_LEARNING = "auto_tpi_keep_ext_learning"
-CONF_AUTO_TPI_CONTINUOUS_LEARNING = "auto_tpi_continuous_learning"
+CONF_AUTO_TPI_LEARNING_TYPE = "auto_tpi_learning_type"
+AUTO_TPI_LEARNING_TYPE_DISCOVERY = "discovery"
+AUTO_TPI_LEARNING_TYPE_FINE_TUNING = "fine_tuning"
+CONF_AUTO_TPI_LEARNING_TYPES = [
+    AUTO_TPI_LEARNING_TYPE_DISCOVERY,
+    AUTO_TPI_LEARNING_TYPE_FINE_TUNING,
+]
+CONF_AUTO_TPI_ENABLE_ADVANCED_SETTINGS = "auto_tpi_enable_advanced_settings"
 CONF_AUTO_TPI_HEATER_HEATING_TIME = "heater_heating_time"
 CONF_AUTO_TPI_HEATER_COOLING_TIME = "heater_cooling_time"
 CONF_AUTO_TPI_CALCULATION_METHOD = "auto_tpi_calculation_method"
@@ -173,7 +177,7 @@ AUTO_TPI_METHOD_EMA = "ema"
 CONF_AUTO_TPI_CALCULATION_METHODS = [AUTO_TPI_METHOD_AVG, AUTO_TPI_METHOD_EMA]
 CONF_AUTO_TPI_EMA_ALPHA = "auto_tpi_ema_alpha"
 CONF_AUTO_TPI_AVG_INITIAL_WEIGHT = "auto_tpi_avg_initial_weight"
-CONF_AUTO_TPI_MAX_COEF_INT = "auto_tpi_max_coef_int"
+
 CONF_AUTO_TPI_HEATING_POWER = "auto_tpi_heating_rate"
 CONF_AUTO_TPI_COOLING_POWER = "auto_tpi_cooling_rate"
 CONF_AUTO_TPI_AGGRESSIVENESS = "auto_tpi_aggressiveness"
@@ -375,13 +379,12 @@ ALL_CONF = (
         CONF_AUTO_TPI_CALCULATION_METHOD,
         CONF_AUTO_TPI_EMA_ALPHA,
         CONF_AUTO_TPI_AVG_INITIAL_WEIGHT,
-        CONF_AUTO_TPI_MAX_COEF_INT,
         CONF_AUTO_TPI_HEATING_POWER,
         CONF_AUTO_TPI_COOLING_POWER,
 
         CONF_AUTO_TPI_EMA_DECAY_RATE,
-        CONF_AUTO_TPI_KEEP_EXT_LEARNING,
-        CONF_AUTO_TPI_CONTINUOUS_LEARNING,
+        CONF_AUTO_TPI_LEARNING_TYPE,
+        CONF_AUTO_TPI_ENABLE_ADVANCED_SETTINGS,
         CONF_SYNC_DEVICE_INTERNAL_TEMP,
         CONF_SYNC_WITH_CALIBRATION,
         CONF_USE_HEATING_FAILURE_DETECTION_FEATURE,

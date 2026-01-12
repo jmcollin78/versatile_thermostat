@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ termostatu VTherm",
-        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",		
+        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -310,7 +310,7 @@
     "step": {
       "user": {
         "title": "Typ - {name}",
-		"description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -337,10 +337,9 @@
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Blokada",
-          "auto_tpi_1": "Auto TPI - Ogólne",
-          "auto_tpi_2": "Auto TPI - Metoda",
-          "auto_tpi_3_avg": "Auto TPI - Średnia",
-          "auto_tpi_3_ema": "Auto TPI - EMA",
+          "auto_tpi_configuration": "Auto TPI - Ogólne",
+          "auto_tpi_avg_settings": "Auto TPI - Średnia",
+          "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna"
         }
@@ -350,7 +349,7 @@
         "description": "Funkcja blokady zapobiega modyfikacjom termostatu z interfejsu użytkownika lub automatyzacji, jednocześnie utrzymując termostat w stanie pracy.",
         "data": {
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
-		  "lock_code": "Opcjonalny kod PIN (4 cyfry)",
+          "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",
           "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
         },
@@ -444,7 +443,7 @@
           "use_tpi_central_config": "Użyj centralnej konfiguracji TPI",
           "minimal_activation_delay": "Minimalna zwłoka czasowa aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka czasowa deaktywacji",
-          "auto_tpi_mode": "Aktywuj naukę Auto TPI"		  
+          "auto_tpi_mode": "Aktywuj naukę Auto TPI"
         },
         "data_description": {
           "tpi_coef_int": "Współczynnik do zastosowania w przypadku delty temperatury wewnętrznej",
@@ -590,7 +589,7 @@
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },
-      "auto_tpi_1": {
+      "auto_tpi_configuration": {
         "title": "Auto TPI - Ogólne - {name}",
         "description": "Ogólne parametry nauki Auto TPI.",
         "data": {
@@ -614,17 +613,7 @@
           "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego"
         }
       },
-      "auto_tpi_2": {
-        "title": "Auto TPI - Metoda - {name}",
-        "description": "Wybierz metodę obliczeniową dla procesu uczenia.",
-        "data": {
-          "auto_tpi_calculation_method": "Metoda obliczeniowa"
-        },
-        "data_description": {
-          "auto_tpi_calculation_method": "Średnia: proste uśrednianie. EMA: Zmienna Średnia Wykładnicza (preferuje niedawne wartości)"
-        }
-      },
-      "auto_tpi_3_avg": {
+      "auto_tpi_avg_settings": {
         "title": "Auto TPI - Średnia - {name}",
         "description": "Parametry metody uśredniania.",
         "data": {
@@ -634,7 +623,7 @@
           "auto_tpi_avg_initial_weight": "Waga początkowej/poprzedniej wartości w obliczaniu średniej"
         }
       },
-      "auto_tpi_3_ema": {
+      "auto_tpi_ema_settings": {
         "title": "Auto TPI - EMA - {name}",
         "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowe uczenie | 0.15 | 0.08 |\n| Dokładne uczenie | 0.08 | 0.12 |\n| Ciągłe uczenie | 0.05 | 0.02 |",
         "data": {
@@ -655,7 +644,7 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30",
-      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"	  
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
