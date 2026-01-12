@@ -41,7 +41,7 @@ OVERSHOOT_THRESHOLD = 0.2  # Temperature overshoot threshold (°C) to trigger ag
 OVERSHOOT_POWER_THRESHOLD = 0.05  # Minimum power (5%) to consider overshoot as Kext error
 OVERSHOOT_CORRECTION_BOOST = 2.0  # Multiplier for alpha during overshoot correction
 NATURAL_RECOVERY_POWER_THRESHOLD = 0.10  # Max power (10%) to consider temperature change as natural recovery
-KEXT_LEARNING_MAX_GAP = 0.5  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
+KEXT_LEARNING_MAX_GAP = 1.0  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
 INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trigger Kint correction when temp stagnates
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
@@ -1294,7 +1294,12 @@ class AutoTpiManager:
 
         # Baseline thresholds
         power_threshold = 0.80
-        rise_threshold = 0.05
+        # Dynamic rise threshold: 
+        # normally 0.05°C to avoid noise.
+        # BUT if power is near saturation (>95%), we might be limited by capacity, so we accept almost any rise (0.01°C).
+        # This allows max_capacity to decrease if the system struggles to heat (high power, low rise).
+        rise_threshold = 0.01 if self.state.last_power > 0.95 else 0.05
+        
         min_gap = 1.0 if self.state.capacity_heat_learn_count < 3 else 0.3
 
         # Timeout Strategy: Force default capacity if bootstrap fails too many times
