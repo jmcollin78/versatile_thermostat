@@ -35,6 +35,7 @@ from homeassistant.components.climate import (
 from .base_thermostat import BaseThermostat
 from .vtherm_api import VersatileThermostatAPI
 from .base_entity import VersatileThermostatBaseEntity
+from .commons import cleanup_orphan_entity
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
@@ -52,6 +53,7 @@ from .const import (
     CONF_AUTO_REGULATION_MODE,
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
+    CONF_AUTO_TPI_MODE,
     overrides,
 )
 
@@ -119,12 +121,27 @@ async def async_setup_entry(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )
 
-        # Add Auto TPI Sensor for TPI-based thermostats
-        if entry.data.get(CONF_THERMOSTAT_TYPE) in [
+        # Check if thermostat is TPI-capable (can use TPI algorithm)
+        is_tpi_capable = entry.data.get(CONF_THERMOSTAT_TYPE) in [
             CONF_THERMOSTAT_SWITCH,
             CONF_THERMOSTAT_VALVE,
-        ] or (entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE and have_valve_regulation):
+        ] or (entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE and have_valve_regulation)
+
+        # Add Auto TPI Sensor only if:
+        # 1. Thermostat is TPI-capable
+        # 2. TPI algorithm is selected
+        # 3. Auto TPI mode is enabled in configuration
+        should_have_auto_tpi = (
+            is_tpi_capable
+            and entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI
+            and entry.data.get(CONF_AUTO_TPI_MODE, False)
+        )
+
+        if should_have_auto_tpi:
             entities.append(AutoTpiSensor(hass, unique_id, name, entry.data))
+        else:
+            # Cleanup: Remove orphan Auto TPI sensor from registry if it exists
+            await cleanup_orphan_entity(hass, entry, "sensor", name, "auto_tpi_learning")
 
     if entities:
         async_add_entities(entities, True)
