@@ -32,12 +32,11 @@ Die Verzögerung (`minimal_deactivation_delay_sec`) in Sekunden ist die minimale
 
 ### Sicherheitsmodus
 
-Die zweite Verzögerung (`safety_delay_min`) ist die maximale Zeit zwischen zwei Temperaturmessungen, bevor das _VTherm_ in den Sicherheitsmodus schaltet.
-
-Der dritte Parameter (`safety_min_on_percent`) ist der minimale `on_percent`, unter dem der Sicherheitsmodus nicht aktiviert wird. Diese Einstellung verhindert, dass der Sicherheitsmodus aktiviert wird, wenn der geregelte Heizkörper nicht ausreichend heizt. In diesem Fall besteht kein physisches Risiko für die Wohnung, sondern nur das Risiko einer Über- oder Unterhitzung.
-Die Einstellung dieses Parameters auf `0.00` löst den Sicherheitsmodus unabhängig von der letzten Heizungseinstellung aus, während `1.00` den Sicherheitsmodus nie auslöst (und die Funktion effektiv deaktiviert). Dies kann nützlich sein, um den Sicherheitsmechanismus an Ihre speziellen Bedürfnisse anzupassen.
-
-Der vierte Parameter (`safety_default_on_percent`) legt den `on_percent` fest, der verwendet wird, wenn der Thermostat in den `Sicherheitsmodus` wechselt. Die Einstellung `0` schaltet den Thermostat im Sicherheitsmodus aus, während die Einstellung auf einen Wert wie `0.2` (20%) sicherstellt, dass ein gewisser Teil der Heizung erhalten bleibt, um zu verhindern, dass die Wohnung im Falle eines Thermometerausfalls komplett gefriert.
+| Parameter | Beschreibung | Standardwert | Attributname |
+| ---------- | ------------ | ------------ | ------------ |
+| **Maximale Verzögerung** | Maximale Zeit zwischen zwei Temperaturmessungen, bevor das _VTherm_ in den Sicherheitsmodus schaltet. | 60 Minuten | `safety_delay_min` |
+| **Minimaler `on_percent`-Wert** | Minimaler `on_percent`, unter dem der Sicherheitsmodus nicht aktiviert wird. Verhindert Aktivierung, wenn der Heizkörper nicht ausreichend heizt (Über-/Unterhitzungsrisiko ohne physische Gefahr). `0.00` aktiviert immer, `1.00` deaktiviert. | 0.5 (50%) | `safety_min_on_percent` |
+| **Standard-`on_percent` im Sicherheitsmodus** | `on_percent` im Sicherheitsmodus. `0` schaltet Thermostat aus, `0.1` hält minimale Heizung aufrecht, um Einfrieren bei Thermometerausfall zu verhindern. | 0.1 (10%) | `safety_default_on_percent` |
 
 Es ist möglich, den Sicherheitsmodus zu deaktivieren, der durch fehlende Daten des Außenthermometers ausgelöst wird. Da das Außenthermometer in der Regel nur einen geringen Einfluss auf die Regelung hat (abhängig von Ihrer Konfiguration), ist es möglicherweise nicht kritisch, wenn es nicht verfügbar ist. Fügen Sie dazu die folgenden Zeilen in Ihre `configuration.yaml` ein:
 

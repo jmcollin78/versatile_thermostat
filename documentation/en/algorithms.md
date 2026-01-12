@@ -25,12 +25,15 @@ If you have selected a thermostat with a TPI algorithm and choose the "TPI" opti
 ![image](images/config-tpi.png)
 
 You must provide:
-1. the `coef_int` coefficient of the TPI algorithm,
-2. the `coef_ext` coefficient of the TPI algorithm,
-3. a minimum activation time in seconds,
-4. a minimum deactivation time in seconds,
-5. a high cut-off threshold in °C (or °K) for the temperature deviation above which the algorithm will be disabled,
-6. a low re-activation threshold in °C (or °K) for the temperature deviation below which the algorithm will be enabled again.
+
+| Parameter | Description | Attribute Name |
+|-----------|-------------|----------------|
+| **Internal Coefficient** | The `coef_int` coefficient of the TPI algorithm. | `tpi_coef_int` |
+| **External Coefficient** | The `coef_ext` coefficient of the TPI algorithm. | `tpi_coef_ext` |
+| **Activation Delay** | Minimum activation time in seconds. | `minimal_activation_delay` |
+| **Deactivation Delay** | Minimum deactivation time in seconds. | `minimal_deactivation_delay` |
+| **High Threshold** | Temperature deviation (°C or K) above which the algorithm will be disabled. | `tpi_threshold_high` |
+| **Low Threshold** | Temperature deviation (°C or K) below which the algorithm will be enabled again. | `tpi_threshold_low` |
 
 ### Principle
 

@@ -22,12 +22,11 @@ The advanced configuration form looks like this:
 
 ### Safety Mode
 
-The first delay (`safety_delay_min`) is the maximum time between two temperature measurements before the _VTherm_ switches to Safety Mode.
-
-The second parameter (`safety_min_on_percent`) is the minimum `on_percent` below which Safety Mode will not be activated. This setting prevents activating Safety Mode if the controlled radiator does not heat sufficiently. In this case, there is no physical risk to the home, only the risk of overheating or underheating.
-Setting this parameter to `0.00` will trigger Safety Mode regardless of the last heating setting, whereas `1.00` will never trigger Safety Mode (effectively disabling the feature). This can be useful to adapt the safety mechanism to your specific needs.
-
-The third parameter (`safety_default_on_percent`) defines the `on_percent` used when the thermostat switches to `security` mode. Setting it to `0` will turn off the thermostat in Safety Mode, while setting it to a value like `0.2` (20%) ensures some heating remains, avoiding a completely frozen home in case of a thermometer failure.
+| Parameter | Description | Default Value | Attribute Name |
+| ---------- | ----------- | ------------- | -------------- |
+| **Maximum Delay** | Maximum time between two temperature measurements before the _VTherm_ switches to Safety Mode. | 60 minutes | `safety_delay_min` |
+| **Minimum `on_percent` Value** | Minimum `on_percent` below which Safety Mode does not activate. Prevents activation if radiator doesn't heat enough (overheat/underheat risk without physical danger). `0.00` always activates, `1.00` disables. | 0.5 (50%) | `safety_min_on_percent` |
+| **Default `on_percent` in Safety Mode** | `on_percent` used in Safety Mode. `0` turns off thermostat, `0.1` maintains minimal heating to prevent freezing on thermometer failure. | 0.1 (10%) | `safety_default_on_percent` |
 
 It is possible to disable Safety Mode triggered by missing data from the outdoor thermometer. Since the outdoor thermometer usually has a minor impact on regulation (depending on your configuration), it might not be critical if it's unavailable. To do this, add the following lines to your `configuration.yaml`:
 
