@@ -492,7 +492,16 @@ class AutoTpiManager:
             is_capacity_heat_outdated = self.state.max_capacity_heat != self._heating_rate
             is_capacity_cool_outdated = self.state.max_capacity_cool != self._cooling_rate
 
-            if is_capacity_heat_outdated and self._heating_rate > 0.0:
+            # Handle capacity reset: if configured heat_rate is 0, reset capacity to trigger bootstrap
+            if self._heating_rate == 0.0 and self.state.max_capacity_heat > 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured heat_rate is 0, resetting capacity (was %.3f) to trigger bootstrap.",
+                    self._name,
+                    self.state.max_capacity_heat,
+                )
+                self.state.max_capacity_heat = 0.0
+                self.state.capacity_heat_learn_count = 0
+            elif is_capacity_heat_outdated and self._heating_rate > 0.0:
                 _LOGGER.info(
                     "%s - Auto TPI: Overwriting persisted max_capacity_heat (%.3f) with new configured value (%.3f) on load.",
                     self._name,
@@ -501,7 +510,16 @@ class AutoTpiManager:
                 )
                 self.state.max_capacity_heat = self._heating_rate
 
-            if is_capacity_cool_outdated and self._cooling_rate > 0.0:
+            # Handle capacity reset for cooling mode
+            if self._cooling_rate == 0.0 and self.state.max_capacity_cool > 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured cooling_rate is 0, resetting capacity (was %.3f) to trigger bootstrap.",
+                    self._name,
+                    self.state.max_capacity_cool,
+                )
+                self.state.max_capacity_cool = 0.0
+                # Note: capacity_cool_learn_count does not exist, cooling bootstrap uses different logic
+            elif is_capacity_cool_outdated and self._cooling_rate > 0.0:
                 _LOGGER.info(
                     "%s - Auto TPI: Overwriting persisted max_capacity_cool (%.3f) with new configured value (%.3f) on load.",
                     self._name,
@@ -2739,6 +2757,16 @@ class AutoTpiManager:
             self.state.cycle_start_date = dt_util.now()
             self.state.cycle_active = False
             self.state.current_cycle_params = None  # Ensure first tick starts fresh
+
+            # Reset capacity if configured heat_rate is 0 (user wants to re-learn capacity)
+            if self._heating_rate == 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured heat_rate is 0, resetting capacity for bootstrap",
+                    self._name
+                )
+                self.state.max_capacity_heat = 0.0
+                self.state.capacity_heat_learn_count = 0
+                self.state.bootstrap_failure_count = 0
         else:
             _LOGGER.info(
                 "%s - Auto TPI: Resuming learning with existing data (coef_int=%.3f, coef_ext=%.3f, cycles=%d)",
