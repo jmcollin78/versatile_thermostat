@@ -1267,7 +1267,7 @@ async def test_user_config_flow_over_climate_valve(
             CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
             CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREE: "90",
+            CONF_MAX_OPENING_DEGREES: "90",
             CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
@@ -1309,7 +1309,7 @@ async def test_user_config_flow_over_climate_valve(
             CONF_CLOSING_DEGREE_LIST: [],
             CONF_MIN_OPENING_DEGREES: "10, 20,0",
             CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREE: "90",
+            CONF_MAX_OPENING_DEGREES: "90",
             CONF_OPENING_THRESHOLD_DEGREE: "5",
         },
     )
@@ -1477,7 +1477,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_TPI_COEF_EXT: 0.1,
         CONF_MIN_OPENING_DEGREES: "10, 20,0",
         CONF_MAX_CLOSING_DEGREE: 30,
-        CONF_MAX_OPENING_DEGREE: 90,
+        CONF_MAX_OPENING_DEGREES: "90",
         CONF_OPENING_THRESHOLD_DEGREE: 5,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
@@ -1486,3 +1486,165 @@ async def test_user_config_flow_over_climate_valve(
     assert result["result"].version == 2
     assert result["result"].title == "TheOverClimateMockName"
     assert isinstance(result["result"], ConfigEntry)
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_user_config_flow_valve_min_max_opening_degrees_error(hass: HomeAssistant, skip_hass_states_get):  # pylint: disable=unused-argument
+    """Test the config flow with valve regulation to ensure max_opening_degrees > min_opening_degrees validation"""
+
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == SOURCE_USER
+
+    # 1. Type
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 2. Main
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "main"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+
+    # 3. Main 2
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 4. Type
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "type"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+            CONF_AC_MODE: False,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 2,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 5. Features
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "features"})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_WINDOW_FEATURE: False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 6. TPI
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "tpi"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_USE_TPI_CENTRAL_CONFIG: False})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input=MOCK_TH_OVER_SWITCH_TPI_CONFIG)
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 7. Presets
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "presets"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: False})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # 8. Valve_regulation - Test case where max_opening_degrees <= min_opening_degrees for first underlying
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "valve_regulation"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+
+    # 8.1 Test with max <= min for the first underlying (50 <= 60)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+            CONF_MIN_OPENING_DEGREES: "60, 20",
+            CONF_MAX_OPENING_DEGREES: "50, 85",  # 50 <= 60 -> error
+            CONF_MAX_CLOSING_DEGREE: 30,
+            CONF_OPENING_THRESHOLD_DEGREE: 5,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {CONF_MAX_OPENING_DEGREES: "min_max_opening_degrees_inconsistent"}
+
+    # 8.2 Test with max == min for the second underlying (70 == 70)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+            CONF_MIN_OPENING_DEGREES: "10, 70",
+            CONF_MAX_OPENING_DEGREES: "80, 70",  # 70 == 70 -> error
+            CONF_MAX_CLOSING_DEGREE: 30,
+            CONF_OPENING_THRESHOLD_DEGREE: 5,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {CONF_MAX_OPENING_DEGREES: "min_max_opening_degrees_inconsistent"}
+
+    # 8.3 Test with valid configuration (max > min for all underlyings)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+            CONF_MIN_OPENING_DEGREES: "10, 20",
+            CONF_MAX_OPENING_DEGREES: "80, 85",  # All valid: 80 > 10 and 85 > 20
+            CONF_MAX_CLOSING_DEGREE: 30,
+            CONF_OPENING_THRESHOLD_DEGREE: 5,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result.get("errors") is None

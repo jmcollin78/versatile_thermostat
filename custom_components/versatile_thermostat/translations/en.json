@@ -270,7 +270,7 @@
           "proportional_function": "Algorithm",
           "opening_threshold_degree": "Opening threshold degree",
           "min_opening_degrees": "Min opening degrees",
-          "max_opening_degree": "Max opening degree",
+          "max_opening_degrees": "Max opening degree",
           "max_closing_degree": "Max closing degree"
         },
         "data_description": {
@@ -280,7 +280,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_opening_degree": "Opening degree maximum value. The valve will never open more than this value",
+          "max_opening_degrees": "Opening degree maximum value for each underlying device, comma separated. Default to 100. The valve will never open more than this value. Example: 80, 85, 90",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
@@ -368,6 +368,8 @@
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
       "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "max_opening_degrees_format": "A comma separated list of positive integer between 0 and 100 is expected. Example: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
@@ -645,7 +647,7 @@
           "proportional_function": "Algorithm",
           "opening_threshold_degree": "Opening threshold degree",
           "min_opening_degrees": "Min opening degrees",
-          "max_opening_degree": "Max opening degree",
+          "max_opening_degrees": "Max opening degree",
           "max_closing_degree": "Max closing degree"
         },
         "data_description": {
@@ -655,7 +657,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_opening_degree": "Opening degree maximum value. The valve will never open more than this value",
+          "max_opening_degrees": "Opening degree maximum value for each underlying device, comma separated. Default to 100. The valve will never open more than this value. Example: 80, 85, 90",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
@@ -743,6 +745,8 @@
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
       "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "max_opening_degrees_format": "A comma separated list of positive integer between 0 and 100 is expected. Example: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {

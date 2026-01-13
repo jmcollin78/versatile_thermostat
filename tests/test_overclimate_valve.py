@@ -1153,7 +1153,7 @@ async def test_over_climate_valve_max_opening_degree(hass: HomeAssistant, skip_h
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
-            CONF_MAX_OPENING_DEGREE: 80,
+            CONF_MAX_OPENING_DEGREES: "80,85",
         }
         | MOCK_DEFAULT_CENTRAL_CONFIG
         | MOCK_ADVANCED_CONFIG,
@@ -1223,17 +1223,17 @@ async def test_over_climate_valve_max_opening_degree(hass: HomeAssistant, skip_h
         await hass.async_block_till_done()
 
         assert vtherm.is_device_active is True
-        # With dT=4 and coefficients: 0.3*4 + 0.1*4 = 1.6 -> normally 100%, but capped at 80%
+        # With dT=4 and coefficients: 0.3*4 + 0.1*4 = 1.6 -> normally 100%, but capped at max_opening_degrees
         assert vtherm.valve_open_percent == 100
 
         # the underlying set temperature call and the call to the valve
         assert mock_service_call.call_count == 4
         mock_service_call.assert_has_calls([
-            # max is 80
+            # max is 80 for valve1, 85 for valve2
             call('number', SERVICE_SET_VALUE, {'value': 80}, False, None, {'entity_id': 'number.mock_opening_degree1'}, False),
             call('number', SERVICE_SET_VALUE, {'value': 20}, False, None, {'entity_id': 'number.mock_closing_degree1'}, False),
-            call('number', SERVICE_SET_VALUE, {'value': 80}, False, None, {'entity_id': 'number.mock_opening_degree2'}, False),
-            call('number', SERVICE_SET_VALUE, {'value': 20}, False, None, {'entity_id': 'number.mock_closing_degree2'}, False),
+            call('number', SERVICE_SET_VALUE, {'value': 85}, False, None, {'entity_id': 'number.mock_opening_degree2'}, False),
+            call('number', SERVICE_SET_VALUE, {'value': 15}, False, None, {'entity_id': 'number.mock_closing_degree2'}, False),
             ],
             any_order=True
         )

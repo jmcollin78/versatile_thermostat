@@ -74,7 +74,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
 
         opening_list = config_entry.get(CONF_OPENING_DEGREE_LIST)
         closing_list = config_entry.get(CONF_CLOSING_DEGREE_LIST, [])
-        self._max_opening_degree = config_entry.get(CONF_MAX_OPENING_DEGREE, 100)
         self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
         self._opening_threshold_degree = config_entry.get(CONF_OPENING_THRESHOLD_DEGREE, 0)
         regulation_threshold = config_entry.get(CONF_AUTO_REGULATION_DTEMP, 0)
@@ -84,6 +83,13 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         if self._min_opening_degrees:
             min_opening_degrees_list = [
                 int(x.strip()) for x in self._min_opening_degrees.split(",")
+            ]
+
+        self._max_opening_degrees = config_entry.get(CONF_MAX_OPENING_DEGREES, None)
+        max_opening_degrees_list = []
+        if self._max_opening_degrees:
+            max_opening_degrees_list = [
+                int(x.strip()) for x in self._max_opening_degrees.split(",")
             ]
 
         for idx, _ in enumerate(config_entry.get(CONF_UNDERLYING_LIST)):
@@ -99,7 +105,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
-                max_opening_degree=self._max_opening_degree,
+                max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else 100),
                 max_closing_degree=self._max_closing_degree,
                 opening_threshold=self._opening_threshold_degree,
             )
@@ -153,7 +159,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "min_opening_degrees": self._min_opening_degrees,
                         "opening_threshold_degree": self._opening_threshold_degree,
                         "max_closing_degree": self._max_closing_degree,
-                        "max_opening_degree": self._max_opening_degree,
+                        "max_opening_degrees": self._max_opening_degrees,
                         "valve_open_percent": self.valve_open_percent,
                         "auto_regulation_dpercent": self._auto_regulation_dpercent,
                         "auto_regulation_period_min": self._auto_regulation_period_min,

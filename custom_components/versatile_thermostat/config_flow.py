@@ -283,18 +283,49 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # Check that the min_opening_degrees is correctly set
         raw_list = data.get(CONF_MIN_OPENING_DEGREES, None)
+        min_opening_degrees_list = []
         if raw_list:
             try:
                 # Validation : Convertir la liste saisie
-                int_list = [int(x.strip()) for x in raw_list.split(",")]
+                min_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
 
                 # Optionnel : Vérifiez des conditions supplémentaires sur la liste
-                if any(x < 0 for x in int_list):
+                if any(x < 0 for x in min_opening_degrees_list):
                     raise ValueError
             except ValueError as exc:
                 raise ValveRegulationMinOpeningDegreesIncorrect(
                     CONF_MIN_OPENING_DEGREES
                 ) from exc
+
+        # Check that the max_opening_degrees is correctly set
+        raw_list = data.get(CONF_MAX_OPENING_DEGREES, None)
+        max_opening_degrees_list = []
+        if raw_list:
+            try:
+                # Validation : Convertir la liste saisie
+                max_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
+
+                # Optionnel : Vérifiez des conditions supplémentaires sur la liste
+                if any(x < 0 or x > 100 for x in max_opening_degrees_list):
+                    raise ValueError
+            except ValueError as exc:
+                raise ValveRegulationMaxOpeningDegreesIncorrect(
+                    CONF_MAX_OPENING_DEGREES
+                ) from exc
+
+        # Check that max_opening_degrees > min_opening_degrees for each underlying
+        # If both lists exist, check that max > min for each index
+        if min_opening_degrees_list and max_opening_degrees_list:
+            # Get the number of underlyings to know how many values to check
+            nb_underlyings = len(self._infos.get(CONF_UNDERLYING_LIST, []))
+            for idx in range(nb_underlyings):
+                min_val = min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0
+                max_val = max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else 100
+
+                if max_val <= min_val:
+                    raise ValveRegulationMinMaxOpeningDegreesIncorrect(
+                        CONF_MAX_OPENING_DEGREES
+                    )
 
         # Check the VSWITCH configuration. There should be the same number of vswitch_on (resp. vswitch_off) than the number of underlying entity
         if self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH and step_id == "type":
@@ -467,6 +498,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors["base"] = "sync_device_internal_temp_nb_entities_incorrect"
             except ValveRegulationMinOpeningDegreesIncorrect as err:
                 errors[str(err)] = "min_opening_degrees_format"
+            except ValveRegulationMaxOpeningDegreesIncorrect as err:
+                errors[str(err)] = "max_opening_degrees_format"
+            except ValveRegulationMinMaxOpeningDegreesIncorrect as err:
+                errors[str(err)] = "min_max_opening_degrees_inconsistent"
             except VirtualSwitchConfigurationIncorrect as err:
                 errors["base"] = "vswitch_configuration_incorrect"
             except LockCodeIncorrect:

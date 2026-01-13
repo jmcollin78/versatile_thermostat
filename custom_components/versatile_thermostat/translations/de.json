@@ -263,7 +263,7 @@
           "proportional_function": "Algorithmus",
           "opening_threshold_degree": "Öffnungsschwellenwert",
           "min_opening_degrees": "Minimaler Öffnungsgrad",
-          "max_opening_degree": "Maximaler Öffnungsgrad",
+          "max_opening_degrees": "Maximaler Öffnungsgrad",
           "max_closing_degree": "Maximaler Schließungsgrad"
         },
         "data_description": {
@@ -273,7 +273,7 @@
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
           "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degree": "Maximaler Öffnungsgrad. Das Ventil wird niemals mehr als dieser Wert öffnen",
+          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugrunde liegende Gerät, durch Kommas getrennt. Standard ist 100. Das Ventil wird nie mehr als dieser Wert geöffnet. Beispiel: 80, 85, 90",
           "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
         }
       },
@@ -299,6 +299,8 @@
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
       "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
       "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
+      "max_opening_degrees_format": "Eine durch Kommas getrennte Liste positiver Ganzzahlen zwischen 0 und 100 wird erwartet. Beispiel: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Für jedes zugrunde liegende Gerät muss max_opening_degrees strikt größer als min_opening_degrees sein. Bitte überprüfen Sie Ihre Konfiguration.",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
     },
     "abort": {
@@ -574,7 +576,7 @@
           "proportional_function": "Algorithmus",
           "opening_threshold_degree": "Öffnungsschwellenwert",
           "min_opening_degrees": "Minimaler Öffnungsgrad",
-          "max_opening_degree": "Maximaler Öffnungsgrad",
+          "max_opening_degrees": "Maximaler Öffnungsgrad",
           "max_closing_degree": "Maximaler Schließungsgrad"
         },
         "data_description": {
@@ -584,7 +586,7 @@
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
           "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degree": "Maximaler Öffnungsgrad. Das Ventil wird niemals mehr als dieser Wert öffnen",
+          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugrunde liegende Gerät, durch Kommas getrennt. Standard ist 100. Das Ventil wird nie mehr als dieser Wert geöffnet. Beispiel: 80, 85, 90",
           "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
         }
       },
@@ -610,6 +612,8 @@
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
       "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
       "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
+      "max_opening_degrees_format": "Eine durch Kommas getrennte Liste positiver Ganzzahlen zwischen 0 und 100 wird erwartet. Beispiel: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Für jedes zugrunde liegende Gerät muss max_opening_degrees strikt größer als min_opening_degrees sein. Bitte überprüfen Sie Ihre Konfiguration.",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
     },
     "abort": {

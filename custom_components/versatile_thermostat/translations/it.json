@@ -265,7 +265,7 @@
           "proportional_function": "Algoritmo",
           "min_opening_degrees": "Gradi di apertura minima",
           "opening_threshold_degree": "Soglia di apertura",
-          "max_opening_degree": "Grado di apertura massimo",
+          "max_opening_degrees": "Grado di apertura massimo",
           "max_closing_degree": "Grado di chiusura massimo"
         },
         "data_description": {
@@ -275,7 +275,7 @@
           "proportional_function": "Algoritmo da utilizzare (TPI è l'unico disponibile al momento)",
           "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30",
           "opening_threshold_degree": "Valore di apertura della valvola al di sotto del quale la valvola deve essere considerata chiusa (e quindi si applicherà 'max_closing_degree')",
-          "max_opening_degree": "Valore massimo del grado di apertura. La valvola non si aprirà mai più di questo valore",
+          "max_opening_degrees": "Valore massimo del grado di apertura per ogni dispositivo sottostante, separato da virgole. Il valore predefinito è 100. La valvola non si aprirà mai più di questo valore. Esempio: 80, 85, 90",
           "max_closing_degree": "Valore massimo del grado di chiusura. La valvola non sarà mai chiusa più di questo valore. Impostare a 100 per chiudere completamente la valvola"
         }
       },
@@ -301,6 +301,8 @@
       "valve_regulation_nb_entities_incorrect": "Il numero di entità della valvola per la regolazione delle valvole deve essere pari al numero dei sottostanti",
       "sync_device_internal_temp_nb_entities_incorrect": "Il numero di entità per sincronizzare la temperatura interna del dispositivo dovrebbe essere uguale al numero dei sottostanti",
       "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30",
+      "max_opening_degrees_format": "È previsto un elenco di numeri interi positivi tra 0 e 100 separati da virgola. Esempio: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
       "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README."
     },
     "abort": {
@@ -576,7 +578,7 @@
           "proportional_function": "Algoritmo",
           "min_opening_degrees": "Gradi di apertura minima",
           "opening_threshold_degree": "Soglia di apertura",
-          "max_opening_degree": "Grado di apertura massimo",
+          "max_opening_degrees": "Grado di apertura massimo",
           "max_closing_degree": "Grado di chiusura massimo"
         },
         "data_description": {
@@ -586,7 +588,7 @@
           "proportional_function": "Algoritmo da utilizzare (TPI è l'unico disponibile al momento)",
           "min_opening_degrees": "Valore minimo del grado di apertura per ciascun dispositivo sottostante, separato da virgola. Il valore predefinito è 0. Esempio: 20, 25, 30",
           "opening_threshold_degree": "Valore di apertura della valvola al di sotto del quale la valvola deve essere considerata chiusa (e quindi si applicherà 'max_closing_degree')",
-          "max_opening_degree": "Valore massimo del grado di apertura. La valvola non si aprirà mai più di questo valore",
+          "max_opening_degrees": "Valore massimo del grado di apertura per ogni dispositivo sottostante, separato da virgole. Il valore predefinito è 100. La valvola non si aprirà mai più di questo valore. Esempio: 80, 85, 90",
           "max_closing_degree": "Valore massimo del grado di chiusura. La valvola non sarà mai chiusa più di questo valore. Impostare a 100 per chiudere completamente la valvola"
         }
       },
@@ -612,6 +614,8 @@
       "valve_regulation_nb_entities_incorrect": "Il numero di entità della valvola per la regolazione delle valvole deve essere pari al numero dei sottostanti",
       "sync_device_internal_temp_nb_entities_incorrect": "Il numero di entità per sincronizzare la temperatura interna del dispositivo dovrebbe essere uguale al numero dei sottostanti",
       "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30",
+      "max_opening_degrees_format": "È previsto un elenco di numeri interi positivi tra 0 e 100 separati da virgola. Esempio: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
       "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README."
     },
     "abort": {
