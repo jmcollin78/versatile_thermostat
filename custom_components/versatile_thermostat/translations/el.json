@@ -199,6 +199,30 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "valve_regulation": {
+        "title": "Αυτορύθμιση με βαλβίδα",
+        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
+          "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",
+          "closing_degree_entity_ids": "Οντότητες βαθμού κλεισίματος",
+          "proportional_function": "Αλγόριθμος",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
+          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Η λίστα των οντοτήτων 'βαθμονόμησης μετατόπισης'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "opening_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού ανοίγματος'. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "closing_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού κλεισίματος'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "proportional_function": "Ο αλγόριθμος που θα χρησιμοποιηθεί (TPI είναι ο μόνος διαθέσιμος για τώρα)",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
+          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
+        }
       }
     },
     "error": {
@@ -210,6 +234,8 @@
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
       "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
@@ -415,6 +441,30 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "valve_regulation": {
+        "title": "Αυτορύθμιση με βαλβίδα - {name}",
+        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "data": {
+          "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
+          "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",
+          "closing_degree_entity_ids": "Οντότητες βαθμού κλεισίματος",
+          "proportional_function": "Αλγόριθμος",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
+          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Η λίστα των οντοτήτων 'βαθμονόμησης μετατόπισης'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "opening_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού ανοίγματος'. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "closing_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού κλεισίματος'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
+          "proportional_function": "Ο αλγόριθμος που θα χρησιμοποιηθεί (TPI είναι ο μόνος διαθέσιμος για τώρα)",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
+          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
+        }
       }
     },
     "error": {
@@ -426,6 +476,8 @@
       "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
       "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {

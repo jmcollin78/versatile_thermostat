@@ -26,6 +26,9 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 8.6
+> 1. added `max_opening_degrees` parameter for `over_climate_valve` VTherms allowing to limit the maximum opening percentage of each valve to control hot water flow and optimize energy consumption or other use cases.
+
 ## Release 8.5
 > 1. added heating failure detection for VTherms using the TPI algorithm. This feature detects two types of anomalies:
 >    - **heating failure**: the radiator is heating strongly (high on_percent) but the temperature is not increasing,

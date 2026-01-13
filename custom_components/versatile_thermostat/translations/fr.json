@@ -272,6 +272,7 @@
           "proportional_function": "Algorithme",
           "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
+          "max_opening_degrees": "Degré d'ouverture maximum",
           "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
@@ -281,6 +282,7 @@
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
           "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
           "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
+          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
           "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
         }
       },
@@ -368,6 +370,8 @@
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
       "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
       "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
+      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et 100 séparés par des ',' est attendu. Exemple : 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
     "abort": {
@@ -646,6 +650,7 @@
           "proportional_function": "Algorithme",
           "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
+          "max_opening_degrees": "Ouverture maximale",
           "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
@@ -655,6 +660,7 @@
           "proportional_function": "Algorithme à utiliser (seulement TPI est disponible)",
           "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
           "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
+          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
           "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
         }
       },
@@ -742,6 +748,8 @@
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
       "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
       "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
+      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et 100 séparés par des ',' est attendu. Exemple : 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
     "abort": {

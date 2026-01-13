@@ -34,7 +34,10 @@ Pozwala ono skonfigurować ustawienia sterowania zaworem:
 Należy podać:
 1. Tyle jednostek sterujących otwieraniem zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **obowiązkowe**.
 2. Tyle jednostek sterujących szybkością zamykania zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **opcjonalne**. Należy podać je **wszystkie** lub nie podawać **żadnych**. Zdecydowanie zaleca się ich użycie, jeśli są dostępne.
-3. Listę minimalnych wartości otwarcia zaworu, gdy zawór ma być otwarty. To pole jest listą liczb całkowitych. Jeśli zawór musi być otwarty, otworzy się co najmniej do tej wartości; w przeciwnym razie będzie całkowicie zamknięty (0). Zapewnia to wystarczający przepływ wody, gdy wymagane jest ogrzewanie, a jednocześnie pełne zamknięcie, gdy ogrzewanie nie jest potrzebne.
+3. `opening_threshold`: minimalne otwarcie zaworu, poniżej którego zawór powinien być uznany za zamknięty, a w konsekwencji stosuje się parametr 'max_closing_degree',
+4. `max_closing_degree`: absolutny maksymalny procent zamknięcia. Zawór nigdy nie zamknie się bardziej niż wskazuje ta wartość. Jeśli chcesz zezwolić na całkowite zamknięcie zaworu, pozostaw ten parametr na 100,
+5. `minimum_opening_degrees`: minimalny procent otwarcia, gdy `opening_threshold` jest przekroczony i VTherm musi grzać. To pole jest dostosowywalne dla każdego zaworu w przypadku VTherm z wieloma zaworami. Podajesz listę minimalnych otwarć oddzielonych ','. Wartość domyślna to 0. Przykład: '20, 25, 30'. Gdy ogrzewanie się rozpoczyna (tj. żądane otwarcie jest większe niż `opening_threshold`), zawór otworzy się z wartością większą lub równą tej i będzie nadal regularnie zwiększać w razie potrzeby.
+6. `max_opening_degrees`: maksymalny procent otwarcia, który zawór może osiągnąć. To pole jest dostosowywalne dla każdego zaworu w przypadku VTherm z wieloma zaworami. Podajesz listę maksymalnych otwarć oddzielonych ','. Wartość domyślna to 100 (pełne otwarcie). Przykład: '80, 85, 90'. Zawór nigdy nie otworzy się powyżej tej wartości, co pozwala ograniczyć przepływ gorącej wody i zoptymalizować zużycie energii. Ta wartość musi być ściśle większa niż `minimum_opening_degrees` dla każdego zaworu.
 
 Algorytm obliczania współczynnika otwierania oparty jest na _TPI_, który opisano [tutaj](algorithms.md). Jest to ten sam algorytm, który jest używany dla `termostatu na przełączniku` i `termostatu na zaworze`.
 
@@ -43,7 +46,7 @@ Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona 
 > ![Warning](images/tips.png) _*Wskazówki*_
 > 1. Od wersji 7.2.2 możliwe jest użycie encji `stopień zamknięcia` zaworu Sonoff TRVZB.
 > 2. Atrybut `hvac_action` zaworów termostatycznych Sonoff TRVZB jest zawodny. Jeśli temperatura wewnętrzna zaworu termostatycznego znacznie odbiega od temperatury w pomieszczeniu, encja `climate` może wskazywać, że zawór _TRV_ nie grzeje, nawet gdy otwieranie zaworu jest wymuszane przez _VTherm_. Ten problem nie ma wpływu, ponieważ encja `climate` zaworu _VTherm_ została poprawiona i uwzględnia stopień otwarcia zaworu przy ustawianiu atrybutu `hvac_action`. Problem ten można złagodzić, ale nie wyeliminować całkowicie, odpowiednio korygując konfigurację kalibracji temperatury.
-> 3. Atrybut `valve_open_percent` zaworu _VTherm_ może nie być zgodny z wartością `stopień otwarcia` wysłaną do zaworu. Jeśli skonfigurowano minimalną wartość otwarcia lub użyto sterowania zamykaniem, zostanie dokonana korekta. Atrybut `valve_open_percent` reprezentuje *wartość surową*, obliczoną przez termostat _VTherm_. Wartość `stopnia otwarcia` wysłana do zaworu może zostać odpowiednio dostosowana.
+> 3. Atrybut `valve_open_percent` zaworu _VTherm_ może nie być zgodny z wartością `stopień otwarcia` wysłaną do zaworu. Jeśli używasz jednego z czterech parametrów `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` lub `max_opening_degrees`, zostanie dokonana korekta. Atrybut `valve_open_percent` reprezentuje *wartość surową*, obliczoną przez termostat _VTherm_. Wartość `stopnia otwarcia` wysłana do zaworu może zostać odpowiednio dostosowana.
 
 
 ### Inna samoregulacja

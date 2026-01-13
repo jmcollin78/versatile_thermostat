@@ -266,6 +266,7 @@
           "proportional_function": "Algorytm",
           "opening_threshold_degree": "Próg otwarcia zaworu",
           "min_opening_degrees": "Minimalny stopień otwarcia",
+          "max_opening_degrees": "Maksymalny stopień otwarcia",
           "max_closing_degree": "Maksymalny stopień zamknięcia"
         },
         "data_description": {
@@ -275,6 +276,7 @@
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
+          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },
@@ -299,7 +301,10 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30"
+      "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30",
+      "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -577,6 +582,7 @@
           "proportional_function": "Algorytm",
           "opening_threshold_degree": "Próg otwarcia zaworu",
           "min_opening_degrees": "Minimalny stopień otwarcia",
+          "max_opening_degrees": "Maksymalny stopień otwarcia",
           "max_closing_degree": "Maksymalny stopień zamknięcia"
         },
         "data_description": {
@@ -586,6 +592,7 @@
           "proportional_function": "Używaj algorytmu (aktualnie tylko TPI)",
           "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
+          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },
@@ -644,6 +651,8 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
       "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30",
+      "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
       "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
     },
     "abort": {

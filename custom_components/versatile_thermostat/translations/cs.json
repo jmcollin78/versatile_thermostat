@@ -259,14 +259,20 @@
           "opening_degree_entity_ids": "Entity stupně otevření",
           "closing_degree_entity_ids": "Entity stupně zavření",
           "proportional_function": "Algoritmus",
-          "min_opening_degrees": "Minimální stupně otevření"
+          "opening_threshold_degree": "Prahová hodnota otevření",
+          "min_opening_degrees": "Minimální stupně otevření",
+          "max_opening_degrees": "Maximální stupeň otevření",
+          "max_closing_degree": "Maximální stupeň zavření"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
           "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
-          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+          "opening_threshold_degree": "Hodnota otevření ventilu, pod kterou by měl být ventil považován za zavřený (a pak bude aplikován 'max_closing_degree')",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30",
+          "max_opening_degrees": "Maximální hodnota stupně otevření pro každé základní zařízení, oddělené čárkami. Výchozí hodnota je 100. Ventil se nikdy neotevře více než tato hodnota. Příklad: 80, 85, 90",
+          "max_closing_degree": "Maximální hodnota stupně zavření. Ventil nebude nikdy uzavřen více než tato hodnota. Nastavte na 100 pro úplné zavření ventilu"
         }
       },
       "sync_device_internal_temp": {
@@ -287,6 +293,8 @@
       "unknown_entity": "Neznámé ID entity",
       "window_open_detection_method": "Měla by se používat pouze jedna metoda detekce otevřeného okna. Použijte buď senzor okna, nebo automatickou detekci pomocí teplotního prahu, ale ne oboje",
       "no_central_config": "Nemůžete zaškrtnout 'použít centrální konfiguraci', protože nebyla nalezena žádná centrální konfigurace. Pro její použití musíte vytvořit Versatile Thermostat typu 'Centrální konfigurace'.",
+      "max_opening_degrees_format": "Seznam celých kladných čísel mezi 0 a 100 oddělených čárkou je očekáván. Příklad: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Pro každé základní zařízení musí být max_opening_degrees striktně větší než min_opening_degrees. Zkontrolujte prosím svou konfiguraci.",
       "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována.",
       "service_configuration_format": "Formát konfigurace služby je nesprávný",
       "valve_regulation_nb_entities_incorrect": "Počet entit ventilů pro regulaci ventilů by měl být roven počtu podřízených zařízení",
@@ -553,14 +561,20 @@
           "opening_degree_entity_ids": "Entity stupně otevření",
           "closing_degree_entity_ids": "Entity stupně zavření",
           "proportional_function": "Algoritmus",
-          "min_opening_degrees": "Minimální stupně otevření"
+          "opening_threshold_degree": "Prahová hodnota otevření",
+          "min_opening_degrees": "Minimální stupně otevření",
+          "max_opening_degrees": "Maximální stupeň otevření",
+          "max_closing_degree": "Maximální stupeň zavření"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Seznam entit 'kalibrace offsetu'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "opening_degree_entity_ids": "Seznam entit 'stupně otevření'. Měla by být jedna na každou podřízenou klimatizační entitu",
           "closing_degree_entity_ids": "Seznam entit 'stupně zavření'. Nastavte, pokud má váš TRV entitu pro lepší regulaci. Měla by být jedna na každou podřízenou klimatizační entitu",
           "proportional_function": "Algoritmus k použití (TPI je momentálně jediný)",
-          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30"
+          "opening_threshold_degree": "Hodnota otevření ventilu, pod kterou by měl být ventil považován za zavřený (a pak bude aplikován 'max_closing_degree')",
+          "min_opening_degrees": "Minimální hodnota stupně otevření pro každé podřízené zařízení, oddělené čárkami. Výchozí je 0. Příklad: 20, 25, 30",
+          "max_opening_degrees": "Maximální hodnota stupně otevření pro každé základní zařízení, oddělené čárkami. Výchozí hodnota je 100. Ventil se nikdy neotevře více než tato hodnota. Příklad: 80, 85, 90",
+          "max_closing_degree": "Maximální hodnota stupně zavření. Ventil nebude nikdy uzavřen více než tato hodnota. Nastavte na 100 pro úplné zavření ventilu"
         }
       },
       "sync_device_internal_temp": {
@@ -581,6 +595,8 @@
       "unknown_entity": "Neznámé ID entity",
       "window_open_detection_method": "Měla by se používat pouze jedna metoda detekce otevřeného okna. Použijte buď senzor okna, nebo automatickou detekci pomocí teplotního prahu, ale ne oboje",
       "no_central_config": "Nemůžete zaškrtnout 'použít centrální konfiguraci', protože nebyla nalezena žádná centrální konfigurace. Pro její použití musíte vytvořit Versatile Thermostat typu 'Centrální konfigurace'.",
+      "max_opening_degrees_format": "Seznam celých kladných čísel mezi 0 a 100 oddělených čárkou je očekáván. Příklad: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Pro každé základní zařízení musí být max_opening_degrees striktně větší než min_opening_degrees. Zkontrolujte prosím svou konfiguraci.",
       "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována.",
       "service_configuration_format": "Formát konfigurace služby je nesprávný",
       "valve_regulation_nb_entities_incorrect": "Počet entit ventilů pro regulaci ventilů by měl být roven počtu podřízených zařízení",
