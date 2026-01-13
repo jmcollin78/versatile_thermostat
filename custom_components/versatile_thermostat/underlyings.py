@@ -1296,7 +1296,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
             if not super().init_min_max_open(force=False):
                 return False
 
-            self._max_opening_degree = min(self._max_opening_degree, self._hass.states.get(self._opening_degree_entity_id).attributes.get("max"))
+            max_entity = self._hass.states.get(self._opening_degree_entity_id).attributes.get("max")
+            self._max_opening_degree = min(self._max_opening_degree, max_entity if isinstance(max_entity, (int, float)) else 100)
 
             self._is_min_max_initialized = self._max_opening_degree is not None
 

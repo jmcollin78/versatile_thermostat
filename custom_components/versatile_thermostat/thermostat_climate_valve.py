@@ -153,6 +153,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         "min_opening_degrees": self._min_opening_degrees,
                         "opening_threshold_degree": self._opening_threshold_degree,
                         "max_closing_degree": self._max_closing_degree,
+                        "max_opening_degree": self._max_opening_degree,
                         "valve_open_percent": self.valve_open_percent,
                         "auto_regulation_dpercent": self._auto_regulation_dpercent,
                         "auto_regulation_period_min": self._auto_regulation_period_min,
