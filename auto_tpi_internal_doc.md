@@ -47,6 +47,11 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
 
 3.  **`AutoTpiSensor` (La Visibilité)** :
     *   Expose l'état de l'apprentissage et les métriques internes (nombre de cycles, confiance, coefficients calculés).
+    *   **Création Conditionnelle** : L'entité est créée uniquement si :
+        1.  Le thermostat est TPI-capable (type `switch`, `valve`, ou `climate` avec régulation valve).
+        2.  L'algorithme TPI est sélectionné (`CONF_PROP_FUNCTION == PROPORTIONAL_FUNCTION_TPI`).
+        3.  L'Auto TPI est activé dans la configuration (`CONF_AUTO_TPI_MODE == True`).
+    *   **Nettoyage Automatique** : Lorsque l'Auto TPI est désactivé ou que l'algorithme TPI n'est plus utilisé, l'entité orpheline est automatiquement supprimée du registre des entités via `cleanup_orphan_entity()` (dans `commons.py`) lors du rechargement de la config entry. Cette fonction générique peut être réutilisée pour d'autres entités conditionnelles.
 
 ### B. Flux de Contrôle (La Boucle TPI)
 
