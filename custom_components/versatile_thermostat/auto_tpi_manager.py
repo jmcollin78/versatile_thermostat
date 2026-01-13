@@ -1264,32 +1264,7 @@ class AutoTpiManager:
             # new_count is NOT capped anymore to reflect the real number of cycles
             pass  # No cap
 
-        # RETRO-ACTIVE CAPACITY ADJUSTMENT
-        kext_diff = avg_coeff - old_coeff
-        delta_t_losses = 0.0
-        max_capacity_attr = ""
-        
-        if is_cool:
-             delta_t_losses = self._current_temp_out - self._current_temp_in
-             max_capacity_attr = "max_capacity_cool"
-        else:
-             delta_t_losses = self._current_temp_in - self._current_temp_out
-             max_capacity_attr = "max_capacity_heat"
-        
-        delta_t_losses = max(0.0, delta_t_losses)
-
-        if abs(kext_diff) > 0.0001 and delta_t_losses > 0.0:
-             current_capacity = getattr(self.state, max_capacity_attr)
-             if current_capacity > 0:
-                  capacity_correction = kext_diff * delta_t_losses
-                  new_capacity = max(0.01, current_capacity + capacity_correction)
-                  
-                  setattr(self.state, max_capacity_attr, new_capacity)
-                  
-                  _LOGGER.info(
-                      "%s - Auto TPI: Adjusted %s: %.3f -> %.3f due to Kext change (diff: %.4f, dT: %.1f)", 
-                      self._name, max_capacity_attr, current_capacity, new_capacity, kext_diff, delta_t_losses
-                  )
+        self._calculate_retroactive_capacity(avg_coeff, old_coeff, is_cool)
 
         if is_cool:
             self.state.coeff_outdoor_cool = avg_coeff
@@ -1309,6 +1284,54 @@ class AutoTpiManager:
             new_count,
         )
         return True
+
+    def _calculate_retroactive_capacity(self, avg_coeff: float, old_coeff: float, is_cool: bool) -> None:
+        """Calculate and apply retroactive capacity adjustment based on Kext change."""
+        # RETRO-ACTIVE CAPACITY ADJUSTMENT
+        kext_diff = avg_coeff - old_coeff
+        delta_t_losses = 0.0
+        max_capacity_attr = ""
+
+        if is_cool:
+            delta_t_losses = self._current_temp_out - self._current_temp_in
+            max_capacity_attr = "max_capacity_cool"
+        else:
+            delta_t_losses = self._current_temp_in - self._current_temp_out
+            max_capacity_attr = "max_capacity_heat"
+
+        delta_t_losses = max(0.0, delta_t_losses)
+
+        if abs(kext_diff) > 0.0001 and delta_t_losses > 0.0:
+            current_capacity = getattr(self.state, max_capacity_attr)
+            if current_capacity > 0:
+                # We need to reverse the adiabatic calculation to find the implicit current "rise_rate"
+                # Old_Capacity = Rise_Rate + (Old_Kext * dT)
+                # Rise_Rate = Old_Capacity - (Old_Kext * dT)
+                #
+                # New_Capacity = Old_Capacity + kext_diff * dT
+                
+                # Using the shared formula:
+                # 1. Reverse to get invariant rise_rate
+                implicit_rise_rate = current_capacity - (old_coeff * delta_t_losses)
+                
+                # 2. Recalculate with new coefficient
+                new_capacity = self._calculate_adiabatic_capacity(implicit_rise_rate, avg_coeff, delta_t_losses)
+                
+                new_capacity = max(0.01, new_capacity)
+
+                setattr(self.state, max_capacity_attr, new_capacity)
+
+                _LOGGER.info(
+                    "%s - Auto TPI: Adjusted %s: %.3f -> %.3f due to Kext change (diff: %.4f, dT: %.1f)",
+                    self._name, max_capacity_attr, current_capacity, new_capacity, kext_diff, delta_t_losses
+                )
+
+    def _calculate_adiabatic_capacity(self, observed_rise_rate: float, k_ext: float, delta_t: float) -> float:
+        """Calculate adiabatic capacity (decoupled from losses).
+        
+        Formula: Capacity_adiabatic = Rise_Rate + (Kext * DeltaT)
+        """
+        return observed_rise_rate + (k_ext * delta_t)
 
     def _should_learn_capacity(self) -> bool:
         """Check if capacity learning should occur this cycle."""
@@ -1411,11 +1434,11 @@ class AutoTpiManager:
         if cycle_duration_h * efficiency <= 0:
             return False
 
-        observed_capacity = rise / (cycle_duration_h * efficiency)
+        observed_rise_rate = rise / (cycle_duration_h * efficiency)
         
         # Adiabatic correction: add back the estimated losses
         # This decouples heating capacity from thermal losses
-        adiabatic_capacity = observed_capacity + k_ext * delta_t
+        adiabatic_capacity = self._calculate_adiabatic_capacity(observed_rise_rate, k_ext, delta_t)
         
         # Basic validation (physical bounds)
         if adiabatic_capacity <= 0 or adiabatic_capacity > 20.0:
