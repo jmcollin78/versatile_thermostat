@@ -314,6 +314,8 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
     *   Plafond à 1.2 (légèrement supérieur à la recommandation 1.0 pour tolérance).
 5.  **Lissage (EMA ou Moyenne Pondérée)** : 
     *   La nouvelle valeur cible (`Coeff_New = Target_Outdoor`) est lissée avec l'ancienne valeur.
+6.  **Ajustement Rétroactif de Capacité** :
+    *   Si `Kext` est modifié, la capacité thermique (`max_capacity`) est ajustée pour refléter le changement d'estimation des pertes : `New_Capacity = Old_Capacity + (New_Kext - Old_Kext) * DeltaT`.
 
 #### 6. Cas d'Échec
 Si aucune des priorités n'est déclenchée, le statut `no_valid_conditions` est enregistré.

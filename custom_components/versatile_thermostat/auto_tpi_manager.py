@@ -1264,6 +1264,33 @@ class AutoTpiManager:
             # new_count is NOT capped anymore to reflect the real number of cycles
             pass  # No cap
 
+        # RETRO-ACTIVE CAPACITY ADJUSTMENT
+        kext_diff = avg_coeff - old_coeff
+        delta_t_losses = 0.0
+        max_capacity_attr = ""
+        
+        if is_cool:
+             delta_t_losses = self._current_temp_out - self._current_temp_in
+             max_capacity_attr = "max_capacity_cool"
+        else:
+             delta_t_losses = self._current_temp_in - self._current_temp_out
+             max_capacity_attr = "max_capacity_heat"
+        
+        delta_t_losses = max(0.0, delta_t_losses)
+
+        if abs(kext_diff) > 0.0001 and delta_t_losses > 0.0:
+             current_capacity = getattr(self.state, max_capacity_attr)
+             if current_capacity > 0:
+                  capacity_correction = kext_diff * delta_t_losses
+                  new_capacity = max(0.01, current_capacity + capacity_correction)
+                  
+                  setattr(self.state, max_capacity_attr, new_capacity)
+                  
+                  _LOGGER.info(
+                      "%s - Auto TPI: Adjusted %s: %.3f -> %.3f due to Kext change (diff: %.4f, dT: %.1f)", 
+                      self._name, max_capacity_attr, current_capacity, new_capacity, kext_diff, delta_t_losses
+                  )
+
         if is_cool:
             self.state.coeff_outdoor_cool = avg_coeff
             self.state.coeff_outdoor_cool_autolearn = new_count
