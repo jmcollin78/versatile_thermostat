@@ -150,6 +150,8 @@ class ThermostatTPI(BaseThermostat[T], Generic[T]):
         """Run when entity about to be added."""
         # Load data from Auto TPI Manager
         if self._auto_tpi_manager:
+            # Set entity_id for pre-bootstrap calibration sensor lookup
+            self._auto_tpi_manager._entity_id = self.entity_id
             _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", self, self._tpi_coef_int, self._tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
             # If we have learned parameters, apply them

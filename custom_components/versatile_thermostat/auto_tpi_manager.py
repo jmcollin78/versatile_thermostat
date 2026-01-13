@@ -179,6 +179,7 @@ class AutoTpiManager:
         self._enable_update_config = True
         self._enable_notification = True
         self._unique_id = unique_id
+        self._entity_id: str | None = None  # Set by thermostat after entity registration
         self._name = name
         self._cycle_min = cycle_min
         self._tpi_threshold_low = tpi_threshold_low
@@ -2410,8 +2411,15 @@ class AutoTpiManager:
         Otherwise, returns None to trigger bootstrap.
         """
         try:
-            # Build the thermostat entity_id from unique_id
-            thermostat_entity_id = f"climate.{self._unique_id}"
+            # Use the stored entity_id if available, otherwise fall back to unique_id
+            if self._entity_id:
+                thermostat_entity_id = self._entity_id
+            else:
+                thermostat_entity_id = f"climate.{self._unique_id}"
+                _LOGGER.warning(
+                    "%s - Auto TPI: entity_id not set, falling back to unique_id-based entity_id: %s",
+                    self._name, thermostat_entity_id
+                )
             
             # Get external temperature entity from thermostat state if available
             ext_temp_entity_id = ""
