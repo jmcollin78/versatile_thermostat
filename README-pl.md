@@ -4,7 +4,7 @@
 [![hacs][hacs_badge]][hacs]
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
-# VTherm 
+# VTherm
 ### (dawniej: _*Versatile Thermostat*_)
 
 Ten plik README dostępny jest
@@ -25,6 +25,9 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 
 # Co nowego?
 ![New](images/new-icon.png)
+
+## Wydanie 8.6
+> 1. Dodanie parametru `max_opening_degrees` dla termostatów VTherm typu `over_climate_valve` pozwalającego ograniczyć maksymalny procent otwarcia każdego zaworu w celu kontrolowania przepływu gorącej wody i optymalizacji zużycia energii.
 
 ## Wydanie 8.5
 > 1. Dodanie wykrywania awarii ogrzewania dla termostatów VTherm używających algorytmu TPI. Ta funkcja wykrywa dwa typy anomalii:

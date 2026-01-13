@@ -26,6 +26,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 # Quoi de neuf ?
 ![Nouveau](images/new-icon.png)
 
+## Release 8.6
+> 1. ajout du paramètre `max_opening_degrees` pour les VTherms de type `over_climate_valve` permettant de limiter le pourcentage d'ouverture maximal de chaque vanne afin de contrôler le débit d'eau chaude et optimiser la consommation d'énergie (ou autre cas d'usage).
+
 ## Release 8.5
 > 1. ajout de la détection d'anomalie de chauffe pour les VTherms utilisant l'algorithme TPI. Cette fonction détecte deux types d'anomalies :
 >    - **anomalie de chauffage** : le radiateur chauffe fortement (on_percent élevé) mais la température n'augmente pas,
