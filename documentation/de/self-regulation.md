@@ -36,7 +36,10 @@ Dies ermöglicht Ihnen die Konfiguration der Ventilsteuerungseinheiten:
 Sie müssen folgendes angeben:
 1. So viele Einheiten zur Steuerung der Ventilöffnung, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind obligatorisch.
 2. So viele Einheiten zur Steuerung der Schließgeschwindigkeit des Ventils, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind optional; entweder müssen alle angegeben werden oder keiner.
-3. Eine Liste der minimalen Ventilöffnungswerte, wenn das Ventil geöffnet sein muss. Dieses Feld ist eine Liste von Ganzzahlen. Wenn das Ventil geöffnet sein muss, wird es mindestens bis zu diesem Wert geöffnet; andernfalls wird es vollständig geschlossen (0). Auf diese Weise wird sichergestellt, dass genügend Wasser fließt, wenn geheizt werden muss, während es vollständig geschlossen bleibt, wenn keine Heizung benötigt wird.
+3. `opening_threshold`: die minimale Ventilöffnung, unterhalb derer das Ventil als geschlossen gilt, und folglich gilt der Parameter 'max_closing_degree',
+4. `max_closing_degree`: der absolute maximale Schließgrad. Das Ventil wird niemals mehr schließen als dieser Wert. Wenn Sie ein vollständiges Schließen des Ventils zulassen möchten, lassen Sie diesen Parameter auf 100,
+5. `minimum_opening_degrees`: der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und der VTherm heizen muss. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der minimalen Öffnungen durch ',' getrennt an. Der Standardwert ist 0. Beispiel: '20, 25, 30'. Wenn das Heizen beginnt (d.h. die angeforderte Öffnung größer als `opening_threshold` ist), öffnet sich das Ventil mit einem Wert größer oder gleich diesem und wird bei Bedarf regelmäßig weiter erhöht.
+6. `max_opening_degrees`: der maximale Öffnungsgrad, den das Ventil erreichen kann. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der maximalen Öffnungen durch ',' getrennt an. Der Standardwert ist 100 (volle Öffnung). Beispiel: '80, 85, 90'. Das Ventil wird niemals über diesen Wert hinaus öffnen, wodurch Sie den Heißwasserdurchfluss begrenzen und den Energieverbrauch optimieren können. Dieser Wert muss für jedes Ventil streng größer als `minimum_opening_degrees` sein.
 
 Der Algorithmus zur Berechnung der Öffnungsrate basiert auf _TPI_, der beschrieben ist [hier](algorithms.md). Es ist derselbe Algorithmus, der für _VTherm_ `over_switch` und `over_valve` verwendet wird.
 
@@ -45,11 +48,11 @@ Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate
 > ![Warnung](images/tips.png) _*Hinweise*_
 > 1. Seit Version 7.2.2 ist es möglich, die Entity "Schließungsgrad" auf Sonoff TRVZB zu verwenden.
 > 2. Das Attribut `hvac_action` von Sonoff TRVZB TRVs ist unzuverlässig. Wenn die Innentemperatur des TRV zu sehr von der Raumtemperatur abweicht, kann die `climate`-Entity anzeigen, dass das _TRV_ nicht heizt, auch wenn das Ventil durch _VTherm_ zwangsweise geöffnet wird. Dieses Problem hat keine Auswirkungen, da die `climate`-Entity von _VTherm_ korrigiert wird und die Ventilöffnung bei der Festlegung des Attributs `hvac_action` berücksichtigt. Dieses Problem wird durch die Konfiguration der Temperatur-Offset-Kalibrierung abgeschwächt, aber nicht vollständig beseitigt.
-> 3. Das Attribut `valve_open_percent` von _VTherm_ stimmt möglicherweise nicht mit dem an das Ventil gesendeten `Öffnungsgrad`-Wert überein. Wenn Sie einen Mindestöffnungswert konfiguriert haben oder die Schließsteuerung verwenden, wird eine Anpassung vorgenommen. Das Attribut `valve_open_percent` stellt den von _VTherm_ berechneten Rohwert dar. Der an das Ventil gesendete `Öffnungsgrad`-Wert kann entsprechend angepasst werden.
+> 3. Das Attribut `valve_open_percent` von _VTherm_ stimmt möglicherweise nicht mit dem an das Ventil gesendeten `Öffnungsgrad`-Wert überein. Wenn Sie einen der vier Parameter `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` oder `max_opening_degrees` verwenden, wird eine Anpassung vorgenommen. Das Attribut `valve_open_percent` stellt den von _VTherm_ berechneten Rohwert dar. Der an das Ventil gesendete `Öffnungsgrad`-Wert kann entsprechend angepasst werden.
 
 #### Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?
 
-Die 3 Einstellparameter der Ventilöffnung ermöglichen eine Feinabstimmung des Ventilverhaltens, insbesondere zu Beginn des Heizzyklus. Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellen, erhält man diese Kurve:
+Die 4 Einstellparameter der Ventilöffnung ermöglichen eine Feinabstimmung des Ventilverhaltens, insbesondere zu Beginn des Heizzyklus. Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellen, erhält man diese Kurve:
 
 <img src="../../images/opening-degree-graph.png" alt="Öffnungsparameter einstellen" width="600">
 
