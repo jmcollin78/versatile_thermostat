@@ -1,7 +1,4 @@
-# Documentation Interne : Auto TPI (Algorithme d'Auto-Apprentissage et de Calibration)
-
 Ce document décrit le fonctionnement interne de la fonctionnalité **Auto TPI** implémentée dans `auto_tpi_manager.py`.
-**Mise à jour :** Version 2.4 - Remplacement de la détection de capacité en temps réel par un service de calibration via régression linéaire sur historique.
 
 ---
 
@@ -81,7 +78,7 @@ L'algorithme tente d'estimer la puissance physique de l'installation (`max_capac
 Cette valeur sert de référence pour calculer l'efficacité relative des cycles suivants.
 
 **Conditions d'apprentissage :**
-*   Mode bootstrap (count < 3) ou apprentissage continu.
+*   Mode bootstrap (count < 3).
 *   **Puissance élevée** : Le cycle doit avoir injecté beaucoup d'énergie (Power > 80%) pour être représentatif.
 *   **Montée significative** : La température doit avoir monté d'au moins 0.05°C.
 *   **Gap suffisant** : L'écart à la consigne doit être suffisant (> 1°C en bootstrap, > 0.3°C sinon).
@@ -108,8 +105,8 @@ Avant de démarrer le mode bootstrap agressif, le système tente de calibrer la 
     *   Alpha = 0.4 (Rapide) pendant le bootstrap.
     *   Alpha = 0.15 (Lent) ensuite.
 
-### B. Capacité Maximale et Inertie
-**(SUPPRIMÉ)** Le mécanisme d'apprentissage de la capacité en temps réel (`_detect_max_capacity`) a été remplacé par un service de calibration basé sur la régression linéaire d'historique. Voir Section **"Nouveau Service de Calibration"** ci-dessous.
+### B. Capacité Maximale
+Le mécanisme de calibration de la capacité repose sur le service de régression linéaire d'historique.
 
 ### C. Logique de Mise à Jour (`_perform_learning`)
 
@@ -224,10 +221,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 
 **Résultat** : Si la correction s'applique, le cycle d'apprentissage s'arrête. Le status est `corrected_kint_insufficient_rise` ou `max_kint_boosts_reached`.
 
-#### 3. Cas 1 : Apprentissage du Coefficient Intérieur (`_learn_indoor`)
-
-
-C'est la méthode privilégiée, mais elle est désormais soumise à des conditions strictes pour éviter les faux positifs et laisser sa chance à l'apprentissage extérieur.
+C'est la méthode privilégiée. Elle est soumise à des conditions strictes pour éviter les faux positifs et laisser sa chance à l'apprentissage extérieur.
 
 **Conditions d'activation :**
 1.  **Puissance non saturée** : `0 < power < 0.99` (on n'apprend pas à saturation sauf détection capacité).
@@ -273,7 +267,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
      *   **Principe** : Avant de calculer la montée théorique, on "réapplique" les pertes thermiques à la Capacité de Référence pour obtenir la capacité réelle du moment.
      *   $C_{eff} = C_{ref} \cdot (1 - K_{ext} \cdot \Delta T_{ext})$
      *   $C_{eff}$ est la capacité maximale réelle de montée en température en °C/h dans les conditions météo actuelles.
-     *   Cette valeur ($C_{eff}$) est utilisée pour le calcul du `saturation_threshold` qui est désormais dynamique.
+     *   Cette valeur ($C_{eff}$) est utilisée pour le calcul du `saturation_threshold`.
  4.  **Calcul de la Montée Maximale Possible (`max_achievable_rise`)** :
      *   `max_achievable_rise = effective_capacity (°C/h) * cycle_duration (h) * efficiency`.
      *   *Exemple* : Si la capacité effective est 2.0 °C/h, le cycle dure 15 min (0.25h) et l'efficacité est 80%, alors `max_achievable_rise = 2.0 * 0.25 * 0.8 = 0.4°C`.
@@ -297,7 +291,7 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
         *   `Coeff_Final = (Ancien_Coeff * (1 - Alpha)) + (Coeff_New * Alpha)`.
         *   `Alpha` est configurable (`auto_tpi_ema_alpha`, défaut 0.2).
         *   Permet un lissage où les valeurs récentes ont un poids fixe (ex: 20%).
-        *   **Alpha Adaptatif** : En méthode EMA, alpha décroît selon `α(n) = α₀ / (1 + k·n)`. Cela unifie conceptuellement les méthodes EMA et Average : avec `k=1` et `α₀=1`, l'EMA adaptatif est mathématiquement équivalent à la moyenne pondérée.
+        *   **Alpha Adaptatif** : En méthode EMA, alpha décroît selon `α(n) = α₀ / (1 + k·n)`. Cela unifie conceptuellement les méthodes EMA et Average.
 
     *   **Méthode Moyenne Pondérée (Average)** :
         *   `Coeff_Final = ((Ancien_Coeff * Poids_Ancien) + Coeff_New) / (Poids_Ancien + 1)`.
@@ -325,13 +319,12 @@ Si aucune des priorités n'est déclenchée, le statut `no_valid_conditions` est
 
 ### D. Sécurités et Détection d'Échecs
 *   **Détection d'Échec** : Si la température évolue dans le mauvais sens (ex: baisse alors qu'on chauffe) de manière significative (> 1°C d'écart) **ET que le système est à saturation de puissance** (power >= saturation_threshold). Une variation de température à puissance partielle est considérée comme une situation d'apprentissage normale, non un échec.
-*   **Protection (Mode Standard)** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
-*   **Protection (Mode Continu)** : En mode apprentissage continu (`continuous_learning`), les 3 échecs consécutifs **n'arrêtent pas** l'apprentissage. Le système se contente de loguer un avertissement, de réinitialiser le compteur d'échecs, et de continuer l'apprentissage en ignorant les cycles fautifs.
+*   **Protection** : 3 échecs consécutifs désactivent l'apprentissage pour éviter la divergence.
 
 ### E. Sécurité d'Activation (Safety Logic)
 Pour éviter un démarrage accidentel ou non souhaité de l'apprentissage :
-1.  **Pré-requis Configuration** : Le service `set_auto_tpi_mode(True)` est rejeté si la fonctionnalité n'est pas explicitement activée dans la configuration du thermostat (`CONF_AUTO_TPI_MODE`).
-2.  **Arrêt sur Changement de Config** : Au démarrage (ou rechargement après modification de config), si l'apprentissage était actif (état stocké) mais que la fonctionnalité est désormais désactivée dans la configuration, l'apprentissage est **forcé à l'arrêt** (`stop_learning()`).
+1.  **Pré-requis Configuration** : Le service `set_auto_tpi_mode(True)` nécessite que la fonctionnalité soit activée dans la configuration du thermostat (`CONF_AUTO_TPI_MODE`).
+2.  **Arrêt sur Changement de Config** : Au démarrage, si la fonctionnalité est désactivée dans la configuration, l'apprentissage est arrêté.
 3.  **Continuation de l'Apprentissage Extérieur (`auto_tpi_keep_ext_learning`)** :
     *   Le paramètre `auto_tpi_keep_ext_learning` modifie le critère d'arrêt de l'apprentissage du Coefficient Extérieur (`Kext`).
     *   **Logique de non-arrêt de Kext (Apprentissage)** : Lorsque cette option est cochée, le comptage des cycles pour `Kext` continue même après avoir atteint le minimum de 50 cycles, **tant que le Coefficient Intérieur (`Kint`) n'est pas stable**.
@@ -364,7 +357,7 @@ L'algorithme Auto TPI intègre un mécanisme de détection de **changement syst�
 
 ### B. Activation
 
-La détection de changement de régime est **uniquement active** lorsque l'apprentissage continu est activé (`auto_tpi_continuous_learning: true`).
+La détection de changement de régime est active pendant l'apprentissage.
 
 ### C. Mécanisme
 
@@ -440,7 +433,7 @@ La détection de changement de régime est **uniquement active** lorsque l'appre
     *   Cette méthode n'est plus exposée comme un service externe. Elle est utilisée en interne si un reset complet était nécessaire.
     *   **Action** : Réinitialisation complète de l'état d'apprentissage (`AutoTpiState`), incluant coefficients, compteurs, et capacités.
 *   **Démarrage (`start_learning`)** : L'appel à `start_learning(reset_data, ...)` (ex: via le service `set_auto_tpi_mode`) :
-    *   **Paramètres Optionnels** : le service accepte désormais `allow_kint_boost_on_stagnation` (défaut `False`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
+    *   **Paramètres Optionnels** : le service accepte `allow_kint_boost_on_stagnation` (défaut `False`) et `allow_kext_compensation_on_overshoot` (défaut `False`) pour activer les logiques de correction spécifiques.
     *   **Paramètre `reset_data`** (défaut: `True`) : Contrôle la réinitialisation des données d'apprentissage.
         *   Si `reset_data=True` : Réinitialise les compteurs, les coefficients (sauf si fournis), la date de démarrage `learning_start_dt` et les paramètres du cycle courant (`current_cycle_params`). La capacité calibrée est **conservée**. `last_learning_status` est mis à `learning_started`.
         *   Si `reset_data=False` : Reprend l'apprentissage en conservant les coefficients, les compteurs et la date de démarrage existants. Seul le flag `autolearn_enabled` est activé. `last_learning_status` est mis à `learning_resumed`.
@@ -477,7 +470,7 @@ Pour alléger l'interface, plusieurs options techniques ont été retirées de l
 *   `auto_tpi_enable_update_config` : **True** (La configuration est toujours mise à jour avec les valeurs apprises).
 *   `auto_tpi_enable_notification` : **True** (Les notifications de fin d'apprentissage sont toujours envoyées).
 *   `auto_tpi_keep_ext_learning` : **True** (L'apprentissage externe continue tant que l'interne n'est pas stable).
-*   `auto_tpi_continuous_learning` : **False** (L'apprentissage s'arrête une fois stable par défaut, sauf réactivation manuelle).
+*   `auto_tpi_continuous_learning` : **False** (L'apprentissage s'arrête une fois stable par défaut).
 
 ### C. Impact sur le Code
 *   **`config_flow.py`** : Implémente la logique de branchement direct (Général -> Méthode) et l'application des valeurs par défaut.
