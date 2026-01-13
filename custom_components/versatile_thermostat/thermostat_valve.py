@@ -12,7 +12,7 @@ from homeassistant.helpers.event import (
 from homeassistant.core import Event, HomeAssistant, callback
 
 from .base_thermostat import BaseThermostat, ConfigData
-from .thermostat_tpi import ThermostatTPI
+from .thermostat_prop import ThermostatProp
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -21,7 +21,7 @@ from .underlyings import UnderlyingValve
 
 _LOGGER = logging.getLogger(__name__)
 
-class ThermostatOverValve(ThermostatTPI[UnderlyingValve]):  # pylint: disable=abstract-method
+class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access

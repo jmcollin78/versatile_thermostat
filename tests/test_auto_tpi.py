@@ -223,11 +223,19 @@ async def test_cycle_lifecycle(manager):
     assert manager.state.last_state == "heat"
     assert manager._timer_capture_remove_callback is not None
     
+    
+    # Simulate time passing (5 minutes) to satisfy cycle duration validation
+    # cycle_min is 5 in fixture, so we set start date 5 mins ago
+    manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
+
     # 2. Complete Cycle
     await manager.on_cycle_completed(
-        on_time_sec=150,
-        off_time_sec=150,
-        hvac_mode="heat"
+        new_params={},
+        prev_params={
+            "on_time_sec": 150,
+            "off_time_sec": 150,
+            "hvac_mode": "heat"
+        }
     )
     
     assert manager.state.cycle_active is False
