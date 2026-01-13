@@ -179,6 +179,7 @@ class AutoTpiManager:
         self._enable_update_config = True
         self._enable_notification = True
         self._unique_id = unique_id
+        self._entity_id: str | None = None  # Set by thermostat after entity registration
         self._name = name
         self._cycle_min = cycle_min
         self._tpi_threshold_low = tpi_threshold_low
@@ -492,7 +493,16 @@ class AutoTpiManager:
             is_capacity_heat_outdated = self.state.max_capacity_heat != self._heating_rate
             is_capacity_cool_outdated = self.state.max_capacity_cool != self._cooling_rate
 
-            if is_capacity_heat_outdated and self._heating_rate > 0.0:
+            # Handle capacity reset: if configured heat_rate is 0, reset capacity to trigger bootstrap
+            if self._heating_rate == 0.0 and self.state.max_capacity_heat > 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured heat_rate is 0, resetting capacity (was %.3f) to trigger bootstrap.",
+                    self._name,
+                    self.state.max_capacity_heat,
+                )
+                self.state.max_capacity_heat = 0.0
+                self.state.capacity_heat_learn_count = 0
+            elif is_capacity_heat_outdated and self._heating_rate > 0.0:
                 _LOGGER.info(
                     "%s - Auto TPI: Overwriting persisted max_capacity_heat (%.3f) with new configured value (%.3f) on load.",
                     self._name,
@@ -501,7 +511,16 @@ class AutoTpiManager:
                 )
                 self.state.max_capacity_heat = self._heating_rate
 
-            if is_capacity_cool_outdated and self._cooling_rate > 0.0:
+            # Handle capacity reset for cooling mode
+            if self._cooling_rate == 0.0 and self.state.max_capacity_cool > 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured cooling_rate is 0, resetting capacity (was %.3f) to trigger bootstrap.",
+                    self._name,
+                    self.state.max_capacity_cool,
+                )
+                self.state.max_capacity_cool = 0.0
+                # Note: capacity_cool_learn_count does not exist, cooling bootstrap uses different logic
+            elif is_capacity_cool_outdated and self._cooling_rate > 0.0:
                 _LOGGER.info(
                     "%s - Auto TPI: Overwriting persisted max_capacity_cool (%.3f) with new configured value (%.3f) on load.",
                     self._name,
@@ -2392,8 +2411,15 @@ class AutoTpiManager:
         Otherwise, returns None to trigger bootstrap.
         """
         try:
-            # Build the thermostat entity_id from unique_id
-            thermostat_entity_id = f"climate.{self._unique_id}"
+            # Use the stored entity_id if available, otherwise fall back to unique_id
+            if self._entity_id:
+                thermostat_entity_id = self._entity_id
+            else:
+                thermostat_entity_id = f"climate.{self._unique_id}"
+                _LOGGER.warning(
+                    "%s - Auto TPI: entity_id not set, falling back to unique_id-based entity_id: %s",
+                    self._name, thermostat_entity_id
+                )
             
             # Get external temperature entity from thermostat state if available
             ext_temp_entity_id = ""
@@ -2739,6 +2765,16 @@ class AutoTpiManager:
             self.state.cycle_start_date = dt_util.now()
             self.state.cycle_active = False
             self.state.current_cycle_params = None  # Ensure first tick starts fresh
+
+            # Reset capacity if configured heat_rate is 0 (user wants to re-learn capacity)
+            if self._heating_rate == 0.0:
+                _LOGGER.info(
+                    "%s - Auto TPI: Configured heat_rate is 0, resetting capacity for bootstrap",
+                    self._name
+                )
+                self.state.max_capacity_heat = 0.0
+                self.state.capacity_heat_learn_count = 0
+                self.state.bootstrap_failure_count = 0
         else:
             _LOGGER.info(
                 "%s - Auto TPI: Resuming learning with existing data (coef_int=%.3f, coef_ext=%.3f, cycles=%d)",
