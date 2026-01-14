@@ -150,7 +150,7 @@
           "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm",
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
-          "auto_tpi_mode": "Check to enable automatic learning of TPI coefficients"
+          "auto_tpi_mode": "Check to enable Auto TPI feature. TPI learning session are manually started, read the doc first."
         }
       },
       "presets": {
@@ -528,7 +528,7 @@
           "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm",
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
-          "auto_tpi_mode": "Check to enable automatic learning of TPI coefficients"
+          "auto_tpi_mode": "Check to enable Auto TPI feature. TPI learning session are manually started, read the doc first."
         }
       },
       "presets": {
