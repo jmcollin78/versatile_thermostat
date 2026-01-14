@@ -722,3 +722,242 @@ async def test_heating_failure_detection_hvac_off_resets(hass: HomeAssistant, sk
     assert entity.heating_failure_detection_manager._zero_power_start_time is None
     assert entity.heating_failure_detection_manager.heating_failure_state == STATE_OFF
     assert entity.heating_failure_detection_manager.cooling_failure_state == STATE_OFF
+
+
+# ========================================================================
+# PART 3: Unit tests for template enable feature
+# ========================================================================
+
+
+async def test_enable_template_disables_detection(hass: HomeAssistant):
+    """Test that a template returning False disables detection"""
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init(
+        {
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+            CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+            CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+            CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+            CONF_FAILURE_DETECTION_ENABLE_TEMPLATE: "{{ false }}",
+        }
+    )
+
+    # Template returns False -> detection should be disabled
+    result = await manager.refresh_state()
+    assert result is False
+    # Tracking should not start because template is False
+    assert manager._high_power_start_time is None
+
+    custom_attributes = {}
+    manager.add_custom_attributes(custom_attributes)
+    mgr_attrs = custom_attributes["heating_failure_detection_manager"]
+    assert mgr_attrs["failure_detection_enable_template"] == "{{ false }}"
+    assert mgr_attrs["is_detection_enabled_by_template"] is False
+
+
+async def test_enable_template_enables_detection(hass: HomeAssistant):
+    """Test that a template returning True enables detection"""
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init(
+        {
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+            CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+            CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+            CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+            CONF_FAILURE_DETECTION_ENABLE_TEMPLATE: "{{ true }}",
+        }
+    )
+
+    # First call initializes tracking
+    result = await manager.refresh_state()
+    assert result is False
+    assert manager._last_check_time == now
+    assert manager._last_check_temperature == 20.0
+
+    # Second call - template returns True, detection should work
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+
+    result = await manager.refresh_state()
+    assert result is False
+    # Tracking should start because template is True
+    assert manager._high_power_start_time == later1
+
+    custom_attributes = {}
+    manager.add_custom_attributes(custom_attributes)
+    mgr_attrs = custom_attributes["heating_failure_detection_manager"]
+    assert mgr_attrs["failure_detection_enable_template"] == "{{ true }}"
+    assert mgr_attrs["is_detection_enabled_by_template"] is True
+
+
+async def test_no_template_defaults_to_enabled(hass: HomeAssistant):
+    """Test that when no template is provided, detection is enabled by default"""
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init(
+        {
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+            CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+            CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+            CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+            # No template provided
+        }
+    )
+
+    # First call initializes tracking
+    await manager.refresh_state()
+
+    # Second call - no template means enabled by default
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+
+    result = await manager.refresh_state()
+    assert result is False
+    # Tracking should start because no template means enabled
+    assert manager._high_power_start_time == later1
+
+    custom_attributes = {}
+    manager.add_custom_attributes(custom_attributes)
+    mgr_attrs = custom_attributes["heating_failure_detection_manager"]
+    assert mgr_attrs.get("failure_detection_enable_template") is None
+    assert mgr_attrs["is_detection_enabled_by_template"] is True
+
+
+async def test_template_resets_tracking_when_disabled(hass: HomeAssistant):
+    """Test that when template switches from True to False, tracking is reset"""
+    from homeassistant.helpers.template import Template
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    # Start with template returning True
+    manager.post_init(
+        {
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+            CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+            CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+            CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+            CONF_FAILURE_DETECTION_ENABLE_TEMPLATE: "{{ true }}",
+        }
+    )
+
+    # First call initializes tracking
+    await manager.refresh_state()
+
+    # Second call - starts tracking
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+    await manager.refresh_state()
+    assert manager._high_power_start_time == later1
+
+    # Now change template to return False (simulate external heat source)
+    manager._failure_detection_enable_template = Template("{{ false }}", hass)
+
+    later2 = now + timedelta(minutes=2)
+    type(fake_vtherm).now = PropertyMock(return_value=later2)
+    result = await manager.refresh_state()
+
+    # Tracking should be reset
+    assert manager._high_power_start_time is None
+    assert manager._zero_power_start_time is None
+
+
+async def test_template_ends_failure_when_disabled(hass: HomeAssistant):
+    """Test that when template switches to False during active failure, failure is ended"""
+    from homeassistant.helpers.template import Template
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init(
+        {
+            CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+            CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+            CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+            CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+            CONF_FAILURE_DETECTION_ENABLE_TEMPLATE: "{{ true }}",
+        }
+    )
+
+    # Simulate an active heating failure
+    manager._heating_failure_state = STATE_ON
+    manager._high_power_start_time = now
+
+    # Now change template to return False
+    manager._failure_detection_enable_template = Template("{{ false }}", hass)
+
+    later = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later)
+
+    with patch.object(manager, "_send_heating_failure_event") as mock_event:
+        result = await manager.refresh_state()
+
+        # Failure should be ended
+        assert manager._heating_failure_state == STATE_OFF
+        # Event should be sent
+        mock_event.assert_called_once()
+        call_args = mock_event.call_args[0]
+        assert call_args[0] == "heating_failure_end"

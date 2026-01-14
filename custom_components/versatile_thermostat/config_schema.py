@@ -488,6 +488,9 @@ STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=i
             CONF_TEMPERATURE_CHANGE_TOLERANCE,
             default=DEFAULT_TEMPERATURE_CHANGE_TOLERANCE,
         ): selector.NumberSelector(selector.NumberSelectorConfig(min=0.0, max=5.0, step=0.1, mode=selector.NumberSelectorMode.BOX)),
+        vol.Optional(
+            CONF_FAILURE_DETECTION_ENABLE_TEMPLATE,
+        ): selector.TemplateSelector(),
     }
 )
 

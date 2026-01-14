@@ -272,7 +272,7 @@
           "proportional_function": "Algorithme",
           "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Degré d'ouverture maximum",
+          "max_opening_degrees": "Ouvertures maximales",
           "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
@@ -349,7 +349,8 @@
           "heating_failure_threshold": "Seuil de panne de chauffage",
           "cooling_failure_threshold": "Seuil de panne de refroidissement",
           "heating_failure_detection_delay": "Délai de détection (minutes)",
-          "temperature_change_tolerance": "Tolérance (°C)"
+          "temperature_change_tolerance": "Tolérance (°C)",
+          "failure_detection_enable_template": "Template d'activation de la détection"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
@@ -357,7 +358,8 @@
           "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
           "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
-          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
+          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: {{ is_state('binary_sensor.poele_a_bois', 'off') }}). Si vide, la détection est toujours active."
         }
       }
     },
@@ -650,7 +652,7 @@
           "proportional_function": "Algorithme",
           "opening_threshold_degree": "Seuil d'ouverture",
           "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Ouverture maximale",
+          "max_opening_degrees": "Ouvertures maximales",
           "max_closing_degree": "Fermetures maximale"
         },
         "data_description": {
@@ -727,7 +729,8 @@
           "heating_failure_threshold": "Seuil de panne de chauffage",
           "cooling_failure_threshold": "Seuil de panne de refroidissement",
           "heating_failure_detection_delay": "Délai de détection (minutes)",
-          "temperature_change_tolerance": "Tolérance (°C)"
+          "temperature_change_tolerance": "Tolérance (°C)",
+          "failure_detection_enable_template": "Template d'activation de la détection"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Activer la détection d'anomalies de chauffage pour les VTherms avec TPI",
@@ -735,7 +738,8 @@
           "heating_failure_threshold": "Seuil de on_percent au-dessus duquel le chauffage devrait faire monter la température (0.9 = 90%)",
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
           "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
-          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)"
+          "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
+          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: {{ is_state('binary_sensor.poele_a_bois', 'off') }}). Si vide, la détection est toujours active."
         }
       }
     },

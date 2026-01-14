@@ -32,6 +32,7 @@
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
+          "heating_failure_detection": "Heating failure detection",
           "auto_tpi_configuration": "Auto TPI - Configuration",
           "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
@@ -270,7 +271,7 @@
           "proportional_function": "Algorithm",
           "opening_threshold_degree": "Opening threshold degree",
           "min_opening_degrees": "Min opening degrees",
-          "max_opening_degrees": "Max opening degree",
+          "max_opening_degrees": "Max opening degrees",
           "max_closing_degree": "Max closing degree"
         },
         "data_description": {
@@ -280,7 +281,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_opening_degrees": "Opening degree maximum value for each underlying device, comma separated. Default to 100. The valve will never open more than this value. Example: 80, 85, 90",
+          "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
@@ -347,7 +348,8 @@
           "heating_failure_threshold": "Heating failure threshold",
           "cooling_failure_threshold": "Cooling failure threshold",
           "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)"
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Enable detection template"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
@@ -355,7 +357,8 @@
           "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "A Jinja template that returns True or False. When False, detection is disabled. Use this to disable detection when an external heat source is active (e.g., wood stove). Example: {{ is_state('binary_sensor.wood_stove', 'off') }}"
         }
       }
     },
@@ -647,7 +650,7 @@
           "proportional_function": "Algorithm",
           "opening_threshold_degree": "Opening threshold degree",
           "min_opening_degrees": "Min opening degrees",
-          "max_opening_degrees": "Max opening degree",
+          "max_opening_degrees": "Max opening degrees",
           "max_closing_degree": "Max closing degree"
         },
         "data_description": {
@@ -657,7 +660,7 @@
           "proportional_function": "Algorithm to use (TPI is the only one for now)",
           "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
           "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-          "max_opening_degrees": "Opening degree maximum value for each underlying device, comma separated. Default to 100. The valve will never open more than this value. Example: 80, 85, 90",
+          "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
           "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
         }
       },
@@ -724,7 +727,8 @@
           "heating_failure_threshold": "Heating failure threshold",
           "cooling_failure_threshold": "Cooling failure threshold",
           "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)"
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Enable detection template"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
@@ -732,7 +736,8 @@
           "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)"
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "A Jinja template that returns True or False. When False, detection is disabled. Use this to disable detection when an external heat source is active (e.g., wood stove). Example: {{ is_state('binary_sensor.wood_stove', 'off') }}"
         }
       }
     },
