@@ -326,11 +326,14 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
 
     def _send_heating_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a heating failure event"""
+        is_enabled_by_template = self._is_detection_enabled_by_template()
         # Log the event
         if event_type == "heating_failure_start":
             write_event_log(_LOGGER, self._vtherm, f"Heating failure detected: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
         else:
-            write_event_log(_LOGGER, self._vtherm, f"Heating failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm, f"Heating failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
+            )
 
         self._vtherm.send_event(
             EventType.HEATING_FAILURE_EVENT,
@@ -343,16 +346,20 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "target_temp": self._vtherm.target_temperature,
                 "threshold": self._heating_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
+                "is_enabled_by_template": is_enabled_by_template,
             },
         )
 
     def _send_cooling_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a cooling failure event"""
+        is_enabled_by_template = self._is_detection_enabled_by_template()
         # Log the event
         if event_type == "cooling_failure_start":
             write_event_log(_LOGGER, self._vtherm, f"Cooling failure detected: on_percent={on_percent*100:.0f}%, temp_diff=+{temp_diff:.2f}°")
         else:
-            write_event_log(_LOGGER, self._vtherm, f"Cooling failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm, f"Cooling failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
+            )
 
         self._vtherm.send_event(
             EventType.HEATING_FAILURE_EVENT,
@@ -365,6 +372,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "target_temp": self._vtherm.target_temperature,
                 "threshold": self._cooling_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
+                "is_enabled_by_template": is_enabled_by_template,
             },
         )
 

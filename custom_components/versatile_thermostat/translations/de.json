@@ -31,6 +31,7 @@
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "heating_failure_detection": "Heating failure detection",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -85,7 +86,8 @@
           "use_power_feature": "Powermanagement",
           "use_presence_feature": "Anwesenheitserkennung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stoppfunktion"
+          "use_auto_start_stop_feature": "Mit automatische Start- und Stoppfunktion",
+          "use_heating_failure_detection_feature": "Use heating failure detection"
         }
       },
       "type": {
@@ -288,6 +290,28 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Detection enable template"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
+        }
       }
     },
     "error": {
@@ -338,6 +362,7 @@
           "auto_start_stop": "Auto Start und Stopp",
           "valve_regulation": "Konfiguration der Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "heating_failure_detection": "Heating failure detection",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -394,7 +419,8 @@
           "use_power_feature": "Mit Powermanagement",
           "use_presence_feature": "Mit Anwesenheitserkennung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stopfunktion."
+          "use_auto_start_stop_feature": "Mit automatische Start- und Stopfunktion.",
+          "use_heating_failure_detection_feature": "Use heating failure detection"
         }
       },
       "type": {
@@ -600,6 +626,28 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Detection enable template"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
         }
       }
     },

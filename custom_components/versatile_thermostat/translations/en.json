@@ -349,7 +349,7 @@
           "cooling_failure_threshold": "Cooling failure threshold",
           "heating_failure_detection_delay": "Detection delay (minutes)",
           "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Enable detection template"
+          "failure_detection_enable_template": "Detection enable template"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
@@ -358,7 +358,7 @@
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "A Jinja template that returns True or False. When False, detection is disabled. Use this to disable detection when an external heat source is active (e.g., wood stove). Example: {{ is_state('binary_sensor.wood_stove', 'off') }}"
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
       }
     },
@@ -728,7 +728,7 @@
           "cooling_failure_threshold": "Cooling failure threshold",
           "heating_failure_detection_delay": "Detection delay (minutes)",
           "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Enable detection template"
+          "failure_detection_enable_template": "Detection enable template"
         },
         "data_description": {
           "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
@@ -737,7 +737,7 @@
           "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "A Jinja template that returns True or False. When False, detection is disabled. Use this to disable detection when an external heat source is active (e.g., wood stove). Example: {{ is_state('binary_sensor.wood_stove', 'off') }}"
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
       }
     },

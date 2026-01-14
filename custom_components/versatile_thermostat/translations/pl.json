@@ -33,7 +33,8 @@
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna"
+          "configuration_not_complete": "Konfiguracja niekompletna",
+          "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
       "lock": {
@@ -86,7 +87,8 @@
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
-          "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"
+          "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
+          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
         }
       },
       "type": {
@@ -291,6 +293,28 @@
           "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji.",
           "sync_entity_ids": "Lista encji używanych do synchronizacji temperatury wewnętrznej urządzeń bazowych. Każde urządzenie bazowe musi mieć jedną taką encję. Jeśli pole wyboru jest zaznaczone, powinna to być encja kalibracji. W przeciwnym razie powinna to być encja temperatury. Obie encje mają typ numeryczny `number`."
         }
+      },
+      "heating_failure_detection": {
+        "title": "Wykrywanie awarii ogrzewania",
+        "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
+        "data": {
+          "use_heating_failure_detection_feature": "Włącz wykrywanie awarii ogrzewania",
+          "use_heating_failure_detection_central_config": "Użyj centralnej konfiguracji wykrywania awarii",
+          "heating_failure_threshold": "Próg awarii ogrzewania",
+          "cooling_failure_threshold": "Próg awarii chłodzenia",
+          "heating_failure_detection_delay": "Opóźnienie wykrywania (minuty)",
+          "temperature_change_tolerance": "Tolerancja zmiany temperatury (°C)",
+          "failure_detection_enable_template": "Szablon włączenia wykrywania"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Włącz wykrywanie anomalii ogrzewania dla VTherm z TPI",
+          "use_heating_failure_detection_central_config": "Zaznacz, aby użyć centralnej konfiguracji wykrywania awarii. Odznacz, aby użyć specyficznych parametrów dla tego VTherm",
+          "heating_failure_threshold": "Próg procentowy włączenia, powyżej którego ogrzewanie powinno powodować wzrost temperatury (0.9 = 90%)",
+          "cooling_failure_threshold": "Próg procentowy włączenia, poniżej którego temperatura nie powinna wzrastać (0.0 = 0%)",
+          "heating_failure_detection_delay": "Czas w minutach do odczekania przed sprawdzeniem, czy temperatura zmieniła się zgodnie z oczekiwaniami",
+          "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
+          "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
+        }
       }
     },
     "error": {
@@ -346,7 +370,8 @@
           "auto_tpi_avg_settings": "Auto TPI - Średnia",
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna"
+          "configuration_not_complete": "Konfiguracja niekompletna",
+          "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
       "lock": {
@@ -399,7 +424,8 @@
           "use_power_feature": "Użyj zarządzania energią",
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
-          "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP"
+          "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
+          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
         }
       },
       "type": {
@@ -640,6 +666,28 @@
         "data_description": {
           "auto_tpi_ema_alpha": "Współczynnik wygładzania (0-1). Im wyższy, tym szybsza adaptacja",
           "auto_tpi_ema_decay_rate": "Tempo, w jakim rozkład alfa maleje w czasie (stabilizacja)"
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Wykrywanie awarii ogrzewania",
+        "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
+        "data": {
+          "use_heating_failure_detection_feature": "Włącz wykrywanie awarii ogrzewania",
+          "use_heating_failure_detection_central_config": "Użyj centralnej konfiguracji wykrywania awarii",
+          "heating_failure_threshold": "Próg awarii ogrzewania",
+          "cooling_failure_threshold": "Próg awarii chłodzenia",
+          "heating_failure_detection_delay": "Opóźnienie wykrywania (minuty)",
+          "temperature_change_tolerance": "Tolerancja zmiany temperatury (°C)",
+          "failure_detection_enable_template": "Szablon włączenia wykrywania"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Włącz wykrywanie anomalii ogrzewania dla VTherm z TPI",
+          "use_heating_failure_detection_central_config": "Zaznacz, aby użyć centralnej konfiguracji wykrywania awarii. Odznacz, aby użyć specyficznych parametrów dla tego VTherm",
+          "heating_failure_threshold": "Próg procentowy włączenia, powyżej którego ogrzewanie powinno powodować wzrost temperatury (0.9 = 90%)",
+          "cooling_failure_threshold": "Próg procentowy włączenia, poniżej którego temperatura nie powinna wzrastać (0.0 = 0%)",
+          "heating_failure_detection_delay": "Czas w minutach do odczekania przed sprawdzeniem, czy temperatura zmieniła się zgodnie z oczekiwaniami",
+          "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
+          "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
       }
     },

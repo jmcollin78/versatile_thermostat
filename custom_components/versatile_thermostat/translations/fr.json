@@ -359,7 +359,7 @@
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
           "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
-          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: {{ is_state('binary_sensor.poele_a_bois', 'off') }}). Si vide, la détection est toujours active."
+          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
       }
     },
@@ -739,7 +739,7 @@
           "cooling_failure_threshold": "Seuil de on_percent en-dessous duquel la température ne devrait pas augmenter (0.0 = 0%)",
           "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
-          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: {{ is_state('binary_sensor.poele_a_bois', 'off') }}). Si vide, la détection est toujours active."
+          "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
       }
     },
