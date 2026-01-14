@@ -68,7 +68,7 @@ The system learns both coefficients in different situations:
 
 Once the **Auto TPI** feature is enabled and configured for your thermostat, learning does not start automatically. You must launch it manually:
 
-1.  **Via the dedicated card (Recommended)**: Use the "Play" button on the [Auto TPI Learning Card](https://github.com/hugo-v-b/auto-tpi-learning-card).
+1.  **Via the dedicated card (Recommended)**: Use the "Play" button on the [Auto TPI Learning Card](https://github.com/KipK/auto-tpi-learning-card).
 2.  **Via the "Set Auto TPI Mode" service**: Call this service (`set_auto_tpi_mode`) from the developer tools. This service starts or stops an Auto TPI session.
 
 ---
