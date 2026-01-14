@@ -3,6 +3,8 @@
 """ Test the normal start of a Thermostat """
 from datetime import timedelta, datetime
 
+from unittest.mock import PropertyMock
+
 from homeassistant.core import HomeAssistant
 
 from homeassistant.components.sensor import (
@@ -137,51 +139,42 @@ async def test_sensors_over_switch(
     await send_temperature_change_event(entity, 15, event_timestamp)
     await send_ext_temperature_change_event(entity, 5, event_timestamp)
 
-    entity.incremente_energy()
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
+        entity.incremente_energy()
 
-    await energy_sensor.async_my_climate_changed()
-    assert energy_sensor.state == round(16.667, 2)
-    assert energy_sensor.device_class == SensorDeviceClass.ENERGY
-    assert energy_sensor.state_class == SensorStateClass.TOTAL_INCREASING
-    # because device_power is 200
-    assert energy_sensor.unit_of_measurement == UnitOfEnergy.WATT_HOUR
+        await energy_sensor.async_my_climate_changed()
+        assert energy_sensor.state == round(16.667, 2)
+        assert energy_sensor.device_class == SensorDeviceClass.ENERGY
+        assert energy_sensor.state_class == SensorStateClass.TOTAL_INCREASING
+        # because device_power is 200
+        assert energy_sensor.unit_of_measurement == UnitOfEnergy.WATT_HOUR
 
-    await mean_power_sensor.async_my_climate_changed()
-    assert mean_power_sensor.state == 200.0
-    assert mean_power_sensor.device_class == SensorDeviceClass.POWER
-    assert mean_power_sensor.state_class == SensorStateClass.MEASUREMENT
-    # because device_power is 200
-    assert mean_power_sensor.unit_of_measurement == UnitOfPower.WATT
+        await mean_power_sensor.async_my_climate_changed()
+        assert mean_power_sensor.state == 200.0
+        assert mean_power_sensor.device_class == SensorDeviceClass.POWER
+        assert mean_power_sensor.state_class == SensorStateClass.MEASUREMENT
+        # because device_power is 200
+        assert mean_power_sensor.unit_of_measurement == UnitOfPower.WATT
 
-    await on_percent_sensor.async_my_climate_changed()
-    assert on_percent_sensor.state == 100.0
-    assert on_percent_sensor.unit_of_measurement == PERCENTAGE
+        await on_percent_sensor.async_my_climate_changed()
+        assert on_percent_sensor.state == 100.0
+        assert on_percent_sensor.unit_of_measurement == PERCENTAGE
 
-    await on_time_sensor.async_my_climate_changed()
-    assert on_time_sensor.state == 300.0
-    assert on_time_sensor.device_class == SensorDeviceClass.DURATION
-    assert on_time_sensor.state_class == SensorStateClass.MEASUREMENT
-    assert on_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
+        await on_time_sensor.async_my_climate_changed()
+        assert on_time_sensor.state == 300.0
+        assert on_time_sensor.device_class == SensorDeviceClass.DURATION
+        assert on_time_sensor.state_class == SensorStateClass.MEASUREMENT
+        assert on_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
 
-    await off_time_sensor.async_my_climate_changed()
-    assert off_time_sensor.state == 0.0
-    assert off_time_sensor.device_class == SensorDeviceClass.DURATION
-    assert off_time_sensor.state_class == SensorStateClass.MEASUREMENT
-    assert off_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
-
-    # await last_temperature_sensor.async_my_climate_changed()
-    # assert (
-    #     last_temperature_sensor.state is not None
-    #     and last_temperature_sensor.state != last_temp_date
-    # )
-    # assert last_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
-    #
-    # await last_ext_temperature_sensor.async_my_climate_changed()
-    # assert (
-    #     last_ext_temperature_sensor.state is not None
-    #     and last_ext_temperature_sensor.state != last_temp_date
-    # )
-    # assert last_ext_temperature_sensor.device_class == SensorDeviceClass.TIMESTAMP
+        await off_time_sensor.async_my_climate_changed()
+        assert off_time_sensor.state == 0.0
+        assert off_time_sensor.device_class == SensorDeviceClass.DURATION
+        assert off_time_sensor.state_class == SensorStateClass.MEASUREMENT
+        assert off_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
 
     cancel_switchs_cycles(entity)
 

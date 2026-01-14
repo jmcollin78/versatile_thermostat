@@ -618,19 +618,24 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_on.call_count == 1
         assert mock_heater_off.call_count == 0
 
-    entity.incremente_energy()
-    assert entity.total_energy == round(100 * 5 / 60.0 / 2, 2)
-    entity.incremente_energy()
-    assert entity.total_energy == round(2 * 100 * 5 / 60.0 / 2, 2)
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
+        entity.incremente_energy()
+        assert entity.total_energy == round(100 * 5 / 60.0 / 2, 2)
+        entity.incremente_energy()
+        assert entity.total_energy == round(2 * 100 * 5 / 60.0 / 2, 2)
 
     # change temperature to a higher value
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off:
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
+        "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
         await send_temperature_change_event(entity, 18, datetime.now())
         assert tpi_algo.on_percent == 0.3
         assert entity.power_manager.mean_cycle_power == 30.0
@@ -639,20 +644,25 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
 
-    entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0 / 2, 2)
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
+        entity.incremente_energy()
+        assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0 / 2, 2)
 
-    entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        entity.incremente_energy()
+        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
     # change temperature to a much higher value so that heater will be shut down
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off:
+    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
+        "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
         await send_temperature_change_event(entity, 20, datetime.now())
         assert tpi_algo.on_percent == 0.0
         assert entity.power_manager.mean_cycle_power == 0.0
@@ -661,13 +671,13 @@ async def test_power_management_energy_over_switch(
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
 
-    entity.incremente_energy()
-    # No change on energy
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        entity.incremente_energy()
+        # No change on energy
+        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
-    # Still no change
-    entity.incremente_energy()
-    assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        # Still no change
+        entity.incremente_energy()
+        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
