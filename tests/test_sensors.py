@@ -3,6 +3,8 @@
 """ Test the normal start of a Thermostat """
 from datetime import timedelta, datetime
 
+from unittest.mock import PropertyMock
+
 from homeassistant.core import HomeAssistant
 
 from homeassistant.components.sensor import (
@@ -139,6 +141,7 @@ async def test_sensors_over_switch(
 
     with patch(
         "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ):
         entity.incremente_energy()

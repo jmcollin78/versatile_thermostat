@@ -620,6 +620,7 @@ async def test_power_management_energy_over_switch(
 
     with patch(
         "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ):
         entity.incremente_energy()
@@ -632,6 +633,7 @@ async def test_power_management_energy_over_switch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ):
         await send_temperature_change_event(entity, 18, datetime.now())
@@ -644,6 +646,7 @@ async def test_power_management_energy_over_switch(
 
     with patch(
         "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ):
         entity.incremente_energy()
@@ -657,6 +660,7 @@ async def test_power_management_energy_over_switch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
     ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
         "custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active",
+        new_callable=PropertyMock,
         return_value=True,
     ):
         await send_temperature_change_event(entity, 20, datetime.now())
