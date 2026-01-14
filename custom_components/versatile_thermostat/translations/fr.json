@@ -151,7 +151,7 @@
           "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique",
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
           "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif",
-          "auto_tpi_mode": "Cochez pour activer l'apprentissage automatique des coefficients TPI"
+          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable."
         }
       },
       "presets": {
@@ -527,7 +527,8 @@
           "tpi_threshold_high": "Seuil en ° au-dessus duquel l'algorithme TPI sera désactivé. 0 signifie pas de seuil",
           "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique",
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
-          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement sera laissé actif"
+          "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement sera laissé actif",
+          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable."
         }
       },
       "presets": {

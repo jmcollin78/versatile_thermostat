@@ -147,7 +147,7 @@
           "use_tpi_central_config": "Zaznacz, aby używać centralnej konfiguracji TPI. Odznacz, aby używać konfiguracji TPI dedykowanej wyłącznie dla tego termostatu",
           "minimal_activation_delay": "Zwłoka (w sek.), w czasie której urządzenie nie zostanie aktywowane",
           "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości",
-          "auto_tpi_mode": "Zaznacz, aby aktywować naukę wpółczynników TPI"
+          "auto_tpi_mode": "Sesje nauki TPI są uruchamiane ręcznie, najpierw przeczytaj dokumentację."
         }
       },
       "presets": {
@@ -483,7 +483,8 @@
           "tpi_threshold_high": "Próg w °, powyżej którego algorytm TPI będzie nieaktywny. 0 oznacza brak progu.",
           "use_tpi_central_config": "Zaznacz, aby używać centralnej konfiguracji TPI. Odznacz, aby używać konfiguracji TPI dedykowanej wyłącznie dla tego termostatu",
           "minimal_activation_delay": "Zwłoka (w sek.), w czasie której urządzenie nie zostanie aktywowane",
-          "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości"
+          "minimal_deactivation_delay": "Zwłoka (w sek.), w czasie której urządzenie będzie utrzymywane w stanie gotowości",
+          "auto_tpi_mode": "Sesje nauki TPI są uruchamiane ręcznie, najpierw przeczytaj dokumentację."
         }
       },
       "presets": {
