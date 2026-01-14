@@ -13,6 +13,7 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.template import Template
 
 from .const import (
     CONF_USE_HEATING_FAILURE_DETECTION_FEATURE,
@@ -20,6 +21,7 @@ from .const import (
     CONF_COOLING_FAILURE_THRESHOLD,
     CONF_HEATING_FAILURE_DETECTION_DELAY,
     CONF_TEMPERATURE_CHANGE_TOLERANCE,
+    CONF_FAILURE_DETECTION_ENABLE_TEMPLATE,
     DEFAULT_HEATING_FAILURE_THRESHOLD,
     DEFAULT_COOLING_FAILURE_THRESHOLD,
     DEFAULT_HEATING_FAILURE_DETECTION_DELAY,
@@ -51,6 +53,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             "heating_failure_detection_delay",
             "temperature_change_tolerance",
             "is_heating_failure_detection_configured",
+            "failure_detection_enable_template",
         }
     )
 
@@ -63,6 +66,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         self._cooling_failure_threshold: float = DEFAULT_COOLING_FAILURE_THRESHOLD
         self._heating_failure_detection_delay: int = DEFAULT_HEATING_FAILURE_DETECTION_DELAY
         self._temperature_change_tolerance: float = DEFAULT_TEMPERATURE_CHANGE_TOLERANCE
+        self._failure_detection_enable_template: Template | None = None
 
         # State tracking
         self._heating_failure_state: str = STATE_UNAVAILABLE
@@ -100,6 +104,13 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         )
         self._temperature_change_tolerance = entry_infos.get(CONF_TEMPERATURE_CHANGE_TOLERANCE, DEFAULT_TEMPERATURE_CHANGE_TOLERANCE)
 
+        # Initialize the enable template if provided
+        template_str = entry_infos.get(CONF_FAILURE_DETECTION_ENABLE_TEMPLATE)
+        if template_str:
+            self._failure_detection_enable_template = Template(template_str, self._hass)
+        else:
+            self._failure_detection_enable_template = None
+
         self._is_configured = True
         self._heating_failure_state = STATE_UNKNOWN
         self._cooling_failure_state = STATE_UNKNOWN
@@ -112,6 +123,32 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
     @overrides
     def stop_listening(self):
         """Stop listening and remove the eventual timer still running"""
+
+    def _is_detection_enabled_by_template(self) -> bool:
+        """Evaluate the enable template to determine if detection should be active.
+        Returns True if detection is enabled (template returns True or no template configured).
+        Returns False if template returns False.
+        If template evaluation fails, returns True (detection enabled) as a safety measure.
+        """
+        if self._failure_detection_enable_template is None:
+            # No template configured, detection is always enabled
+            return True
+
+        try:
+            result = self._failure_detection_enable_template.async_render()
+            # Handle various truthy/falsy values
+            if isinstance(result, bool):
+                return result
+            if isinstance(result, str):
+                return result.lower() in ("true", "1", "yes", "on")
+            return bool(result)
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.warning(
+                "%s - Error evaluating failure_detection_enable_template: %s. Detection remains enabled.",
+                self, err
+            )
+            # On error, enable detection as a safety measure
+            return True
 
     @overrides
     async def refresh_state(self) -> bool:
@@ -132,6 +169,20 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             self._heating_failure_state = STATE_OFF
             self._cooling_failure_state = STATE_OFF
             _LOGGER.debug("%s - heating failure detection is OFF because requested_state is OFF", self)
+            return False
+
+        # Check if detection is enabled by template
+        if not self._is_detection_enabled_by_template():
+            _LOGGER.debug("%s - heating failure detection is disabled by template", self)
+            # Reset tracking when template disables detection
+            self._reset_tracking()
+            # Keep states at OFF when disabled by template (not UNAVAILABLE since feature is configured)
+            if self._heating_failure_state == STATE_ON:
+                self._heating_failure_state = STATE_OFF
+                self._send_heating_failure_event("heating_failure_end", 0, 0, self._vtherm.current_temperature or 0)
+            if self._cooling_failure_state == STATE_ON:
+                self._cooling_failure_state = STATE_OFF
+                self._send_cooling_failure_event("cooling_failure_end", 0, 0, self._vtherm.current_temperature or 0)
             return False
 
         now = self._vtherm.now
@@ -275,11 +326,14 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
 
     def _send_heating_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a heating failure event"""
+        is_enabled_by_template = self._is_detection_enabled_by_template()
         # Log the event
         if event_type == "heating_failure_start":
             write_event_log(_LOGGER, self._vtherm, f"Heating failure detected: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
         else:
-            write_event_log(_LOGGER, self._vtherm, f"Heating failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm, f"Heating failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
+            )
 
         self._vtherm.send_event(
             EventType.HEATING_FAILURE_EVENT,
@@ -292,16 +346,20 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "target_temp": self._vtherm.target_temperature,
                 "threshold": self._heating_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
+                "is_enabled_by_template": is_enabled_by_template,
             },
         )
 
     def _send_cooling_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a cooling failure event"""
+        is_enabled_by_template = self._is_detection_enabled_by_template()
         # Log the event
         if event_type == "cooling_failure_start":
             write_event_log(_LOGGER, self._vtherm, f"Cooling failure detected: on_percent={on_percent*100:.0f}%, temp_diff=+{temp_diff:.2f}°")
         else:
-            write_event_log(_LOGGER, self._vtherm, f"Cooling failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm, f"Cooling failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
+            )
 
         self._vtherm.send_event(
             EventType.HEATING_FAILURE_EVENT,
@@ -314,6 +372,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "target_temp": self._vtherm.target_temperature,
                 "threshold": self._cooling_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
+                "is_enabled_by_template": is_enabled_by_template,
             },
         )
 
@@ -332,6 +391,13 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             # Calculate remaining time for cooling failure detection
             cooling_tracking_info = self._get_tracking_info(self._zero_power_start_time, "cooling")
 
+            # Get template status
+            template_str = None
+            template_enabled = True
+            if self._failure_detection_enable_template is not None:
+                template_str = self._failure_detection_enable_template.template
+                template_enabled = self._is_detection_enabled_by_template()
+
             extra_state_attributes.update(
                 {
                     "heating_failure_detection_manager": {
@@ -341,6 +407,8 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                         "cooling_failure_threshold": self._cooling_failure_threshold,
                         "detection_delay_min": self._heating_failure_detection_delay,
                         "temperature_change_tolerance": self._temperature_change_tolerance,
+                        "failure_detection_enable_template": template_str,
+                        "is_detection_enabled_by_template": template_enabled,
                         "heating_tracking": heating_tracking_info,
                         "cooling_tracking": cooling_tracking_info,
                     }

@@ -33,7 +33,8 @@
           "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
           "lock": "Blocco",
           "finalize": "Fatto",
-          "configuration_not_complete": "Configurazione non completata"
+          "configuration_not_complete": "Configurazione non completata",
+          "heating_failure_detection": "Rilevamento guasti riscaldamento"
         }
       },
       "lock": {
@@ -87,7 +88,8 @@
           "use_power_feature": "Usa Gestione energia",
           "use_presence_feature": "Usa rilevamento presenza",
           "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, occorre configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centralizzata sono riportati nella relativa pagina di configurazione",
-          "use_auto_start_stop_feature": "Usa la funzione auto start and stop"
+          "use_auto_start_stop_feature": "Usa la funzione auto start and stop",
+          "use_heating_failure_detection_feature": "Usa rilevamento guasti riscaldamento"
         }
       },
       "type": {
@@ -290,6 +292,28 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "heating_failure_detection": {
+        "title": "Rilevamento guasti riscaldamento",
+        "description": "Configura la funzione di rilevamento guasti riscaldamento. Rileva anomalie quando il riscaldamento è previsto ma la temperatura non aumenta, o quando il riscaldamento è spento ma la temperatura continua a salire.",
+        "data": {
+          "use_heating_failure_detection_feature": "Abilita rilevamento guasti riscaldamento",
+          "use_heating_failure_detection_central_config": "Usa configurazione centrale per rilevamento guasti",
+          "heating_failure_threshold": "Soglia guasto riscaldamento",
+          "cooling_failure_threshold": "Soglia guasto raffreddamento",
+          "heating_failure_detection_delay": "Ritardo rilevamento (minuti)",
+          "temperature_change_tolerance": "Tolleranza variazione temperatura (°C)",
+          "failure_detection_enable_template": "Template abilitazione rilevamento"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Abilita il rilevamento di anomalie di riscaldamento per VTherm con TPI",
+          "use_heating_failure_detection_central_config": "Seleziona per usare la configurazione centrale di rilevamento guasti. Deseleziona per usare parametri specifici per questo VTherm",
+          "heating_failure_threshold": "Soglia percentuale di accensione sopra la quale il riscaldamento dovrebbe causare un aumento di temperatura (0.9 = 90%)",
+          "cooling_failure_threshold": "Soglia percentuale di accensione sotto la quale la temperatura non dovrebbe aumentare (0.0 = 0%)",
+          "heating_failure_detection_delay": "Tempo in minuti da attendere prima di verificare se la temperatura è cambiata come previsto",
+          "temperature_change_tolerance": "Variazione minima di temperatura in gradi da considerare significativa. Variazioni minori vengono ignorate per filtrare il rumore del sensore (predefinito: 0.5°C)",
+          "failure_detection_enable_template": "Un template Jinja2 opzionale che deve restituire True per abilitare il rilevamento. Utile per disabilitare temporaneamente il rilevamento quando una fonte di calore esterna è attiva (es., `is_state('binary_sensor.stufa_legna', 'off')` tra doppie parentesi graffe). Se vuoto, il rilevamento è sempre abilitato."
+        }
       }
     },
     "error": {
@@ -342,7 +366,8 @@
           "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
           "lock": "Gestione del blocco",
           "finalize": "Fatto",
-          "configuration_not_complete": "Configurazione non completata"
+          "configuration_not_complete": "Configurazione non completata",
+          "heating_failure_detection": "Rilevamento guasti riscaldamento"
         }
       },
       "lock": {
@@ -396,7 +421,8 @@
           "use_power_feature": "Utilizzare gestione energia",
           "use_presence_feature": "Usare rilevamento presenza",
           "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare questa opzione per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, sarà necessario configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centrale sono riportati nella pagina di configurazione corrispondente",
-          "use_auto_start_stop_feature": "Usa la funzione auto start and stop"
+          "use_auto_start_stop_feature": "Usa la funzione auto start and stop",
+          "use_heating_failure_detection_feature": "Usa rilevamento guasti riscaldamento"
         }
       },
       "type": {
@@ -602,6 +628,28 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Rilevamento guasti riscaldamento",
+        "description": "Configura la funzione di rilevamento guasti riscaldamento. Rileva anomalie quando il riscaldamento è previsto ma la temperatura non aumenta, o quando il riscaldamento è spento ma la temperatura continua a salire.",
+        "data": {
+          "use_heating_failure_detection_feature": "Abilita rilevamento guasti riscaldamento",
+          "use_heating_failure_detection_central_config": "Usa configurazione centrale per rilevamento guasti",
+          "heating_failure_threshold": "Soglia guasto riscaldamento",
+          "cooling_failure_threshold": "Soglia guasto raffreddamento",
+          "heating_failure_detection_delay": "Ritardo rilevamento (minuti)",
+          "temperature_change_tolerance": "Tolleranza variazione temperatura (°C)",
+          "failure_detection_enable_template": "Template abilitazione rilevamento"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Abilita il rilevamento di anomalie di riscaldamento per VTherm con TPI",
+          "use_heating_failure_detection_central_config": "Seleziona per usare la configurazione centrale di rilevamento guasti. Deseleziona per usare parametri specifici per questo VTherm",
+          "heating_failure_threshold": "Soglia percentuale di accensione sopra la quale il riscaldamento dovrebbe causare un aumento di temperatura (0.9 = 90%)",
+          "cooling_failure_threshold": "Soglia percentuale di accensione sotto la quale la temperatura non dovrebbe aumentare (0.0 = 0%)",
+          "heating_failure_detection_delay": "Tempo in minuti da attendere prima di verificare se la temperatura è cambiata come previsto",
+          "temperature_change_tolerance": "Variazione minima di temperatura in gradi da considerare significativa. Variazioni minori vengono ignorate per filtrare il rumore del sensore (predefinito: 0.5°C)",
+          "failure_detection_enable_template": "Un template Jinja2 opzionale che deve restituire True per abilitare il rilevamento. Utile per disabilitare temporaneamente il rilevamento quando una fonte di calore esterna è attiva (es., `is_state('binary_sensor.stufa_legna', 'off')` tra doppie parentesi graffe). Se vuoto, il rilevamento è sempre abilitato."
         }
       }
     },

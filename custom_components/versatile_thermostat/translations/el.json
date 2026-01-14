@@ -223,6 +223,28 @@
           "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
         }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Detection enable template"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
+        }
       }
     },
     "error": {
@@ -464,6 +486,28 @@
           "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
           "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Heating failure detection",
+        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+        "data": {
+          "use_heating_failure_detection_feature": "Enable heating failure detection",
+          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
+          "heating_failure_threshold": "Heating failure threshold",
+          "cooling_failure_threshold": "Cooling failure threshold",
+          "heating_failure_detection_delay": "Detection delay (minutes)",
+          "temperature_change_tolerance": "Temperature change tolerance (°C)",
+          "failure_detection_enable_template": "Detection enable template"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
+          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
+          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
+          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
+          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
+          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
+          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
       }
     },

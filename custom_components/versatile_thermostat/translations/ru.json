@@ -32,7 +32,8 @@
           "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
-          "configuration_not_complete": "Конфигурация не завершена"
+          "configuration_not_complete": "Конфигурация не завершена",
+          "heating_failure_detection": "Обнаружение сбоев отопления"
         }
       },
       "lock": {
@@ -85,7 +86,8 @@
           "use_power_feature": "Использовать управление питанием",
           "use_presence_feature": "Использовать обнаружение присутствия",
           "use_central_boiler_feature": "Использовать центральный котел. Отметьте для добавления управления вашим центральным котлом. После выбора этой опции вам нужно будет настроить VTherm, который будет управлять центральным котлом. Если один VTherm требует обогрев, котел включится. Если ни один VTherm не требует обогрев, котел выключится. Команды для включения/выключения центрального котла задаются на соответствующей странице конфигурации",
-          "use_auto_start_stop_feature": "Использовать функцию авто старта и остановки"
+          "use_auto_start_stop_feature": "Использовать функцию авто старта и остановки",
+          "use_heating_failure_detection_feature": "Использовать обнаружение сбоев отопления"
         }
       },
       "type": {
@@ -288,6 +290,28 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
+      },
+      "heating_failure_detection": {
+        "title": "Обнаружение сбоев отопления",
+        "description": "Настройка функции обнаружения сбоев отопления. Обнаруживает аномалии, когда ожидается нагрев, но температура не повышается, или когда отопление выключено, но температура продолжает расти.",
+        "data": {
+          "use_heating_failure_detection_feature": "Включить обнаружение сбоев отопления",
+          "use_heating_failure_detection_central_config": "Использовать центральную конфигурацию обнаружения сбоев",
+          "heating_failure_threshold": "Порог сбоя отопления",
+          "cooling_failure_threshold": "Порог сбоя охлаждения",
+          "heating_failure_detection_delay": "Задержка обнаружения (минуты)",
+          "temperature_change_tolerance": "Допуск изменения температуры (°C)",
+          "failure_detection_enable_template": "Шаблон включения обнаружения"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Включить обнаружение аномалий отопления для VTherm с TPI",
+          "use_heating_failure_detection_central_config": "Отметьте для использования центральной конфигурации обнаружения сбоев. Снимите отметку для использования специфических параметров для этого VTherm",
+          "heating_failure_threshold": "Пороговый процент включения, выше которого отопление должно вызывать повышение температуры (0.9 = 90%)",
+          "cooling_failure_threshold": "Пороговый процент включения, ниже которого температура не должна повышаться (0.0 = 0%)",
+          "heating_failure_detection_delay": "Время в минутах ожидания перед проверкой, изменилась ли температура как ожидалось",
+          "temperature_change_tolerance": "Минимальное изменение температуры в градусах, считающееся значительным. Меньшие изменения игнорируются для фильтрации шума датчика (по умолчанию: 0.5°C)",
+          "failure_detection_enable_template": "Необязательный шаблон Jinja2, который должен вернуть True для включения обнаружения. Полезно для временного отключения обнаружения при активном внешнем источнике тепла (например, `is_state('binary_sensor.wood_stove', 'off')` в двойных фигурных скобках). Если пусто, обнаружение всегда включено."
+        }
       }
     },
     "error": {
@@ -339,7 +363,8 @@
           "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
-          "configuration_not_complete": "Конфигурация не завершена"
+          "configuration_not_complete": "Конфигурация не завершена",
+          "heating_failure_detection": "Обнаружение сбоев отопления"
         }
       },
       "lock": {
@@ -392,7 +417,8 @@
           "use_power_feature": "Использовать управление питанием",
           "use_presence_feature": "Использовать обнаружение присутствия",
           "use_central_boiler_feature": "Использовать центральный котел. Отметьте для добавления управления вашим центральным котлом. После выбора этой опции вам нужно будет настроить VTherm, который будет управлять центральным котлом. Если один VTherm требует обогрев, котел включится. Если ни один VTherm не требует обогрев, котел выключится. Команды для включения/выключения центрального котла задаются на соответствующей странице конфигурации",
-          "use_auto_start_stop_feature": "Использовать функцию авто старта и остановки"
+          "use_auto_start_stop_feature": "Использовать функцию авто старта и остановки",
+          "use_heating_failure_detection_feature": "Использовать обнаружение сбоев отопления"
         }
       },
       "type": {
@@ -597,6 +623,28 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Обнаружение сбоев отопления",
+        "description": "Настройка функции обнаружения сбоев отопления. Обнаруживает аномалии, когда ожидается нагрев, но температура не повышается, или когда отопление выключено, но температура продолжает расти.",
+        "data": {
+          "use_heating_failure_detection_feature": "Включить обнаружение сбоев отопления",
+          "use_heating_failure_detection_central_config": "Использовать центральную конфигурацию обнаружения сбоев",
+          "heating_failure_threshold": "Порог сбоя отопления",
+          "cooling_failure_threshold": "Порог сбоя охлаждения",
+          "heating_failure_detection_delay": "Задержка обнаружения (минуты)",
+          "temperature_change_tolerance": "Допуск изменения температуры (°C)",
+          "failure_detection_enable_template": "Шаблон включения обнаружения"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Включить обнаружение аномалий отопления для VTherm с TPI",
+          "use_heating_failure_detection_central_config": "Отметьте для использования центральной конфигурации обнаружения сбоев. Снимите отметку для использования специфических параметров для этого VTherm",
+          "heating_failure_threshold": "Пороговый процент включения, выше которого отопление должно вызывать повышение температуры (0.9 = 90%)",
+          "cooling_failure_threshold": "Пороговый процент включения, ниже которого температура не должна повышаться (0.0 = 0%)",
+          "heating_failure_detection_delay": "Время в минутах ожидания перед проверкой, изменилась ли температура как ожидалось",
+          "temperature_change_tolerance": "Минимальное изменение температуры в градусах, считающееся значительным. Меньшие изменения игнорируются для фильтрации шума датчика (по умолчанию: 0.5°C)",
+          "failure_detection_enable_template": "Необязательный шаблон Jinja2, который должен вернуть True для включения обнаружения. Полезно для временного отключения обнаружения при активном внешнем источнике тепла (например, `is_state('binary_sensor.wood_stove', 'off')` в двойных фигурных скобках). Если пусто, обнаружение всегда включено."
         }
       }
     },
