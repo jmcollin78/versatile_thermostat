@@ -46,6 +46,7 @@ INSUFFICIENT_RISE_GAP_THRESHOLD = KEXT_LEARNING_MAX_GAP  # Min gap (°C) to trig
 INSUFFICIENT_RISE_BOOST_FACTOR = 1.08  # Kint increase factor (8%) per stagnating cycle
 MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (undersized heating)
 MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY = 20.0  # Min reliability (%) to use calibration instead of bootstrap
+MIN_EFFICIENCY_FOR_CAPACITY = 0.60  # Min efficiency (60%) to learn capacity - prevents outliers from external factors
 
 
 @dataclass
@@ -1405,6 +1406,18 @@ class AutoTpiManager:
                 self.state.bootstrap_failure_count += 1
             return False
         
+        # Condition 1b: Minimum efficiency (heater on-time ratio)
+        # When efficiency is low, temperature rise from external factors (sun, window close)
+        # gets amplified in capacity calculation, causing outlier spikes.
+        if self._last_cycle_power_efficiency < MIN_EFFICIENCY_FOR_CAPACITY:
+            _LOGGER.debug(
+                "%s - Not learning capacity: efficiency too low (%.1f%% < %.0f%%) - external factors may dominate",
+                self._name, self._last_cycle_power_efficiency * 100, MIN_EFFICIENCY_FOR_CAPACITY * 100
+            )
+            if in_bootstrap:
+                self.state.bootstrap_failure_count += 1
+            return False
+        
         # Condition 2: Significant rise
         real_rise = self._current_temp_in - self.state.last_temp_in
         if real_rise < rise_threshold:
@@ -1467,23 +1480,47 @@ class AutoTpiManager:
             )
             return False
         
-        # EWMA with adaptive alpha
-        # Higher alpha at start for fast convergence, lower after for stability
-        if self.state.capacity_heat_learn_count < 3:
-            alpha = 0.4  # Fast convergence during bootstrap
-        else:
-            alpha = 0.15  # Stabilization after bootstrap
+        # Capacity learning with adaptive weighting:
+        # - Bootstrap (<3 cycles): EMA with alpha=0.4 for fast convergence
+        # - Transition (3-MAX_WEIGHT cycles):EWMA alpha decreases as 1/(count+1)
+        # - Stable (>MAX_WEIGHT cycles):  EMA with alpha=0.05 for outlier resistance
+        count = self.state.capacity_heat_learn_count
+        MAX_CAPACITY_WEIGHT = 20  # After 20 cycles, switch to pure EMA
+        STABLE_ALPHA = 0.05  # Fixed alpha for mature model
         
-        # Update capacity
-        if self.state.max_capacity_heat == 0:
-            # First measurement
+        old_capacity = self.state.max_capacity_heat
+        
+        if old_capacity == 0:
+            # First measurement: take directly
             self.state.max_capacity_heat = adiabatic_capacity
+            effective_alpha = 1.0
+        elif count < 3:
+            # Bootstrap: EWMA with high alpha for fast convergence
+            alpha = 0.4
+            self.state.max_capacity_heat = (1 - alpha) * old_capacity + alpha * adiabatic_capacity
+            effective_alpha = alpha
+        elif count < MAX_CAPACITY_WEIGHT:
+            # Transition: weighted average (alpha equivalent = 1/(count+1))
+            # New value gets weight=1, old value gets weight=count
+            self.state.max_capacity_heat = (old_capacity * count + adiabatic_capacity) / (count + 1)
+            effective_alpha = 1.0 / (count + 1)
         else:
-            # EWMA update
-            self.state.max_capacity_heat = (
-                (1 - alpha) * self.state.max_capacity_heat + 
-                alpha * adiabatic_capacity
-            )
+            # Stable: pure EMA with fixed low alpha
+            self.state.max_capacity_heat = (1 - STABLE_ALPHA) * old_capacity + STABLE_ALPHA * adiabatic_capacity
+            effective_alpha = STABLE_ALPHA
+        
+        # Clamp protection: limit capacity change to ±50% per cycle (except during bootstrap)
+        MAX_CHANGE_RATIO = 1.5
+        if old_capacity > 0 and count >= 3:
+            min_allowed = old_capacity / MAX_CHANGE_RATIO
+            max_allowed = old_capacity * MAX_CHANGE_RATIO
+            if self.state.max_capacity_heat < min_allowed or self.state.max_capacity_heat > max_allowed:
+                clamped_value = max(min_allowed, min(max_allowed, self.state.max_capacity_heat))
+                _LOGGER.warning(
+                    "%s - Capacity clamped: %.2f -> %.2f (allowed: %.2f - %.2f)",
+                    self._name, self.state.max_capacity_heat, clamped_value, min_allowed, max_allowed
+                )
+                self.state.max_capacity_heat = clamped_value
         
         self.state.capacity_heat_learn_count += 1
         
@@ -1495,9 +1532,9 @@ class AutoTpiManager:
             self._capacity_history.pop(0)
         
         _LOGGER.info(
-            "%s - Capacity learned: %.2f°C/h (count: %d, alpha: %.2f)",
+            "%s - Capacity learned: %.2f°C/h (count: %d, alpha: %.3f)",
             self._name, self.state.max_capacity_heat,
-            self.state.capacity_heat_learn_count, alpha
+            self.state.capacity_heat_learn_count, effective_alpha
         )
 
         # Reset failure count on success

@@ -80,6 +80,7 @@ Cette valeur sert de référence pour calculer l'efficacité relative des cycles
 **Conditions d'apprentissage :**
 *   Mode bootstrap (count < 3).
 *   **Puissance élevée** : Le cycle doit avoir injecté beaucoup d'énergie (Power > 80%) pour être représentatif.
+*   **Efficacité minimale** : Le chauffage doit avoir fonctionné au moins 60% du temps du cycle (`MIN_EFFICIENCY_FOR_CAPACITY`). Cela évite que des facteurs externes (soleil, fermeture de fenêtre) ne faussent la mesure lorsque le chauffage n'a que peu tourné.
 *   **Montée significative** : La température doit avoir monté d'au moins 0.05°C.
 *   **Gap suffisant** : L'écart à la consigne doit être suffisant (> 1°C en bootstrap, > 0.3°C sinon).
 
@@ -101,9 +102,11 @@ Avant de démarrer le mode bootstrap agressif, le système tente de calibrer la 
 1.  **Capacité Observée** : `Rise / (Duration * Efficiency)`
 2.  **Correction Adiabatique** : On ajoute les pertes estimées pour obtenir la capacité "brute" (isolation parfaite).
     `Adiabatic_Capacity = Observed + (Kext * Delta_T)`
-3.  **Lissage (EWMA)** :
-    *   Alpha = 0.4 (Rapide) pendant le bootstrap.
-    *   Alpha = 0.15 (Lent) ensuite.
+3.  **Lissage (Moyenne Pondérée Adaptative)** :
+    *   Bootstrap (< 3 cycles) : EWMA avec Alpha = 0.4 (Convergence rapide).
+    *   Transition (3-20 cycles) : Moyenne pondérée où alpha = 1/(count+1), passant de ~0.25 à ~0.05.
+    *   Stable (> 20 cycles) : EMA pure avec Alpha = 0.05 (Résistant aux outliers).
+4.  **Protection Clamp** : Après le bootstrap, la variation de capacité est limitée à ±50% par cycle pour éviter les spikes.
 
 ### B. Capacité Maximale
 Le mécanisme de calibration de la capacité repose sur le service de régression linéaire d'historique.
@@ -160,6 +163,7 @@ Les constantes suivantes sont définies en haut du fichier `auto_tpi_manager.py`
 | `INSUFFICIENT_RISE_BOOST_FACTOR` | 1.08 | Facteur d'augmentation de Kint (8%) par cycle de stagnation |
 | `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Nombre maximum de boosts Kint consécutifs avant avertissement (chauffage sous-dimensionné) |
 | `MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY` | 20.0 (%) | Fiabilité minimale de la calibration historique pour sauter le bootstrap |
+| `MIN_EFFICIENCY_FOR_CAPACITY` | 0.60 (60%) | Efficacité minimale du cycle pour apprendre la capacité - évite les outliers causés par facteurs externes |
 
 #### 2.6. Cas 0 : Correction de Dépassement (`_correct_kext_overshoot`)
 
