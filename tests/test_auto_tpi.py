@@ -357,3 +357,34 @@ async def test_should_learn_heating_failure(manager):
     manager._current_is_heating_failure = True
     assert manager._should_learn() is False
     assert manager._get_no_learn_reason() == "heating_failure_detected"
+
+async def test_initialization_reset_bug(manager):
+    """Test that starting a new session resets coefficients even if reset_data is False."""
+    # 1. Start learning (default coeffs are int=0.6, ext=0.01)
+    await manager.start_learning(reset_data=True)
+    
+    # 2. Simulate learning changing the coefficients
+    manager.state.coeff_indoor_heat = 0.5
+    manager.state.coeff_outdoor_heat = 0.02
+    
+    # 3. Stop learning
+    await manager.stop_learning()
+    assert manager.state.autolearn_enabled is False
+    
+    # 4. Start learning again, treating it as a new session (was stopped)
+    # We pass NEW target coefficients to simulate a config change
+    # But we set reset_data=False (mimicking the "bug" condition where user didn't check reset)
+    new_target_int = 0.8
+    new_target_ext = 0.05
+    
+    await manager.start_learning(
+        coef_int=new_target_int,
+        coef_ext=new_target_ext,
+        reset_data=False
+    )
+    
+    # 5. Assertions
+    # DESIRED BEHAVIOR (Fix): It resets to 0.8 and 0.05 because it was stopped
+    # If the bug is present, this will fail (it will be 0.5 and 0.02)
+    assert manager.state.coeff_indoor_heat == new_target_int
+    assert manager.state.coeff_outdoor_heat == new_target_ext
