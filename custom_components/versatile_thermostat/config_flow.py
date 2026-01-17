@@ -343,7 +343,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         # check format of each command_on
         for command in data.get(CONF_VSWITCH_ON_CMD_LIST, []) + data.get(CONF_VSWITCH_OFF_CMD_LIST, []):
-            pattern = r"^(?P<command>[a-zA-Z0-9_]+)(?:/(?P<argument>[a-zA-Z0-9_]+)(?::(?P<value>[a-zA-Z0-9_]+))?)?$"
+            pattern = r"^(?P<command>[^\s/]+)(?:/(?P<argument>[^\s:]+)(?::(?P<value>[^\s]+))?)?$"
             if not re.match(pattern, command):
                 return False
 

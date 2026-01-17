@@ -282,10 +282,26 @@
                       ]
                     },
                     {
+                      "type": "tile",
+                      "entity": "input_select.nodon_select_2",
+                      "grid_options": {
+                        "columns": "full"
+                      },
+                      "features_position": "bottom",
+                      "vertical": false,
+                      "state_content": [
+                        "state",
+                        "last_changed"
+                      ]
+                    },
+                    {
                       "type": "history-graph",
                       "entities": [
                         {
                           "entity": "input_select.nodon_select"
+                        },
+                        {
+                          "entity": "input_select.nodon_select_2"
                         }
                       ],
                       "hours_to_show": 1
