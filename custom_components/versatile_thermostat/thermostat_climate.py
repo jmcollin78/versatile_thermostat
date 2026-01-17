@@ -572,6 +572,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Custom attributes"""
         super().update_custom_attributes()
 
+        self._attr_extra_state_attributes["fan_mode"] = self.fan_mode
+        self._attr_extra_state_attributes["fan_modes"] = self.fan_modes
         self._attr_extra_state_attributes["is_over_climate"] = self.is_over_climate
         # the attr is 2 times in custom_attributes, because it need to be restored, so it must be at root
         self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error

@@ -879,14 +879,14 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def fan_mode(self) -> str | None:
         """Get the fan_mode of the underlying"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return None
         return self._underlying_climate.fan_mode
 
     @property
     def swing_mode(self) -> str | None:
         """Get the swing_mode of the underlying"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return None
         return self._underlying_climate.swing_mode
 
@@ -914,28 +914,28 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def current_humidity(self) -> float | None:
         """Get the humidity"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.current_humidity is None:
             return None
         return self._underlying_climate.current_humidity
 
     @property
     def fan_modes(self) -> list[str]:
         """Get the fan_modes"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return []
         return self._underlying_climate.fan_modes
 
     @property
     def swing_modes(self) -> list[str]:
         """Get the swing_modes"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return []
         return self._underlying_climate.swing_modes
 
     @property
     def swing_horizontal_modes(self) -> list[str]:
         """Get the swing_horizontal_modes"""
-        if not self.is_initialized:
+        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_HORIZONTAL_MODE == 0:
             return []
         return self._underlying_climate.swing_horizontal_modes
 
