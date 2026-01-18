@@ -52,6 +52,8 @@ Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate
 
 #### Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?
 
+**Note :** a graphical visualization of the impacts of the valve opening adjustment parameters is available [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1629). Thanks a lot to @nicklassim80 for this contribution.
+
 Die 4 Einstellparameter der Ventilöffnung ermöglichen eine Feinabstimmung des Ventilverhaltens, insbesondere zu Beginn des Heizzyklus. Wenn man die vom TPI-Algorithmus angeforderte Öffnung auf der x-Achse und die tatsächlich an das Ventil gesendete Öffnung auf der y-Achse darstellen, erhält man diese Kurve:
 
 <img src="../../images/opening-degree-graph.png" alt="Öffnungsparameter einstellen" width="600">

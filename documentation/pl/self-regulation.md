@@ -48,6 +48,7 @@ Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona 
 > 2. Atrybut `hvac_action` zaworów termostatycznych Sonoff TRVZB jest zawodny. Jeśli temperatura wewnętrzna zaworu termostatycznego znacznie odbiega od temperatury w pomieszczeniu, encja `climate` może wskazywać, że zawór _TRV_ nie grzeje, nawet gdy otwieranie zaworu jest wymuszane przez _VTherm_. Ten problem nie ma wpływu, ponieważ encja `climate` zaworu _VTherm_ została poprawiona i uwzględnia stopień otwarcia zaworu przy ustawianiu atrybutu `hvac_action`. Problem ten można złagodzić, ale nie wyeliminować całkowicie, odpowiednio korygując konfigurację kalibracji temperatury.
 > 3. Atrybut `valve_open_percent` zaworu _VTherm_ może nie być zgodny z wartością `stopień otwarcia` wysłaną do zaworu. Jeśli używasz jednego z czterech parametrów `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` lub `max_opening_degrees`, zostanie dokonana korekta. Atrybut `valve_open_percent` reprezentuje *wartość surową*, obliczoną przez termostat _VTherm_. Wartość `stopnia otwarcia` wysłana do zaworu może zostać odpowiednio dostosowana.
 
+**Note :** a graphical visualization of the impacts of the valve opening adjustment parameters is available [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1629). Thanks a lot to @nicklassim80 for this contribution.
 
 ### Inna samoregulacja
 

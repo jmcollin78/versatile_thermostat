@@ -55,6 +55,8 @@ Si une entité de type taux de fermeture de la vanne est configurée, il sera po
 
 #### Comment régler correctement les paramètres qui contrôlent l'ouverture ?
 
+**Note :** une visualisation graphique des impacts des paramètres de réglage de l'ouverture de la vanne est disponible [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/1629). Un grand merci à @nicklassim80 pour cette contribution.
+
 Les 4 paramètres de réglage de l'ouverture de la vanne permettent un réglage fin du comportement de la vanne notamment au début du cycle de chauffe. Si on représente l'ouverture demandée par l'algorithme TPI en abscisse et l'ouverture réellement envoyée sur la vanne en ordonnée, on obtient cette courbe :
 
 <img src="../../images/opening-degree-graph.png" alt="réglage des paramètres d'ouverture" width="600">
