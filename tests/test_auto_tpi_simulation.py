@@ -196,3 +196,7 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
         # 3. Room temp should be stable near target (within 0.1 deg)
         assert abs(model.room_temp - target_temp) < 0.1, f"Room temp {model.room_temp} should be close to target {target_temp}"
 
+        # Cleanup
+        manager.stop_cycle_loop()
+
+

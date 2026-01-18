@@ -13,7 +13,7 @@ from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 
 from .base_thermostat import ConfigData
 from .thermostat_climate import ThermostatOverClimate
-from .thermostat_tpi import ThermostatTPI
+from .thermostat_prop import ThermostatProp
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -24,7 +24,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode
 _LOGGER = logging.getLogger(__name__)
 
 
-class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOverClimate):
+class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOverClimate):
     """This class represent a VTherm over a climate with a direct valve regulation"""
 
     _entity_component_unrecorded_attributes = ThermostatOverClimate._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
