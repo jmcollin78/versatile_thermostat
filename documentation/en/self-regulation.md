@@ -54,6 +54,8 @@ If a valve closing rate entity is configured, it will be set to the value `100 -
 
 #### How to properly adjust the parameters that control the opening?
 
+**Note :** a graphical visualization of the impacts of the valve opening adjustment parameters is available [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1629). Thanks a lot to @nicklassim80 for this contribution.
+
 The 4 valve opening adjustment parameters allow fine-tuning of valve behavior, especially at the beginning of the heating cycle. If we represent the opening requested by the TPI algorithm on the x-axis and the opening actually sent to the valve on the y-axis, we get this curve:
 
 <img src="../../images/opening-degree-graph.png" alt="opening parameters adjustment" width="600">
