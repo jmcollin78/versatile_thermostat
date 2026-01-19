@@ -63,7 +63,7 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 2.  **Boucle (`_tick`)** :
     Le manager exécute une boucle infinie (via timer `async_call_later`) toutes les `cycle_min` minutes.
     *   **Étape 1 : Récupération des Données** : Il appelle `BaseThermostat._get_tpi_data` pour obtenir les paramètres calculés par l'algorithme proportionnel (temps ON, temps OFF, pourcentage).
-        > **Synchronisation des Coefficients** : Les coefficients appris sont propagés à `PropAlgorithm` au début de chaque appel à `_get_tpi_data()`, garantissant que le calcul TPI utilise toujours les dernières valeurs apprises.
+        > **Synchronisation des Coefficients** : Les coefficients appris sont propagés à `TpiAlgorithm` au début de chaque appel à `_get_tpi_data()`, garantissant que le calcul TPI utilise toujours les dernières valeurs apprises.
     *   **Étape 2 : Snapshot** : Il appelle sa méthode interne `on_cycle_started` pour figer l'état (températures, consigne) au début du cycle. C'est ce snapshot qui servira de référence pour l'apprentissage à la fin du cycle.
     *   **Étape 3 : Exécution** : Il appelle `BaseThermostat._on_tpi_cycle_start`. Le thermostat propage alors l'événement aux entités sous-jacentes (`UnderlyingEntity`) pour qu'elles s'activent (ON) puis se désactivent (OFF) après le délai calculé.
 
@@ -449,7 +449,7 @@ La détection de changement de régime est active pendant l'apprentissage.
 *   **Arrêt de l'apprentissage (`stop_learning`)** : L'appel à `stop_learning()` (ex: via le service `set_auto_tpi_mode` avec `auto_tpi_mode: false`) provoque :
     *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête. `last_learning_status` est mis à `learning_stopped`.
     *   **Préservation de l'état** : Tous les attributs appris (coefficients, compteurs, capacités) sont **conservés** en mémoire et persistés. Cela permet de reprendre l'apprentissage ultérieurement sans perdre les données acquises.
-    *   **Synchronisation PropAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`PropAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
+    *   **Synchronisation TpiAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`TpiAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
 
 ## 9. Flux de Configuration (Config Flow)
     

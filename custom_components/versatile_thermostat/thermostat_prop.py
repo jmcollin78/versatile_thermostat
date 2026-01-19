@@ -80,7 +80,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         the CONF_PROP_FUNCTION setting in the configuration.
         """
         # Import here to avoid circular imports
-        from .prop_algo_tpi import TPIHandler  # pylint: disable=import-outside-toplevel
+        from .prop_handler_tpi import TPIHandler  # pylint: disable=import-outside-toplevel
         self._algo_handler = TPIHandler(self)
         self._algo_handler.init_algorithm()
 
