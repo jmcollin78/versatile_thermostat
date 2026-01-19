@@ -477,7 +477,7 @@ ATTR_TOTAL_ENERGY = "total_energy"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
 AUTO_FAN_DTEMP_THRESHOLD = 2
-AUTO_FAN_DEACTIVATED_MODES = ["mute", "quiet", "low", "quiet", "1", "auto"]
+AUTO_FAN_DEACTIVATED_MODES = ["mute", "quiet", "auto", "low", "1"]
 
 CENTRAL_CONFIG_NAME = "Central configuration"
 

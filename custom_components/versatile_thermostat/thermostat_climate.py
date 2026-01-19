@@ -527,6 +527,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self._auto_deactivated_fan_mode,
         )
 
+    @property
+    def supported_features(self) -> ClimateEntityFeature:
+        """Return the list of supported features."""
+        features = super().supported_features
+        return features
+
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
