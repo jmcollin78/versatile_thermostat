@@ -315,6 +315,10 @@ class MockClimate(ClimateEntity):
         ret = ClimateEntityFeature.TARGET_TEMPERATURE
         if self._fan_modes:
             ret = ret | ClimateEntityFeature.FAN_MODE
+        if self._attr_swing_modes:
+            ret = ret | ClimateEntityFeature.SWING_MODE
+        if self._attr_swing_horizontal_modes:
+            ret = ret | ClimateEntityFeature.SWING_HORIZONTAL_MODE
         return ret
 
     def set_temperature(self, **kwargs):

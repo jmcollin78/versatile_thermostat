@@ -85,7 +85,7 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
         assert entity._auto_activated_fan_mode == "3"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "1"
 
     # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
     with patch(
@@ -93,7 +93,7 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("High")
         assert entity._auto_activated_fan_mode == "3"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "1"
 
     # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
     with patch(
@@ -101,7 +101,7 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Medium")
         assert entity._auto_activated_fan_mode == "2"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "1"
 
     # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
     with patch(
@@ -109,7 +109,7 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode == "1"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "1"
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -177,7 +177,7 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
         assert entity._auto_activated_fan_mode == "boost"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
     with patch(
@@ -185,7 +185,7 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("High")
         assert entity._auto_activated_fan_mode == "high"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
     with patch(
@@ -193,7 +193,7 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Medium")
         assert entity._auto_activated_fan_mode == "medium"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
     with patch(
@@ -201,7 +201,7 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode == "low"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -548,25 +548,25 @@ async def test_over_climate_auto_fan_mode_with_descending_speed_list(hass: HomeA
         assert entity.fan_modes == fan_modes
         assert entity._auto_fan_mode == "auto_fan_turbo"
         assert entity._auto_activated_fan_mode == "high"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 2. Change auto_fan_mode by CONF_AUTO_FAN_HIGH
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode") as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("High")
         assert entity._auto_activated_fan_mode == "medium"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode") as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Medium")
         assert entity._auto_activated_fan_mode == "low"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
     # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode") as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode == "diffuse"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "low"
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
