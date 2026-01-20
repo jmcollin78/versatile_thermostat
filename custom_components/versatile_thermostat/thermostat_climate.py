@@ -343,7 +343,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamLight.ki,
                 RegulationParamLight.k_ext,
                 RegulationParamLight.offset_max,
-                RegulationParamLight.stabilization_threshold,
                 RegulationParamLight.accumulated_error_threshold,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
@@ -353,7 +352,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamMedium.ki,
                 RegulationParamMedium.k_ext,
                 RegulationParamMedium.offset_max,
-                RegulationParamMedium.stabilization_threshold,
                 RegulationParamMedium.accumulated_error_threshold,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_STRONG:
@@ -363,7 +361,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamStrong.ki,
                 RegulationParamStrong.k_ext,
                 RegulationParamStrong.offset_max,
-                RegulationParamStrong.stabilization_threshold,
                 RegulationParamStrong.accumulated_error_threshold,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_SLOW:
@@ -373,7 +370,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamSlow.ki,
                 RegulationParamSlow.k_ext,
                 RegulationParamSlow.offset_max,
-                RegulationParamSlow.stabilization_threshold,
                 RegulationParamSlow.accumulated_error_threshold,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_EXPERT:
@@ -388,7 +384,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         expert_param.get("ki"),
                         expert_param.get("k_ext"),
                         expert_param.get("offset_max"),
-                        expert_param.get("stabilization_threshold"),
                         expert_param.get("accumulated_error_threshold"),
                     )
                 else:
@@ -405,9 +400,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if not self._regulation_algo:
             # A default empty algo (which does nothing)
-            self._regulation_algo = PITemperatureRegulator(
-                self.target_temperature, 0, 0, 0, 0, 0.1, 0
-            )
+            self._regulation_algo = PITemperatureRegulator(self.target_temperature, 0, 0, 0, 0, 0)
 
     def choose_auto_fan_mode(self, auto_fan_mode: str):
         """Choose the correct fan mode depending of the underlying capacities and the configuration"""

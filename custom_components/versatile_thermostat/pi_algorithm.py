@@ -12,7 +12,7 @@ class PITemperatureRegulator:
     - offset = kp * error + ki * accumulated_error
 
     To use it you must:
-    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, stabilization_threshold, accumulated_error_threshold
+    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, accumulated_error_threshold
     - call calculate_regulated_temperature with the internal and external temperature
     - call set_target_temp when the target temperature change.
     """
@@ -24,7 +24,6 @@ class PITemperatureRegulator:
         ki: float,
         k_ext: float,
         offset_max: float,
-        stabilization_threshold: float,
         accumulated_error_threshold: float,
     ):
         self.target_temp: float = target_temp
@@ -32,7 +31,6 @@ class PITemperatureRegulator:
         self.ki: float = ki  # integral gain
         self.k_ext: float = k_ext  # exterior gain
         self.offset_max: float = offset_max
-        self.stabilization_threshold: float = stabilization_threshold
         self.accumulated_error: float = 0
         self.accumulated_error_threshold: float = accumulated_error_threshold
 

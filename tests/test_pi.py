@@ -13,7 +13,6 @@ def test_pi_algorithm_basics():
         ki=0.05,
         k_ext=0.1,
         offset_max=2,
-        stabilization_threshold=0.1,
         accumulated_error_threshold=20,
     )
 
@@ -62,7 +61,6 @@ def test_pi_algorithm_light():
         ki=0.05,
         k_ext=0.1,
         offset_max=2,
-        stabilization_threshold=0.1,
         accumulated_error_threshold=20,
     )
 
@@ -98,7 +96,6 @@ def test_pi_algorithm_medium():
         ki=0.1,
         k_ext=0.1,
         offset_max=3,
-        stabilization_threshold=0.1,
         accumulated_error_threshold=30,
     )
 
@@ -157,7 +154,6 @@ def test_pi_algorithm_strong():
         ki=0.2,
         k_ext=0.2,
         offset_max=4,
-        stabilization_threshold=0.1,
         accumulated_error_threshold=40,
     )
 
