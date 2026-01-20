@@ -14,6 +14,7 @@ def test_pi_algorithm_basics():
         k_ext=0.1,
         offset_max=2,
         accumulated_error_threshold=20,
+        overheat_protection=True,
     )
 
     assert the_algo
@@ -62,6 +63,7 @@ def test_pi_algorithm_light():
         k_ext=0.1,
         offset_max=2,
         accumulated_error_threshold=20,
+        overheat_protection=True,
     )
 
     assert the_algo
@@ -97,6 +99,7 @@ def test_pi_algorithm_medium():
         k_ext=0.1,
         offset_max=3,
         accumulated_error_threshold=30,
+        overheat_protection=True,
     )
 
     assert the_algo
@@ -155,6 +158,7 @@ def test_pi_algorithm_strong():
         k_ext=0.2,
         offset_max=4,
         accumulated_error_threshold=40,
+        overheat_protection=True,
     )
 
     assert the_algo
@@ -203,3 +207,33 @@ def test_pi_algorithm_strong():
     assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
     assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
     assert the_algo.calculate_regulated_temperature(19, 10) == 24.0
+
+
+def test_pi_algorithm_expert():
+    """Test the PI algorithm"""
+
+    the_algo = PITemperatureRegulator(
+        target_temp=20,
+        kp=0.6,
+        ki=0.2,
+        k_ext=0.2,
+        offset_max=4,
+        accumulated_error_threshold=40,
+        overheat_protection=False,
+    )
+
+    assert the_algo
+    the_algo.set_target_temp(20)
+    assert the_algo.calculate_regulated_temperature(18, 10) == 23.2
+    assert the_algo.calculate_regulated_temperature(18.1, 10) == 23.5
+    assert the_algo.calculate_regulated_temperature(18.3, 10) == 23.8
+    assert the_algo.calculate_regulated_temperature(18.5, 10) == 24
+    assert the_algo.calculate_regulated_temperature(18.7, 10) == 24
+    assert the_algo.calculate_regulated_temperature(19, 10) == 24
+    assert the_algo.calculate_regulated_temperature(20, 10) == 23.9
+    assert the_algo.calculate_regulated_temperature(21, 10) == 23.3
+    assert the_algo.calculate_regulated_temperature(21, 10) == 23.1
+    assert the_algo.calculate_regulated_temperature(21, 10) == 22.9
+    assert the_algo.calculate_regulated_temperature(20, 10) == 23.3
+    assert the_algo.calculate_regulated_temperature(19, 10) == 23.9
+    assert the_algo.calculate_regulated_temperature(22, 10) == 22.3

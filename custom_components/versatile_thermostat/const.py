@@ -525,7 +525,7 @@ class RegulationParamSlow:
     accumulated_error_threshold: float = (
         2.0 * 288
     )  # this allows up to 2°C long term offset in both directions
-
+    overheat_protection: bool = True
 
 class RegulationParamLight:
     """Light parameters for regulation"""
@@ -535,6 +535,7 @@ class RegulationParamLight:
     k_ext: float = 0.05
     offset_max: float = 1.5
     accumulated_error_threshold: float = 10
+    overheat_protection: bool = True
 
 
 class RegulationParamMedium:
@@ -545,6 +546,7 @@ class RegulationParamMedium:
     k_ext: float = 0.1
     offset_max: float = 2
     accumulated_error_threshold: float = 20
+    overheat_protection: bool = True
 
 
 class RegulationParamStrong:
@@ -559,6 +561,7 @@ class RegulationParamStrong:
     k_ext: float = 0.0
     offset_max: float = 5
     accumulated_error_threshold: float = 50
+    overheat_protection: bool = True
 
 
 # Not used now
@@ -570,6 +573,7 @@ class RegulationParamVeryStrong:
     k_ext: float = 0.2
     offset_max: float = 8
     accumulated_error_threshold: float = 80
+    overheat_protection: bool = True
 
 
 class EventType(Enum):

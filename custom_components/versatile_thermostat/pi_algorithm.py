@@ -25,6 +25,7 @@ class PITemperatureRegulator:
         k_ext: float,
         offset_max: float,
         accumulated_error_threshold: float,
+        overheat_protection: bool,
     ):
         self.target_temp: float = target_temp
         self.kp: float = kp  # proportionnel gain
@@ -33,6 +34,7 @@ class PITemperatureRegulator:
         self.offset_max: float = offset_max
         self.accumulated_error: float = 0
         self.accumulated_error_threshold: float = accumulated_error_threshold
+        self.overheat_protection: bool = overheat_protection
 
     def reset_accumulated_error(self):
         """Reset the accumulated error"""
@@ -69,7 +71,7 @@ class PITemperatureRegulator:
         # Calculate the sum of error (I)
         # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
         # If the error have change its sign, reset smoothly the accumulated error
-        if error * self.accumulated_error < 0:
+        if self.overheat_protection and error * self.accumulated_error < 0:
             self.accumulated_error = self.accumulated_error / 2.0
 
         self.accumulated_error += error
@@ -93,9 +95,10 @@ class PITemperatureRegulator:
         result = round(self.target_temp + total_offset, 1)
 
         _LOGGER.debug(
-            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
+            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f (overheat protection %s) offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
             error,
             self.accumulated_error,
+            self.overheat_protection,
             offset,
             offset_ext,
             self.target_temp,

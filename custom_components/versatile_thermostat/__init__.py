@@ -29,8 +29,8 @@ SELF_REGULATION_PARAM_SCHEMA = {
     vol.Required("ki"): vol.Coerce(float),
     vol.Required("k_ext"): vol.Coerce(float),
     vol.Required("offset_max"): vol.Coerce(float),
-    vol.Required("stabilization_threshold"): vol.Coerce(float),
     vol.Required("accumulated_error_threshold"): vol.Coerce(float),
+    "overheat_protection": vol.Coerce(bool),
 }
 
 EMA_PARAM_SCHEMA = {

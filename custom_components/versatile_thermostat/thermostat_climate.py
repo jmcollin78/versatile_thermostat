@@ -344,6 +344,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamLight.k_ext,
                 RegulationParamLight.offset_max,
                 RegulationParamLight.accumulated_error_threshold,
+                RegulationParamLight.overheat_protection,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_MEDIUM:
             self._regulation_algo = PITemperatureRegulator(
@@ -353,6 +354,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamMedium.k_ext,
                 RegulationParamMedium.offset_max,
                 RegulationParamMedium.accumulated_error_threshold,
+                RegulationParamMedium.overheat_protection,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_STRONG:
             self._regulation_algo = PITemperatureRegulator(
@@ -362,6 +364,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamStrong.k_ext,
                 RegulationParamStrong.offset_max,
                 RegulationParamStrong.accumulated_error_threshold,
+                RegulationParamStrong.overheat_protection,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_SLOW:
             self._regulation_algo = PITemperatureRegulator(
@@ -371,6 +374,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 RegulationParamSlow.k_ext,
                 RegulationParamSlow.offset_max,
                 RegulationParamSlow.accumulated_error_threshold,
+                RegulationParamSlow.overheat_protection,
             )
         elif self._auto_regulation_mode == CONF_AUTO_REGULATION_EXPERT:
             api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
@@ -385,6 +389,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         expert_param.get("k_ext"),
                         expert_param.get("offset_max"),
                         expert_param.get("accumulated_error_threshold"),
+                        expert_param.get("overheat_protection", True),
                     )
                 else:
                     _LOGGER.error(
@@ -400,7 +405,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         if not self._regulation_algo:
             # A default empty algo (which does nothing)
-            self._regulation_algo = PITemperatureRegulator(self.target_temperature, 0, 0, 0, 0, 0)
+            self._regulation_algo = PITemperatureRegulator(self.target_temperature, 0, 0, 0, 0, 0, True)
 
     def choose_auto_fan_mode(self, auto_fan_mode: str):
         """Choose the correct fan mode depending of the underlying capacities and the configuration"""

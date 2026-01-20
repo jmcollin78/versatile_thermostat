@@ -125,6 +125,7 @@ Les paramètres réglables sont les suivants :
 3. `k_ext` : le facteur appliqué à la différence entre la température intérieure et la température externe,
 4. `offset_max` : le maximum de correction (offset) que la régulation peut appliquer,
 5. `accumulated_error_threshold` : le maximum pour l'accumulation d'erreur.
+6. `overheat_protection`: si activé, divise l'accumulation d'erreur par 2 en cas d'inversion de signe.
 
 Pour le tuning il faut tenir compte de ces observations :
 1. `kp * erreur` va donner l'offset lié à l'erreur brute. Cet offset est directement proportionnel à l'erreur et sera à 0 lorsque la target sera atteinte,
@@ -149,6 +150,7 @@ Light régulation :
     k_ext: 0.05
     offset_max: 1.5
     accumulated_error_threshold: 10
+    overheat_protection: true
 
 
 Medium régulation :
@@ -158,6 +160,7 @@ Medium régulation :
     k_ext: 0.1
     offset_max: 2
     accumulated_error_threshold: 20
+    overheat_protection: true
 
 
 Strong régulation :
@@ -173,6 +176,7 @@ Strong régulation :
     k_ext: 0.0
     offset_max: 5
     accumulated_error_threshold: 50
+    overheat_protection: true
 
 Pour utiliser le mode Expert il vous faut déclarer les valeurs que vous souhaitez utiliser pour chacun de ces paramètres dans votre `configuration.yaml` sous la forme suivante. Exemple de 'Extrem regulation` :
 ```
@@ -183,6 +187,7 @@ versatile_thermostat:
         k_ext: 0.0
         offset_max: 10
         accumulated_error_threshold: 80
+        overheat_protection: true
 ```
 et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les _VTherm_ en mode **Expert** utiliseront ces mêmes paramètres, il n'est pas possible d'avoir plusieurs réglages expert différent.
 
