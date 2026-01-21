@@ -28,6 +28,7 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 
 ## Wydanie 8.6
 > 1. Dodanie parametru `max_opening_degrees` dla termostatów VTherm typu `over_climate_valve` pozwalającego ograniczyć maksymalny procent otwarcia każdego zaworu w celu kontrolowania przepływu gorącej wody i optymalizacji zużycia energii.
+> 2. Dodanie funkcji ponownej kalibracji zaworów dla _VTherm_ `over_climate_valve`, pozwalającej wymusić maksymalne otwarcie, a następnie maksymalne zamknięcie w celu próby ponownej kalibracji TRV. Więcej informacji [tutaj](documentation/pl/feature-recalibrate-valves.md).
 
 ## Wydanie 8.5
 > 1. Dodanie wykrywania awarii ogrzewania dla termostatów VTherm używających algorytmu TPI. Ta funkcja wykrywa dwa typy anomalii:
