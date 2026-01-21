@@ -12,8 +12,8 @@ class PITemperatureRegulator:
     - offset = kp * error + ki * accumulated_error
 
     To use it you must:
-    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, accumulated_error_threshold
-    - call calculate_regulated_temperature with the internal and external temperature
+    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, accumulated_error_threshold, overheat_protection
+    - call calculate_regulated_temperature with the internal, external temperature and time_delta. Time_delta is 1.0 for a standard regulation cycle.
     - call set_target_temp when the target temperature change.
     """
 
@@ -52,7 +52,7 @@ class PITemperatureRegulator:
         # if self.accumulated_error < 0:
         #     self.accumulated_error = 0
 
-    def calculate_regulated_temperature(self, room_temp: float | None, external_temp: float | None):  # pylint: disable=unused-argument
+    def calculate_regulated_temperature(self, room_temp: float | None, external_temp: float | None, time_delta: float):  # pylint: disable=unused-argument
         """Calculate a new target_temp given some temperature"""
         if room_temp is None:
             _LOGGER.warning(
@@ -72,9 +72,9 @@ class PITemperatureRegulator:
         # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
         # If the error have change its sign, reset smoothly the accumulated error
         if self.overheat_protection and error * self.accumulated_error < 0:
-            self.accumulated_error = self.accumulated_error / 2.0
+            self.accumulated_error = self.accumulated_error / (2.0 * time_delta)
 
-        self.accumulated_error += error
+        self.accumulated_error += error * time_delta
 
         # Capping of the error
         self.accumulated_error = min(
@@ -95,10 +95,11 @@ class PITemperatureRegulator:
         result = round(self.target_temp + total_offset, 1)
 
         _LOGGER.debug(
-            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f (overheat protection %s) offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
+            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f (overheat protection %s and delta %.2f) offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
             error,
             self.accumulated_error,
             self.overheat_protection,
+            time_delta,
             offset,
             offset_ext,
             self.target_temp,

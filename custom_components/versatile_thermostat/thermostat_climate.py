@@ -191,11 +191,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         regulation_step = self._auto_regulation_dtemp if self._auto_regulation_dtemp else self._attr_target_temperature_step
         _LOGGER.debug("%s - usage regulation_step: %.2f ", self, regulation_step)
 
+        # Find time delta since last regulation change
+        time_delta: float = (
+            (self.now - self._last_regulation_change).total_seconds() / 60.0 / self._auto_regulation_period_min
+            if self._last_regulation_change and self._auto_regulation_period_min
+            else 1.0
+        )
+        _LOGGER.debug("%s - usage time_delta: %.2f ", self, time_delta)
+
         if self.current_temperature is not None:
             new_regulated_temp = round_to_nearest(
-                self._regulation_algo.calculate_regulated_temperature(
-                    self.current_temperature, self._cur_ext_temp
-                ),
+                self._regulation_algo.calculate_regulated_temperature(self.current_temperature, self._cur_ext_temp, time_delta),
                 regulation_step,
             )
         else:
