@@ -360,7 +360,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Read the parameter from configuration.yaml if it exists
         short_ema_params = DEFAULT_SHORT_EMA_PARAMS
-        if api is not None and api.short_ema_params:
+        if api and api.short_ema_params:
             short_ema_params = api.short_ema_params
 
         self._ema_algo = ExponentialMovingAverage(

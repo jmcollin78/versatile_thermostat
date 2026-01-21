@@ -380,7 +380,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(
                 self._hass
             )
-            if api is not None:
+            if api:
                 if (expert_param := api.self_regulation_expert) is not None:
                     self._regulation_algo = PITemperatureRegulator(
                         self.target_temperature,
