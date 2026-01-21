@@ -126,8 +126,8 @@ Les paramètres réglables sont les suivants :
 2. `ki` : le facteur appliqué à l'accumulation des erreurs,
 3. `k_ext` : le facteur appliqué à la différence entre la température intérieure et la température externe,
 4. `offset_max` : le maximum de correction (offset) que la régulation peut appliquer,
-5. `stabilization_threshold` : un seuil de stabilisation qui lorsqu'il est atteint par l'erreur remet à 0, l'accumulation des erreurs,
-6. `accumulated_error_threshold` : le maximum pour l'accumulation d'erreur.
+5. `accumulated_error_threshold` : le maximum pour l'accumulation d'erreur.
+6. `overheat_protection`: si activé, divise l'accumulation d'erreur par 2 en cas d'inversion de signe.
 
 Pour le tuning il faut tenir compte de ces observations :
 1. `kp * erreur` va donner l'offset lié à l'erreur brute. Cet offset est directement proportionnel à l'erreur et sera à 0 lorsque la target sera atteinte,
@@ -143,7 +143,6 @@ Slow régulation :
     ki: 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
     k_ext: 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: 2.0  # limit to a final offset of -2°C to +2°C
-    stabilization_threshold: 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
     accumulated_error_threshold: 2.0 * 288  # this allows up to 2°C long term offset in both directions
 
 Light régulation :
@@ -152,8 +151,8 @@ Light régulation :
     ki: 0.05
     k_ext: 0.05
     offset_max: 1.5
-    stabilization_threshold: 0.1
     accumulated_error_threshold: 10
+    overheat_protection: true
 
 
 Medium régulation :
@@ -162,8 +161,8 @@ Medium régulation :
     ki: 0.05
     k_ext: 0.1
     offset_max: 2
-    stabilization_threshold: 0.1
     accumulated_error_threshold: 20
+    overheat_protection: true
 
 
 Strong régulation :
@@ -178,8 +177,8 @@ Strong régulation :
     ki: 0.08
     k_ext: 0.0
     offset_max: 5
-    stabilization_threshold: 0.1
     accumulated_error_threshold: 50
+    overheat_protection: true
 
 Pour utiliser le mode Expert il vous faut déclarer les valeurs que vous souhaitez utiliser pour chacun de ces paramètres dans votre `configuration.yaml` sous la forme suivante. Exemple de 'Extrem regulation` :
 ```
@@ -189,8 +188,8 @@ versatile_thermostat:
         ki: 0.1
         k_ext: 0.0
         offset_max: 10
-        stabilization_threshold: 0.1
         accumulated_error_threshold: 80
+        overheat_protection: true
 ```
 et bien sur, configurer le mode auto-régulation du VTherm en mode Expert. Tous les _VTherm_ en mode **Expert** utiliseront ces mêmes paramètres, il n'est pas possible d'avoir plusieurs réglages expert différent.
 
