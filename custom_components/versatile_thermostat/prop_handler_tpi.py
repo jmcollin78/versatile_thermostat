@@ -570,7 +570,7 @@ class TPIHandler:
             if t.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
                 await self._auto_tpi_manager.start_cycle_loop(
                     self._get_tpi_data,
-                    self._on_tpi_cycle_start
+                    t._on_prop_cycle_start
                 )
         else:
             await self._auto_tpi_manager.stop_learning()

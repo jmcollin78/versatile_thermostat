@@ -16,6 +16,7 @@ from custom_components.versatile_thermostat.auto_tpi_manager import (
 from custom_components.versatile_thermostat.const import (
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
+    CONF_AUTO_TPI_HEATING_POWER,
 )
 
 import logging
@@ -396,3 +397,55 @@ async def test_initialization_reset_bug(manager):
     # If the bug is present, this will fail (it will be 0.5 and 0.02)
     assert manager.state.coeff_indoor_heat == new_target_int
     assert manager.state.coeff_outdoor_heat == new_target_ext
+
+async def test_persistence_overrides_config_on_startup(mock_hass):
+    """Test that valid persisted capacity is NOT overwritten by configuration on startup."""
+    
+    # 1. Setup Config with a specific heating rate (e.g. 1000)
+    config_entry = MagicMock()
+    config_entry.data = {
+        CONF_AUTO_TPI_HEATING_POWER: 1000,
+    }
+    
+    # 2. Setup Persistence with a DIFFERENT capacity (e.g. 1500)
+    # this simulates a learned capacity that is different from config
+    persisted_state = AutoTpiState()
+    persisted_state.max_capacity_heat = 1500.0
+    persisted_state.capacity_heat_learn_count = 10 # Learned
+    persisted_state.autolearn_enabled = True # Simulate active learning
+    
+    # Mock Store
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.Store") as MockStore:
+        mock_store_instance = MockStore.return_value
+        mock_store_instance.async_load = AsyncMock(return_value=persisted_state.to_dict())
+        mock_store_instance.async_save = AsyncMock()
+
+        # 3. Initialize Manager
+        manager = AutoTpiManager(
+            hass=mock_hass,
+            config_entry=config_entry,
+            unique_id="test_unique_id",
+            name="Test Thermostat",
+            cycle_min=5,
+            heating_rate=1000, # Configured rate
+            tpi_threshold_low=0.1,
+            tpi_threshold_high=1.0,
+            heater_heating_time=5,
+            heater_cooling_time=5,
+        )
+        
+        # 4. Trigger Load Data
+        await manager.async_load_data()
+        
+        # 5. Assertions
+        # CURRENT BUG: It overwrites 1500 with 1000 because learning is active and config != persistence
+        # EXPECTED FIX: It should keep 1500
+        
+        print(f"DEBUG: Configured Rate: {manager._heating_rate}")
+        print(f"DEBUG: Persisted State Capacity: {manager.state.max_capacity_heat}")
+        
+        # This assert demonstrates what we WANT. 
+        # If the bug exists, this might fail (it will be 1000).
+        assert manager.state.max_capacity_heat == 1500.0, \
+            f"Expected persisted capacity 1500.0, but got {manager.state.max_capacity_heat}"
+

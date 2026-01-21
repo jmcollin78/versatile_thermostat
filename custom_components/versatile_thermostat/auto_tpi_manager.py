@@ -499,13 +499,23 @@ class AutoTpiManager(CycleManager):
                 self.state.max_capacity_heat = 0.0
                 self.state.capacity_heat_learn_count = 0
             elif is_capacity_heat_outdated and self._heating_rate > 0.0:
-                _LOGGER.info(
-                    "%s - Auto TPI: Overwriting persisted max_capacity_heat (%.3f) with new configured value (%.3f) on load.",
-                    self._name,
-                    self.state.max_capacity_heat,
-                    self._heating_rate,
-                )
-                self.state.max_capacity_heat = self._heating_rate
+                if self.state.max_capacity_heat == 0.0:
+                    _LOGGER.info(
+                        "%s - Auto TPI: Overwriting persisted max_capacity_heat (0.000) with new configured value (%.3f) on load.",
+                        self._name,
+                        self._heating_rate,
+                    )
+                    self.state.max_capacity_heat = self._heating_rate
+                    self.state.capacity_heat_learn_count = 3  # Assume learned if we take config value
+                else:
+                    _LOGGER.info(
+                        "%s - Auto TPI: Persisted max_capacity_heat (%.3f) differs from config (%.3f). Keeping persisted value.",
+                        self._name,
+                        self.state.max_capacity_heat,
+                        self._heating_rate,
+                    )
+                    # Sync the effective rate to the persisted one
+                    self._heating_rate = self.state.max_capacity_heat
 
             # Handle capacity reset for cooling mode
             if self._cooling_rate == 0.0 and self.state.max_capacity_cool > 0.0:
@@ -517,13 +527,23 @@ class AutoTpiManager(CycleManager):
                 self.state.max_capacity_cool = 0.0
                 # Note: capacity_cool_learn_count does not exist, cooling bootstrap uses different logic
             elif is_capacity_cool_outdated and self._cooling_rate > 0.0:
-                _LOGGER.info(
-                    "%s - Auto TPI: Overwriting persisted max_capacity_cool (%.3f) with new configured value (%.3f) on load.",
-                    self._name,
-                    self.state.max_capacity_cool,
-                    self._cooling_rate,
-                )
-                self.state.max_capacity_cool = self._cooling_rate
+                # Same logic for cooling capacity
+                if self.state.max_capacity_cool == 0.0:
+                    _LOGGER.info(
+                        "%s - Auto TPI: Overwriting persisted max_capacity_cool (0.000) with new configured value (%.3f) on load.",
+                        self._name,
+                        self._cooling_rate,
+                    )
+                    self.state.max_capacity_cool = self._cooling_rate
+                else:
+                    _LOGGER.info(
+                        "%s - Auto TPI: Persisted max_capacity_cool (%.3f) differs from config (%.3f). Keeping persisted value.",
+                        self._name,
+                        self.state.max_capacity_cool,
+                        self._cooling_rate,
+                    )
+                    # Sync the effective rate to the persisted one
+                    self._cooling_rate = self.state.max_capacity_cool
 
             if is_capacity_heat_outdated or is_capacity_cool_outdated:
                 await self.async_save_data()  # Save the new correct config value
@@ -1350,6 +1370,9 @@ class AutoTpiManager(CycleManager):
 
     def _should_learn_capacity(self) -> bool:
         """Check if capacity learning should occur this cycle."""
+        if not self.learning_active:
+             _LOGGER.debug("%s - Not learning capacity: learning is disabled", self._name)
+             return False
         
         # Determine if we are in bootstrap
         in_bootstrap = (
@@ -2807,15 +2830,6 @@ class AutoTpiManager(CycleManager):
         target_int = coef_int if coef_int is not None else self._default_coef_int
         target_ext = coef_ext if coef_ext is not None else self._default_coef_ext
 
-        # Force a reset if we are starting a new session (was stopped)
-        # This ensures that we restart with the configured coefficients
-        if not self.state.autolearn_enabled and not reset_data:
-            _LOGGER.info(
-                "%s - Auto TPI: Starting new session (was stopped), forcing reset of data",
-                self._name,
-            )
-            reset_data = True
-
         if reset_data:
             _LOGGER.info("%s - Auto TPI: Starting learning with coef_int=%.3f, coef_ext=%.3f (resetting all data)", self._name, target_int, target_ext)
 
@@ -2856,6 +2870,18 @@ class AutoTpiManager(CycleManager):
                 self.state.capacity_heat_learn_count = 0
                 self.state.bootstrap_failure_count = 0
         else:
+            # If start_learning is called with explicit target values that differ from defaults,
+            # apply them as an update to the current state, even without a full reset.
+            if coef_int is not None and abs(coef_int - self._default_coef_int) > 0.001:
+                _LOGGER.info("%s - Auto TPI: Updating Kint to %.3f (Manual override in resume)", self._name, target_int)
+                self.state.coeff_indoor_heat = target_int
+                self.state.coeff_indoor_cool = target_int
+
+            if coef_ext is not None and abs(coef_ext - self._default_coef_ext) > 0.001:
+                _LOGGER.info("%s - Auto TPI: Updating Kext to %.3f (Manual override in resume)", self._name, target_ext)
+                self.state.coeff_outdoor_heat = target_ext
+                self.state.coeff_outdoor_cool = target_ext
+
             _LOGGER.info(
                 "%s - Auto TPI: Resuming learning with existing data (coef_int=%.3f, coef_ext=%.3f, cycles=%d)",
                 self._name,
