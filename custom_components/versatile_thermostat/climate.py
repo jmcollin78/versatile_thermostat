@@ -211,3 +211,12 @@ async def async_setup_entry(
         "service_cancel_timed_preset",
     )
 
+    platform.async_register_entity_service(
+        SERVICE_RECALIBRATE_VALVES,
+        {
+            vol.Required("delay_seconds"): vol.All(vol.Coerce(int), vol.Range(min=0, max=300)),
+        },
+        "service_recalibrate_valves",
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+

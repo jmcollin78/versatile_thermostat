@@ -28,6 +28,7 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 
 ## Release 8.6
 > 1. added `max_opening_degrees` parameter for `over_climate_valve` VTherms allowing to limit the maximum opening percentage of each valve to control hot water flow and optimize energy consumption or other use cases.
+> 2. added a valve recalibration function for an _VTherm_ `over_climate_valve` allowing to force a maximum opening then a maximum closing to attempt recalibration of a TRV. More information [here](documentation/en/feature-recalibrate-valves.md).
 
 ## Release 8.5
 > 1. added heating failure detection for VTherms using the TPI algorithm. This feature detects two types of anomalies:
