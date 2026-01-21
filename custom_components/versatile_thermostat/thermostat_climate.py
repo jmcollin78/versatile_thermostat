@@ -160,6 +160,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
             )
+            # In this case, reset the timer of last regulation change to avoid time delta too high
+            self._last_regulation_change = self.now
             return
 
         if self.target_temperature is None:

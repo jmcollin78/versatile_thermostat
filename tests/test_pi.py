@@ -273,3 +273,4 @@ def test_pi_algorithm_time_delta():
     assert the_algo.calculate_regulated_temperature(25.8, 18, 0.5) == 25.6
     assert the_algo.calculate_regulated_temperature(25, 15, 1.0) == 25.8
     assert the_algo.calculate_regulated_temperature(25, 15, 1.0) == 25.4
+    assert the_algo.calculate_regulated_temperature(25, 15, 10.0) == 25.2  # miss 9 cycles, capped

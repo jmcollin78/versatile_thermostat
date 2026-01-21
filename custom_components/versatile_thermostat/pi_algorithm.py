@@ -64,6 +64,12 @@ class PITemperatureRegulator:
                 "Temporarily skipping the self-regulation algorithm while the configured sensor for outdoor temperature is unavailable"
             )
             return self.target_temp
+        if time_delta > 2.0:
+            _LOGGER.info(
+                "The time delta (%.2f) is too high for the self-regulation algorithm. Capping to 1.0.",
+                time_delta,
+            )
+            time_delta = 1.0
 
         # Calculate the error factor (P)
         error = self.target_temp - room_temp
